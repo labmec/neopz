@@ -93,13 +93,15 @@
 <li class="toctree-l1"><a class="reference internal" href="../material/index.html">The Material hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../structmatrix/index.html">The StructMatrix hierarchy</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">The Solver hierarchy</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#tpzsolver">TPZSolver</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#tpzmatrixsolver">TPZMatrixSolver</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#further-documentation">Further documentation</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#tpzsolver">TPZSolver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tpzmatrixsolver">TPZMatrixSolver</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#further-documentation-on-tpzmatrixsolver">Further documentation on TPZMatrixSolver</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tpzstepsolver">TPZStepSolver</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tpzpardisosolver">TPZPardisoSolver</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tpzeigensolver">TPZEigenSolver</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tpzlapackeigensolver">TPZLapackEigenSolver</a></li>
 </ul>
 </li>
 </ul>
@@ -179,15 +181,17 @@
 <div class="contents local topic" id="table-of-contents">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#tpzsolver" id="id1">TPZSolver</a></p>
-<ul>
+<li><p><a class="reference internal" href="#tpzsolver" id="id1">TPZSolver</a></p></li>
 <li><p><a class="reference internal" href="#tpzmatrixsolver" id="id2">TPZMatrixSolver</a></p>
 <ul>
-<li><p><a class="reference internal" href="#further-documentation" id="id3">Further documentation</a></p></li>
-</ul>
-</li>
+<li><p><a class="reference internal" href="#further-documentation-on-tpzmatrixsolver" id="id3">Further documentation on TPZMatrixSolver</a></p></li>
 <li><p><a class="reference internal" href="#tpzstepsolver" id="id4">TPZStepSolver</a></p></li>
 <li><p><a class="reference internal" href="#tpzpardisosolver" id="id5">TPZPardisoSolver</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#tpzeigensolver" id="id6">TPZEigenSolver</a></p>
+<ul>
+<li><p><a class="reference internal" href="#tpzlapackeigensolver" id="id7">TPZLapackEigenSolver</a></p></li>
 </ul>
 </li>
 </ul>
@@ -199,12 +203,12 @@
 <p class="admonition-title">Note</p>
 <p>Since the availability of a given solver might depend on the chosen matrix storage format, the choice of solver is directly connected with the choice of <a class="reference internal" href="../structmatrix/structoptions.html"><span class="doc">Available Structural Matrices</span></a>. Currently this only applies for the class <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0E16TPZPardisoSolver" title="TPZPardisoSolver"><span class="n">TPZPardisoSolver</span></a></span>, which is only compatible with sparse matrix storage.</p>
 </div>
-<p>The NeoPZ solvers can be divided in two main groups: the <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZMatrixSolver</span></span> hierarchy, for solving algebraic equation systems, and the (soon to be implemented) solvers for eigenvalue problems.</p>
+<p>The NeoPZ solvers can be divided in two main groups: the <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZMatrixSolver</span></span> hierarchy, for solving algebraic equation systems, and the <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver"><span class="n">TPZEigenSolver</span></a></span> hierarchy that implements solvers for eigenvalue problems.</p>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv49TPZSolver">
 <span id="_CPPv39TPZSolver"></span><span id="_CPPv29TPZSolver"></span><span id="TPZSolver"></span><span class="target" id="classTPZSolver"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZSolver</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><a class="headerlink" href="#_CPPv49TPZSolver" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Defines a abstract class of solvers which will be used by matrix classes. </p>
-<p>Subclassed by <a class="reference internal" href="#classTPZMatrixSolver"><span class="std std-ref">TPZMatrixSolver&lt; TVar &gt;</span></a></p>
+<p>Subclassed by <a class="reference internal" href="#classTPZEigenSolver"><span class="std std-ref">TPZEigenSolver&lt; TVar &gt;</span></a>, <a class="reference internal" href="#classTPZMatrixSolver"><span class="std std-ref">TPZMatrixSolver&lt; TVar &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
@@ -234,8 +238,9 @@
 </div>
 </dd></dl>
 
+</div>
 <div class="section" id="tpzmatrixsolver">
-<h3><a class="toc-backref" href="#id2">TPZMatrixSolver</a><a class="headerlink" href="#tpzmatrixsolver" title="Permalink to this headline">¶</a></h3>
+<h2><a class="toc-backref" href="#id2">TPZMatrixSolver</a><a class="headerlink" href="#tpzmatrixsolver" title="Permalink to this headline">¶</a></h2>
 <p>The <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZMatrixSolver</span></span> represents a solver for algebraic equation systems in which the matrix has entries with the type <code class="xref cpp cpp-type docutils literal notranslate"><span class="pre">TVar</span></code>, where <span class="cpp-expr sig sig-inline cpp"><span class="n">TVar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">STATE</span></span>, for real problems, and <span class="cpp-expr sig sig-inline cpp"><span class="n">TVar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CSTATE</span></span>, for complex problems.</p>
 <p>The available solvers are</p>
 <dl class="cpp enum">
@@ -298,8 +303,8 @@
 
 </dd></dl>
 
-<div class="section" id="further-documentation">
-<h4><a class="toc-backref" href="#id3">Further documentation</a><a class="headerlink" href="#further-documentation" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="further-documentation-on-tpzmatrixsolver">
+<h3><a class="toc-backref" href="#id3">Further documentation on TPZMatrixSolver</a><a class="headerlink" href="#further-documentation-on-tpzmatrixsolver" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E15TPZMatrixSolver">
 <span id="_CPPv3I0E15TPZMatrixSolver"></span><span id="_CPPv2I0E15TPZMatrixSolver"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZMatrixSolver"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatrixSolver</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49TPZSolver" title="TPZSolver"><span class="n"><span class="pre">TPZSolver</span></span></a><a class="headerlink" href="#_CPPv4I0E15TPZMatrixSolver" title="Permalink to this definition">¶</a><br /></dt>
@@ -486,7 +491,6 @@
 </div>
 </dd></dl>
 
-</div>
 </div>
 <div class="section" id="tpzstepsolver">
 <h3><a class="toc-backref" href="#id4">TPZStepSolver</a><a class="headerlink" href="#tpzstepsolver" title="Permalink to this headline">¶</a></h3>
@@ -774,6 +778,280 @@ so it should be used with either <span class="cpp-expr sig sig-inline cpp"><a cl
 <dt class="sig sig-object cpp" id="_CPPv4NK16TPZPardisoSolver5CloneEv">
 <span id="_CPPv3NK16TPZPardisoSolver5CloneEv"></span><span id="_CPPv2NK16TPZPardisoSolver5CloneEv"></span><span id="TPZPardisoSolver::CloneC"></span><span class="target" id="classTPZPardisoSolver_1a81d1186a2ab688522f723ca235bb974b"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0E16TPZPardisoSolver" title="TPZPardisoSolver"><span class="n"><span class="pre">TPZPardisoSolver</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E16TPZPardisoSolver" title="TPZPardisoSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Clone</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK16TPZPardisoSolver5CloneEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Clones the current object returning a pointer of type <a class="reference internal" href="#classTPZSolver"><span class="std std-ref">TPZSolver</span></a>. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="tpzeigensolver">
+<h2><a class="toc-backref" href="#id6">TPZEigenSolver</a><a class="headerlink" href="#tpzeigensolver" title="Permalink to this headline">¶</a></h2>
+<p>This class defines the interface for the NeoPZ solvers for eigenvalue problems. It will soon be complemented with an appropriated <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZAnalysis</span></span> class.</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I0E14TPZEigenSolver">
+<span id="_CPPv3I0E14TPZEigenSolver"></span><span id="_CPPv2I0E14TPZEigenSolver"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZEigenSolver"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZEigenSolver</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv49TPZSolver" title="TPZSolver"><span class="n"><span class="pre">TPZSolver</span></span></a><a class="headerlink" href="#_CPPv4I0E14TPZEigenSolver" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Defines an interface for eigenvalue problems solvers. </p>
+<p>Subclassed by <a class="reference internal" href="#classTPZLapackEigenSolver"><span class="std std-ref">TPZLapackEigenSolver&lt; TVar &gt;</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-eigen">Eigen</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14TPZEigenSolver17SolveEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE">
+<span id="_CPPv3N14TPZEigenSolver17SolveEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE"></span><span id="_CPPv2N14TPZEigenSolver17SolveEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE"></span><span id="TPZEigenSolver::SolveEigenProblem__TPZVec:CTVar:R.TPZFMatrix:CTVar:R"></span><span class="target" id="classTPZEigenSolver_1a338e860e451ff515b3914985a7c52be3"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">eigenVectors</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N14TPZEigenSolver17SolveEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> – <strong>[out]</strong> Stores the eigenvalues </p></li>
+<li><p><strong>eigenVectors</strong> – <strong>[out]</strong> Stores the correspondent eigenvectors </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Returns 1 if executed correctly </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14TPZEigenSolver17SolveEigenProblemER6TPZVecI5CTVarE">
+<span id="_CPPv3N14TPZEigenSolver17SolveEigenProblemER6TPZVecI5CTVarE"></span><span id="_CPPv2N14TPZEigenSolver17SolveEigenProblemER6TPZVecI5CTVarE"></span><span id="TPZEigenSolver::SolveEigenProblem__TPZVec:CTVar:R"></span><span class="target" id="classTPZEigenSolver_1a337272aa30612ec3742a86e6830ad8fc"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N14TPZEigenSolver17SolveEigenProblemER6TPZVecI5CTVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the Ax=w*x eigenvalue problem and does not calculate the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w</strong> – <strong>[out]</strong> Stores the eigenvalues </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Returns 1 if executed correctly </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14TPZEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE">
+<span id="_CPPv3N14TPZEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE"></span><span id="_CPPv2N14TPZEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE"></span><span id="TPZEigenSolver::SolveGeneralisedEigenProblem__TPZVec:CTVar:R.TPZFMatrix:CTVar:R"></span><span class="target" id="classTPZEigenSolver_1a6feb8b9cd8c1b9ac18893a7dab4588b8"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveGeneralisedEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">eigenVectors</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N14TPZEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> – <strong>[out]</strong> Stores the eigenvalues </p></li>
+<li><p><strong>eigenVectors</strong> – <strong>[out]</strong> Stores the correspondent eigenvectors </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Returns 1 if executed correctly </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14TPZEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarE">
+<span id="_CPPv3N14TPZEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarE"></span><span id="_CPPv2N14TPZEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarE"></span><span id="TPZEigenSolver::SolveGeneralisedEigenProblem__TPZVec:CTVar:R"></span><span class="target" id="classTPZEigenSolver_1a1200bad0ced958e661fb6588a71a9e71"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveGeneralisedEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N14TPZEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the generalised Ax=w*B*x eigenvalue problem and does not calculates the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w</strong> – <strong>[out]</strong> Stores the eigenvalues </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Returns 1 if executed correctly </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14TPZEigenSolver7MatrixAEv">
+<span id="_CPPv3N14TPZEigenSolver7MatrixAEv"></span><span id="_CPPv2N14TPZEigenSolver7MatrixAEv"></span><span id="TPZEigenSolver::MatrixA"></span><span class="target" id="classTPZEigenSolver_1ab478e8268372d0c92f7be814cc1b7351"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MatrixA</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14TPZEigenSolver7MatrixAEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Gets the Matrix A. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14TPZEigenSolver7MatrixBEv">
+<span id="_CPPv3N14TPZEigenSolver7MatrixBEv"></span><span id="_CPPv2N14TPZEigenSolver7MatrixBEv"></span><span id="TPZEigenSolver::MatrixB"></span><span class="target" id="classTPZEigenSolver_1ad1aba8ff7bebe1ebdb979dcc3112e8ce"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MatrixB</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14TPZEigenSolver7MatrixBEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Gets the Matrix B(for generalised eigenvalue problems) </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14TPZEigenSolver10SetMatrixAE14TPZAutoPointerI9TPZMatrixI4TVarEE">
+<span id="_CPPv3N14TPZEigenSolver10SetMatrixAE14TPZAutoPointerI9TPZMatrixI4TVarEE"></span><span id="_CPPv2N14TPZEigenSolver10SetMatrixAE14TPZAutoPointerI9TPZMatrixI4TVarEE"></span><span id="TPZEigenSolver::SetMatrixA__TPZAutoPointer:TPZMatrix:TVar::"></span><span class="target" id="classTPZEigenSolver_1aa96de0270c18a1353f63d0a9280bf247"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetMatrixA</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mat</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14TPZEigenSolver10SetMatrixAE14TPZAutoPointerI9TPZMatrixI4TVarEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sets the Matrix A. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14TPZEigenSolver10SetMatrixBE14TPZAutoPointerI9TPZMatrixI4TVarEE">
+<span id="_CPPv3N14TPZEigenSolver10SetMatrixBE14TPZAutoPointerI9TPZMatrixI4TVarEE"></span><span id="_CPPv2N14TPZEigenSolver10SetMatrixBE14TPZAutoPointerI9TPZMatrixI4TVarEE"></span><span id="TPZEigenSolver::SetMatrixB__TPZAutoPointer:TPZMatrix:TVar::"></span><span class="target" id="classTPZEigenSolver_1a1ed48834e3cc5617b4b13faa1401a409"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetMatrixB</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mat</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14TPZEigenSolver10SetMatrixBE14TPZAutoPointerI9TPZMatrixI4TVarEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sets the Matrix B (for generalised eigenvalue problems) </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK14TPZEigenSolver13IsGeneralisedEv">
+<span id="_CPPv3NK14TPZEigenSolver13IsGeneralisedEv"></span><span id="_CPPv2NK14TPZEigenSolver13IsGeneralisedEv"></span><span id="TPZEigenSolver::IsGeneralisedC"></span><span class="target" id="classTPZEigenSolver_1a3070ca45e0fedafb4faf08ef25af72dd"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsGeneralised</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK14TPZEigenSolver13IsGeneralisedEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Whether the solver is set for a generalised eigenvalue problem. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14TPZEigenSolver16SetAsGeneralisedEb">
+<span id="_CPPv3N14TPZEigenSolver16SetAsGeneralisedEb"></span><span id="_CPPv2N14TPZEigenSolver16SetAsGeneralisedEb"></span><span id="TPZEigenSolver::SetAsGeneralised__b"></span><span class="target" id="classTPZEigenSolver_1ac3cbf05b058e45fa148f9cd7288c2269"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetAsGeneralised</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">isGeneralised</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14TPZEigenSolver16SetAsGeneralisedEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Configure the solver to solve a generalised eigenvalue problem. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<div class="section" id="tpzlapackeigensolver">
+<h3><a class="toc-backref" href="#id7">TPZLapackEigenSolver</a><a class="headerlink" href="#tpzlapackeigensolver" title="Permalink to this headline">¶</a></h3>
+<p>This class acts as a wrapper over LAPACK calls that can be used for solving eigenvalue problems. It supports <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZFMatrix</span></span> and <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZSBMatrix</span></span>, therefore it can only be used with the structural matrices <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../structmatrix/structoptions.html#_CPPv4I00E16TPZFStructMatrix" title="TPZFStructMatrix"><span class="n">TPZFStructMatrix</span></a></span> and <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../structmatrix/structoptions.html#_CPPv4I00E20TPZSBandStructMatrix" title="TPZSBandStructMatrix"><span class="n">TPZSBandStructMatrix</span></a></span>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This class is also used internally by the <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZFMatrix</span></span> and <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZSBMatrix</span></span> classes, thus the specific (and protected) interfaces.</p>
+</div>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I0E20TPZLapackEigenSolver">
+<span id="_CPPv3I0E20TPZLapackEigenSolver"></span><span id="_CPPv2I0E20TPZLapackEigenSolver"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZLapackEigenSolver"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZLapackEigenSolver</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver"><span class="n"><span class="pre">TPZEigenSolver</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZLapackEigenSolver" title="TPZLapackEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E20TPZLapackEigenSolver" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Defines an interface for using LAPACK to solve eigenvalue problems. </p>
+<p><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This class is only compatible with TPZFMatrix and TPZSBMatrix classes. </p>
+</div>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-eigen">Eigen</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20TPZLapackEigenSolver17SolveEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE">
+<span id="_CPPv3N20TPZLapackEigenSolver17SolveEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE"></span><span id="_CPPv2N20TPZLapackEigenSolver17SolveEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE"></span><span id="TPZLapackEigenSolver::SolveEigenProblem__TPZVec:CTVar:R.TPZFMatrix:CTVar:R"></span><span class="target" id="classTPZLapackEigenSolver_1adb0a9ce78ada5a5a208a67b55948cdd2"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">eigenVectors</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N20TPZLapackEigenSolver17SolveEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> – <strong>[out]</strong> Stores the eigenvalues </p></li>
+<li><p><strong>eigenVectors</strong> – <strong>[out]</strong> Stores the correspondent eigenvectors </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Returns info param from LAPACK(0 if executed correctly) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20TPZLapackEigenSolver17SolveEigenProblemER6TPZVecI5CTVarE">
+<span id="_CPPv3N20TPZLapackEigenSolver17SolveEigenProblemER6TPZVecI5CTVarE"></span><span id="_CPPv2N20TPZLapackEigenSolver17SolveEigenProblemER6TPZVecI5CTVarE"></span><span id="TPZLapackEigenSolver::SolveEigenProblem__TPZVec:CTVar:R"></span><span class="target" id="classTPZLapackEigenSolver_1afb064b8557f135459185d5245087e169"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N20TPZLapackEigenSolver17SolveEigenProblemER6TPZVecI5CTVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the Ax=w*x eigenvalue problem and does not calculate the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w</strong> – <strong>[out]</strong> Stores the eigenvalues </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Returns info param from LAPACK(0 if executed correctly) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE">
+<span id="_CPPv3N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE"></span><span id="_CPPv2N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE"></span><span id="TPZLapackEigenSolver::SolveGeneralisedEigenProblem__TPZVec:CTVar:R.TPZFMatrix:CTVar:R"></span><span class="target" id="classTPZLapackEigenSolver_1af57ca9e802dba6e2a8cbdd5e2302d9ed"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveGeneralisedEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">eigenVectors</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarER10TPZFMatrixI5CTVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> – <strong>[out]</strong> Stores the eigenvalues </p></li>
+<li><p><strong>eigenVectors</strong> – <strong>[out]</strong> Stores the correspondent eigenvectors </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Returns info param from LAPACK(0 if executed correctly) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarE">
+<span id="_CPPv3N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarE"></span><span id="_CPPv2N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarE"></span><span id="TPZLapackEigenSolver::SolveGeneralisedEigenProblem__TPZVec:CTVar:R"></span><span class="target" id="classTPZLapackEigenSolver_1a5bb418e88643a79303dae3524a2b9d34"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveGeneralisedEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER6TPZVecI5CTVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the generalised Ax=w*B*x eigenvalue problem and does not calculates the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w</strong> – <strong>[out]</strong> Stores the eigenvalues </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Returns info param from LAPACK(0 if executed correctly) </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-eigenfmatrix">EigenFMatrix</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20TPZLapackEigenSolver17SolveEigenProblemER10TPZFMatrixI4TVarER6TPZVecI5CTVarE">
+<span id="_CPPv3N20TPZLapackEigenSolver17SolveEigenProblemER10TPZFMatrixI4TVarER6TPZVecI5CTVarE"></span><span id="_CPPv2N20TPZLapackEigenSolver17SolveEigenProblemER10TPZFMatrixI4TVarER6TPZVecI5CTVarE"></span><span id="TPZLapackEigenSolver::SolveEigenProblem__TPZFMatrix:TVar:R.TPZVec:CTVar:R"></span><span class="target" id="classTPZLapackEigenSolver_1a0e78e26ffa29194e35689726f7abef44"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZLapackEigenSolver" title="TPZLapackEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">A</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20TPZLapackEigenSolver17SolveEigenProblemER10TPZFMatrixI4TVarER6TPZVecI5CTVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w</strong> – Stores the eigenvalues </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER6TPZVecI5CTVarER10TPZFMatrixI5CTVarEb">
+<span id="_CPPv3N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER6TPZVecI5CTVarER10TPZFMatrixI5CTVarEb"></span><span id="_CPPv2N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER6TPZVecI5CTVarER10TPZFMatrixI5CTVarEb"></span><span id="TPZLapackEigenSolver::SolveGeneralisedEigenProblem__TPZFMatrix:TVar:R.TPZFMatrix:TVar:R.TPZVec:CTVar:R.TPZFMatrix:CTVar:R.b"></span><span class="target" id="classTPZLapackEigenSolver_1a8e00745af2c69da19e79ac4700b45d1e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveGeneralisedEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZLapackEigenSolver" title="TPZLapackEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">A</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZLapackEigenSolver" title="TPZLapackEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">B</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">eigenVectors</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">calcVectors</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER6TPZVecI5CTVarER10TPZFMatrixI5CTVarEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> – Stores the eigenvalues </p></li>
+<li><p><strong>Stores</strong> – the correspondent eigenvectors </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER6TPZVecI5CTVarE">
+<span id="_CPPv3N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER6TPZVecI5CTVarE"></span><span id="_CPPv2N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER6TPZVecI5CTVarE"></span><span id="TPZLapackEigenSolver::SolveGeneralisedEigenProblem__TPZFMatrix:TVar:R.TPZFMatrix:TVar:R.TPZVec:CTVar:R"></span><span class="target" id="classTPZLapackEigenSolver_1a639fffb52281d50d2ea9dbff55d2d313"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveGeneralisedEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZLapackEigenSolver" title="TPZLapackEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">A</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZLapackEigenSolver" title="TPZLapackEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">B</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER6TPZVecI5CTVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w</strong> – Stores the eigenvalues </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-eigensbmatrix">EigenSBMatrix</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20TPZLapackEigenSolver17SolveEigenProblemER11TPZSBMatrixI4TVarER6TPZVecI5CTVarE">
+<span id="_CPPv3N20TPZLapackEigenSolver17SolveEigenProblemER11TPZSBMatrixI4TVarER6TPZVecI5CTVarE"></span><span id="_CPPv2N20TPZLapackEigenSolver17SolveEigenProblemER11TPZSBMatrixI4TVarER6TPZVecI5CTVarE"></span><span id="TPZLapackEigenSolver::SolveEigenProblem__TPZSBMatrix:TVar:R.TPZVec:CTVar:R"></span><span class="target" id="classTPZLapackEigenSolver_1a831dd1bfd58819d4fda4f9003b7ed580"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZSBMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZLapackEigenSolver" title="TPZLapackEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">A</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20TPZLapackEigenSolver17SolveEigenProblemER11TPZSBMatrixI4TVarER6TPZVecI5CTVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w</strong> – Stores the eigenvalues </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER11TPZSBMatrixI4TVarER11TPZSBMatrixI4TVarER6TPZVecI5CTVarER10TPZFMatrixI5CTVarEb">
+<span id="_CPPv3N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER11TPZSBMatrixI4TVarER11TPZSBMatrixI4TVarER6TPZVecI5CTVarER10TPZFMatrixI5CTVarEb"></span><span id="_CPPv2N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER11TPZSBMatrixI4TVarER11TPZSBMatrixI4TVarER6TPZVecI5CTVarER10TPZFMatrixI5CTVarEb"></span><span id="TPZLapackEigenSolver::SolveGeneralisedEigenProblem__TPZSBMatrix:TVar:R.TPZSBMatrix:TVar:R.TPZVec:CTVar:R.TPZFMatrix:CTVar:R.b"></span><span class="target" id="classTPZLapackEigenSolver_1acfdc181b77858d9e58a1f8739148c8cd"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveGeneralisedEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZSBMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZLapackEigenSolver" title="TPZLapackEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">A</span></span>, <span class="n"><span class="pre">TPZSBMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZLapackEigenSolver" title="TPZLapackEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">B</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">eigenVectors</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">calcVectors</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER11TPZSBMatrixI4TVarER11TPZSBMatrixI4TVarER6TPZVecI5CTVarER10TPZFMatrixI5CTVarEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> – Stores the eigenvalues </p></li>
+<li><p><strong>Stores</strong> – the correspondent eigenvectors </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER11TPZSBMatrixI4TVarER11TPZSBMatrixI4TVarER6TPZVecI5CTVarE">
+<span id="_CPPv3N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER11TPZSBMatrixI4TVarER11TPZSBMatrixI4TVarER6TPZVecI5CTVarE"></span><span id="_CPPv2N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER11TPZSBMatrixI4TVarER11TPZSBMatrixI4TVarER6TPZVecI5CTVarE"></span><span id="TPZLapackEigenSolver::SolveGeneralisedEigenProblem__TPZSBMatrix:TVar:R.TPZSBMatrix:TVar:R.TPZVec:CTVar:R"></span><span class="target" id="classTPZLapackEigenSolver_1aeb8409ca9fb45f686f821243fd6b2338"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolveGeneralisedEigenProblem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZSBMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZLapackEigenSolver" title="TPZLapackEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">A</span></span>, <span class="n"><span class="pre">TPZSBMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZLapackEigenSolver" title="TPZLapackEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">B</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CTVar</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20TPZLapackEigenSolver28SolveGeneralisedEigenProblemER11TPZSBMatrixI4TVarER11TPZSBMatrixI4TVarER6TPZVecI5CTVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w</strong> – Stores the eigenvalues </p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
