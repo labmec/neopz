@@ -91,9 +91,10 @@ void TPZPardisoSolver<TVar>::SetMatrix(TPZAutoPointer<TPZBaseMatrix> refmat)
 #endif
     
     fDecomposed = refmat->IsDecomposed();
-      
-    fStructure = symSystem ? MStructure::ESymmetric : MStructure::ENonSymmetric;
-    //perhaps the user has already initialized these variables
+    /*the following variables could have been initialized by the user*/
+    if (fStructure == MStructure::ENonInitialized)
+        fStructure = symSystem ? MStructure::ESymmetric : MStructure::ENonSymmetric;
+    
     if(fSystemType == MSystemType::ENonInitialized ||
        fProperty == MProperty::ENonInitialized){
         const MProperty prop = refmat->IsDefPositive() ?
