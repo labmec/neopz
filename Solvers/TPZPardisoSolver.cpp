@@ -91,7 +91,6 @@ void TPZPardisoSolver<TVar>::SetRawMatrix(TPZMatrix<TVar> *refmat)
         DebugStop();
     }
 #endif
-    TPZMatrixSolver<TVar>::SetMatrix(refmat);
     
     fDecomposed = refmat->IsDecomposed();
       
@@ -122,6 +121,7 @@ void TPZPardisoSolver<TVar>::SetMatrix(TPZAutoPointer<TPZBaseMatrix> refmat)
         PZError<<"This solver is only compatible with sparse matrices.\nAborting...\n";
         DebugStop();
     }
+    TPZMatrixSolver<TVar>::SetMatrix(refmat);
 }
 
 
@@ -399,31 +399,40 @@ template<class TVar>
 long long TPZPardisoSolver<TVar>::MatrixType()
 {
     if (fStructure == MStructure::ENonSymmetric){
-        if(is_complex<TVar>::value){
-            fMatrixType = 13;
-        }else{
-            fMatrixType = 11;
-        }
-    }else{
         if(fSystemType == MSystemType::ESymmetric){
-            if(fProperty == MProperty::EPositiveDefinite){
-                if(is_complex<TVar>::value){
-                    fMatrixType = 4;
-                }else{
-                    fMatrixType = 2;
-                }
-            }else{
-                if(is_complex<TVar>::value){
-                    fMatrixType = -4;
-                }else{
-                    fMatrixType = -2;
-                }
-            }
-        }else{
             if(is_complex<TVar>::value){
                 fMatrixType = 3;
             }else{
                 fMatrixType = 1;
+            }
+        }else{
+            if(is_complex<TVar>::value){
+                fMatrixType = 13;
+            }else{
+                fMatrixType = 11;
+            }
+        }
+    }else{
+        //if the structure is symmetric therefore the system type is also symmetric.
+#ifdef PZDEBUG
+        if(fSystemType != MSystemType::ESymmetric){
+            PZError<<__PRETTY_FUNCTION__;
+            PZError<<"\nERROR: fSystemType is not symmetric but fStructure is\n";
+            PZError<<"Perhaps something was not initialised correctly?\nAborting...\n";
+            DebugStop();
+        }
+#endif
+        if(fProperty == MProperty::EPositiveDefinite){
+            if(is_complex<TVar>::value){
+                fMatrixType = 4;
+            }else{
+                fMatrixType = 2;
+            }
+        }else{
+            if(is_complex<TVar>::value){
+                fMatrixType = -4;
+            }else{
+                fMatrixType = -2;
             }
         }
     }
