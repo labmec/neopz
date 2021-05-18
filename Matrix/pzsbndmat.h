@@ -21,7 +21,8 @@ when configuring the library.
 #include "pzmatdefs.h"
 
 #endif
-
+template<class TVar>
+class TPZLapackEigenSolver;
 /**
  * @brief Implements symmetric band matrices. \ref matrix "Matrix"
  * @ingroup matrix
@@ -29,6 +30,7 @@ when configuring the library.
 template<class TVar>
 class TPZSBMatrix : public TPZMatrix<TVar>
 {
+    friend class TPZLapackEigenSolver<TVar>;
 public:
     TPZSBMatrix() : TPZRegisterClassId(&TPZSBMatrix::ClassId),
     TPZMatrix<TVar>() , fDiag() { fBand = 0; }
@@ -133,21 +135,25 @@ public:
     /** @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors. Depends on LAPACK.
      * @param w Stores the eigenvalues
      * @param Stores the correspondent eigenvectors
+     * @return Returns info param from LAPACK(0 if executed correctly)
      */
-    int SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors);
+    int SolveEigenProblem(TPZVec < CTVar > &w, TPZFMatrix < CTVar > &eigenVectors);
     /** @brief Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors. Depends on LAPACK.
      * @param w Stores the eigenvalues
+     * @return Returns info param from LAPACK(0 if executed correctly)
      */
-    int SolveEigenProblem(TPZVec < std::complex<double> > &w);
+    int SolveEigenProblem(TPZVec < CTVar > &w);
     /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors. Depends on LAPACK.
      * @param w Stores the eigenvalues
      * @param Stores the correspondent eigenvectors
+     * @return Returns info param from LAPACK(0 if executed correctly)
      */
-    int SolveGeneralisedEigenProblem(TPZSBMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors);
+    int SolveGeneralisedEigenProblem(TPZSBMatrix< TVar > &B , TPZVec < CTVar > &w, TPZFMatrix < CTVar > &eigenVectors);
     /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors. Depends on LAPACK.
      * @param w Stores the eigenvalues
+     * @return Returns info param from LAPACK(0 if executed correctly)
      */
-    int SolveGeneralisedEigenProblem(TPZSBMatrix< TVar > &B , TPZVec < std::complex<double> > &w);
+    int SolveGeneralisedEigenProblem(TPZSBMatrix< TVar > &B , TPZVec < CTVar > &w);
     
     /** @} */
 

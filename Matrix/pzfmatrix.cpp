@@ -41,6 +41,7 @@ static TPZLogger loggerCheck("pz.checkconsistency");
 #ifdef USING_LAPACK
 /** Maybe some calls just need BLAS. We need to check it. */
 #include "TPZLapack.h"
+#include "TPZLapackEigenSolver.h"
 #define BLAS_MULT
 #endif
 
@@ -2332,751 +2333,70 @@ int TPZFMatrix<TVar>::SetSize(const int64_t newRows,const int64_t newCols) {
 #ifdef USING_LAPACK
 
 template <class TVar>
-int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues)
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < CTVar > &eigenvalues)
 {
-    DebugStop();
-	return -1;
+    if constexpr ((std::is_same_v<RTVar,float> || std::is_same_v<RTVar,double>)
+                  && is_arithmetic_pz<TVar>::value){
+        TPZLapackEigenSolver<TVar> solver;
+        return solver.SolveEigenProblem(*this,eigenvalues);
+    }else{
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nERROR: Incompatible types.\nAborting...\n";
+        DebugStop();
+        return -1;
+    }
 }
 
 template <class TVar>
-int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues, TPZFMatrix < std::complex<double> > &eigenvectors)
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < CTVar > &eigenvalues,
+                                        TPZFMatrix < CTVar > &eigenvectors)
 {
-    DebugStop();
-	return -1;
-}
-
-template <>
-int TPZFMatrix<float>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues)
-{
-    if (Rows() != Cols()) {
+    if constexpr ((std::is_same_v<RTVar,float> || std::is_same_v<RTVar,double>)
+                  && is_arithmetic_pz<TVar>::value){
+        TPZLapackEigenSolver<TVar> solver;
+        return solver.SolveEigenProblem(*this,eigenvalues,eigenvectors);
+    }else{
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nERROR: Incompatible types.\nAborting...\n";
         DebugStop();
+        return -1;
     }
-    char jobvl[] = "None", jobvr[] = "None";
-    TPZFMatrix< float > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    float testwork;
-    int lwork = 10+20*dim;
-    int info;
-    std::complex<float> I(0,1.);
-    TPZVec<float> realeigen(dim,0.);
-    TPZVec<float> imageigen(dim,0.);
-    
-    TPZFMatrix<float> temp(*this);
-    TPZVec<float> work(lwork);
-    sgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        
-        eigenvalues[i] = realeigen[i] + I*imageigen[i];
-    }
-    return 1;
-}
-
-template <>
-int TPZFMatrix<float>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues, TPZFMatrix < std::complex<double> > &eigenvectors)
-{
-    if (Rows() != Cols()) {
-        DebugStop();
-    }
-    char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< float > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    float testwork;
-    int lwork = 10+20*dim;
-    int info;
-    std::complex<float> I(0,1.);
-    TPZVec<float> realeigen(dim,0.);
-    TPZVec<float> imageigen(dim,0.);
-    
-    TPZFMatrix<float> temp(*this);
-    TPZVec<float> work(lwork);
-    sgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvectors.Redim(dim,dim);
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        eigenvalues[i] = realeigen[i] + I*imageigen[i];
-    }
-    for(int i = 0 ; i < dim ; i ++){
-        if(imageigen[i] == 0){
-            for( int iV = 0 ; iV < dim ; iV++ ){
-                eigenvectors(iV,i) = VR(iV,i);
-            }
-        }
-        else{
-            for( int iV = 0 ; iV < dim ; iV++ ){
-                eigenvectors(iV,i) = VR(iV,i) + I * VR(iV,i+1) ;
-                eigenvectors(iV,i + 1) = VR(iV,i) - I * VR(iV,i+1) ;
-            }
-            i++;
-        }
-    }
-    
-    return 1;
-}
-
-template <>
-int TPZFMatrix<double>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues)
-{
-    if (Rows() != Cols()) {
-        DebugStop();
-    }
-    char jobvl[] = "None", jobvr[] = "None";
-    TPZFMatrix< double > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    double testwork;
-    int lwork = 10+20*dim;
-    int info;
-    std::complex<double> I(0,1.);
-    TPZVec<double> realeigen(dim,0.);
-    TPZVec<double> imageigen(dim,0.);
-    
-    TPZFMatrix<double> temp(*this);
-    TPZVec<double> work(lwork);
-    dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        eigenvalues[i] = realeigen[i] + I*imageigen[i];
-    }
-    return 1;
-}
-
-template <>
-int TPZFMatrix<double>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues, TPZFMatrix < std::complex<double> > &eigenvectors)
-{
-    if (Rows() != Cols()) {
-        DebugStop();
-    }
-    char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< double > VL(Rows(),Cols(),0.),VR(Rows(),Cols(),0.);
-    int dim = Rows();
-//    double testwork;
-    int lwork = 10+50*dim;
-    int info = 0;
-    std::complex<double> I(0,1.);
-    TPZVec<double> realeigen(dim,0.);
-    TPZVec<double> imageigen(dim,0.);
-    
-    TPZFMatrix<double> temp(*this);
-    TPZVec<double> work(lwork,0.);
-    dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvectors.Redim(dim,dim);
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        eigenvalues[i] = realeigen[i] + I*imageigen[i];
-    }
-    for(int i = 0 ; i < dim ; i ++){
-        if(imageigen[i] == 0){
-            for( int iV = 0 ; iV < dim ; iV++ ){
-                eigenvectors(iV,i) = VR(iV,i);
-            }
-        }
-        else{
-            double *realVRptr = VR.fElem;
-            double *imagVRptr = VR.fElem + dim;
-            for( int iV = 0 ; iV < dim ; iV++ ){
-                eigenvectors(iV,i) = VR(iV,i) + I * VR(iV,i+1) ;
-                eigenvectors(iV,i + 1) = VR(iV,i) - I * VR(iV,i+1) ;
-            }
-            i++;
-        }
-    }
-    
-    return 1;
-}
-
-template <>
-int TPZFMatrix<complex<double> >::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues)
-{
-    if (Rows() != Cols()) {
-        DebugStop();
-    }
-    char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< complex<double> > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    double testwork;
-    int lwork = 10+20*dim;
-    int info;
-    std::complex<double> I(0,1.);
-    TPZVec<complex<double> > eigen(dim,0.);
-    
-    TPZFMatrix<complex<double> > temp(*this);
-    TPZVec<complex<double> > work(lwork);
-    TPZVec< double > rwork( 2 * dim);
-    
-
-    
-    zgeev_(jobvl, jobvr, &dim, (vardoublecomplex *)temp.fElem, &dim, (vardoublecomplex *)&eigen[0], (vardoublecomplex *)VL.fElem, &dim, (vardoublecomplex *)VR.fElem, &dim, (vardoublecomplex *)&work[0], &lwork, &rwork[0], &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-        eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        eigenvalues[i] = eigen[i];
-    }
-    
-    return 1;
-}
-
-template <>
-int TPZFMatrix<complex<double> >::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues, TPZFMatrix < std::complex<double> > &eigenvectors)
-{
-    if (Rows() != Cols()) {
-        DebugStop();
-    }
-    char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< complex<double> > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    double testwork;
-    int lwork = 10+20*dim;
-    int info;
-    std::complex<double> I(0,1.);
-    TPZVec<complex<double> > eigen(dim,0.);
-    
-    TPZFMatrix<complex<double> > temp(*this);
-    TPZVec<complex<double> > work(lwork);
-    TPZVec< double > rwork( 2 * dim);
-   
-#ifdef USING_MKL
-    typedef MKL_Complex16 vardoublecomplex;
-#elif MACOSX
-    typedef __CLPK_doublecomplex vardoublecomplex ;
-#endif
-
-
-    zgeev_(jobvl, jobvr, &dim, (vardoublecomplex *)temp.fElem, &dim, (vardoublecomplex *)&eigen[0], (vardoublecomplex *)VL.fElem, &dim, (vardoublecomplex *)VR.fElem, &dim, (vardoublecomplex *)&work[0], &lwork, &rwork[0], &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvectors.Redim(dim,dim);
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        eigenvalues[i] = eigen[i];
-    }
-    for(int i = 0 ; i < dim ; i ++){
-    
-        for( int iV = 0 ; iV < dim ; iV++ ){
-            eigenvectors(iV,i) = VR(iV,i);
-        }
-    
-    }
-    
-    return 1;
-}
-
-template <>
-int TPZFMatrix<complex<float> >::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues)
-{
-    if (Rows() != Cols()) {
-        DebugStop();
-    }
-    char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< complex<float> > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    double testwork;
-    int lwork = 10+20*dim;
-    int info;
-    std::complex<float> I(0,1.);
-    TPZVec<complex<float> > eigen(dim,0.);
-    
-    TPZFMatrix<complex<float> > temp(*this);
-    TPZVec<complex<float> > work(lwork);
-    TPZVec< float > rwork( 2 * dim);
-    
-    cgeev_(jobvl, jobvr, &dim, (varfloatcomplex *)temp.fElem, &dim, (varfloatcomplex *)&eigen[0], (varfloatcomplex *)VL.fElem, &dim, (varfloatcomplex *)VR.fElem, &dim, (varfloatcomplex *)&work[0], &lwork, &rwork[0], &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        eigenvalues[i] = eigen[i];
-    }
-	return 0;
-}
-
-template <>
-int TPZFMatrix<complex< float> >::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues, TPZFMatrix < std::complex<double> > &eigenvectors)
-{
-    if (Rows() != Cols()) {
-        DebugStop();
-    }
-    char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< complex<float> > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    double testwork;
-    int lwork = 10+20*dim;
-    int info;
-    std::complex<float> I(0,1.);
-    TPZVec<complex<float> > eigen(dim,0.);
-    
-    TPZFMatrix<complex<float> > temp(*this);
-    TPZVec<complex<float> > work(lwork);
-    TPZVec< float > rwork( 2 * dim);
-    
-    cgeev_(jobvl, jobvr, &dim, (varfloatcomplex *)temp.fElem, &dim, (varfloatcomplex *)&eigen[0], (varfloatcomplex *)VL.fElem, &dim, (varfloatcomplex *)VR.fElem, &dim, (varfloatcomplex *)&work[0], &lwork, &rwork[0], &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvectors.Redim(dim,dim);
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        eigenvalues[i] = eigen[i];
-    }
-    for(int i = 0 ; i < dim ; i ++){
-        
-        for( int iV = 0 ; iV < dim ; iV++ ){
-            eigenvectors(iV,i) = VR(iV,i);
-        }
-        
-    }
-    
-    return 1;
 }
 
 
 template< class TVar>
 int
-TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix<TVar> &B , TPZVec < complex<double> > &w, TPZFMatrix < complex<double> > &eigenVectors)
+TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix<TVar> &B ,
+                                               TPZVec < CTVar > &w,
+                                               TPZFMatrix < CTVar > &eigenvectors)
 {
-    Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
-    return( 0 );
+    if constexpr ((std::is_same_v<RTVar,float> || std::is_same_v<RTVar,double>)
+                  && is_arithmetic_pz<TVar>::value){
+        TPZLapackEigenSolver<TVar> solver;
+        return solver.SolveGeneralisedEigenProblem(*this,B,w,eigenvectors);
+    }else{
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nERROR: Incompatible types.\nAborting...\n";
+        DebugStop();
+        return -1;
+    }
 }
 template< class TVar>
 int
-TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix<TVar> &B , TPZVec < complex<double> > &w)
+TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix<TVar> &B ,
+                                               TPZVec <CTVar> &w)
 {
-    Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
-    return( 0 );
-}
-
-template<>
-int
-TPZFMatrix<float>::SolveGeneralisedEigenProblem(TPZFMatrix<float> &B , TPZVec <complex<double> > &eigenvalues, TPZFMatrix < complex<double> > &eigenvectors)
-{
-    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
-    {
-        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
-    }
-    
-    char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< float > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    float testwork;
-    int lwork = 10+20*dim;
-    int info;
-    std::complex<float> I(0,1.);
-    TPZVec<float> realeigen(dim,0.);
-    TPZVec<float> imageigen(dim,0.);
-    
-    TPZVec<float> beta(dim);
-    
-    TPZFMatrix<float> temp(*this), tempB(B);
-    TPZVec<float> work(lwork);
-
-    sggev_(jobvl, jobvr, &dim, temp.fElem, &dim , tempB.fElem, &dim , &realeigen[0], &imageigen[0], &beta[0]  , VL.fElem, &dim , VR.fElem, &dim, &work[0], &lwork, &info);
-    
-    if (info != 0) {
+    if constexpr ((std::is_same_v<RTVar,float> || std::is_same_v<RTVar,double>)
+                  && is_arithmetic_pz<TVar>::value){
+        TPZLapackEigenSolver<TVar> solver;
+        return solver.SolveGeneralisedEigenProblem(*this,B,w);
+    }else{
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nERROR: Incompatible types.\nAborting...\n";
         DebugStop();
+        return -1;
     }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvectors.Redim(dim,dim);
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        if( IsZero(beta[i])){
-            DebugStop(); //fran: i really dont know what to do with this result
-        }
-        else{
-            eigenvalues[i] = (realeigen[i] + I*imageigen[i]) / beta[i];
-        }
-    }
-    for(int i = 0 ; i < dim ; i ++){
-        if(imageigen[i] == 0){
-            for( int iV = 0 ; iV < dim ; iV++ ){
-                eigenvectors(iV,i) = VR(iV,i);
-            }
-        }
-        else{
-            for( int iV = 0 ; iV < dim ; iV++ ){
-                eigenvectors(iV,i) = VR(iV,i) + I * VR(iV,i+1) ;
-                eigenvectors(iV,i + 1) = VR(iV,i) - I * VR(iV,i+1) ;
-            }
-            i++;
-        }
-    }
-    
-    return 1;
 }
-
-
-template<>
-int
-TPZFMatrix<float>::SolveGeneralisedEigenProblem(TPZFMatrix<float> &B , TPZVec <complex<double> > &eigenvalues)
-{
-    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
-    {
-        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
-    }
-    
-    char jobvl[] = "None", jobvr[] = "None";
-    TPZFMatrix< float > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    float testwork;
-    int lwork = 10+20*dim;
-    int info;
-    std::complex<float> I(0,1.);
-    TPZVec<float> realeigen(dim,0.);
-    TPZVec<float> imageigen(dim,0.);
-    
-    TPZVec<float> beta(dim);
-    
-    TPZFMatrix<float> temp(*this), tempB(B);
-    TPZVec<float> work(lwork);
-    
-    sggev_(jobvl, jobvr, &dim, temp.fElem, &dim , tempB.fElem, &dim , &realeigen[0], &imageigen[0], &beta[0]  , VL.fElem, &dim , VR.fElem, &dim, &work[0], &lwork, &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        if( IsZero(beta[i])){
-            DebugStop(); //fran: i really dont know what to do with this result
-        }
-        else{
-            eigenvalues[i] = (realeigen[i] + I*imageigen[i]) / beta[i];
-        }
-    }
-    
-    return 1;
-}
-template<>
-int
-TPZFMatrix<double>::SolveGeneralisedEigenProblem(TPZFMatrix<double> &B , TPZVec <complex<double> > &eigenvalues, TPZFMatrix < complex<double> > &eigenvectors)
-{
-    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
-    {
-        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
-    }
-    
-    char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< double > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    float testwork;
-    int lwork = 10+20*dim;
-    int info;
-    std::complex<double> I(0,1.);
-    TPZVec<double> realeigen(dim,0.);
-    TPZVec<double> imageigen(dim,0.);
-    
-    TPZVec<double> beta(dim);
-    
-    TPZFMatrix<double> temp(*this), tempB(B);
-    TPZVec<double> work(lwork);
-    
-    dggev_(jobvl, jobvr, &dim, temp.fElem, &dim , tempB.fElem, &dim , &realeigen[0], &imageigen[0], &beta[0]  , VL.fElem, &dim , VR.fElem, &dim, &work[0], &lwork, &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvectors.Redim(dim,dim);
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        if( IsZero(beta[i])){
-            DebugStop(); //fran: i really dont know what to do with this result
-        }
-        else{
-            eigenvalues[i] = (realeigen[i] + I*imageigen[i]) / beta[i];
-        }
-    }
-    for(int i = 0 ; i < dim ; i ++){
-        if(imageigen[i] == 0){
-            for( int iV = 0 ; iV < dim ; iV++ ){
-                eigenvectors(iV,i) = VR(iV,i);
-            }
-        }
-        else{
-            for( int iV = 0 ; iV < dim ; iV++ ){
-                eigenvectors(iV,i) = VR(iV,i) + I * VR(iV,i+1) ;
-                eigenvectors(iV,i + 1) = VR(iV,i) - I * VR(iV,i+1) ;
-            }
-            i++;
-        }
-    }
-    
-    return 1;
-}
-
-
-template<>
-int
-TPZFMatrix<double>::SolveGeneralisedEigenProblem(TPZFMatrix<double> &B , TPZVec <complex<double> > &eigenvalues)
-{
-    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
-    {
-        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
-    }
-    
-    char jobvl[] = "None", jobvr[] = "None";
-    TPZFMatrix< double > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    double testwork;
-    int lwork = 10+20*dim;
-    int info;
-    std::complex<double> I(0,1.);
-    TPZVec<double> realeigen(dim,0.);
-    TPZVec<double> imageigen(dim,0.);
-    
-    TPZVec<double> beta(dim);
-    
-    TPZFMatrix<double> temp(*this), tempB(B);
-    TPZVec<double> work(lwork);
-    
-    dggev_(jobvl, jobvr, &dim, temp.fElem, &dim , tempB.fElem, &dim , &realeigen[0], &imageigen[0], &beta[0]  , VL.fElem, &dim , VR.fElem, &dim, &work[0], &lwork, &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        if( IsZero(beta[i])){
-            DebugStop(); //fran: i really dont know what to do with this result
-        }
-        else{
-            eigenvalues[i] = (realeigen[i] + I*imageigen[i]) / beta[i];
-        }
-    }
-    
-    return 1;
-}
-
-template<>
-int
-TPZFMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<float> > &B , TPZVec <complex<double> > &eigenvalues, TPZFMatrix < complex<double> > &eigenvectors)
-{
-    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
-    {
-        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
-    }
-    
-    char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< complex<float> > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    float testwork;
-    int lwork = 10+20*dim;
-    int info;
-    TPZVec<complex<float> > eigen(dim,0.);
-    
-    TPZVec<complex<float> > beta(dim);
-    
-    TPZFMatrix<complex<float> > temp(*this), tempB(B);
-    TPZVec<complex<float> > work(lwork);
-    TPZVec<float> rwork( 8 * dim );
-
-    cggev_(jobvl, jobvr, &dim, (varfloatcomplex *)temp.fElem, &dim , (varfloatcomplex *)tempB.fElem, &dim , (varfloatcomplex *)&eigen[0], (varfloatcomplex *)&beta[0]  , (varfloatcomplex *)VL.fElem, &dim , (varfloatcomplex *)VR.fElem, &dim, (varfloatcomplex *)&work[0], &lwork, &rwork[0], &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvectors.Redim(dim,dim);
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        if( IsZero(beta[i])){
-            DebugStop(); //fran: i really dont know what to do with this result
-        }
-        else{
-            eigenvalues[i] = eigen[i] / beta[i];
-        }
-    }
-    for(int i = 0 ; i < dim ; i ++){
-        for( int iV = 0 ; iV < dim ; iV++ ){
-            eigenvectors(iV,i) = VR(iV,i);
-        }
-    }
-    
-    return 1;
-}
-
-
-template<>
-int
-TPZFMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<float> > &B , TPZVec <complex<double> > &eigenvalues)
-{
-    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
-    {
-        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
-    }
-    
-    char jobvl[] = "None", jobvr[] = "None";
-    TPZFMatrix< complex<float> > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    float testwork;
-    int lwork = 10+20*dim;
-    int info;
-    TPZVec<complex<float> > eigen(dim,0.);
-    
-    TPZVec<complex<float> > beta(dim);
-    
-    TPZFMatrix<complex<float> > temp(*this), tempB(B);
-    TPZVec<complex<float> > work(lwork);
-    TPZVec<float> rwork( 8 * dim );
-    
-    cggev_(jobvl, jobvr, &dim, (varfloatcomplex *)temp.fElem, &dim , (varfloatcomplex *)tempB.fElem, &dim , (varfloatcomplex *)&eigen[0], (varfloatcomplex *)&beta[0]  , (varfloatcomplex *)VL.fElem, &dim , (varfloatcomplex *)VR.fElem, &dim, (varfloatcomplex *)&work[0], &lwork, &rwork[0], &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        if( IsZero(beta[i])){
-            DebugStop(); //fran: i really dont know what to do with this result
-        }
-        else{
-            eigenvalues[i] = eigen[i] / beta[i];
-        }
-    }
-    return 1;
-
-}
-
-template<>
-int
-TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<double> > &B , TPZVec <complex<double> > &eigenvalues, TPZFMatrix < complex<double> > &eigenvectors)
-{
-    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
-    {
-        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
-    }
-    
-    char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< complex<double> > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    float testwork;
-    int lwork = 10+20*dim;
-    int info;
-    TPZVec<complex<double> > eigen(dim,0.);
-    
-    TPZVec<complex<double> > beta(dim);
-    
-    TPZFMatrix<complex<double> > temp(*this), tempB(B);
-    TPZVec<complex<double> > work(lwork);
-    TPZVec<double> rwork( 8 * dim );
-
-    zggev_(jobvl, jobvr, &dim, (vardoublecomplex *)temp.fElem, &dim , (vardoublecomplex *)tempB.fElem, &dim , (vardoublecomplex *)&eigen[0], (vardoublecomplex *)&beta[0]  , (vardoublecomplex *)VL.fElem, &dim , (vardoublecomplex *)VR.fElem, &dim, (vardoublecomplex *)&work[0], &lwork, &rwork[0], &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvectors.Redim(dim,dim);
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        if( IsZero(beta[i])){
-            DebugStop(); //fran: i really dont know what to do with this result
-        }
-        else{
-            eigenvalues[i] = eigen[i] / beta[i];
-        }
-    }
-    for(int i = 0 ; i < dim ; i ++){
-        for( int iV = 0 ; iV < dim ; iV++ ){
-            eigenvectors(iV,i) = VR(iV,i);
-        }
-    }
-    
-    return 1;
-}
-
-
-template<>
-int
-TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<double> > &B , TPZVec <complex<double> > &eigenvalues)
-{
-    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
-    {
-        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
-    }
-    
-    char jobvl[] = "None", jobvr[] = "None";
-    TPZFMatrix< complex<double> > VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    float testwork;
-    int lwork = 10+20*dim;
-    int info;
-    TPZVec<complex<double> > eigen(dim,0.);
-    
-    TPZVec<complex<double> > beta(dim);
-    
-    TPZFMatrix<complex<double> > temp(*this), tempB(B);
-    TPZVec<complex<double> > work(lwork);
-    TPZVec<double> rwork( 8 * dim );
-    
-    zggev_(jobvl, jobvr, &dim, (vardoublecomplex *)temp.fElem, &dim , (vardoublecomplex *)tempB.fElem, &dim , (vardoublecomplex *)&eigen[0], (vardoublecomplex *)&beta[0]  , (vardoublecomplex *)VL.fElem, &dim , (vardoublecomplex *)VR.fElem, &dim, (vardoublecomplex *)&work[0], &lwork, &rwork[0], &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    //    VR.Print("VR = ",std::cout,EMathematicaInput);
-    
-    eigenvalues.Resize(dim,0.);
-    for(int i = 0 ; i < dim ; i ++){
-        if( IsZero(beta[i])){
-            DebugStop(); //fran: i really dont know what to do with this result
-        }
-        else{
-            eigenvalues[i] = eigen[i] / beta[i];
-        }
-    }
-    
-    return 1;
-    
-}
-
 
 
 template<typename TVar>
@@ -3189,16 +2509,16 @@ Fad<REAL> Norm(const TPZFMatrix<Fad<REAL> > &A)
     return -1;
 
 template<class TVar>
-int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < CTVar > &w, TPZFMatrix < CTVar > &eigenVectors){NON_LAPACK}
 
 template<class TVar>
-int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w){NON_LAPACK}
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < CTVar > &w){NON_LAPACK}
 
 template<class TVar>
-int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
+int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < CTVar > &w, TPZFMatrix < CTVar > &eigenVectors){NON_LAPACK}
 
 template<class TVar>
-int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w){NON_LAPACK}        
+int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < CTVar > &w){NON_LAPACK}        
 
 template<typename TVar>
 int TPZFMatrix<TVar>::SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU, char jobVT){NON_LAPACK}

@@ -48,16 +48,18 @@ template<class TVar>
 TVar Norm(const TPZFMatrix<TVar> &A);
 
 
+template<class TVar>
+class TPZLapackEigenSolver;
+
 /**
  * @brief Full matrix class. \ref matrix "Matrix"
  * @note The full matrix class is special in that the data is stored column wise
  * @author Misael Mandujano
  * @since 04/1996
  */
-
 template<class TVar=REAL>
 class TPZFMatrix: public TPZMatrix<TVar> {
-    
+    friend class TPZLapackEigenSolver<TVar>;
 public:
     
     /** @brief Simple constructor */
@@ -380,22 +382,26 @@ public:
     /** @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors. DEPENDS ON LAPACK.
      * @param w Stores the eigenvalues
      * @param Stores the correspondent eigenvectors
+     * @return Returns info param from LAPACK(0 if executed correctly)
      */
-    virtual int SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors);
+    virtual int SolveEigenProblem(TPZVec < CTVar > &w, TPZFMatrix < CTVar > &eigenVectors);
     /** @brief Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors. DEPENDS ON LAPACK.
      * @param w Stores the eigenvalues
+     * @return Returns info param from LAPACK(0 if executed correctly)
      */
-    virtual int SolveEigenProblem(TPZVec < std::complex<double> > &w);
+    virtual int SolveEigenProblem(TPZVec < CTVar > &w);
 
     /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors. DEPENDS ON LAPACK.
      * @param w Stores the eigenvalues
      * @param Stores the correspondent eigenvectors
+     * @return Returns info param from LAPACK(0 if executed correctly)
      */
-    virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors);
+    virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < CTVar > &w, TPZFMatrix < CTVar > &eigenVectors);
     /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors. DEPENDS ON LAPACK.
      * @param w Stores the eigenvalues
+     * @return Returns info param from LAPACK(0 if executed correctly)
      */
-    virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w);    
+    virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < CTVar > &w);    
 
     /**
      * @brief Uses LAPACK to compute the Singular Value Decomposition (SVD) of this rectangular (m by n) matrix A = U*Sigma*VT
