@@ -78,15 +78,17 @@ public:
     //! Clones the current object returning a pointer of type TPZSolver
 	TPZPardisoSolver<TVar> *Clone() const override;
 protected:
-    /// This method sets a matrix that is not controlled by a TPZAutoPointer(raw pointer)
-    void SetRawMatrix(TPZMatrix<TVar>* Refmat);
-    
     /// Compute the `mtype` parameter of the pardiso_64 call
     long long MatrixType();
-
+    /**@brief Decompose the matrix */
+    void Decompose(TPZMatrix<TVar> *mat);
     /** @brief Use the decomposed matrix to invert the system of equations
      This method assumes that the matrix has been decomposed.*/
-    void ReallySolve(const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const;
+    void Solve(const TPZMatrix<TVar> *mat, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const;
+
+    void SetStructure(MStructure str){
+        fStructure = str;
+    }
     
     MSystemType fSystemType{MSystemType::ENonInitialized};
     
@@ -124,11 +126,6 @@ protected:
     // matrix type, computed based on the structural information and TVar
     long long fMatrixType{0};
 
-    /// pointer to the nonsymmetric system (where the data structures are stored
-    TPZFYsmpMatrix<TVar> *fNonSymmetricSystem{nullptr};
-    
-    /// pointer to the symmetric system (where the data structures are stored
-    TPZSYsmpMatrix<TVar> *fSymmetricSystem{nullptr};
     /// whether the matrix has been decomposed
     bool fDecomposed{false};
 };

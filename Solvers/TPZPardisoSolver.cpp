@@ -32,7 +32,6 @@ int DataType([[maybe_unused]]TVar a);
 #ifdef PZ_LOG
 static TPZLogger logger("pz.matrix.pardisocontrol");
 #endif
-//#define Release_Memory_Q
 
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
@@ -76,16 +75,15 @@ TPZPardisoSolver<TVar>::~TPZPardisoSolver()
 #endif
     //we should NOT delete fSymmetricSystem and fNonSymmetricSystem
 }
-
 template<class TVar>
-void TPZPardisoSolver<TVar>::SetRawMatrix(TPZMatrix<TVar> *refmat)
+void TPZPardisoSolver<TVar>::SetMatrix(TPZAutoPointer<TPZBaseMatrix> refmat)
 {
-    fSymmetricSystem =
-            dynamic_cast<TPZSYsmpMatrix<TVar>*>(refmat);
-    fNonSymmetricSystem =
-            dynamic_cast<TPZFYsmpMatrix<TVar>*>(refmat);
+    auto *symSystem =
+        dynamic_cast<TPZMatrix<TVar>*>(refmat.operator->());
+    auto *nSymSystem =
+        dynamic_cast<TPZMatrix<TVar>*>(refmat.operator->());
 #ifdef PZDEBUG
-    if(!fSymmetricSystem && !fNonSymmetricSystem){
+    if(!symSystem && !nSymSystem){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<"This solver is only compatible with sparse matrices.\nAborting...\n";
         DebugStop();
@@ -94,7 +92,7 @@ void TPZPardisoSolver<TVar>::SetRawMatrix(TPZMatrix<TVar> *refmat)
     
     fDecomposed = refmat->IsDecomposed();
       
-    fStructure = fSymmetricSystem ? MStructure::ESymmetric : MStructure::ENonSymmetric;
+    fStructure = symSystem ? MStructure::ESymmetric : MStructure::ENonSymmetric;
     //perhaps the user has already initialized these variables
     if(fSystemType == MSystemType::ENonInitialized ||
        fProperty == MProperty::ENonInitialized){
@@ -103,23 +101,6 @@ void TPZPardisoSolver<TVar>::SetRawMatrix(TPZMatrix<TVar> *refmat)
         const MSystemType sym = refmat->IsSimetric() ?
             MSystemType::ESymmetric : MSystemType::ENonSymmetric;
         SetMatrixType(sym,prop);
-    }
-}
-template<class TVar>
-void TPZPardisoSolver<TVar>::SetMatrix(TPZAutoPointer<TPZBaseMatrix> refmat)
-{
-    auto *tmpSym =
-        dynamic_cast<TPZSYsmpMatrix<TVar>*>(refmat.operator->());
-    auto *tmpNSym =
-        dynamic_cast<TPZFYsmpMatrix<TVar>*>(refmat.operator->());
-    if(tmpSym){
-        SetRawMatrix(tmpSym);
-    }else if(tmpNSym){
-        SetRawMatrix(tmpNSym);
-    }else{
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"This solver is only compatible with sparse matrices.\nAborting...\n";
-        DebugStop();
     }
     TPZMatrixSolver<TVar>::SetMatrix(refmat);
 }
@@ -136,39 +117,68 @@ void TPZPardisoSolver<TVar>::Solve(const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar>
 	}
     if(!fDecomposed) Decompose();
     sol = rhs;
-    ReallySolve(rhs, sol);
+    auto *tmpSym =
+        dynamic_cast<TPZMatrix<TVar>*>(this->Matrix().operator->());
+    auto *tmpNSym =
+        dynamic_cast<TPZMatrix<TVar>*>(this->Matrix().operator->());
+    if(tmpSym){
+        Solve(tmpSym,rhs,sol);
+    }else if(tmpNSym){
+        Solve(tmpNSym,rhs, sol);
+    }else{
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"This solver is only compatible with sparse matrices.\nAborting...\n";
+        DebugStop();
+    }
     if(res) res->Redim(rhs.Rows(),rhs.Cols());
+}
+template<class TVar>
+void TPZPardisoSolver<TVar>::Decompose()
+{
+    auto *tmpSym =
+        dynamic_cast<TPZMatrix<TVar>*>(this->Matrix().operator->());
+    auto *tmpNSym =
+        dynamic_cast<TPZMatrix<TVar>*>(this->Matrix().operator->());
+    if(tmpSym){
+        Decompose(tmpSym);
+    }else if(tmpNSym){
+        Decompose(tmpNSym);
+    }else{
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"This solver is only compatible with sparse matrices.\nAborting...\n";
+        DebugStop();
+    }
 }
 
 template<class TVar>
-void TPZPardisoSolver<TVar>::Decompose()
+void TPZPardisoSolver<TVar>::Decompose(TPZMatrix<TVar> *mat)
 {
 #ifndef USING_MKL
     NOMKL
 #else
-    if(!fSymmetricSystem && !fNonSymmetricSystem){
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"ERROR: No matrix has been set.\nAborting...\n";
-        DebugStop();
-    }
+    auto *symSystem =
+        dynamic_cast<TPZSYsmpMatrix<TVar>*>(mat);
+    auto *nSymSystem =
+        dynamic_cast<TPZFYsmpMatrix<TVar>*>(mat);
+
     long long n=0;
     TVar bval = 0., xval = 0.;
     TVar *a,*b = &bval, *x = &xval;
     long long *ia,*ja;
-    if (fSymmetricSystem) {
-        if (fSymmetricSystem->Rows()==0) {
+    if (symSystem) {
+        if (symSystem->Rows()==0) {
             return;
         }
-        a = &(fSymmetricSystem->fA[0]);
-        ia = (long long *) &(fSymmetricSystem->fIA[0]);
-        ja = (long long *) &(fSymmetricSystem->fJA[0]);
-        n = fSymmetricSystem->Rows();
+        a = &(symSystem->fA[0]);
+        ia = (long long *) &(symSystem->fIA[0]);
+        ja = (long long *) &(symSystem->fJA[0]);
+        n = symSystem->Rows();
     }
-    if (fNonSymmetricSystem) {
-        a = &(fNonSymmetricSystem->fA[0]);
-        ia = (long long *) &(fNonSymmetricSystem->fIA[0]);
-        ja = (long long *) &(fNonSymmetricSystem->fJA[0]);
-        n = fNonSymmetricSystem->Rows();
+    if (nSymSystem) {
+        a = &(nSymSystem->fA[0]);
+        ia = (long long *) &(nSymSystem->fIA[0]);
+        ja = (long long *) &(nSymSystem->fJA[0]);
+        n = nSymSystem->Rows();
         
     }
 
@@ -239,11 +249,13 @@ void TPZPardisoSolver<TVar>::Decompose()
 
 /// Use the decomposed matrix to invert the system of equations
 template<class TVar>
-void TPZPardisoSolver<TVar>::ReallySolve(const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const
+void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
+                                   const TPZFMatrix<TVar> &rhs,
+                                   TPZFMatrix<TVar> &sol) const
 {
 #ifndef USING_MKL
     NOMKL
-#else 
+#else
 #ifdef PZDEBUG
     if(!fDecomposed){
         PZError<<__PRETTY_FUNCTION__;
@@ -251,24 +263,28 @@ void TPZPardisoSolver<TVar>::ReallySolve(const TPZFMatrix<TVar> &rhs, TPZFMatrix
         DebugStop();
     }
 #endif
+    auto *symSystem =
+        dynamic_cast<const TPZSYsmpMatrix<TVar>*>(mat);
+    auto *nSymSystem =
+        dynamic_cast<const TPZFYsmpMatrix<TVar>*>(mat);
     long long n=0;
     TVar *a,*b, *x;
     long long *ia,*ja;
-    if (fSymmetricSystem) {
-        if(fSymmetricSystem->Rows() == 0)
+    if (symSystem) {
+        if(symSystem->Rows() == 0)
         {
             return;
         }
-        a = &(fSymmetricSystem->fA[0]);
-        ia = (long long *) &(fSymmetricSystem->fIA[0]);
-        ja = (long long *) &(fSymmetricSystem->fJA[0]);
-        n = fSymmetricSystem->Rows();
+        a = &(symSystem->fA[0]);
+        ia = (long long *) &(symSystem->fIA[0]);
+        ja = (long long *) &(symSystem->fJA[0]);
+        n = symSystem->Rows();
     }
-    if (fNonSymmetricSystem) {
-        a = &(fNonSymmetricSystem->fA[0]);
-        ia = (long long *) &(fNonSymmetricSystem->fIA[0]);
-        ja = (long long *) &(fNonSymmetricSystem->fJA[0]);
-        n = fNonSymmetricSystem->Rows();
+    if (nSymSystem) {
+        a = &(nSymSystem->fA[0]);
+        ia = (long long *) &(nSymSystem->fIA[0]);
+        ja = (long long *) &(nSymSystem->fJA[0]);
+        n = nSymSystem->Rows();
     }
     
 #ifdef PZ_LOG
@@ -354,19 +370,6 @@ void TPZPardisoSolver<TVar>::ReallySolve(const TPZFMatrix<TVar> &rhs, TPZFMatrix
     std::cout << "Pardiso:: linear solve complete. \n";
 #endif
     
-#ifdef Release_Memory_Q
-    phase = -1;
-    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm, &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
-    if (fSymmetricSystem) {
-        fSymmetricSystem->SetIsDecomposed(0);
-    }
-    if (fNonSymmetricSystem) {
-        fNonSymmetricSystem->SetIsDecomposed(0);
-    }
-#ifdef PZDEBUG
-    std::cout << "Pardiso:: release memory complete. \n";
-#endif//PZDEBUG
-#endif//Release_Memory_Q
 #endif//USING_MKL
 }
 

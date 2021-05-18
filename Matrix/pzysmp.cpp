@@ -944,9 +944,21 @@ int TPZFYsmpMatrix<TVar>::Decompose_LU()
     if (this->IsDecomposed() != ENoDecompose) {
         DebugStop();
     }
-	//do NOT call SetMatrix.
-	fPardisoControl.SetRawMatrix(this);
-    fPardisoControl.Decompose();
+	typename TPZPardisoSolver<TVar>::MStructure str =
+        this->IsSimetric() ?
+		TPZPardisoSolver<TVar>::MStructure::ESymmetric:
+		TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
+	typename TPZPardisoSolver<TVar>::MSystemType sysType =
+		this->IsSimetric() ?
+		TPZPardisoSolver<TVar>::MSystemType::ESymmetric:
+		TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
+	typename TPZPardisoSolver<TVar>::MProperty prop =
+		this->IsDefPositive() ?
+		TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
+		TPZPardisoSolver<TVar>::MProperty::EIndefinite;
+	fPardisoControl.SetStructure(str);
+	fPardisoControl.SetMatrixType(sysType,prop);
+    fPardisoControl.Decompose(this);
     this->SetIsDecomposed(ELU);
     return 1;
 #endif
@@ -975,7 +987,7 @@ int TPZFYsmpMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const
     
 #ifdef USING_MKL
     TPZFMatrix<TVar> x(*B);
-    fPardisoControl.ReallySolve(*B,x);
+    fPardisoControl.Solve(this,*B,x);
     *B = x;
     return 1;
 #endif
