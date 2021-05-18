@@ -6,6 +6,7 @@ list(APPEND PZ_PUBLIC_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/pzmainpage.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/structmatrix/doxstrmatrix.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/material/doxmaterial.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/solver/doxsolver.h"
     )
 
 if(DOXYGEN_ADD_ALL)
@@ -30,4 +31,5 @@ set(docs_sources
     "${CMAKE_CURRENT_SOURCE_DIR}/references.bib")
 add_subdirectory(material)
 add_subdirectory(structmatrix)
+add_subdirectory(solver)
     

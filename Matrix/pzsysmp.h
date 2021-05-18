@@ -11,7 +11,7 @@
 
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
-#include "TPZPardisoControl.h"
+#include "TPZPardisoSolver.h"
 
  /**
   * @brief Implements a symmetric sparse matrix. \ref matrix "Matrix"
@@ -20,7 +20,7 @@
 template<class TVar>
 class TPZSYsmpMatrix : public TPZMatrix<TVar>{
 	
-    friend class TPZPardisoControl<TVar>;
+    friend class TPZPardisoSolver<TVar>;
     
 public :
     /** @brief Constructor based on number of rows and columns */
@@ -179,7 +179,7 @@ private:
 	TPZVec<int64_t>  fJA;
 	TPZVec<TVar> fA;
 	
-    TPZPardisoControl<TVar> fPardisoControl;
+    TPZPardisoSolver<TVar> fPardisoControl;
 	
 	TPZVec<TVar> fDiag;
 };

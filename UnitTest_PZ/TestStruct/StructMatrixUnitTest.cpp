@@ -173,7 +173,7 @@ namespace structTest{
     }();
     const int nEq = cMesh->NElements() + 1;
     
-    mat->Print(std::cout);
+    // mat->Print(std::cout);
     auto oldPrecision = Catch::StringMaker<STATE>::precision;
     REQUIRE(mat->GetVal(0,0) == 2.0_a);
     REQUIRE(mat->GetVal(nEq-1,nEq-1) == 2.0_a);

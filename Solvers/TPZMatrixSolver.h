@@ -22,24 +22,23 @@ class TPZMatrixSolver: public TPZSolver
 {
 	
 public:
-    /**
-	 * @enum MSolver
-	 * @brief Defines a series of solvers available in PZ
-	 * @param ENoSolver No solver selected
-	 * @param EJacobi Jacobi solver selected
-	 * @param ESOR Successive Over Relaxation solver selected
-	 * @param ESSOR Symmetric Successive Over Relaxation solver selected
-	 * @param ECG Conjugate Gradiente solver selected
-	 * @param EDirect LU, LDLt or Cholesky selected
-	 */
+    /*! Defines the solvers available in NeoPZ*/
 	enum MSolver
 	{
-		ENoSolver, EJacobi, ESOR, ESSOR, ECG, EGMRES, EBICGSTAB, EDirect, EMultiply
+		ENoSolver, /*!< No solver selected*/
+        EJacobi,/*!< Jacobi solver*/
+        ESOR,/*!<Successive Over Relaxation solver*/
+        ESSOR,/*!< Symmetric Successive Over Relaxation solver*/
+        ECG,/*!< Conjugate Gradient solver*/
+        EGMRES,/*!<Generalised Minimal Residual method*/
+        EBICGSTAB,/*!<Biconjugate Gradient Stabilized Method*/
+        EDirect,/*!< LU, LDLt or Cholesky*/
+        EMultiply
 	};
 
 	/**
 	 * @brief Constructor with initialization parameter
-	 * @param Refmat Sets reference matrix to 0
+	 * @param Refmat Sets reference matrix to `nullptr`
 	 */
 	
 	TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> >  Refmat);
