@@ -368,11 +368,19 @@ int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
     if (this->IsDecomposed() != ENoDecompose) {
         DebugStop();
     }
-    fPardisoControl.SetRawMatrix(this);
-    fPardisoControl.Decompose();
+    typename TPZPardisoSolver<TVar>::MStructure str =
+        TPZPardisoSolver<TVar>::MStructure::ESymmetric;
+    typename TPZPardisoSolver<TVar>::MSystemType sysType =
+		TPZPardisoSolver<TVar>::MSystemType::ESymmetric;
+	typename TPZPardisoSolver<TVar>::MProperty prop =
+		this->IsDefPositive() ?
+		TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
+		TPZPardisoSolver<TVar>::MProperty::EIndefinite;
+    fPardisoControl.SetStructure(str);
+	fPardisoControl.SetMatrixType(sysType,prop);
+    fPardisoControl.Decompose(this);
     this->SetIsDecomposed(ELDLt);
     return 1;
-    
 }
 
 template<class TVar>
@@ -383,9 +391,18 @@ int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
         DebugStop();
     }
     this->fDefPositive = true;
-    fPardisoControl.SetRawMatrix(this);
-    fPardisoControl.Decompose();
-    this->SetIsDecomposed(ECholesky);
+    typename TPZPardisoSolver<TVar>::MStructure str =
+        TPZPardisoSolver<TVar>::MStructure::ESymmetric;
+    typename TPZPardisoSolver<TVar>::MSystemType sysType =
+		TPZPardisoSolver<TVar>::MSystemType::ESymmetric;
+	typename TPZPardisoSolver<TVar>::MProperty prop =
+		this->IsDefPositive() ?
+		TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
+		TPZPardisoSolver<TVar>::MProperty::EIndefinite;
+    fPardisoControl.SetStructure(str);
+	fPardisoControl.SetMatrixType(sysType,prop);
+    fPardisoControl.Decompose(this);
+    this->SetIsDecomposed(ELDLt);
     return 1;
 }
 
@@ -400,7 +417,7 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
 {
     TPZFMatrix<TVar> x(*b);
-    fPardisoControl.ReallySolve(*b,x);
+    fPardisoControl.Solve(this,*b,x);
     *b = x;
     return 1;
 }
@@ -422,7 +439,7 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
 {
     TPZFMatrix<TVar> x(*b);
-    fPardisoControl.ReallySolve(*b,x);
+    fPardisoControl.Solve(this,*b,x);
     *b = x;
     return 1;
 }
