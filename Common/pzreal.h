@@ -41,6 +41,9 @@ typename std::underlying_type<Enumeration>::type as_integer(const Enumeration va
 }
 
 
+
+class TPZFlopCounter;
+
 //! Enables typename real_type<T>::type for the real type associated with T
 template <typename, typename = void>
 struct real_type;
@@ -61,10 +64,15 @@ template <typename T>
 struct real_type<Fad<T>, void>
 { using type = typename real_type<T>::type; };
 //! Enabling it for TFad<6,T>
-template <typename T>
-struct real_type<TFad<6,T>, void>
+template <int N,typename T>
+struct real_type<TFad<N,T>, void>
 { using type = typename real_type<T>::type; };
 
+
+//! Enabling it for TPZFlopCounter
+template<>
+struct real_type<TPZFlopCounter, void>
+{ using type = TPZFlopCounter; };
 
 //Convenience macros for real_type<T>::type
 #define RTVar typename real_type<TVar>::type
@@ -89,9 +97,14 @@ template <typename T>
 struct complex_type<Fad<T>, void>
 { using type = typename complex_type<T>::type; };
 //! Enabling it for TFad<6,T>
-template <typename T>
-struct complex_type<TFad<6,T>, void>
+template <int N,typename T>
+struct complex_type<TFad<N,T>, void>
 { using type = typename complex_type<T>::type; };
+
+//! Enabling it for TPZFlopCounter
+template<>
+struct complex_type<TPZFlopCounter, void>
+{ using type = TPZFlopCounter; };
 
 //Convenience macros for complex_type<T>::type
 #define CTVar typename complex_type<TVar>::type
@@ -194,8 +207,6 @@ struct TPZCounter {
 
 /** @brief Re-implements << operator to show the counter (count) data */
 std::ostream &operator<<(std::ostream &out,const TPZCounter &count);
-
-class TPZFlopCounter;
 
 /** @brief This is the type of floating point number PZ will use. */
 #ifdef REALfloat
