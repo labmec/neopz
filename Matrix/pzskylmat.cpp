@@ -880,7 +880,6 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
 		TVar *elem_k = fElem[k]+1;
 		TVar *end_k  = fElem[k]+Size(k);
         if constexpr (is_complex<TVar>::value){
-#pragma clang loop vectorize_width(2)
             for ( ; elem_k < end_k; elem_k++ ) sum += std::conj(*elem_k) * (*elem_k);
         }else{
 #pragma clang loop vectorize_width(2)
@@ -918,7 +917,6 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
 				unsigned tmp = end_k - elem_k;
 				if (tmp < max_l) max_l = tmp;
                 if constexpr (is_complex<TVar>::value){
-#pragma clang loop vectorize_width(2)
                     for(unsigned l=0; l<max_l; l++) 
                         sum += (*elem_i++) * std::conj(*elem_k++);
                 }else{
@@ -1003,7 +1001,6 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 		TVar *elem_k = fElem[k]+1;
 		TVar *end_k  = fElem[k]+Size(k);
         if constexpr(is_complex<TVar>::value){
-#pragma clang loop vectorize_width(2)
             for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * std::conj(*elem_k);
         }else{
 #pragma clang loop vectorize_width(2)
@@ -1060,7 +1057,6 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
                     unsigned tmp = end_k - elem_k;
                     if (tmp < max_l) max_l = tmp;
                     if constexpr (is_complex<TVar>::value){
-#pragma clang loop vectorize_width(2)
                         for(unsigned l=0; l<max_l; l++)
                             sum +=  (*elem_i++) * std::conj(*elem_k++);
                     }else{
