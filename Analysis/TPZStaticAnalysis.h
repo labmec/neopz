@@ -48,9 +48,6 @@ public:
   /** @brief Set the solver
       @note In this function it will be checked if the solver is a TPZMatrixSolver*/
   void SetSolver(const TPZSolver &solver) override;
-  /** @brief Set the computational mesh of the analysis.
-   It also resets the fTime attribute*/
-  void SetCompMesh(TPZCompMesh* mesh, bool mustOptimizeBandwidth) override;
 
   /** @name ReadWrite
       @{ */

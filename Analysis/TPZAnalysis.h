@@ -339,6 +339,9 @@ protected:
   virtual void PostProcessErrorParallel(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
     
   void CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvec);
+
+  /** @brief Common steps in setting a computational mesh. */
+	void SetCompMeshInit(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
 private:
   /** @brief Build a sequence solver based on the block graph and its colors */
   template <class TVar>

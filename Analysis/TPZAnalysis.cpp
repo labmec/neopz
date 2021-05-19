@@ -131,7 +131,8 @@ fSolType(mesh->GetSolType()),
 fSolution(fSolType == EComplex ? true : false),
 fRenumber(new RENUMBER)
 {
-  this->SetCompMesh(mesh, mustOptimizeBandwidth);
+  //we must not call virtual methods in constructor
+  this->SetCompMeshInit(mesh, mustOptimizeBandwidth);
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
@@ -141,15 +142,13 @@ fSolType(mesh->GetSolType()),
 fSolution(fSolType == EComplex ? true : false),
 fRenumber(new RENUMBER)
 {
-	fGraphMesh[0] = 0;
-	fGraphMesh[1] = 0;
-	fGraphMesh[2] = 0;
-	this->SetCompMesh(mesh.operator ->(), mustOptimizeBandwidth);
+  //we must not call virtual methods in constructor
+	this->SetCompMeshInit(mesh.operator ->(), mustOptimizeBandwidth);
 }
 
-
-void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
-    if(mesh)
+void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, bool mustOptimizeBandwidth)
+{
+  if(mesh)
     {
         fCompMesh = mesh;
         fSolType = fCompMesh->GetSolType();
@@ -192,6 +191,10 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
     }
     fStep = 0;
     fTime = 0;
+}
+
+void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
+  SetCompMeshInit(mesh,mustOptimizeBandwidth);
 }
 
 TPZAnalysis::~TPZAnalysis(void){

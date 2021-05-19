@@ -217,11 +217,6 @@ void TPZStaticAnalysis::SolveT()
   fCompMesh->TransferMultiphysicsSolution();
 }
 
-void TPZStaticAnalysis::SetCompMesh(TPZCompMesh *mesh, bool mustOptimizeBandwidth){
-  fTime = 0;
-  TPZAnalysis::SetCompMesh(mesh,mustOptimizeBandwidth);
-}
-
 void TPZStaticAnalysis::AnimateRun(
     int64_t num_iter, int steps, TPZVec<std::string> &scalnames,
     TPZVec<std::string> &vecnames, const std::string &plotfile)
