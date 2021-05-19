@@ -89,6 +89,8 @@ protected:
 	
   TTablePostProcess fTable;
   public:
+  /** @name Constructors */
+  /** @{ */
 	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();
 
@@ -98,6 +100,7 @@ protected:
 	/** @brief Create an TPZAnalysis object from one mesh auto pointer object */
 	TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
 
+  /** @} */
   /** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
 

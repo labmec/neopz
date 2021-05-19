@@ -11,6 +11,8 @@ class TPZMatrixSolver;
 class TPZStaticAnalysis : public TPZAnalysis{
 public:
 
+  /** @name Constructors */
+  /** @{ */
   /** @brief Create an empty TPZStaticAnalysis object */
 	TPZStaticAnalysis();
 
@@ -19,23 +21,16 @@ public:
     	
 	/** @brief Create an TPZStaticAnalysis object from one mesh auto pointer object */
 	TPZStaticAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
-  /** @brief Returns the load vector */
-	TPZSolutionMatrix &Rhs() { return fRhs;}
-
-  /** @name Graphical */
-  /** @{ */
-  /** @brief Run and print the solution step by step */
-	void AnimateRun(int64_t num_iter, int steps,
-                  TPZVec<std::string> &scalnames,
-                  TPZVec<std::string> &vecnames,
-                  const std::string &plotfile);
-  
-  using TPZAnalysis::PostProcess;
-  void PostProcess(int resolution, int dimension) override;
   /** @} */
+  
+  /** @name FEM */
+  /** @{ */
   /** @brief Get the matrix solver */
     template<class TVar>
 	TPZMatrixSolver<TVar> & MatrixSolver();
+
+  /** @brief Returns the load vector */
+	TPZSolutionMatrix &Rhs() { return fRhs;}
 
   /** @brief Assemble the stiffness matrix and load vector */
 	 void Assemble() override;
@@ -48,7 +43,20 @@ public:
   /** @brief Set the solver
       @note In this function it will be checked if the solver is a TPZMatrixSolver*/
   void SetSolver(const TPZSolver &solver) override;
+  /** @} */
 
+  /** @name Graphical */
+  /** @{ */
+  /** @brief Run and print the solution step by step */
+	void AnimateRun(int64_t num_iter, int steps,
+                  TPZVec<std::string> &scalnames,
+                  TPZVec<std::string> &vecnames,
+                  const std::string &plotfile);
+  
+  using TPZAnalysis::PostProcess;
+  void PostProcess(int resolution, int dimension) override;
+  /** @} */
+  
   /** @name ReadWrite
       @{ */
   int ClassId() const override;

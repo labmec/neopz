@@ -16,7 +16,6 @@ set(headers
     TPZNLMultGridAnalysis.h
     pzmganalysis.h
     pztransientanalysis.h
-    doxanalysis.h
     pzeuleranalysis.h
     pzsmfrontalanal.h
     )
