@@ -322,13 +322,13 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
     if (var == 7) {
 
         TPZVec<STATE> exactSol(1);
-        TPZFNMatrix<3, STATE> gradu(3, 1);
+        TPZFNMatrix<3, STATE> gradu(fDim, 1);
 
         if (fExactSol) {
             fExactSol(datavec[0].x, exactSol, gradu);
         }
 
-        TPZFNMatrix<3, REAL> flux(3, 1);
+        TPZFNMatrix<3, REAL> flux(fDim, 1);
 
         K.Multiply(gradu, flux);
 
@@ -485,8 +485,8 @@ void TPZMixedDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZV
 
     TPZFNMatrix<3, STATE> fluxexactneg;
 
-    TPZFNMatrix<9, STATE> gradpressure(3, 1);
-    for (int i = 0; i < 3; i++) {
+    TPZFNMatrix<9, STATE> gradpressure(fDim, 1);
+    for (int i = 0; i < fDim; i++) {
         gradpressure(i, 0) = du_exact[i];
     }
     K.Multiply(gradpressure, fluxexactneg);
