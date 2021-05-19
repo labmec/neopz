@@ -23,7 +23,7 @@
 #include "pzintel.h"
 #include "pzstepsolver.h"
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzskylstrmatrix.h"
 
 #include "pzcondensedcompel.h"

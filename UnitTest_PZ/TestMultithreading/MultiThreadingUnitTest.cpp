@@ -9,7 +9,7 @@
 #include "pzlog.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"
 #include "pzbdstrmatrix.h"

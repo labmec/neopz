@@ -14,7 +14,7 @@
 #include "pzelasmat.h"
 #include "pzpoisson3d.h"
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzstepsolver.h"
 
 #include "CedricTest.h"

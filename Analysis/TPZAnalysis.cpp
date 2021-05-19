@@ -3,7 +3,7 @@
  * @brief Contains implementations of the TPZAnalysis methods.
  */
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include <math.h>                          // for sqrt, fabs
 #include <thread>
 #include <vector>

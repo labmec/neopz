@@ -14,7 +14,7 @@
 #include "pzintel.h"
 
 #include "pzbctension.h"
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"
 #include "pzdxmesh.h"

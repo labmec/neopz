@@ -47,7 +47,7 @@
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZParFrontStructMatrix.h"
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 
 #include "pzmultiphysicselement.h"
 #include "pzmultiphysicscompel.h"
@@ -57,7 +57,7 @@
 #include "pzpoisson3d.h"
 #include "mixedpoisson.h"
 #include "TPZReadGIDGrid.h"
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 
 #include "TPZVTKGeoMesh.h"
 

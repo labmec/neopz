@@ -7,7 +7,7 @@
 #define TPZNLMGANALYSIS_H
 
 #include <iosfwd>                 // for string, ostream
-#include "pzanalysis.h"           // for TPZAnalysis
+#include "TPZAnalysis.h"           // for TPZAnalysis
 #include "pzmatrix.h"             // for TPZFMatrix, TPZMatrix
 #include "pzreal.h"               // for STATE, REAL
 #include "pzstack.h"              // for TPZStack

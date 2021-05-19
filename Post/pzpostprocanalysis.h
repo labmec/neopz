@@ -2,7 +2,7 @@
 #ifndef PZPOSTPROCANALYSIS_H
 #define PZPOSTPROCANALYSIS_H
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzcompel.h"
 #include "TPZGeoElement.h"
 #include "pzfmatrix.h"

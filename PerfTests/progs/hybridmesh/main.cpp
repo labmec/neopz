@@ -21,7 +21,7 @@
 #include "tpzcompmeshreferred.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 
 #include "pzstepsolver.h"
 #include "pzstrmatrix.h"

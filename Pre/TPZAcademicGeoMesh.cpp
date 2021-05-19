@@ -19,7 +19,7 @@
 #include "TPZMaterial.h"
 #include "TPZBndCond.h"
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzstepsolver.h"
 
 #include "TPZRefPatternTools.h"

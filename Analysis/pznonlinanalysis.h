@@ -6,7 +6,7 @@
 #ifndef NONLINANALYSISH
 #define NONLINANALYSISH
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include <iosfwd>
 
 template<class TVar>

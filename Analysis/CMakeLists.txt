@@ -5,19 +5,18 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Analysis>
                            )
 set(public_headers
-  pzanalysis.h
+  TPZAnalysis.h
   pznonlinanalysis.h
   pzsmanal.h #TPZSubMeshAnalysis
   )
+
 set(headers
+    ${public_headers}
     TPZNLMultGridAnalysis.h
-    pzanalysis.h
     pzmganalysis.h
-    pzsmanal.h
     pztransientanalysis.h
     doxanalysis.h
     pzeuleranalysis.h
-    pznonlinanalysis.h
     pzsmfrontalanal.h
     )
 
@@ -26,7 +25,7 @@ set(sources
     pzeuleranalysis.cpp
     pznonlinanalysis.cpp
     pzsmfrontalanal.cpp
-    pzanalysis.cpp
+    TPZAnalysis.cpp
     pzmganalysis.cpp
     pzsmanal.cpp
     pztransientanalysis.cpp

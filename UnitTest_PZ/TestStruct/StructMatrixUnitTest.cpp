@@ -8,7 +8,7 @@
 #include "TPZMatBase.h"
 #include "TPZMatSingleSpace.h"
 #include "TPZMaterialDataT.h"
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "TPZSSpStructMatrix.h"
 #include "pzmatrix.h"
 #include "TPZMatrixSolver.h"

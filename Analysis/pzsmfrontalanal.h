@@ -7,7 +7,7 @@
 #define TPZSUBMESHFRONTANALYSIS_H
 
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzmatred.h"
 #include "TPZFrontMatrix.h"
 class TPZSubCompMesh;

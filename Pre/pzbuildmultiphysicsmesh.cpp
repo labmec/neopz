@@ -8,7 +8,7 @@
 #include "pzmultiphysicselement.h"
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "TPZMaterial.h"
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzstack.h"
 #include "TPZInterfaceEl.h"
 #include "pzelementgroup.h"

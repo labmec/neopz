@@ -20,7 +20,7 @@
 #include "tpzdohrsubstructCondense.h"
 #include "tpzverysparsematrix.h" 
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 
 #include "pzskylstrmatrix.h"
 

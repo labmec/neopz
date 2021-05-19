@@ -8,7 +8,7 @@
 #include "pzcheckgeom.h"
 #include "TPZVTKGeoMesh.h"
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzstepsolver.h"
 
 #include "TPZMaterial.h"

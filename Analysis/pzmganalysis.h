@@ -6,7 +6,7 @@
 #ifndef TPZMGANALYSIS_H
 #define TPZMGANALYSIS_H
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pztransfer.h"
 #include "pztrnsform.h" //needed because of default templ params
 

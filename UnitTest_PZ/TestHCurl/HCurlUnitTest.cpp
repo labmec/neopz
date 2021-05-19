@@ -26,7 +26,7 @@ static TPZLogger logger("pz.mesh.testhcurl");
 #include "TPZGenGrid3D.h"
 #include "pzcmesh.h"
 #include "Projection/TPZHCurlProjection.cpp"
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzintel.h"
 #include "TPZCompElHCurl.h"
 #include "pzgeotetrahedra.h"

@@ -8,7 +8,7 @@
 #include "TPZElementMatrixT.h"
 #include "pzcompel.h"
 #include "pzsubcmesh.h"
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "TPZMaterial.h"
 
 #include <thread>

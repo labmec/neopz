@@ -13,7 +13,7 @@
 #include "pzcmesh.h"
 #include "pzvec.h"
 #include "pzreal.h"
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 
 #include <list>
 

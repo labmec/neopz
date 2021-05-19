@@ -8,7 +8,7 @@
 
 #ifndef STATE_COMPLEX
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzcmesh.h"
 #include "pzflowcmesh.h"
 #include "pzadmchunk.h"

@@ -1,5 +1,5 @@
 //$Id: pzpostprocanalysis.cpp,v 1.10 2010-11-23 18:58:35 diogo Exp $
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzpostprocanalysis.h"
 #include "pzpostprocmat.h"
 #include "pzcompelpostproc.h"

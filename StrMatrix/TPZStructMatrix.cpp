@@ -4,7 +4,7 @@
 #include "pzcheckmesh.h"
 #include "pzerror.h"
 #include "pzsubcmesh.h"
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include "pzshtmat.h"
 #include "pzlog.h"
 #ifdef PZ_LOG

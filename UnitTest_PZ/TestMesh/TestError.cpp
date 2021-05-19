@@ -9,7 +9,7 @@
 #include "pzmanvector.h"//for TPZManVector
 #include "Poisson/TPZMatPoisson.h" //for TPZMatPoisson
 #include "TPZBndCond.h" //for TPZBndCond
-#include "pzanalysis.h" //for TPZAnalysis
+#include "TPZAnalysis.h" //for TPZAnalysis
 #include "TPZSSpStructMatrix.h" //symmetric sparse matrix storage
 #include "pzskylstrmatrix.h" //symmetric skyline matrix storage
 #include "pzstepsolver.h" //for TPZStepSolver

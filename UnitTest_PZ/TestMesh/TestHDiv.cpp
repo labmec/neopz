@@ -34,7 +34,7 @@
 
 #include "TPZExtendGridDimension.h"
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 
 #include "pzlog.h"
 
