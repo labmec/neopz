@@ -7,6 +7,7 @@ target_include_directories(pz PUBLIC
 set(public_headers
     TPZSolver.h
     TPZMatrixSolver.h
+    TPZEigenSolver.h
     TPZPardisoSolver.h
     pzstepsolver.h
     pzseqsolver.h
@@ -19,6 +20,7 @@ set(headers
 set(sources
     TPZSolver.cpp
     TPZMatrixSolver.cpp
+    TPZEigenSolver.cpp
     TPZPardisoSolver.cpp
     pzstepsolver.cpp
     pzseqsolver.cpp
@@ -33,7 +35,7 @@ foreach(header ${public_headers})
     list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
 endforeach()
 
-#black oil
 add_subdirectory(LinearSolvers)
+add_subdirectory(EigenSolvers)
 add_subdirectory(Multigrid)
 set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)

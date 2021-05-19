@@ -911,7 +911,7 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
     bool check = true;
     matx cpmaOriginal(ma);
     matx cpma(ma), cpmb(mb);
-    TPZFMatrix<std::complex<double> > cpfma(dim, dim), cpfmb(dim, dim);
+    TPZFMatrix<CTVar > cpfma(dim, dim), cpfmb(dim, dim);
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
             cpfma(i, j) = ma(i, j);
@@ -919,8 +919,8 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
         }
     }
 
-    TPZVec < std::complex<double> > w;
-    TPZFMatrix < std::complex<double> > eigenVectors;
+    TPZVec < CTVar > w;
+    TPZFMatrix < CTVar > eigenVectors;
     cpma.SolveGeneralisedEigenProblem(cpmb, w, eigenVectors);
     //    ma.Print("a",std::cout , EMathematicaInput);
     //    mb.Print("b",std::cout , EMathematicaInput);
@@ -932,8 +932,8 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
         mult *= 10.;
     }
     for (int i = 0; i < dim; i++) {
-        TPZFMatrix< std::complex<double> > res(dim, dim, 0.);
-        TPZFMatrix< std::complex<double> > x(dim, 1, 0.);
+        TPZFMatrix< CTVar > res(dim, dim, 0.);
+        TPZFMatrix< CTVar > x(dim, 1, 0.);
         eigenVectors.GetSub(0, i, dim, 1, x);
 
         res = cpfma * x - w[i] * cpfmb * x;
@@ -966,15 +966,15 @@ matx ma;
     bool check = true;
     matx cpmaOriginal(ma);
     //    if(symmetric){
-    TPZFMatrix< std::complex<double> > cpma(dim, dim);
+    TPZFMatrix< CTVar > cpma(dim, dim);
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
             cpma(i, j) = ma.GetVal(i, j);
         }
     }
 
-    TPZVec < std::complex<double> > w;
-    TPZFMatrix < std::complex<double> > eigenVectors;
+    TPZVec < CTVar > w;
+    TPZFMatrix < CTVar > eigenVectors;
     ma.SolveEigenProblem(w, eigenVectors);
 
     //    cpma.Print("a = ",std::cout , EMathematicaInput);
@@ -985,8 +985,8 @@ matx ma;
         mult *= 10.;
     }
     for (int i = 0; i < dim; i++) {
-        TPZFMatrix< std::complex<double> > res(dim, 1, 0.);
-        TPZFMatrix< std::complex<double> > x(dim, 1, 0.);
+        TPZFMatrix< CTVar > res(dim, 1, 0.);
+        TPZFMatrix< CTVar > x(dim, 1, 0.);
         for (int j = 0; j < dim; j++) {
             x(j, 0) = eigenVectors(j, i);
         }
