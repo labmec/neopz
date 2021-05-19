@@ -8,7 +8,7 @@
 #include "TPZMatBase.h"
 #include "TPZMatSingleSpace.h"
 #include "TPZMaterialDataT.h"
-#include "pzanalysis.h"
+#include "TPZStaticAnalysis.h"
 #include "TPZSSpStructMatrix.h"
 #include "pzmatrix.h"
 #include "TPZMatrixSolver.h"
@@ -162,9 +162,9 @@ namespace structTest{
                               const int nThreads)
   {
 
-    TPZAutoPointer<TPZMatrix<STATE>> mat = [cMesh,nThreads](){
+    TPZAutoPointer<TPZMatrix<STATE>> mat = [&cMesh,nThreads](){
       constexpr bool optimizeBandwidth{false};
-      TPZAnalysis an(cMesh, optimizeBandwidth);
+      TPZStaticAnalysis an(cMesh, optimizeBandwidth);
       TSTMAT matskl(cMesh);
       matskl.SetNumThreads(nThreads);
       an.SetStructuralMatrix(matskl);
@@ -194,7 +194,7 @@ namespace structTest{
 
     auto GetMatrix = [cMesh](const int nThreads){
       constexpr bool optimizeBandwidth{false};
-      TPZAnalysis an(cMesh, optimizeBandwidth);
+      TPZStaticAnalysis an(cMesh, optimizeBandwidth);
       TSTMAT matskl(cMesh);
       matskl.SetNumThreads(nThreads);
       an.SetStructuralMatrix(matskl);
@@ -225,7 +225,7 @@ namespace structTest{
     
     auto GetMatrix = [cMesh](const int nThreads, bool first){
       constexpr bool optimizeBandwidth{false};
-      TPZAnalysis an(cMesh, optimizeBandwidth);
+      TPZStaticAnalysis an(cMesh, optimizeBandwidth);
       TPZAutoPointer<TPZStructMatrix>strmat;
       if(first){
         strmat = new TPZSkylineStructMatrix<STATE, TSTMAT1>(cMesh);

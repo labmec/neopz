@@ -35,7 +35,7 @@
 
 #include "TPZExtendGridDimension.h"
 
-#include "pzanalysis.h"
+#include "TPZStaticAnalysis.h"
 
 #include "pzlog.h"
 
@@ -297,7 +297,7 @@ static TPZCompMesh *GenerateH1Mesh(TPZAutoPointer<TPZGeoMesh> gmesh)
     cmesh->SetAllCreateFunctionsContinuous();
     cmesh->AutoBuild();
     // reorder the equations
-    TPZAnalysis an(cmesh);
+    TPZStaticAnalysis an(cmesh);
 #ifdef PZ_USING_MKL
     TPZSSpStructMatrix<STATE> strmat(cmesh);
     an.SetStructuralMatrix(strmat);
@@ -343,7 +343,7 @@ TPZFMatrix<STATE> ComputeSolution(TLaplaceExample1 &config, TPZCompMesh *cmesh)
 {
     SetExactSolution(config, cmesh);
     // avoid renumbering the equations
-    TPZAnalysis an(cmesh,false);
+    TPZStaticAnalysis an(cmesh,false);
 #ifdef PZ_USING_MKL
     TPZSSpStructMatrix<STATE> strmat(cmesh);
     an.SetStructuralMatrix(strmat);
@@ -411,7 +411,7 @@ static TPZFMatrix<STATE> RunConfig(TPZCompMesh *cmesh, int sol)
     TLaplaceExample1 config;
     config.fExact = allexact[sol];
     SetExactSolution(config, cmesh);
-    TPZAnalysis an(cmesh);
+    TPZStaticAnalysis an(cmesh);
 #ifdef PZ_USING_MKL
     TPZSSpStructMatrix<STATE> strmat(cmesh);
     an.SetStructuralMatrix(strmat);

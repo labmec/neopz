@@ -16,7 +16,7 @@ template<class TRANSIENTCLASS>
 double TPZTransientAnalysis<TRANSIENTCLASS>::gTime = 0.;
 
 template<class TRANSIENTCLASS>
-TPZTransientAnalysis<TRANSIENTCLASS>::TPZTransientAnalysis(TPZCompMesh *mesh, bool IsLinear, std::ostream &out):/*TPZAnalysis*/TPZNonLinearAnalysis(mesh,out), fSavedSolutionVec(){
+TPZTransientAnalysis<TRANSIENTCLASS>::TPZTransientAnalysis(TPZCompMesh *mesh, bool IsLinear, std::ostream &out):/*TPZStaticAnalysis*/TPZNonLinearAnalysis(mesh,out), fSavedSolutionVec(){
 	this->fTimeStep = 0.;
 	this->fCurrentIter = 0;
 	this->SetConvergence(0, 0.);
@@ -126,7 +126,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::RunTransient(std::ostream &out, bool 
 			out << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << std::endl;
 			
 			prevsol = fSolution;
-			TPZAnalysis::LoadSolution();
+			TPZStaticAnalysis::LoadSolution();
 			
 			error = norm;
 			iter++;
@@ -259,7 +259,7 @@ template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::PostProcess(int resolution, int dimension){
     REAL T = this->GetCurrentIter() * this->TimeStep();
     this->fTime = T;
-    TPZAnalysis::PostProcess(resolution, dimension);
+    TPZStaticAnalysis::PostProcess(resolution, dimension);
 }//method
 
 template<class TRANSIENTCLASS>
@@ -267,7 +267,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::PostProcess(TPZVec<REAL> &loc, std::o
     REAL T = this->GetCurrentIter() * this->TimeStep();
     this->gTime = T;
     out << "\nSOLUTION #" << this->GetCurrentIter() << " AT TIME = " << T << std::endl;
-    TPZAnalysis::PostProcess(loc, out);
+    TPZStaticAnalysis::PostProcess(loc, out);
     out << "\n***************************************\n" << std::endl;
 }//method
 
@@ -384,7 +384,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::RunExplicit(std::ostream &out, bool F
 		
 		//Computing residual of last state solution
 		prevsol = fSolution;
-		TPZAnalysis::LoadSolution();
+		TPZStaticAnalysis::LoadSolution();
 		this->ComputeFluxOnly();
 		
 		this->Solve();
@@ -392,7 +392,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::RunExplicit(std::ostream &out, bool F
 		TPZFMatrix<STATE> &sol = fSolution;
 		sol += prevsol;
 		
-		TPZAnalysis::LoadSolution();
+		TPZStaticAnalysis::LoadSolution();
 		if (this->fSaveFrequency){
 			if (!(this->fCurrentIter % fSaveFrequency)){
 				this->PostProcess(this->fDXResolution);

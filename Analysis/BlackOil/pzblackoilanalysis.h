@@ -44,7 +44,7 @@ public:
         TPZBlackOilAnalysis::Run(out,true);
     }
 	
-	virtual void PostProcess(int resolution) override { TPZAnalysis::PostProcess(resolution);}
+	virtual void PostProcess(int resolution) override { TPZStaticAnalysis::PostProcess(resolution);}
 	
 	virtual void PostProcess(int resolution, int dimension) override;
 	

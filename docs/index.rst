@@ -10,6 +10,7 @@ Welcome to NeoPZ's documentation!
    :maxdepth: 1
    :caption: Contents:
              
+   analysis/index.rst
    material/index.rst
    structmatrix/index.rst
    solver/index.rst
@@ -21,10 +22,15 @@ Introduction
 
 This documentation is an ongoing work. The following sections have been written:
 
+- :doc:`analysis/index` How a FEM analysis is performed in NeoPZ
 - :doc:`material/index` How weak formulations are implemented
 - :doc:`structmatrix/index` How different matrix storage formats can be used
 - :doc:`solver/index` Available solvers in NeoPZ
 - :doc:`util/index` Utility classes available in NeoPZ
+
+
+.. note::
+   In this documentation the most relevant methods and classes are presented and discussed. Users are encouraged to use Doxygen to generate a complete documentation.
 
 About
 -----

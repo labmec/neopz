@@ -26,12 +26,12 @@ static TPZLogger logger("pz.nonlinearanalysis");
 
 using namespace std;
 
-TPZNonLinearAnalysis::TPZNonLinearAnalysis() : TPZAnalysis() {
+TPZNonLinearAnalysis::TPZNonLinearAnalysis() : TPZStaticAnalysis() {
 	if(Mesh()) Mesh()->Solution().Zero();
 	fSolution.Zero();
 }
 
-TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,true,out) {
+TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZStaticAnalysis(mesh,true,out) {
 	if(Mesh()) Mesh()->Solution().Zero();
 	fSolution.Zero();
 }
@@ -240,7 +240,7 @@ void TPZNonLinearAnalysis::LoadSolution(const TPZFMatrix<STATE> &state){
 }
 
 void TPZNonLinearAnalysis::LoadSolution(){
-    TPZAnalysis::LoadSolution();
+    TPZStaticAnalysis::LoadSolution();
 }
 
 void TPZNonLinearAnalysis::LoadState(TPZFMatrix<STATE> &state){

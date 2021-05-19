@@ -140,7 +140,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, REAL tol, int
     // Auxiliary previous solution
     TPZFMatrix<REAL> x(fSolution);
     
-    TPZAnalysis::Assemble(); // starting with consistent jacobian
+    TPZStaticAnalysis::Assemble(); // starting with consistent jacobian
     REAL residue_norm_prev = Norm(fRhs);
     std::cout.precision(3);
     /// @TODO:: When residue_norm_prev < tol the solution is already converged then return.
@@ -239,7 +239,7 @@ void TPZElastoPlasticAnalysis::IterativeProcessPrecomputedMatrix(std::ostream &o
     // Auxiliary previous solution
     TPZFMatrix<REAL> x(fSolution);
     
-    TPZAnalysis::AssembleResidual(); // starting with consistent jacobian
+    TPZStaticAnalysis::AssembleResidual(); // starting with consistent jacobian
     REAL residue_norm_prev = Norm(fRhs);
     std::cout.precision(3);
     
@@ -647,7 +647,7 @@ void TPZElastoPlasticAnalysis::UpdatePrecond()
 {
    if(fPrecond)
    {
-       TPZMatrix<REAL> * pMatrix = TPZAnalysis::MatrixSolver<STATE>().Matrix().operator->();
+       TPZMatrix<REAL> * pMatrix = TPZStaticAnalysis::MatrixSolver<STATE>().Matrix().operator->();
 		TPZMatrix<REAL> * pPrecondMat = fPrecond->Matrix().operator->();
 		pPrecondMat->Zero();
 		TPZBlockDiagonal<REAL> *pBlock = dynamic_cast<TPZBlockDiagonal<REAL> *>(pPrecondMat);

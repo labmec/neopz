@@ -3,13 +3,12 @@
  * @brief Contains implementations of the TPZAnalysis methods.
  */
 
-#include "pzanalysis.h"
+#include "TPZAnalysis.h"
 #include <math.h>                          // for sqrt, fabs
 #include <thread>
 #include <vector>
 #include <stdio.h>                         // for NULL
 #include <string.h>                        // for strcpy, strlen
-#include <chrono>
 #ifdef MACOSX
 #include <__functional_base>               // for less
 #include <__tree>                          // for __tree_const_iterator, ope...
@@ -19,7 +18,6 @@
 #include <string>                          // for allocator, basic_string
 #include <utility>                         // for pair
 #include "TPZLagrangeMultiplier.h"         // for TPZLagrangeMultiplier
-#include "TPZSkylineNSymStructMatrix.h"    // for TPZSkylineNSymStructMatrix
 #include "TPZSloanRenumbering.h"           // for TPZSloanRenumbering
 #include "pzadmchunk.h"                    // for TPZAdmChunkVector
 #include "pzbdstrmatrix.h"                 // for TPZBlockDiagonalStructMatrix
@@ -51,6 +49,7 @@
 #include "tpznodesetcompute.h"             // for TPZNodesetCompute
 #include "tpzsparseblockdiagonal.h"        // for TPZSparseBlockDiagonal
 #include "TPZMatError.h"
+#include "TPZSimpleTimer.h"
 #ifdef WIN32
 #include "pzsloan.h"                       // for TPZSloan
 #endif
@@ -121,54 +120,51 @@ void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix)
 }
 TPZAnalysis::TPZAnalysis() :
     TPZRegisterClassId(&TPZAnalysis::ClassId),
-    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(),
-    fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0),
-    fRenumber(new RENUMBER), fGuiInterface(NULL), fTable(),fSolType(EUndefined) {
-	fGraphMesh[0] = 0;
-	fGraphMesh[1] = 0;
-	fGraphMesh[2] = 0;
+    fRenumber(new RENUMBER){
 }
 
 
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 TPZRegisterClassId(&TPZAnalysis::ClassId),
-fGeoMesh(0), fCompMesh(0),
 fSolType(mesh->GetSolType()),
-fRhs(fSolType == EComplex ? true : false),
+// fRhs(fSolType == EComplex ? true : false),
 fSolution(fSolType == EComplex ? true : false),
-fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0),
-fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
+fRenumber(new RENUMBER)
 {
-	fGraphMesh[0] = 0;
-	fGraphMesh[1] = 0;
-	fGraphMesh[2] = 0;
-    this->SetCompMesh(mesh, mustOptimizeBandwidth);
+  //we must not call virtual methods in constructor
+  this->SetCompMeshInit(mesh, mustOptimizeBandwidth);
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 TPZRegisterClassId(&TPZAnalysis::ClassId),
-fGeoMesh(0), fCompMesh(0),
 fSolType(mesh->GetSolType()),
-fRhs(fSolType == EComplex ? true : false),
+// fRhs(fSolType == EComplex ? true : false),
 fSolution(fSolType == EComplex ? true : false),
-fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
+fRenumber(new RENUMBER)
 {
-	fGraphMesh[0] = 0;
-	fGraphMesh[1] = 0;
-	fGraphMesh[2] = 0;
-	this->SetCompMesh(mesh.operator ->(), mustOptimizeBandwidth);
+  //we must not call virtual methods in constructor
+	this->SetCompMeshInit(mesh.operator ->(), mustOptimizeBandwidth);
 }
 
-
-void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
-    if(mesh)
+void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, bool mustOptimizeBandwidth)
+{
+  if(mesh)
     {
         fCompMesh = mesh;
         fSolType = fCompMesh->GetSolType();
         fGeoMesh = mesh->Reference();
-        fGraphMesh[0] = 0;
-        fGraphMesh[1] = 0;
-        fGraphMesh[2] = 0;
+        if(fGraphMesh[0]){
+            delete fGraphMesh[0];
+            fGraphMesh[0] = nullptr;
+        }
+        if(fGraphMesh[1]){
+            delete fGraphMesh[1];
+            fGraphMesh[1] = nullptr;
+        }
+        if(fGraphMesh[2]){
+            delete fGraphMesh[2];
+            fGraphMesh[2] = nullptr;
+        }
         if(fSolver) fSolver->ResetMatrix();
 //        fCompMesh->InitializeBlock();
         int64_t neq = fCompMesh->NEquations();
@@ -194,33 +190,11 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         CleanUp();
     }
     fStep = 0;
-    fTime = 0.;
-    if(!this->fSolver){
-        //seta default do stepsolver como LU
-        if(fSolType == EReal){
-            TPZStepSolver<STATE> defaultSolver;
-            defaultSolver.SetDirect(ELU);
-            this->SetSolver(defaultSolver);
-        }
-        else{
-            TPZStepSolver<CSTATE> defaultSolver;
-            defaultSolver.SetDirect(ELU);
-            this->SetSolver(defaultSolver);
-        }
-      
-    }
-    if(!this->fStructMatrix && mesh)
-    {
-        if(fSolType ==  EReal){
-            TPZSkylineNSymStructMatrix<STATE>  defaultMatrix(mesh);
-            this->SetStructuralMatrix(defaultMatrix);
-        }else{
-            TPZSkylineNSymStructMatrix<CSTATE>  defaultMatrix(mesh);
-            this->SetStructuralMatrix(defaultMatrix);
-        }
-    }
-  
+    fTime = 0;
+}
 
+void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
+  SetCompMeshInit(mesh,mustOptimizeBandwidth);
 }
 
 TPZAnalysis::~TPZAnalysis(void){
@@ -232,22 +206,21 @@ void TPZAnalysis::CleanUp()
 {
     if(fSolver) {
         delete fSolver;
-        fSolver = NULL;
+        fSolver = nullptr;
     }
     int dim;
     for(dim=0; dim<3; dim++) {
         if(fGraphMesh[dim]) delete fGraphMesh[dim];
-        fGraphMesh[dim] = 0;
+        fGraphMesh[dim] = nullptr;
         fScalarNames[dim].resize(0);
         fVectorNames[dim].resize(0);
     }
-    fCompMesh = 0;
-    fGeoMesh = 0;
+    fCompMesh = nullptr;
+    fGeoMesh = nullptr;
     fSolution.Redim(0,0);
-    fRhs.Redim(0,0);
-    fStructMatrix = 0;
-    fRenumber = 0;
-    fGuiInterface = 0;
+    fStructMatrix = nullptr;
+    fRenumber = nullptr;
+    fGuiInterface = nullptr;
     
 }
 
@@ -360,187 +333,6 @@ int TPZAnalysis::ComputeNumberofLoadCases()
     return res;
 }
 
-
-void TPZAnalysis::AssembleResidual(){
-    int numloadcases = ComputeNumberofLoadCases();
-
-    if(Mesh()->NEquations()==0)
-    {
-        cout << "\n ########################################################################" <<endl;
-        cout << "\n Imprimindo malha computacional de pos processamento no assemble residual " <<endl;
-        cout << "\n Malha nula! " <<endl;
-        DebugStop();
-    }
-	int64_t sz = this->Mesh()->NEquations();
-	this->Rhs().Redim(sz,numloadcases);
-    //int64_t othersz = fStructMatrix->Mesh()->NEquations();
-	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
-}//void
-
-template<class TVar>
-void TPZAnalysis::AssembleInternal()
-{
-    auto mySolver =
-        dynamic_cast<TPZMatrixSolver<TVar> *>(fSolver);
-    if(!fCompMesh || !fStructMatrix || !mySolver)
-	{
-		std::stringstream sout;
-		sout << "TPZAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh
-		<< " fStructMatrix " << (void *) fStructMatrix.operator->()
-		<< " mySolver " << (void *) mySolver;
-#ifndef WINDOWS
-		sout << " at file " << __FILE__ << " line " << __LINE__ ;
-#else
-		sout << " TPZAnalysis::Assemble() " ;
-#endif
-#ifdef PZ_LOG
-		LOGPZ_ERROR(logger,sout.str().c_str());
-#else
-		std::cout << sout.str().c_str() << std::endl;
-#endif
-		return;
-	}
-    int numloadcases = ComputeNumberofLoadCases();
-	int64_t sz = fCompMesh->NEquations();
-	fRhs.Redim(sz,numloadcases);
-	if(mySolver->Matrix() && mySolver->Matrix()->Rows()==sz)
-	{
-		mySolver->Matrix()->Zero();
-		fStructMatrix->Assemble(*(mySolver->Matrix().operator ->()),fRhs,fGuiInterface);
-	}
-	else
-	{
-        
-		auto *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
-		mySolver->SetMatrix(mat);
-		//aqui TPZFMatrix<TVar> nao eh nula
-	}
-#ifdef PZ_LOG
-    if(logger.isDebugEnabled())
-    {
-        std::stringstream sout;
-        PrintVectorByElement(sout, fRhs, 1.e-6);
-//        fRhs.Print("Rhs",sout);
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-    
-	mySolver->UpdateFrom(mySolver->Matrix());
-}
-void TPZAnalysis::Assemble()
-{
-	if(fSolType == EReal)
-        TPZAnalysis::AssembleInternal<STATE>();
-    else
-        TPZAnalysis::AssembleInternal<CSTATE>();
-}
-
-
-template<class TVar>
-void TPZAnalysis::SolveInternal(){
-	int64_t numeq = fCompMesh->NEquations();
-	if(fRhs.Rows() != numeq ) 
-    {
-        DebugStop();
-    }
-	int64_t nReducedEq = fStructMatrix->NReducedEquations();
-    auto mySolver =
-        dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
-    if (nReducedEq == numeq) 
-    {
-        TPZFMatrix<TVar> residual(fRhs);
-        TPZFMatrix<TVar> delu(numeq,1,0.);
-        //      TVar normres  = Norm(residual);
-        //	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
-#ifdef PZ_LOG
-        if (logger.isDebugEnabled())
-        {
-            TPZFMatrix<TVar> res2(fRhs);
-            mySolver->Matrix()->Residual(fSolution,fRhs,res2);
-            std::stringstream sout;
-            sout << "Residual norm " << Norm(res2) << std::endl;
-    //		res2.Print("Residual",sout);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-#endif
-    
-//        {
-//            std::ofstream out("Matrix.nb");
-//            mySolver->Matrix()->Print("Stiffness = ",out,EMathematicaInput);
-//
-//        }
-        REAL resnorm = Norm(residual);
-        if(IsZero(resnorm))
-        {
-            delu.Zero();
-        }
-        else
-        {
-            mySolver->Solve(residual, delu);
-        }
-        fSolution = delu;
-#ifdef PZ_LOG
-        if (logger.isDebugEnabled())
-        {
-            if(!mySolver->Matrix()->IsDecomposed())
-            {
-                TPZFMatrix<TVar> res2(fRhs);
-                mySolver->Matrix()->Residual(delu,fRhs,res2);
-                std::stringstream sout;
-                sout << "Residual norm " << Norm(res2) << std::endl;
-                //            res2.Print("Residual",sout);
-                LOGPZ_DEBUG(logger,sout.str())
-            }
-        }
-#endif
-    
-    }
-    else 
-    {
-        TPZFMatrix<TVar> residual(nReducedEq,1,0.);
-    	TPZFMatrix<TVar> delu(nReducedEq,1,0.);
-        fStructMatrix->EquationFilter().Gather(fRhs,residual);
-	    mySolver->Solve(residual, delu);
-        fSolution.Redim(numeq,1);
-        fStructMatrix->EquationFilter().Scatter(delu,fSolution);
-    }
-#ifdef PZ_LOG
-    std::stringstream sout;
-    TPZStepSolver<TVar> *step = dynamic_cast<TPZStepSolver<TVar> *> (mySolver);
-    if(!step) DebugStop();
-    int64_t nsing = step->Singular().size();
-	if(nsing && logger.isWarnEnabled()) {
-		sout << "Number of singular equations " << nsing;
-		std::list<int64_t>::iterator it = step->Singular().begin();
-		if(nsing) sout << "\nSingular modes ";
-		while(it != step->Singular().end())
-		{
-			sout << *it << " ";
-			it++;
-		}
-		if(nsing) sout << std::endl;
-		LOGPZ_WARN(logger,sout.str())
-	}
-#endif
-#ifdef PZ_LOG
-    if (logger.isDebugEnabled())
-	{
-		std::stringstream sout;
-		sout << "Solution norm " << Norm(fSolution) << std::endl;
-		fSolution.Print("delu",sout);
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
-	fCompMesh->LoadSolution(fSolution);
-    fCompMesh->TransferMultiphysicsSolution();
-}
-
-void TPZAnalysis::Solve() {
-    if(fSolType == EReal)
-        TPZAnalysis::SolveInternal<STATE>();
-    else
-        TPZAnalysis::SolveInternal<CSTATE>();
-}
 
 void TPZAnalysis::LoadSolution() {	
 	if(fCompMesh) {
@@ -780,12 +572,10 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
   std::vector<std::thread> allthreads;
 
   TPZAdmChunkVector<TPZCompEl *> elvec;
-  std::chrono::high_resolution_clock::now();
-  auto tsim1 = std::chrono::high_resolution_clock::now();
-  CreateListOfCompElsToComputeError(elvec);
-  auto tsim2 = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double, milli> elapsed_time = tsim2 - tsim1;
-  std::cout << "Total wall time of CreateListOfCompElsToComputeError = " << elapsed_time.count()<<"ms"<<std::endl;
+  {
+      TPZSimpleTimer t("CreateListOfCompElsToComputeError");
+      CreateListOfCompElsToComputeError(elvec);
+  }
   
   
   ThreadData threaddata(elvec,store_error);
@@ -796,21 +586,19 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
   }
 
 
-  auto tthread1 = std::chrono::high_resolution_clock::now();
-  
-  for(int itr=0; itr<numthreads; itr++)
   {
-    allthreads.push_back(std::thread(ThreadData::ThreadWork, &threaddata));
-  }
+      TPZSimpleTimer t("ThreadWork");
   
-  for(int itr=0; itr<numthreads; itr++)
-  {
-    allthreads[itr].join();
+      for(int itr=0; itr<numthreads; itr++)
+          {
+              allthreads.push_back(std::thread(ThreadData::ThreadWork, &threaddata));
+          }
+  
+      for(int itr=0; itr<numthreads; itr++)
+          {
+              allthreads[itr].join();
+          }
   }
-
-  auto tthread2 = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double, milli> elapsed_time_thread = tthread2 - tthread1;
-  std::cout << "Total wall time of ThreadWork = " << elapsed_time_thread.count()<<"ms"<<std::endl;
   
   
   // Sanity check. There should be number of ids equal to number of threads
@@ -984,17 +772,6 @@ void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equati
     ShowShapeInternal<STATE>(scalnames,vecnames,plotfile,equationindices);
 }
 
-
-
-void TPZAnalysis::LoadShape(double ,double , int64_t ,TPZConnect* start){
-	//void TPZAnalysis::LoadShape(double dx,double dy, int numelem,TPZConnect* start){
-	Assemble();
-	fRhs.Zero();
-	fSolution.Zero();
-	
-}
-
-
 void TPZAnalysis::Run(std::ostream &out)
 {
     int64_t neq = fCompMesh->NEquations();
@@ -1005,20 +782,21 @@ void TPZAnalysis::Run(std::ostream &out)
         std::cout.flush();
     }
 
-    const auto t1 = std::chrono::high_resolution_clock::now();
-	Assemble();
-
+    {
+        TPZSimpleTimer t("Time for assembly");
+        Assemble();
+    }
+    
     if(neq > 20000)
     {
         std::cout << "Entering Solve\n";
         std::cout.flush();
     }
-    const auto t2 = std::chrono::high_resolution_clock::now();
-    Solve();
-    const auto t3 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, milli> time_assemble = t2-t1;
-    std::chrono::duration<double, milli> time_solve = t3-t2;
-    std::cout << "Time for assembly " << time_assemble.count() << "ms Time for solving " << time_solve.count() << "ms"<<std::endl;
+    
+    {
+        TPZSimpleTimer t("Time for solving");
+        Solve();
+    }
 }
 
 /** @brief Define GrapMesh as V3D, DX, MV or VTK depending on extension of the file */
@@ -1138,43 +916,6 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
 	fStep++;
 }
 
-
-template<class TVar>
-void TPZAnalysis::AnimateRunInternal(
-    int64_t num_iter, int steps, TPZVec<std::string> &scalnames,
-    TPZVec<std::string> &vecnames, const std::string &plotfile)
-{
-    Assemble();
-	int64_t numeq = fCompMesh->NEquations();
-	if(fRhs.Rows() != numeq ) return;
-	
-	TPZFMatrix<TVar> residual(fRhs);
-	int dim = HighestDimension();
-    std::set<int> matids;
-    IdentifyPostProcessingMatIds(dim, matids);
-	TPZDXGraphMesh gg(fCompMesh,dim,matids,scalnames,vecnames) ;
-	gg.SetFileName(plotfile);
-	gg.SetResolution(0);
-    auto mySolver = dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
-	for(auto i=1; i<=num_iter;i+=steps){
-		TPZStepSolver<TVar> sol;
-		sol.ShareMatrix(*mySolver);
-		sol.SetJacobi(i,0.,0);
-		SetSolver(sol);
-		mySolver->Solve(fRhs, fSolution);
-		fCompMesh->LoadSolution(fSolution);
-		gg.DrawSolution(i-1,0);
-	}
-}
-    
-void TPZAnalysis::AnimateRun(
-    int64_t num_iter, int steps, TPZVec<std::string> &scalnames,
-    TPZVec<std::string> &vecnames, const std::string &plotfile)
-{
-	//TODOCOMPLEX
-    AnimateRunInternal<STATE>(num_iter,steps,scalnames,vecnames,plotfile);
-}
-
 int TPZAnalysis::HighestDimension(){
 	int dim = 0;
 	std::map<int, TPZMaterial * >::iterator matit;
@@ -1277,27 +1018,6 @@ void TPZAnalysis::PostProcessTable(std::ostream &out_file) {
 		}
 	}
 	out_file << endl;
-}
-void TPZAnalysis::SetSolver(const TPZSolver &solver){
-	if(fSolver) delete fSolver;
-    auto *tmp =
-        dynamic_cast<const TPZMatrixSolver<STATE>*>(&solver);
-    if(tmp && fSolType == EReal){
-        fSolver = (TPZMatrixSolver<STATE> *) solver.Clone();
-        return;
-    }
-    else{
-        auto *tmp =
-            dynamic_cast<const TPZMatrixSolver<CSTATE>*>(&solver);
-        if(tmp && fSolType == EComplex){
-            fSolver = (TPZMatrixSolver<CSTATE> *) solver.Clone();
-            return;
-        }
-    }
-    PZError<<__PRETTY_FUNCTION__;
-    PZError<<" Incompatible types!\n";
-    PZError<<" Aborting...\n";
-    DebugStop();
 }
 
 template<class TVar>
@@ -1430,17 +1150,6 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildSequenceSolver(TPZVec<int64_t> &graph, 
 		delete steps[c];
 	}
 	return result;
-}
-
-template<class TVar>
-TPZMatrixSolver<TVar> &TPZAnalysis::MatrixSolver(){
-    const auto tmp = dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
-    if(fSolver && !tmp){
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<" incompatible Solver type! Aborting\n";
-        DebugStop();
-    }
-    return *tmp;
 }
 
 /// Integrate the postprocessed variable name over the elements included in the set matids
@@ -1579,7 +1288,6 @@ void TPZAnalysis::Write(TPZStream &buf, int withclassid) const{
     TPZPersistenceManager::WritePointer(fGraphMesh[1], &buf);
     TPZPersistenceManager::WritePointer(fGraphMesh[2], &buf);
     buf.Write((int)fSolType);
-    fRhs.Write(buf,withclassid);
     fSolution.Write(buf,withclassid);
     TPZPersistenceManager::WritePointer(fSolver, &buf);
     buf.Write(fScalarNames[0]);
@@ -1611,7 +1319,6 @@ void TPZAnalysis::Read(TPZStream &buf, void *context){
         buf.Read(&tmp);
         return (ESolType) tmp;
     }();
-    fRhs.Read(buf,context);
     fSolution.Read(buf,context);
     fSolver = dynamic_cast<TPZMatrixSolver<STATE>*>(TPZPersistenceManager::GetInstance(&buf));
     buf.Read(fScalarNames[0]);
@@ -1644,9 +1351,5 @@ template
 TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner<STATE>(
     EPrecond preconditioner,bool overlap);
 template
-TPZMatrixSolver<STATE> &TPZAnalysis::MatrixSolver<STATE>();
-template
 TPZMatrixSolver<CSTATE> *TPZAnalysis::BuildPreconditioner<CSTATE>(
     EPrecond preconditioner,bool overlap);
-template
-TPZMatrixSolver<CSTATE> &TPZAnalysis::MatrixSolver<CSTATE>();

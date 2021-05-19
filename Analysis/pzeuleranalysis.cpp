@@ -27,7 +27,7 @@ static TPZLogger logger("pz.converge");
 using namespace std;
 
 TPZEulerAnalysis::TPZEulerAnalysis():
-TPZAnalysis(), fFlowCompMesh(NULL),
+TPZStaticAnalysis(), fFlowCompMesh(NULL),
 fRhsLast(),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
 fTimeIntEps(1e-8), fTimeIntMaxIter(100),
@@ -37,7 +37,7 @@ fEvolCFL(0), fpBlockDiag(NULL),fHasFrontalPreconditioner(0)
 }
 
 TPZEulerAnalysis::TPZEulerAnalysis(TPZFlowCompMesh *mesh, std::ostream &out):
-TPZAnalysis(mesh, true, out), fFlowCompMesh(mesh),
+TPZStaticAnalysis(mesh, true, out), fFlowCompMesh(mesh),
 fRhsLast(),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
 fTimeIntEps(1e-8), fTimeIntMaxIter(100),

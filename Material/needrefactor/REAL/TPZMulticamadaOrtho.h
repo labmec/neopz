@@ -16,7 +16,7 @@ class TPZGeoMesh;
 class TPZCompMesh;
 class TPZPlacaOrthotropic;
 class TPZMatOrthotropic;
-class TPZAnalysis;
+class TPZStaticAnalysis;
 class TPZMaterial;
 
 /**

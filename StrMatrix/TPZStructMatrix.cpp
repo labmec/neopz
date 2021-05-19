@@ -4,7 +4,7 @@
 #include "pzcheckmesh.h"
 #include "pzerror.h"
 #include "pzsubcmesh.h"
-#include "pzanalysis.h"
+#include "TPZStaticAnalysis.h"
 #include "pzshtmat.h"
 #include "pzlog.h"
 #ifdef PZ_LOG
@@ -83,7 +83,7 @@ void TPZStructMatrix::SetMaterialIds(const std::set<int> &materialids)
         if(!cel) continue;
         TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
         if(!subcmesh) continue;
-        TPZAutoPointer<TPZAnalysis> analysis = subcmesh->Analysis();
+        TPZAutoPointer<TPZStaticAnalysis> analysis = subcmesh->Analysis();
         if(!analysis)
         {
             LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without analysis object")

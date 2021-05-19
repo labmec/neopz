@@ -47,7 +47,7 @@
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZParFrontStructMatrix.h"
 
-#include "pzanalysis.h"
+#include "TPZStaticAnalysis.h"
 
 #include "pzmultiphysicselement.h"
 #include "pzmultiphysicscompel.h"
@@ -57,7 +57,7 @@
 #include "pzpoisson3d.h"
 #include "mixedpoisson.h"
 #include "TPZReadGIDGrid.h"
-#include "pzanalysis.h"
+#include "TPZStaticAnalysis.h"
 
 #include "TPZVTKGeoMesh.h"
 
@@ -162,7 +162,7 @@ private:
     
     void ChangeExternalOrderConnects(TPZCompMesh *mesh);
     
-    void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh);
+    void SolveSyst(TPZStaticAnalysis &an, TPZCompMesh *fCmesh);
     
     void setTriangTrue()
     {
