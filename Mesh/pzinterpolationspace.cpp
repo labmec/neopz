@@ -416,7 +416,7 @@ void TPZInterpolationSpace::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZEl
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
-        sout << __PRETTY_FUNCTION__ << " material id " << material->Id();
+        sout << __PRETTY_FUNCTION__ << " material id " << this->Material()->Id();
         LOGPZ_DEBUG(logger,sout.str());
     }
 #endif
