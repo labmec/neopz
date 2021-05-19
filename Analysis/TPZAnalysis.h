@@ -24,14 +24,12 @@ class TPZCompMesh;
 class TPZConnect;
 class TPZGeoMesh;
 class TPZGraphMesh;
-template <class TVar> class TPZMatrixSolver;
+template <class TVar>
+class TPZMatrixSolver;
 
 /**
  * @ingroup analysis
- * @brief Implements the sequence of actions to perform a finite element analysis. \ref analysis "Analysis"
- */
-/** This class will renumerate the nodes upon construction
- */
+ * @brief Abstract class defining the interface for performing a Finite Element Analysis.*/
 class TPZAnalysis : public TPZSavable {
 	
 public:
@@ -42,45 +40,38 @@ public:
 	
 protected:
 	/** @brief Geometric Mesh */
-	TPZGeoMesh *fGeoMesh;
+	TPZGeoMesh *fGeoMesh{nullptr};
 	/** @brief Computational mesh */
-	TPZCompMesh *fCompMesh;
+	TPZCompMesh *fCompMesh{nullptr};
     /** @brief Type of the solution (real/complex)*/
-    ESolType fSolType;
+  ESolType fSolType{EUndefined};
 	/** @brief Graphical mesh */
-	TPZGraphMesh *fGraphMesh[3];
-	/** @brief Load vector */
-	TPZSolutionMatrix fRhs;
+	TPZGraphMesh *fGraphMesh[3] = {nullptr,nullptr,nullptr};
 	/** @brief Solution vector */
 	TPZSolutionMatrix fSolution;
 	/** @brief Type of solver to be applied*/
-	TPZSolver *fSolver;
+	TPZSolver *fSolver{nullptr};
 	/** @brief Scalar variables names - to post process */
 	TPZVec<std::string> fScalarNames[3];
 	/** @brief Vectorial variables names - to post process */
 	TPZVec<std::string> fVectorNames[3];
-    /** @brief Tensorial variables names - to post process */
-    TPZVec<std::string> fTensorNames[3];
-	/** @brief Time step */
-	int fStep;
-	/** @brief Time variable which is used in dx output */
-	REAL fTime;
-	
-    /** @brief Number of threads to be used for post-processing error */
-    int fNthreadsError;
-    
+  /** @brief Tensorial variables names - to post process */
+  TPZVec<std::string> fTensorNames[3];
+  /** @brief Step used for post-processing*/
+	int fStep{0};
+  /** @brief Time variable used for post-processing*/
+	REAL fTime{0.};
+  /** @brief Number of threads to be used for post-processing error */
+  int fNthreadsError{0};    
 	/** @brief Structural matrix */
-	TPZAutoPointer<TPZStructMatrix>  fStructMatrix;
-	
+	TPZAutoPointer<TPZStructMatrix>  fStructMatrix{nullptr};	
 	/** @brief Renumbering scheme */
-	TPZAutoPointer<TPZRenumbering> fRenumber;
-	
+	TPZAutoPointer<TPZRenumbering> fRenumber{nullptr};	
 	/** @brief Pointer for gui interface object */
-	TPZAutoPointer<TPZGuiInterface> fGuiInterface;
-	
+	TPZAutoPointer<TPZGuiInterface> fGuiInterface{nullptr};	
 	/** @brief Datastructure which defines postprocessing for one dimensional meshes */
 	class TTablePostProcess : public TPZSavable {
-        public :
+  public :
 		TPZVec<int64_t> fGeoElId;
 		TPZVec<TPZCompEl *> fCompElPtr;
 		int fDimension;
@@ -89,22 +80,30 @@ protected:
 		TTablePostProcess();
 		~TTablePostProcess();
                 
-                int ClassId() const override;
-                
-                void Write(TPZStream &buf, int withclassid) const override;
+    int ClassId() const override;
+    
+    void Write(TPZStream &buf, int withclassid) const override;
 
-                void Read(TPZStream &buf, void *context) override;
+    void Read(TPZStream &buf, void *context) override;
 	};
 	
-        TTablePostProcess fTable;
+  TTablePostProcess fTable;
   public:
-	
+	/** @brief Create an empty TPZAnalysis object */
+	TPZAnalysis();
+
 	/** @brief Create an TPZAnalysis object from one mesh pointer */
 	TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
     	
 	/** @brief Create an TPZAnalysis object from one mesh auto pointer object */
 	TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
-    
+
+  /** @brief Destructor: deletes all protected dynamic allocated objects */
+	virtual ~TPZAnalysis(void);
+
+  /** @name GUI
+   Methods useful when running in a GUI*/
+  /** @{ */
 	/** @brief Defines gui interface object */
 	void SetGuiInterface(TPZAutoPointer<TPZGuiInterface> gui){
 		fGuiInterface = gui;
@@ -114,7 +113,7 @@ protected:
 	TPZAutoPointer<TPZGuiInterface> GetGuiInterface() const{
 		return fGuiInterface;
 	}
-	
+  
 	/** @brief Returns if the process was canceled through gui interface */
 	bool AmIKilled(){
 		if(fGuiInterface){
@@ -122,24 +121,43 @@ protected:
 		}
 		else return false;
 	}
-	
-	/** @brief Set the computational mesh of the analysis. */
-	virtual void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
-	
-	/** @brief Create an empty TPZAnalysis object */
-	TPZAnalysis();
-	
-	/** @brief Destructor: deletes all protected dynamic allocated objects */
-	virtual ~TPZAnalysis(void);
+
+  /** @} */
     
-    /// deletes all data structures
-    void CleanUp();
-    
-    /// Change the renumbering scheme
-    void SetRenumber(TPZAutoPointer<TPZRenumbering> renumber)
-    {
-        fRenumber = renumber;
-    }
+	/** @name MainFEM
+   Main methods of the TPZAnalysis for controlling a FEM simulation.*/
+  /** @{ */
+	/** @brief Assemble the stiffness matrix and load vector */
+	virtual void Assemble() = 0;
+	
+	/** @brief Solve the system*/
+	virtual void Solve() = 0;
+  
+  /** @brief Calls all the needed steps for running the simulation. 
+      By default, it will run Assemble and Solve methods. 
+      Can be overloaded in child classes for customizing behaviour 
+      (i.e., creating a time-stepping scheme).*/
+	virtual void Run(std::ostream &out = std::cout);
+  /** @brief Returns the solution matrix */
+	TPZSolutionMatrix &Solution() { return fSolution;}
+  /** @brief Load the solution into the computable grid */
+	virtual void LoadSolution();
+	/** @brief Load the solution into the computable mesh considering sol as Solution vector of the analysis */
+	virtual void LoadSolution(const TPZFMatrix<STATE> &sol){
+		fSolution = sol;
+		this->LoadSolution();
+	}
+  
+  /** @} */
+
+  /** @name Utils */
+  /** @{ */
+  /** @brief Define the type of preconditioner used */
+	/** This method will create the stiffness matrix but without assembling */
+  template<class TVar>
+	TPZMatrixSolver<TVar> *BuildPreconditioner(EPrecond preconditioner, bool overlap);
+  /// deletes all data structures
+  void CleanUp();
     
 	/** @brief Sets the computer connection block number from the graphical connections block number otimization */
 	void OptimizeBandwidth();
@@ -150,84 +168,80 @@ protected:
 	/** @brief Recompute the node sequence */
 	void Resequence(int firstel = -1);
     
-    /** @brief Determine the number of load cases from the material objects and return its value */
-    /**
-     * this method will modify the material objects so that they have all the same number of load cases
-     * the number of load cases is the maximum value of load cases of all material objects
-     */
-    int ComputeNumberofLoadCases();
-    
-	
-	/** @brief Assemble the stiffness matrix and load vector */
-	virtual  void Assemble();
-	
-	/** @brief Assemble the load vector */
-	virtual void AssembleResidual();
-	
-	/** @brief Invert the stiffness matrix */
-	virtual void Solve();
-	
-	/** @brief Returns the load vector */
-	TPZSolutionMatrix &Rhs() { return fRhs;}
+  /** @brief Determine the number of load cases from the material objects and return its value. 
+      It modifies the TPZMatLoadCases instances so they have the same number of load cases.
+      The number of load cases is the maximum value of load cases of all material objects.
+  */
+  int ComputeNumberofLoadCases();
+  /** @} */
 
-	/** @brief Returns the solution matrix */
-	TPZSolutionMatrix &Solution() { return fSolution;}
-	
+  /** @name GettersSetters */
+
+  /** @{ */
 	/** @brief Returns the pointer to the computational mesh */
 	TPZCompMesh *Mesh()const { return fCompMesh;}
-	/** @brief Returns a reference to the structural matrix */
+  /** @brief Set the computational mesh of the analysis. */
+	virtual void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
+  /// Change the renumbering scheme
+  void SetRenumber(TPZAutoPointer<TPZRenumbering> renumber)
+  {
+    fRenumber = renumber;
+  }
+  inline TPZSolver * Solver() {return fSolver;}
+	/** @brief Set solver matrix */
+	virtual void SetSolver(const TPZSolver &solver) = 0;
+  /** @brief Returns a reference to the structural matrix */
 	TPZAutoPointer<TPZStructMatrix> StructMatrix() {
-        if(!fStructMatrix)
-        {
-            DebugStop();
-        }
-        return fStructMatrix;
+    if(!fStructMatrix){
+      DebugStop();
     }
-	
-	/** @brief Define the type of preconditioner used */
-	/** This method will create the stiffness matrix but without assembling */
-    template<class TVar>
-	TPZMatrixSolver<TVar> *BuildPreconditioner(EPrecond preconditioner, bool overlap);
-	
-    /** @brief ste the step for post processing */
-    void SetStep(int step)
-    {
-        fStep = step;
-    }
-    
-    void SetThreadsForError(int nthreads)
-    {
-        fNthreadsError = nthreads;
-    }
-    
-    int GetStep()
-    {
-        return fStep;
-    }
-    
-	/** @brief Sets time will be used in dx files */
-	void SetTime(REAL time);
-	/** @brief Gets time used in dx files */
-	REAL GetTime();
+    return fStructMatrix;
+  }
+	/** @brief Set structural matrix*/
+	void SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix);
+	/** @brief Set structural matrix for analysis(makes a copy) */	
+	void SetStructuralMatrix(TPZStructMatrix &strmatrix);
+  
+	/** @} */
 
+  /** @name PostFEM
+      FEM Post-processing (non-graphical) methods*/
+  /** @{ */
+  void SetThreadsForError(int nthreads){
+    fNthreadsError = nthreads;
+  }
+  /// Print the residual vector for those elements with entry above a given tolerance
+  void PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec, REAL tol = 1.e-10);
+  //! Integrate the postprocessed variable name over the elements included in the set matids
+  TPZVec<STATE> Integrate(const std::string &varname, const std::set<int> &matids);
+    
+	//! Sets an exact solution in all the materials of the associated mesh
+  void SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f, int pOrder = 1);
+	/** @brief Compute the local error over all elements and global errors in several norms and print out */
+	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
+  /**
+   * @brief Compute the local error over all elements and global errors in several norms and print out
+   * without calculating the errors of the variables for hdiv spaces.
+   */
+  virtual void PostProcessError(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
+  /** @} */
+  
+  /** @name Graphical 
+   Methods related to graphical output.*/
+  /** @{ */
 	/** @brief Graphic of the solution as V3DGrap visualization */
 	void ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices);
     /** @brief Graphic of the solution as V3DGrap visualization */
-    void ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices, int matid, const TPZVec<std::string> &varname);
-    /** @brief Make assembling and clean the load and solution vectors */
-	void LoadShape(double dx,double dy, int64_t numelem,TPZConnect* nod);
-	
-	/** @brief Calls the appropriate sequence of methods to build a solution or a time stepping sequence */
-	virtual void Run(std::ostream &out = std::cout);
+  void ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices, int matid, const TPZVec<std::string> &varname);
+
 	/** @brief Define GrapMesh as V3D, DX, MV or VTK depending on extension of the file */
 	virtual void DefineGraphMesh(int dimension, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile);
-    /** @brief Define GrapMesh as VTK with tensorial names depending on extension of the file */
-    virtual void DefineGraphMesh(int dimension, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames, const std::string &plotfile);
-    /** @brief Define GrapMesh as V3D, DX, MV or VTK depending on extension of the file */
-    virtual void DefineGraphMesh(int dimension, const std::set<int> & matids ,const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile);
-    /** @brief Define GrapMesh as VTK with tensorial names depending on extension of the file */
-    virtual void DefineGraphMesh(int dimension, const std::set<int> & matids, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames, const std::string &plotfile);
-    
+  /** @brief Define GrapMesh as VTK with tensorial names depending on extension of the file */
+  virtual void DefineGraphMesh(int dimension, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames, const std::string &plotfile);
+  /** @brief Define GrapMesh as V3D, DX, MV or VTK depending on extension of the file */
+  virtual void DefineGraphMesh(int dimension, const std::set<int> & matids ,const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile);
+  /** @brief Define GrapMesh as VTK with tensorial names depending on extension of the file */
+  virtual void DefineGraphMesh(int dimension, const std::set<int> & matids, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames, const std::string &plotfile);
 	/** @brief Clean the GrapMesh vector */
 	virtual void CloseGraphMesh();
 	
@@ -235,17 +249,34 @@ protected:
 	TPZGraphMesh *GraphMesh(int dimension) {
 		return fGraphMesh[dimension-1];
 	}
+  /** @brief Set the step for post processing */
+  inline void SetStep(int step){
+    fStep = step;
+  }
+  /** @brief Get the step for post processing*/
+  inline int GetStep() const{
+    return fStep;
+  }
+  /** @brief Sets time used in OpenDX files */
+	inline void SetTime(REAL time) {
+    this->fTime = time;
+  }
+	/** @brief Gets time used in OpenDX files */
+	inline REAL GetTime() const{
+    return this->fTime;
+  }
 	/** @brief Draw solution over mesh for all dimensions */
 	virtual void PostProcess(int resolution);
 	/** @brief Draw solution over mesh by dimension  */	
 	virtual void PostProcess(int resolution, int dimension);
 	
-    /** @brief Fill mat ids with materials with provided dimension wich are not boundary conditinos or interface  */
-    void IdentifyPostProcessingMatIds(int dimension, std::set<int> & matids);
+  /** @brief Fill mat ids with materials with provided dimension wich are not boundary conditinos or interface  */
+  void IdentifyPostProcessingMatIds(int dimension, std::set<int> & matids);
     
-    
+  /** @} */
+  
 	/**
-	 * @name Related over data structure to post processing
+	 * @name PostProcessTable
 	 * @{
 	 */
 	
@@ -257,72 +288,28 @@ protected:
 	virtual void PrePostProcessTable(std::ostream &out_file);
 	/** @brief Print the solution related with the computational element vector in post process */
 	virtual void PostProcessTable(std::ostream &out_file);
-
-    
-    /** @brief Compute and print the local error over all elements in data structure of post process, also compute global errors in several norms */
+  
+  /** @brief Compute and print the local error over all elements in data structure of post process, also compute global errors in several norms */
 	void PostProcessTable(  TPZFMatrix<REAL> &pos,std::ostream &out= std::cout );
 
 	/** @} */
-
-	/** @brief Load the solution into the computable grid */
-	virtual void LoadSolution();
-	/** @brief Load the solution into the computable mesh considering sol as Solution vector of the analysis */
-	virtual void LoadSolution(const TPZFMatrix<STATE> &sol){
-		fSolution = sol;
-		this->LoadSolution();
-	}
-
-    //! Integrate the postprocessed variable name over the elements included in the set matids
-    TPZVec<STATE> Integrate(const std::string &varname, const std::set<int> &matids);
-    
-	//! Sets an exact solution in all the materials of the associated mesh
-    void SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f, int pOrder = 1);
-	/** @brief Compute the local error over all elements and global errors in several norms and print out */
-	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
-    
-    /**
-     * @brief Compute the local error over all elements and global errors in several norms and print out
-     * without calculating the errors of the variables for hdiv spaces.
-     */
-    virtual void PostProcessError(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
-    
-    virtual void PostProcessErrorSerial(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
-    
-    virtual void PostProcessErrorParallel(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
-    
-    void CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvec);
-	
+	  
 	/** @brief Print connect and solution information */
 	void Print( const std::string &name , std::ostream &out );
+  /** @name ReadWrite */
+  /** @{ */
+  int ClassId() const override;
     
-    /// Print the residual vector for those elements with entry above a given tolerance
-    void PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec, REAL tol = 1.e-10);
+  void Write(TPZStream &buf, int withclassid) const override;
 
-    inline TPZSolver * Solver() {return fSolver;}
-	/** @brief Get the matrix solver */
-    template<class TVar>
-	TPZMatrixSolver<TVar> & MatrixSolver();
-	/** @brief Run and print the solution step by step */
-	void AnimateRun(int64_t num_iter, int steps,
-					TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, const std::string &plotfile);
-	/** @brief Set solver matrix */
-	void SetSolver(const TPZSolver &solver);
-	/** @brief Set structural matrix as auto pointer for analysis */
-	void SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix);
-	/** @brief Set structural matrix for analysis */	
-	void SetStructuralMatrix(TPZStructMatrix &strmatrix);
-  
-    int ClassId() const override;
-    
-    void Write(TPZStream &buf, int withclassid) const override;
+  void Read(TPZStream &buf, void *context) override;
+  /** @} */
+protected:
+  struct ThreadData {
 
-    void Read(TPZStream &buf, void *context) override;
+    TPZAdmChunkVector<TPZCompEl *> fElvec;
     
-    struct ThreadData {
-
-      TPZAdmChunkVector<TPZCompEl *> fElvec;
-    
-      ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error);
+    ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error);
     
     ~ThreadData();
     
@@ -332,7 +319,7 @@ protected:
     
     int ftid;
       
-      bool fStoreError = false;
+    bool fStoreError = false;
     
     // Vector with errors. Assuming no more than a 100 threads
     TPZManVector<TPZManVector<REAL,10>,100> fvalues;
@@ -347,6 +334,11 @@ protected:
   
   friend struct ThreadData;
 
+  virtual void PostProcessErrorSerial(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
+    
+  virtual void PostProcessErrorParallel(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
+    
+  void CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvec);
 private:
   /** @brief Build a sequence solver based on the block graph and its colors */
   template <class TVar>
@@ -360,39 +352,16 @@ private:
                const TPZVec<REAL> &loc, TPZVec<TVar> &result,
                TPZFMatrix<TVar> &deriv)>
                f,int pOrder = 1);
-  template <class TVar> void AssembleInternal();
-  template <class TVar> void SolveInternal();
   template <class TVar>
   void ShowShapeInternal(const TPZStack<std::string> &scalnames,
                          const TPZStack<std::string> &vecnames,
                          const std::string &plotfile,
                          TPZVec<int64_t> &equationindices);
-  template <class TVar>
-  void AnimateRunInternal(int64_t num_iter, int steps,
-                          TPZVec<std::string> &scalnames,
-                          TPZVec<std::string> &vecnames,
-                          const std::string &plotfile);
 };
-
-
-
-
-inline void TPZAnalysis::SetTime(REAL time){
-	this->fTime = time;
-}
-
-inline REAL TPZAnalysis::GetTime(){
-	return this->fTime;
-}
-
 extern template
 TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner<STATE>(
     EPrecond preconditioner,bool overlap);
 extern template
-TPZMatrixSolver<STATE> &TPZAnalysis::MatrixSolver<STATE>();
-extern template
 TPZMatrixSolver<CSTATE> *TPZAnalysis::BuildPreconditioner<CSTATE>(
     EPrecond preconditioner,bool overlap);
-extern template
-TPZMatrixSolver<CSTATE> &TPZAnalysis::MatrixSolver<CSTATE>();
 #endif

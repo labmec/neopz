@@ -8,7 +8,7 @@
 #include "pzmultiphysicselement.h"
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "TPZMaterial.h"
-#include "TPZAnalysis.h"
+#include "TPZStaticAnalysis.h"
 #include "pzstack.h"
 #include "TPZInterfaceEl.h"
 #include "pzelementgroup.h"
@@ -776,7 +776,7 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompEl(TPZCompMesh  *cMesh, int64_t 
 /**
  * @brief Show shape functions associated with connects of a multiphysics mesh
  */
-void TPZBuildMultiphysicsMesh::ShowShape(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh, TPZAnalysis &analysis, const std::string &filename, TPZVec<int64_t> &equationindices)
+void TPZBuildMultiphysicsMesh::ShowShape(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh, TPZStaticAnalysis &analysis, const std::string &filename, TPZVec<int64_t> &equationindices)
 {
     TPZStack<std::string> scalnames,vecnames;
     scalnames.Push("State");

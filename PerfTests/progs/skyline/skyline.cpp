@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
 	cout << "numero de equacoes = " << neq << endl;
     
     // Gerando a matriz
-    TPZAnalysis an(cmesh);
+    TPZStaticAnalysis an(cmesh);
     TPZSkylineStructMatrix skyl(cmesh);
     an.SetStructuralMatrix(skyl);
     TPZStepSolver<REAL> step;

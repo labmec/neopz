@@ -9,7 +9,7 @@
  */
 /**
  
- \page pg_analysis The TPZAnalysis class and its attributes
+ \page pg_analysis The TPZStaticAnalysis class and its attributes
  
 
 In order to perform a finite element analysis using a given computational mesh, the following steps need to be performed
@@ -18,7 +18,7 @@ In order to perform a finite element analysis using a given computational mesh, 
 \li The system resolution procedure needs to be choosen (e.g. direct solver, iterative solver, preconditioner)
 \li The postprocessing variables and output file format needs to be specified
 
-These steps are coordinated by the TPZAnalysis class
+These steps are coordinated by the TPZStaticAnalysis class
 
 \section an_classes Renumbering the system of equations
 \section an_storage Choices of global matrix storage patterns

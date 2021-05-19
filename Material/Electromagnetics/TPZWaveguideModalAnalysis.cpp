@@ -435,7 +435,7 @@ void TPZWaveguideModalAnalysis::Solution(
         }
         case 1:{//ez
             for (int i = 0; i < ez.size(); ++i) {
-                ez[i] *= 1i;
+                ez[i] *= 1.0i;
                 ez[i] = fPrintFieldRealPart ? std::real(ez[i]) : std::abs(ez[i]);
             }
             solout = ez;

@@ -1,5 +1,5 @@
 //$Id: pzpostprocanalysis.cpp,v 1.10 2010-11-23 18:58:35 diogo Exp $
-#include "TPZAnalysis.h"
+#include "TPZStaticAnalysis.h"
 #include "pzpostprocanalysis.h"
 #include "pzpostprocmat.h"
 #include "pzcompelpostproc.h"
@@ -73,7 +73,7 @@ fpMainMesh(NULL)
 }
 
 TPZPostProcAnalysis::TPZPostProcAnalysis(TPZCompMesh * pRef):TPZRegisterClassId(&TPZPostProcAnalysis::ClassId),
-TPZAnalysis(), fpMainMesh(pRef)
+TPZStaticAnalysis(), fpMainMesh(pRef)
 {
     
     SetCompMesh(pRef);
@@ -81,7 +81,7 @@ TPZAnalysis(), fpMainMesh(pRef)
 }
 
 TPZPostProcAnalysis::TPZPostProcAnalysis(const TPZPostProcAnalysis &copy) : TPZRegisterClassId(&TPZPostProcAnalysis::ClassId),
-TPZAnalysis(copy), fpMainMesh(0)
+TPZStaticAnalysis(copy), fpMainMesh(0)
 {
     
 }
@@ -111,7 +111,7 @@ void TPZPostProcAnalysis::SetCompMesh(TPZCompMesh *pRef, bool mustOptimizeBandwi
     if (fCompMesh) {
         delete fCompMesh;
         fCompMesh = 0;
-        TPZAnalysis::CleanUp();
+        TPZStaticAnalysis::CleanUp();
     }
 
     fpMainMesh = pRef;
@@ -316,9 +316,9 @@ void TPZPostProcAnalysis::TransferSolution()
 {
 
     // this is where we compute the projection of the post processed variables
-    TPZAnalysis::AssembleResidual();
+    TPZStaticAnalysis::AssembleResidual();
     fSolution = Rhs();
-    TPZAnalysis::LoadSolution();
+    TPZStaticAnalysis::LoadSolution();
     
     TPZCompMesh *compmeshPostProcess = (Mesh());
     if (!compmeshPostProcess) {
@@ -445,19 +445,19 @@ TPZCompEl * TPZPostProcAnalysis::CreatePostProcDisc(TPZGeoEl *gel, TPZCompMesh &
 
 /** @brief Returns the unique identifier for reading/writing objects to streams */
 int TPZPostProcAnalysis::ClassId() const{
-    return Hash("TPZPostProcAnalysis") ^ TPZAnalysis::ClassId() << 1;
+    return Hash("TPZPostProcAnalysis") ^ TPZStaticAnalysis::ClassId() << 1;
 }
 /** @brief Save the element data to a stream */
 void TPZPostProcAnalysis::Write(TPZStream &buf, int withclassid) const
 {
-    TPZAnalysis::Write(buf, withclassid);
+    TPZStaticAnalysis::Write(buf, withclassid);
     TPZPersistenceManager::WritePointer(fpMainMesh, &buf);
 }
 
 /** @brief Read the element data from a stream */
 void TPZPostProcAnalysis::Read(TPZStream &buf, void *context)
 {
-    TPZAnalysis::Read(buf, context);
+    TPZStaticAnalysis::Read(buf, context);
     fpMainMesh = dynamic_cast<TPZCompMesh*>(TPZPersistenceManager::GetInstance(&buf));
 }
 

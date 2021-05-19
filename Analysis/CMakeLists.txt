@@ -1,13 +1,14 @@
 # @file neopz/Analysis/CMakeLists.txt  -- CMake file for Analysis module. 
 
 target_include_directories(pz PUBLIC 
-                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Analysis>
-                           )
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Analysis>
+    )
 set(public_headers
-  TPZAnalysis.h
-  pznonlinanalysis.h
-  pzsmanal.h #TPZSubMeshAnalysis
+    TPZAnalysis.h
+    TPZStaticAnalysis.h
+    pznonlinanalysis.h
+    pzsmanal.h #TPZSubMeshAnalysis
   )
 
 set(headers
@@ -21,14 +22,15 @@ set(headers
     )
 
 set(sources
-    TPZNLMultGridAnalysis.cpp
-    pzeuleranalysis.cpp
-    pznonlinanalysis.cpp
-    pzsmfrontalanal.cpp
     TPZAnalysis.cpp
-    pzmganalysis.cpp
+    TPZStaticAnalysis.cpp
+    pznonlinanalysis.cpp
     pzsmanal.cpp
+    TPZNLMultGridAnalysis.cpp
+    pzmganalysis.cpp
     pztransientanalysis.cpp
+    pzeuleranalysis.cpp
+    pzsmfrontalanal.cpp
     )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Analysis)

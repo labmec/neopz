@@ -204,7 +204,7 @@ void hdivCurvedJCompAppMath::Run(geomDomain geodomain, ApproximationSpace proble
                     cmeshH1->ExpandSolution();
                     cmeshH1->CleanUpUnconnectedNodes();
                     
-                    TPZAnalysis anh1(cmeshH1, true);
+                    TPZStaticAnalysis anh1(cmeshH1, true);
                     
                     SolveSyst(anh1, cmeshH1);
                     
@@ -235,7 +235,7 @@ void hdivCurvedJCompAppMath::Run(geomDomain geodomain, ApproximationSpace proble
                     
                     TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
                     
-                    TPZAnalysis an(mphysics, true);
+                    TPZStaticAnalysis an(mphysics, true);
                     
                     SolveSyst(an, mphysics);
                     
@@ -267,7 +267,7 @@ void hdivCurvedJCompAppMath::Run(geomDomain geodomain, ApproximationSpace proble
                     
                     TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
                     
-                    TPZAnalysis an(mphysics, true);
+                    TPZStaticAnalysis an(mphysics, true);
                     
                     SolveSyst(an, mphysics);
                     
@@ -384,7 +384,7 @@ void hdivCurvedJCompAppMath::PrintErrors(geomDomain geodomain, ApproximationSpac
                     
                     int dofCondensed = cmeshH1->NEquations();
                     
-                    TPZAnalysis anh1(cmeshH1, true);
+                    TPZStaticAnalysis anh1(cmeshH1, true);
                     
                     SolveSyst(anh1, cmeshH1);
                     
@@ -419,7 +419,7 @@ void hdivCurvedJCompAppMath::PrintErrors(geomDomain geodomain, ApproximationSpac
                     
                     DofCond = mphysics->NEquations();
                     
-                    TPZAnalysis an(mphysics, true);
+                    TPZStaticAnalysis an(mphysics, true);
                     
                     SolveSyst(an, mphysics);
                     
@@ -458,7 +458,7 @@ void hdivCurvedJCompAppMath::PrintErrors(geomDomain geodomain, ApproximationSpac
                     
                     DofCond = mphysics->NEquations();
                     
-                    TPZAnalysis an(mphysics, true);
+                    TPZStaticAnalysis an(mphysics, true);
                     
                     SolveSyst(an, mphysics);
                     
@@ -2947,7 +2947,7 @@ void hdivCurvedJCompAppMath::ChangeExternalOrderConnects(TPZCompMesh *mesh){
 
 
 
-void hdivCurvedJCompAppMath::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
+void hdivCurvedJCompAppMath::SolveSyst(TPZStaticAnalysis &an, TPZCompMesh *fCmesh)
 {
     std::cout <<"Numero de equacoes "<< fCmesh->NEquations()<< std::endl;
     

@@ -9,7 +9,7 @@
 #include "pzmanvector.h"//for TPZManVector
 #include "Poisson/TPZMatPoisson.h" //for TPZMatPoisson
 #include "TPZBndCond.h" //for TPZBndCond
-#include "TPZAnalysis.h" //for TPZAnalysis
+#include "TPZStaticAnalysis.h" //for TPZStaticAnalysis
 #include "TPZSSpStructMatrix.h" //symmetric sparse matrix storage
 #include "pzskylstrmatrix.h" //symmetric skyline matrix storage
 #include "pzstepsolver.h" //for TPZStepSolver
@@ -135,9 +135,9 @@ void CheckErrorPoisson(const int pOrder, TPZVec<REAL>&error)
   //actually creates the computational elements
   cmesh->AutoBuild();
 
-  /*The TPZAnalysis class manages the creation of the algebric
+  /*The TPZStaticAnalysis class manages the creation of the algebric
   * problem and the matrix inversion*/
-  TPZAnalysis an(cmesh);
+  TPZStaticAnalysis an(cmesh);
 
   //sets number of threads to be used by the solver
   constexpr int nThreads{4};

@@ -44,7 +44,7 @@ TPZCompMesh *TPZNonLinMultGridAnalysis::IMesh(int64_t index){
 }
 
 TPZNonLinMultGridAnalysis::TPZNonLinMultGridAnalysis(TPZCompMesh *cmesh) : 
-TPZAnalysis(cmesh), fBegin(0), fInit(0) {
+TPZStaticAnalysis(cmesh), fBegin(0), fInit(0) {
 	cmesh->SetName("* * * MALHA INICIAL * * *");
 	fMeshes.Push(cmesh);
 	TPZStepSolver<STATE> solver;
@@ -287,7 +287,7 @@ void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *
 	law->SetTimeStep(maxveloc,deltax,degree);   //JorgeC
 }
 
-void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial * matbase,TPZAnalysis &an,TPZFMatrix<STATE> &rhs){
+void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial * matbase,TPZStaticAnalysis &an,TPZFMatrix<STATE> &rhs){
 	auto *mat =
 		dynamic_cast<TPZMaterialT<STATE>*>(matbase);
 	//pelo menos duas iteracoes para calcular o residuo
@@ -326,7 +326,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
 
 
 void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial * matbase,
-												  TPZAnalysis &an,int marcha,const std::string &dxout) {
+												  TPZStaticAnalysis &an,int marcha,const std::string &dxout) {
 	auto *mat =
 		dynamic_cast<TPZMaterialT<STATE>*>(matbase);
 	if(numiter <= 0){
@@ -367,7 +367,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
 }
 
 void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMaterial * matbase,
-												   TPZAnalysis &an,int marcha,const std::string &dxout) {
+												   TPZStaticAnalysis &an,int marcha,const std::string &dxout) {
 	auto *mat =
 		dynamic_cast<TPZMaterialT<STATE>*>(matbase);
 	TPZVec<std::string> scalar(1),vector(0), tensor(0);
@@ -436,7 +436,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMater
 }
 
 template<class TVar>
-void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<TVar> &sol,TPZAnalysis &an,
+void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<TVar> &sol,TPZStaticAnalysis &an,
 											 const std::string &decompose,TPZFMatrix<TVar> &res){
 	TPZAutoPointer<TPZMatrix<TVar> > stiff = an.MatrixSolver<TVar>().Matrix();
 	ofstream out("CalcResidual_STIFF.out");
@@ -487,7 +487,7 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<TVar> &sol,TPZAnalysis &a
 
 template<class TVar>
 void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<TVar> &sol,TPZFMatrix<TVar> &anres,
-											 TPZFMatrix<TVar> &res,TPZAnalysis &an,const std::string &decompose){
+											 TPZFMatrix<TVar> &res,TPZStaticAnalysis &an,const std::string &decompose){
 
 	
 	TPZAutoPointer<TPZMatrix<TVar> > stiff = an.MatrixSolver<TVar>().Matrix();
@@ -554,7 +554,7 @@ void TPZNonLinMultGridAnalysis::OneGridAlgorithm(std::ostream &out,int nummat){
 	finemesh->SetName("\n\t\t\t* * * MALHA COMPUTACIONAL FINA * * *\n\n");
 	finemesh->Reference()->ResetReference();
 	finemesh->LoadReferences();
-	TPZAnalysis finean(finemesh);
+	TPZStaticAnalysis finean(finemesh);
 	TPZSkylineStructMatrix<STATE> finestiff(finemesh);
 	finean.SetStructuralMatrix(finestiff);
 	TPZStepSolver<STATE> finesolver;
@@ -612,7 +612,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	out.flush();
 	
 	//analysis na malha aglomerada
-	TPZAnalysis coarsean(fMeshes[1]);
+	TPZStaticAnalysis coarsean(fMeshes[1]);
 	TPZSkylineStructMatrix<STATE> coarsestiff(fMeshes[1]);
 	coarsean.SetStructuralMatrix(coarsestiff);
 	TPZStepSolver<STATE> coarsesolver;
@@ -625,7 +625,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	fPrecondition.Push(0);
 	//analysis na malha fina
 	AppendMesh(finemesh);
-	TPZAnalysis finean(fMeshes[2]);
+	TPZStaticAnalysis finean(fMeshes[2]);
 	TPZSkylineStructMatrix<STATE> finestiff(fMeshes[2]);
 	finean.SetStructuralMatrix(finestiff);
 	TPZStepSolver<STATE> finesolver;
@@ -779,12 +779,12 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 
 template void
 TPZNonLinMultGridAnalysis::CalcResidual<STATE>(
-	TPZMatrix<STATE> &sol, TPZAnalysis &an,
+	TPZMatrix<STATE> &sol, TPZStaticAnalysis &an,
 	const std::string &decompose,
 	TPZFMatrix<STATE> &res);
 
 template void
 TPZNonLinMultGridAnalysis::CalcResidual<STATE>(
     TPZMatrix<STATE> &sol, TPZFMatrix<STATE> &anres,
-	TPZFMatrix<STATE> &res, TPZAnalysis &an,
+	TPZFMatrix<STATE> &res, TPZStaticAnalysis &an,
 	const std::string &decompose);

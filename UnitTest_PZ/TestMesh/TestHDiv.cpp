@@ -34,7 +34,7 @@
 
 #include "TPZExtendGridDimension.h"
 
-#include "TPZAnalysis.h"
+#include "TPZStaticAnalysis.h"
 
 #include "pzlog.h"
 
@@ -1507,7 +1507,7 @@ void RunBilinear(MElementType eltype)
 //    }
     
     // cmesh->SaddlePermute();
-    TPZAnalysis an(cmesh,false);
+    TPZStaticAnalysis an(cmesh,false);
     // para resolver o sistema
     // escolhe entre isso
 //    TPZFStructMatrix str(cmesh);

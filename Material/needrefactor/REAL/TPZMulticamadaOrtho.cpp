@@ -14,7 +14,7 @@
 #include "pzintel.h"
 
 #include "pzbctension.h"
-#include "TPZAnalysis.h"
+#include "TPZStaticAnalysis.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"
 #include "pzdxmesh.h"
@@ -395,7 +395,7 @@ void TPZMulticamadaOrthotropic::Tensor(TPZVec<REAL> &x, int placa, TPZFMatrix<RE
 
 void TPZMulticamadaOrthotropic::ComputeSolution(std::ostream &out,int print){
 	
-	TPZAnalysis an(fCompMesh);
+	TPZStaticAnalysis an(fCompMesh);
 	TPZSkylineStructMatrix<STATE> skyl(fCompMesh);
 	an.SetStructuralMatrix(skyl);
 	TPZStepSolver<STATE> solve;
@@ -410,7 +410,7 @@ void TPZMulticamadaOrthotropic::ComputeSolution(std::ostream &out,int print){
 
 void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,std::ofstream &out,int64_t numiter){
 	
-	TPZAnalysis an(fCompMesh);
+	TPZStaticAnalysis an(fCompMesh);
 	TPZSkylineStructMatrix<STATE> skyl(fCompMesh);
 	an.SetStructuralMatrix(skyl);
 	TPZStepSolver<STATE> solve;

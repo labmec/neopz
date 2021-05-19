@@ -529,7 +529,7 @@ void TPZCompMesh::ExpandSolutionInternal(TPZFMatrix<TVar> &sol) {
 
 void TPZCompMesh::LoadSolution(const TPZSolutionMatrix &mat){
     /*
-      The TPZAnalysis class will store the solution associated with the independent
+      The TPZStaticAnalysis class will store the solution associated with the independent
       equations, i.e., the solution returned from the solver.
       Meanwhile, the TPZCompMesh class stores the *full* solution, therfore it needs
       extra room for the dependent dofs

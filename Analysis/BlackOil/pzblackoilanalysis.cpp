@@ -34,7 +34,7 @@ void TPZBlackOilAnalysis::SetInitialSolution(TPZFMatrix<STATE> & InitialSol){
 	else{
 		this->fSolution = InitialSol;
 	}
-	TPZAnalysis::LoadSolution();
+	TPZStaticAnalysis::LoadSolution();
 }
 
 void TPZBlackOilAnalysis::SetInitialSolutionAsZero(){
@@ -107,7 +107,7 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 			out << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << endl;
 			
 			prevsol = fSolution;
-			TPZAnalysis::LoadSolution();
+			TPZStaticAnalysis::LoadSolution();
 			
 			error = norm;
 			iter++;
@@ -115,7 +115,7 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 			if((iter % 20) == 0){
 				//Computing residual of last state solution
 				fSolution = prevsol;
-				TPZAnalysis::LoadSolution();
+				TPZStaticAnalysis::LoadSolution();
 				double fator = 0.1;//(sqrt(5.)-1.)/2.;
 				this->TimeStep() *= fator;
 				nextDeltaT = this->TimeStep();
@@ -222,14 +222,14 @@ void TPZBlackOilAnalysis::SetAllMaterialsDeltaT(){
 void TPZBlackOilAnalysis::PostProcess(int resolution, int dimension){
     REAL T = this->fSimulationTime;
     this->fTime = T;
-    TPZAnalysis::PostProcess(resolution, dimension);
+    TPZStaticAnalysis::PostProcess(resolution, dimension);
 }//method
 
 
 void TPZBlackOilAnalysis::PostProcess(TPZVec<REAL> &loc, std::ostream &out){
     REAL T = this->fSimulationTime;
     out << "\nSOLUTION #" << this->fCurrentStep << " AT TIME = " << T << std::endl;
-    TPZAnalysis::PostProcess(loc, out);
+    TPZStaticAnalysis::PostProcess(loc, out);
     out << "\n***************************************\n" << std::endl;
 }//method
 

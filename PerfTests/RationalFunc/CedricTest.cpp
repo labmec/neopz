@@ -14,7 +14,7 @@
 #include "pzelasmat.h"
 #include "pzpoisson3d.h"
 
-#include "TPZAnalysis.h"
+#include "TPZStaticAnalysis.h"
 #include "pzstepsolver.h"
 
 #include "CedricTest.h"
@@ -141,7 +141,7 @@ void TCedricTest::InterpolationError(int nsubdivisions,int geocase, int Material
 
     //int dim = cmesh->Dimension();
 
-    TPZAnalysis analysis(cmesh);
+    TPZStaticAnalysis analysis(cmesh);
 
     out << "Interp_err nsubdivision " << nsubdivisions << " nelem " << (cmesh->NElements()-nelembc) << " eltype ";
     
@@ -296,7 +296,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     
     int dim = cmesh->Dimension();
     
-    TPZAnalysis analysis(cmesh);
+    TPZStaticAnalysis analysis(cmesh);
     
 #ifdef PZ_LOG
     if (logger.isDebugEnabled())

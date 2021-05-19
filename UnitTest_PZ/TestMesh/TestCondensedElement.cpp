@@ -23,7 +23,7 @@
 #include "pzintel.h"
 #include "pzstepsolver.h"
 
-#include "TPZAnalysis.h"
+#include "TPZStaticAnalysis.h"
 #include "pzskylstrmatrix.h"
 
 #include "pzcondensedcompel.h"
@@ -64,7 +64,7 @@ TEST_CASE("globalcompute","[mesh_condense_tests]")
     cmesh->ComputeNodElCon();
     TPZCreateApproximationSpace::CondenseLocalEquations(cmesh);
     cmesh->CleanUpUnconnectedNodes();
-    TPZAnalysis an(cmesh);
+    TPZStaticAnalysis an(cmesh);
     TPZSkylineStructMatrix skylstr(cmesh);
     an.SetStructuralMatrix(skylstr);
     TPZStepSolver<STATE> step;

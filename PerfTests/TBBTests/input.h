@@ -315,7 +315,7 @@ namespace Input {
         cmesh->AutoBuild();
         
         // Gerando a matriz
-        TPZAnalysis an(cmesh);
+        TPZStaticAnalysis an(cmesh);
         TPZSkylineStructMatrix skyl(cmesh);
         an.SetStructuralMatrix(skyl);
         TPZStepSolver<REAL> step;

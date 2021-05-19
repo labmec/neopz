@@ -9,7 +9,7 @@
 #include "pzlog.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
-#include "TPZAnalysis.h"
+#include "TPZStaticAnalysis.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"
 #include "pzbdstrmatrix.h"
@@ -111,7 +111,7 @@ void threadTest::ComparePostProcError(const int nThreads) {
   auto *cMesh = CreateCMesh(gMesh, pOrder, matIdVol, matIdBC);
   constexpr bool optimizeBandwidth{false};
   auto GetErrorVec = [cMesh, optimizeBandwidth](const int nThreads) {
-    TPZAnalysis an(cMesh, optimizeBandwidth);
+    TPZStaticAnalysis an(cMesh, optimizeBandwidth);
     TSTMAT matskl(cMesh);
     matskl.SetNumThreads(nThreads);
     an.SetStructuralMatrix(matskl);

@@ -21,7 +21,7 @@
 #include "tpzcompmeshreferred.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
-#include "TPZAnalysis.h"
+#include "TPZStaticAnalysis.h"
 
 #include "pzstepsolver.h"
 #include "pzstrmatrix.h"
@@ -97,7 +97,7 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 //sol exata
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &disp,TPZFMatrix<STATE> &flux);
 
-void PosProcessSol(TPZAnalysis &an, std::string plotfile);
+void PosProcessSol(TPZStaticAnalysis &an, std::string plotfile);
 
 void BuildElementGroups(TPZCompMesh *cmesh, int materialid, int interfacemat, int lagrangemat);
 
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
         return 0;
 //    }
 
-    TPZAnalysis an(cmesh);
+    TPZStaticAnalysis an(cmesh);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     TPZSkylineStructMatrix fullstr(cmesh);
@@ -519,7 +519,7 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &disp, TPZFMatrix<STATE> &fl
     flux(2,0)=2.*Pi*Pi*sin(Pi*x)*sin(Pi*y);
 }
 
-void PosProcessSol(TPZAnalysis &an, std::string plotfile){
+void PosProcessSol(TPZStaticAnalysis &an, std::string plotfile){
 	TPZManVector<std::string,10> scalnames(2), vecnames(2);
 	scalnames[0] = "Pressure";
     scalnames[1] = "ExactPressure";
