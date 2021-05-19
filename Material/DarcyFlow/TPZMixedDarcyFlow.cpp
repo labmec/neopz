@@ -22,7 +22,6 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         force = res[0];
     }
 
-    TPZFNMatrix<9, STATE> PermTensor(fDim, fDim, 0), InvPermTensor(fDim, fDim, 0);
     TPZFNMatrix<9, STATE> K(fDim, fDim, 0);
     TPZFNMatrix<9, STATE> InvK(fDim, fDim, 0);
 
@@ -84,15 +83,15 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
             int jvecind = datavec[0].fVecShapeIndex[jq].first;
             int jshapeind = datavec[0].fVecShapeIndex[jq].second;
 
-            for (int id = 0; id < 3; id++) {
+            for (int id = 0; id < fDim; id++) {
                 jvec(id, 0) = datavec[0].fDeformedDirections(id, jvecind);
             }
 
             //dot product between Kinv[u]v
             jvecZ.Zero();
-            for (int id = 0; id < 3; id++) {
-                for (int jd = 0; jd < 3; jd++) {
-                    jvecZ(id, 0) += InvPermTensor(id, jd) * jvec(jd, 0);
+            for (int id = 0; id < fDim; id++) {
+                for (int jd = 0; jd < fDim; jd++) {
+                    jvecZ(id, 0) += InvK(id, jd) * jvec(jd, 0);
                 }
             }
             REAL prod1 = ivec(0, 0) * jvecZ(0, 0) + ivec(1, 0) * jvecZ(1, 0) + ivec(2, 0) * jvecZ(2, 0);
