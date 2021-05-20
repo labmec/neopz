@@ -157,16 +157,11 @@ void TPZMixedDarcyFlow::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &data
         TPZManVector<STATE> res(3);
         TPZFNMatrix<9, STATE> gradu(dim, 1);
         bc.ForcingFunctionBC()(datavec[0].x, res, gradu);
-        TPZFNMatrix<9, STATE> PermTensor(fDim, fDim, 0), InvPermTensor(fDim, fDim, 0);
 
         TPZFNMatrix<9, STATE> K(1, 1, 0);
         TPZFNMatrix<9, STATE> InvK(1, 1, 0);
         fPermeabilityFunction(datavec[0].x, K, InvK);
         REAL perm = K(0, 0);
-        for (int id = 0; id < fDim; id++) {
-            K(id, id) = perm;
-            InvK(id, id) = 1 / perm;
-        }
 
         for (int i = 0; i < 3; i++) {
             normflux += datavec[0].normal[i] * perm * gradu(i, 0);
