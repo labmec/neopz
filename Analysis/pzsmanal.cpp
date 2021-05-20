@@ -20,7 +20,7 @@ using namespace std;
 // Construction/Destruction
 
 TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZRegisterClassId(&TPZSubMeshAnalysis::ClassId),
-TPZStaticAnalysis(mesh,true), fReducableStiff(0){
+TPZLinearAnalysis(mesh,true), fReducableStiff(0){
 	fMesh = mesh;
     if (fMesh)
     {
@@ -44,7 +44,7 @@ void TPZSubMeshAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwi
     {
         DebugStop();
     }
-    TPZStaticAnalysis::SetCompMesh(mesh, mustOptimizeBandwidth);
+    TPZLinearAnalysis::SetCompMesh(mesh, mustOptimizeBandwidth);
     if (fCompMesh) {
         fReferenceSolution.Redim(fCompMesh->NEquations(), 1);
     }
@@ -189,9 +189,9 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-	TPZStaticAnalysis::LoadSolution();
+	TPZLinearAnalysis::LoadSolution();
 }
 
 int TPZSubMeshAnalysis::ClassId() const{
-    return Hash("TPZSubMeshAnalysis") ^ TPZStaticAnalysis::ClassId() << 1;
+    return Hash("TPZSubMeshAnalysis") ^ TPZLinearAnalysis::ClassId() << 1;
 }

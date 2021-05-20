@@ -190,7 +190,6 @@ void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, bool mustOptimizeBandwidth)
         CleanUp();
     }
     fStep = 0;
-    fTime = 0;
 }
 
 void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
@@ -912,7 +911,7 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
 	fGraphMesh[dim1]->SetCompMesh(fCompMesh,fGraphMesh[dim1]->MaterialIds());
 	fGraphMesh[dim1]->SetResolution(resolution);
 	fGraphMesh[dim1]->DrawMesh(1);
-	fGraphMesh[dim1]->DrawSolution(fStep,fTime);
+	fGraphMesh[dim1]->DrawSolution(fStep,0);
 	fStep++;
 }
 
@@ -1297,7 +1296,6 @@ void TPZAnalysis::Write(TPZStream &buf, int withclassid) const{
     buf.Write(fVectorNames[1]);
     buf.Write(fVectorNames[2]);
     buf.Write(&fStep);
-    buf.Write(&fTime);
     buf.Write(&fNthreadsError);
     TPZPersistenceManager::WritePointer(fStructMatrix.operator ->(), &buf);
     TPZPersistenceManager::WritePointer(fRenumber.operator ->(), &buf);
@@ -1328,7 +1326,6 @@ void TPZAnalysis::Read(TPZStream &buf, void *context){
     buf.Read(fVectorNames[1]);
     buf.Read(fVectorNames[2]);
     buf.Read(&fStep);
-    buf.Read(&fTime);
     buf.Read(&fNthreadsError);
     fStructMatrix = TPZAutoPointerDynamicCast<TPZStructMatrix>(TPZPersistenceManager::GetAutoPointer(&buf));
     fRenumber = TPZAutoPointerDynamicCast<TPZRenumbering>(TPZPersistenceManager::GetAutoPointer(&buf));

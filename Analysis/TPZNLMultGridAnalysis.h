@@ -7,7 +7,7 @@
 #define TPZNLMGANALYSIS_H
 
 #include <iosfwd>                 // for string, ostream
-#include "TPZStaticAnalysis.h"           // for TPZStaticAnalysis
+#include "TPZLinearAnalysis.h"           // for TPZLinearAnalysis
 #include "pzmatrix.h"             // for TPZFMatrix, TPZMatrix
 #include "pzreal.h"               // for STATE, REAL
 #include "pzstack.h"              // for TPZStack
@@ -18,10 +18,10 @@ template <class TVar> class TPZMatrixSolver;
 
 
 /**
- * @brief Implements multigrid analysis to Non linear problems. Class TPZNonLinMultGridAnalysis derived from TPZStaticAnalysis. \ref analysis "Analysis"
+ * @brief Implements multigrid analysis to Non linear problems. Class TPZNonLinMultGridAnalysis derived from TPZLinearAnalysis. \ref analysis "Analysis"
  * @ingroup Analysis
  */
-class TPZNonLinMultGridAnalysis : public TPZStaticAnalysis {
+class TPZNonLinMultGridAnalysis : public TPZLinearAnalysis {
 	
 	/** @brief Contains the computational meshes of one cycle: V, W, F, etc */
 	TPZStack < TPZCompMesh * > fMeshes;
@@ -71,12 +71,12 @@ public:
 	/** @brief It generates a new mesh based on the agglomeration of elements of the fine mesh */
 	static TPZCompMesh *AgglomerateMesh(TPZCompMesh *finemesh,int levelnumbertogroup);
 	
-	void SmoothingSolution(REAL tol,int numiter,TPZMaterial * mat,TPZStaticAnalysis &an,int marcha = 0 ,
+	void SmoothingSolution(REAL tol,int numiter,TPZMaterial * mat,TPZLinearAnalysis &an,int marcha = 0 ,
 						   const std::string &dxout = "plotfile.dx");
 	
-	void SmoothingSolution(REAL tol,int numiter,TPZMaterial * mat,TPZStaticAnalysis &an,TPZFMatrix<STATE> &rhs);
+	void SmoothingSolution(REAL tol,int numiter,TPZMaterial * mat,TPZLinearAnalysis &an,TPZFMatrix<STATE> &rhs);
 	
-	void SmoothingSolution2(REAL tol,int numiter,TPZMaterial * mat,TPZStaticAnalysis &an,int marcha,
+	void SmoothingSolution2(REAL tol,int numiter,TPZMaterial * mat,TPZLinearAnalysis &an,int marcha,
 							const std::string &dxout);
 	
 	void ResetReference(TPZCompMesh *aggcmesh);
@@ -92,10 +92,10 @@ public:
 	void TwoGridAlgorithm(std::ostream &out,int nummat);
 
 	template<class TVar>
-	void CalcResidual(TPZMatrix<TVar> &sol,TPZStaticAnalysis &an,const std::string  &decompose,TPZFMatrix<TVar> &res);
+	void CalcResidual(TPZMatrix<TVar> &sol,TPZLinearAnalysis &an,const std::string  &decompose,TPZFMatrix<TVar> &res);
 
 	template<class TVar>
-	void CalcResidual(TPZMatrix<TVar> &sol,TPZFMatrix<TVar> &anres,TPZFMatrix<TVar> &res,TPZStaticAnalysis &an,const std::string &decompose);
+	void CalcResidual(TPZMatrix<TVar> &sol,TPZFMatrix<TVar> &anres,TPZFMatrix<TVar> &res,TPZLinearAnalysis &an,const std::string &decompose);
 		
 public:
 	
@@ -110,14 +110,14 @@ protected:
 
 extern template void
 TPZNonLinMultGridAnalysis::CalcResidual<STATE>(
-	TPZMatrix<STATE> &sol, TPZStaticAnalysis &an,
+	TPZMatrix<STATE> &sol, TPZLinearAnalysis &an,
 	const std::string &decompose,
 	TPZFMatrix<STATE> &res);
 
 extern template void
 TPZNonLinMultGridAnalysis::CalcResidual<STATE>(
     TPZMatrix<STATE> &sol, TPZFMatrix<STATE> &anres,
-	TPZFMatrix<STATE> &res, TPZStaticAnalysis &an,
+	TPZFMatrix<STATE> &res, TPZLinearAnalysis &an,
 	const std::string &decompose);
 
 #endif

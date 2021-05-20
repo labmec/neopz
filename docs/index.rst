@@ -7,7 +7,7 @@ Welcome to NeoPZ's documentation!
 =================================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
              
    analysis/index.rst

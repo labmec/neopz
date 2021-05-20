@@ -8,19 +8,19 @@ class TPZMatrixSolver;
  * @ingroup analysis
  * @brief Performs the Finite Element Analysis of a equation system.
  */
-class TPZStaticAnalysis : public TPZAnalysis{
+class TPZLinearAnalysis : public TPZAnalysis{
 public:
 
   /** @name Constructors */
   /** @{ */
-  /** @brief Create an empty TPZStaticAnalysis object */
-	TPZStaticAnalysis();
+  /** @brief Create an empty TPZLinearAnalysis object */
+	TPZLinearAnalysis();
 
-	/** @brief Create an TPZStaticAnalysis object from one mesh pointer */
-	TPZStaticAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
+	/** @brief Create an TPZLinearAnalysis object from one mesh pointer */
+	TPZLinearAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
     	
-	/** @brief Create an TPZStaticAnalysis object from one mesh auto pointer object */
-	TPZStaticAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
+	/** @brief Create an TPZLinearAnalysis object from one mesh auto pointer object */
+	TPZLinearAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
   /** @} */
   
   /** @name FEM */
@@ -55,6 +55,15 @@ public:
   
   using TPZAnalysis::PostProcess;
   void PostProcess(int resolution, int dimension) override;
+
+  /** @brief Sets time used in OpenDX files */
+	inline void SetTime(REAL time) {
+    this->fTime = time;
+  }
+	/** @brief Gets time used in OpenDX files */
+	inline REAL GetTime() const{
+    return this->fTime;
+  }
   /** @} */
   
   /** @name ReadWrite
@@ -68,6 +77,8 @@ public:
 protected:
   /** @brief Load vector */
 	TPZSolutionMatrix fRhs;
+  /** @brief Time variable used for post-processing*/
+	REAL fTime{0.};
 private:
   template <class TVar> void AssembleT();
   template <class TVar> void AssembleResidualT();
@@ -82,7 +93,7 @@ private:
 
 #define INSTANTIATE_TEMPLATES(TVar)                                     \
   extern template                                                       \
-  TPZMatrixSolver<TVar> &TPZStaticAnalysis::MatrixSolver<TVar>();
+  TPZMatrixSolver<TVar> &TPZLinearAnalysis::MatrixSolver<TVar>();
 
 INSTANTIATE_TEMPLATES(STATE)
 INSTANTIATE_TEMPLATES(CSTATE)

@@ -7,7 +7,7 @@
 #define TPZSUBMESHFRONTANALYSIS_H
 
 
-#include "TPZStaticAnalysis.h"
+#include "TPZLinearAnalysis.h"
 #include "pzmatred.h"
 #include "TPZFrontMatrix.h"
 class TPZSubCompMesh;
@@ -21,7 +21,7 @@ class TPZFMatrix;
  * @brief Analysis for substructuring. Use a frontal matrix. \ref analysis "Analysis"
  * @ingroup analysis
  */
-class TPZSubMeshFrontalAnalysis : public TPZStaticAnalysis  
+class TPZSubMeshFrontalAnalysis : public TPZLinearAnalysis  
 {
 private:
 	/** @brief Solution vector */

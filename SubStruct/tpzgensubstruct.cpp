@@ -20,7 +20,7 @@
 #include "tpzdohrsubstructCondense.h"
 #include "tpzverysparsematrix.h" 
 
-#include "TPZStaticAnalysis.h"
+#include "TPZLinearAnalysis.h"
 
 #include "pzskylstrmatrix.h"
 
@@ -414,7 +414,7 @@ void TPZGenSubStruct::InitializeDohr(TPZAutoPointer<TPZMatrix<STATE> > dohrmatri
 		std::cout.flush();
 		TPZAutoPointer<TPZDohrSubstruct<STATE> > substruct = new TPZDohrSubstruct<STATE>();
 		// for each subcompmesh, reorder the nodes
-		//TPZStaticAnalysis an(submesh);
+		//TPZLinearAnalysis an(submesh);
 		
 		//keep the original sequence numbers of the connects
 		

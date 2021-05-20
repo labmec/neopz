@@ -59,8 +59,6 @@ protected:
   TPZVec<std::string> fTensorNames[3];
   /** @brief Step used for post-processing*/
 	int fStep{0};
-  /** @brief Time variable used for post-processing*/
-	REAL fTime{0.};
   /** @brief Number of threads to be used for post-processing error */
   int fNthreadsError{0};    
 	/** @brief Structural matrix */
@@ -259,14 +257,6 @@ protected:
   /** @brief Get the step for post processing*/
   inline int GetStep() const{
     return fStep;
-  }
-  /** @brief Sets time used in OpenDX files */
-	inline void SetTime(REAL time) {
-    this->fTime = time;
-  }
-	/** @brief Gets time used in OpenDX files */
-	inline REAL GetTime() const{
-    return this->fTime;
   }
 	/** @brief Draw solution over mesh for all dimensions */
 	virtual void PostProcess(int resolution);

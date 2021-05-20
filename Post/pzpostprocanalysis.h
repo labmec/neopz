@@ -2,7 +2,7 @@
 #ifndef PZPOSTPROCANALYSIS_H
 #define PZPOSTPROCANALYSIS_H
 
-#include "TPZStaticAnalysis.h"
+#include "TPZLinearAnalysis.h"
 #include "pzcompel.h"
 #include "TPZGeoElement.h"
 #include "pzfmatrix.h"
@@ -18,7 +18,7 @@
  * from the main analysis.
  */
 
-class TPZPostProcAnalysis : public TPZStaticAnalysis {
+class TPZPostProcAnalysis : public TPZLinearAnalysis {
 
 public:
 

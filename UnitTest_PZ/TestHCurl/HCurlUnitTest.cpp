@@ -26,7 +26,7 @@ static TPZLogger logger("pz.mesh.testhcurl");
 #include "TPZGenGrid3D.h"
 #include "pzcmesh.h"
 #include "Projection/TPZHCurlProjection.cpp"
-#include "TPZStaticAnalysis.h"
+#include "TPZLinearAnalysis.h"
 #include "pzintel.h"
 #include "TPZCompElHCurl.h"
 #include "pzgeotetrahedra.h"
@@ -578,7 +578,7 @@ namespace hcurltest{
         /***********************************************************************************************************
          *              the following lines might be useful for analysing the basis functions
          ***********************************************************************************************************/
-        //            TPZStaticAnalysis an(cmesh,false);
+        //            TPZLinearAnalysis an(cmesh,false);
         //            const int postProcessResolution = 3;
         //            const std::string executionInfo = [&](){
         //                std::string name("");
@@ -632,7 +632,7 @@ namespace hcurltest{
         cmesh->AutoBuild();
         cmesh->CleanUpUnconnectedNodes();
 
-        TPZStaticAnalysis an(cmesh,false);
+        TPZLinearAnalysis an(cmesh,false);
         const int postProcessResolution = 3;
         const std::string executionInfo = [&](){
             std::string name("");

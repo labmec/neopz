@@ -13,13 +13,13 @@
 #include "pzcmesh.h"
 #include "pzvec.h"
 #include "pzreal.h"
-#include "TPZStaticAnalysis.h"
+#include "TPZLinearAnalysis.h"
 
 #include <list>
 
 class TPZSubMeshFrontalAnalysis;
 class TPZSubMeshAnalysis;
-class TPZStaticAnalysis;
+class TPZLinearAnalysis;
 class TPZGuiInterface;
 
 /**
@@ -40,7 +40,7 @@ protected:
     template<class TVar>
     void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
 	/** @brief Pointer to submesh analysis object. Defines the resolution type. */
-	TPZAutoPointer<TPZStaticAnalysis> fAnalysis;
+	TPZAutoPointer<TPZLinearAnalysis> fAnalysis;
 	
 	/** @brief Pointer to external location index of the connection. */ 
 	/** If the connection hasn't external location return the local id. */
@@ -133,7 +133,7 @@ public:
      */
     void SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZRenumbering> renumber);
     
-	TPZAutoPointer<TPZStaticAnalysis> Analysis()
+	TPZAutoPointer<TPZLinearAnalysis> Analysis()
 	{
 		return fAnalysis;
 	}

@@ -21,7 +21,7 @@
 #include "tpzcompmeshreferred.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
-#include "TPZStaticAnalysis.h"
+#include "TPZLinearAnalysis.h"
 
 #include "pzstepsolver.h"
 #include "pzstrmatrix.h"
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
     std::cout << "Number of elements " << cmesh->NElements() << std::endl;
     
     //calculo solution
-    TPZStaticAnalysis *an = new TPZStaticAnalysis(cmesh,false);
+    TPZLinearAnalysis *an = new TPZLinearAnalysis(cmesh,false);
 
     TPZSkylineStructMatrix strmat(cmesh);
     

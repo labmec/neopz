@@ -8,7 +8,7 @@
 
 #ifndef STATE_COMPLEX
 
-#include "TPZStaticAnalysis.h"
+#include "TPZLinearAnalysis.h"
 #include "pzcmesh.h"
 #include "pzflowcmesh.h"
 #include "pzadmchunk.h"
@@ -30,7 +30,7 @@
  * This class implements several tricks to obtain the steady state solution as fast as possible \n
  * It evaluates the CFL of the simulation according to the residual of the system of equations and according to the number of iterations of the Newton method at each step
  */
-class TPZEulerAnalysis : public TPZStaticAnalysis
+class TPZEulerAnalysis : public TPZLinearAnalysis
 {
 	
 public:
@@ -51,7 +51,7 @@ public:
 	virtual void Run(std::ostream &out) override
 	{
 		std::cout <<__PRETTY_FUNCTION__ << " should never be called!!!\n";
-		TPZStaticAnalysis::Run(out);
+		TPZLinearAnalysis::Run(out);
 	}
 	
 	/**
@@ -130,7 +130,7 @@ public:
 	virtual void Solve() override
 	{
 		std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
-		TPZStaticAnalysis::Solve();
+		TPZLinearAnalysis::Solve();
 	}
 	/**
 	 * @brief Implements the Newton's method.

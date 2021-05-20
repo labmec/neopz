@@ -7,7 +7,7 @@
 #define TPZSUBMESHANALYSIS_H
 
 
-#include "TPZStaticAnalysis.h"
+#include "TPZLinearAnalysis.h"
 #include "pzmatred.h"
 class TPZSubCompMesh;
 
@@ -17,7 +17,7 @@ class TPZSubCompMesh;
  * @brief Analysis procedure to computational sub mesh. \ref analysis "Analysis"
  * @ingroup analysis
  */
-class TPZSubMeshAnalysis : public TPZStaticAnalysis  
+class TPZSubMeshAnalysis : public TPZLinearAnalysis  
 {
 private:
 	/** @brief Solution vector */

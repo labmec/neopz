@@ -206,7 +206,7 @@ REAL TPZPoroElastoPlasticAnalysis::AcceptSolution(const int ResetOutputDisplacem
 	
 	fSolution.Zero();
 	
-	TPZStaticAnalysis::LoadSolution();
+	TPZLinearAnalysis::LoadSolution();
 	
 	return norm;
 }

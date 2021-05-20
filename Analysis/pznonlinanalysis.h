@@ -6,16 +6,16 @@
 #ifndef NONLINANALYSISH
 #define NONLINANALYSISH
 
-#include "TPZStaticAnalysis.h"
+#include "TPZLinearAnalysis.h"
 #include <iosfwd>
 
 template<class TVar>
 class TPZFMatrix;
 /**
- * @brief Derived class from TPZStaticAnalysis implements non linear analysis (Newton's method). \ref analysis "Analysis"
+ * @brief Derived class from TPZLinearAnalysis implements non linear analysis (Newton's method). \ref analysis "Analysis"
  * @ingroup analysis
  */
-class TPZNonLinearAnalysis : public TPZStaticAnalysis {
+class TPZNonLinearAnalysis : public TPZLinearAnalysis {
 	
 public:
 	/** @brief Constructor with computational mesh */

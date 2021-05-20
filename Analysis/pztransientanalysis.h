@@ -54,7 +54,7 @@ public:
 	virtual void RunExplicit(std::ostream &out = std::cout, bool FromBegining = true);
 	
 	/** @brief See base class for comments */  
-	virtual void PostProcess(int resolution) override { TPZStaticAnalysis::PostProcess(resolution);}
+	virtual void PostProcess(int resolution) override { TPZLinearAnalysis::PostProcess(resolution);}
 	
 	/** @brief See base class for comments */
 	virtual void PostProcess(int resolution, int dimension) override;

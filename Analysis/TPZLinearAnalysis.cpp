@@ -1,4 +1,4 @@
-#include "TPZStaticAnalysis.h"
+#include "TPZLinearAnalysis.h"
 #include "pzcmesh.h"
 #include "Hash/TPZHash.h"
 #include "TPZMatrixSolver.h"
@@ -11,11 +11,11 @@ static TPZLogger logger("pz.analysis");
 static TPZLogger loggerError("pz.analysis.error");
 #endif
 
-TPZStaticAnalysis::TPZStaticAnalysis() : TPZAnalysis()
+TPZLinearAnalysis::TPZLinearAnalysis() : TPZAnalysis()
 {
 }
 
-TPZStaticAnalysis::TPZStaticAnalysis(TPZCompMesh *mesh,
+TPZLinearAnalysis::TPZLinearAnalysis(TPZCompMesh *mesh,
                                      bool mustOptimizeBandwidth,
                                      std::ostream &out) :
   TPZAnalysis(mesh,mustOptimizeBandwidth,out),
@@ -23,7 +23,7 @@ TPZStaticAnalysis::TPZStaticAnalysis(TPZCompMesh *mesh,
 {
 }
 
-TPZStaticAnalysis::TPZStaticAnalysis(TPZAutoPointer<TPZCompMesh> mesh,
+TPZLinearAnalysis::TPZLinearAnalysis(TPZAutoPointer<TPZCompMesh> mesh,
                                      bool mustOptimizeBandwidth,
                                      std::ostream &out) :
   TPZAnalysis(mesh,mustOptimizeBandwidth,out),
@@ -31,7 +31,7 @@ TPZStaticAnalysis::TPZStaticAnalysis(TPZAutoPointer<TPZCompMesh> mesh,
 {
 }
 
-void TPZStaticAnalysis::Assemble()
+void TPZLinearAnalysis::Assemble()
 {
   if(fSolType == EReal)
     AssembleT<STATE>();
@@ -40,7 +40,7 @@ void TPZStaticAnalysis::Assemble()
 }
 
 template<class TVar>
-void TPZStaticAnalysis::AssembleT()
+void TPZLinearAnalysis::AssembleT()
 {
   if(!fCompMesh){
     std::stringstream sout;
@@ -93,7 +93,7 @@ void TPZStaticAnalysis::AssembleT()
 	mySolver->UpdateFrom(mySolver->Matrix());
 }
 
-void TPZStaticAnalysis::AssembleResidual()
+void TPZLinearAnalysis::AssembleResidual()
 {
   int numloadcases = ComputeNumberofLoadCases();
 
@@ -109,7 +109,7 @@ void TPZStaticAnalysis::AssembleResidual()
 	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
 }//void
 
-void TPZStaticAnalysis::Solve()
+void TPZLinearAnalysis::Solve()
 {
   if(fSolType == EReal)
     SolveT<STATE>();
@@ -118,7 +118,7 @@ void TPZStaticAnalysis::Solve()
 }
 
 template<class TVar>
-void TPZStaticAnalysis::SolveT()
+void TPZLinearAnalysis::SolveT()
 {
 	int64_t numeq = fCompMesh->NEquations();
 	if(fRhs.Rows() != numeq ) 
@@ -217,7 +217,7 @@ void TPZStaticAnalysis::SolveT()
   fCompMesh->TransferMultiphysicsSolution();
 }
 
-void TPZStaticAnalysis::AnimateRun(
+void TPZLinearAnalysis::AnimateRun(
     int64_t num_iter, int steps, TPZVec<std::string> &scalnames,
     TPZVec<std::string> &vecnames, const std::string &plotfile)
 {
@@ -226,7 +226,7 @@ void TPZStaticAnalysis::AnimateRun(
 }
 
 template<class TVar>
-void TPZStaticAnalysis::AnimateRunT(
+void TPZLinearAnalysis::AnimateRunT(
     int64_t num_iter, int steps, TPZVec<std::string> &scalnames,
     TPZVec<std::string> &vecnames, const std::string &plotfile)
 {
@@ -253,7 +253,7 @@ void TPZStaticAnalysis::AnimateRunT(
 	}
 }
 
-void TPZStaticAnalysis::SetSolver(const TPZSolver &solver){
+void TPZLinearAnalysis::SetSolver(const TPZSolver &solver){
 	if(fSolver) delete fSolver;
     auto *tmpState =
       dynamic_cast<const TPZMatrixSolver<STATE>*>(&solver);
@@ -275,7 +275,7 @@ void TPZStaticAnalysis::SetSolver(const TPZSolver &solver){
 
 
 template<class TVar>
-TPZMatrixSolver<TVar> &TPZStaticAnalysis::MatrixSolver(){
+TPZMatrixSolver<TVar> &TPZLinearAnalysis::MatrixSolver(){
     const auto tmp = dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
     if(fSolver && !tmp){
         PZError<<__PRETTY_FUNCTION__;
@@ -285,7 +285,7 @@ TPZMatrixSolver<TVar> &TPZStaticAnalysis::MatrixSolver(){
     return *tmp;
 }
 
-void TPZStaticAnalysis::PostProcess(int resolution, int dimension){
+void TPZLinearAnalysis::PostProcess(int resolution, int dimension){
 	int dim1 = dimension-1;
 	if(!fGraphMesh[dim1]) return;
 
@@ -297,27 +297,29 @@ void TPZStaticAnalysis::PostProcess(int resolution, int dimension){
 }
 
 
-int TPZStaticAnalysis::ClassId() const
+int TPZLinearAnalysis::ClassId() const
 {
-  return Hash("TPZStaticAnalysis") ^
+  return Hash("TPZLinearAnalysis") ^
     TPZAnalysis::ClassId() << 1;
 }
   
-void TPZStaticAnalysis::Write(TPZStream &buf, int withclassid) const
+void TPZLinearAnalysis::Write(TPZStream &buf, int withclassid) const
 {
   TPZAnalysis::Write(buf,withclassid);
   fRhs.Write(buf,withclassid);
+  buf.Write(&fTime);
 }
 
-void TPZStaticAnalysis::Read(TPZStream &buf, void *context)
+void TPZLinearAnalysis::Read(TPZStream &buf, void *context)
 {
   TPZAnalysis::Read(buf,context);
   fRhs.Read(buf,context);
+  buf.Read(&fTime);
 }
 
 #define INSTANTIATE_TEMPLATES(TVar)                                 \
   template                                                          \
-  TPZMatrixSolver<TVar> &TPZStaticAnalysis::MatrixSolver<TVar>();
+  TPZMatrixSolver<TVar> &TPZLinearAnalysis::MatrixSolver<TVar>();
 
 INSTANTIATE_TEMPLATES(STATE)
 INSTANTIATE_TEMPLATES(CSTATE)

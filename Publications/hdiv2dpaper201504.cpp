@@ -101,7 +101,7 @@ void Hdiv2dPaper201504::Run(ApproximationSpace problem, Eltype element, TPZVec<i
                     cmeshH1->ExpandSolution();
                     cmeshH1->CleanUpUnconnectedNodes();
                     
-                    TPZStaticAnalysis anh1(cmeshH1, true);
+                    TPZLinearAnalysis anh1(cmeshH1, true);
                     
                     SolveSyst(anh1, cmeshH1);
                     
@@ -132,7 +132,7 @@ void Hdiv2dPaper201504::Run(ApproximationSpace problem, Eltype element, TPZVec<i
                     
                     TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
                     
-                    TPZStaticAnalysis an(mphysics, true);
+                    TPZLinearAnalysis an(mphysics, true);
                     
                     SolveSyst(an, mphysics);
                     
@@ -164,7 +164,7 @@ void Hdiv2dPaper201504::Run(ApproximationSpace problem, Eltype element, TPZVec<i
                     
                     TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
                     
-                    TPZStaticAnalysis an(mphysics, true);
+                    TPZLinearAnalysis an(mphysics, true);
                     
                     SolveSyst(an, mphysics);
                     
@@ -261,7 +261,7 @@ void Hdiv2dPaper201504::PrintErrors(ApproximationSpace problem, Eltype element, 
                     
                     int dofCondensed = cmeshH1->NEquations();
                     
-                    TPZStaticAnalysis anh1(cmeshH1, true);
+                    TPZLinearAnalysis anh1(cmeshH1, true);
                     
                     SolveSyst(anh1, cmeshH1);
                     
@@ -296,7 +296,7 @@ void Hdiv2dPaper201504::PrintErrors(ApproximationSpace problem, Eltype element, 
                     
                     DofCond = mphysics->NEquations();
                     
-                    TPZStaticAnalysis an(mphysics, true);
+                    TPZLinearAnalysis an(mphysics, true);
                     
                     SolveSyst(an, mphysics);
                     
@@ -335,7 +335,7 @@ void Hdiv2dPaper201504::PrintErrors(ApproximationSpace problem, Eltype element, 
                     
                     DofCond = mphysics->NEquations();
                     
-                    TPZStaticAnalysis an(mphysics, true);
+                    TPZLinearAnalysis an(mphysics, true);
                     
                     SolveSyst(an, mphysics);
                     
@@ -1199,7 +1199,7 @@ void Hdiv2dPaper201504::ChangeExternalOrderConnects(TPZCompMesh *mesh){
 
 #include "TPZFrontSym.h"
 
-void Hdiv2dPaper201504::SolveSyst(TPZStaticAnalysis &an, TPZCompMesh *fCmesh)
+void Hdiv2dPaper201504::SolveSyst(TPZLinearAnalysis &an, TPZCompMesh *fCmesh)
 {
     std::cout <<"Numero de equacoes "<< fCmesh->NEquations()<< std::endl;
     

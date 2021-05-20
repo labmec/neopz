@@ -6,7 +6,7 @@
 #ifndef TPZMGANALYSIS_H
 #define TPZMGANALYSIS_H
 
-#include "TPZStaticAnalysis.h"
+#include "TPZLinearAnalysis.h"
 #include "pztransfer.h"
 #include "pztrnsform.h" //needed because of default templ params
 
@@ -24,10 +24,10 @@ class TPZOneDRef;
 class TPZGeoEl;
 
 /**
- * @brief Implements multigrid analysis. TPZMGAnalysis is derived from TPZStaticAnalysis. \ref analysis "Analysis"
+ * @brief Implements multigrid analysis. TPZMGAnalysis is derived from TPZLinearAnalysis. \ref analysis "Analysis"
  * @ingroup Analysis
  */
-class TPZMGAnalysis : public TPZStaticAnalysis {
+class TPZMGAnalysis : public TPZLinearAnalysis {
 public:
 	
 	/** @brief Destructor */

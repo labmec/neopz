@@ -12,7 +12,7 @@ using namespace std;
 
 // Construction/Destruction
 
-TPZSubMeshFrontalAnalysis::TPZSubMeshFrontalAnalysis(TPZSubCompMesh *mesh) : TPZStaticAnalysis(mesh)                                                , fReferenceSolution(false)//TODOCOMPLEX:set matrix type (complex/real)
+TPZSubMeshFrontalAnalysis::TPZSubMeshFrontalAnalysis(TPZSubCompMesh *mesh) : TPZLinearAnalysis(mesh)                                                , fReferenceSolution(false)//TODOCOMPLEX:set matrix type (complex/real)
 {
 	fMesh = mesh;
 	fFront = 0;
@@ -92,7 +92,7 @@ void TPZSubMeshFrontalAnalysis::LoadSolutionInternal(
     }
 	
 	mySol = myRefSol + soltemp;
-	TPZStaticAnalysis::LoadSolution();
+	TPZLinearAnalysis::LoadSolution();
 }
 
 void TPZSubMeshFrontalAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)

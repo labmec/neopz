@@ -2,7 +2,6 @@ The Material hierarchy
 ==========================
 
 .. toctree::
-   :maxdepth: 1
               
    singlespace.rst
    combinedspaces.rst

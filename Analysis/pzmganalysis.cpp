@@ -28,7 +28,7 @@
 
 using namespace std;
 
-TPZMGAnalysis::TPZMGAnalysis(TPZCompMesh *cmesh) : TPZStaticAnalysis(cmesh) {
+TPZMGAnalysis::TPZMGAnalysis(TPZCompMesh *cmesh) : TPZLinearAnalysis(cmesh) {
 	fMeshes.Push(cmesh);
 }
 
@@ -358,7 +358,7 @@ template<class TVar>
 void TPZMGAnalysis::SolveInternal()
 {
   if(fMeshes.NElements() == 1) {
-		TPZStaticAnalysis::Solve();
+		TPZLinearAnalysis::Solve();
 		if(fSolvers.NElements() == 0) {
 			fSolvers.Push((TPZMatrixSolver<TVar> *) fSolver->Clone());
 		}
