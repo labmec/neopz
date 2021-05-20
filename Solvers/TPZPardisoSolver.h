@@ -128,6 +128,8 @@ protected:
 
     /// whether the matrix has been decomposed
     bool fDecomposed{false};
+    /// whether pardisoinit has been called
+    bool fPardisoInitialized{false};
 };
 
 #endif /* TPZPARDISOSOLVER_H */
