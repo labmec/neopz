@@ -37,7 +37,7 @@ public :
 	virtual ~TPZSYsmpMatrix();
     
     /** @brief Checks if the current matrix is symmetric */
-    virtual int IsSimetric() const  override { return 1; }
+    virtual int IsSymmetric() const  override { return 1; }
     /** @brief Checks if current matrix is square */
     inline int IsSquare() const { return 1;}
     

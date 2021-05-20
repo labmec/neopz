@@ -64,7 +64,7 @@ public:
 	~TPZMatRed();
 	
 	/** @brief returns 1 or 0 depending on whether the fK00 matrix is zero or not */
-	virtual int IsSimetric() const override;
+	virtual int IsSymmetric() const override;
 	
 	/** @brief changes the declared dimension of the matrix to fDim1 */
 	void SetReduced()

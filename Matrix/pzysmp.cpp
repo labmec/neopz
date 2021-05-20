@@ -945,11 +945,11 @@ int TPZFYsmpMatrix<TVar>::Decompose_LU()
         DebugStop();
     }
 	typename TPZPardisoSolver<TVar>::MStructure str =
-        this->IsSimetric() ?
+        this->IsSymmetric() ?
 		TPZPardisoSolver<TVar>::MStructure::ESymmetric:
 		TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
 	typename TPZPardisoSolver<TVar>::MSystemType sysType =
-		this->IsSimetric() ?
+		this->IsSymmetric() ?
 		TPZPardisoSolver<TVar>::MSystemType::ESymmetric:
 		TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
 	typename TPZPardisoSolver<TVar>::MProperty prop =

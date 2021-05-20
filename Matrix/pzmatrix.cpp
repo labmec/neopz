@@ -357,7 +357,7 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 	}
     else if( form == EMatrixMarket)
     {
-        bool sym = IsSimetric();
+        bool sym = IsSymmetric();
         int64_t numzero = 0;
         int64_t nrow = Rows();
         for ( int64_t row = 0; row < Rows(); row++) {
@@ -531,7 +531,7 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &destinati
 	
 	int64_t nelem = elmat.Rows();
   	int64_t icoef,jcoef,ieq,jeq;
-	if(IsSimetric()) {
+	if(IsSymmetric()) {
 		for(icoef=0; icoef<nelem; icoef++) {
 			ieq = destinationindex[icoef];
 			for(jcoef=icoef; jcoef<nelem; jcoef++) {
@@ -560,7 +560,7 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &source, T
 	int64_t nelem = source.NElements();
   	int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
     TVar prevval;
-	if(IsSimetric()) {
+	if(IsSymmetric()) {
 		for(icoef=0; icoef<nelem; icoef++) {
 			ieq = destinationindex[icoef];
 			ieqs = source[icoef];
@@ -1801,7 +1801,7 @@ int TPZMatrix<TVar>::Inverse(TPZFMatrix<TVar>&Inv, DecomposeType dec){
     }
     else
     {
-        const int issimetric = this->IsSimetric();
+        const int issimetric = this->IsSymmetric();
         if (issimetric)  return this->SolveDirect(Inv, ELDLt);
         if (!issimetric) return this->SolveDirect(Inv, ELU);
     }

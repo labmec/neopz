@@ -48,7 +48,7 @@ public:
     TVar &operator()(int64_t row, int64_t col);
     
     /** @brief Checks if the current matrix is symmetric */
-    virtual int IsSimetric() const override
+    virtual int IsSymmetric() const override
     {
         return 1;
     }

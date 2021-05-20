@@ -64,7 +64,7 @@ public:
 	void AddSameStruct(TPZSkylMatrix<TVar> &B, double k = 1.);
 	
 	/** @brief declare the object as simetric matrix*/
-	virtual int IsSimetric() const  override {return 1;}
+	virtual int IsSymmetric() const  override {return 1;}
 	
     /** @brief destructor of the skyline matrix */
 	virtual ~TPZSkylMatrix() { Clear(); }

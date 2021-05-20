@@ -100,7 +100,7 @@ void TPZPardisoSolver<TVar>::SetMatrix(TPZAutoPointer<TPZBaseMatrix> refmat)
        fProperty == MProperty::ENonInitialized){
         const MProperty prop = refmat->IsDefPositive() ?
             MProperty::EPositiveDefinite : MProperty::EIndefinite;
-        const MSystemType sym = refmat->IsSimetric() ?
+        const MSystemType sym = refmat->IsSymmetric() ?
             MSystemType::ESymmetric : MSystemType::ENonSymmetric;
         SetMatrixType(sym,prop);
     }

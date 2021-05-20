@@ -38,8 +38,8 @@ public:
 	{
 	}
 
-    /** @brief Move constructor */
-    TPZMatrix<TVar>(TPZMatrix<TVar> &&cp) = default;
+  /** @brief Move constructor */
+  TPZMatrix<TVar>(TPZMatrix<TVar> &&cp) = default;
 	/** @brief Simple destructor */
 	virtual ~TPZMatrix() = default;
 
@@ -820,14 +820,14 @@ inline TVar &TPZMatrix<TVar>::operator()(const int64_t row) {
 
 template<class TVar>
 inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B, std::list<int64_t> &singular) {
-	if ( IsSimetric() )
+	if ( IsSymmetric() )
         Error( "LU decomposition is not a symmetric decomposition" );
 	return ( ( !Decompose_LU(singular) )?  0 : Substitution( B )  );
 }
 
 template<class TVar>
 inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B ) {
-	if ( IsSimetric() )
+	if ( IsSymmetric() )
         Error( "LU decomposition is not a symmetric decomposition" );
 	return ( ( !Decompose_LU() )?  0 : Substitution( B )  );
 }

@@ -98,7 +98,7 @@ public:
   /** @} */
 
   /** @brief Checks if the current matrix is symmetric */
-  virtual int IsSimetric() const{ return 0;}
+  virtual int IsSymmetric() const{ return 0;}
   /** @brief Checks if current matrix is square */
   inline int IsSquare() const {
     return fRow == fCol; }

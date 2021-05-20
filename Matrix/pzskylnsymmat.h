@@ -67,7 +67,7 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   //void AddSameStruct(TPZSkylNSymMatrix &B, double k = 1.);
 
   /**declare the object as non-symmetric matrix*/
-  virtual int IsSimetric() const  override {return 0;}
+  virtual int IsSymmetric() const  override {return 0;}
 
   virtual ~TPZSkylNSymMatrix() { Clear(); }
 
