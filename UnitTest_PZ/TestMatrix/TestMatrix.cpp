@@ -92,6 +92,21 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric);
  * @note Process: build square matrix with randomic values, compute its square twice using Multiply function with two different copies of itself and checks whether the result is the same
  */
 
+/*
+Test Add operation
+*/
+template <class matx, class TVar>
+void TestingAdd(int row, int col, int symmetric);
+/*
+Test Subtract operation
+*/
+template <class matx, class TVar>
+void TestingSubtract(int row, int col, int symmetric);
+/*
+Test MultiplyByScalar operation
+*/
+template <class matx, class TVar>
+void TestingMultiplyByScalar(int row, int col, int symmetric);
 /**
  * Check if the result is a identity matrix.
  */
@@ -260,6 +275,95 @@ void TestSVD(int nrows, int ncols);
         }
     }
 
+  template<class TVar>
+    void Add(){
+      for (auto dim = 5; dim < 100; dim += 500) {
+          SECTION("TPZFMatrix"){
+              TestingAdd<TPZFMatrix<TVar>, TVar>(10, dim, 0);
+          }
+          SECTION("TPZSFMatrix"){
+              TestingAdd<TPZSFMatrix<TVar>, TVar>(dim, dim, 1);
+          }
+          SECTION("TPZFBMatrix"){
+              TestingAdd<TPZFBMatrix<TVar>,TVar>(dim, dim, 0);
+          }
+          SECTION("TPZSBMatrix"){
+              TestingAdd<TPZSBMatrix<TVar>,TVar>(dim, dim,1);
+          }
+          SECTION("TPZFYsmpMatrix"){
+              TestingAdd<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
+          }
+          SECTION("TPZSYsmpMatrix"){
+              TestingAdd<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
+          }
+          // SECTION("TPZSkylNSymMatrix"){
+          //     TestingAdd<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, 0);
+          // }
+          SECTION("TPZSkylMatrix"){
+              TestingAdd<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
+          }
+      }
+    }
+
+  template<class TVar>
+    void Subtract(){
+      for (auto dim = 5; dim < 100; dim += 500) {
+          SECTION("TPZFMatrix"){
+              TestingSubtract<TPZFMatrix<TVar>, TVar>(10, dim, 0);
+          }
+          SECTION("TPZSFMatrix"){
+              TestingSubtract<TPZSFMatrix<TVar>, TVar>(dim, dim, 1);
+          }
+          SECTION("TPZFBMatrix"){
+              TestingSubtract<TPZFBMatrix<TVar>,TVar>(dim, dim, 0);
+          }
+          SECTION("TPZSBMatrix"){
+              TestingSubtract<TPZSBMatrix<TVar>,TVar>(dim, dim,1);
+          }
+          SECTION("TPZFYsmpMatrix"){
+              TestingSubtract<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
+          }
+          SECTION("TPZSYsmpMatrix"){
+              TestingSubtract<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
+          }
+          // SECTION("TPZSkylNSymMatrix"){
+          //     TestingSubtract<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, 0);
+          // }
+          SECTION("TPZSkylMatrix"){
+              TestingSubtract<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
+          }
+      }
+    }
+template<class TVar>
+    void MultiplyByScalar(){
+      for (auto dim = 5; dim < 100; dim += 500) {
+          SECTION("TPZFMatrix"){
+              TestingMultiplyByScalar<TPZFMatrix<TVar>, TVar>(10, dim, 0);
+          }
+          SECTION("TPZSFMatrix"){
+              TestingMultiplyByScalar<TPZSFMatrix<TVar>, TVar>(dim, dim, 1);
+          }
+          SECTION("TPZFBMatrix"){
+              TestingMultiplyByScalar<TPZFBMatrix<TVar>,TVar>(dim, dim, 0);
+          }
+          SECTION("TPZSBMatrix"){
+              TestingMultiplyByScalar<TPZSBMatrix<TVar>,TVar>(dim, dim,1);
+          }
+          SECTION("TPZFYsmpMatrix"){
+              TestingMultiplyByScalar<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
+          }
+          SECTION("TPZSYsmpMatrix"){
+              TestingMultiplyByScalar<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
+          }
+          // SECTION("TPZSkylNSymMatrix"){
+          //     TestingMultiplyByScalar<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, 0);
+          // }
+          SECTION("TPZSkylMatrix"){
+              TestingMultiplyByScalar<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
+          }
+      }
+    }
+  
     template<class TVar>
     void MultiplyTranspose(){
       for (auto dim = 5; dim < 100; dim += 500) {
@@ -486,6 +590,39 @@ TEMPLATE_TEST_CASE("Inverse (CPLX)","[matrix_tests]",
     testmatrix::Inverse<TestType>();
 }
 
+TEMPLATE_TEST_CASE("Add","[matrix_tests]",
+                   float,
+                   double,
+                   long double,
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+                   ) {
+    testmatrix::Add<TestType>();
+}
+
+TEMPLATE_TEST_CASE("Subtract","[matrix_tests]",
+                   float,
+                   double,
+                   long double,
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+                   ) {
+    testmatrix::Subtract<TestType>();
+}
+
+TEMPLATE_TEST_CASE("MultiplyByScalar","[matrix_tests]",
+                   float,
+                   double,
+                   long double,
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+                   ) {
+    testmatrix::MultiplyByScalar<TestType>();
+}
+
 TEMPLATE_TEST_CASE("Multiply transpose (REAL)","[matrix_tests]",
                    float,
                    double,
@@ -493,6 +630,7 @@ TEMPLATE_TEST_CASE("Multiply transpose (REAL)","[matrix_tests]",
                    ) {
     testmatrix::MultiplyTranspose<TestType>();
 }
+
 TEMPLATE_TEST_CASE("Multiply transpose (CPLX)","[matrix_tests]",
                    std::complex<float>,
                    std::complex<double>,
@@ -654,12 +792,12 @@ void CheckDiagonalDominantMatrix(matx &matr) {
         sum = 0.0;
         for (int j = 0; j < matr.Cols(); j++) {
             if (i != j)
-                sum += fabs(matr.GetVal(i, j));
+                sum += fabs(matr.Get(i, j));
         }
-        CAPTURE(fabs(matr.GetVal(i,i)));
+        CAPTURE(fabs(matr.Get(i,i)));
         CAPTURE(sum);
-        REQUIRE(fabs(matr.GetVal(i, i)) > sum);
-        if (!(fabs(matr.GetVal(i, i)) > sum)) {
+        REQUIRE(fabs(matr.Get(i, i)) > sum);
+        if (!(fabs(matr.Get(i, i)) > sum)) {
             std::cout << "line i " << i << " failed\n";
             // matr.Print("matrix = ", std::cout, EMathematicaInput);
             return;
@@ -688,13 +826,13 @@ void TestGeneratingHermitianMatrix() {
     for (auto i = 0; i < nrows; i++) {
         auto j = i;
         if constexpr (is_complex<TVar>::value){
-            CAPTURE(i,j,mat.GetVal(i,j));
-            REQUIRE(mat.GetVal(i,j).imag() == (RTVar)0);
+            CAPTURE(i,j,mat.Get(i,j));
+            REQUIRE(mat.Get(i,j).imag() == (RTVar)0);
         }
         j++;
         for(; j < ncols; j++){
-            CAPTURE(i,j,mat.GetVal(i,j));
-            REQUIRE(mat.GetVal(i,j)-std::conj(mat.GetVal(j,i)) == (TVar)0);
+            CAPTURE(i,j,mat.Get(i,j));
+            REQUIRE(mat.Get(i,j)-std::conj(mat.Get(j,i)) == (TVar)0);
         }
     }
 }
@@ -703,6 +841,7 @@ template <class matx, class TVar>
 void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
   int i, j;
   auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   matx ma;
   ma.AutoFill(dim, dim, symmetric);  
   // Making ma copy because ma is modified by Inverse method (it's decomposed)
@@ -719,7 +858,7 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
   for (i = 0; i < dim; i++) {
       for (j = 0; j < dim; j++) {
           RTVar diff =
-              fabs(cpma.GetVal(i, j) - res.GetVal(i, j));
+              fabs(cpma.Get(i, j) - res.Get(i, j));
         
           bool loccheck = IsZero(diff / (RTVar) 10.);
           if (loccheck == false) {
@@ -746,11 +885,12 @@ void TestingMultiplyOperatorWithAutoFill(int dim, int symmetric) {
     square2 = duplicate*duplicate;
     square = ma*duplicate;
     auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+    Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
     // Checking whether both matrices are equal
     bool check = true;
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
-            RTVar diff = fabs(square.GetVal(i, j) - square2.GetVal(i, j));
+            RTVar diff = fabs(square.Get(i, j) - square2.Get(i, j));
             if (!IsZero(diff)) {
                 CAPTURE(i,j,diff);
                 check = false;
@@ -774,6 +914,7 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
     ma.Multiply(duplicate, square);
     duplicate.Multiply(duplicate, square2);
     auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+    Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
     // Checking whether result matrix is the identity matrix
     bool check = true;
     constexpr RTVar tol = [](){
@@ -797,6 +938,99 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
     Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
 
+template <class matx, class TVar>
+void TestingAdd(int row, int col, int symmetric) {
+  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
+  matx ma1, res;
+  ma1.AutoFill(row, col, symmetric);
+  //this is to ensure that they have the same sparsity pattern
+  matx ma2(ma1);
+
+  
+  ma1.Add(ma2,res);
+    
+  bool check = true;
+  constexpr RTVar tol = [](){
+    if constexpr (std::is_same_v<RTVar,float>) return (RTVar)10;
+    else return (RTVar)1;
+  }();
+  for (int i = 0; i < col; i++) {
+    for (int j = 0; (j < col) && check; j++) {
+      CAPTURE(i,j,res.Get(i,j),(TVar)2*ma1.Get(i,j));
+      if (!IsZero((res.Get(i, j)-(ma1.Get(i,j)+ma2.Get(i,j)))/tol)) {
+        check = false;
+      }
+      REQUIRE(check);
+    }
+  }
+  Catch::StringMaker<RTVar>::precision = oldPrecision;
+}
+
+template <class matx, class TVar>
+void TestingSubtract(int row, int col, int symmetric) {
+  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
+  matx ma1, res;
+  ma1.AutoFill(row, col, symmetric);
+  //this is to ensure that they have the same sparsity pattern
+  matx ma2(ma1);
+
+  
+  ma1.Subtract(ma2,res);
+    
+  bool check = true;
+  constexpr RTVar tol = [](){
+    if constexpr (std::is_same_v<RTVar,float>) return (RTVar)10;
+    else return (RTVar)1;
+  }();
+  for (int i = 0; i < col; i++) {
+    for (int j = 0; (j < col) && check; j++) {
+      CAPTURE(i,j,res.Get(i,j));
+      if (!IsZero((res.Get(i, j)-(ma1.Get(i,j)-ma2.Get(i,j)))/tol)) {
+        check = false;
+      }
+      REQUIRE(check);
+    }
+  }
+  Catch::StringMaker<RTVar>::precision = oldPrecision;
+}
+
+template <class matx, class TVar>
+void TestingMultiplyByScalar(int row, int col, int symmetric) {
+  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
+  matx ma1, res;
+  ma1.AutoFill(row, col, symmetric);
+  
+  const TVar val = [](){
+    constexpr RTVar lower_bound = 0;
+    constexpr RTVar upper_bound = 1;
+    static std::uniform_real_distribution<RTVar> unif(lower_bound,upper_bound);
+    static std::default_random_engine re;
+    const TVar a_random = (TVar)unif(re);
+    return a_random;
+  }();
+
+  
+  ma1.MultiplyByScalar(val,res);
+    
+  bool check = true;
+  constexpr RTVar tol = [](){
+    if constexpr (std::is_same_v<RTVar,float>) return (RTVar)10;
+    else return (RTVar)1;
+  }();
+  for (int i = 0; i < col; i++) {
+    for (int j = 0; (j < col) && check; j++) {
+      CAPTURE(i,j,res.Get(i,j),ma1.Get(i,j)*val);
+      if (!IsZero((res.Get(i, j)-(ma1.Get(i,j)*val))/tol)) {
+        check = false;
+      }
+      REQUIRE(check);
+    }
+  }
+  Catch::StringMaker<RTVar>::precision = oldPrecision;
+}
 
 template <class matx, class TVar>
 void TestingTransposeMultiply(int row, int col, int symmetric) {
@@ -859,7 +1093,7 @@ void TestingTransposeWithAutoFill(int rows, int cols, int symmetric) {
     /// Checking whether the res matrix is identical to m1 matrix
     for (i = 0; i < rows; i++)
         for (j = 0; j < cols; j++)
-            REQUIRE(IsZero(ma.GetVal(i, j) - matransptransp.GetVal(i, j)));
+            REQUIRE(IsZero(ma.Get(i, j) - matransptransp.Get(i, j)));
 }
 
 template <class matx, class TVar>
@@ -969,7 +1203,7 @@ matx ma;
     TPZFMatrix< CTVar > cpma(dim, dim);
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
-            cpma(i, j) = ma.GetVal(i, j);
+            cpma(i, j) = ma.Get(i, j);
         }
     }
 
