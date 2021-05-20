@@ -2,9 +2,8 @@ The Analysis hierarchy
 ######################
 
 .. toctree::
-   :maxdepth: 1
 
-   staticanalysis.rst
+   linearanalysis.rst
    
 .. contents:: Table of Contents
    :local:
@@ -19,7 +18,7 @@ The :cpp:expr:`TPZAnalysis` hierarchy is where whole workflow for performing Fin
 
 This hierarchy is responsible for coordinating the interaction between all the other classes involved in a simulation, such as :cpp:expr:`TPZCompMesh`, :cpp:expr:`TPZStructMatrix` and :cpp:expr:`TPZSolver`.
 
-For the FEM analysis of equation systems, one can use the :cpp:expr:`TPZStaticAnalysis` class, described :doc:`here<staticanalysis>`. For the analysis of eigenvalue problems, there will soon be a :cpp:expr:`TPZEigenAnalysis`.
+For the FEM analysis of equation systems, one can use the :cpp:expr:`TPZLinearAnalysis` class, described :doc:`here<linearanalysis>`. For the analysis of eigenvalue problems, there will soon be a :cpp:expr:`TPZEigenAnalysis`.
 
 The TPZAnalysis class
 =====================

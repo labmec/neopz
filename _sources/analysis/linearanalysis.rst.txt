@@ -8,9 +8,9 @@ FEM Analysis of Equation Systems
 .. contents:: Table of Contents
    :local:
 
-The TPZStaticAnalysis class
+The TPZLinearAnalysis class
 ***************************
 
-.. doxygenclass:: TPZStaticAnalysis
+.. doxygenclass:: TPZLinearAnalysis
    :members:
    :membergroups: Constructors FEM Graphical

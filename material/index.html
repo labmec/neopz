@@ -43,7 +43,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="The Single Space Material Group" href="singlespace.html" />
-    <link rel="prev" title="FEM Analysis of Equation Systems" href="../analysis/staticanalysis.html" /> 
+    <link rel="prev" title="FEM Analysis of Equation Systems" href="../analysis/linearanalysis.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -190,10 +190,73 @@
 <h1>The Material hierarchy<a class="headerlink" href="#the-material-hierarchy" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="singlespace.html">The Single Space Material Group</a></li>
-<li class="toctree-l1"><a class="reference internal" href="combinedspaces.html">The Combined Spaces Material Group</a></li>
-<li class="toctree-l1"><a class="reference internal" href="availablemats.html">Available Materials in NeoPZ</a></li>
-<li class="toctree-l1"><a class="reference internal" href="commoninterfaces.html">Common Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="singlespace.html">The Single Space Material Group</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="singlespace.html#single-space-materials">Single Space Materials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="singlespace.html#single-space-boundary-conditions">Single Space Boundary Conditions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="singlespace.html#available-interfaces">Available Interfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="singlespace.html#interface">Interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="singlespace.html#error">Error</a></li>
+<li class="toctree-l3"><a class="reference internal" href="singlespace.html#common">Common</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="combinedspaces.html">The Combined Spaces Material Group</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="combinedspaces.html#combined-spaces-materials">Combined Spaces Materials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="combinedspaces.html#combined-spaces-boundary-conditions">Combined Spaces Boundary Conditions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="combinedspaces.html#available-interfaces">Available Interfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="combinedspaces.html#interface">Interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="combinedspaces.html#error">Error</a></li>
+<li class="toctree-l3"><a class="reference internal" href="combinedspaces.html#common">Common</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="availablemats.html">Available Materials in NeoPZ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="availablemats.html#projections-group">Projections Group</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="availablemats.html#tpzl2projection">TPZL2Projection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="availablemats.html#tpzhdivprojection">TPZHDivProjection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="availablemats.html#tpzhcurlprojection">TPZHCurlProjection</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="availablemats.html#the-lagrange-multiplier-group">The Lagrange Multiplier Group</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="availablemats.html#tpzlagrangemultiplier">TPZLagrangeMultiplier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="availablemats.html#tpzlagrangemultipliercs">TPZLagrangeMultiplierCS</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="availablemats.html#tpznullmaterial">TPZNullMaterial</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="availablemats.html#poisson">Poisson</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="availablemats.html#tpzmatpoisson">TPZMatPoisson</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="availablemats.html#elasticity-group">Elasticity Group</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="availablemats.html#tpzelasticity2d">TPZElasticity2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="availablemats.html#tpzelasticity3d">TPZElasticity3D</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="availablemats.html#electromagnetics-group">Electromagnetics Group</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="availablemats.html#modal-analysis-of-waveguides">Modal Analysis of Waveguides</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="availablemats.html#tpzwaveguidemodalanalysis">TPZWaveguideModalAnalysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="availablemats.html#tpzwaveguidemodalanalysispml">TPZWaveguideModalAnalysisPML</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="commoninterfaces.html">Common Interfaces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="commoninterfaces.html#error">Error</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commoninterfaces.html#load-cases">Load cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commoninterfaces.html#memory">Memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commoninterfaces.html#generalised-eigenvalue-problem">Generalised Eigenvalue Problem</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="contents local topic" id="table-of-contents">
@@ -1209,7 +1272,7 @@ see <a class="reference internal" href="singlespace.html"><span class="doc">The 
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="singlespace.html" class="btn btn-neutral float-right" title="The Single Space Material Group" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="../analysis/staticanalysis.html" class="btn btn-neutral float-left" title="FEM Analysis of Equation Systems" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../analysis/linearanalysis.html" class="btn btn-neutral float-left" title="FEM Analysis of Equation Systems" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

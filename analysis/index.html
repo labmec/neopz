@@ -42,7 +42,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="FEM Analysis of Equation Systems" href="staticanalysis.html" />
+    <link rel="next" title="FEM Analysis of Equation Systems" href="linearanalysis.html" />
     <link rel="prev" title="Welcome to NeoPZ’s documentation!" href="../index.html" /> 
 </head>
 
@@ -91,7 +91,7 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">The Analysis hierarchy</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="staticanalysis.html">FEM Analysis of Equation Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="linearanalysis.html">FEM Analysis of Equation Systems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-analysis-group">The Analysis Group</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#the-tpzanalysis-class">The TPZAnalysis class</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#further-tpzanalysis-documentation">Further TPZAnalysis documentation</a></li>
@@ -182,7 +182,10 @@
 <h1>The Analysis hierarchy<a class="headerlink" href="#the-analysis-hierarchy" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="staticanalysis.html">FEM Analysis of Equation Systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="linearanalysis.html">FEM Analysis of Equation Systems</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="linearanalysis.html#the-tpzlinearanalysis-class">The TPZLinearAnalysis class</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="contents local topic" id="table-of-contents">
@@ -210,7 +213,7 @@
 <h2><a class="toc-backref" href="#id1">The Analysis Group</a><a class="headerlink" href="#the-analysis-group" title="Permalink to this headline">¶</a></h2>
 <p>The <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv411TPZAnalysis" title="TPZAnalysis"><span class="n">TPZAnalysis</span></a></span> hierarchy is where whole workflow for performing Finite Element Analysis in NeoPZ is defined.</p>
 <p>This hierarchy is responsible for coordinating the interaction between all the other classes involved in a simulation, such as <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZCompMesh</span></span>, <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../structmatrix/index.html#_CPPv415TPZStructMatrix" title="TPZStructMatrix"><span class="n">TPZStructMatrix</span></a></span> and <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../solver/index.html#_CPPv49TPZSolver" title="TPZSolver"><span class="n">TPZSolver</span></a></span>.</p>
-<p>For the FEM analysis of equation systems, one can use the <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="staticanalysis.html#_CPPv417TPZStaticAnalysis" title="TPZStaticAnalysis"><span class="n">TPZStaticAnalysis</span></a></span> class, described <a class="reference internal" href="staticanalysis.html"><span class="doc">here</span></a>. For the analysis of eigenvalue problems, there will soon be a <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZEigenAnalysis</span></span>.</p>
+<p>For the FEM analysis of equation systems, one can use the <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="linearanalysis.html#_CPPv417TPZLinearAnalysis" title="TPZLinearAnalysis"><span class="n">TPZLinearAnalysis</span></a></span> class, described <a class="reference internal" href="linearanalysis.html"><span class="doc">here</span></a>. For the analysis of eigenvalue problems, there will soon be a <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZEigenAnalysis</span></span>.</p>
 <div class="section" id="the-tpzanalysis-class">
 <h3><a class="toc-backref" href="#id2">The TPZAnalysis class</a><a class="headerlink" href="#the-tpzanalysis-class" title="Permalink to this headline">¶</a></h3>
 <p>The <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv411TPZAnalysis" title="TPZAnalysis"><span class="n">TPZAnalysis</span></a></span> class is the base of its hierarchy. Its attributions include (but are not limited to)</p>
@@ -233,7 +236,7 @@
 <dt class="sig sig-object cpp" id="_CPPv411TPZAnalysis">
 <span id="_CPPv311TPZAnalysis"></span><span id="_CPPv211TPZAnalysis"></span><span id="TPZAnalysis"></span><span class="target" id="classTPZAnalysis"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZAnalysis</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><a class="headerlink" href="#_CPPv411TPZAnalysis" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Abstract class defining the interface for performing a Finite Element Analysis. </p>
-<p>Subclassed by <a class="reference internal" href="staticanalysis.html#classTPZStaticAnalysis"><span class="std std-ref">TPZStaticAnalysis</span></a></p>
+<p>Subclassed by <a class="reference internal" href="linearanalysis.html#classTPZLinearAnalysis"><span class="std std-ref">TPZLinearAnalysis</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-constructors">Constructors</p>
 <dl class="cpp function">
@@ -478,18 +481,6 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N11TPZAnalysis7SetTimeE4REAL">
-<span id="_CPPv3N11TPZAnalysis7SetTimeE4REAL"></span><span id="_CPPv2N11TPZAnalysis7SetTimeE4REAL"></span><span id="TPZAnalysis::SetTime__REAL"></span><span class="target" id="classTPZAnalysis_1a479f0ec6a2f3b18451cffffcf5d067aa"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetTime</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11TPZAnalysis7SetTimeE4REAL" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Sets time used in OpenDX files. </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4NK11TPZAnalysis7GetTimeEv">
-<span id="_CPPv3NK11TPZAnalysis7GetTimeEv"></span><span id="_CPPv2NK11TPZAnalysis7GetTimeEv"></span><span id="TPZAnalysis::GetTimeC"></span><span class="target" id="classTPZAnalysis_1a3f7a76c64dd44b7fc783565bedc6b5dd"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetTime</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK11TPZAnalysis7GetTimeEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Gets time used in OpenDX files. </p>
-</dd></dl>
-
-<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N11TPZAnalysis11PostProcessEi">
 <span id="_CPPv3N11TPZAnalysis11PostProcessEi"></span><span id="_CPPv2N11TPZAnalysis11PostProcessEi"></span><span id="TPZAnalysis::PostProcess__i"></span><span class="target" id="classTPZAnalysis_1a62654378cdf39a0d41faeefdc97e3640"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">resolution</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11TPZAnalysis11PostProcessEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Draw solution over mesh for all dimensions. </p>
@@ -537,7 +528,7 @@
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="staticanalysis.html" class="btn btn-neutral float-right" title="FEM Analysis of Equation Systems" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="linearanalysis.html" class="btn btn-neutral float-right" title="FEM Analysis of Equation Systems" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to NeoPZ’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 

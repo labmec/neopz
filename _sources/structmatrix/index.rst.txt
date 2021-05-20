@@ -2,7 +2,6 @@ The StructMatrix hierarchy
 ==========================
 
 .. toctree::
-   :maxdepth: 1
 
    parallelinterfaces
    structoptions
