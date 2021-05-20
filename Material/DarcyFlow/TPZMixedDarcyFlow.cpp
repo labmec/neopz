@@ -248,16 +248,12 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
 
     TPZManVector<STATE, 10> SolP, SolQ;
 
-    TPZFNMatrix<9, STATE> K(fDim, fDim, 0);
-    TPZFNMatrix<9, STATE> InvK(fDim, fDim, 0);
+    TPZFNMatrix<9, STATE> K(1, 1, 0);
+    TPZFNMatrix<9, STATE> InvK(1, 1, 0);
 
     fPermeabilityFunction(datavec[0].x, K, InvK);
-    REAL perm = K(0, 0);
-
-    for (int id = 0; id < fDim; id++) {
-        K(id, id) = perm;
-        InvK(id, id) = 1 / perm;
-    }
+    const REAL perm = K(0, 0);
+    const REAL inv_perm = 1 / perm;
 
     // SolQ = datavec[0].sol[0];
     SolP = datavec[1].sol[0];
@@ -364,9 +360,7 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
             solOut[i] = 0.;
         }
         for (int i = 0; i < fDim; i++) {
-            for (int j = 0; j < fDim; j++) {
-                solOut[i] -= InvK(i, j) * datavec[0].sol[0][i];
-            }
+            solOut[i] -= inv_perm * datavec[0].sol[0][i];
         }
         return;
     }
@@ -403,12 +397,8 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
                 fExactSol(datavec[0].x, exactSol, gradu);
             }
         }
-        TPZFNMatrix<3, REAL> flux(3, 1);
-
-        K.Multiply(gradu, flux);
-
-        for (int i = 0; i < fDim; i++) {
-            solOut[i] = flux(i, 0);
+        for (int i = 0; i < 3; i++) {
+            solOut[i] = -perm * gradu(i, 0);
         }
 
         return;
@@ -455,37 +445,29 @@ void TPZMixedDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZV
     TPZFNMatrix<9, STATE> InvK(fDim, fDim, 0);
 
     fPermeabilityFunction(data[0].x, K, InvK);
-    REAL perm = K(0, 0);
+    const REAL perm = K(0, 0);
+    const REAL inv_perm = 1 / perm;
 
-    for (int id = 0; id < fDim; id++) {
-        K(id, id) = perm;
-        InvK(id, id) = 1 / perm;
-    }
-
-    TPZManVector<STATE, 3> gradpressurefem(fDim, 0.);
+    TPZManVector<STATE, 3> gradpressurefem(3, 0.);
     this->Solution(data, VariableIndex("GradPressure"), gradpressurefem);
 
-    TPZFNMatrix<3, STATE> fluxexactneg;
-
-    TPZFNMatrix<9, STATE> gradpressure(fDim, 1);
-    for (int i = 0; i < fDim; i++) {
-        gradpressure(i, 0) = du_exact[i];
+    TPZManVector<STATE, 3> fluxexactneg(3, 0);
+    TPZManVector<STATE, 3> gradpressure(3, 0);
+    for (int i = 0; i < 3; i++) {
+        gradpressure[i] = du_exact[i];
+        fluxexactneg[i] = -perm * gradpressure[i];
     }
-    K.Multiply(gradpressure, fluxexactneg);
 
     REAL L2flux = 0., L2grad = 0.;
-    for (int i = 0; i < fDim; i++) {
-        for (int j = 0; j < fDim; j++) {
-            L2flux += (fluxfem[i] + fluxexactneg(i, 0)) * InvK(i, j) * (fluxfem[j] + fluxexactneg(j, 0));
-        }
-        L2grad += (gradpressure(i, 0) - gradpressurefem[i]) * (gradpressure(i, 0) - gradpressurefem[i]);
+    for (int i = 0; i < 3; i++) {
+        L2flux += (fluxfem[i] + fluxexactneg[i]) * inv_perm * (fluxfem[i] + fluxexactneg[i]);
+        L2grad += (du_exact[i] - gradpressurefem[i]) * (du_exact[i] - gradpressurefem[i]);
     }
     errors[0] = (pressurefem[0] - u_exact[0]) * (pressurefem[0] - u_exact[0]);//L2 error for pressure
     errors[1] = L2flux;//L2 error for flux
     errors[2] = residual;//L2 for div
     errors[3] = L2grad;
     errors[4] = L2flux + residual;
-
 }
 
 int TPZMixedDarcyFlow::VariableIndex(const std::string &name) const {
@@ -518,13 +500,13 @@ int TPZMixedDarcyFlow::NSolutionVariables(int var) const {
     if (var == 6) return 1;
     if (var == 7) return 3;
     if (var == 8) return 1;
-    if (var == 9) return fDim;
+    if (var == 9) return 3;
     if (var == 10 || var == 41) return 1;
     if (var == 12) return 3;
     if (var == 13) return 1;
     if (var == 14) return 1;
     if (var == 15) return 1;
-    if (var == 16) return fDim;
+    if (var == 16) return 3;
     DebugStop();
     return -1;
 }
