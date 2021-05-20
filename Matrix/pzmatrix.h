@@ -177,7 +177,7 @@ public:
 	/** @brief Computes res = rhs - this * x */
 	virtual void Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res ) ;
 	/** @brief It substracts A from storing the result in result */
-	virtual void Substract(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& result) const;
+	virtual void Subtract(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& result) const;
 	
 	/** @brief Converts the matrix in an identity matrix*/
 	virtual void Identity();

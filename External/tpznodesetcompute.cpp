@@ -415,7 +415,7 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStac
 		  LOGPZ_DEBUG(logger,sout.str())
 	  }
 #endif
-    SubstractLowerNodes(in,nodeset);
+    SubtractLowerNodes(in,nodeset);
 #ifdef PZ_LOG
 		  {
 			  std::stringstream sout;
@@ -437,7 +437,7 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStac
   }
 }
 
-void TPZNodesetCompute::SubstractLowerNodes(int64_t node, std::set<int64_t> &nodeset)
+void TPZNodesetCompute::SubtractLowerNodes(int64_t node, std::set<int64_t> &nodeset)
 {
   std::set<int64_t> lownode,lownodeset,unionset;
   std::set<int64_t>::iterator it;

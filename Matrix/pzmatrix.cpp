@@ -69,7 +69,7 @@ void TPZMatrix<TVar>::Add(const TPZMatrix<TVar>&A,TPZMatrix<TVar>&B) const {
 		for ( int64_t c = 0; c < Cols(); c++ ) B.PutVal( r, c, GetVal(r,c)+A.GetVal(r,c) );
 }
 template<class TVar>
-void TPZMatrix<TVar>::Substract(const TPZMatrix<TVar> &A,TPZMatrix<TVar> &result) const {
+void TPZMatrix<TVar>::Subtract(const TPZMatrix<TVar> &A,TPZMatrix<TVar> &result) const {
 	
 	if ((Rows() != A.Rows()) || (Cols() != A.Cols()) ) {
 		Error( "Add(TPZMatrix<>&, TPZMatrix<>&) <different dimensions>" );
@@ -116,7 +116,7 @@ TPZFMatrix<TVar> operator-(const TPZMatrix<TVar> &A, const TPZMatrix<TVar> &B ) 
 	TPZFMatrix<TVar> temp;
     TPZFMatrix<TVar> res;
     res.Redim( A.Rows(), A.Cols() );
-    A.Substract(B,res);
+    A.Subtract(B,res);
     return temp;
 }
 

@@ -208,7 +208,7 @@ namespace structTest{
     const int nc = matParallel->Cols();
   
     TPZFMatrix<STATE> matDiff(nr,nc, 0.0);
-    matSerial->Substract(matParallel, matDiff);
+    matSerial->Subtract(matParallel, matDiff);
     const auto normDiff = Norm(matDiff);
     auto oldPrecision = Catch::StringMaker<STATE>::precision;
     CAPTURE(normDiff);
@@ -245,7 +245,7 @@ namespace structTest{
     const int nc = mat2->Cols();
   
     TPZFMatrix<STATE> matDiff(nr,nc, 0.0);
-    mat1->Substract(mat2, matDiff);
+    mat1->Subtract(mat2, matDiff);
     const auto normDiff = Norm(matDiff);
     auto oldPrecision = Catch::StringMaker<STATE>::precision;
     CAPTURE(normDiff);

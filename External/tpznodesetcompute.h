@@ -121,7 +121,7 @@ private:
 	 * @param node node whose intersection need to be considered
 	 * @param nodeset the set of nodes which need to form elements
 	 */
-	void SubstractLowerNodes(int64_t node, std::set<int64_t> &nodeset);
+	void SubtractLowerNodes(int64_t node, std::set<int64_t> &nodeset);
 };
 
 #endif
