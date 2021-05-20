@@ -114,18 +114,16 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
     virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
 
   // Operadores com matrizes SKY LINE.
-  //TPZSkylNSymMatrix &operator= (const TPZSkylNSymMatrix &A );
-  //TPZSkylMatrix &operator= (TTempMat<TPZSkylMatrix> A);
 
-  //TPZSkylNSymMatrix operator+  (const TPZSkylNSymMatrix &A ) const;
-  //TPZSkylNSymMatrix operator-  (const TPZSkylNSymMatrix &A ) const;
+  TPZSkylNSymMatrix operator+(const TPZSkylNSymMatrix &A ) const;
+  TPZSkylNSymMatrix operator-(const TPZSkylNSymMatrix &A ) const;
 
-  //TPZSkylNSymMatrix &operator+=(const TPZSkylNSymMatrix &A );
-  //TPZSkylNSymMatrix &operator-=(const TPZSkylNSymMatrix &A );
+  TPZSkylNSymMatrix &operator+=(const TPZSkylNSymMatrix &A );
+  TPZSkylNSymMatrix &operator-=(const TPZSkylNSymMatrix &A );
 
   // Operadores com valores NUMERICOS.
-  //TPZSkylNSymMatrix operator*  (const REAL v ) const;
-  //TPZSkylNSymMatrix &operator*=( REAL v );
+  TPZSkylNSymMatrix operator*(const TVar v ) const;
+  TPZSkylNSymMatrix &operator*=( TVar v );
 
   //TPZSkylNSymMatrix operator-() const;// { return operator*(-1.0); }
 
@@ -207,7 +205,7 @@ int ClassId() const override;
   /**
      Computes the highest skyline of both objects
   */
-  static void ComputeMaxSkyline(const TPZSkylNSymMatrix &first, const TPZSkylNSymMatrix &second, TPZVec<int> &res);
+  static void ComputeMaxSkyline(const TPZSkylNSymMatrix &first, const TPZSkylNSymMatrix &second, TPZVec<int64_t> &res);
 	
 	/** @brief Zeroes the matrix */
 	virtual int Zero() override {

@@ -164,7 +164,7 @@ Computes the highest skyline of both objects
  */
 template <class TVar>
 void TPZSkylNSymMatrix<TVar>::ComputeMaxSkyline(const TPZSkylNSymMatrix &first,
-  const TPZSkylNSymMatrix &second, TPZVec<int> &res)
+  const TPZSkylNSymMatrix &second, TPZVec<int64_t> &res)
 {
 
   if (first.Rows() != second.Rows())
@@ -576,149 +576,166 @@ const TVar & TPZSkylNSymMatrix<TVar>::GetValB(const int64_t r, const int64_t c)c
 /** ****** Operacoes com matrizes SKY LINE  ******* */
 
 /** *************** */
-/** * Operator = ** */
 
-/*
 
-TPZSkylMatrix & TPZSkylMatrix:: operator = (const TPZSkylMatrix & A)
-{
-Clear();
-Copy(A);
-return(*this);
-}
 
- */
 
 /** *************** */
 /** * Operator + ** */
 
-/*
-TPZSkylMatrix TPZSkylMatrix:: operator +(const TPZSkylMatrix & A)const
+template<class TVar>
+TPZSkylNSymMatrix<TVar>
+TPZSkylNSymMatrix<TVar>::operator+(const TPZSkylNSymMatrix<TVar> & A)const
 {
-if (Dim() != A.Dim())
-TPZMatrix::Error(__PRETTY_FUNCTION__, "<incompatible dimensions>");
+  const auto dim = this->Dim();
+  if (dim != A.Dim())
+    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "<incompatible dimensions>");
 
-TPZVec<int>skylinesize(Dim());
-ComputeMaxSkyline(*this, A, skylinesize);
-TPZSkylMatrix res(fRow, skylinesize);
+  TPZVec<int64_t> skylinesize(dim);
+  ComputeMaxSkyline(*this, A, skylinesize);
+  TPZSkylNSymMatrix<TVar> res(this->Rows(),this->Cols());
+  res.SetSkyline(skylinesize);
 
-REAL *elemMax;
-REAL *elemMin;
-int sizeMax;
-int sizeMin;
+  TVar *elemMaxA;
+  TVar *elemMinA;
+  TVar *elemMaxB;
+  TVar *elemMinB;
+  int sizeMax;
+  int sizeMin;
 
-for (int col = 0; col < Dim(); col++)
-{
-// Define o tamanho e os elementos da maior e da menor
-// coluna.
-if (Size(col) > A.Size(col))
-{
-sizeMax = Size(col);
-elemMax = fElem[col];
-sizeMin = A.Size(col);
-elemMin = A.fElem[col];
+  for (int col = 0; col < dim; col++)
+    {
+      // Define o tamanho e os elementos da maior e da menor
+      // coluna.
+      if (Size(col) > A.Size(col))
+        {
+          sizeMax = Size(col);
+          sizeMin = A.Size(col);
+          elemMaxA = fElem[col];
+          elemMinA = A.fElem[col];
+          elemMaxB = fElemb[col];
+          elemMinB = A.fElemb[col];
+        }
+      else
+        {
+          sizeMax = A.Size(col);
+          sizeMin = Size(col);
+          elemMaxA = A.fElem[col];
+          elemMinA = fElem[col];
+          elemMaxB = A.fElem[col];
+          elemMinB = fElem[col];
+        }
+
+      // Inicializa coluna da matriz resultado.
+
+      // Efetua a SOMA.
+      TVar *destA = res.fElem[col];
+      TVar *destB = res.fElemb[col];
+      int i;
+      for (i = 0; i < sizeMin; i++)
+        * destA++ = (*elemMaxA++) + (*elemMinA++);
+      for (; i < sizeMax; i++)
+        * destA++ = *elemMaxA++;
+      for (i = 0; i < sizeMin; i++)
+        * destB++ = (*elemMaxB++) + (*elemMinB++);
+      for (; i < sizeMax; i++)
+        * destB++ = *elemMaxB++;
+    }
+
+  return(res);
 }
-else
-{
-sizeMax = A.Size(col);
-elemMax = A.fElem[col];
-sizeMin = Size(col);
-elemMin = fElem[col];
-}
 
-// Inicializa coluna da matriz resultado.
-
-// Efetua a SOMA.
-REAL *dest = res.fElem[col];
-int i;
-for (i = 0; i < sizeMin; i++)
- * dest++ = (*elemMax++) + (*elemMin++);
-for (; i < sizeMax; i++)
- * dest++ = *elemMax++;
-}
-
-return(res);
-}
-
- */
 
 /** *************** */
 /** * Operator - ** */
-
-/*
-
-TPZSkylMatrix TPZSkylMatrix:: operator -(const TPZSkylMatrix & A)const
+template<class TVar>
+TPZSkylNSymMatrix<TVar>
+TPZSkylNSymMatrix<TVar>::operator-(const TPZSkylNSymMatrix<TVar> & A)const
 {
-if (Dim() != A.Dim())
-TPZMatrix::Error(__PRETTY_FUNCTION__,
-"operator-( TPZSkylMatrix ) <incompatible dimensions>");
+  const auto dim = this->Dim();
+  if (dim != A.Dim())
+    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "<incompatible dimensions>");
 
-TPZVec<int>skylinesize(Dim());
-ComputeMaxSkyline(*this, A, skylinesize);
-TPZSkylMatrix res(fRow, skylinesize);
+  TPZVec<int64_t> skylinesize(dim);
+  ComputeMaxSkyline(*this, A, skylinesize);
+  TPZSkylNSymMatrix<TVar> res(this->Rows(),this->Cols());
+  res.SetSkyline(skylinesize);
 
-for (int col = 0; col < fRow; col++)
-{
-// Define o tamanho e os elementos das colunas das 2 matrizes.
-int sizeThis = Size(col);
-REAL *elemThis = fElem[col];
-int sizeA = A.Size(col);
-REAL *elemA = A.fElem[col];
+  TVar *elemMaxA;
+  TVar *elemMinA;
+  TVar *elemMaxB;
+  TVar *elemMinB;
+  int sizeMax;
+  int sizeMin;
 
-// Inicializa coluna da matriz resultado.
+  for (int col = 0; col < dim; col++)
+    {
+      // Define o tamanho e os elementos da maior e da menor
+      // coluna.
+      if (Size(col) > A.Size(col))
+        {
+          sizeMax = Size(col);
+          sizeMin = A.Size(col);
+          elemMaxA = fElem[col];
+          elemMinA = A.fElem[col];
+          elemMaxB = fElemb[col];
+          elemMinB = A.fElemb[col];
+        }
+      else
+        {
+          sizeMax = A.Size(col);
+          sizeMin = Size(col);
+          elemMaxA = A.fElem[col];
+          elemMinA = fElem[col];
+          elemMaxB = A.fElem[col];
+          elemMinB = fElem[col];
+        }
 
-// Efetua a SUBTRACAO.
-REAL *dest = res.fElem[col];
-int i;
-for (i = 0; (i < sizeThis) && (i < sizeA); i++)
- * dest++ = (*elemThis++) - (*elemA++);
-if (i == sizeA)
-for (; i < sizeThis; i++)
- * dest++ = *elemThis++;
-else
-for (; i < sizeA; i++)
- * dest++ = -(*elemA++);
+      // Inicializa coluna da matriz resultado.
+
+      
+      TVar *destA = res.fElem[col];
+      TVar *destB = res.fElemb[col];
+      int i;
+      for (i = 0; i < sizeMin; i++)
+        * destA++ = (*elemMaxA++) - (*elemMinA++);
+      for (; i < sizeMax; i++)
+        * destA++ = -(*elemMaxA++);
+      for (i = 0; i < sizeMin; i++)
+        * destB++ = (*elemMaxB++) - (*elemMinB++);
+      for (; i < sizeMax; i++)
+        * destB++ = -(*elemMaxB++);
+    }
+  return(res);
 }
-
-return(res);
-}
-
- */
 
 /** **************** */
 /** * Operator += ** */
 
-/*
-TPZSkylMatrix & TPZSkylMatrix:: operator += (const TPZSkylMatrix & A)
+template<class TVar>
+TPZSkylNSymMatrix<TVar> &
+TPZSkylNSymMatrix<TVar>:: operator += (const TPZSkylNSymMatrix<TVar> & A)
 {
-if (Dim() != A.Dim())
-TPZMatrix::Error(__PRETTY_FUNCTION__,
-"operator+=( TPZSkylMatrix ) <incompatible dimensions>");
-
-TPZSkylMatrix res((*this) + A);
- *this = res;
-return *this;
+  TPZSkylNSymMatrix<TVar> res((*this) + A);
+  *this = res;
+  return *this;
 }
 
- */
+ 
 
 /** **************** */
 /** * Operator -= ** */
 
-/*
 
-TPZSkylMatrix & TPZSkylMatrix:: operator -= (const TPZSkylMatrix & A)
+template<class TVar>
+TPZSkylNSymMatrix<TVar> &
+TPZSkylNSymMatrix<TVar>:: operator -= (const TPZSkylNSymMatrix<TVar> & A)
 {
-if (Dim() != A.Dim())
-TPZMatrix::Error(__PRETTY_FUNCTION__,
-"operator-=( TPZSkylMatrix ) <incompatible dimensions>");
-
-TPZSkylMatrix res(*this -A);
- *this = res;
-return *this;
+  TPZSkylNSymMatrix<TVar> res(*this -A);
+  *this = res;
+  return *this;
 }
 
- */
 
 /** ****** Operacoes com valores NUMERICOS ******* */
 //
@@ -730,25 +747,27 @@ return *this;
 /** ************************** */
 /** * Operator * ( REAL ) ** */
 
-/*
-TPZSkylMatrix TPZSkylMatrix:: operator*(const REAL value)const
+template<class TVar>
+TPZSkylNSymMatrix<TVar> TPZSkylNSymMatrix<TVar>:: operator*(const TVar value)const
 {
-TPZSkylMatrix res(*this);
+  TPZSkylNSymMatrix<TVar> res(*this);
 
-for (int col = 0; col < Dim(); col++)
-{
-// Aloca nova coluna para o resultado.
-int colsize = Size(col);
-// Efetua a SOMA.
-REAL *elemRes = res.fElem[col];
-for (int i = 0; i < colsize; i++)
- * elemRes++ *= value;
+  for (int col = 0; col < this->Dim(); col++)
+    {
+      // Aloca nova coluna para o resultado.
+      int colsize = Size(col);
+      // Efetua a SOMA.
+      TVar *elemRes = res.fElem[col];
+      for (int i = 0; i < colsize; i++)
+        * elemRes++ *= value;
+      elemRes = res.fElemb[col];
+      for (int i = 0; i < colsize; i++)
+        * elemRes++ *= value;
+    }
+
+  return(res);
 }
 
-return(res);
-}
-
- */
 
 template<class TVar>
 TVar* &TPZSkylNSymMatrix<TVar>::Elem()
@@ -772,30 +791,29 @@ const TVar* TPZSkylNSymMatrix<TVar>::Elem()const
 /** *************************** */
 /** * Operator *= ( REAL ) ** */
 
-/*
-TPZSkylMatrix & TPZSkylMatrix:: operator *= (const REAL value)
+template<class TVar>
+TPZSkylNSymMatrix<TVar> & TPZSkylNSymMatrix<TVar>:: operator *= (const TVar value)
 {
-if (IsZero(value))
-{
-Zero();
-return(*this);
+  if (IsZero(value))
+    {
+      Zero();
+      return(*this);
+    }
+
+  int col, colmax = this->Dim();
+  for (col = 0; col < colmax; col++)
+    {
+      // Efetua a MULTIPLICACAO.
+      TVar *elem = fElem[col];
+      TVar *end = fElem[col + 1];
+      while (elem < end)
+        * elem++ *= value;
+    }
+
+  this->fDecomposed = 0;
+  return(*this);
 }
 
-int col, colmax = Dim();
-for (col = 0; col < colmax; col++)
-{
-// Efetua a MULTIPLICACAO.
-REAL *elem = fElem[col];
-REAL *end = fElem[col + 1];
-while (elem < end)
- * elem++ *= value;
-}
-
-fDecomposed = 0;
-return(*this);
-}
-
- */
 
 /** *********** */
 /** * Resize ** */

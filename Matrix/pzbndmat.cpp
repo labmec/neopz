@@ -187,7 +187,6 @@ TPZFBMatrix<TVar>::operator-=(const TPZFBMatrix<TVar> & A )
 
 /******** Operacoes com MATRIZES GENERICAS ********/
 
-
 /*******************/
 /*** MultiplyAdd ***/
 //
@@ -265,7 +264,7 @@ TPZFBMatrix<TVar>::operator*(const TVar value ) const
 
     int64_t sz = fElem.size();
     for (int64_t i=0; i<sz; i++) {
-        fElem[i] *= value;
+        res.fElem[i] *= value;
     }
 	return( res );
 }

@@ -74,32 +74,6 @@ const TPZFMatrix<TVar> TPZMatrix<TVar>::Storage() const
 }
 
 template<class TVar>
-void TPZMatrix<TVar>::Add(const TPZMatrix<TVar>&A,TPZMatrix<TVar>&B) const {
-	if ((Rows() != A.Rows()) || (Cols() != A.Cols()) ) {
-		Error( "Add(TPZMatrix<>&, TPZMatrix) <different dimensions>" );
-	}
-	
-	B.Redim( A.Rows(), A.Cols() );
-	
-	for ( int64_t r = 0; r < Rows(); r++ )
-		for ( int64_t c = 0; c < Cols(); c++ ) B.PutVal( r, c, GetVal(r,c)+A.GetVal(r,c) );
-}
-template<class TVar>
-void TPZMatrix<TVar>::Subtract(const TPZMatrix<TVar> &A,TPZMatrix<TVar> &result) const {
-	
-	if ((Rows() != A.Rows()) || (Cols() != A.Cols()) ) {
-		Error( "Add(TPZMatrix<>&, TPZMatrix<>&) <different dimensions>" );
-	}
-	
-    result.Resize( Rows(), Cols() );
-    for ( int64_t r = 0; r < Rows(); r++ ) {
-        for ( int64_t c = 0; c < Cols(); c++ ) {
-            result.PutVal( r, c, GetVal(r,c)-A.GetVal(r,c) );
-        }
-    }
-}
-
-template<class TVar>
 void TPZMatrix<TVar>::Simetrize() {
   
   if ( Rows() != Cols() ) {
@@ -1779,6 +1753,66 @@ TVar TPZMatrix<TVar>::ConditionNumber(int p, int64_t numiter, REAL tol){
 	}
 	TVar invnorm = Inv.MatrixNorm(p, numiter, tol);
 	return thisnorm * invnorm;
+}
+
+template<class TVar>
+void TPZMatrix<TVar>::Add(const TPZMatrix<TVar>&A,TPZMatrix<TVar>&res) const {
+	if ((Rows() != A.Rows()) || (Cols() != A.Cols()) ) {
+		Error( "Add(TPZMatrix<>&, TPZMatrix) <different dimensions>" );
+	}
+  if(this->Size()!=A.Size()){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"ERROR\nDifferent number of entries.\nAborting...\n";
+    DebugStop();
+  }
+  res.CopyFrom(this);
+  auto thisFmat =
+    dynamic_cast<const TPZFMatrix<TVar>*>(this);
+  auto aFmat =
+    dynamic_cast<const TPZFMatrix<TVar>*>(&A);
+  auto resFmat =
+    dynamic_cast<TPZFMatrix<TVar>*>(&res);
+  if(resFmat && (!thisFmat || !aFmat)){
+    for ( int64_t r = 0; r < Rows(); r++ )
+      for ( int64_t c = 0; c < Cols(); c++ )
+        res.PutVal( r, c, GetVal(r,c)+A.GetVal(r,c) );
+  }else{
+    res.Storage() += A.Storage();
+  }
+  
+}
+template<class TVar>
+void TPZMatrix<TVar>::Subtract(const TPZMatrix<TVar> &A,TPZMatrix<TVar> &res) const {
+	
+	if ((Rows() != A.Rows()) || (Cols() != A.Cols()) ) {
+		Error( "Add(TPZMatrix<>&, TPZMatrix<>&) <different dimensions>" );
+	}
+	if(this->Size()!=A.Size()){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"ERROR\nDifferent number of entries.\nAborting...\n";
+    DebugStop();
+  }
+  res.CopyFrom(this);
+  auto thisFmat =
+    dynamic_cast<const TPZFMatrix<TVar>*>(this);
+  auto aFmat =
+    dynamic_cast<const TPZFMatrix<TVar>*>(&A);
+  auto resFmat =
+    dynamic_cast<TPZFMatrix<TVar>*>(&res);
+  if(resFmat && (!thisFmat || !aFmat)){
+    for ( int64_t r = 0; r < Rows(); r++ )
+      for ( int64_t c = 0; c < Cols(); c++ )
+        res.PutVal( r, c, GetVal(r,c)-A.GetVal(r,c) );
+  }else{
+    res.Storage() -= A.Storage();
+  }
+}
+
+template<class TVar>
+void TPZMatrix<TVar>::MultiplyByScalar(const TVar alpha, TPZMatrix<TVar>&res) const
+{
+  res.CopyFrom(this);
+  res.Storage() *= alpha;
 }
 
 template<class TVar>

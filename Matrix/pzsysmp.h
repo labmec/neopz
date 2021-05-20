@@ -81,21 +81,23 @@ public :
     /** @brief Fill matrix storage with randomic values */
     /** This method use GetVal and PutVal which are implemented by each type matrices */
     void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
-	
-	/** @brief Get the matrix entry at (row,col) without bound checking */
-	virtual const TVar GetVal(const int64_t row, const int64_t col ) const override;
+	  
+	  /** @brief Get the matrix entry at (row,col) without bound checking */
+	  virtual const TVar GetVal(const int64_t row, const int64_t col ) const override;
     
     /** @brief Put values without bounds checking \n
      *  This method is faster than "Put" if DEBUG is defined.
      */
     virtual int PutVal(const int64_t /*row*/,const int64_t /*col*/,const TVar & val ) override;
-
-	
+  /** @name Arithmetic*/
+  /** @{ */
+  TPZSYsmpMatrix<TVar> operator*(const TVar alpha) const;
+  
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** @note z and x cannot overlap in memory */
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const override;
-	
+	/** @} */
 	/** @brief Sets data to the class */
 	virtual void SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A );
 
@@ -211,7 +213,7 @@ private:
 	TPZVec<int64_t>  fJA;
 	TPZVec<TVar> fA;
 	
-    TPZPardisoSolver<TVar> fPardisoControl;
+  TPZPardisoSolver<TVar> fPardisoControl;
 	
 	TPZVec<TVar> fDiag;
 };

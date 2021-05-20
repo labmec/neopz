@@ -125,7 +125,7 @@ public:
 	
 	
 	TVar &operator()(const int64_t row);
-	
+
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha,const TVar beta ,const int opt = 0) const  override;
 	// Operadores com matrizes SKY LINE.

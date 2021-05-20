@@ -351,6 +351,13 @@ const TVar TPZFYsmpMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) co
 // ****************************************************************************
 
 
+template<class TVar>
+TPZFYsmpMatrix<TVar> TPZFYsmpMatrix<TVar>::operator*(const TVar alpha) const
+{
+	TPZFYsmpMatrix<TVar> res(*this);
+	for(auto& el : res.fA) el *= alpha;
+	return res;
+}
 
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,

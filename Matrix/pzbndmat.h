@@ -98,7 +98,7 @@ public:
 
 	inline int    PutVal(const int64_t row,const int64_t col,const TVar& value ) override;
 	inline const TVar GetVal(const int64_t row,const int64_t col ) const override;
-	
+  
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 				 const TVar alpha=1,const TVar beta = 0,const int opt = 0) const override;
 	// Computes z = beta * y + alpha * opt(this)*x
@@ -182,7 +182,7 @@ private:
 	TPZVec<TVar> fElem;
 	int64_t  fBandLower, fBandUpper;
 
-    TPZManVector<int,5> fPivot;
+  TPZManVector<int,5> fPivot;
 
 };
 

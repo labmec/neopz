@@ -110,6 +110,15 @@ int TPZSYsmpMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & va
 //
 // ****************************************************************************
 
+
+template<class TVar>
+TPZSYsmpMatrix<TVar> TPZSYsmpMatrix<TVar>::operator*(const TVar alpha) const
+{
+	TPZSYsmpMatrix<TVar> res(*this);
+	for(auto &el : res.fA) el *= alpha;
+	return res;
+}
+
 template<class TVar>
 void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
 							 TPZFMatrix<TVar> &z,

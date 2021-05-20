@@ -93,18 +93,24 @@ public:
 	}
 	
 	int PutVal(const int64_t row, const int64_t col, const TVar &Value) override;
-	
+  /**@name Arithmetics */
+  /** @{ */
+  TPZFYsmpMatrix<TVar> operator*(const TVar alpha) const;
+  
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha=1.,const TVar beta = 0., const int opt = 0) const override;
 	
 	virtual void MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						   const TVar alpha=1.,const TVar beta = 0., const int opt = 0);
-	
+	/** @} */
 	virtual int GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
 					   const int64_t colSize, TPZFMatrix<TVar> & A ) const override;
 	
 	void GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar> &block) const override;
-	
+
+
+  
+  
 	/** @brief Pass the data to the class. */
 	virtual void SetData( int64_t *IA, int64_t *JA, TVar *A );
     

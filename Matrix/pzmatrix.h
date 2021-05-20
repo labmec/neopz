@@ -71,7 +71,7 @@ public:
    of the matrix.
   This method is useful for arithmetic operations. Derived class should implement
   methods `Size()` and `Elem()`*/
-  TPZFMatrix<TVar> Storage();
+  TPZFMatrixRef<TVar> Storage();
   const TPZFMatrix<TVar> Storage() const;
   /** @} */
   template<class TVar2>
@@ -171,12 +171,20 @@ public:
 	 * @param opt Indicates if is Transpose or not
 	 */
 	virtual void Multiply(const TPZFMatrix<TVar>& A,TPZFMatrix<TVar>& res, int opt = 0) const;
+  /**
+	 * @brief It mutiplies itself by a scalar alpha putting the result in res
+	 * @param alpha scalar to be multiplied with
+	 * @param res TPZFMatrix<TVar>containing the result
+	 */
+  void MultiplyByScalar(const TVar alpha,TPZMatrix<TVar>& res) const;
 	/**
 	 * @brief It adds itself to TPZMatrix<TVar>A putting the result in res
 	 * @param A TPZMatrix<TVar>to added to current matrix
 	 * @param res Contains the result
 	 */
-	virtual void Add(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& res) const;
+	void Add(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& res) const;
+  /** @brief It substracts A from storing the result in result */
+	void Subtract(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& result) const;
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
 	 * @param x Is x on the above operation
@@ -191,8 +199,6 @@ public:
 	
 	/** @brief Computes res = rhs - this * x */
 	virtual void Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res ) ;
-	/** @brief It substracts A from storing the result in result */
-	virtual void Subtract(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& result) const;
 	
 	/** @brief Converts the matrix in an identity matrix*/
 	virtual void Identity();
