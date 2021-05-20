@@ -155,7 +155,7 @@ void TPZMixedDarcyFlow::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &data
 
     if (bc.HasForcingFunctionBC()) {
         TPZManVector<STATE> res(3);
-        TPZFNMatrix<9, STATE> gradu(dim, 1);
+        TPZFNMatrix<9, STATE> gradu(3, 1);
         bc.ForcingFunctionBC()(datavec[0].x, res, gradu);
 
         TPZFNMatrix<9, STATE> K(1, 1, 0);
@@ -308,7 +308,7 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
     if (var == 7) {
 
         TPZVec<STATE> exactSol(1);
-        TPZFNMatrix<3, STATE> gradu(fDim, 1);
+        TPZFNMatrix<3, STATE> gradu(3, 1);
 
         if (fExactSol) {
             fExactSol(datavec[0].x, exactSol, gradu);
@@ -516,7 +516,7 @@ int TPZMixedDarcyFlow::NSolutionVariables(int var) const {
     if (var == 4) return 3;
     if (var == 5) return 1;
     if (var == 6) return 1;
-    if (var == 7) return fDim;
+    if (var == 7) return 3;
     if (var == 8) return 1;
     if (var == 9) return fDim;
     if (var == 10 || var == 41) return 1;
