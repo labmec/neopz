@@ -22,15 +22,12 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         force = res[0];
     }
 
-    TPZFNMatrix<9, STATE> K(fDim, fDim, 0);
-    TPZFNMatrix<9, STATE> InvK(fDim, fDim, 0);
+    TPZFNMatrix<1, STATE> K(1, 1, 0);
+    TPZFNMatrix<1, STATE> InvK(1, 1, 0);
 
     fPermeabilityFunction(datavec[0].x, K, InvK);
-    REAL perm = K(0, 0);
-    for (int id = 0; id < fDim; id++) {
-        K(id, id) = perm;
-        InvK(id, id) = 1 / perm;
-    }
+    const REAL perm = K(0, 0);
+    const REAL inv_perm = 1 / perm;
 
     // Setting the phis
     TPZFMatrix<REAL> &phiQ = datavec[0].phi;
@@ -89,10 +86,8 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
 
             //dot product between Kinv[u]v
             jvecZ.Zero();
-            for (int id = 0; id < fDim; id++) {
-                for (int jd = 0; jd < fDim; jd++) {
-                    jvecZ(id, 0) += InvK(id, jd) * jvec(jd, 0);
-                }
+            for (int id = 0; id < 3; id++) {
+                jvecZ(id, 0) += inv_perm * jvec(id, 0);
             }
             REAL prod1 = ivec(0, 0) * jvecZ(0, 0) + ivec(1, 0) * jvecZ(1, 0) + ivec(2, 0) * jvecZ(2, 0);
             ek(iq, jq) += weight * phiQ(ishapeind, 0) * phiQ(jshapeind, 0) * prod1;
@@ -164,9 +159,8 @@ void TPZMixedDarcyFlow::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &data
         bc.ForcingFunctionBC()(datavec[0].x, res, gradu);
         TPZFNMatrix<9, STATE> PermTensor(fDim, fDim, 0), InvPermTensor(fDim, fDim, 0);
 
-        TPZFNMatrix<9, STATE> K(fDim, fDim, 0);
-        TPZFNMatrix<9, STATE> InvK(fDim, fDim, 0);
-
+        TPZFNMatrix<9, STATE> K(1, 1, 0);
+        TPZFNMatrix<9, STATE> InvK(1, 1, 0);
         fPermeabilityFunction(datavec[0].x, K, InvK);
         REAL perm = K(0, 0);
         for (int id = 0; id < fDim; id++) {
@@ -175,11 +169,8 @@ void TPZMixedDarcyFlow::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &data
         }
 
         for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < dim; j++) {
-                normflux += datavec[0].normal[i] * PermTensor(i, j) * gradu(j, 0);
-            }
+            normflux += datavec[0].normal[i] * perm * gradu(i, 0);
         }
-
 
         if (bc.Type() == 0 || bc.Type() == 4) {
             v2 = res[0];
@@ -328,12 +319,8 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
             fExactSol(datavec[0].x, exactSol, gradu);
         }
 
-        TPZFNMatrix<3, REAL> flux(fDim, 1);
-
-        K.Multiply(gradu, flux);
-
-        for (int i = 0; i < fDim; i++) {
-            solOut[i] = -flux(i, 0);
+        for (int i = 0; i < 3; i++) {
+            solOut[i] = -perm * gradu(i, 0);
         }
 
         return;
