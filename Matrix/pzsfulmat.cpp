@@ -55,6 +55,14 @@ TPZMatrix<TVar> ( A.Dim(), A.Dim() )
 		*dst++ = *src++;
 }
 
+/*** Constructor( TPZSFMatrix& ) ***/
+template<class TVar>
+TPZSFMatrix<TVar> ::TPZSFMatrix (TPZSFMatrix<TVar>  && A)
+: TPZRegisterClassId(&TPZSFMatrix::ClassId),
+	TPZMatrix<TVar> (A),fElem(A.fElem)
+{
+	A.fElem=nullptr;
+}
 
 
 /*******************************/
@@ -91,12 +99,6 @@ TPZSFMatrix<TVar> ::~TPZSFMatrix ()
 }
 
 
-
-/******** Operacoes com matrizes FULL simetricas ********/
-
-/******************/
-/*** Operator = ***/
-
 template<class TVar>
 TPZSFMatrix<TVar> &
 TPZSFMatrix<TVar> ::operator=(const TPZSFMatrix<TVar>  &A )
@@ -126,6 +128,19 @@ TPZSFMatrix<TVar> ::operator=(const TPZSFMatrix<TVar>  &A )
 	
 	return *this;
 }
+
+template<class TVar>
+TPZSFMatrix<TVar> &
+TPZSFMatrix<TVar> ::operator=(TPZSFMatrix<TVar>  &&A )
+{
+	fElem=A.fElem;
+	A.fElem=nullptr;
+	return *this;
+}
+/******** Operacoes com matrizes FULL simetricas ********/
+
+/******************/
+
 
 
 

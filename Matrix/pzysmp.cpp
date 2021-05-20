@@ -64,17 +64,6 @@ TPZMatrix<TVar>(), fIA(1,0),fJA(),fA(),fDiag()
 }
 
 template<class TVar>
-TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator=(const TPZFYsmpMatrix<TVar> &cp) {
-	// Deletes everything associated with a TPZFYsmpMatrix
-	TPZMatrix<TVar>::operator=(cp);
-    fIA = cp.fIA;
-    fA = cp.fA;
-    fJA = cp.fJA;
-    fDiag = cp.fDiag;
-	return *this;
-}
-
-template<class TVar>
 TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator=(const TPZVerySparseMatrix<TVar> &cp)
 {
 	// Deletes everything associated with a TPZFYsmpMatrix

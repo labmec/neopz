@@ -24,13 +24,17 @@ class TPZSYsmpMatrix : public TPZMatrix<TVar>{
     
 public :
     /** @brief Constructor based on number of rows and columns */
-    TPZSYsmpMatrix();
+  TPZSYsmpMatrix();
 	/** @brief Constructor based on number of rows and columns */
-    TPZSYsmpMatrix(const int64_t rows, const int64_t cols );
+  TPZSYsmpMatrix(const int64_t rows, const int64_t cols );
 	/** @brief Copy constructor */
-    TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp);
-    
-    TPZSYsmpMatrix &operator=(const TPZSYsmpMatrix<TVar> &copy);
+  TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) = default;
+  /** @brief Move constructor*/
+  TPZSYsmpMatrix(TPZSYsmpMatrix<TVar> &&cp) = default;
+  /** @brief Copy-assignment operator*/
+  TPZSYsmpMatrix &operator=(const TPZSYsmpMatrix<TVar> &copy) = default;
+  /** @brief Move-assignment operator*/
+  TPZSYsmpMatrix &operator=(TPZSYsmpMatrix<TVar> &&copy) = default;
     
     CLONEDEF(TPZSYsmpMatrix)
 	/** @brief Destructor */

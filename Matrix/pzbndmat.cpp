@@ -45,14 +45,6 @@ TPZMatrix<TVar>( dim, dim ), fElem(dim*(3*band_width+1),0.), fBandLower(band_wid
 
 
 /*********************************/
-/*** Constructor( TPZFBMatrix& ) ***/
-
-template<class TVar>
-TPZFBMatrix<TVar>::TPZFBMatrix (const TPZFBMatrix<TVar> & A)
-: TPZRegisterClassId(&TPZFBMatrix::ClassId),
-TPZMatrix<TVar>( A.Dim(), A.Dim() ),fElem(A.fElem), fBandLower(A.fBandLower), fBandUpper(A.fBandUpper)
-{
-}
 
 
 
@@ -103,21 +95,6 @@ TPZFBMatrix<TVar>::Get(const int64_t row,const int64_t col ) const
 /******** Operacoes com matrizes FULL BAND  ********/
 
 /******************/
-/*** Operator = ***/
-
-
-template<class TVar>
-TPZFBMatrix<TVar>&
-TPZFBMatrix<TVar>::operator=(const TPZFBMatrix<TVar> & A )
-{
-	if(this == &A) return *this;
-
-    TPZMatrix<TVar>::operator=(A);
-    fBandLower = A.fBandLower;
-    fBandUpper = A.fBandUpper;
-    fElem = A.fElem;
-	return *this;
-}
 
 
 

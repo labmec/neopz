@@ -48,8 +48,11 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
     { 
         Copy(A); 
     }
-
+  TPZSkylNSymMatrix(TPZSkylNSymMatrix &&A ) = default;
   CLONEDEF(TPZSkylNSymMatrix)
+  TPZSkylNSymMatrix& operator=(const TPZSkylNSymMatrix&A);
+  TPZSkylNSymMatrix& operator=(TPZSkylNSymMatrix&&A) = default;
+  virtual ~TPZSkylNSymMatrix() { Clear(); }
   /**
      modify the skyline of the matrix, throwing away its values
      skyline indicates the minimum row number which will be accessed by each equation
@@ -68,8 +71,6 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
   /**declare the object as non-symmetric matrix*/
   virtual int IsSymmetric() const  override {return 0;}
-
-  virtual ~TPZSkylNSymMatrix() { Clear(); }
 
   int PutVal(const int64_t row,const int64_t col,const TVar &element ) override;
 

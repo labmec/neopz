@@ -41,14 +41,19 @@ public:
 	 */
 	TPZFBMatrix (const int64_t dim,const int64_t band_width = 0 );
 	/** @brief Copy constructor */
-	TPZFBMatrix (const TPZFBMatrix<TVar> & );
-	
+	TPZFBMatrix (const TPZFBMatrix<TVar> & ) = default;
+  /** @brief Move constructor */
+	TPZFBMatrix (TPZFBMatrix<TVar> && ) = default;
 	CLONEDEF(TPZFBMatrix)
-	/** @brief Simple destructor */
+	/** @brief Copy-assignment operator*/
+  TPZFBMatrix &operator= (const TPZFBMatrix<TVar> & A ) = default;
+  /** @brief Move-assignment operator*/
+  TPZFBMatrix &operator= (TPZFBMatrix<TVar> && A ) = default;
+  /** @brief Simple destructor */
 	~TPZFBMatrix();
 
-    friend class TPZFBMatrix<float>;
-    friend class TPZFBMatrix<double>;
+  friend class TPZFBMatrix<float>;
+  friend class TPZFBMatrix<double>;
     
     /// copy the values from a matrix with a different precision
     template<class TVar2>
@@ -88,7 +93,6 @@ public:
 	// Peforms the product (*this)T x D x (*this).
 	//  TPZFBMatrix  InnerProd(TPZFBMatrix &D );
 	
-	TPZFBMatrix &operator= (const TPZFBMatrix<TVar> & A );
 	TPZFBMatrix operator+  (const TPZFBMatrix<TVar> & A ) const;
 	TPZFBMatrix operator-  (const TPZFBMatrix<TVar> & A ) const;
 	TPZFBMatrix &operator+=(const TPZFBMatrix<TVar> & A );

@@ -48,13 +48,15 @@ private:
 	
 public:
     
-    TPZFYsmpMatrix();
-    
-    TPZFYsmpMatrix(const int64_t rows,const int64_t cols );
-	
+  TPZFYsmpMatrix();
+  TPZFYsmpMatrix(const int64_t rows,const int64_t cols );
+	TPZFYsmpMatrix(const TPZFYsmpMatrix<TVar>&) = default;
+  TPZFYsmpMatrix(TPZFYsmpMatrix<TVar>&&) = default;
+  
 	TPZFYsmpMatrix(const TPZVerySparseMatrix<TVar> &cp);
 	
-	TPZFYsmpMatrix &operator=(const TPZFYsmpMatrix<TVar> &copy);
+	TPZFYsmpMatrix &operator=(const TPZFYsmpMatrix<TVar> &copy) = default;
+  TPZFYsmpMatrix &operator=(TPZFYsmpMatrix<TVar> &&copy) = default;
 	
 	TPZFYsmpMatrix &operator=(const TPZVerySparseMatrix<TVar> &cp);
     

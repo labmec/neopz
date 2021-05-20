@@ -28,10 +28,12 @@ public:
     TPZMatrix<TVar>( 0,0 )  { fElem = NULL; }
 	TPZSFMatrix (const int64_t dim );
 	TPZSFMatrix (const TPZSFMatrix<TVar> & );
+  TPZSFMatrix (TPZSFMatrix<TVar> && );
 	// Usa o maior bloco quadrado possivel, comecado em (0,0).
 	// E inicializa com a parte triangular inferior do bloco.
 	TPZSFMatrix (const TPZMatrix<TVar> & );
-	
+	TPZSFMatrix &operator= (const TPZSFMatrix<TVar> &A );
+  TPZSFMatrix &operator= (TPZSFMatrix<TVar> &&A );
 	CLONEDEF(TPZSFMatrix)
 	
 	~TPZSFMatrix();
@@ -64,7 +66,6 @@ public:
 	 * @name Operators with Full simmetric matrices.
 	 * @{
 	 */
-	TPZSFMatrix &operator= (const TPZSFMatrix<TVar> &A );
 	TPZSFMatrix operator+  (const TPZSFMatrix<TVar> &A ) const;
 	TPZSFMatrix operator-  (const TPZSFMatrix<TVar> &A ) const;
 	TPZSFMatrix &operator+=(const TPZSFMatrix<TVar> &A );

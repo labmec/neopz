@@ -102,8 +102,15 @@ public:
      * @param refmat Used as a model for current object
      */
     TPZFMatrix(const TPZFMatrix<TVar> & refmat);
-    
-    
+    /**
+     * @brief Move constructor
+     * @param refmat Used as a model for current object
+     */
+    TPZFMatrix(TPZFMatrix<TVar> && refmat);
+    //!Copy-assignment operator
+    TPZFMatrix&operator= (const TPZFMatrix<TVar> &A );
+    //!Move-assignment operator
+    TPZFMatrix&operator= (TPZFMatrix<TVar> &&A );
     
     CLONEDEF(TPZFMatrix<TVar>)
     TPZFMatrix(const TPZMatrix<TVar> & refmat);
@@ -222,9 +229,6 @@ public:
      * @name Operations with FULL matrices
      * @{
      */
-    
-    /** @brief Generic operator with FULL matrices */
-    virtual TPZFMatrix&operator= (const TPZFMatrix<TVar> &A );
 
     virtual TPZFMatrix<TVar>& operator= (const std::initializer_list<TVar>& list);
     TPZFMatrix<TVar>& operator= (const std::initializer_list< std::initializer_list<TVar> >& list);
@@ -782,7 +786,7 @@ public:
         TPZFMatrix<TVar>::operator=(val);
     }
     
-    inline  TPZFMatrix<TVar> &operator=(const TPZFMatrix<TVar> &copy)  override {
+    inline  TPZFMatrix<TVar> &operator=(const TPZFMatrix<TVar> &copy) {
         return TPZFMatrix<TVar>::operator=(copy);
     }
     inline  TPZFNMatrix<N, TVar> &operator=(const TPZFNMatrix<N, TVar> &copy) {

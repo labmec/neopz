@@ -22,13 +22,7 @@ TPZMatrix<TVar>() {
     cerr << "TPZSYsmpMatrix(int rows,int cols)\n";
 #endif
 }
-template<class TVar>
-TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) : 
-    TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
-    TPZMatrix<TVar>(cp), fIA(cp.fIA), fJA(cp.fJA), fA(cp.fA), fDiag(cp.fDiag)
-{
 
-}
 
 template<class TVar>
 TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const int64_t rows,const int64_t cols ) : TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
@@ -45,17 +39,6 @@ TPZSYsmpMatrix<TVar>::~TPZSYsmpMatrix() {
 #ifdef DESTRUCTOR
 	cerr << "~TPZSYsmpMatrix()\n";
 #endif
-}
-
-template<class TVar>
-TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator=(const TPZSYsmpMatrix<TVar> &copy) 
-{
-    TPZMatrix<TVar>::operator=(copy);
-    fIA =copy.fIA;
-    fJA = copy.fJA;
-    fA = copy.fA;
-    fDiag = copy.fDiag;
-    return *this;
 }
 
 template <class TVar> int TPZSYsmpMatrix<TVar>::Zero() {

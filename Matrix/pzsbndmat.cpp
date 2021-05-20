@@ -263,18 +263,6 @@ operator<<(std::ostream& out,TPZSBMatrix<TVar>  &A)
 /******** Operacoes com matrizes BANDA SIMETRICA  ********/
 
 /******************/
-/*** Operator = ***/
-
-template<class TVar>
-TPZSBMatrix<TVar> &
-TPZSBMatrix<TVar>::operator=(const TPZSBMatrix<TVar> &A )
-{
-    Clear();
-    Copy( A );
-    return( *this );
-}
-
-/******************/
 /*** Operator + ***/
 
 template<class TVar>

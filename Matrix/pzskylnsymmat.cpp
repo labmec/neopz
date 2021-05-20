@@ -77,6 +77,15 @@ TPZMatrix<TVar>(dim, dim), fElem(dim + 1), fElemb(dim + 1), fStorage(0), fStorag
   InitializeElem(skyline, fStorageb, fElemb);
 }
 
+template<class TVar>
+TPZSkylNSymMatrix<TVar> &
+TPZSkylNSymMatrix<TVar>::operator=(const TPZSkylNSymMatrix<TVar> &A )
+{
+	Clear();
+	Copy( A );
+	return( *this );
+}
+
 /* IMPLEMENTAR
 void TPZSkylNSymMatrix::AddSameStruct(TPZSkylMatrix &B, double k)
 {

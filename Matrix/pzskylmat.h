@@ -39,7 +39,13 @@ public:
 	 */
 	TPZSkylMatrix(const int64_t dim ,const TPZVec<int64_t> &skyline);
 	TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>(A), fElem(0), fStorage(0)  { Copy(A); }
-	
+
+  TPZSkylMatrix(TPZSkylMatrix<TVar> &&A) = default;
+  TPZSkylMatrix &operator= (const TPZSkylMatrix<TVar> &A );
+  TPZSkylMatrix &operator= (TPZSkylMatrix<TVar> &&A ) = default;
+    /** @brief destructor of the skyline matrix */
+	virtual ~TPZSkylMatrix() { Clear(); }
+  
 	CLONEDEF(TPZSkylMatrix)
     
 	virtual int64_t MemoryFootprint() const  override {
@@ -65,9 +71,6 @@ public:
 	
 	/** @brief declare the object as simetric matrix*/
 	virtual int IsSymmetric() const  override {return 1;}
-	
-    /** @brief destructor of the skyline matrix */
-	virtual ~TPZSkylMatrix() { Clear(); }
     
     /**
 	 * @brief Updates the values of the matrix based on the values of the matrix
@@ -111,7 +114,6 @@ public:
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha,const TVar beta ,const int opt = 0) const  override;
 	// Operadores com matrizes SKY LINE.
-	TPZSkylMatrix &operator= (const TPZSkylMatrix<TVar> &A );
 	//TPZSkylMatrix &operator= (TTempMat<TPZSkylMatrix> A);
 	
 	TPZSkylMatrix operator+  (const TPZSkylMatrix<TVar> &A ) const;

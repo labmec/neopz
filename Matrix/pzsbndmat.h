@@ -35,11 +35,11 @@ public:
     TPZSBMatrix() : TPZRegisterClassId(&TPZSBMatrix::ClassId),
     TPZMatrix<TVar>() , fDiag() { fBand = 0; }
     TPZSBMatrix(const int64_t dim,const int64_t band );
-    TPZSBMatrix(const TPZSBMatrix<TVar> &A ) : TPZRegisterClassId(&TPZSBMatrix::ClassId),
-    TPZMatrix<TVar>(A)  { Copy(A); }
-    
+    TPZSBMatrix(const TPZSBMatrix<TVar> &A ) = default;
+    TPZSBMatrix(TPZSBMatrix<TVar> &&A ) = default;
     CLONEDEF(TPZSBMatrix)
-    
+    TPZSBMatrix &operator= (TPZSBMatrix<TVar> &&A ) = default;
+    TPZSBMatrix &operator= (const TPZSBMatrix<TVar> &A ) = default;
     ~TPZSBMatrix() { Clear(); }
     
     int    PutVal(const int64_t row,const int64_t col,const TVar& element ) override;
@@ -83,7 +83,6 @@ public:
     
     /// Operadores com matrizes SKY LINE.
     // @{
-    TPZSBMatrix &operator= (const TPZSBMatrix<TVar> &A );
     TPZSBMatrix operator+  (const TPZSBMatrix<TVar> &A ) const;
     TPZSBMatrix operator-  (const TPZSBMatrix<TVar> &A ) const;
     TPZSBMatrix &operator+=(const TPZSBMatrix<TVar> &A );
