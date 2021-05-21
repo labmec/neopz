@@ -42,7 +42,9 @@ class TPZDohrPrecond : public TPZMatrix<TVar>
 	
 	TPZAutoPointer<TPZDohrAssembly<TVar> > fAssemble;
 	
-    //
+	int64_t Size() const override;
+  TVar* &Elem() override;
+  const TVar* Elem() const override;
     
 public:
     /** @brief Constructor with matrix */

@@ -135,13 +135,20 @@ public:
 	virtual int DerivedFrom(const char *classname) const;
 	
 #endif
-    public:
-int ClassId() const override;
 
+  int ClassId() const override;
+protected:
+  inline TVar *&Elem() override
+  {
+    return fElem;
+  }
+  inline const TVar *Elem() const override
+  {
+    return fElem;
+  }
+	
+	int64_t Size() const override { return (this->Dim() * (this->Dim()+1)) >> 1; }
 private:
-	
-	int64_t Size() const { return (this->Dim() * (this->Dim()+1)) >> 1; }
-	
 	int Clear() override;
 	
 	TVar   *fElem;

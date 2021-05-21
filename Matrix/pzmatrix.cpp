@@ -13,6 +13,7 @@
 //#include "pzfmatrix.h"
 #include "pzmatrix.h"
 #include "TPZMatrixSolver.h"
+#include "TPZFMatrixRef.h"
 #include "pzvec.h"
 #include "pzextractval.h"
 
@@ -55,7 +56,22 @@ const TVar TPZMatrix<TVar>::GetVal(const int64_t /*row*/, const int64_t /*col*/ 
     return (TVar)0;
 }
 
-
+template<class TVar>
+TPZFMatrixRef<TVar> TPZMatrix<TVar>::Storage()
+{
+  const auto size = Size();
+  const auto elem = Elem();
+	TPZFMatrixRef<TVar> ref(size,Elem());
+	return ref;
+}
+template<class TVar>
+const TPZFMatrix<TVar> TPZMatrix<TVar>::Storage() const
+{
+  const auto size = Size();
+  const auto elem = Elem();
+	TPZFMatrix<TVar> ref(size,1,const_cast<TVar*>(elem),size);
+	return ref;
+}
 
 template<class TVar>
 void TPZMatrix<TVar>::Add(const TPZMatrix<TVar>&A,TPZMatrix<TVar>&B) const {

@@ -116,7 +116,11 @@ private:
 	void ReadMap(TPZStream &buf, void *context, std::map<std::pair<int64_t, int64_t>, TVar> & TheMap);
 	
 protected:
-    
+	TVar *&Elem() override;
+  const TVar *Elem() const override;
+	inline int64_t Size() const override{
+		return fExtraSparseData.size();
+	}
     /** @brief Save elements different from zero, of Sparse matrix */
 	std::map<std::pair<int64_t, int64_t>, TVar> fExtraSparseData;
     

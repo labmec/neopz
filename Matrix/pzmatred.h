@@ -222,7 +222,10 @@ int ClassId() const override;
 	
 	void Write(TPZStream &buf, int withclassid) const override;
 	void Read(TPZStream &buf, void *context) override;
-	
+protected:
+  int64_t Size() const override;
+  TVar *&Elem() override;
+  const TVar *Elem() const override;
 private:
 	
 	/**

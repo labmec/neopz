@@ -209,7 +209,18 @@ int ClassId() const override;
     }
     
 protected:
-	
+	inline TVar *&Elem() override
+  {
+    return fStorage.begin();
+  }
+  inline const TVar *Elem() const override
+  {
+    return fStorage.begin();
+  }
+  inline int64_t Size() const override
+  {
+    return fStorage.size();
+  }
 	/**
      @brief This method returns a pointer to the diagonal element of the matrix of the col column
 	 */

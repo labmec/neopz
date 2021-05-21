@@ -60,6 +60,7 @@ class TPZLapackEigenSolver;
 template<class TVar=REAL>
 class TPZFMatrix: public TPZMatrix<TVar> {
     friend class TPZLapackEigenSolver<TVar>;
+    friend class TPZMatrix<TVar>;
 public:
     
     /** @brief Simple constructor */
@@ -141,14 +142,10 @@ public:
     
     int64_t MemoryFootprint() const  override
     {
-        return (sizeof(TVar)*this->Rows()*this->Cols());
+        return (sizeof(TVar)*Size());
     }
     
-    TVar *Adress()
-    {
-        return fElem;
-    }
-    
+        
     friend class TPZFMatrix<float>;
     friend class TPZFMatrix<double>;
     friend class TPZHCurlAuxClass;//for using the GETVAL macro.
@@ -447,7 +444,22 @@ int ClassId() const override;
     operator const TVar*() const { return fElem; }
     
     static void PrintStatic(const TVar *ptr, int64_t rows, int64_t cols, const char *name, std::ostream& out,const MatrixOutputFormat form);
-    
+
+protected:
+    inline TVar *&
+    Elem() override
+    {
+        return fElem;
+    }
+    inline const TVar *Elem() const override
+    {
+        return fElem;
+    }
+
+    inline int64_t Size() const override
+    {
+        return this->Rows()*this->Cols();
+    }
 private:
     
     static int Error(const char *msg1,const char *msg2=0 );

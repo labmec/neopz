@@ -750,6 +750,25 @@ return(res);
 
  */
 
+template<class TVar>
+TVar* &TPZSkylNSymMatrix<TVar>::Elem()
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"ERROR:Not implemented\n.Aborting...\n";
+  DebugStop();
+  static TVar* t{nullptr};
+  return t;
+}
+
+template<class TVar>
+const TVar* TPZSkylNSymMatrix<TVar>::Elem()const
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"ERROR:Not implemented\n.Aborting...\n";
+  DebugStop();
+  return nullptr;
+}
+
 /** *************************** */
 /** * Operator *= ( REAL ) ** */
 

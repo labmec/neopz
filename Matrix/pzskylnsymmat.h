@@ -202,6 +202,13 @@ int ClassId() const override;
 
 
 protected:
+  TVar *&Elem() override;
+  const TVar *Elem() const override;
+  
+  inline int64_t Size() const override
+  {
+    return fStorage.size();
+  }
   /**
      fElem is of size number of equation+1
      fElem[i] is the first element of the skyline of equation i

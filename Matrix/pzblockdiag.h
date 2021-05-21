@@ -134,6 +134,18 @@ public:
 int ClassId() const override;
 
 protected:
+	inline TVar *&Elem() override
+  {
+    return fStorage.begin();
+  }
+  inline const TVar *Elem() const override
+  {
+    return fStorage.begin();
+  }
+  inline int64_t Size() const override
+  {
+    return fStorage.size();
+  }
 	/** @brief Stores matrix data */
 	TPZVec<TVar> fStorage;
 	/** @brief Stores blocks data */

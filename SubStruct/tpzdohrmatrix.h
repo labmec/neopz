@@ -38,6 +38,10 @@ private:
 	
 	/** @brief Number of threads that will be used during the matrix vector multiplication */
 	int fNumThreads;
+
+	int64_t Size() const override;
+  TVar* &Elem() override;
+  const TVar* Elem() const override;
 	
 public:
 	

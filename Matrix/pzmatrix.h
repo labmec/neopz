@@ -15,6 +15,8 @@ class TPZVec;
 template<class TVar>
 class TPZFMatrix;
 template<class TVar>
+class TPZFMatrixRef;
+template<class TVar>
 class TPZAutoPointer;
 
 class TPZStream;
@@ -43,12 +45,12 @@ public:
 	/** @brief Simple destructor */
 	virtual ~TPZMatrix() = default;
 
-    /** @brief Copy assignment operator*/
-    TPZMatrix<TVar> &operator=(const TPZMatrix<TVar> &);
-    /** @brief Move assignment operator*/
-    TPZMatrix<TVar> &operator=(TPZMatrix<TVar> &&);
+  /** @brief Copy assignment operator*/
+  TPZMatrix<TVar> &operator=(const TPZMatrix<TVar> &);
+  /** @brief Move assignment operator*/
+  TPZMatrix<TVar> &operator=(TPZMatrix<TVar> &&);
 
-    virtual TPZMatrix<TVar>*Clone() const = 0;
+  virtual TPZMatrix<TVar>*Clone() const = 0;
 
 	/**
 	 * @brief Returns the approximate size of the memory footprint (amount
@@ -62,16 +64,24 @@ public:
 	  //DebugStop();
 	  return 0;
 	}
-    
-    template<class TVar2>
-    void CopyFrom(TPZMatrix<TVar2> &copy)
-    {
-        fDecomposed = copy.IsDecomposed();
-        fDefPositive = copy.IsDefPositive();
-        fRow = copy.Rows();
-        fCol = copy.Cols();
 
-    }
+  /** @{ */
+  /** @brief Reference to a nx1 TPZFMatrix associated with the contiguous memory area 
+   of the matrix.
+  This method is useful for arithmetic operations. Derived class should implement
+  methods `Size()` and `Elem()`*/
+  TPZFMatrix<TVar> Storage();
+  const TPZFMatrix<TVar> Storage() const;
+  /** @} */
+  template<class TVar2>
+  void CopyFrom(TPZMatrix<TVar2> &copy)
+  {
+    fDecomposed = copy.IsDecomposed();
+    fDefPositive = copy.IsDefPositive();
+    fRow = copy.Rows();
+    fCol = copy.Cols();
+
+  }
 
 	/** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
@@ -107,23 +117,23 @@ public:
 	 * @param col Column number.
 	 */
 	TVar operator() (const int64_t row,const int64_t col ) const;
-    /**
-     * @brief The operators check on the bounds if the DEBUG variable is defined
-     * @param row Row number.
-     * @param col Column number.
-     */
-    TVar &at(const std::pair<int64_t,int64_t> &rowcol )
-    {
-        return operator()(rowcol.first,rowcol.second);
-    }
-    const TVar at(const std::pair<int64_t,int64_t> &rowcol ) const
-    {
-        return Get(rowcol.first,rowcol.second);
-    }
+  /**
+   * @brief The operators check on the bounds if the DEBUG variable is defined
+   * @param row Row number.
+   * @param col Column number.
+   */
+  TVar &at(const std::pair<int64_t,int64_t> &rowcol )
+  {
+    return operator()(rowcol.first,rowcol.second);
+  }
+  const TVar at(const std::pair<int64_t,int64_t> &rowcol ) const
+  {
+    return Get(rowcol.first,rowcol.second);
+  }
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
-     * @param row Row number.
-     * @param col Column number.
+   * @param row Row number.
+   * @param col Column number.
 	 */
 	virtual TVar &s(const int64_t row, const int64_t col);
 	/**
@@ -670,7 +680,13 @@ public:
     bool CompareValues(TPZMatrix<TVar>&M, TVar tol);
 	
 protected:
-	
+  /** @brief Number of entries storaged in the Matrix*/
+  virtual int64_t Size() const = 0;
+  /** @{ */
+  /** @brief Pointer to the beginning of the storage of the matrix*/
+  virtual TVar* &Elem() = 0;
+  virtual const TVar* Elem() const = 0;
+  /** @} */
 	/**
 	 * @brief Is an auxiliar method used by MultiplyAdd
 	 * @see MultAdd

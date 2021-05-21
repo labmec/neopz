@@ -144,7 +144,19 @@ public:
     public:
 int ClassId() const override;
 
-    
+protected:
+  inline TVar *&Elem() override
+  {
+    return fElem.begin();
+  }
+  inline const TVar *Elem() const override
+  {
+    return fElem.begin();
+  }
+  inline int64_t Size() const override
+  {
+    return fElem.size();
+  }
 private:
 	
     int64_t Index(int64_t i, int64_t j) const

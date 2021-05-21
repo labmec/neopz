@@ -156,15 +156,24 @@ public:
     
     /** @} */
 
-    public:
 int ClassId() const override;
 
-private:
+protected:
+    inline TVar *&Elem() override
+    {
+        return fDiag.begin();
+    }
+    inline const TVar *Elem() const override
+    {
+        return fDiag.begin();
+    }
+
     
-    int64_t  Size() const
+    inline int64_t  Size() const override
     {
         return( this->Dim() * (fBand + 1) );
     }
+private:
 //    int  PutZero();
     //static int  Error(const char *msg1,const char* msg2="" ) ;
     int  Clear() override;

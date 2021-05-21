@@ -122,6 +122,32 @@ TVar& TPZMatRed<TVar,TSideMatrix>::s(const int64_t r,const int64_t c ) {
 }
 
 template<class TVar, class TSideMatrix>
+int64_t TPZMatRed<TVar,TSideMatrix>::Size() const
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"\nERROR: should not be called for TPZMatRed.\nAborting...\n";
+  DebugStop();
+  return -1;
+}
+template<class TVar, class TSideMatrix>
+TVar *&TPZMatRed<TVar,TSideMatrix>::Elem()
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"\nERROR: should not be called for TPZMatRed.\nAborting...\n";
+  DebugStop();
+  static TVar* t{nullptr};
+  return t;
+}
+template<class TVar, class TSideMatrix>
+const TVar *TPZMatRed<TVar,TSideMatrix>::Elem() const
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"\nERROR: should not be called for TPZMatRed.\nAborting...\n";
+  DebugStop();
+  return nullptr;
+}
+
+template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar,TSideMatrix>::SetSolver(TPZAutoPointer<TPZMatrixSolver<TVar> > solver)
 {
 	fK00=solver->Matrix();

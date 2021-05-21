@@ -175,7 +175,19 @@ public :
     int ClassId() const override;
 
     void ComputeDiagonal();
-
+protected:
+  inline TVar *&Elem() override
+  {
+    return fA.begin();
+  }
+  inline const TVar *Elem() const override
+  {
+    return fA.begin();
+  }
+  inline int64_t Size() const override
+  {
+    return fA.size();
+  }
 private:
 	
 	

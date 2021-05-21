@@ -100,7 +100,19 @@ public :
 //	void Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt) const override;
 	
     void MultiplyScalar(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt) const;
-    
+protected:
+	inline TVar *&Elem() override
+  {
+    return fDoubleValues.begin();
+  }
+  inline const TVar *Elem() const override
+  {
+    return fDoubleValues.begin();
+  }
+  inline int64_t Size() const override
+  {
+    return fDoubleValues.size();
+  }
 private:
 	
 	/** @brief Increases the storage allocated

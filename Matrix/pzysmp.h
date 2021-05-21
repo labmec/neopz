@@ -182,6 +182,19 @@ private:
 	void RowLUUpdate(int64_t sourcerow, int64_t destrow);
 	
 protected:
+
+  inline TVar *&Elem() override
+  {
+    return fA.begin();
+  }
+  inline const TVar *Elem() const override
+  {
+    return fA.begin();
+  }
+  inline int64_t Size() const override
+  {
+    return fA.size();
+  }
 	TPZVec<int64_t>  fIA;
 	TPZVec<int64_t>  fJA;
 	TPZVec<TVar> fA;
@@ -190,7 +203,7 @@ protected:
 	
 	int   fSymmetric;
 	
-    TPZPardisoSolver<TVar> fPardisoControl;
+  TPZPardisoSolver<TVar> fPardisoControl;
 protected:
 	
 	/**

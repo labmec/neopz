@@ -34,6 +34,32 @@ static TPZLogger loggerv1v2("substruct.v1v2");
 using namespace std;
 
 template<class TVar, class TSubStruct>
+int64_t TPZDohrPrecond<TVar,TSubStruct>::Size() const
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"ERROR:Should not be called\n.Aborting...\n";
+  DebugStop();
+	return -1;
+}
+template<class TVar, class TSubStruct>
+TVar* &TPZDohrPrecond<TVar,TSubStruct>::Elem()
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"ERROR:Should not be called\n.Aborting...\n";
+  DebugStop();
+	static TVar* t{nullptr};
+  return t;
+}
+template<class TVar, class TSubStruct>
+const TVar* TPZDohrPrecond<TVar,TSubStruct>::Elem() const
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"ERROR:Should not be called\n.Aborting...\n";
+  DebugStop();
+	return nullptr;
+}
+
+template<class TVar, class TSubStruct>
 TPZDohrPrecond<TVar, TSubStruct>::TPZDohrPrecond(TPZDohrMatrix<TVar, TSubStruct> &origin, TPZAutoPointer<TPZDohrAssembly<TVar> > assemble)
 : TPZMatrix<TVar>(origin), fGlobal(origin.SubStructures()), fCoarse(0), fNumCoarse(origin.NumCoarse()), fNumThreads(0), fAssemble(assemble)
 {
