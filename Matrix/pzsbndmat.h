@@ -67,6 +67,22 @@ public:
             fDiag[el] = orig.fDiag[el];
         }
     }
+
+    /** @brief Creates a copy from another TPZSBMatrix*/
+    void CopyFrom(const TPZMatrix<TVar> *  mat) override
+    {                                                           
+        auto *from = dynamic_cast<const TPZSBMatrix<TVar> *>(mat);                
+        if (from) {                                               
+            *this = *from;                                          
+        }                                                         
+        else                                                      
+            {                                                       
+                PZError<<__PRETTY_FUNCTION__;                         
+                PZError<<"\nERROR: Called with incompatible type\n."; 
+                PZError<<"Aborting...\n";                             
+                DebugStop();                                          
+            }                                                       
+    }
     
     /** @brief Computes z = beta * y + alpha * opt(this)*x */
     /** z and x cannot overlap in memory */

@@ -60,6 +60,22 @@ public:
 	}
 	
 	CLONEDEF(TPZMatRed)
+
+  /** @brief Creates a copy from another TPZMatRed*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZMatRed<TVar,TSideMatrix> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 	/** @brief Simple destructor */
 	~TPZMatRed();
 	

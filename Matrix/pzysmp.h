@@ -63,12 +63,26 @@ public:
 	CLONEDEF(TPZFYsmpMatrix)
 	
 	virtual ~TPZFYsmpMatrix();	
-	
-    /** @brief Fill matrix storage with randomic values */
-    /** This method use GetVal and PutVal which are implemented by each type matrices */
-    void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
-    
 
+  /** @brief Creates a copy from another TPZFYsmpMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZFYsmpMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
+  
+  /** @brief Fill matrix storage with randomic values */
+  /** This method use GetVal and PutVal which are implemented by each type matrices */
+  void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
     
 	/** @brief Get the matrix entry at (row,col) without bound checking */
 	virtual const TVar GetVal(const int64_t row,const int64_t col ) const override;

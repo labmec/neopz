@@ -64,7 +64,21 @@ public:
     {
         return fGlobal;
     }
-	
+
+	void CopyFrom(const TPZMatrix<TVar> *  mat) override        
+  {                                                           
+    auto *from = dynamic_cast<const TPZDohrPrecond<TVar,TSubStruct> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 	/** @brief Initialize the necessary datastructures */
 	/** It will compute the coarse matrix, coarse residual and any other necessary data structures */
 	void Initialize();

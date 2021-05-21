@@ -55,25 +55,39 @@ public:
   friend class TPZFBMatrix<float>;
   friend class TPZFBMatrix<double>;
     
-    /// copy the values from a matrix with a different precision
-    template<class TVar2>
-    void CopyFromDiffPrecision(TPZFBMatrix<TVar2> &orig)
-    {
-        TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
-        fBandLower = orig.fBandLower;
-        fBandUpper = orig.fBandUpper;
-        fElem.resize(orig.fElem.size());
-        int64_t nel = fElem.size();
-        for (int64_t el=0; el<nel; el++) {
-            fElem[el] = orig.fElem[el];
-        }
-        fPivot = orig.fPivot;
-        
+  /// copy the values from a matrix with a different precision
+  template<class TVar2>
+  void CopyFromDiffPrecision(TPZFBMatrix<TVar2> &orig)
+  {
+    TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
+    fBandLower = orig.fBandLower;
+    fBandUpper = orig.fBandUpper;
+    fElem.resize(orig.fElem.size());
+    int64_t nel = fElem.size();
+    for (int64_t el=0; el<nel; el++) {
+      fElem[el] = orig.fElem[el];
     }
+    fPivot = orig.fPivot;
+        
+  }
     
-
-    
-    void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+  /** @brief Creates a copy from another TPZFBMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZFBMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
+  
+  void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
 
     
 	int    Put(const int64_t row,const int64_t col,const TVar& value ) override;

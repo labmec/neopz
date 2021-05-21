@@ -58,7 +58,22 @@ public:
         }
     }
     
-
+  /** @brief Creates a copy from another TPZSFMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZSFMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
+  
 	int PutVal(const int64_t row,const int64_t col,const TVar &value ) override;
 	const TVar GetVal(const int64_t row,const int64_t col ) const override;
 	

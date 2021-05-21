@@ -46,6 +46,22 @@ public :
 	}
 	
 	virtual TPZMatrix<TVar> *Clone() const  override { return new TPZTransfer(*this); }
+
+	/** @brief Creates a copy from another TPZTransfer*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override        
+  {                                                           
+    auto *from = dynamic_cast<const TPZTransfer<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 	
 	//TPZMatrix<REAL> : EFormatted, EInputFormat, EMathematicaInput
 	virtual void Print(const char *name = NULL, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const override;

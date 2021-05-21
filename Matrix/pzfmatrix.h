@@ -161,7 +161,8 @@ public:
             fElem[el] = orig.fElem[el];
         }
     }
-
+    /** @brief Creates a copy from another TPZMatrix*/
+    void CopyFrom(const TPZMatrix<TVar> *  mat) override;
     /** @brief Updates the values of the matrix based on the values of the matrix */
     virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> >  mat) override
     {

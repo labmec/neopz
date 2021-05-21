@@ -63,7 +63,21 @@ public:
 	virtual TPZMatrix<TVar>*Clone() const  override { return new TPZDohrMatrix(*this); }
 	
 	~TPZDohrMatrix();
-	
+
+	void CopyFrom(const TPZMatrix<TVar> *  mat) override        
+  {                                                           
+    auto *from = dynamic_cast<const TPZDohrMatrix<TVar,TSubStruct> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 	const SubsList &SubStructures() const
 	{
 		return fGlobal;

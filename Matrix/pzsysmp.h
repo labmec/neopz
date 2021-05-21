@@ -36,31 +36,47 @@ public :
   /** @brief Move-assignment operator*/
   TPZSYsmpMatrix &operator=(TPZSYsmpMatrix<TVar> &&copy) = default;
     
-    CLONEDEF(TPZSYsmpMatrix)
+  CLONEDEF(TPZSYsmpMatrix)
 	/** @brief Destructor */
 	virtual ~TPZSYsmpMatrix();
-    
-    /** @brief Checks if the current matrix is symmetric */
-    virtual int IsSymmetric() const  override { return 1; }
-    /** @brief Checks if current matrix is square */
-    inline int IsSquare() const { return 1;}
-    
-    /** @brief Zeroes the matrix */
-    virtual int Zero() override;
 
-    /** @brief Zeroes the matrix */
-    virtual int Redim(int64_t rows, int64_t cols) override
-    {
-        if(rows == this->fRow && cols == this->fCol)
-        {
-            Zero();
-        }
-        else
-        {
-            DebugStop();
-        }
-        return 0;
-    }
+  /** @brief Creates a copy from another TPZSYsmpMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZSYsmpMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
+  
+  /** @brief Checks if the current matrix is symmetric */
+  virtual int IsSymmetric() const  override { return 1; }
+  /** @brief Checks if current matrix is square */
+  inline int IsSquare() const { return 1;}
+    
+  /** @brief Zeroes the matrix */
+  virtual int Zero() override;
+
+  /** @brief Zeroes the matrix */
+  virtual int Redim(int64_t rows, int64_t cols) override
+  {
+    if(rows == this->fRow && cols == this->fCol)
+      {
+        Zero();
+      }
+    else
+      {
+        DebugStop();
+      }
+    return 0;
+  }
     
     /** @brief Fill matrix storage with randomic values */
     /** This method use GetVal and PutVal which are implemented by each type matrices */

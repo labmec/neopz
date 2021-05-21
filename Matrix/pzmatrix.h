@@ -23,6 +23,7 @@ class TPZStream;
 /** @brief To create clone matrix */
 #define CLONEDEF(A) virtual TPZMatrix<TVar>*Clone() const override { return new A(*this); }
 
+
 class TPZSolver;
 
 /** @brief Root matrix class (abstract). \ref matrix "Matrix" */
@@ -82,6 +83,10 @@ public:
     fCol = copy.Cols();
 
   }
+
+  /** @brief Creates a copy from a given matrix of arbitrary storage format. 
+      Every implementation should check for type compatibility */
+  virtual void CopyFrom(const TPZMatrix<TVar> *mat) = 0;
 
 	/** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */

@@ -39,6 +39,22 @@ public:
 	TPZBlockDiagonal (const TPZBlockDiagonal & );
 	
 	CLONEDEF(TPZBlockDiagonal)
+
+	/** @brief Creates a copy from another TPZBlockDiagonal*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZBlockDiagonal<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 	/** @brief Simple destructor */
 	~TPZBlockDiagonal();
 	

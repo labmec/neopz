@@ -53,6 +53,22 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   TPZSkylNSymMatrix& operator=(const TPZSkylNSymMatrix&A);
   TPZSkylNSymMatrix& operator=(TPZSkylNSymMatrix&&A) = default;
   virtual ~TPZSkylNSymMatrix() { Clear(); }
+
+  /** @brief Creates a copy from another TPZSkylNSymMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZSkylNSymMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
   /**
      modify the skyline of the matrix, throwing away its values
      skyline indicates the minimum row number which will be accessed by each equation

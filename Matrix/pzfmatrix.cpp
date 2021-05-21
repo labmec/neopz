@@ -192,6 +192,19 @@ TPZFMatrix<TVar>& TPZFMatrix<TVar>::operator= (const std::initializer_list<TVar>
 	return *this;
 }
 
+template<class TVar>
+void TPZFMatrix<TVar>::CopyFrom(const TPZMatrix<TVar> *mat)
+{
+    const auto r = mat->Rows();
+    const auto c = mat->Cols();
+    this->Resize(r,c);
+    for(auto i = 0 ;i < r;i++){
+        for(auto j = 0; j < c; j++){
+            this->PutVal(i,j,mat->GetVal(i,j));
+        }
+    }
+}
+
 template< class TVar >
 void TPZFMatrix<TVar>::InitializeEqualFromList (const std::initializer_list< std::initializer_list<TVar> >& list){
     size_t n_row = list.size();

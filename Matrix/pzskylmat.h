@@ -77,30 +77,45 @@ public:
 	 */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
     
-    friend class TPZSkylMatrix<float>;
-    friend class TPZSkylMatrix<double>;
+  friend class TPZSkylMatrix<float>;
+  friend class TPZSkylMatrix<double>;
     
-    /// copy the values from a matrix with a different precision
-    template<class TVar2>
-    void CopyFromDiffPrecision(TPZSkylMatrix<TVar2> &orig)
-    {
-        TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
-        int64_t nel = orig.fStorage.size();
-        fElem.resize(orig.fElem.size());
-        fStorage.resize(nel);
-        for (int64_t el=0; el<nel; el++) {
-            fStorage[el] = orig.fStorage[el];
-        }
-        int64_t size_el = fElem.size();
-        TVar *first = &fStorage[0];
-        TVar2 *first_orig = &orig.fStorage[0];
-        for (int64_t el=0; el<size_el; el++) {
-            fElem[el] = first+(orig.fElem[el]-first_orig);
-        }
-        
+  /// copy the values from a matrix with a different precision
+  template<class TVar2>
+  void CopyFromDiffPrecision(TPZSkylMatrix<TVar2> &orig)
+  {
+    TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
+    int64_t nel = orig.fStorage.size();
+    fElem.resize(orig.fElem.size());
+    fStorage.resize(nel);
+    for (int64_t el=0; el<nel; el++) {
+      fStorage[el] = orig.fStorage[el];
     }
-    
-    
+    int64_t size_el = fElem.size();
+    TVar *first = &fStorage[0];
+    TVar2 *first_orig = &orig.fStorage[0];
+    for (int64_t el=0; el<size_el; el++) {
+      fElem[el] = first+(orig.fElem[el]-first_orig);
+    }
+        
+  }
+  
+  /** @brief Creates a copy from another TPZSkylMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZSkylMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
+  
 	int    PutVal(const int64_t row,const int64_t col,const TVar &element ) override;
 	const TVar GetVal(const int64_t row,const int64_t col ) const override;
 	

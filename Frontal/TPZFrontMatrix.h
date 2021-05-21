@@ -166,7 +166,21 @@ public:
 	 * @param name Name of the file
 	 */
     void SetFileName(char option, const char *name);
-	
+
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override        
+  {                                                           
+    auto *from = dynamic_cast<const TPZFrontMatrix<TVar,store,front> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 protected:
   int64_t Size() const override;
   TVar* &Elem() override;
