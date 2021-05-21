@@ -48,10 +48,10 @@ public:
     
     /// copy the values from a matrix with a different precision
     template<class TVar2>
-    void CopyFrom(TPZSFMatrix<TVar2> &orig)
+    void CopyFromDiffPrecision(TPZSFMatrix<TVar2> &orig)
     {
         Resize(orig.Rows(), orig.Cols());
-        TPZMatrix<TVar>::CopyFrom(orig);
+        TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
         int64_t nel = (this->Rows()*(this->Rows()+1))/2;
         for (int64_t el=0; el<nel; el++) {
             fElem[el] = orig.fElem[el];

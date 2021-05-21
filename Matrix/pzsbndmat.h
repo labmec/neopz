@@ -58,9 +58,9 @@ public:
     
     /// copy the values from a matrix with a different precision
     template<class TVar2>
-    void CopyFrom(TPZSBMatrix<TVar2> &orig)
+    void CopyFromDiffPrecision(TPZSBMatrix<TVar2> &orig)
     {
-        TPZMatrix<TVar>::CopyFrom(orig);
+        TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
         fDiag.resize(orig.fDiag.size());
         int64_t nel = fDiag.size();
         for (int64_t el=0; el<nel; el++) {

@@ -74,7 +74,7 @@ public:
   const TPZFMatrix<TVar> Storage() const;
   /** @} */
   template<class TVar2>
-  void CopyFrom(TPZMatrix<TVar2> &copy)
+  void CopyFromDiffPrecision(TPZMatrix<TVar2> &copy)
   {
     fDecomposed = copy.IsDecomposed();
     fDefPositive = copy.IsDefPositive();

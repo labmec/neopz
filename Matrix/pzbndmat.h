@@ -57,9 +57,9 @@ public:
     
     /// copy the values from a matrix with a different precision
     template<class TVar2>
-    void CopyFrom(TPZFBMatrix<TVar2> &orig)
+    void CopyFromDiffPrecision(TPZFBMatrix<TVar2> &orig)
     {
-        TPZMatrix<TVar>::CopyFrom(orig);
+        TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
         fBandLower = orig.fBandLower;
         fBandUpper = orig.fBandUpper;
         fElem.resize(orig.fElem.size());

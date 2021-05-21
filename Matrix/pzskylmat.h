@@ -82,9 +82,9 @@ public:
     
     /// copy the values from a matrix with a different precision
     template<class TVar2>
-    void CopyFrom(TPZSkylMatrix<TVar2> &orig)
+    void CopyFromDiffPrecision(TPZSkylMatrix<TVar2> &orig)
     {
-        TPZMatrix<TVar>::CopyFrom(orig);
+        TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
         int64_t nel = orig.fStorage.size();
         fElem.resize(orig.fElem.size());
         fStorage.resize(nel);
