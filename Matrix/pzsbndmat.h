@@ -175,6 +175,18 @@ public:
 int ClassId() const override;
 
 protected:
+    /** @brief Checks compatibility of matrices before Add/Subtract operations*/
+    inline void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                       const TPZMatrix<TVar>*B)const override
+    {
+        auto aPtr = dynamic_cast<const TPZSBMatrix<TVar>*>(A);
+        auto bPtr = dynamic_cast<const TPZSBMatrix<TVar>*>(B);
+        if(!aPtr || !bPtr || aPtr->fBand!=bPtr->fBand){
+            PZError<<__PRETTY_FUNCTION__;
+            PZError<<"\nERROR: incompatible matrices\n.Aborting...\n";
+            DebugStop();
+        }
+    }
     inline TVar *&Elem() override
     {
         return fDiag.begin();

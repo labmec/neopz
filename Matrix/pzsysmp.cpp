@@ -104,6 +104,33 @@ int TPZSYsmpMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & va
 }
 
 
+
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                                  const TPZMatrix<TVar>*B)const
+{
+  auto incompatSparse = [](){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: incompatible matrices\n.Aborting...\n";
+    DebugStop();
+  };
+  auto aPtr = dynamic_cast<const TPZSYsmpMatrix<TVar>*>(A);
+  auto bPtr = dynamic_cast<const TPZSYsmpMatrix<TVar>*>(B);
+  if(!aPtr || !bPtr){
+    incompatSparse();
+  }
+	bool check{false};
+	const auto nIA = aPtr->fIA.size();
+	for(auto i = 0; i < nIA; i++){
+		check = check || aPtr->fIA[i] != bPtr->fIA[i];
+	}
+
+	const auto nJA = aPtr->fJA.size();
+	for(auto i = 0; i < nJA; i++){
+		check = check || aPtr->fJA[i] != bPtr->fJA[i];
+	}
+	if(check) incompatSparse();
+}
 // ****************************************************************************
 //
 // Multiply and Multiply-Add

@@ -77,6 +77,29 @@ void TPZSkylMatrix<TVar>::AddSameStruct(TPZSkylMatrix<TVar> &B, double k){
 	
 }
 
+template<class TVar>
+void TPZSkylMatrix<TVar>::CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                                 const TPZMatrix<TVar>*B)const
+{
+  auto incompatSkyline = [](){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: incompatible matrices\n.Aborting...\n";
+    DebugStop();
+  };
+  auto aPtr = dynamic_cast<const TPZSkylMatrix<TVar>*>(A);
+  auto bPtr = dynamic_cast<const TPZSkylMatrix<TVar>*>(B);
+  if(!aPtr || !bPtr){
+    incompatSkyline();
+  }
+
+  bool check{false};
+  auto ncols = aPtr->Cols();
+  for(auto i = 0; i < ncols; i++){
+    check = check || aPtr->Size(i) != bPtr->Size(i);
+  }
+  if(check) incompatSkyline();
+}
+
 /**
  * @brief Updates the values of the matrix based on the values of the matrix
  */

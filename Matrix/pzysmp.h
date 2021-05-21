@@ -202,7 +202,8 @@ private:
 	void RowLUUpdate(int64_t sourcerow, int64_t destrow);
 	
 protected:
-
+  void CheckTypeCompatibility(const TPZMatrix<TVar>*aPtr,
+                              const TPZMatrix<TVar>*bPtr) const override;
   inline TVar *&Elem() override
   {
     return fA.begin();

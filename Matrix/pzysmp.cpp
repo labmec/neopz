@@ -344,6 +344,33 @@ const TVar TPZFYsmpMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) co
 	return (TVar) 0;
 }
 
+template<class TVar>
+void TPZFYsmpMatrix<TVar>::CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+																									const TPZMatrix<TVar>*B)const
+{
+  auto incompatSparse = [](){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: incompatible matrices\n.Aborting...\n";
+    DebugStop();
+  };
+	auto aPtr = dynamic_cast<const TPZFYsmpMatrix<TVar>*>(A);
+  auto bPtr = dynamic_cast<const TPZFYsmpMatrix<TVar>*>(B);
+  if(!aPtr || !bPtr){
+    incompatSparse();
+  }
+	bool check{false};
+	const auto nIA = aPtr->fIA.size();
+	for(auto i = 0; i < nIA; i++){
+		check = check || aPtr->fIA[i] != bPtr->fIA[i];
+	}
+
+	const auto nJA = aPtr->fJA.size();
+	for(auto i = 0; i < nJA; i++){
+		check = check || aPtr->fJA[i] != bPtr->fJA[i];
+	}
+	if(check) incompatSparse();
+}
+
 // ****************************************************************************
 //
 // Multiply and Multiply-Add

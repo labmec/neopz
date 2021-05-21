@@ -224,6 +224,8 @@ int ClassId() const override;
     }
     
 protected:
+  void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                              const TPZMatrix<TVar>*B)const override;
 	inline TVar *&Elem() override
   {
     return fStorage.begin();

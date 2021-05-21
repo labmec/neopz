@@ -159,6 +159,20 @@ public:
 int ClassId() const override;
 
 protected:
+  inline void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                     const TPZMatrix<TVar>*B)const override
+  {
+    auto aPtr = dynamic_cast<const TPZFBMatrix<TVar>*>(A);
+    auto bPtr = dynamic_cast<const TPZFBMatrix<TVar>*>(B);
+    if(!aPtr || !bPtr ||
+       (aPtr->fBandUpper!=bPtr->fBandUpper)||
+       (aPtr->fBandLower!=bPtr->fBandLower)
+       ){
+      PZError<<__PRETTY_FUNCTION__;
+      PZError<<"\nERROR: incompatible matrices\n.Aborting...\n";
+      DebugStop();
+    }
+  }
   inline TVar *&Elem() override
   {
     return fElem.begin();

@@ -691,6 +691,9 @@ public:
     bool CompareValues(TPZMatrix<TVar>&M, TVar tol);
 	
 protected:
+  /** @brief Checks compatibility of matrices before Add/Subtract operations*/
+  virtual void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                      const TPZMatrix<TVar>*B)const;
   /** @brief Number of entries storaged in the Matrix*/
   virtual int64_t Size() const = 0;
   /** @{ */

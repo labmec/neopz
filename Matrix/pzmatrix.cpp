@@ -118,6 +118,17 @@ TPZFMatrix<TVar> operator*( TPZMatrix<TVar> &A, const TPZFMatrix<TVar> &B ) {
 	A.Multiply(B,res);
 	return res;
 }
+
+
+template<class TVar>
+void TPZMatrix<TVar>::CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                             const TPZMatrix<TVar>*B) const
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"\nERROR: not implemented for your matrix type.\nAborting...\n";
+  DebugStop();
+}
+
 template<class TVar>
 void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,const TVar beta,const int opt) const
 {
@@ -1777,6 +1788,7 @@ void TPZMatrix<TVar>::Add(const TPZMatrix<TVar>&A,TPZMatrix<TVar>&res) const {
       for ( int64_t c = 0; c < Cols(); c++ )
         res.PutVal( r, c, GetVal(r,c)+A.GetVal(r,c) );
   }else{
+    CheckTypeCompatibility(&res,&A);
     res.Storage() += A.Storage();
   }
   
@@ -1804,6 +1816,7 @@ void TPZMatrix<TVar>::Subtract(const TPZMatrix<TVar> &A,TPZMatrix<TVar> &res) co
       for ( int64_t c = 0; c < Cols(); c++ )
         res.PutVal( r, c, GetVal(r,c)-A.GetVal(r,c) );
   }else{
+    CheckTypeCompatibility(&res,&A);
     res.Storage() -= A.Storage();
   }
 }

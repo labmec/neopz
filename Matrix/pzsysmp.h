@@ -194,6 +194,8 @@ public :
 
     void ComputeDiagonal();
 protected:
+  void CheckTypeCompatibility(const TPZMatrix<TVar>*aPtr,
+                              const TPZMatrix<TVar>*bPtr)const override;
   inline TVar *&Elem() override
   {
     return fA.begin();

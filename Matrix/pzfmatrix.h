@@ -447,6 +447,18 @@ int ClassId() const override;
     static void PrintStatic(const TVar *ptr, int64_t rows, int64_t cols, const char *name, std::ostream& out,const MatrixOutputFormat form);
 
 protected:
+    /** @brief Checks compatibility of matrices before Add/Subtract operations*/
+    inline void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                       const TPZMatrix<TVar>*B)const override
+    {
+        auto aPtr = dynamic_cast<const TPZFMatrix<TVar>*>(A);
+        auto bPtr = dynamic_cast<const TPZFMatrix<TVar>*>(B);
+        if(!aPtr || !bPtr){
+            PZError<<__PRETTY_FUNCTION__;
+            PZError<<"\nERROR: incompatible matrices.Aborting...\n";
+            DebugStop();
+        }
+    }
     inline TVar *&
     Elem() override
     {
