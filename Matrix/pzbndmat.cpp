@@ -96,93 +96,66 @@ TPZFBMatrix<TVar>::Get(const int64_t row,const int64_t col ) const
 
 /******************/
 
-
-
-/*******************************/
-/*** Operator+( TPZFBMatrix & ) ***/
-// DEPENDS ON THE STORAGE FORMAT
-template<class TVar>
+ template<class TVar>
 TPZFBMatrix<TVar>
-TPZFBMatrix<TVar>::operator+(const TPZFBMatrix<TVar> & A ) const
+TPZFBMatrix<TVar>::operator+(const TPZFBMatrix<TVar> &A ) const
 {
-	if ( A.Dim() != Dim() || A.fBandLower != fBandLower || A.fBandUpper != fBandUpper )
-		this->Error(__PRETTY_FUNCTION__, "Operator+ <matrixs with different dimensions>" );
-	
-    TPZFBMatrix<TVar> res(*this);
-    int64_t sz = fElem.size();
-    for (int64_t i=0; i<sz; i++) {
-        res.fElem[i] += A.fElem[i];
-    }
-	return( res );
+    if ( this->Dim() != A.Dim() ||
+         fBandUpper != A.fBandUpper ||
+         fBandLower != A.fBandLower)
+       this->Error(__PRETTY_FUNCTION__,"operator+( TPZFBMatrix ) <incompatible dimensions>" );
+    auto res(*this);
+    const auto size = res.fElem.size();
+    for(auto i = 0; i < size; i++) res.fElem[i] += A.fElem[i];
+    return res;
 }
 
-
-
-/*******************************/
-/*** Operator-( TPZFBMatrix & ) ***/
-// DEPENDS ON THE STORAGE FORMAT
+/******************/
+/*** Operator - ***/
 
 template<class TVar>
-TPZFBMatrix<TVar>
-TPZFBMatrix<TVar>::operator-(const TPZFBMatrix<TVar> & A ) const
+TPZFBMatrix<TVar> 
+TPZFBMatrix<TVar>::operator-(const TPZFBMatrix<TVar> &A ) const
 {
-    if ( A.Dim() != Dim() || A.fBandLower != fBandLower || A.fBandUpper != fBandUpper )
-        this->Error(__PRETTY_FUNCTION__, "Operator- <matrixs with different dimensions>" );
-    
-    TPZFBMatrix<TVar> res(*this);
-    int64_t sz = fElem.size();
-    for (int64_t i=0; i<sz; i++) {
-        res.fElem[i] -= A.fElem[i];
-    }
-    return( res );
-
+    if ( this->Dim() != A.Dim() ||
+         fBandUpper != A.fBandUpper ||
+         fBandLower != A.fBandLower)
+       this->Error(__PRETTY_FUNCTION__,"operator+( TPZFBMatrix ) <incompatible dimensions>" );
+    auto res(*this);
+    const auto size = res.fElem.size();
+    for(auto i = 0; i < size; i++) res.fElem[i] -= A.fElem[i];
+    return res;
 }
 
-
-
-/*******************************/
-/*** Operator*( TPZFBMatrix & ) ***/
-
-
-
-/********************************/
-/*** Operator+=( TPZFBMatrix & ) ***/
-// DEPENDS ON THE STORAGE FORMAT
-
-template <class TVar>
-TPZFBMatrix<TVar> &
-TPZFBMatrix<TVar>::operator+=(const TPZFBMatrix<TVar> & A )
-{
-    if ( A.Dim() != Dim() || A.fBandLower != fBandLower || A.fBandUpper != fBandUpper )
-        this->Error(__PRETTY_FUNCTION__, "Operator+= <matrixs with different dimensions>" );
-    
-    int64_t sz = fElem.size();
-    for (int64_t i=0; i<sz; i++) {
-        fElem[i] += A.fElem[i];
-    }
-    return( *this );
-}
-
-
-
-/*******************************/
-/*** Operator-=( TPZFBMatrix & ) ***/
-// DEPENDS ON THE STORAGE FORMAT
+/*******************/
+/*** Operator += ***/
 
 template<class TVar>
 TPZFBMatrix<TVar> &
-TPZFBMatrix<TVar>::operator-=(const TPZFBMatrix<TVar> & A )
+TPZFBMatrix<TVar>::operator+=(const TPZFBMatrix<TVar> &A )
 {
-    if ( A.Dim() != Dim() || A.fBandLower != fBandLower || A.fBandUpper != fBandUpper )
-        this->Error(__PRETTY_FUNCTION__, "Operator-= <matrixs with different dimensions>" );
-    
-    int64_t sz = fElem.size();
-    for (int64_t i=0; i<sz; i++) {
-        fElem[i] -= A.fElem[i];
-    }
-	return( *this );
+    if ( this->Dim() != A.Dim() ||
+         fBandUpper != A.fBandUpper ||
+         fBandLower != A.fBandLower)
+       this->Error(__PRETTY_FUNCTION__,"operator+( TPZFBMatrix ) <incompatible dimensions>" );
+    *this = *this+A;
+    return *this;
 }
 
+/*******************/
+/*** Operator -= ***/
+
+template<class TVar>
+TPZFBMatrix<TVar> &
+TPZFBMatrix<TVar>::operator-=(const TPZFBMatrix<TVar> &A )
+{
+    if ( this->Dim() != A.Dim() ||
+         fBandUpper != A.fBandUpper ||
+         fBandLower != A.fBandLower)
+       this->Error(__PRETTY_FUNCTION__,"operator+( TPZFBMatrix ) <incompatible dimensions>" );
+    *this = *this-A;
+    return *this;
+}
 
 
 /******** Operacoes com MATRIZES GENERICAS ********/
@@ -260,53 +233,10 @@ template<class TVar>
 TPZFBMatrix<TVar>
 TPZFBMatrix<TVar>::operator*(const TVar value ) const
 {
-	TPZFBMatrix<TVar> res(*this);
-
-    int64_t sz = fElem.size();
-    for (int64_t i=0; i<sz; i++) {
-        res.fElem[i] *= value;
-    }
-	return( res );
+	auto res(*this);
+  for(auto &el : res.fElem) el *=value;
+	return res;
 }
-
-
-
-
-
-/***************************/
-/*** Operator*=( value ) ***/
-
-template<>
-TPZFBMatrix<std::complex<float> > &
-TPZFBMatrix<std::complex<float> >::operator*=(const std::complex<float> value )
-{
-	if ( value.real() != 1.0 || value.imag() != 0. )
-    {
-        int64_t sz = fElem.size();
-        for (int64_t i=0; i<sz; i++) {
-            fElem[i] *= value;
-        }
-    }
-	
-	return( *this );
-}
-
-template<>
-TPZFBMatrix<std::complex<double> > &
-TPZFBMatrix<std::complex<double> >::operator*=(const std::complex<double> value )
-{
-	if ( value.real() != 1.0 || value.imag() != 0. )
-    {
-        int64_t sz = fElem.size();
-        for (int64_t i=0; i<sz; i++) {
-            fElem[i] *= value;
-        }
-    }
-	
-	return( *this );
-}
-
-
 
 template<class TVar>
 TPZFBMatrix<TVar> &

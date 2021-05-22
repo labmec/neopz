@@ -90,35 +90,14 @@ void TPZMatrix<TVar>::Simetrize() {
   
 }
 
-/** @brief Implements sum of matrices: \f$ A+B \f$ */
-template<class TVar>
-TPZFMatrix<TVar> operator+(const TPZMatrix<TVar> &A, const TPZMatrix<TVar> &B ) {
-	TPZFMatrix<TVar> temp;
-    temp.Redim( A.Rows(), A.Cols() );
-    A.Add(B,temp);
-    return temp;
-}
-
-
-/** @brief Implements difference of matrices: \f$ A-B \f$ */
-template<class TVar>
-TPZFMatrix<TVar> operator-(const TPZMatrix<TVar> &A, const TPZMatrix<TVar> &B ) {
-	TPZFMatrix<TVar> temp;
-    TPZFMatrix<TVar> res;
-    res.Redim( A.Rows(), A.Cols() );
-    A.Subtract(B,res);
-    return temp;
-}
-
 /** @brief Implements product of matrices: \f$ A*B \f$ */
 template<class TVar>
-TPZFMatrix<TVar> operator*( TPZMatrix<TVar> &A, const TPZFMatrix<TVar> &B ) {
-    TPZFMatrix<TVar> res;
-    res.Redim( A.Rows(), B.Cols() );
-	A.Multiply(B,res);
+TPZFMatrix<TVar> TPZMatrix<TVar>::operator*(const TPZFMatrix<TVar> &B ) {
+  TPZFMatrix<TVar> res;
+  res.Redim( this->Rows(), B.Cols() );
+	this->Multiply(B,res);
 	return res;
 }
-
 
 template<class TVar>
 void TPZMatrix<TVar>::CheckTypeCompatibility(const TPZMatrix<TVar>*A,
@@ -1826,6 +1805,15 @@ void TPZMatrix<TVar>::MultiplyByScalar(const TVar alpha, TPZMatrix<TVar>&res) co
 {
   res.CopyFrom(this);
   res.Storage() *= alpha;
+}
+
+template<class TVar>
+TPZMatrix<TVar> &TPZMatrix<TVar>::operator*=(const TVar val)
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"\nERROR: not implemented.\nAborting...\n";
+  DebugStop();
+  return *this;
 }
 
 template<class TVar>

@@ -271,30 +271,25 @@ TPZSBMatrix<TVar>::operator+(const TPZSBMatrix<TVar> &A ) const
 {
     if ( this->Dim() != A.Dim() || fBand != A.fBand)
        this->Error(__PRETTY_FUNCTION__,"operator+( TPZSBMatrix ) <incompatible dimensions>" );
-    
-    // Define os ponteiros e tamanhos para os elementos da maior e da
-    //  menor banda.
-    TPZSBMatrix Res(*this);
-    Res += A;
-    return Res;
+    auto res(*this);
+    const auto size = res.fDiag.size();
+    for(auto i = 0; i < size; i++) res.fDiag[i] += A.fDiag[i];
+    return res;
 }
 
 /******************/
 /*** Operator - ***/
 
 template<class TVar>
-TPZSBMatrix<TVar>
+TPZSBMatrix<TVar> 
 TPZSBMatrix<TVar>::operator-(const TPZSBMatrix<TVar> &A ) const
 {
     if ( this->Dim() != A.Dim() || fBand != A.fBand)
-    {
-       this->Error(__PRETTY_FUNCTION__, "operator-( TPZSBMatrix ) <incompatible dimensions>" );
-    }
-    
-    TPZSBMatrix<TVar> res(*this);
-    res -= A;
-    
-    return( res );
+       this->Error(__PRETTY_FUNCTION__,"operator+( TPZSBMatrix ) <incompatible dimensions>" );
+    auto res(*this);
+    const auto size = res.fDiag.size();
+    for(auto i = 0; i < size; i++) res.fDiag[i] -= A.fDiag[i];
+    return res;
 }
 
 /*******************/
@@ -305,14 +300,9 @@ TPZSBMatrix<TVar> &
 TPZSBMatrix<TVar>::operator+=(const TPZSBMatrix<TVar> &A )
 {
     if ( this->Dim() != A.Dim() || fBand != A.fBand)
-    {
-       this->Error(__PRETTY_FUNCTION__, "operator+=( TPZSBMatrix ) <incompatible dimensions>" );
-    }
-    int64_t siz= fDiag.size();
-    for (int64_t i=0; i<siz; i++) {
-        fDiag[i] += A.fDiag[i];
-    }
-    return( *this );
+       this->Error(__PRETTY_FUNCTION__,"operator+( TPZSBMatrix ) <incompatible dimensions>" );
+    *this = *this+A;
+    return *this;
 }
 
 /*******************/
@@ -323,15 +313,9 @@ TPZSBMatrix<TVar> &
 TPZSBMatrix<TVar>::operator-=(const TPZSBMatrix<TVar> &A )
 {
     if ( this->Dim() != A.Dim() || fBand != A.fBand)
-    {
-       this->Error(__PRETTY_FUNCTION__, "operator-=( TPZSBMatrix ) <incompatible dimensions>" );
-    }
-    int64_t siz= fDiag.size();
-    for (int64_t i=0; i<siz; i++) {
-        fDiag[i] -= A.fDiag[i];
-    }
-    
-    return( *this );
+       this->Error(__PRETTY_FUNCTION__,"operator+( TPZSBMatrix ) <incompatible dimensions>" );
+    *this = *this-A;
+    return *this;
 }
 
 template<class TVar>
@@ -394,14 +378,9 @@ template<class TVar>
 TPZSBMatrix<TVar>
 TPZSBMatrix<TVar>::operator*(const TVar value ) const
 {
-    TPZSBMatrix<TVar> res( *this );
-    
-    int64_t siz= fDiag.size();
-    for (int64_t i=0; i<siz; i++) {
-        res.fDiag[i] *= value;
-    }
-    
-    return( res );
+    auto res(*this);
+    for(auto &el : res.fDiag) el*=value;
+    return res;
 }
 
 /******************************/

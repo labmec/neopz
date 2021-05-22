@@ -91,7 +91,12 @@ public :
     virtual int PutVal(const int64_t /*row*/,const int64_t /*col*/,const TVar & val ) override;
   /** @name Arithmetic*/
   /** @{ */
+  TPZSYsmpMatrix<TVar> operator+(const TPZSYsmpMatrix<TVar> & A) const;
+  TPZSYsmpMatrix<TVar> operator-(const TPZSYsmpMatrix<TVar> & A) const;
   TPZSYsmpMatrix<TVar> operator*(const TVar alpha) const;
+  TPZSYsmpMatrix<TVar> &operator+=(const TPZSYsmpMatrix<TVar> &A );
+  TPZSYsmpMatrix<TVar> &operator-=(const TPZSYsmpMatrix<TVar> &A );
+  TPZSYsmpMatrix<TVar> &operator*=(const TVar val) override;
   
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** @note z and x cannot overlap in memory */

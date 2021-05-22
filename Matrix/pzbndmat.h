@@ -113,7 +113,7 @@ public:
 	TPZFBMatrix &operator-=(const TPZFBMatrix<TVar> & A );
 	
 	TPZFBMatrix operator*  (const TVar val ) const;
-	TPZFBMatrix &operator*=(const TVar val );
+	TPZFBMatrix &operator*=(const TVar val ) override;
 	
 	TPZFBMatrix operator-() const;
 	

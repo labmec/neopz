@@ -593,7 +593,7 @@ TPZSkylNSymMatrix<TVar>::operator+(const TPZSkylNSymMatrix<TVar> & A)const
 
   TPZVec<int64_t> skylinesize(dim);
   ComputeMaxSkyline(*this, A, skylinesize);
-  TPZSkylNSymMatrix<TVar> res(this->Rows(),this->Cols());
+  TPZSkylNSymMatrix<TVar>res(this->Rows(),this->Cols());
   res.SetSkyline(skylinesize);
 
   TVar *elemMaxA;
@@ -642,7 +642,7 @@ TPZSkylNSymMatrix<TVar>::operator+(const TPZSkylNSymMatrix<TVar> & A)const
         * destB++ = *elemMaxB++;
     }
 
-  return(res);
+  return res;
 }
 
 
@@ -706,7 +706,7 @@ TPZSkylNSymMatrix<TVar>::operator-(const TPZSkylNSymMatrix<TVar> & A)const
       for (; i < sizeMax; i++)
         * destB++ = -(*elemMaxB++);
     }
-  return(res);
+  return res;
 }
 
 /** **************** */
@@ -731,7 +731,7 @@ template<class TVar>
 TPZSkylNSymMatrix<TVar> &
 TPZSkylNSymMatrix<TVar>:: operator -= (const TPZSkylNSymMatrix<TVar> & A)
 {
-  TPZSkylNSymMatrix<TVar> res(*this -A);
+  TPZSkylNSymMatrix<TVar> res((*this) - A);
   *this = res;
   return *this;
 }
@@ -750,7 +750,7 @@ TPZSkylNSymMatrix<TVar>:: operator -= (const TPZSkylNSymMatrix<TVar> & A)
 template<class TVar>
 TPZSkylNSymMatrix<TVar> TPZSkylNSymMatrix<TVar>:: operator*(const TVar value)const
 {
-  TPZSkylNSymMatrix<TVar> res(*this);
+  auto res(*this);
 
   for (int col = 0; col < this->Dim(); col++)
     {
@@ -765,7 +765,7 @@ TPZSkylNSymMatrix<TVar> TPZSkylNSymMatrix<TVar>:: operator*(const TVar value)con
         * elemRes++ *= value;
     }
 
-  return(res);
+  return res;
 }
 
 

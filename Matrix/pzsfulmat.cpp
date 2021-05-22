@@ -276,20 +276,19 @@ TPZSFMatrix<TVar> ::operator=(const TPZMatrix<TVar>  &A )
 /*** Operator + ***/
 
 template<class TVar>
-TPZSFMatrix<TVar> 
+TPZSFMatrix<TVar>
 TPZSFMatrix<TVar> ::operator+(const TPZMatrix<TVar>  &A ) const
 {
 	if ( this->Dim() != A.Dim() )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__,"Operator+ <matrixs with incoompatible dimensions" );
 	
-	TPZSFMatrix<TVar>  res( this->Dim() );
-	TVar *pm = fElem;
+	auto  res(*this);
 	TVar *pr = res.fElem;
 	for ( int64_t c = 0; c < this->Dim(); c++ )
 		for ( int64_t r = 0; r <= c; r++ )
-			*pr++ = (*pm++) + A.Get( r, c );
+			*pr++ += A.Get( r, c );
 	
-	return( *this );
+	return res;
 }
 
 
@@ -298,20 +297,19 @@ TPZSFMatrix<TVar> ::operator+(const TPZMatrix<TVar>  &A ) const
 /*** Operator - ***/
 
 template<class TVar>
-TPZSFMatrix<TVar> 
+TPZSFMatrix<TVar>
 TPZSFMatrix<TVar> ::operator-( const TPZMatrix<TVar>  &A ) const
 {
 	if ( this->Dim() != A.Dim() )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__,"Operator- <matrixs with incoompatible dimensions" );
 	
-	TPZSFMatrix<TVar>  res( this->Dim() );
-	TVar *pm = fElem;
+	auto res(*this);
 	TVar *pr = res.fElem;
 	for ( int64_t c = 0; c < this->Dim(); c++ )
 		for ( int64_t r = 0; r <= c; r++ )
-			*pr++ = (*pm++) - A.Get( r, c );
+			*pr++ -= A.Get( r, c );
 	
-	return( *this );
+	return res;
 }
 
 
@@ -401,18 +399,17 @@ TPZSFMatrix<TVar> ::operator+(const TVar value ) const
 /*** Operator*( value ) ***/
 
 template<class TVar>
-TPZSFMatrix<TVar> 
+TPZSFMatrix<TVar>
 TPZSFMatrix<TVar> ::operator*(const TVar value ) const
 {
-	TPZSFMatrix<TVar>  res( this->Dim() );
+	auto  res(*this);
 	
 	TVar *dst = res.fElem;
-	TVar *src = fElem;
-	TVar *end = &fElem[ Size() ];
-	while ( src < end )
-		*dst++ = (*src++) * value;
+	TVar *end = dst+Size();
+	while ( dst < end )
+		*dst++ *= value;
 	
-	return( res );
+	return res;
 }
 
 

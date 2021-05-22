@@ -232,9 +232,9 @@ public:
     TPZFMatrix<TVar>& operator= (const std::initializer_list< std::initializer_list<TVar> >& list);
     TPZFMatrix<TVar> operator+  (const TPZFMatrix<TVar> &A ) const;
     TPZFMatrix<TVar> operator-  (const TPZFMatrix<TVar> &A ) const;
-    TPZFMatrix<TVar> operator*  ( TPZFMatrix<TVar> A ) const ;
-    TPZFMatrix<TVar> &operator+=(const TPZFMatrix<TVar> &A );
-    TPZFMatrix<TVar> &operator-=(const TPZFMatrix<TVar> &A );
+    TPZFMatrix<TVar> operator*  (const TPZFMatrix<TVar> &A ) const;
+    TPZFMatrix<TVar> &operator+=(const TPZMatrix<TVar> &A );
+    TPZFMatrix<TVar> &operator-=(const TPZMatrix<TVar> &A );
 
     /**
      * @brief Procedure to generate &operator= from list
@@ -274,7 +274,7 @@ public:
     TPZFMatrix<TVar> operator*  (const TVar val ) const;
     TPZFMatrix<TVar> &operator+=(const TVar val );
     TPZFMatrix<TVar> &operator-=(const TVar val )  { return operator+=( -val ); }
-    TPZFMatrix<TVar> &operator*=(const TVar val );
+    TPZFMatrix<TVar> &operator*=(const TVar val ) override;
     
     //	TPZFMatrix<TVar> operator-() const;// { return operator*( -1.0 ); }
     
@@ -586,7 +586,7 @@ inline TPZFMatrix<TVar> operator*(TVar val, const TPZFMatrix<TVar> &A)
 /*******************************/
 /*** Operator*( TPZMatrix<TVar> & ) ***/
 template<class TVar>
-inline TPZFMatrix<TVar> TPZFMatrix<TVar>::operator*( TPZFMatrix<TVar> A ) const {
+inline TPZFMatrix<TVar> TPZFMatrix<TVar>::operator*(const TPZFMatrix<TVar> &A) const {
     if ( this->Cols() != A.Rows() )
         Error( "Operator* <matrixs with incompatible dimensions>" );
     

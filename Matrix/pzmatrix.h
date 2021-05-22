@@ -185,6 +185,10 @@ public:
 	void Add(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& res) const;
   /** @brief It substracts A from storing the result in result */
 	void Subtract(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& result) const;
+
+  virtual TPZMatrix<TVar> &operator*=(const TVar val);
+
+  TPZFMatrix<TVar> operator*(const TPZFMatrix<TVar> &B );
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
 	 * @param x Is x on the above operation

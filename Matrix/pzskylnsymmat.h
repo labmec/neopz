@@ -115,15 +115,15 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
   // Operadores com matrizes SKY LINE.
 
-  TPZSkylNSymMatrix operator+(const TPZSkylNSymMatrix &A ) const;
-  TPZSkylNSymMatrix operator-(const TPZSkylNSymMatrix &A ) const;
+  TPZSkylNSymMatrix operator+(const TPZSkylNSymMatrix<TVar> &A ) const;
+  TPZSkylNSymMatrix operator-(const TPZSkylNSymMatrix<TVar> &A ) const;
 
-  TPZSkylNSymMatrix &operator+=(const TPZSkylNSymMatrix &A );
-  TPZSkylNSymMatrix &operator-=(const TPZSkylNSymMatrix &A );
+  TPZSkylNSymMatrix &operator+=(const TPZSkylNSymMatrix<TVar> &A );
+  TPZSkylNSymMatrix &operator-=(const TPZSkylNSymMatrix<TVar> &A );
 
   // Operadores com valores NUMERICOS.
   TPZSkylNSymMatrix operator*(const TVar v ) const;
-  TPZSkylNSymMatrix &operator*=( TVar v );
+  TPZSkylNSymMatrix &operator*=( TVar v ) override;
 
   //TPZSkylNSymMatrix operator-() const;// { return operator*(-1.0); }
 

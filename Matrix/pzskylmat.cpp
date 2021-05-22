@@ -516,49 +516,14 @@ template<class TVar>
 TPZSkylMatrix<TVar>
 TPZSkylMatrix<TVar>::operator+(const TPZSkylMatrix<TVar> &A) const
 {
+  
 	if ( this->Dim() != A.Dim() )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"<incompatible dimensions>" );
-	
-	TPZVec<int64_t> skylinesize(this->Dim());
-	ComputeMaxSkyline(*this,A,skylinesize);
-	TPZSkylMatrix res( this->fRow, skylinesize );
-	
-	TVar *elemMax;
-	TVar *elemMin;
-	int64_t  sizeMax;
-	int64_t  sizeMin;
-	
-	for ( int64_t col = 0; col < this->Dim(); col++ )
-    {
-		// Define o tamanho e os elementos da maior e da menor
-		//  coluna.
-		if ( Size(col) > A.Size(col) )
-		{
-			sizeMax = Size(col);
-			elemMax = fElem[col];
-			sizeMin = A.Size(col);
-			elemMin = A.fElem[col];
-		}
-		else
-		{
-			sizeMax = A.Size(col);
-			elemMax = A.fElem[col];
-			sizeMin = Size(col);
-			elemMin = fElem[col];
-		}
-		
-		// Inicializa coluna da matriz resultado.
-		
-		// Efetua a SOMA.
-		TVar *dest = res.fElem[col];
-		int64_t i;
-		for ( i = 0; i < sizeMin; i++ )
-			*dest++ = (*elemMax++) + (*elemMin++);
-		for ( ; i < sizeMax; i++ )
-			*dest++ = *elemMax++;
-    }
-	
-	return( res );
+  CheckTypeCompatibility(this,&A);
+	auto res(*this);
+  const auto size = res.fStorage.size();
+  for(auto i = 0; i < size; i++) res.fStorage[i] += A.fStorage[i];
+	return res;
 }
 
 /******************/
@@ -568,32 +533,13 @@ template<class TVar>
 TPZSkylMatrix<TVar>
 TPZSkylMatrix<TVar>::operator-(const TPZSkylMatrix<TVar> &A ) const
 {
-	if ( this->Dim() != A.Dim() )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "operator-( TPZSkylMatrix ) <incompatible dimensions>" );
-	
-	TPZVec<int64_t> skylinesize(this->Dim());
-	ComputeMaxSkyline(*this,A,skylinesize);
-	TPZSkylMatrix<TVar> res( this->fRow, skylinesize );
-	
-	for ( int64_t col = 0; col < this->fRow; col++ )
-    {
-		// Define o tamanho e os elementos das colunas das 2 matrizes.
-		int64_t  sizeThis  = Size(col);
-		TVar *elemThis = fElem[col];
-		int64_t  sizeA     = A.Size(col);
-		TVar *elemA    = A.fElem[col];
-		
-		// Inicializa coluna da matriz resultado.
-		
-		// Efetua a SUBTRACAO.
-		TVar *dest = res.fElem[col];
-		int64_t i;
-		for ( i = 0; (i < sizeThis) && (i < sizeA); i++ ) *dest++ = (*elemThis++) - (*elemA++);
-		if ( i == sizeA ) for ( ; i < sizeThis; i++ ) *dest++ = *elemThis++;
-		else for ( ; i < sizeA; i++ ) *dest++ = -(*elemA++);
-    }
-	
-	return( res );
+  if ( this->Dim() != A.Dim() )
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"<incompatible dimensions>" );
+  CheckTypeCompatibility(this,&A);
+	auto res(*this);
+  const auto size = res.fStorage.size();
+  for(auto i = 0; i < size; i++) res.fStorage[i] -= A.fStorage[i];
+	return res;
 }
 
 template<class TVar>
@@ -725,13 +671,13 @@ void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
 
 template<class TVar>
 TPZSkylMatrix<TVar> &
-TPZSkylMatrix<TVar>::operator+=(const TPZSkylMatrix<TVar> &A )
+TPZSkylMatrix<TVar>::operator+=(const TPZSkylMatrix<TVar> &A)
 {
+  
 	if ( this->Dim() != A.Dim() )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"operator+=( TPZSkylMatrix ) <incompatible dimensions>" );
-	
-	TPZSkylMatrix res((*this)+A);
-	*this = res;
+
+	*this = *this + A;
 	return *this;
 }
 
@@ -742,11 +688,10 @@ template<class TVar>
 TPZSkylMatrix<TVar> &
 TPZSkylMatrix<TVar>::operator-=(const TPZSkylMatrix<TVar> &A )
 {
-	if ( this->Dim() != A.Dim() )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"operator-=( TPZSkylMatrix ) <incompatible dimensions>" );
-	
-	TPZSkylMatrix res(*this-A);
-	*this = res;
+  if ( this->Dim() != A.Dim() )
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"operator+=( TPZSkylMatrix ) <incompatible dimensions>" );
+
+	*this = *this - A;
 	return *this;
 }
 
@@ -767,7 +712,7 @@ template<class TVar>
 TPZSkylMatrix<TVar>
 TPZSkylMatrix<TVar>::operator*(const TVar value ) const
 {
-	TPZSkylMatrix res( *this );
+	auto res(*this);
 	
 	for ( int64_t col = 0; col < this->Dim(); col++ )
     {
@@ -779,7 +724,7 @@ TPZSkylMatrix<TVar>::operator*(const TVar value ) const
 			*elemRes++ *= value;
     }
 	
-	return( res );
+	return res;
 }
 
 

@@ -105,7 +105,7 @@ public:
     TPZSBMatrix &operator-=(const TPZSBMatrix<TVar> &A );
     // @}
     TPZSBMatrix<TVar> operator*  (const TVar v ) const;
-    TPZSBMatrix<TVar> &operator*=(const TVar v );
+    TPZSBMatrix<TVar> &operator*=(const TVar v ) override;
     
     TPZSBMatrix<TVar> operator-() const { return operator*(-1.0); }
     

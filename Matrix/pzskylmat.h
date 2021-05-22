@@ -139,7 +139,7 @@ public:
 	
 	// Operadores com valores NUMERICOS.
 	TPZSkylMatrix operator*  (const TVar v ) const;
-	TPZSkylMatrix &operator*=( TVar value );
+	TPZSkylMatrix &operator*=( TVar value ) override;
 	
 	TPZSkylMatrix operator-() const;// { return operator*(-1.0); }
 	

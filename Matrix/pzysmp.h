@@ -95,7 +95,12 @@ public:
 	int PutVal(const int64_t row, const int64_t col, const TVar &Value) override;
   /**@name Arithmetics */
   /** @{ */
+  TPZFYsmpMatrix<TVar> operator+(const TPZFYsmpMatrix<TVar> & A) const;
+  TPZFYsmpMatrix<TVar> operator-(const TPZFYsmpMatrix<TVar> & A) const;
   TPZFYsmpMatrix<TVar> operator*(const TVar alpha) const;
+  TPZFYsmpMatrix<TVar> &operator+=(const TPZFYsmpMatrix<TVar> &A );
+  TPZFYsmpMatrix<TVar> &operator-=(const TPZFYsmpMatrix<TVar> &A );
+  TPZFYsmpMatrix<TVar> &operator*=(const TVar val) override;
   
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha=1.,const TVar beta = 0., const int opt = 0) const override;

@@ -136,14 +136,54 @@ void TPZSYsmpMatrix<TVar>::CheckTypeCompatibility(const TPZMatrix<TVar>*A,
 // Multiply and Multiply-Add
 //
 // ****************************************************************************
+template<class TVar>
+TPZSYsmpMatrix<TVar> TPZSYsmpMatrix<TVar>::operator+(const TPZSYsmpMatrix<TVar>&mat) const
+{
+  CheckTypeCompatibility(this,&mat);
+	auto res(*this);
+  const auto sizeA = res.fA.size();
+  for(auto i = 0; i < sizeA; i++) res.fA[i] += mat.fA[i];
+	return res;
+}
 
+template<class TVar>
+TPZSYsmpMatrix<TVar> TPZSYsmpMatrix<TVar>::operator-(const TPZSYsmpMatrix<TVar>&mat) const
+{
+	CheckTypeCompatibility(this,&mat);
+	auto res(*this);
+  const auto sizeA = res.fA.size();
+  for(auto i = 0; i < sizeA; i++) res.fA[i] -= mat.fA[i];
+	return res;
+}
 
 template<class TVar>
 TPZSYsmpMatrix<TVar> TPZSYsmpMatrix<TVar>::operator*(const TVar alpha) const
 {
-	TPZSYsmpMatrix<TVar> res(*this);
+	auto res(*this);
 	for(auto &el : res.fA) el *= alpha;
 	return res;
+}
+
+template<class TVar>
+TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator+=(const TPZSYsmpMatrix<TVar> &A )
+{
+	TPZSYsmpMatrix<TVar> res((*this)+A);
+	*this = res;
+	return *this;
+}
+template<class TVar>
+TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator-=(const TPZSYsmpMatrix<TVar> &A )
+{
+	TPZSYsmpMatrix<TVar> res((*this)-A);
+	*this = res;
+	return *this;
+}
+template<class TVar>
+TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator*=(const TVar val)
+{
+	TPZSYsmpMatrix<TVar> res((*this)*val);
+	*this = res;
+	return *this;
 }
 
 template<class TVar>
