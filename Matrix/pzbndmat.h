@@ -44,6 +44,7 @@ public:
 	TPZFBMatrix (const TPZFBMatrix<TVar> & ) = default;
   /** @brief Move constructor */
 	TPZFBMatrix (TPZFBMatrix<TVar> && ) = default;
+  inline TPZFBMatrix<TVar>*NewMatrix() const override {return new TPZFBMatrix<TVar>{};}
 	CLONEDEF(TPZFBMatrix)
 	/** @brief Copy-assignment operator*/
   TPZFBMatrix &operator= (const TPZFBMatrix<TVar> & A ) = default;

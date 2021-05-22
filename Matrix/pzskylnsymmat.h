@@ -49,6 +49,10 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
         Copy(A); 
     }
   TPZSkylNSymMatrix(TPZSkylNSymMatrix &&A ) = default;
+  inline TPZSkylNSymMatrix<TVar>*NewMatrix() const override
+  {
+    return new TPZSkylNSymMatrix<TVar>{};
+  }
   CLONEDEF(TPZSkylNSymMatrix)
   TPZSkylNSymMatrix& operator=(const TPZSkylNSymMatrix&A);
   TPZSkylNSymMatrix& operator=(TPZSkylNSymMatrix&&A) = default;

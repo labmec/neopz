@@ -44,7 +44,7 @@ public :
 	fDoubleValLastUsed(cp.fDoubleValLastUsed)
 	{
 	}
-	
+	inline TPZTransfer*NewMatrix() const override {return new TPZTransfer{};}
 	virtual TPZMatrix<TVar> *Clone() const  override { return new TPZTransfer(*this); }
 
 	/** @brief Creates a copy from another TPZTransfer*/

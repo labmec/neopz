@@ -58,7 +58,7 @@ public:
 		
 		if(cp.fK00) fK00 = cp.fK00;
 	}
-	
+	inline TPZMatRed<TVar,TSideMatrix>*NewMatrix() const override {return new TPZMatRed<TVar,TSideMatrix>{};}
 	CLONEDEF(TPZMatRed)
 
   /** @brief Creates a copy from another TPZMatRed*/
@@ -233,7 +233,7 @@ public:
 	
 	/** @brief Saveable methods */
 	public:
-int ClassId() const override;
+  int ClassId() const override;
 
 	
 	void Write(TPZStream &buf, int withclassid) const override;

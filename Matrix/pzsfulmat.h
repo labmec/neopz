@@ -34,6 +34,7 @@ public:
 	TPZSFMatrix (const TPZMatrix<TVar> & );
 	TPZSFMatrix &operator= (const TPZSFMatrix<TVar> &A );
   TPZSFMatrix &operator= (TPZSFMatrix<TVar> &&A );
+  inline TPZSFMatrix<TVar>*NewMatrix() const override {return new TPZSFMatrix<TVar>{};}
 	CLONEDEF(TPZSFMatrix)
 	
 	~TPZSFMatrix();

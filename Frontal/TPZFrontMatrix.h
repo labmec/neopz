@@ -102,6 +102,7 @@ public:
     }
     
   //  CLONEDEF(TPZFrontMatrix)
+  inline TPZFrontMatrix*NewMatrix() const override {return new TPZFrontMatrix{};}
 	virtual TPZMatrix<TVar>*Clone() const  override { return new TPZFrontMatrix(*this); }
     /** 
 	 * @brief Sends a message to decompose equations from lower_eq to upper_eq, according to destination index

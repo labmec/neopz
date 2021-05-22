@@ -78,7 +78,8 @@ public:
 #endif
 		return fExtraSparseData[std::pair<int64_t, int64_t>(row, col)];
 	}
-	
+	inline TPZVerySparseMatrix<TVar>*NewMatrix() const override
+  {return new TPZVerySparseMatrix<TVar>{};}
 	CLONEDEF(TPZVerySparseMatrix)
 
 	/** @brief Creates a copy from another TPZVerySparseMatrix*/

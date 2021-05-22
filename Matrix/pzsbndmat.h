@@ -37,6 +37,7 @@ public:
     TPZSBMatrix(const int64_t dim,const int64_t band );
     TPZSBMatrix(const TPZSBMatrix<TVar> &A ) = default;
     TPZSBMatrix(TPZSBMatrix<TVar> &&A ) = default;
+    inline TPZSBMatrix<TVar>*NewMatrix() const override {return new TPZSBMatrix<TVar>{};}
     CLONEDEF(TPZSBMatrix)
     TPZSBMatrix &operator= (TPZSBMatrix<TVar> &&A ) = default;
     TPZSBMatrix &operator= (const TPZSBMatrix<TVar> &A ) = default;

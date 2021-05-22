@@ -45,7 +45,8 @@ public:
   TPZSkylMatrix &operator= (TPZSkylMatrix<TVar> &&A ) = default;
     /** @brief destructor of the skyline matrix */
 	virtual ~TPZSkylMatrix() { Clear(); }
-  
+
+  inline TPZSkylMatrix<TVar>*NewMatrix() const override {return new TPZSkylMatrix<TVar>{};}
 	CLONEDEF(TPZSkylMatrix)
     
 	virtual int64_t MemoryFootprint() const  override {

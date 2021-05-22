@@ -35,7 +35,7 @@ public :
   TPZSYsmpMatrix &operator=(const TPZSYsmpMatrix<TVar> &copy) = default;
   /** @brief Move-assignment operator*/
   TPZSYsmpMatrix &operator=(TPZSYsmpMatrix<TVar> &&copy) = default;
-    
+  inline TPZSYsmpMatrix<TVar>*NewMatrix() const override {return new TPZSYsmpMatrix<TVar>{};}
   CLONEDEF(TPZSYsmpMatrix)
 	/** @brief Destructor */
 	virtual ~TPZSYsmpMatrix();

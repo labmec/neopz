@@ -50,7 +50,9 @@ public:
   TPZMatrix<TVar> &operator=(const TPZMatrix<TVar> &);
   /** @brief Move assignment operator*/
   TPZMatrix<TVar> &operator=(TPZMatrix<TVar> &&);
-
+  /** @brief To create a matrix of the same type */
+  virtual TPZMatrix<TVar>*NewMatrix() const = 0;
+  /** @brief To create clone matrix */
   virtual TPZMatrix<TVar>*Clone() const = 0;
 
 	/**
@@ -87,7 +89,7 @@ public:
   /** @brief Creates a copy from a given matrix of arbitrary storage format. 
       Every implementation should check for type compatibility */
   virtual void CopyFrom(const TPZMatrix<TVar> *mat) = 0;
-
+  
 	/** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
 	void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;

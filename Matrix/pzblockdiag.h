@@ -37,7 +37,8 @@ public:
 	TPZBlockDiagonal (const TPZVec<int> &blocksizes);
 	/** @brief Copy constructor */
 	TPZBlockDiagonal (const TPZBlockDiagonal & );
-	
+
+  TPZBlockDiagonal* NewMatrix() const override{ return new TPZBlockDiagonal{};}
 	CLONEDEF(TPZBlockDiagonal)
 
 	/** @brief Creates a copy from another TPZBlockDiagonal*/

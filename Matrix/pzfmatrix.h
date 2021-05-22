@@ -112,7 +112,7 @@ public:
     TPZFMatrix&operator= (const TPZFMatrix<TVar> &A );
     //!Move-assignment operator
     TPZFMatrix&operator= (TPZFMatrix<TVar> &&A );
-    
+    inline TPZFMatrix<TVar>*NewMatrix() const override {return new TPZFMatrix<TVar>{};}
     CLONEDEF(TPZFMatrix<TVar>)
     TPZFMatrix(const TPZMatrix<TVar> & refmat);
 

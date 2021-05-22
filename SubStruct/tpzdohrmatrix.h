@@ -60,6 +60,7 @@ public:
 	}
 	
 	//	CLONEDEF(TPZDohrMatrix)
+	inline TPZDohrMatrix*NewMatrix() const override {return new TPZDohrMatrix{};}
 	virtual TPZMatrix<TVar>*Clone() const  override { return new TPZDohrMatrix(*this); }
 	
 	~TPZDohrMatrix();

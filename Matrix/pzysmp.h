@@ -59,7 +59,7 @@ public:
   TPZFYsmpMatrix &operator=(TPZFYsmpMatrix<TVar> &&copy) = default;
 	
 	TPZFYsmpMatrix &operator=(const TPZVerySparseMatrix<TVar> &cp);
-    
+  inline TPZFYsmpMatrix<TVar>*NewMatrix() const override {return new TPZFYsmpMatrix<TVar>{};}
 	CLONEDEF(TPZFYsmpMatrix)
 	
 	virtual ~TPZFYsmpMatrix();	

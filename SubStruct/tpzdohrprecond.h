@@ -57,6 +57,7 @@ public:
     ~TPZDohrPrecond();
     
 	// CLONEDEF(TPZDohrPrecond)
+  inline TPZDohrPrecond*NewMatrix() const override {return new TPZDohrPrecond{};}
 	virtual TPZMatrix<TVar>*Clone() const  override { return new TPZDohrPrecond(*this); }
     
     /** @brief The matrix class is a placeholder for a list of substructures */
