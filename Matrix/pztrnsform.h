@@ -54,8 +54,8 @@ public:
 	/** @brief Overloading equal operator for transformation */
 	TPZTransform<T> &operator=(const TPZTransform<T> &t);
 	
-    /** @brief Create a copy form a real transformation */
-    void CopyFrom(const TPZTransform<REAL> &cp);
+  /** @brief Create a copy form a real transformation */
+  void CopyFrom(const TPZTransform<REAL> &cp);
     
 	const TPZFMatrix<T>  & Mult() const {return fMult;}
 	

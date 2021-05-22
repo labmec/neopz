@@ -65,9 +65,10 @@ TPZPardisoSolver<TVar>::~TPZPardisoSolver()
     void *a= &av,*b = &bv, *x = &xv;
     long long ia,ja,perm,nrhs = 1;
     long long Error = 0;
-    
-    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, &ia, &ja, &perm,
-                &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    if(fPardisoInitialized)
+        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType,
+                    &phase, &n, a, &ia, &ja, &perm,
+                    &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
     if (Error) {
         DebugStop();
@@ -99,7 +100,7 @@ void TPZPardisoSolver<TVar>::SetMatrix(TPZAutoPointer<TPZBaseMatrix> refmat)
        fProperty == MProperty::ENonInitialized){
         const MProperty prop = refmat->IsDefPositive() ?
             MProperty::EPositiveDefinite : MProperty::EIndefinite;
-        const MSystemType sym = refmat->IsSimetric() ?
+        const MSystemType sym = refmat->IsSymmetric() ?
             MSystemType::ESymmetric : MSystemType::ENonSymmetric;
         SetMatrixType(sym,prop);
     }
@@ -445,6 +446,7 @@ long long TPZPardisoSolver<TVar>::MatrixType()
     int matrixtype = fMatrixType;
 #ifdef USING_MKL
     pardisoinit(fHandle,&matrixtype,param);
+    fPardisoInitialized = true;
 #endif
     for (int i=0; i<64; i++) {
         fParam[i] = param[i];

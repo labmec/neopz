@@ -22,13 +22,7 @@ TPZMatrix<TVar>() {
     cerr << "TPZSYsmpMatrix(int rows,int cols)\n";
 #endif
 }
-template<class TVar>
-TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) : 
-    TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
-    TPZMatrix<TVar>(cp), fIA(cp.fIA), fJA(cp.fJA), fA(cp.fA), fDiag(cp.fDiag)
-{
 
-}
 
 template<class TVar>
 TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const int64_t rows,const int64_t cols ) : TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
@@ -45,17 +39,6 @@ TPZSYsmpMatrix<TVar>::~TPZSYsmpMatrix() {
 #ifdef DESTRUCTOR
 	cerr << "~TPZSYsmpMatrix()\n";
 #endif
-}
-
-template<class TVar>
-TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator=(const TPZSYsmpMatrix<TVar> &copy) 
-{
-    TPZMatrix<TVar>::operator=(copy);
-    fIA =copy.fIA;
-    fJA = copy.fJA;
-    fA = copy.fA;
-    fDiag = copy.fDiag;
-    return *this;
 }
 
 template <class TVar> int TPZSYsmpMatrix<TVar>::Zero() {
@@ -121,11 +104,87 @@ int TPZSYsmpMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & va
 }
 
 
+
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                                  const TPZMatrix<TVar>*B)const
+{
+  auto incompatSparse = [](){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: incompatible matrices\n.Aborting...\n";
+    DebugStop();
+  };
+  auto aPtr = dynamic_cast<const TPZSYsmpMatrix<TVar>*>(A);
+  auto bPtr = dynamic_cast<const TPZSYsmpMatrix<TVar>*>(B);
+  if(!aPtr || !bPtr){
+    incompatSparse();
+  }
+	bool check{false};
+	const auto nIA = aPtr->fIA.size();
+	for(auto i = 0; i < nIA; i++){
+		check = check || aPtr->fIA[i] != bPtr->fIA[i];
+	}
+
+	const auto nJA = aPtr->fJA.size();
+	for(auto i = 0; i < nJA; i++){
+		check = check || aPtr->fJA[i] != bPtr->fJA[i];
+	}
+	if(check) incompatSparse();
+}
 // ****************************************************************************
 //
 // Multiply and Multiply-Add
 //
 // ****************************************************************************
+template<class TVar>
+TPZSYsmpMatrix<TVar> TPZSYsmpMatrix<TVar>::operator+(const TPZSYsmpMatrix<TVar>&mat) const
+{
+  CheckTypeCompatibility(this,&mat);
+	auto res(*this);
+  const auto sizeA = res.fA.size();
+  for(auto i = 0; i < sizeA; i++) res.fA[i] += mat.fA[i];
+	return res;
+}
+
+template<class TVar>
+TPZSYsmpMatrix<TVar> TPZSYsmpMatrix<TVar>::operator-(const TPZSYsmpMatrix<TVar>&mat) const
+{
+	CheckTypeCompatibility(this,&mat);
+	auto res(*this);
+  const auto sizeA = res.fA.size();
+  for(auto i = 0; i < sizeA; i++) res.fA[i] -= mat.fA[i];
+	return res;
+}
+
+template<class TVar>
+TPZSYsmpMatrix<TVar> TPZSYsmpMatrix<TVar>::operator*(const TVar alpha) const
+{
+	auto res(*this);
+	for(auto &el : res.fA) el *= alpha;
+	return res;
+}
+
+template<class TVar>
+TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator+=(const TPZSYsmpMatrix<TVar> &A )
+{
+	TPZSYsmpMatrix<TVar> res((*this)+A);
+	*this = res;
+	return *this;
+}
+template<class TVar>
+TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator-=(const TPZSYsmpMatrix<TVar> &A )
+{
+	TPZSYsmpMatrix<TVar> res((*this)-A);
+	*this = res;
+	return *this;
+}
+template<class TVar>
+TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator*=(const TVar val)
+{
+	TPZSYsmpMatrix<TVar> res((*this)*val);
+	*this = res;
+	return *this;
+}
 
 template<class TVar>
 void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,

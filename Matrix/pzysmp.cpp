@@ -64,17 +64,6 @@ TPZMatrix<TVar>(), fIA(1,0),fJA(),fA(),fDiag()
 }
 
 template<class TVar>
-TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator=(const TPZFYsmpMatrix<TVar> &cp) {
-	// Deletes everything associated with a TPZFYsmpMatrix
-	TPZMatrix<TVar>::operator=(cp);
-    fIA = cp.fIA;
-    fA = cp.fA;
-    fJA = cp.fJA;
-    fDiag = cp.fDiag;
-	return *this;
-}
-
-template<class TVar>
 TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator=(const TPZVerySparseMatrix<TVar> &cp)
 {
 	// Deletes everything associated with a TPZFYsmpMatrix
@@ -355,13 +344,87 @@ const TVar TPZFYsmpMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) co
 	return (TVar) 0;
 }
 
+template<class TVar>
+void TPZFYsmpMatrix<TVar>::CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+																									const TPZMatrix<TVar>*B)const
+{
+  auto incompatSparse = [](){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: incompatible matrices\n.Aborting...\n";
+    DebugStop();
+  };
+	auto aPtr = dynamic_cast<const TPZFYsmpMatrix<TVar>*>(A);
+  auto bPtr = dynamic_cast<const TPZFYsmpMatrix<TVar>*>(B);
+  if(!aPtr || !bPtr){
+    incompatSparse();
+  }
+	bool check{false};
+	const auto nIA = aPtr->fIA.size();
+	for(auto i = 0; i < nIA; i++){
+		check = check || aPtr->fIA[i] != bPtr->fIA[i];
+	}
+
+	const auto nJA = aPtr->fJA.size();
+	for(auto i = 0; i < nJA; i++){
+		check = check || aPtr->fJA[i] != bPtr->fJA[i];
+	}
+	if(check) incompatSparse();
+}
+
 // ****************************************************************************
 //
 // Multiply and Multiply-Add
 //
 // ****************************************************************************
 
+template<class TVar>
+TPZFYsmpMatrix<TVar> TPZFYsmpMatrix<TVar>::operator+(const TPZFYsmpMatrix<TVar>&mat) const
+{
+	CheckTypeCompatibility(this,&mat);
+	auto res(*this);
+  const auto sizeA = res.fA.size();
+  for(auto i = 0; i < sizeA; i++) res.fA[i] += mat.fA[i];
+	return res;
+}
+template<class TVar>
+TPZFYsmpMatrix<TVar> TPZFYsmpMatrix<TVar>::operator-(const TPZFYsmpMatrix<TVar>&mat) const
+{
+	CheckTypeCompatibility(this,&mat);
+	auto res(*this);
+  const auto sizeA = res.fA.size();
+  for(auto i = 0; i < sizeA; i++) res.fA[i] -= mat.fA[i];
+	return res;
+}
 
+template<class TVar>
+TPZFYsmpMatrix<TVar> TPZFYsmpMatrix<TVar>::operator*(const TVar alpha) const
+{
+	auto res(*this);
+	for(auto &el : res.fA) el *= alpha;
+	return res;
+}
+
+template<class TVar>
+TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator+=(const TPZFYsmpMatrix<TVar> &A )
+{
+	TPZFYsmpMatrix<TVar> res((*this)+A);
+	*this = res;
+	return *this;
+}
+template<class TVar>
+TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator-=(const TPZFYsmpMatrix<TVar> &A )
+{
+	TPZFYsmpMatrix<TVar> res((*this)-A);
+	*this = res;
+	return *this;
+}
+template<class TVar>
+TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator*=(const TVar val)
+{
+	TPZFYsmpMatrix<TVar> res((*this)*val);
+	*this = res;
+	return *this;
+}
 
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
@@ -945,11 +1008,11 @@ int TPZFYsmpMatrix<TVar>::Decompose_LU()
         DebugStop();
     }
 	typename TPZPardisoSolver<TVar>::MStructure str =
-        this->IsSimetric() ?
+        this->IsSymmetric() ?
 		TPZPardisoSolver<TVar>::MStructure::ESymmetric:
 		TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
 	typename TPZPardisoSolver<TVar>::MSystemType sysType =
-		this->IsSimetric() ?
+		this->IsSymmetric() ?
 		TPZPardisoSolver<TVar>::MSystemType::ESymmetric:
 		TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
 	typename TPZPardisoSolver<TVar>::MProperty prop =

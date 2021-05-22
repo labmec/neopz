@@ -48,25 +48,41 @@ private:
 	
 public:
     
-    TPZFYsmpMatrix();
-    
-    TPZFYsmpMatrix(const int64_t rows,const int64_t cols );
-	
+  TPZFYsmpMatrix();
+  TPZFYsmpMatrix(const int64_t rows,const int64_t cols );
+	TPZFYsmpMatrix(const TPZFYsmpMatrix<TVar>&) = default;
+  TPZFYsmpMatrix(TPZFYsmpMatrix<TVar>&&) = default;
+  
 	TPZFYsmpMatrix(const TPZVerySparseMatrix<TVar> &cp);
 	
-	TPZFYsmpMatrix &operator=(const TPZFYsmpMatrix<TVar> &copy);
+	TPZFYsmpMatrix &operator=(const TPZFYsmpMatrix<TVar> &copy) = default;
+  TPZFYsmpMatrix &operator=(TPZFYsmpMatrix<TVar> &&copy) = default;
 	
 	TPZFYsmpMatrix &operator=(const TPZVerySparseMatrix<TVar> &cp);
-    
+  inline TPZFYsmpMatrix<TVar>*NewMatrix() const override {return new TPZFYsmpMatrix<TVar>{};}
 	CLONEDEF(TPZFYsmpMatrix)
 	
 	virtual ~TPZFYsmpMatrix();	
-	
-    /** @brief Fill matrix storage with randomic values */
-    /** This method use GetVal and PutVal which are implemented by each type matrices */
-    void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
-    
 
+  /** @brief Creates a copy from another TPZFYsmpMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZFYsmpMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
+  
+  /** @brief Fill matrix storage with randomic values */
+  /** This method use GetVal and PutVal which are implemented by each type matrices */
+  void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
     
 	/** @brief Get the matrix entry at (row,col) without bound checking */
 	virtual const TVar GetVal(const int64_t row,const int64_t col ) const override;
@@ -77,18 +93,29 @@ public:
 	}
 	
 	int PutVal(const int64_t row, const int64_t col, const TVar &Value) override;
-	
+  /**@name Arithmetics */
+  /** @{ */
+  TPZFYsmpMatrix<TVar> operator+(const TPZFYsmpMatrix<TVar> & A) const;
+  TPZFYsmpMatrix<TVar> operator-(const TPZFYsmpMatrix<TVar> & A) const;
+  TPZFYsmpMatrix<TVar> operator*(const TVar alpha) const;
+  TPZFYsmpMatrix<TVar> &operator+=(const TPZFYsmpMatrix<TVar> &A );
+  TPZFYsmpMatrix<TVar> &operator-=(const TPZFYsmpMatrix<TVar> &A );
+  TPZFYsmpMatrix<TVar> &operator*=(const TVar val) override;
+  
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha=1.,const TVar beta = 0., const int opt = 0) const override;
 	
 	virtual void MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						   const TVar alpha=1.,const TVar beta = 0., const int opt = 0);
-	
+	/** @} */
 	virtual int GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
 					   const int64_t colSize, TPZFMatrix<TVar> & A ) const override;
 	
 	void GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar> &block) const override;
-	
+
+
+  
+  
 	/** @brief Pass the data to the class. */
 	virtual void SetData( int64_t *IA, int64_t *JA, TVar *A );
     
@@ -180,6 +207,20 @@ private:
 	void RowLUUpdate(int64_t sourcerow, int64_t destrow);
 	
 protected:
+  void CheckTypeCompatibility(const TPZMatrix<TVar>*aPtr,
+                              const TPZMatrix<TVar>*bPtr) const override;
+  inline TVar *&Elem() override
+  {
+    return fA.begin();
+  }
+  inline const TVar *Elem() const override
+  {
+    return fA.begin();
+  }
+  inline int64_t Size() const override
+  {
+    return fA.size();
+  }
 	TPZVec<int64_t>  fIA;
 	TPZVec<int64_t>  fJA;
 	TPZVec<TVar> fA;
@@ -188,7 +229,7 @@ protected:
 	
 	int   fSymmetric;
 	
-    TPZPardisoSolver<TVar> fPardisoControl;
+  TPZPardisoSolver<TVar> fPardisoControl;
 protected:
 	
 	/**

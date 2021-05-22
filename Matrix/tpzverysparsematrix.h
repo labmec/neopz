@@ -78,9 +78,25 @@ public:
 #endif
 		return fExtraSparseData[std::pair<int64_t, int64_t>(row, col)];
 	}
-	
+	inline TPZVerySparseMatrix<TVar>*NewMatrix() const override
+  {return new TPZVerySparseMatrix<TVar>{};}
 	CLONEDEF(TPZVerySparseMatrix)
-	
+
+	/** @brief Creates a copy from another TPZVerySparseMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZVerySparseMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
 	 * @param x Is x on the above operation
@@ -116,7 +132,11 @@ private:
 	void ReadMap(TPZStream &buf, void *context, std::map<std::pair<int64_t, int64_t>, TVar> & TheMap);
 	
 protected:
-    
+	TVar *&Elem() override;
+  const TVar *Elem() const override;
+	inline int64_t Size() const override{
+		return fExtraSparseData.size();
+	}
     /** @brief Save elements different from zero, of Sparse matrix */
 	std::map<std::pair<int64_t, int64_t>, TVar> fExtraSparseData;
     

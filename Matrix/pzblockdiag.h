@@ -37,8 +37,25 @@ public:
 	TPZBlockDiagonal (const TPZVec<int> &blocksizes);
 	/** @brief Copy constructor */
 	TPZBlockDiagonal (const TPZBlockDiagonal & );
-	
+
+  TPZBlockDiagonal* NewMatrix() const override{ return new TPZBlockDiagonal{};}
 	CLONEDEF(TPZBlockDiagonal)
+
+	/** @brief Creates a copy from another TPZBlockDiagonal*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZBlockDiagonal<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 	/** @brief Simple destructor */
 	~TPZBlockDiagonal();
 	
@@ -134,6 +151,18 @@ public:
 int ClassId() const override;
 
 protected:
+	inline TVar *&Elem() override
+  {
+    return fStorage.begin();
+  }
+  inline const TVar *Elem() const override
+  {
+    return fStorage.begin();
+  }
+  inline int64_t Size() const override
+  {
+    return fStorage.size();
+  }
 	/** @brief Stores matrix data */
 	TPZVec<TVar> fStorage;
 	/** @brief Stores blocks data */

@@ -28,16 +28,19 @@ public:
     TPZMatrix<TVar>( 0,0 )  { fElem = NULL; }
 	TPZSFMatrix (const int64_t dim );
 	TPZSFMatrix (const TPZSFMatrix<TVar> & );
+  TPZSFMatrix (TPZSFMatrix<TVar> && );
 	// Usa o maior bloco quadrado possivel, comecado em (0,0).
 	// E inicializa com a parte triangular inferior do bloco.
 	TPZSFMatrix (const TPZMatrix<TVar> & );
-	
+	TPZSFMatrix &operator= (const TPZSFMatrix<TVar> &A );
+  TPZSFMatrix &operator= (TPZSFMatrix<TVar> &&A );
+  inline TPZSFMatrix<TVar>*NewMatrix() const override {return new TPZSFMatrix<TVar>{};}
 	CLONEDEF(TPZSFMatrix)
 	
 	~TPZSFMatrix();
 	
     /** @brief Checks if the current matrix is symmetric */
-    virtual int IsSimetric() const  override {
+    virtual int IsSymmetric() const  override {
         return 1;
     }
 
@@ -46,17 +49,32 @@ public:
     
     /// copy the values from a matrix with a different precision
     template<class TVar2>
-    void CopyFrom(TPZSFMatrix<TVar2> &orig)
+    void CopyFromDiffPrecision(TPZSFMatrix<TVar2> &orig)
     {
         Resize(orig.Rows(), orig.Cols());
-        TPZMatrix<TVar>::CopyFrom(orig);
+        TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
         int64_t nel = (this->Rows()*(this->Rows()+1))/2;
         for (int64_t el=0; el<nel; el++) {
             fElem[el] = orig.fElem[el];
         }
     }
     
-
+  /** @brief Creates a copy from another TPZSFMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZSFMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
+  
 	int PutVal(const int64_t row,const int64_t col,const TVar &value ) override;
 	const TVar GetVal(const int64_t row,const int64_t col ) const override;
 	
@@ -64,7 +82,6 @@ public:
 	 * @name Operators with Full simmetric matrices.
 	 * @{
 	 */
-	TPZSFMatrix &operator= (const TPZSFMatrix<TVar> &A );
 	TPZSFMatrix operator+  (const TPZSFMatrix<TVar> &A ) const;
 	TPZSFMatrix operator-  (const TPZSFMatrix<TVar> &A ) const;
 	TPZSFMatrix &operator+=(const TPZSFMatrix<TVar> &A );
@@ -92,7 +109,7 @@ public:
 	TPZSFMatrix operator*  (const TVar val ) const;
 	TPZSFMatrix &operator+=(const TVar val );
 	TPZSFMatrix &operator-=(const TVar val )  { return operator+=( -val ); }
-	TPZSFMatrix &operator*=(const TVar val );
+	TPZSFMatrix &operator*=(const TVar val ) override;
 	/** @} */
 	
 	TPZSFMatrix operator-() const  { return operator*( -1.0 ); }
@@ -134,13 +151,32 @@ public:
 	virtual int DerivedFrom(const char *classname) const;
 	
 #endif
-    public:
-int ClassId() const override;
 
+  int ClassId() const override;
+protected:
+  /** @brief Checks compatibility of matrices before Add/Subtract operations*/
+  inline void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                     const TPZMatrix<TVar>*B)const override
+  {
+    auto aPtr = dynamic_cast<const TPZSFMatrix<TVar>*>(A);
+    auto bPtr = dynamic_cast<const TPZSFMatrix<TVar>*>(B);
+    if(!aPtr || !bPtr){
+      PZError<<__PRETTY_FUNCTION__;
+      PZError<<"\nERROR: incompatible matrices.Aborting...\n";
+      DebugStop();
+    }
+  }
+  inline TVar *&Elem() override
+  {
+    return fElem;
+  }
+  inline const TVar *Elem() const override
+  {
+    return fElem;
+  }
+	
+	int64_t Size() const override { return (this->Dim() * (this->Dim()+1)) >> 1; }
 private:
-	
-	int64_t Size() const { return (this->Dim() * (this->Dim()+1)) >> 1; }
-	
 	int Clear() override;
 	
 	TVar   *fElem;

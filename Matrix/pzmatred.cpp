@@ -58,8 +58,8 @@ TPZMatRed<TVar, TSideMatrix >::~TPZMatRed(){
 }
 
 template<class TVar, class TSideMatrix>
-int TPZMatRed<TVar, TSideMatrix>::IsSimetric() const {
-	if(fK00) return this->fK00->IsSimetric();
+int TPZMatRed<TVar, TSideMatrix>::IsSymmetric() const {
+	if(fK00) return this->fK00->IsSymmetric();
 	return 0;
 }
 
@@ -68,7 +68,7 @@ void TPZMatRed<TVar, TSideMatrix>::SimetrizeMatRed() {
 	// considering fK00 is simetric, only half of the object is assembled.
 	// this method simetrizes the matrix object
 	
-	if(!fK00 || !this->fK00->IsSimetric()) return;
+	if(!fK00 || !this->fK00->IsSymmetric()) return;
 	fK01.Transpose(&fK10);
 	
 	fK11.Simetrize();
@@ -87,7 +87,7 @@ template<class TVar, class TSideMatrix>
 int
 TPZMatRed<TVar, TSideMatrix>::PutVal(const int64_t r,const int64_t c,const TVar& value ){
 	int64_t row(r),col(c);
-	if (IsSimetric() && row > col ) Swap( &row, &col );
+	if (IsSymmetric() && row > col ) Swap( &row, &col );
 	if (row<fDim0 &&  col<fDim0)  fK00->PutVal(row,col,value);
 	if (row<fDim0 &&  col>=fDim0)  fK01.PutVal(row,col-fDim0,(TVar)value);
 	if (row>=fDim0 &&  col<fDim0)  fK10.PutVal(row-fDim0,col,(TVar)value);
@@ -101,7 +101,7 @@ const TVar
 TPZMatRed<TVar,TSideMatrix>::GetVal(const int64_t r,const int64_t c ) const {
 	int64_t row(r),col(c);
 	
-	if (IsSimetric() && row > col ) Swap( &row, &col );
+	if (IsSymmetric() && row > col ) Swap( &row, &col );
 	if (row<fDim0 &&  col<fDim0)  return ( fK00->GetVal(row,col) );
 	if (row<fDim0 &&  col>=fDim0)  return ( fK01.GetVal(row,col-fDim0) );
 	if (row>=fDim0 &&  col<fDim0)  return ( fK10.GetVal(row-fDim0,col) );
@@ -113,12 +113,38 @@ template<class TVar, class TSideMatrix>
 TVar& TPZMatRed<TVar,TSideMatrix>::s(const int64_t r,const int64_t c ) {
 	int64_t row(r),col(c);
 	
-	if (r < fDim0 && IsSimetric() && row > col ) Swap( &row, &col );
+	if (r < fDim0 && IsSymmetric() && row > col ) Swap( &row, &col );
 	if (row<fDim0 &&  col<fDim0)  return ( fK00->s(row,col) );
 	if (row<fDim0 &&  col>=fDim0)  return ( (TVar &)fK01.s(row,col-fDim0) );
 	if (row>=fDim0 &&  col<fDim0)  return ( (TVar &)(fK10.s(row-fDim0,col)) );
 	return ((TVar &)(fK11.s(row-fDim0,col-fDim0)) );
 	
+}
+
+template<class TVar, class TSideMatrix>
+int64_t TPZMatRed<TVar,TSideMatrix>::Size() const
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"\nERROR: should not be called for TPZMatRed.\nAborting...\n";
+  DebugStop();
+  return -1;
+}
+template<class TVar, class TSideMatrix>
+TVar *&TPZMatRed<TVar,TSideMatrix>::Elem()
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"\nERROR: should not be called for TPZMatRed.\nAborting...\n";
+  DebugStop();
+  static TVar* t{nullptr};
+  return t;
+}
+template<class TVar, class TSideMatrix>
+const TVar *TPZMatRed<TVar,TSideMatrix>::Elem() const
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"\nERROR: should not be called for TPZMatRed.\nAborting...\n";
+  DebugStop();
+  return nullptr;
 }
 
 template<class TVar, class TSideMatrix>

@@ -42,7 +42,9 @@ class TPZDohrPrecond : public TPZMatrix<TVar>
 	
 	TPZAutoPointer<TPZDohrAssembly<TVar> > fAssemble;
 	
-    //
+	int64_t Size() const override;
+  TVar* &Elem() override;
+  const TVar* Elem() const override;
     
 public:
     /** @brief Constructor with matrix */
@@ -55,6 +57,7 @@ public:
     ~TPZDohrPrecond();
     
 	// CLONEDEF(TPZDohrPrecond)
+  inline TPZDohrPrecond*NewMatrix() const override {return new TPZDohrPrecond{};}
 	virtual TPZMatrix<TVar>*Clone() const  override { return new TPZDohrPrecond(*this); }
     
     /** @brief The matrix class is a placeholder for a list of substructures */
@@ -62,7 +65,21 @@ public:
     {
         return fGlobal;
     }
-	
+
+	void CopyFrom(const TPZMatrix<TVar> *  mat) override        
+  {                                                           
+    auto *from = dynamic_cast<const TPZDohrPrecond<TVar,TSubStruct> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 	/** @brief Initialize the necessary datastructures */
 	/** It will compute the coarse matrix, coarse residual and any other necessary data structures */
 	void Initialize();

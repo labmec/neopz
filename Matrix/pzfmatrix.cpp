@@ -91,6 +91,17 @@ TPZMatrix<TVar>( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
     memcpy((void *)(p),(void *)(src),(size_t)size*sizeof(TVar));
 }
 
+template<class TVar>
+TPZFMatrix<TVar>::TPZFMatrix(TPZFMatrix<TVar> &&A)
+    : TPZMatrix<TVar>(A), fElem(A.fElem),
+      fGiven(A.fGiven),fSize(A.fSize),
+      fPivot(A.fPivot), fWork(A.fWork)
+{
+    A.fElem=nullptr;
+    A.fGiven=nullptr;
+    A.fSize=0;
+}
+
 /********************************/
 /*** Constructor( TPZVerySparseMatrix<TVar> & ) ***/
 
@@ -120,12 +131,6 @@ TPZMatrix<TVar>( A.Rows(), A.Cols() ), fElem(0), fGiven(0), fSize(0) {
     
 }
 
-
-
-/******** Operacoes com matrizes FULL  ********/
-
-/******************/
-/*** Operator = ***/
 template<class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
     if(this == &A) return *this;
@@ -154,6 +159,26 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
     return *this;
 }
 
+template<class TVar>
+TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(TPZFMatrix<TVar> &&A ) {
+    TPZMatrix<TVar>::operator=(A);
+    fElem=A.fElem;
+    fGiven=A.fGiven;
+    fSize=A.fSize;
+    fPivot = A.fPivot;
+    fWork = A.fWork;
+    
+    A.fElem = nullptr;
+    A.fGiven = nullptr;
+    A.fSize = 0;
+    return *this;
+}
+
+/******** Operacoes com matrizes FULL  ********/
+
+/******************/
+/*** Operator = ***/
+
 template< class TVar >
 TPZFMatrix<TVar>& TPZFMatrix<TVar>::operator= (const std::initializer_list<TVar>& list) {
 	Resize(list.size(), 1);
@@ -165,6 +190,19 @@ TPZFMatrix<TVar>& TPZFMatrix<TVar>::operator= (const std::initializer_list<TVar>
 		*aux = *it;
 
 	return *this;
+}
+
+template<class TVar>
+void TPZFMatrix<TVar>::CopyFrom(const TPZMatrix<TVar> *mat)
+{
+    const auto r = mat->Rows();
+    const auto c = mat->Cols();
+    this->Resize(r,c);
+    for(auto i = 0 ;i < r;i++){
+        for(auto j = 0; j < c; j++){
+            this->PutVal(i,j,mat->GetVal(i,j));
+        }
+    }
 }
 
 template< class TVar >
@@ -283,38 +321,37 @@ void TPZFMatrix<float>::AddFel(TPZFMatrix<float> &rhs,TPZVec<int64_t> &source, T
 /*** Operator+( TPZFMatrix>& ) ***/
 
 template <class TVar>
-TPZFMatrix<TVar> TPZFMatrix<TVar>::operator+(const TPZFMatrix<TVar> &A ) const {
+TPZFMatrix<TVar>
+TPZFMatrix<TVar>::operator+(const TPZFMatrix<TVar> &A ) const {
     if ( (A.Rows() != this->Rows())  ||  (A.Cols() != this->Cols()) )
         Error( "Operator+ <matrixs with different dimensions>" );
     
-    TPZFMatrix<TVar> res;
-    res.Redim( this->Rows(), this->Cols() );
-    int64_t size = ((int64_t)this->Rows()) * this->Cols();
-    TVar * pm = fElem, *plast = fElem+size;
+    auto res(*this);
     TVar * pa = A.fElem;
-    TVar * pr = res.fElem;
+    const auto size = this->Rows() * this->Cols();
+    TVar * pr = res.fElem, *plast = pr+size;
     
-    while(pm < plast) *pr++ = (*pm++) + (*pa++);
+    while(pr < plast) *pr++ +=  (*pa++);
     
-    return( res );
+    return res;
 }
 
 /*******************************/
 /*** Operator-( TPZFMatrix<>& ) ***/
 template <class TVar>
-TPZFMatrix<TVar> TPZFMatrix<TVar>::operator-(const TPZFMatrix<TVar> &A ) const {
+TPZFMatrix<TVar>
+TPZFMatrix<TVar>::operator-(const TPZFMatrix<TVar> &A ) const {
+
     if ( (A.Rows() != this->Rows())  ||  (A.Cols() != this->Cols()) )
         Error( "Operator- <matrixs with different dimensions>" );
     
-    TPZFMatrix<TVar> res;
-    res.Redim( this->Rows(), this->Cols() );
-    int64_t size = ((int64_t)this->Rows()) * this->Cols();
-    TVar * pm = fElem;
+    auto res (*this);
     TVar * pa = A.fElem;
+    const auto size = this->Rows()*this->Cols();
     TVar * pr = res.fElem, *prlast =pr+size;
     
-    while(pr < prlast) *pr++ = (*pm++) - (*pa++);
-    return( res );
+    while(pr < prlast) *pr++ -= (*pa++);
+    return res;
 }
 
 template <class TVar>
@@ -813,13 +850,17 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
 /********************************/
 /*** Operator+=( TPZFMatrix<>& ) ***/
 template <class TVar>
-TPZFMatrix<TVar> & TPZFMatrix<TVar>::operator+=(const TPZFMatrix<TVar> &A ) {
-    if ( (A.Rows() != this->Rows())  ||  (A.Cols() != this->Cols()) )
-        Error( "Operator+= <matrixs with different dimensions>" );
+TPZFMatrix<TVar> & TPZFMatrix<TVar>::operator+=(const TPZMatrix<TVar> &aBase ) {
+    auto A = dynamic_cast<const TPZFMatrix<TVar>*>(&aBase);
+    if(!A){
+        Error(__PRETTY_FUNCTION__," incompatible argument");
+    }
+    if ( (A->Rows() != this->Rows())  ||  (A->Cols() != this->Cols()) )
+        Error( "Operator+= <matrices with different dimensions>" );
     
     int64_t size = ((int64_t)this->Rows()) * this->Cols();
     TVar * pm = fElem, *pmlast=pm+size;
-    TVar * pa = A.fElem;
+    TVar * pa = A->fElem;
     while(pm < pmlast) (*pm++) += (*pa++);
     return( *this );
 }
@@ -827,13 +868,17 @@ TPZFMatrix<TVar> & TPZFMatrix<TVar>::operator+=(const TPZFMatrix<TVar> &A ) {
 /*******************************/
 /*** Operator-=( TPZFMatrix<>& ) ***/
 template <class TVar>
-TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator-=(const TPZFMatrix<TVar> &A ) {
-    if ( (A.Rows() != this->Rows())  ||  (A.Cols() != this->Cols()) )
+TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator-=(const TPZMatrix<TVar> &aBase ) {
+    auto A = dynamic_cast<const TPZFMatrix<TVar>*>(&aBase);
+    if(!A){
+        Error(__PRETTY_FUNCTION__," incompatible argument");
+    }
+    if ( (A->Rows() != this->Rows())  ||  (A->Cols() != this->Cols()) )
         Error( "Operator-= <matrixs with different dimensions>" );
     
     int64_t size = ((int64_t)this->Rows()) * this->Cols();
     TVar * pm = fElem;
-    TVar * pa = A.fElem;
+    TVar * pa = A->fElem;
     
     for ( int64_t i = 0; i < size; i++ ) *pm++ -= *pa++;
     
@@ -967,11 +1012,12 @@ TPZFMatrix<TVar> TPZFMatrix<TVar>::operator-  (const TVar val ) const {
 /*** Operator*( value ) ***/
 
 template <class TVar>
-TPZFMatrix<TVar> TPZFMatrix<TVar>::operator*(const TVar value ) const
+TPZFMatrix<TVar>
+TPZFMatrix<TVar>::operator*(const TVar value ) const
 {
-    TPZFMatrix<TVar> res( *this );
+    auto res(*this);
     res *= value;
-    return( res );
+    return res;
 }
 
 /***************************/

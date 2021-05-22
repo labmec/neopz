@@ -136,6 +136,24 @@ const TVar TPZVerySparseMatrix<TVar>::GetVal(const int64_t row, const int64_t co
 }
 
 template<class TVar>
+TVar* &TPZVerySparseMatrix<TVar>::Elem()
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"ERROR:Not implemented\n.Aborting...\n";
+  DebugStop();
+  static TVar* t{nullptr};
+  return t;
+}
+
+template<class TVar>
+const TVar* TPZVerySparseMatrix<TVar>::Elem()const
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"ERROR:Not implemented\n.Aborting...\n";
+  DebugStop();
+  return nullptr;
+}
+template<class TVar>
 void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMatrix<TVar> & y, TPZFMatrix<TVar> & z,
 								  const TVar alpha, const TVar beta, const int opt) const
 {

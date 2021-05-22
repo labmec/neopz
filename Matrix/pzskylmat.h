@@ -39,7 +39,14 @@ public:
 	 */
 	TPZSkylMatrix(const int64_t dim ,const TPZVec<int64_t> &skyline);
 	TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>(A), fElem(0), fStorage(0)  { Copy(A); }
-	
+
+  TPZSkylMatrix(TPZSkylMatrix<TVar> &&A) = default;
+  TPZSkylMatrix &operator= (const TPZSkylMatrix<TVar> &A );
+  TPZSkylMatrix &operator= (TPZSkylMatrix<TVar> &&A ) = default;
+    /** @brief destructor of the skyline matrix */
+	virtual ~TPZSkylMatrix() { Clear(); }
+
+  inline TPZSkylMatrix<TVar>*NewMatrix() const override {return new TPZSkylMatrix<TVar>{};}
 	CLONEDEF(TPZSkylMatrix)
     
 	virtual int64_t MemoryFootprint() const  override {
@@ -64,40 +71,52 @@ public:
 	void AddSameStruct(TPZSkylMatrix<TVar> &B, double k = 1.);
 	
 	/** @brief declare the object as simetric matrix*/
-	virtual int IsSimetric() const  override {return 1;}
-	
-    /** @brief destructor of the skyline matrix */
-	virtual ~TPZSkylMatrix() { Clear(); }
+	virtual int IsSymmetric() const  override {return 1;}
     
     /**
 	 * @brief Updates the values of the matrix based on the values of the matrix
 	 */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
     
-    friend class TPZSkylMatrix<float>;
-    friend class TPZSkylMatrix<double>;
+  friend class TPZSkylMatrix<float>;
+  friend class TPZSkylMatrix<double>;
     
-    /// copy the values from a matrix with a different precision
-    template<class TVar2>
-    void CopyFrom(TPZSkylMatrix<TVar2> &orig)
-    {
-        TPZMatrix<TVar>::CopyFrom(orig);
-        int64_t nel = orig.fStorage.size();
-        fElem.resize(orig.fElem.size());
-        fStorage.resize(nel);
-        for (int64_t el=0; el<nel; el++) {
-            fStorage[el] = orig.fStorage[el];
-        }
-        int64_t size_el = fElem.size();
-        TVar *first = &fStorage[0];
-        TVar2 *first_orig = &orig.fStorage[0];
-        for (int64_t el=0; el<size_el; el++) {
-            fElem[el] = first+(orig.fElem[el]-first_orig);
-        }
-        
+  /// copy the values from a matrix with a different precision
+  template<class TVar2>
+  void CopyFromDiffPrecision(TPZSkylMatrix<TVar2> &orig)
+  {
+    TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
+    int64_t nel = orig.fStorage.size();
+    fElem.resize(orig.fElem.size());
+    fStorage.resize(nel);
+    for (int64_t el=0; el<nel; el++) {
+      fStorage[el] = orig.fStorage[el];
     }
-    
-    
+    int64_t size_el = fElem.size();
+    TVar *first = &fStorage[0];
+    TVar2 *first_orig = &orig.fStorage[0];
+    for (int64_t el=0; el<size_el; el++) {
+      fElem[el] = first+(orig.fElem[el]-first_orig);
+    }
+        
+  }
+  
+  /** @brief Creates a copy from another TPZSkylMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZSkylMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
+  
 	int    PutVal(const int64_t row,const int64_t col,const TVar &element ) override;
 	const TVar GetVal(const int64_t row,const int64_t col ) const override;
 	
@@ -107,11 +126,10 @@ public:
 	
 	
 	TVar &operator()(const int64_t row);
-	
+
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha,const TVar beta ,const int opt = 0) const  override;
 	// Operadores com matrizes SKY LINE.
-	TPZSkylMatrix &operator= (const TPZSkylMatrix<TVar> &A );
 	//TPZSkylMatrix &operator= (TTempMat<TPZSkylMatrix> A);
 	
 	TPZSkylMatrix operator+  (const TPZSkylMatrix<TVar> &A ) const;
@@ -122,7 +140,7 @@ public:
 	
 	// Operadores com valores NUMERICOS.
 	TPZSkylMatrix operator*  (const TVar v ) const;
-	TPZSkylMatrix &operator*=( TVar value );
+	TPZSkylMatrix &operator*=( TVar value ) override;
 	
 	TPZSkylMatrix operator-() const;// { return operator*(-1.0); }
 	
@@ -207,7 +225,20 @@ int ClassId() const override;
     }
     
 protected:
-	
+  void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                              const TPZMatrix<TVar>*B)const override;
+	inline TVar *&Elem() override
+  {
+    return fStorage.begin();
+  }
+  inline const TVar *Elem() const override
+  {
+    return fStorage.begin();
+  }
+  inline int64_t Size() const override
+  {
+    return fStorage.size();
+  }
 	/**
      @brief This method returns a pointer to the diagonal element of the matrix of the col column
 	 */

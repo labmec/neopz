@@ -85,16 +85,16 @@ public:
 	static void main();
     /** @brief Prints a FrontMatrix object */
 	void Print(const char * name, std::ostream & out ,const MatrixOutputFormat form = EFormatted) const override;
-    /** @brief Simple Destructor */
-    ~TPZFrontMatrix();
-int ClassId() const override;
-    /** @brief Simple Constructor */
-    TPZFrontMatrix();
-    /** 
+  /** @brief Simple Destructor */
+  ~TPZFrontMatrix();
+  int ClassId() const override;
+  /** @brief Simple Constructor */
+  TPZFrontMatrix();
+  /** 
 	 * @brief Constructor with a globalsize parameter 
 	 * @param globalsize Indicates initial global size
 	 */
-    TPZFrontMatrix(int64_t globalsize);
+  TPZFrontMatrix(int64_t globalsize);
 	
 	TPZFrontMatrix(const TPZFrontMatrix &cp) : TPZRegisterClassId(&TPZFrontMatrix::ClassId),TPZAbstractFrontMatrix<TVar>(cp), fStorage(cp.fStorage),
 	fFront(cp.fFront),fNumEq(cp.fNumEq),fLastDecomposed(cp.fLastDecomposed), fNumElConnected(cp.fNumElConnected),fNumElConnectedBackup(cp.fNumElConnectedBackup)
@@ -102,6 +102,7 @@ int ClassId() const override;
     }
     
   //  CLONEDEF(TPZFrontMatrix)
+  inline TPZFrontMatrix*NewMatrix() const override {return new TPZFrontMatrix{};}
 	virtual TPZMatrix<TVar>*Clone() const  override { return new TPZFrontMatrix(*this); }
     /** 
 	 * @brief Sends a message to decompose equations from lower_eq to upper_eq, according to destination index
@@ -166,8 +167,25 @@ int ClassId() const override;
 	 * @param name Name of the file
 	 */
     void SetFileName(char option, const char *name);
-	
+
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override        
+  {                                                           
+    auto *from = dynamic_cast<const TPZFrontMatrix<TVar,store,front> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 protected:
+  int64_t Size() const override;
+  TVar* &Elem() override;
+  const TVar* Elem() const override;
     /** @brief Indicates number of equations */
 	int64_t fNumEq;
     /** @brief Indicates last decomposed equation */

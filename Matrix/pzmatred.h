@@ -58,13 +58,29 @@ public:
 		
 		if(cp.fK00) fK00 = cp.fK00;
 	}
-	
+	inline TPZMatRed<TVar,TSideMatrix>*NewMatrix() const override {return new TPZMatRed<TVar,TSideMatrix>{};}
 	CLONEDEF(TPZMatRed)
+
+  /** @brief Creates a copy from another TPZMatRed*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZMatRed<TVar,TSideMatrix> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 	/** @brief Simple destructor */
 	~TPZMatRed();
 	
 	/** @brief returns 1 or 0 depending on whether the fK00 matrix is zero or not */
-	virtual int IsSimetric() const override;
+	virtual int IsSymmetric() const override;
 	
 	/** @brief changes the declared dimension of the matrix to fDim1 */
 	void SetReduced()
@@ -217,12 +233,15 @@ public:
 	
 	/** @brief Saveable methods */
 	public:
-int ClassId() const override;
+  int ClassId() const override;
 
 	
 	void Write(TPZStream &buf, int withclassid) const override;
 	void Read(TPZStream &buf, void *context) override;
-	
+protected:
+  int64_t Size() const override;
+  TVar *&Elem() override;
+  const TVar *Elem() const override;
 private:
 	
 	/**

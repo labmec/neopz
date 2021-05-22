@@ -24,58 +24,85 @@ class TPZSYsmpMatrix : public TPZMatrix<TVar>{
     
 public :
     /** @brief Constructor based on number of rows and columns */
-    TPZSYsmpMatrix();
+  TPZSYsmpMatrix();
 	/** @brief Constructor based on number of rows and columns */
-    TPZSYsmpMatrix(const int64_t rows, const int64_t cols );
+  TPZSYsmpMatrix(const int64_t rows, const int64_t cols );
 	/** @brief Copy constructor */
-    TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp);
-    
-    TPZSYsmpMatrix &operator=(const TPZSYsmpMatrix<TVar> &copy);
-    
-    CLONEDEF(TPZSYsmpMatrix)
+  TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) = default;
+  /** @brief Move constructor*/
+  TPZSYsmpMatrix(TPZSYsmpMatrix<TVar> &&cp) = default;
+  /** @brief Copy-assignment operator*/
+  TPZSYsmpMatrix &operator=(const TPZSYsmpMatrix<TVar> &copy) = default;
+  /** @brief Move-assignment operator*/
+  TPZSYsmpMatrix &operator=(TPZSYsmpMatrix<TVar> &&copy) = default;
+  inline TPZSYsmpMatrix<TVar>*NewMatrix() const override {return new TPZSYsmpMatrix<TVar>{};}
+  CLONEDEF(TPZSYsmpMatrix)
 	/** @brief Destructor */
 	virtual ~TPZSYsmpMatrix();
-    
-    /** @brief Checks if the current matrix is symmetric */
-    virtual int IsSimetric() const  override { return 1; }
-    /** @brief Checks if current matrix is square */
-    inline int IsSquare() const { return 1;}
-    
-    /** @brief Zeroes the matrix */
-    virtual int Zero() override;
 
-    /** @brief Zeroes the matrix */
-    virtual int Redim(int64_t rows, int64_t cols) override
-    {
-        if(rows == this->fRow && cols == this->fCol)
-        {
-            Zero();
-        }
-        else
-        {
-            DebugStop();
-        }
-        return 0;
-    }
+  /** @brief Creates a copy from another TPZSYsmpMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZSYsmpMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
+  
+  /** @brief Checks if the current matrix is symmetric */
+  virtual int IsSymmetric() const  override { return 1; }
+  /** @brief Checks if current matrix is square */
+  inline int IsSquare() const { return 1;}
+    
+  /** @brief Zeroes the matrix */
+  virtual int Zero() override;
+
+  /** @brief Zeroes the matrix */
+  virtual int Redim(int64_t rows, int64_t cols) override
+  {
+    if(rows == this->fRow && cols == this->fCol)
+      {
+        Zero();
+      }
+    else
+      {
+        DebugStop();
+      }
+    return 0;
+  }
     
     /** @brief Fill matrix storage with randomic values */
     /** This method use GetVal and PutVal which are implemented by each type matrices */
     void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
-	
-	/** @brief Get the matrix entry at (row,col) without bound checking */
-	virtual const TVar GetVal(const int64_t row, const int64_t col ) const override;
+	  
+	  /** @brief Get the matrix entry at (row,col) without bound checking */
+	  virtual const TVar GetVal(const int64_t row, const int64_t col ) const override;
     
     /** @brief Put values without bounds checking \n
      *  This method is faster than "Put" if DEBUG is defined.
      */
     virtual int PutVal(const int64_t /*row*/,const int64_t /*col*/,const TVar & val ) override;
-
-	
+  /** @name Arithmetic*/
+  /** @{ */
+  TPZSYsmpMatrix<TVar> operator+(const TPZSYsmpMatrix<TVar> & A) const;
+  TPZSYsmpMatrix<TVar> operator-(const TPZSYsmpMatrix<TVar> & A) const;
+  TPZSYsmpMatrix<TVar> operator*(const TVar alpha) const;
+  TPZSYsmpMatrix<TVar> &operator+=(const TPZSYsmpMatrix<TVar> &A );
+  TPZSYsmpMatrix<TVar> &operator-=(const TPZSYsmpMatrix<TVar> &A );
+  TPZSYsmpMatrix<TVar> &operator*=(const TVar val) override;
+  
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** @note z and x cannot overlap in memory */
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const override;
-	
+	/** @} */
 	/** @brief Sets data to the class */
 	virtual void SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A );
 
@@ -171,7 +198,21 @@ public :
     int ClassId() const override;
 
     void ComputeDiagonal();
-
+protected:
+  void CheckTypeCompatibility(const TPZMatrix<TVar>*aPtr,
+                              const TPZMatrix<TVar>*bPtr)const override;
+  inline TVar *&Elem() override
+  {
+    return fA.begin();
+  }
+  inline const TVar *Elem() const override
+  {
+    return fA.begin();
+  }
+  inline int64_t Size() const override
+  {
+    return fA.size();
+  }
 private:
 	
 	
@@ -179,7 +220,7 @@ private:
 	TPZVec<int64_t>  fJA;
 	TPZVec<TVar> fA;
 	
-    TPZPardisoSolver<TVar> fPardisoControl;
+  TPZPardisoSolver<TVar> fPardisoControl;
 	
 	TPZVec<TVar> fDiag;
 };

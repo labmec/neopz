@@ -35,11 +35,12 @@ public:
     TPZSBMatrix() : TPZRegisterClassId(&TPZSBMatrix::ClassId),
     TPZMatrix<TVar>() , fDiag() { fBand = 0; }
     TPZSBMatrix(const int64_t dim,const int64_t band );
-    TPZSBMatrix(const TPZSBMatrix<TVar> &A ) : TPZRegisterClassId(&TPZSBMatrix::ClassId),
-    TPZMatrix<TVar>(A)  { Copy(A); }
-    
+    TPZSBMatrix(const TPZSBMatrix<TVar> &A ) = default;
+    TPZSBMatrix(TPZSBMatrix<TVar> &&A ) = default;
+    inline TPZSBMatrix<TVar>*NewMatrix() const override {return new TPZSBMatrix<TVar>{};}
     CLONEDEF(TPZSBMatrix)
-    
+    TPZSBMatrix &operator= (TPZSBMatrix<TVar> &&A ) = default;
+    TPZSBMatrix &operator= (const TPZSBMatrix<TVar> &A ) = default;
     ~TPZSBMatrix() { Clear(); }
     
     int    PutVal(const int64_t row,const int64_t col,const TVar& element ) override;
@@ -48,7 +49,7 @@ public:
     TVar &operator()(int64_t row, int64_t col);
     
     /** @brief Checks if the current matrix is symmetric */
-    virtual int IsSimetric() const override
+    virtual int IsSymmetric() const override
     {
         return 1;
     }
@@ -58,14 +59,30 @@ public:
     
     /// copy the values from a matrix with a different precision
     template<class TVar2>
-    void CopyFrom(TPZSBMatrix<TVar2> &orig)
+    void CopyFromDiffPrecision(TPZSBMatrix<TVar2> &orig)
     {
-        TPZMatrix<TVar>::CopyFrom(orig);
+        TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
         fDiag.resize(orig.fDiag.size());
         int64_t nel = fDiag.size();
         for (int64_t el=0; el<nel; el++) {
             fDiag[el] = orig.fDiag[el];
         }
+    }
+
+    /** @brief Creates a copy from another TPZSBMatrix*/
+    void CopyFrom(const TPZMatrix<TVar> *  mat) override
+    {                                                           
+        auto *from = dynamic_cast<const TPZSBMatrix<TVar> *>(mat);                
+        if (from) {                                               
+            *this = *from;                                          
+        }                                                         
+        else                                                      
+            {                                                       
+                PZError<<__PRETTY_FUNCTION__;                         
+                PZError<<"\nERROR: Called with incompatible type\n."; 
+                PZError<<"Aborting...\n";                             
+                DebugStop();                                          
+            }                                                       
     }
     
     /** @brief Computes z = beta * y + alpha * opt(this)*x */
@@ -83,14 +100,13 @@ public:
     
     /// Operadores com matrizes SKY LINE.
     // @{
-    TPZSBMatrix &operator= (const TPZSBMatrix<TVar> &A );
     TPZSBMatrix operator+  (const TPZSBMatrix<TVar> &A ) const;
     TPZSBMatrix operator-  (const TPZSBMatrix<TVar> &A ) const;
     TPZSBMatrix &operator+=(const TPZSBMatrix<TVar> &A );
     TPZSBMatrix &operator-=(const TPZSBMatrix<TVar> &A );
     // @}
     TPZSBMatrix<TVar> operator*  (const TVar v ) const;
-    TPZSBMatrix<TVar> &operator*=(const TVar v );
+    TPZSBMatrix<TVar> &operator*=(const TVar v ) override;
     
     TPZSBMatrix<TVar> operator-() const { return operator*(-1.0); }
     
@@ -157,15 +173,36 @@ public:
     
     /** @} */
 
-    public:
 int ClassId() const override;
 
-private:
+protected:
+    /** @brief Checks compatibility of matrices before Add/Subtract operations*/
+    inline void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                       const TPZMatrix<TVar>*B)const override
+    {
+        auto aPtr = dynamic_cast<const TPZSBMatrix<TVar>*>(A);
+        auto bPtr = dynamic_cast<const TPZSBMatrix<TVar>*>(B);
+        if(!aPtr || !bPtr || aPtr->fBand!=bPtr->fBand){
+            PZError<<__PRETTY_FUNCTION__;
+            PZError<<"\nERROR: incompatible matrices\n.Aborting...\n";
+            DebugStop();
+        }
+    }
+    inline TVar *&Elem() override
+    {
+        return fDiag.begin();
+    }
+    inline const TVar *Elem() const override
+    {
+        return fDiag.begin();
+    }
+
     
-    int64_t  Size() const
+    inline int64_t  Size() const override
     {
         return( this->Dim() * (fBand + 1) );
     }
+private:
 //    int  PutZero();
     //static int  Error(const char *msg1,const char* msg2="" ) ;
     int  Clear() override;

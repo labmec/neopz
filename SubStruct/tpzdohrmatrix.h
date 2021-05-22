@@ -38,6 +38,10 @@ private:
 	
 	/** @brief Number of threads that will be used during the matrix vector multiplication */
 	int fNumThreads;
+
+	int64_t Size() const override;
+  TVar* &Elem() override;
+  const TVar* Elem() const override;
 	
 public:
 	
@@ -56,10 +60,25 @@ public:
 	}
 	
 	//	CLONEDEF(TPZDohrMatrix)
+	inline TPZDohrMatrix*NewMatrix() const override {return new TPZDohrMatrix{};}
 	virtual TPZMatrix<TVar>*Clone() const  override { return new TPZDohrMatrix(*this); }
 	
 	~TPZDohrMatrix();
-	
+
+	void CopyFrom(const TPZMatrix<TVar> *  mat) override        
+  {                                                           
+    auto *from = dynamic_cast<const TPZDohrMatrix<TVar,TSubStruct> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 	const SubsList &SubStructures() const
 	{
 		return fGlobal;

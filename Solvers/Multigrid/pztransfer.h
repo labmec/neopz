@@ -44,8 +44,24 @@ public :
 	fDoubleValLastUsed(cp.fDoubleValLastUsed)
 	{
 	}
-	
+	inline TPZTransfer*NewMatrix() const override {return new TPZTransfer{};}
 	virtual TPZMatrix<TVar> *Clone() const  override { return new TPZTransfer(*this); }
+
+	/** @brief Creates a copy from another TPZTransfer*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override        
+  {                                                           
+    auto *from = dynamic_cast<const TPZTransfer<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
 	
 	//TPZMatrix<REAL> : EFormatted, EInputFormat, EMathematicaInput
 	virtual void Print(const char *name = NULL, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const override;
@@ -100,7 +116,19 @@ public :
 //	void Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt) const override;
 	
     void MultiplyScalar(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt) const;
-    
+protected:
+	inline TVar *&Elem() override
+  {
+    return fDoubleValues.begin();
+  }
+  inline const TVar *Elem() const override
+  {
+    return fDoubleValues.begin();
+  }
+  inline int64_t Size() const override
+  {
+    return fDoubleValues.size();
+  }
 private:
 	
 	/** @brief Increases the storage allocated

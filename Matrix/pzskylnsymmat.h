@@ -48,8 +48,31 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
     { 
         Copy(A); 
     }
-
+  TPZSkylNSymMatrix(TPZSkylNSymMatrix &&A ) = default;
+  inline TPZSkylNSymMatrix<TVar>*NewMatrix() const override
+  {
+    return new TPZSkylNSymMatrix<TVar>{};
+  }
   CLONEDEF(TPZSkylNSymMatrix)
+  TPZSkylNSymMatrix& operator=(const TPZSkylNSymMatrix&A);
+  TPZSkylNSymMatrix& operator=(TPZSkylNSymMatrix&&A) = default;
+  virtual ~TPZSkylNSymMatrix() { Clear(); }
+
+  /** @brief Creates a copy from another TPZSkylNSymMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZSkylNSymMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
   /**
      modify the skyline of the matrix, throwing away its values
      skyline indicates the minimum row number which will be accessed by each equation
@@ -67,9 +90,7 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   //void AddSameStruct(TPZSkylNSymMatrix &B, double k = 1.);
 
   /**declare the object as non-symmetric matrix*/
-  virtual int IsSimetric() const  override {return 0;}
-
-  virtual ~TPZSkylNSymMatrix() { Clear(); }
+  virtual int IsSymmetric() const  override {return 0;}
 
   int PutVal(const int64_t row,const int64_t col,const TVar &element ) override;
 
@@ -97,18 +118,16 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
     virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
 
   // Operadores com matrizes SKY LINE.
-  //TPZSkylNSymMatrix &operator= (const TPZSkylNSymMatrix &A );
-  //TPZSkylMatrix &operator= (TTempMat<TPZSkylMatrix> A);
 
-  //TPZSkylNSymMatrix operator+  (const TPZSkylNSymMatrix &A ) const;
-  //TPZSkylNSymMatrix operator-  (const TPZSkylNSymMatrix &A ) const;
+  TPZSkylNSymMatrix operator+(const TPZSkylNSymMatrix<TVar> &A ) const;
+  TPZSkylNSymMatrix operator-(const TPZSkylNSymMatrix<TVar> &A ) const;
 
-  //TPZSkylNSymMatrix &operator+=(const TPZSkylNSymMatrix &A );
-  //TPZSkylNSymMatrix &operator-=(const TPZSkylNSymMatrix &A );
+  TPZSkylNSymMatrix &operator+=(const TPZSkylNSymMatrix<TVar> &A );
+  TPZSkylNSymMatrix &operator-=(const TPZSkylNSymMatrix<TVar> &A );
 
   // Operadores com valores NUMERICOS.
-  //TPZSkylNSymMatrix operator*  (const REAL v ) const;
-  //TPZSkylNSymMatrix &operator*=( REAL v );
+  TPZSkylNSymMatrix operator*(const TVar v ) const;
+  TPZSkylNSymMatrix &operator*=( TVar v ) override;
 
   //TPZSkylNSymMatrix operator-() const;// { return operator*(-1.0); }
 
@@ -190,7 +209,7 @@ int ClassId() const override;
   /**
      Computes the highest skyline of both objects
   */
-  static void ComputeMaxSkyline(const TPZSkylNSymMatrix &first, const TPZSkylNSymMatrix &second, TPZVec<int> &res);
+  static void ComputeMaxSkyline(const TPZSkylNSymMatrix &first, const TPZSkylNSymMatrix &second, TPZVec<int64_t> &res);
 	
 	/** @brief Zeroes the matrix */
 	virtual int Zero() override {
@@ -201,6 +220,13 @@ int ClassId() const override;
 
 
 protected:
+  TVar *&Elem() override;
+  const TVar *Elem() const override;
+  
+  inline int64_t Size() const override
+  {
+    return fStorage.size();
+  }
   /**
      fElem is of size number of equation+1
      fElem[i] is the first element of the skyline of equation i

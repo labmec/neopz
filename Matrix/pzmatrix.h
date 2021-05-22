@@ -15,11 +15,14 @@ class TPZVec;
 template<class TVar>
 class TPZFMatrix;
 template<class TVar>
+class TPZFMatrixRef;
+template<class TVar>
 class TPZAutoPointer;
 
 class TPZStream;
 /** @brief To create clone matrix */
 #define CLONEDEF(A) virtual TPZMatrix<TVar>*Clone() const override { return new A(*this); }
+
 
 class TPZSolver;
 
@@ -38,17 +41,19 @@ public:
 	{
 	}
 
-    /** @brief Move constructor */
-    TPZMatrix<TVar>(TPZMatrix<TVar> &&cp) = default;
+  /** @brief Move constructor */
+  TPZMatrix<TVar>(TPZMatrix<TVar> &&cp) = default;
 	/** @brief Simple destructor */
 	virtual ~TPZMatrix() = default;
 
-    /** @brief Copy assignment operator*/
-    TPZMatrix<TVar> &operator=(const TPZMatrix<TVar> &);
-    /** @brief Move assignment operator*/
-    TPZMatrix<TVar> &operator=(TPZMatrix<TVar> &&);
-
-    virtual TPZMatrix<TVar>*Clone() const = 0;
+  /** @brief Copy assignment operator*/
+  TPZMatrix<TVar> &operator=(const TPZMatrix<TVar> &);
+  /** @brief Move assignment operator*/
+  TPZMatrix<TVar> &operator=(TPZMatrix<TVar> &&);
+  /** @brief To create a matrix of the same type */
+  virtual TPZMatrix<TVar>*NewMatrix() const = 0;
+  /** @brief To create clone matrix */
+  virtual TPZMatrix<TVar>*Clone() const = 0;
 
 	/**
 	 * @brief Returns the approximate size of the memory footprint (amount
@@ -62,17 +67,29 @@ public:
 	  //DebugStop();
 	  return 0;
 	}
-    
-    template<class TVar2>
-    void CopyFrom(TPZMatrix<TVar2> &copy)
-    {
-        fDecomposed = copy.IsDecomposed();
-        fDefPositive = copy.IsDefPositive();
-        fRow = copy.Rows();
-        fCol = copy.Cols();
 
-    }
+  /** @{ */
+  /** @brief Reference to a nx1 TPZFMatrix associated with the contiguous memory area 
+   of the matrix.
+  This method is useful for arithmetic operations. Derived class should implement
+  methods `Size()` and `Elem()`*/
+  TPZFMatrixRef<TVar> Storage();
+  const TPZFMatrix<TVar> Storage() const;
+  /** @} */
+  template<class TVar2>
+  void CopyFromDiffPrecision(TPZMatrix<TVar2> &copy)
+  {
+    fDecomposed = copy.IsDecomposed();
+    fDefPositive = copy.IsDefPositive();
+    fRow = copy.Rows();
+    fCol = copy.Cols();
 
+  }
+
+  /** @brief Creates a copy from a given matrix of arbitrary storage format. 
+      Every implementation should check for type compatibility */
+  virtual void CopyFrom(const TPZMatrix<TVar> *mat) = 0;
+  
 	/** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
 	void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
@@ -107,23 +124,23 @@ public:
 	 * @param col Column number.
 	 */
 	TVar operator() (const int64_t row,const int64_t col ) const;
-    /**
-     * @brief The operators check on the bounds if the DEBUG variable is defined
-     * @param row Row number.
-     * @param col Column number.
-     */
-    TVar &at(const std::pair<int64_t,int64_t> &rowcol )
-    {
-        return operator()(rowcol.first,rowcol.second);
-    }
-    const TVar at(const std::pair<int64_t,int64_t> &rowcol ) const
-    {
-        return Get(rowcol.first,rowcol.second);
-    }
+  /**
+   * @brief The operators check on the bounds if the DEBUG variable is defined
+   * @param row Row number.
+   * @param col Column number.
+   */
+  TVar &at(const std::pair<int64_t,int64_t> &rowcol )
+  {
+    return operator()(rowcol.first,rowcol.second);
+  }
+  const TVar at(const std::pair<int64_t,int64_t> &rowcol ) const
+  {
+    return Get(rowcol.first,rowcol.second);
+  }
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
-     * @param row Row number.
-     * @param col Column number.
+   * @param row Row number.
+   * @param col Column number.
 	 */
 	virtual TVar &s(const int64_t row, const int64_t col);
 	/**
@@ -156,12 +173,24 @@ public:
 	 * @param opt Indicates if is Transpose or not
 	 */
 	virtual void Multiply(const TPZFMatrix<TVar>& A,TPZFMatrix<TVar>& res, int opt = 0) const;
+  /**
+	 * @brief It mutiplies itself by a scalar alpha putting the result in res
+	 * @param alpha scalar to be multiplied with
+	 * @param res TPZFMatrix<TVar>containing the result
+	 */
+  void MultiplyByScalar(const TVar alpha,TPZMatrix<TVar>& res) const;
 	/**
 	 * @brief It adds itself to TPZMatrix<TVar>A putting the result in res
 	 * @param A TPZMatrix<TVar>to added to current matrix
 	 * @param res Contains the result
 	 */
-	virtual void Add(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& res) const;
+	void Add(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& res) const;
+  /** @brief It substracts A from storing the result in result */
+	void Subtract(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& result) const;
+
+  virtual TPZMatrix<TVar> &operator*=(const TVar val);
+
+  TPZFMatrix<TVar> operator*(const TPZFMatrix<TVar> &B );
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
 	 * @param x Is x on the above operation
@@ -176,8 +205,6 @@ public:
 	
 	/** @brief Computes res = rhs - this * x */
 	virtual void Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res ) ;
-	/** @brief It substracts A from storing the result in result */
-	virtual void Substract(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& result) const;
 	
 	/** @brief Converts the matrix in an identity matrix*/
 	virtual void Identity();
@@ -670,7 +697,16 @@ public:
     bool CompareValues(TPZMatrix<TVar>&M, TVar tol);
 	
 protected:
-	
+  /** @brief Checks compatibility of matrices before Add/Subtract operations*/
+  virtual void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                      const TPZMatrix<TVar>*B)const;
+  /** @brief Number of entries storaged in the Matrix*/
+  virtual int64_t Size() const = 0;
+  /** @{ */
+  /** @brief Pointer to the beginning of the storage of the matrix*/
+  virtual TVar* &Elem() = 0;
+  virtual const TVar* Elem() const = 0;
+  /** @} */
 	/**
 	 * @brief Is an auxiliar method used by MultiplyAdd
 	 * @see MultAdd
@@ -820,14 +856,14 @@ inline TVar &TPZMatrix<TVar>::operator()(const int64_t row) {
 
 template<class TVar>
 inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B, std::list<int64_t> &singular) {
-	if ( IsSimetric() )
+	if ( IsSymmetric() )
         Error( "LU decomposition is not a symmetric decomposition" );
 	return ( ( !Decompose_LU(singular) )?  0 : Substitution( B )  );
 }
 
 template<class TVar>
 inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B ) {
-	if ( IsSimetric() )
+	if ( IsSymmetric() )
         Error( "LU decomposition is not a symmetric decomposition" );
 	return ( ( !Decompose_LU() )?  0 : Substitution( B )  );
 }

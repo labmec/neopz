@@ -41,34 +41,54 @@ public:
 	 */
 	TPZFBMatrix (const int64_t dim,const int64_t band_width = 0 );
 	/** @brief Copy constructor */
-	TPZFBMatrix (const TPZFBMatrix<TVar> & );
-	
+	TPZFBMatrix (const TPZFBMatrix<TVar> & ) = default;
+  /** @brief Move constructor */
+	TPZFBMatrix (TPZFBMatrix<TVar> && ) = default;
+  inline TPZFBMatrix<TVar>*NewMatrix() const override {return new TPZFBMatrix<TVar>{};}
 	CLONEDEF(TPZFBMatrix)
-	/** @brief Simple destructor */
+	/** @brief Copy-assignment operator*/
+  TPZFBMatrix &operator= (const TPZFBMatrix<TVar> & A ) = default;
+  /** @brief Move-assignment operator*/
+  TPZFBMatrix &operator= (TPZFBMatrix<TVar> && A ) = default;
+  /** @brief Simple destructor */
 	~TPZFBMatrix();
 
-    friend class TPZFBMatrix<float>;
-    friend class TPZFBMatrix<double>;
+  friend class TPZFBMatrix<float>;
+  friend class TPZFBMatrix<double>;
     
-    /// copy the values from a matrix with a different precision
-    template<class TVar2>
-    void CopyFrom(TPZFBMatrix<TVar2> &orig)
-    {
-        TPZMatrix<TVar>::CopyFrom(orig);
-        fBandLower = orig.fBandLower;
-        fBandUpper = orig.fBandUpper;
-        fElem.resize(orig.fElem.size());
-        int64_t nel = fElem.size();
-        for (int64_t el=0; el<nel; el++) {
-            fElem[el] = orig.fElem[el];
-        }
-        fPivot = orig.fPivot;
-        
+  /// copy the values from a matrix with a different precision
+  template<class TVar2>
+  void CopyFromDiffPrecision(TPZFBMatrix<TVar2> &orig)
+  {
+    TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
+    fBandLower = orig.fBandLower;
+    fBandUpper = orig.fBandUpper;
+    fElem.resize(orig.fElem.size());
+    int64_t nel = fElem.size();
+    for (int64_t el=0; el<nel; el++) {
+      fElem[el] = orig.fElem[el];
     }
+    fPivot = orig.fPivot;
+        
+  }
     
-
-    
-    void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+  /** @brief Creates a copy from another TPZFBMatrix*/
+  void CopyFrom(const TPZMatrix<TVar> *  mat) override
+  {                                                           
+    auto *from = dynamic_cast<const TPZFBMatrix<TVar> *>(mat);                
+    if (from) {                                               
+      *this = *from;                                          
+    }                                                         
+    else                                                      
+      {                                                       
+        PZError<<__PRETTY_FUNCTION__;                         
+        PZError<<"\nERROR: Called with incompatible type\n."; 
+        PZError<<"Aborting...\n";                             
+        DebugStop();                                          
+      }                                                       
+  }
+  
+  void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
 
     
 	int    Put(const int64_t row,const int64_t col,const TVar& value ) override;
@@ -79,7 +99,7 @@ public:
 
 	inline int    PutVal(const int64_t row,const int64_t col,const TVar& value ) override;
 	inline const TVar GetVal(const int64_t row,const int64_t col ) const override;
-	
+  
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 				 const TVar alpha=1,const TVar beta = 0,const int opt = 0) const override;
 	// Computes z = beta * y + alpha * opt(this)*x
@@ -88,14 +108,13 @@ public:
 	// Peforms the product (*this)T x D x (*this).
 	//  TPZFBMatrix  InnerProd(TPZFBMatrix &D );
 	
-	TPZFBMatrix &operator= (const TPZFBMatrix<TVar> & A );
 	TPZFBMatrix operator+  (const TPZFBMatrix<TVar> & A ) const;
 	TPZFBMatrix operator-  (const TPZFBMatrix<TVar> & A ) const;
 	TPZFBMatrix &operator+=(const TPZFBMatrix<TVar> & A );
 	TPZFBMatrix &operator-=(const TPZFBMatrix<TVar> & A );
 	
 	TPZFBMatrix operator*  (const TVar val ) const;
-	TPZFBMatrix &operator*=(const TVar val );
+	TPZFBMatrix &operator*=(const TVar val ) override;
 	
 	TPZFBMatrix operator-() const;
 	
@@ -140,7 +159,33 @@ public:
     public:
 int ClassId() const override;
 
-    
+protected:
+  inline void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                     const TPZMatrix<TVar>*B)const override
+  {
+    auto aPtr = dynamic_cast<const TPZFBMatrix<TVar>*>(A);
+    auto bPtr = dynamic_cast<const TPZFBMatrix<TVar>*>(B);
+    if(!aPtr || !bPtr ||
+       (aPtr->fBandUpper!=bPtr->fBandUpper)||
+       (aPtr->fBandLower!=bPtr->fBandLower)
+       ){
+      PZError<<__PRETTY_FUNCTION__;
+      PZError<<"\nERROR: incompatible matrices\n.Aborting...\n";
+      DebugStop();
+    }
+  }
+  inline TVar *&Elem() override
+  {
+    return fElem.begin();
+  }
+  inline const TVar *Elem() const override
+  {
+    return fElem.begin();
+  }
+  inline int64_t Size() const override
+  {
+    return fElem.size();
+  }
 private:
 	
     int64_t Index(int64_t i, int64_t j) const
@@ -152,7 +197,7 @@ private:
 	TPZVec<TVar> fElem;
 	int64_t  fBandLower, fBandUpper;
 
-    TPZManVector<int,5> fPivot;
+  TPZManVector<int,5> fPivot;
 
 };
 

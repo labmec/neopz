@@ -195,6 +195,33 @@ void TPZFrontMatrix<TVar,store, front>::Print(const char *name, std::ostream& ou
 	}
 }
 
+
+template<class TVar, class store, class front>
+int64_t TPZFrontMatrix<TVar,store,front>::Size() const
+{
+	PZError<<__PRETTY_FUNCTION__;
+  PZError<<"ERROR:Should not be called\n.Aborting...\n";
+  DebugStop();
+	return -1;
+}
+template<class TVar, class store, class front>
+TVar* &TPZFrontMatrix<TVar,store,front>::Elem()
+{
+	PZError<<__PRETTY_FUNCTION__;
+  PZError<<"ERROR:Should not be called\n.Aborting...\n";
+  DebugStop();
+	static TVar* t{nullptr};
+  return t;
+}
+template<class TVar, class store, class front>
+const TVar* TPZFrontMatrix<TVar,store,front>::Elem() const
+{
+	PZError<<__PRETTY_FUNCTION__;
+  PZError<<"ERROR:Should not be called\n.Aborting...\n";
+  DebugStop();
+	return nullptr;
+}
+
 template<class TVar, class store, class front>
 void TPZFrontMatrix<TVar,store, front>::main()
 {

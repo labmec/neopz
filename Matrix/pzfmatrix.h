@@ -60,6 +60,7 @@ class TPZLapackEigenSolver;
 template<class TVar=REAL>
 class TPZFMatrix: public TPZMatrix<TVar> {
     friend class TPZLapackEigenSolver<TVar>;
+    friend class TPZMatrix<TVar>;
 public:
     
     /** @brief Simple constructor */
@@ -102,9 +103,16 @@ public:
      * @param refmat Used as a model for current object
      */
     TPZFMatrix(const TPZFMatrix<TVar> & refmat);
-    
-    
-    
+    /**
+     * @brief Move constructor
+     * @param refmat Used as a model for current object
+     */
+    TPZFMatrix(TPZFMatrix<TVar> && refmat);
+    //!Copy-assignment operator
+    TPZFMatrix&operator= (const TPZFMatrix<TVar> &A );
+    //!Move-assignment operator
+    TPZFMatrix&operator= (TPZFMatrix<TVar> &&A );
+    inline TPZFMatrix<TVar>*NewMatrix() const override {return new TPZFMatrix<TVar>{};}
     CLONEDEF(TPZFMatrix<TVar>)
     TPZFMatrix(const TPZMatrix<TVar> & refmat);
 
@@ -134,30 +142,27 @@ public:
     
     int64_t MemoryFootprint() const  override
     {
-        return (sizeof(TVar)*this->Rows()*this->Cols());
+        return (sizeof(TVar)*Size());
     }
     
-    TVar *Adress()
-    {
-        return fElem;
-    }
-    
+        
     friend class TPZFMatrix<float>;
     friend class TPZFMatrix<double>;
     friend class TPZHCurlAuxClass;//for using the GETVAL macro.
     /// copy the values from a matrix with a different precision
 
     template<class TVar2>
-    void CopyFrom(TPZFMatrix<TVar2> &orig)
+    void CopyFromDiffPrecision(TPZFMatrix<TVar2> &orig)
     {
         Resize(orig.Rows(), orig.Cols());
-        TPZMatrix<TVar>::CopyFrom(orig);
+        TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
         int64_t nel = orig.Rows()*orig.Cols();
         for (int64_t el=0; el<nel; el++) {
             fElem[el] = orig.fElem[el];
         }
     }
-
+    /** @brief Creates a copy from another TPZMatrix*/
+    void CopyFrom(const TPZMatrix<TVar> *  mat) override;
     /** @brief Updates the values of the matrix based on the values of the matrix */
     virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> >  mat) override
     {
@@ -222,17 +227,14 @@ public:
      * @name Operations with FULL matrices
      * @{
      */
-    
-    /** @brief Generic operator with FULL matrices */
-    virtual TPZFMatrix&operator= (const TPZFMatrix<TVar> &A );
 
     virtual TPZFMatrix<TVar>& operator= (const std::initializer_list<TVar>& list);
-	TPZFMatrix<TVar>& operator= (const std::initializer_list< std::initializer_list<TVar> >& list);
+    TPZFMatrix<TVar>& operator= (const std::initializer_list< std::initializer_list<TVar> >& list);
     TPZFMatrix<TVar> operator+  (const TPZFMatrix<TVar> &A ) const;
     TPZFMatrix<TVar> operator-  (const TPZFMatrix<TVar> &A ) const;
-    TPZFMatrix<TVar> operator*  ( TPZFMatrix<TVar> A ) const ;
-    TPZFMatrix<TVar> &operator+=(const TPZFMatrix<TVar> &A );
-    TPZFMatrix<TVar> &operator-=(const TPZFMatrix<TVar> &A );
+    TPZFMatrix<TVar> operator*  (const TPZFMatrix<TVar> &A ) const;
+    TPZFMatrix<TVar> &operator+=(const TPZMatrix<TVar> &A );
+    TPZFMatrix<TVar> &operator-=(const TPZMatrix<TVar> &A );
 
     /**
      * @brief Procedure to generate &operator= from list
@@ -272,7 +274,7 @@ public:
     TPZFMatrix<TVar> operator*  (const TVar val ) const;
     TPZFMatrix<TVar> &operator+=(const TVar val );
     TPZFMatrix<TVar> &operator-=(const TVar val )  { return operator+=( -val ); }
-    TPZFMatrix<TVar> &operator*=(const TVar val );
+    TPZFMatrix<TVar> &operator*=(const TVar val ) override;
     
     //	TPZFMatrix<TVar> operator-() const;// { return operator*( -1.0 ); }
     
@@ -443,7 +445,34 @@ int ClassId() const override;
     operator const TVar*() const { return fElem; }
     
     static void PrintStatic(const TVar *ptr, int64_t rows, int64_t cols, const char *name, std::ostream& out,const MatrixOutputFormat form);
-    
+
+protected:
+    /** @brief Checks compatibility of matrices before Add/Subtract operations*/
+    inline void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                       const TPZMatrix<TVar>*B)const override
+    {
+        auto aPtr = dynamic_cast<const TPZFMatrix<TVar>*>(A);
+        auto bPtr = dynamic_cast<const TPZFMatrix<TVar>*>(B);
+        if(!aPtr || !bPtr){
+            PZError<<__PRETTY_FUNCTION__;
+            PZError<<"\nERROR: incompatible matrices.Aborting...\n";
+            DebugStop();
+        }
+    }
+    inline TVar *&
+    Elem() override
+    {
+        return fElem;
+    }
+    inline const TVar *Elem() const override
+    {
+        return fElem;
+    }
+
+    inline int64_t Size() const override
+    {
+        return this->Rows()*this->Cols();
+    }
 private:
     
     static int Error(const char *msg1,const char *msg2=0 );
@@ -557,7 +586,7 @@ inline TPZFMatrix<TVar> operator*(TVar val, const TPZFMatrix<TVar> &A)
 /*******************************/
 /*** Operator*( TPZMatrix<TVar> & ) ***/
 template<class TVar>
-inline TPZFMatrix<TVar> TPZFMatrix<TVar>::operator*( TPZFMatrix<TVar> A ) const {
+inline TPZFMatrix<TVar> TPZFMatrix<TVar>::operator*(const TPZFMatrix<TVar> &A) const {
     if ( this->Cols() != A.Rows() )
         Error( "Operator* <matrixs with incompatible dimensions>" );
     
@@ -782,7 +811,7 @@ public:
         TPZFMatrix<TVar>::operator=(val);
     }
     
-    inline  TPZFMatrix<TVar> &operator=(const TPZFMatrix<TVar> &copy)  override {
+    inline  TPZFMatrix<TVar> &operator=(const TPZFMatrix<TVar> &copy) {
         return TPZFMatrix<TVar>::operator=(copy);
     }
     inline  TPZFNMatrix<N, TVar> &operator=(const TPZFNMatrix<N, TVar> &copy) {

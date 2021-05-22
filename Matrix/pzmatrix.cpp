@@ -13,6 +13,7 @@
 //#include "pzfmatrix.h"
 #include "pzmatrix.h"
 #include "TPZMatrixSolver.h"
+#include "TPZFMatrixRef.h"
 #include "pzvec.h"
 #include "pzextractval.h"
 
@@ -55,32 +56,21 @@ const TVar TPZMatrix<TVar>::GetVal(const int64_t /*row*/, const int64_t /*col*/ 
     return (TVar)0;
 }
 
-
-
 template<class TVar>
-void TPZMatrix<TVar>::Add(const TPZMatrix<TVar>&A,TPZMatrix<TVar>&B) const {
-	if ((Rows() != A.Rows()) || (Cols() != A.Cols()) ) {
-		Error( "Add(TPZMatrix<>&, TPZMatrix) <different dimensions>" );
-	}
-	
-	B.Redim( A.Rows(), A.Cols() );
-	
-	for ( int64_t r = 0; r < Rows(); r++ )
-		for ( int64_t c = 0; c < Cols(); c++ ) B.PutVal( r, c, GetVal(r,c)+A.GetVal(r,c) );
+TPZFMatrixRef<TVar> TPZMatrix<TVar>::Storage()
+{
+  const auto size = Size();
+  const auto elem = Elem();
+	TPZFMatrixRef<TVar> ref(size,Elem());
+	return ref;
 }
 template<class TVar>
-void TPZMatrix<TVar>::Substract(const TPZMatrix<TVar> &A,TPZMatrix<TVar> &result) const {
-	
-	if ((Rows() != A.Rows()) || (Cols() != A.Cols()) ) {
-		Error( "Add(TPZMatrix<>&, TPZMatrix<>&) <different dimensions>" );
-	}
-	
-    result.Resize( Rows(), Cols() );
-    for ( int64_t r = 0; r < Rows(); r++ ) {
-        for ( int64_t c = 0; c < Cols(); c++ ) {
-            result.PutVal( r, c, GetVal(r,c)-A.GetVal(r,c) );
-        }
-    }
+const TPZFMatrix<TVar> TPZMatrix<TVar>::Storage() const
+{
+  const auto size = Size();
+  const auto elem = Elem();
+	TPZFMatrix<TVar> ref(size,1,const_cast<TVar*>(elem),size);
+	return ref;
 }
 
 template<class TVar>
@@ -100,34 +90,24 @@ void TPZMatrix<TVar>::Simetrize() {
   
 }
 
-/** @brief Implements sum of matrices: \f$ A+B \f$ */
-template<class TVar>
-TPZFMatrix<TVar> operator+(const TPZMatrix<TVar> &A, const TPZMatrix<TVar> &B ) {
-	TPZFMatrix<TVar> temp;
-    temp.Redim( A.Rows(), A.Cols() );
-    A.Add(B,temp);
-    return temp;
-}
-
-
-/** @brief Implements difference of matrices: \f$ A-B \f$ */
-template<class TVar>
-TPZFMatrix<TVar> operator-(const TPZMatrix<TVar> &A, const TPZMatrix<TVar> &B ) {
-	TPZFMatrix<TVar> temp;
-    TPZFMatrix<TVar> res;
-    res.Redim( A.Rows(), A.Cols() );
-    A.Substract(B,res);
-    return temp;
-}
-
 /** @brief Implements product of matrices: \f$ A*B \f$ */
 template<class TVar>
-TPZFMatrix<TVar> operator*( TPZMatrix<TVar> &A, const TPZFMatrix<TVar> &B ) {
-    TPZFMatrix<TVar> res;
-    res.Redim( A.Rows(), B.Cols() );
-	A.Multiply(B,res);
+TPZFMatrix<TVar> TPZMatrix<TVar>::operator*(const TPZFMatrix<TVar> &B ) {
+  TPZFMatrix<TVar> res;
+  res.Redim( this->Rows(), B.Cols() );
+	this->Multiply(B,res);
 	return res;
 }
+
+template<class TVar>
+void TPZMatrix<TVar>::CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                                             const TPZMatrix<TVar>*B) const
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"\nERROR: not implemented for your matrix type.\nAborting...\n";
+  DebugStop();
+}
+
 template<class TVar>
 void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,const TVar beta,const int opt) const
 {
@@ -357,7 +337,7 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 	}
     else if( form == EMatrixMarket)
     {
-        bool sym = IsSimetric();
+        bool sym = IsSymmetric();
         int64_t numzero = 0;
         int64_t nrow = Rows();
         for ( int64_t row = 0; row < Rows(); row++) {
@@ -531,7 +511,7 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &destinati
 	
 	int64_t nelem = elmat.Rows();
   	int64_t icoef,jcoef,ieq,jeq;
-	if(IsSimetric()) {
+	if(IsSymmetric()) {
 		for(icoef=0; icoef<nelem; icoef++) {
 			ieq = destinationindex[icoef];
 			for(jcoef=icoef; jcoef<nelem; jcoef++) {
@@ -560,7 +540,7 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &source, T
 	int64_t nelem = source.NElements();
   	int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
     TVar prevval;
-	if(IsSimetric()) {
+	if(IsSymmetric()) {
 		for(icoef=0; icoef<nelem; icoef++) {
 			ieq = destinationindex[icoef];
 			ieqs = source[icoef];
@@ -1766,6 +1746,77 @@ TVar TPZMatrix<TVar>::ConditionNumber(int p, int64_t numiter, REAL tol){
 }
 
 template<class TVar>
+void TPZMatrix<TVar>::Add(const TPZMatrix<TVar>&A,TPZMatrix<TVar>&res) const {
+	if ((Rows() != A.Rows()) || (Cols() != A.Cols()) ) {
+		Error( "Add(TPZMatrix<>&, TPZMatrix) <different dimensions>" );
+	}
+  if(this->Size()!=A.Size()){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"ERROR\nDifferent number of entries.\nAborting...\n";
+    DebugStop();
+  }
+  res.CopyFrom(this);
+  auto thisFmat =
+    dynamic_cast<const TPZFMatrix<TVar>*>(this);
+  auto aFmat =
+    dynamic_cast<const TPZFMatrix<TVar>*>(&A);
+  auto resFmat =
+    dynamic_cast<TPZFMatrix<TVar>*>(&res);
+  if(resFmat && (!thisFmat || !aFmat)){
+    for ( int64_t r = 0; r < Rows(); r++ )
+      for ( int64_t c = 0; c < Cols(); c++ )
+        res.PutVal( r, c, GetVal(r,c)+A.GetVal(r,c) );
+  }else{
+    CheckTypeCompatibility(&res,&A);
+    res.Storage() += A.Storage();
+  }
+  
+}
+template<class TVar>
+void TPZMatrix<TVar>::Subtract(const TPZMatrix<TVar> &A,TPZMatrix<TVar> &res) const {
+	
+	if ((Rows() != A.Rows()) || (Cols() != A.Cols()) ) {
+		Error( "Add(TPZMatrix<>&, TPZMatrix<>&) <different dimensions>" );
+	}
+	if(this->Size()!=A.Size()){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"ERROR\nDifferent number of entries.\nAborting...\n";
+    DebugStop();
+  }
+  res.CopyFrom(this);
+  auto thisFmat =
+    dynamic_cast<const TPZFMatrix<TVar>*>(this);
+  auto aFmat =
+    dynamic_cast<const TPZFMatrix<TVar>*>(&A);
+  auto resFmat =
+    dynamic_cast<TPZFMatrix<TVar>*>(&res);
+  if(resFmat && (!thisFmat || !aFmat)){
+    for ( int64_t r = 0; r < Rows(); r++ )
+      for ( int64_t c = 0; c < Cols(); c++ )
+        res.PutVal( r, c, GetVal(r,c)-A.GetVal(r,c) );
+  }else{
+    CheckTypeCompatibility(&res,&A);
+    res.Storage() -= A.Storage();
+  }
+}
+
+template<class TVar>
+void TPZMatrix<TVar>::MultiplyByScalar(const TVar alpha, TPZMatrix<TVar>&res) const
+{
+  res.CopyFrom(this);
+  res.Storage() *= alpha;
+}
+
+template<class TVar>
+TPZMatrix<TVar> &TPZMatrix<TVar>::operator*=(const TVar val)
+{
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"\nERROR: not implemented.\nAborting...\n";
+  DebugStop();
+  return *this;
+}
+
+template<class TVar>
 void TPZMatrix<TVar>::Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar>&B, int opt) const {
 	if ((opt==0 && Cols() != A.Rows()) || (opt ==1 && Rows() != A.Rows()))
 		Error( "Multiply (TPZMatrix<>&,TPZMatrix<TVar> &) <incompatible dimensions>" );
@@ -1801,7 +1852,7 @@ int TPZMatrix<TVar>::Inverse(TPZFMatrix<TVar>&Inv, DecomposeType dec){
     }
     else
     {
-        const int issimetric = this->IsSimetric();
+        const int issimetric = this->IsSymmetric();
         if (issimetric)  return this->SolveDirect(Inv, ELDLt);
         if (!issimetric) return this->SolveDirect(Inv, ELU);
     }

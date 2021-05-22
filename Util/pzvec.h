@@ -171,13 +171,13 @@ public:
 	
 	/** @brief Casting operator. Returns The fStore pointer. */
 	//operator T*() const { return fStore; }
-    
-    /** @brief Returns a pointer to the first element */
-    T *begin() const;
-    
-    /** @brief Returns a pointer to the last+1 element */
-    T *end() const;
-	
+  /** @{ */
+  /** @brief Returns a pointer to the first element */
+  T *begin() const;
+  T *&begin();
+  /** @{ */
+  /** @brief Returns a pointer to the last+1 element */
+  T *end() const;
 	/**
 	 * @brief Will fill the elements of the vector with a copy object.
 	 * @param copy object which will be copied
@@ -505,6 +505,10 @@ T *TPZVec<T>::begin() const {
     return fStore;
 }
 
+template<class T>
+T *&TPZVec<T>::begin() {
+    return fStore;
+}
 template<class T>
 T *TPZVec<T>::end() const {
     return fStore+fNElements;
