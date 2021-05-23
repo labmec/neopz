@@ -499,7 +499,7 @@ template<class TGeo>
 template<class T>
 void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec<T> &result) const {
 //    TPZGeoEl &gel = *fGeoEl;
-    if(fGeoEl) DebugStop();
+    if(!fGeoEl) DebugStop();
     TPZGeoMesh *gmesh = fGeoEl->Mesh();
     TPZManVector<T,3> notUsedHereVec(3,(T)0);
     TPZFNMatrix<9,T> notUsedHereMat(TGeo::NSides, TGeo::NSides,(T)0);//since some methods dont resize the matrix, it is
