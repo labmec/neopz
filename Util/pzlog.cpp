@@ -21,14 +21,20 @@ static std::mutex glogmutex;
 
 
 
-TPZLogger::TPZLogger(const std::string &&loggerName) : fLogName(loggerName){  
-   auto logPtr = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(loggerName));
-   fIsDebugEnabled = logPtr->isDebugEnabled();
-   fIsWarnEnabled = logPtr->isWarnEnabled();
-   fIsInfoEnabled = logPtr->isInfoEnabled();
-   fIsErrorEnabled = logPtr->isErrorEnabled();
-   fIsFatalEnabled = logPtr->isFatalEnabled();
+TPZLogger::TPZLogger(const std::string &&loggerName) : fLogName(loggerName){
 }
+
+void TPZLogger::InitializeLogLevels()
+{
+     auto logPtr = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(fLogName));
+     fIsDebugEnabled = logPtr->isDebugEnabled();
+     fIsWarnEnabled = logPtr->isWarnEnabled();
+     fIsInfoEnabled = logPtr->isInfoEnabled();
+     fIsErrorEnabled = logPtr->isErrorEnabled();
+     fIsFatalEnabled = logPtr->isFatalEnabled();
+    fLogNotInitialized = false;
+}
+
 
 void pzinternal::LogPzDebugImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
   log4cxx::LoggerPtr lg = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(pzlg.fLogName));
