@@ -73,12 +73,36 @@ public:
   TPZLogger() = delete;
   //get logger name as input param
   TPZLogger(const std::string &&);
+    
+    // initialize the datastructure indicating the loglevel
+    void InitializeLogLevels();
   //the following functions are getters for logger lvls
-  bool isDebugEnabled() const {return fIsDebugEnabled;}
-  bool isWarnEnabled() const {return fIsWarnEnabled;}
-  bool isInfoEnabled() const {return fIsInfoEnabled;}
-  bool isErrorEnabled() const {return fIsErrorEnabled;}
-  bool isFatalEnabled() const {return fIsFatalEnabled;}
+    bool isDebugEnabled()
+    {
+        if(fLogNotInitialized) InitializeLogLevels();
+        return fIsDebugEnabled;
+    }
+    bool isWarnEnabled()
+    {
+        if(fLogNotInitialized) InitializeLogLevels();
+        return fIsWarnEnabled;
+    }
+    bool isInfoEnabled()
+    {
+        if(fLogNotInitialized) InitializeLogLevels();
+        return fIsInfoEnabled;
+    }
+    bool isErrorEnabled()
+    {
+        if(fLogNotInitialized) InitializeLogLevels();
+        return fIsErrorEnabled;
+    }
+    bool isFatalEnabled()
+    {
+        if(fLogNotInitialized) InitializeLogLevels();
+        return fIsFatalEnabled;
+
+    }
   //initializes loggger using custom config in configfile.
   static void InitializePZLOG(const std::string &configfile);
   //initializes logger using default NeoPZ config
@@ -88,6 +112,8 @@ public:
   }
 private:
   const std::string fLogName;
+    bool fLogNotInitialized = true;
+    
   bool fIsDebugEnabled;
   bool fIsWarnEnabled;
   bool fIsInfoEnabled;
