@@ -505,7 +505,7 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
     }
     if(this->Connect(0).Order() == 0)
     {
-        phi(0) = 1./detjac;
+        phi(0) = 1./detjac/gel->NCornerNodes();
         dphi.Zero();
         return;
     }
