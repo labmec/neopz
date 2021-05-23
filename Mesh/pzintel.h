@@ -12,6 +12,9 @@
 struct TPZElementMatrix;
 
 class TPZIntPoints;
+template<class TVar>
+class TPZTransfer;
+
 #include "TPZCompElDisc.h"
 #include "TPZOneShapeRestraint.h"
 #include "pzblockdiag.h"

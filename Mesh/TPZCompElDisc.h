@@ -27,6 +27,9 @@ class TPZConnect;
 class TPZMaterial;
 class TPZGeoEl;
 class TPZCompMesh;
+template<class TVar>
+class TPZTransfer;
+
 
 /**
  * @brief This class implements a discontinuous element (for use with discontinuous Galerkin). \ref CompElement "Computational Element"

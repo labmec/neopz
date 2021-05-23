@@ -10,6 +10,8 @@
 class TPZMaterialData;
 template<class TVar>
 class TPZMaterialDataT;
+template<class TVar>
+class TPZTransfer;
 /**
  * @brief Implements the interfaces for TPZCompElDisc, TPZInterfaceElement and TPZInterpolatedElement. \ref CompElement "Computational element"
  * @since April 11, 2007
