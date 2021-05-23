@@ -48,8 +48,9 @@ namespace pzgeom {
 
         /** @brief Constructor with node map */
         TPZGeoBlend(const TPZGeoBlend &cp, std::map<int64_t, int64_t> &gl2lcNdMap) : TPZRegisterClassId(
-                &TPZGeoBlend::ClassId),
-                                                                                     TGeo(cp, gl2lcNdMap) {
+                &TPZGeoBlend::ClassId), TGeo(cp, gl2lcNdMap) {
+             std::cout << "Please implement me\n";
+             DebugStop();
         }
 
         /** @brief Copy constructor */
@@ -58,15 +59,12 @@ namespace pzgeom {
                 fNeighbours[is] =  cp.fNeighbours[is];
                 fTrans[is] =  cp.fTrans[is];
             }
+            fGeoEl = 0;
+            DebugStop();
         }
 
         /** @brief Copy constructor */
-        TPZGeoBlend(const TPZGeoBlend &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoBlend::ClassId), TGeo(cp) {
-            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
-                fNeighbours[is] =  cp.fNeighbours[is];
-                fTrans[is] =  cp.fTrans[is];
-            }
-        }
+        TPZGeoBlend(const TPZGeoBlend &cp, TPZGeoMesh &destmesh);
 
         void Read(TPZStream &buf, void *context) override{
             TGeo::Read(buf, context);

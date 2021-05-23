@@ -16,6 +16,20 @@
 static TPZLogger logger("pz.mesh.geoblend");
 #endif
 
+/** @brief Copy constructor */
+template<class TGeo>
+pzgeom::TPZGeoBlend<TGeo>::TPZGeoBlend(const TPZGeoBlend<TGeo> &cp, TPZGeoMesh &destmesh) : TPZRegisterClassId(&TPZGeoBlend<TGeo>::ClassId), TGeo(cp,destmesh)
+{
+    int64_t gelindex = cp.fGeoEl->Index();
+    for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+        fNeighbours[is] =  cp.fNeighbours[is];
+        fTrans[is] =  cp.fTrans[is];
+    }
+    fGeoEl = destmesh.Element(gelindex);
+    if(!fGeoEl) DebugStop();
+}
+
+
 template<class TGeo>
 bool pzgeom::TPZGeoBlend<TGeo>::IsLinearMapping(int side) const
 {
@@ -484,8 +498,9 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
 template<class TGeo>
 template<class T>
 void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec<T> &result) const {
-    TPZGeoEl &gel = *fGeoEl;
-    TPZGeoMesh *gmesh = gel.Mesh();
+//    TPZGeoEl &gel = *fGeoEl;
+    if(fGeoEl) DebugStop();
+    TPZGeoMesh *gmesh = fGeoEl->Mesh();
     TPZManVector<T,3> notUsedHereVec(3,(T)0);
     TPZFNMatrix<9,T> notUsedHereMat(TGeo::NSides, TGeo::NSides,(T)0);//since some methods dont resize the matrix, it is
     // bigger than needed.
@@ -495,7 +510,7 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
     if(logger.isDebugEnabled())
     {
         soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::X2_______REF_1"<<std::endl;
-        soutLogDebug << "element id " <<gel.Id()<<std::endl;
+        soutLogDebug << "element id " <<fGeoEl->Id()<<std::endl;
         soutLogDebug << "xi: ";
         for(int i = 0; i < xi.size(); i++) soutLogDebug<<xi[i]<<"\n";
         soutLogDebug<<std::endl;
