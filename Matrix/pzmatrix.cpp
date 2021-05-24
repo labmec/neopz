@@ -1961,7 +1961,19 @@ TVar TPZMatrix<TVar>::GetRandomVal() const{
                   std::is_same_v<TVar,TPZFlopCounter>){
         return  ((TVar) rand())/((TVar)RAND_MAX);
     }
-    else{
+    
+    else if constexpr (is_fad<TVar>::value){
+      constexpr typename TVar::value_type lower_bound = 0;
+      constexpr typename TVar::value_type upper_bound = 1;
+      static std::uniform_real_distribution<typename TVar::value_type>
+        unif(lower_bound,upper_bound);
+      static std::default_random_engine re;
+      TVar a_random = (TVar)unif(re);
+      if constexpr (is_complex<TVar>::value){
+        a_random+= (TVar)1i * (TVar)unif(re);
+      }
+      return a_random;
+    }else{
         constexpr RTVar lower_bound = 0;
         constexpr RTVar upper_bound = 1;
         static std::uniform_real_distribution<RTVar> unif(lower_bound,upper_bound);
