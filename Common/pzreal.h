@@ -59,16 +59,6 @@ struct real_type<std::complex<T>, void>
  { using type = T; };
 
 
-//! Enabling it for Fad<T>
-template <typename T>
-struct real_type<Fad<T>, void>
-{ using type = typename real_type<T>::type; };
-//! Enabling it for TFad<6,T>
-template <int N,typename T>
-struct real_type<TFad<N,T>, void>
-{ using type = typename real_type<T>::type; };
-
-
 //! Enabling it for TPZFlopCounter
 template<>
 struct real_type<TPZFlopCounter, void>
@@ -77,6 +67,15 @@ struct real_type<TPZFlopCounter, void>
 //Convenience macros for real_type<T>::type
 #define RTVar typename real_type<TVar>::type
 #define RType(T) typename real_type<T>::type
+
+//! Enabling it for Fad<T>
+template <typename T>
+struct real_type<Fad<T>, void>
+{ using type =Fad<RType(T)>;};
+//! Enabling it for TFad<6,T>
+template <int N,typename T>
+struct real_type<TFad<N,T>, void>
+{ using type =TFad<N,RType(T)>;};
 
 //! Enables typename complex_type<T>::type for the complex type associated with T
 template <typename, typename = void>
@@ -92,15 +91,6 @@ template <typename T>
 struct complex_type<std::complex<T>, void>
 { using type = std::complex<T>; };
 
-//! Enabling it for Fad<T>
-template <typename T>
-struct complex_type<Fad<T>, void>
-{ using type = typename complex_type<T>::type; };
-//! Enabling it for TFad<6,T>
-template <int N,typename T>
-struct complex_type<TFad<N,T>, void>
-{ using type = typename complex_type<T>::type; };
-
 //! Enabling it for TPZFlopCounter
 template<>
 struct complex_type<TPZFlopCounter, void>
@@ -110,6 +100,14 @@ struct complex_type<TPZFlopCounter, void>
 #define CTVar typename complex_type<TVar>::type
 #define CType(T) typename complex_type<T>::type
 
+//! Enabling it for Fad<T>
+template <typename T>
+struct complex_type<Fad<T>, void>
+{ using type =Fad<CType(T)>;};
+//! Enabling it for TFad<6,T>
+template <int N,typename T>
+struct complex_type<TFad<N,T>, void>
+{ using type =TFad<N,CType(T)>;};
 
 template<class T>
 struct is_complex{ static constexpr bool value = false;};
@@ -126,6 +124,21 @@ struct is_arithmetic_pz :
     std::is_integral<T>::value ||
     std::is_floating_point<T>::value ||
     is_complex<T>::value>{};
+
+//! Enables typename complex_type<T>::type for the complex type associated with T
+template <typename, typename = void>
+struct is_fad{
+	static constexpr bool value{false};
+};
+
+template<class T>
+struct  is_fad<Fad<T>>{
+	static constexpr bool value{true};
+};
+template<int N, class T>
+struct  is_fad<TFad<N,T>>{
+	static constexpr bool value{true};
+};
 
 /** @brief Gets maxime value between a and b */
 #ifndef MAX
