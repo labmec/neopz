@@ -92,7 +92,7 @@ void TPZMatrix<TVar>::Simetrize() {
 
 /** @brief Implements product of matrices: \f$ A*B \f$ */
 template<class TVar>
-TPZFMatrix<TVar> TPZMatrix<TVar>::operator*(const TPZFMatrix<TVar> &B ) {
+TPZFMatrix<TVar> TPZMatrix<TVar>::operator*(const TPZFMatrix<TVar> &B ) const{
   TPZFMatrix<TVar> res;
   res.Redim( this->Rows(), B.Cols() );
 	this->Multiply(B,res);

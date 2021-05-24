@@ -190,7 +190,7 @@ public:
 
   virtual TPZMatrix<TVar> &operator*=(const TVar val);
 
-  TPZFMatrix<TVar> operator*(const TPZFMatrix<TVar> &B );
+  TPZFMatrix<TVar> operator*(const TPZFMatrix<TVar> &B ) const;
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
 	 * @param x Is x on the above operation
