@@ -12,11 +12,12 @@
 
 // TODO add doc
 
-class [[maybe_unused]] TPZMixedDarcyFlow : public TPZMatBase<STATE, TPZMatCombinedSpacesT<STATE>,
-    TPZMatErrorCombinedSpaces<STATE>>, public TPZDarcyFlowInterface {
+class TPZMixedDarcyFlow : public TPZMatBase<STATE, TPZMatCombinedSpacesT<STATE>,
+        TPZMatErrorCombinedSpaces<STATE>, TPZDarcyFlowInterface> {
 
     // type alias to improve constructor readability
-    using TBase = TPZMatBase<STATE, TPZMatCombinedSpacesT<STATE>, TPZMatErrorCombinedSpaces<STATE>>;
+    using TBase = TPZMatBase<STATE, TPZMatCombinedSpacesT<STATE>,
+            TPZMatErrorCombinedSpaces<STATE>, TPZDarcyFlowInterface>;
 
 public:
     /**

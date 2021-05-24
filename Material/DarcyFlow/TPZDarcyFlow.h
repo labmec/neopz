@@ -12,11 +12,11 @@
 
 // TODO: document class and differential equation
 
-class TPZDarcyFlow : public TPZMatBase<STATE, TPZMatSingleSpaceT<STATE>, TPZMatErrorSingleSpace<STATE>>,
-                     public TPZDarcyFlowInterface {
+class TPZDarcyFlow : public TPZMatBase<STATE, TPZMatSingleSpaceT<STATE>,
+        TPZMatErrorSingleSpace<STATE>, TPZDarcyFlowInterface> {
 
     // type alias to improve constructor readability
-    using TBase = TPZMatBase<STATE, TPZMatSingleSpaceT<STATE>, TPZMatErrorSingleSpace<STATE>>;
+    using TBase = TPZMatBase<STATE, TPZMatSingleSpaceT<STATE>, TPZMatErrorSingleSpace<STATE>, TPZDarcyFlowInterface>;
 
 public:
     /**

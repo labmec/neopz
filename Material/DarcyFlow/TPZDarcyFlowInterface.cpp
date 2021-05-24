@@ -17,3 +17,7 @@ void TPZDarcyFlowInterface::SetPermeabilityFunction(const REAL constant) {
 void TPZDarcyFlowInterface::SetPermeabilityFunction(PermeabilityFunctionType &perm_function) {
     fPermeabilityFunction = perm_function;
 }
+
+int TPZDarcyFlowInterface::ClassId() const {
+    return Hash("TPZDarcyFlowInterface");
+}
