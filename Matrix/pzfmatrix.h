@@ -41,11 +41,11 @@ template <class TVar> class TPZVerySparseMatrix;
 
 /** @brief Returns a dot product to matrices */
 template<class TVar>
-TVar Dot(const TPZFMatrix<TVar> &A,const TPZFMatrix<TVar> &B);
+RTVar Dot(const TPZFMatrix<TVar> &A,const TPZFMatrix<TVar> &B);
 
 /** @brief Returns the norm of the matrix A */
 template<class TVar>
-TVar Norm(const TPZFMatrix<TVar> &A);
+RTVar Norm(const TPZFMatrix<TVar> &A);
 
 
 template<class TVar>
@@ -730,15 +730,15 @@ inline long double Norm(const TPZFMatrix<long double> &A) {
 }
 
 inline float Norm(const TPZFMatrix< std::complex <float> > &A) {
-    return sqrt(Dot(A,A).real());
+    return sqrt(Dot(A,A));
 }
 
 inline double Norm(const TPZFMatrix< std::complex <double> > &A) {
-    return sqrt(Dot(A,A).real());
+    return sqrt(Dot(A,A));
 }
 
 inline long double Norm(const TPZFMatrix< std::complex <long double> > &A) {
-    return sqrt(Dot(A,A).real());
+    return sqrt(Dot(A,A));
 }
 
 inline float Norm(const TPZFMatrix< Fad <float> > &A) {

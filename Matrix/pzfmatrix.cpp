@@ -2070,16 +2070,16 @@ int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
 
 /** @brief Implement dot product for matrices */
 template<class TVar>
-TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
+RTVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
     int64_t size = (A.Rows())*A.Cols();
-    TVar result = 0.;
+    RTVar result = 0.;
     if(!size) return result;
     const TVar *fpA = &A.g(0,0), *fpB = &B.g(0,0);
     const TVar *fpLast = fpA+size;
     while(fpA < fpLast)
     {
         if constexpr (is_complex<TVar>::value){
-            result += (*fpA++ * std::conj(*fpB++));
+            result += (*fpA++ * std::conj(*fpB++)).real();
         }
         else{
             result += (*fpA++ * *fpB++);
@@ -2090,13 +2090,13 @@ TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
 }
 
 template
-std::complex<float> Dot(const TPZFMatrix< std::complex<float> > &A, const TPZFMatrix< std::complex<float> > &B);
+float Dot(const TPZFMatrix< std::complex<float> > &A, const TPZFMatrix< std::complex<float> > &B);
 
 template
-std::complex<double> Dot(const TPZFMatrix< std::complex<double> > &A, const TPZFMatrix< std::complex<double> > &B);
+double Dot(const TPZFMatrix< std::complex<double> > &A, const TPZFMatrix< std::complex<double> > &B);
 
 template
-std::complex<long double> Dot(const TPZFMatrix< std::complex<long double> > &A, const TPZFMatrix< std::complex<long double> > &B);
+long double Dot(const TPZFMatrix< std::complex<long double> > &A, const TPZFMatrix< std::complex<long double> > &B);
 
 template
 long double Dot(const TPZFMatrix<long double> &A, const TPZFMatrix<long double> &B);
