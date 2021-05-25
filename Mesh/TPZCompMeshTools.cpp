@@ -945,7 +945,10 @@ void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ost
         int nSides = gel->NSides();
         int firstSideToHaveConnect = 0;
         if (nSides != nCon) {
-            firstSideToHaveConnect = gel->NCornerNodes();
+            firstSideToHaveConnect = gel->NSides() - (gel->NSides(gel->Dimension()-1)+1);
+            if(gmesh->Dimension() == 3 && gel->Dimension() == 2){
+                firstSideToHaveConnect = gel->NSides() -1;
+            }
         }
 
         out << "Gel " << gel->Index() //<< " Cel " << cel->Index()
