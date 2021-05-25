@@ -1818,15 +1818,46 @@ TPZMatrix<TVar> &TPZMatrix<TVar>::operator*=(const TVar val)
 
 template<class TVar>
 void TPZMatrix<TVar>::Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar>&B, int opt) const {
-	if ((opt==0 && Cols() != A.Rows()) || (opt ==1 && Rows() != A.Rows()))
-		Error( "Multiply (TPZMatrix<>&,TPZMatrix<TVar> &) <incompatible dimensions>" );
+  
+	
 	if(!opt && (B.Rows() != Rows() || B.Cols() != A.Cols())) {
 		B.Redim(Rows(),A.Cols());
 	}
 	else if (opt && (B.Rows() != Cols() || B.Cols() != A.Cols())) {
 		B.Redim(Cols(),A.Cols());
-	}
-	MultAdd( A, B, B, 1.0, 0.0, opt);
+	}else if(opt && this->fDecomposed){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Cannot multiply with opt when matrix is decomposed"
+           <<"\nAborting...\n";
+    DebugStop();
+  }
+  
+  switch(this->fDecomposed){
+  case ENoDecompose:
+    MultAdd( A, B, B, 1.0, 0.0, opt);
+    break;
+  case ELU:
+    B=A;
+    Substitution(&B);
+    break;
+  case ECholesky:
+    B=A;
+    Subst_Forward(&B);
+    Subst_Backward(&B);
+    break;
+  case ELDLt:
+    B=A;
+    Subst_LForward(&B);
+    Subst_Diag(&B);
+    Subst_LBackward(&B);
+    break;
+  default:
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Cannot multiply with fDecomposed:"<<fDecomposed
+           <<"\nAborting...\n";
+    DebugStop();
+  }
+	
 }
 
 template<class TVar> 
