@@ -37,6 +37,13 @@ and if the vectors are an orthonormal basis*/
 template<class matx, class TVar>
 void TestArnoldiIteration(bool sym);
 
+
+/**solves a dummy EVP using the arnoldi solver.
+for hermitian matrices it is ensured that 
+lambda - lambda_approx <= residual norm*/
+template<class matx, class TVar>
+void TestArnoldiSolver();
+
 TEMPLATE_TEST_CASE("Arnoldi Iteration", "[eigen_tests]",
                    double)
 {
@@ -67,6 +74,20 @@ TEMPLATE_TEST_CASE("Arnoldi Iteration", "[eigen_tests]",
     }
 }
 
+TEMPLATE_TEST_CASE("Arnoldi Solver", "[eigen_tests]",
+                   double)
+{
+  
+  SECTION("TPZSkylNSymMatrix")
+    {TestArnoldiSolver<TPZSkylNSymMatrix<TestType>,TestType>();}
+  SECTION("TPZSkylMatrix")
+    {TestArnoldiSolver<TPZSkylMatrix<TestType>,TestType>();}
+  SECTION("TPZFYsmpMatrix")
+    {TestArnoldiSolver<TPZFYsmpMatrix<TestType>,TestType>();}
+  SECTION("TPZSYsmpMatrix")
+    {TestArnoldiSolver<TPZSYsmpMatrix<TestType>,TestType>();}
+
+}
 
 template<class matx, class TVar>
 void TestArnoldiIteration(bool sym)
@@ -126,5 +147,52 @@ void TestArnoldiIteration(bool sym)
       CAPTURE(i,j,aMat(i,j),A.GetVal(i,j));
       REQUIRE(aMat(i,j)-A.GetVal(i,j)== Approx(0.0).margin(tol));
     }
+  Catch::StringMaker<RTVar>::precision = oldPrecision;
+}
+
+template<class matx, class TVar>
+void TestArnoldiSolver()
+{
+
+  const auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
+  
+  TPZAutoPointer<matx> A = new matx;
+  constexpr int64_t dim{20};
+  constexpr int dimKrylov{10};
+  constexpr bool isSym{true};
+  A->AutoFill(dim,dim,isSym);//generates adequate storage
+  
+  for(int i = 0; i < dim; i++){
+    for(int j = 0; j < dim; j++){
+      if(!IsZero(A->GetVal(i,j))) A->PutVal(i,j,0);
+    }
+    A->PutVal(i,i,i+1);
+  }
+  TPZFMatrix<CTVar> cpma(dim,dim);
+  for(int i = 0; i < dim; i++)
+    cpma.PutVal(i,i,i+1);
+  
+  TPZKrylovEigenSolver<TVar> arnoldi;
+  arnoldi.SetKrylovDim(dimKrylov);
+  arnoldi.SetNEigenpairs(dimKrylov);
+  arnoldi.SetMatrixA(A);
+  arnoldi.SetShift(0);
+  TPZManVector <CTVar,10> w;
+  TPZFMatrix <CTVar> eigenVectors;
+  
+  const bool success = arnoldi.SolveEigenProblem(w,eigenVectors) == 0;
+  REQUIRE(success);
+
+  const RTVar mult = sizeof(RTVar) == 4 ? 100 : 10;
+  TPZFMatrix<CTVar> x(dim,1);
+  for(auto i = 0; i < dimKrylov; i++) std::cout<<w[i]<<std::endl;
+  for(auto i = 0; i < dimKrylov; i++){
+    eigenVectors.GetSub(0, i, dim, 1, x);
+    const CTVar analyticW = dim - i;
+    const auto res = Norm(cpma * x - w[i] * x);
+    CAPTURE(res,analyticW,w[i]);
+    REQUIRE(fabs(analyticW - w[i]) < res);
+  }
   Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
