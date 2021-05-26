@@ -8,6 +8,7 @@ target_include_directories(pz PUBLIC
 set(public_headers
     TPZLapackEigenSolver.h
     TPZKrylovEigenSolver.h
+    TPZSpectralTransform.h
     )
 set(headers
     ${public_headers}
@@ -16,6 +17,7 @@ set(headers
 set(sources
     TPZLapackEigenSolver.cpp
     TPZKrylovEigenSolver.cpp
+    TPZSpectralTransform.cpp
     )
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Solvers/EigenSolvers)

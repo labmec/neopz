@@ -177,7 +177,6 @@ void TestArnoldiSolver()
   arnoldi.SetKrylovDim(dimKrylov);
   arnoldi.SetNEigenpairs(dimKrylov);
   arnoldi.SetMatrixA(A);
-  arnoldi.SetShift(0);
   TPZManVector <CTVar,10> w;
   TPZFMatrix <CTVar> eigenVectors;
   
