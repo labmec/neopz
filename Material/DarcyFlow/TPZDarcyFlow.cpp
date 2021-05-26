@@ -252,7 +252,7 @@ void TPZDarcyFlow::Solution(const TPZMaterialDataT<STATE> &data, int var, TPZVec
             fExactSol(data.x, exact_pressure, exact_flux);
             for (int id = 0; id < fDim; id++) {
                 solOut[id] = exact_flux[id];
-            } // TODO: Ask Phil if the exact solution should consider K.
+            }
             return;
         }
         case 11: {
@@ -282,7 +282,7 @@ void TPZDarcyFlow::Solution(const TPZMaterialDataT<STATE> &data, int var, TPZVec
             solOut[0] = res;
 
             return;
-        } // TODO: Ask Phil if the exact solution should consider K.
+        }
 
     default: {
             PZError << __PRETTY_FUNCTION__ << "\n Post-processing variable index not implemented!\n";
