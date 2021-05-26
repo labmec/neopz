@@ -40,6 +40,12 @@ class TPZMatBase : public TPZMaterialT<TVar>,
                          const TPZFMatrix<TVar> &val1,
                          const TPZVec<TVar> &val2) override;
 
+    TPZBndCondT<TVar> *CreateBCImpl(TPZMaterial *reference,
+                                    int id, int type,
+                                    const TPZFMatrix<TVar> &val1,
+                                    const TPZVec<TVar> &val2);
+
+
     [[nodiscard]] int ClassId() const override;
     
     void Read(TPZStream& buf, void* context) override;
@@ -79,13 +85,16 @@ class TPZMatBase : public TPZMaterialT<TVar>,
 
 template<class TVar, class... Interfaces>
 TPZBndCondT<TVar>* TPZMatBase<TVar, Interfaces...>::CreateBC(TPZMaterial * ref,
-                                                                int id, int type,
-                                                                const TPZFMatrix<TVar> &val1,
-                                                                const TPZVec<TVar> &val2) {
-	return
-        new TPZBndCondBase
-        <TVar, typename Interfaces::TInterfaceBC...>
-        (ref,id,type,val1,val2);
+                                                             int id, int type,
+                                                             const TPZFMatrix<TVar> &val1,
+                                                             const TPZVec<TVar> &val2) {
+    return CreateBCImpl(ref,id,type,val1,val2);
+}
+
+template<class TVar, class... Interfaces>
+TPZBndCondT<TVar> *TPZMatBase<TVar, Interfaces...>::CreateBCImpl(TPZMaterial *ref, int id, int type,
+                                              const TPZFMatrix<TVar> &val1, const TPZVec<TVar> &val2) {
+    return new TPZBndCondBase<TVar, typename Interfaces::TInterfaceBC...>(ref, id, type, val1, val2);
 }
 
 template<class TVar, class...Interfaces>
