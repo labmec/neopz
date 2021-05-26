@@ -108,7 +108,7 @@ protected:
        The default value should be sufficiently big for most cases.
        However, you may adapt it to your needs
     */
-    STATE fBigNumber{pow(10,std::numeric_limits<STATE>::max_digits10)};
+    REAL fBigNumber{pow(10,std::numeric_limits<STATE>::max_digits10)*2/3};
     //using float because it is already big enough
 private:
     //! Material identifier.
