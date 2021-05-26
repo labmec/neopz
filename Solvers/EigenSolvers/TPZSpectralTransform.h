@@ -31,6 +31,7 @@ public:
   /** @}*/
 protected:
   /** @name Protected */
+  /** @{*/
   //! Calculates the appropriate transformation for a generalised EVP
   virtual TPZMatrix<TVar> *CalcMatrix(TPZMatrix<TVar> &A,
                                      TPZMatrix<TVar> &B) const = 0;

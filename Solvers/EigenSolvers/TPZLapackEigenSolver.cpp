@@ -351,17 +351,17 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZFMatrix<TVar> &A,
     }
     if(calcVectors){
       for(int i = 0 ; i < dim ; i ++){
-        if(imageigen[i] == 0){
-          for( int iV = 0 ; iV < dim ; iV++ ){
-            eigenVectors(iV,i) = VR(iV,i);
-          }
-        }
-        else{
+        if(i<dim-1 && (eigenValues[i] == std::conj(eigenValues[i+1]))){
           for( int iV = 0 ; iV < dim ; iV++ ){
             eigenVectors(iV,i) = VR(iV,i) + (CTVar)1i * VR(iV,i+1) ;
             eigenVectors(iV,i + 1) = VR(iV,i) - (CTVar)1i * VR(iV,i+1) ;
           }
           i++;
+        }
+        else{
+          for( int iV = 0 ; iV < dim ; iV++ ){
+            eigenVectors(iV,i) = VR(iV,i);
+          }
         }
       }
     }

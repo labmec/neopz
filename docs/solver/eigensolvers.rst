@@ -33,11 +33,7 @@ TPZKrylovEigenSolver
 
 This class implements a set of Krylov-based eigensolvers for solving standard and generalised EVP problems with no restraints regarding the storage format of the matrix. This class of eigensolvers do not solve for all eigenvalues, but for a small set of the original eigenvalues.
 
-.. note:: For an excellent and detailed discussion on this class of eigensolvers, one can refer to `SLEPc User Manual <https://slepc.upv.es/documentation/slepc.pdf>`_ and their technical reports.
-
-The returned eigenvalues can be sorted in the following ways:
-
-.. doxygenenum:: TPZEigenSort
+.. note:: For an excellent and detailed discussion on this class of eigensolvers, one can refer to the Chapters 2 and 3 of `SLEPc User Manual <https://slepc.upv.es/documentation/slepc.pdf>`_ and their numerous technical reports.
           
 The Krylov-based eigensolvers search for a set of eigenvalues from a given matrix :math:`A` on the Krylov subspace:
 
@@ -72,11 +68,23 @@ It is interesting to note that in this iteration, only the product :math:`A v_k`
    
 After the Arnoldi iteration is performed, an EVP for :math:`H` is then solved using LAPACK. Given that the dimensions of the Krylov subspace is :math:`m\ll n_{eq}`, where :math:`n_{eq}` is the original number of equations, using a dense matrix for :math:`H` does not represent a big impact.
 
+Sorting eigenpairs
+==================
+
+The returned eigenvalues can be sorted in the following ways:
+
+.. doxygenenum:: TPZEigenSort
+
+Further documentation on TPZKrylovEigenSolver
+=============================================
+
 .. doxygenclass:: TPZKrylovEigenSolver
    :members:
    :protected-members:
    :membergroups: BasicUsage
 
+
+                  
 .. _section-spectraltransform:
                   
 TPZSpectralTransform
@@ -91,9 +99,9 @@ The following table summarises the transformed problem for both standard and gen
 +===============================+============================+============================+
 | None                          | :math:`A`                  | :math:`B^{-1}A`            |
 +-------------------------------+----------------------------+----------------------------+
-| :cpp:expr:`TPZShiftOrigin`    | :math:`A-\sigma I`         | :math:`B^{-1}A -\sigma I`  |
+| :code:`TPZSTShiftOrigin`      | :math:`A-\sigma I`         | :math:`B^{-1}A -\sigma I`  |
 +-------------------------------+----------------------------+----------------------------+
-| :cpp:expr:`TPZShiftAndInvert` | :math:`(A-\sigma I)^{-1}`  | :math:`(A-\sigma B)^{-1}B` |
+| :code:`TPZSTShiftAndInvert`   | :math:`(A-\sigma I)^{-1}`  | :math:`(A-\sigma B)^{-1}B` |
 +-------------------------------+----------------------------+----------------------------+
 
 
@@ -103,11 +111,18 @@ The following table summarises the transformed problem for both standard and gen
    :protected-members:
    :membergroups: BasicUsage Protected
 
+TPZSTShiftOrigin
+================
+
 .. doxygenclass:: TPZSTShiftOrigin
    :members:
    :protected-members:
    :membergroups: BasicUsage Protected
-                  
+
+
+TPZSTShiftAndInvert
+===================
+
 .. doxygenclass:: TPZSTShiftAndInvert
    :members:
    :protected-members:
