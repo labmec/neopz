@@ -17,6 +17,8 @@ public:
   TPZKrylovEigenSolver<TVar> * Clone() const override
   {return new TPZKrylovEigenSolver<TVar>(*this);}
 
+  /** @name BasicUsage */
+  /** @{*/  
   /**
    * @brief Solves the Ax=w*x eigenvalue problem and does not calculate the eigenvectors
    * @param[out] w Eigenvalues in ascending magnitude order
@@ -47,7 +49,7 @@ public:
    * @return Returns 1 if executed correctly
    */
   int SolveGeneralisedEigenProblem(TPZVec<CTVar> &w) override;
-  
+
   //! Sets spectral transformation to be used (it creates an internal copy)
   void SetSpectralTransform(TPZSpectralTransform<TVar> &s);
   //! Gets spectral transformation to be used
@@ -93,6 +95,7 @@ public:
   [[nodiscard]] bool ArnoldiIteration(const TPZMatrix<TVar> &A,
                                       TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> &Q,
                                       TPZFMatrix<TVar> &H);
+  /** @}*/
 protected:
   //! Number of Eigenpairs to calculate
   int fNEigenpairs{1};

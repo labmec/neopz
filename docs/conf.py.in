@@ -86,6 +86,7 @@ html_static_path = []
 latex_elements = {
     'preamble': '''
     \\usepackage{amsmath,amssymb,amsfonts,amsthm}% Math-related packages
+    \\usepackage{algorithm2e}
     \\usepackage{mathtools}% multlined environment
     \\usepackage{bm}% Bold symbol in math
      '''

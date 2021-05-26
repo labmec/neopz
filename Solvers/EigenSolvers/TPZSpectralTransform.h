@@ -5,6 +5,8 @@
 #include "pzreal.h"
 
 template<class T>
+class TPZKrylovEigenSolver;
+template<class T>
 class TPZMatrix;
 template<class T>
 class TPZVec;
@@ -18,6 +20,7 @@ class TPZVec;
  */
 template<class TVar>
 class TPZSpectralTransform : public virtual TPZSavable{
+  friend class TPZKrylovEigenSolver<TVar>;
 public:
   /** @name BasicUsage */
   /** @{*/
@@ -25,6 +28,9 @@ public:
   TPZSpectralTransform() = default;
   //! Creates a clone of the spectral transformation
   virtual TPZSpectralTransform<TVar> * Clone() const = 0;
+  /** @}*/
+protected:
+  /** @name Protected */
   //! Calculates the appropriate transformation for a generalised EVP
   virtual TPZMatrix<TVar> *CalcMatrix(TPZMatrix<TVar> &A,
                                      TPZMatrix<TVar> &B) const = 0;
@@ -33,6 +39,7 @@ public:
   //! Calculates the original eigenvalues from the mapped ones
   virtual void TransformEigenvalues(TPZVec<CTVar> &w) const = 0;
   /** @}*/
+public:
   /** @name ReadWrite */
   /** @{*/
   int ClassId() const override;
@@ -44,23 +51,32 @@ public:
 //! Defines the shift of origin spectral transformation
 template<class TVar>
 class TPZSTShiftOrigin : public TPZSpectralTransform<TVar>{
+  friend class TPZKrylovEigenSolver<TVar>;
 public:
+  /** @name BasicUsage */
+  /** @{*/
   //!Default constructor
   TPZSTShiftOrigin() = default;
   //!Creates a shift of origin spectral transformation with a given shift
   inline TPZSTShiftOrigin(const TVar s);
   //! Creates a clone of the spectral transformation
   inline TPZSTShiftOrigin<TVar> *Clone() const override;
+  //! Sets shift
+  inline void SetShift(TVar s);
+  //! Gets shift
+  inline TVar Shift() const;
+  /** @} */
+protected:
+  /**@name Protected*/
+  /**@{*/
   //! Calculates the appropriate transformation for a generalised EVP
   TPZMatrix<TVar> *CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) const override;
   //! Calculates the appropriate transformation for an EVP
   TPZMatrix<TVar> *CalcMatrix(TPZMatrix<TVar> &A) const override;
   //! Calculates the original eigenvalues from the mapped ones
   void TransformEigenvalues(TPZVec<CTVar> &w) const override;
-  //! Sets shift
-  inline void SetShift(TVar s);
-  //! Gets shift
-  inline TVar Shift() const;
+  /** @} */
+public:
   /** @name ReadWrite */
   /** @{*/
   int ClassId() const override;
@@ -99,17 +115,25 @@ TVar TPZSTShiftOrigin<TVar>::Shift() const
 //! Defines the shift and invert spectral transformation
 template<class TVar>
 class TPZSTShiftAndInvert : public TPZSTShiftOrigin<TVar>{
+  friend class TPZKrylovEigenSolver<TVar>;
+  /**@name BasicUsage*/
+  /**@{*/
 public:
   //! Inherits constructors from base class
   using TPZSTShiftOrigin<TVar>::TPZSTShiftOrigin;
   //! Creates a clone of the spectral transformation
   inline TPZSTShiftAndInvert<TVar> * Clone() const override;
+  /**@}*/
+protected:
+  /**@name BasicUsage*/
+  /**@{*/
   //! Calculates the appropriate transformation for a generalised EVP
   TPZMatrix<TVar> *CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) const override;
   //! Calculates the appropriate transformation for an EVP
   TPZMatrix<TVar> *CalcMatrix(TPZMatrix<TVar> &A) const override;
   //! Calculates the original eigenvalues from the mapped ones
   void TransformEigenvalues(TPZVec<CTVar> &w) const override;
+  /**@}*/
   /** @name ReadWrite */
   /** @{*/
   int ClassId() const override;
