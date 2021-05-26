@@ -72,6 +72,7 @@ int TPZKrylovEigenSolver<TVar>::SolveEigenProblem(TPZVec<CTVar> &w,TPZFMatrix<CT
     case TPZEigenSort::EImagAscending: return a.imag() < b.imag();
     case TPZEigenSort::EImagDescending: return a.imag() > b.imag();
     }
+    unreachable();
   };
   //sorting eigenvalues
    TPZVec<int> indices(n);
@@ -194,6 +195,7 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
       case EWhichB::EBAfter:
         return B * A * *(Q[k]);
       }
+      unreachable();
     }();
     /** after orthogonalising w.r.t. previous vectors (gram-schmidt)
         we will then have w_k = Av_k - sum_j^k (h_{jk} v_j)
