@@ -90,7 +90,7 @@ public:
 protected:
   /** @brief Whether to solve the eigenvalue problem
    *   is generalised (Ax=uBx) or not (Ax=ux)*/
-    bool fIsGeneralised{false};
+  bool fIsGeneralised{false};
   /**
    * @brief Stores the computed eigenvalues
    */

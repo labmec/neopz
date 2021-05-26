@@ -19,6 +19,11 @@ function(enable_mkl target)
   
   #do NOT change this lib unless you know what you are doing
   target_link_libraries(${target} PRIVATE mkl::mkl_intel_32bit_${MKL_THREAD_MODEL}_dyn)
+
+  if(MKL_THREAD_MODEL STREQUAL "tbb")
+    include(cmake/EnableTBB.cmake)
+	  enable_tbb(pz)
+  endif()
   #on our test machine it was needed to link directly with mkl core
   #perhaps on newer mkl installs this is not needed anymore?
   if(APPLE)

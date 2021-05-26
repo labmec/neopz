@@ -70,6 +70,22 @@ public:
   int ClassId() const override;
   //! Clone method
   TPZLapackEigenSolver<TVar>* Clone() const override;
+
+  /**
+     @brief Computes the eigenpairs of a Hessenberg matrix
+     @param [in] A The Hessenberg matrix (it is only checked if Hessenberg in debug mode)
+     @param[out] w The computed eigenvalues
+     @param[out] eigenVectors The computed eigenvetors
+     @return Returns info param from LAPACK(0 if executed correctly)
+   */
+  [[nodiscard]] int SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A, TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors);
+  /**
+     @brief Computes the eigenvalues of a Hessenberg matrix
+     @param [in] A The Hessenberg matrix (it is only checked if Hessenberg in debug mode)
+     @param[out] w The computed eigenvalues
+     @return Returns info param from LAPACK(0 if executed correctly)
+   */
+  [[nodiscard]] int SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A, TPZVec<CTVar> &w);
 protected:
   /*******************
    *    TPZFMATRIX    *
@@ -127,7 +143,7 @@ protected:
                                    TPZVec<CTVar> &w);
   /** @} */
 
-  
+  [[nodiscard]] int SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A, TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors, bool calcEigenVectors);
 };
 
 extern template class TPZLapackEigenSolver<std::complex<float>>;

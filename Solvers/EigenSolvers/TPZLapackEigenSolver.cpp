@@ -116,6 +116,191 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(TPZVec <CTVar> &w){
   return 1;
 }
 
+template<class TVar>
+int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
+                                                            TPZVec<CTVar> &w,
+                                                            TPZFMatrix<CTVar> &vecs)
+{
+  return SolveHessenbergEigenProblem(A,w,vecs,true);
+}
+
+template<class TVar>
+int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
+                                                            TPZVec<CTVar> &w)
+{
+  TPZFMatrix<CTVar> vecs;
+  return SolveHessenbergEigenProblem(A,w,vecs,false);
+}
+
+template<class TVar>
+int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
+                                                            TPZVec<CTVar> &w,
+                                                            TPZFMatrix<CTVar> &vecs,
+                                                            bool calcVecs)
+{
+  const int nrows = A.Rows();
+  if(nrows != A.Cols()){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: mat is not a square matrix\n";
+    return -1;
+  }
+#ifdef PZDEBUG
+  for(auto i = 0; i < nrows; i++){
+    for(int j = 0; j < i -1; j++)
+      if(fabs(A.GetVal(i,j))!=0.){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nERROR: mat is not hessenberg\n";
+        return -1;
+      }
+  }
+#endif
+
+  const char job = 'E';// compute eigenvalues only
+  const char compz = 'N';//do not compute Schur vectors
+  const int &n = nrows;//order of the matrix
+  //ilo and ihi should be 1 and N if the matrix wasnt computed by ZGEBAL
+  const int ilo = 1;
+  const int ihi = n;
+  auto H = A;//the matrix (is unspecified on exit)
+  const int ldh = n;//leading dimension of the array
+  //WR is set only for real types
+  //WI is set only for real types
+  //W is set only for complex types
+  
+  TPZVec<TVar> Z(nrows);//not referenced since compz=N
+  const int ldz{1};//leading dimension of Z
+  const int lwork{11*nrows};//dimension of work
+  TPZVec<TVar> work(lwork);
+  int info;
+
+  w.Resize(n);
+
+  TPZManVector<int,20> select(n,1);//which eigenvectors to compute in the next step
+  TPZVec<TVar> wrVec, wiVec;
+#ifdef USING_LAPACK
+  if constexpr (std::is_same_v<TVar,RTVar>){
+    wrVec.Resize(n);
+    wiVec.Resize(n);
+    if constexpr (std::is_same_v<TVar,float>){
+      shseqr_(&job,&compz,&n,&ilo,&ihi,H.fElem,&ldh,&wrVec[0],&wiVec[0],&Z[0],&ldz,&work[0],&lwork,&info);
+    }else if constexpr (std::is_same_v<TVar,double>){
+      dhseqr_(&job,&compz,&n,&ilo,&ihi,H.fElem,&ldh,&wrVec[0],&wiVec[0],&Z[0],&ldz,&work[0],&lwork,&info);
+    }
+    for(int i = 0 ; i < n ; i ++){
+      w[i] = wrVec[i] + (CTVar)1i*wiVec[i];
+      if(!IsZero(wiVec[i])){
+        select[i+1] = 0;//the other one is the complex conjugate
+        w[i+1] = std::conj(w[i]);
+        i++;
+      }
+    }
+  }else{
+    if constexpr (std::is_same_v<TVar,std::complex<float>>){
+      chseqr_(&job,&compz,&n,&ilo,&ihi,
+              (varfloatcomplex*)H.fElem,&ldh,
+              (varfloatcomplex*)&w[0],
+              (varfloatcomplex*)&Z[0],&ldz,
+              (varfloatcomplex*)&work[0],&lwork,&info);
+    }else if constexpr (std::is_same_v<TVar,std::complex<double>>){
+      zhseqr_(&job,&compz,&n,&ilo,&ihi,
+              (vardoublecomplex*)H.fElem,&ldh,
+              (vardoublecomplex*)&w[0],
+              (vardoublecomplex*)&Z[0],&ldz,
+              (vardoublecomplex*)&work[0],&lwork,&info);
+    }
+  }
+#endif
+
+  if(info != 0){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"Lapack returned with info : "<<info<<std::endl;
+    return info;
+  }
+
+  if(!calcVecs) return info;
+  
+  const int mm = n;
+  const char side{'R'};//compute right eigenvectors only
+  const char eigsrc{'Q'};//eigenvalues were found from zhseqr
+  const char initv{'N'};//no initial vectors
+  //select has been set already
+  //n has been set already
+  H=A;
+  //ldh has been set already
+  //WR is set only for real types
+  //WI is set only for real types
+  //W is set only for complex types
+  TPZVec<TVar> vl(mm);//not referenced
+  const int ldvl{1};//will be ignored
+  //vr will be the eigenvectors
+  const int ldvr{n};//leading dimension of vr
+  int m;
+  //mm has already been set
+  const int worksize = std::is_same_v<TVar,RTVar> ? n*n+2*n : n*n;
+  work.Resize(worksize);
+  vecs.Redim(n,n);
+  TPZVec<int> ifaill(mm,-1);//will not be referenced
+  TPZVec<int> ifailr(mm,-1);
+
+
+#ifdef USING_LAPACK
+  if constexpr(std::is_same_v<TVar,RTVar>){//real types
+    TPZFMatrix<TVar> VR(ldvr,mm,-1);
+    
+    if constexpr(std::is_same_v<TVar,float>){
+      shsein_(&side, &eigsrc, &initv, &select[0], &n,
+              H.fElem, &ldh, &wrVec[0],&wiVec[0],
+              &vl[0], &ldvl,VR.fElem, &ldvr, &mm, &m,
+              &work[0],&ifaill[0], &ifailr[0], &info);
+    }else if constexpr(std::is_same_v<TVar,double>){
+      dhsein_(&side, &eigsrc, &initv, &select[0], &n,
+              H.fElem, &ldh, &wrVec[0], &wiVec[0],
+              &vl[0], &ldvl,VR.fElem, &ldvr, &mm, &m,
+              &work[0],&ifaill[0], &ifailr[0], &info);
+    }
+    // std::cout<<"m "<<m<<" mm "<<mm<<std::endl;
+    for(int i = 0 ; i < n ; i ++){
+      for( int iV = 0 ; iV < n ; iV++ ){
+        vecs(iV,i) = VR(iV,i);
+      }
+      if(i<n-1 && select[i+1] == 0){
+        for( int iV = 0 ; iV < n ; iV++ ){
+          vecs(iV,i + 1) = std::conj(vecs(iV,i));
+        }
+        i++;
+      }
+    }
+  }else{//complex types
+    TPZManVector<RTVar,20> rworkvec(n,0.);
+    RTVar *rwork = &rworkvec[0];
+    auto wCopy = w;
+    if constexpr(std::is_same_v<TVar,std::complex<float>>){
+      chsein_(&side,&eigsrc,&initv,&select[0],&n,
+              (varfloatcomplex*)H.fElem,&ldh,
+              (varfloatcomplex*)&wCopy[0],
+              (varfloatcomplex*)&vl[0],&ldvl,
+              (varfloatcomplex*)&vecs[0],&ldvr,&mm,&m,
+              (varfloatcomplex*)&work[0],rwork,
+              &ifaill[0],&ifailr[0],&info);
+    }else if constexpr(std::is_same_v<TVar,std::complex<double>>){
+      zhsein_(&side,&eigsrc,&initv,&select[0],&n,
+              (vardoublecomplex*)H.fElem,&ldh,
+              (vardoublecomplex*)&wCopy[0],
+              (vardoublecomplex*)&vl[0],&ldvl,
+              (vardoublecomplex*)&vecs[0],&ldvr,&mm,&m,
+              (vardoublecomplex*)&work[0],rwork,
+              &ifaill[0],&ifailr[0],&info);
+    }
+  }
+#endif
+  if(info != 0){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"Lapack returned with info : "<<info<<std::endl;
+  }
+
+  return info;
+}
+
 
 /*******************
 *    TPZFMATRIX    *

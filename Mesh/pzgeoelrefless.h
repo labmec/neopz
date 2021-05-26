@@ -5,14 +5,13 @@
 
 #ifndef PZGEOELREFLESS_H
 #define PZGEOELREFLESS_H
-
+#include "pzgmesh.h"
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
 #include "pzgeom_utility.h"
 
 class TPZGeoElSide;
 class TPZCompMesh;
-class TPZGeoMesh;
 class TPZCompEl;
 template<class T,int N>
 class TPZStack;
