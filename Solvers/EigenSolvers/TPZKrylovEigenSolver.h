@@ -60,7 +60,9 @@ public:
   inline void SetNEigenpairs(int n);
   //! Gets number of Eigenpairs to calculate
   inline int NEigenpairs() const;
-  //! Sets the dimension of the Krylov subspace
+  /** @brief Sets the dimension of the Krylov subspace. 
+      @note If not set, defaults to `10*nev`, where `nev` is the number 
+      of sought eigenvalues.*/
   inline void SetKrylovDim(int d);
   //! Gets the dimension of the Krylov subspace
   inline int KrylovDim() const;
@@ -95,7 +97,7 @@ protected:
   //! Number of Eigenpairs to calculate
   int fNEigenpairs{1};
   //! Dimension of the Krylov subspace to calculate
-  int fKrylovDim{1};
+  int fKrylovDim{-1};
   //! Initial vector to be used to create Krylov subspace
   TPZFMatrix<TVar> fKrylovVector;
   //! Tolerance
@@ -123,7 +125,7 @@ void TPZKrylovEigenSolver<TVar>::SetNEigenpairs(int n)
   if(n < 1) n = 1;
   fNEigenpairs = n;
   if(n > fKrylovDim){
-    fKrylovDim = n;
+    fKrylovDim = 10 * n;
     std::cout<< "Adjusted Krylov dim to "<< fKrylovDim<<std::endl;
   }
 }

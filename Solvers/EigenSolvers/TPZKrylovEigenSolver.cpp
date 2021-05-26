@@ -37,6 +37,9 @@ int TPZKrylovEigenSolver<TVar>::SolveEigenProblem(TPZVec<CTVar> &w,TPZFMatrix<CT
   }
   
   const int &n = NEigenpairs();
+  if(KrylovDim() == -1){
+    SetKrylovDim(10*n);
+  }
   const int &krylovDim = KrylovDim();
   TPZManVector<TPZAutoPointer<TPZFMatrix<TVar>>,20> qVecs;
   TPZFNMatrix<400,TVar> h(krylovDim,krylovDim,0.);
@@ -129,6 +132,10 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
   TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> &Q,
   TPZFMatrix<TVar> &H)
 {
+
+  if(KrylovDim() < 2){
+    fKrylovDim = 10;
+  }
   const int nRows = A.Rows();
   const TPZMatrix<TVar> &B = this->fMatrixB.operator*();
   const int n = std::min(fKrylovDim,nRows);
