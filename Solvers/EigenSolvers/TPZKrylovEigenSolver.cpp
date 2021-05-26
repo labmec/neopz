@@ -2,6 +2,9 @@
 #include "TPZLapackEigenSolver.h"
 #include "TPZSimpleTimer.h"
 
+
+#include <numeric>
+
 template<class TVar>
 int TPZKrylovEigenSolver<TVar>::SolveEigenProblem(TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors)
 {
@@ -56,6 +59,14 @@ int TPZKrylovEigenSolver<TVar>::SolveEigenProblem(TPZVec<CTVar> &w,TPZFMatrix<CT
 
   if(st) st->TransformEigenvalues(w);
 
+  //sorting eigenvalues
+   TPZVec<int> indices(n);
+   std::iota(indices.begin(),indices.end(),0); //Initializing
+   std::stable_sort( indices.begin(),indices.end(),
+                     [&w](int i,int j){return fabs(w[i])<fabs(w[j]);} );
+   std::stable_sort( w.begin(),w.end(),
+                     [](auto i,auto j){return fabs(i)<fabs(j);} );
+  
   // for (int i = 0; i < n; i++)
   //   w[i] = (TVar)1.0/w[i] + shift;
 
@@ -64,9 +75,10 @@ int TPZKrylovEigenSolver<TVar>::SolveEigenProblem(TPZVec<CTVar> &w,TPZFMatrix<CT
   {
     TPZSimpleTimer evTimer("Computing eigenvectors");
     for (int i = 0; i< n; i++){//which eigenvector from A
+      auto il = indices[i];
       for (int j = 0; j < krylovDim; j++){//which vector from Q
-        CTVar *ev = &eigenVectors.g(0,i);
-        const auto lev = lapackEV(j,i);
+        CTVar *ev = &eigenVectors.g(0,il);
+        const auto lev = lapackEV(j,il);
         TVar *q = &qVecs[j]->g(0,0);
         /*
           The following loop computes

@@ -159,7 +159,7 @@ void TestArnoldiSolver()
   
   TPZAutoPointer<matx> A = new matx;
   constexpr int64_t dim{20};
-  constexpr int dimKrylov{10};
+  constexpr int dimKrylov{20};
   constexpr bool isSym{true};
   A->AutoFill(dim,dim,isSym);//generates adequate storage
   
@@ -186,9 +186,11 @@ void TestArnoldiSolver()
   const RTVar mult = sizeof(RTVar) == 4 ? 100 : 10;
   TPZFMatrix<CTVar> x(dim,1);
   for(auto i = 0; i < dimKrylov; i++) std::cout<<w[i]<<std::endl;
+
+  
   for(auto i = 0; i < dimKrylov; i++){
     eigenVectors.GetSub(0, i, dim, 1, x);
-    const CTVar analyticW = dim - i;
+    const CTVar analyticW = i+1;
     const auto res = Norm(cpma * x - w[i] * x);
     CAPTURE(res,analyticW,w[i]);
     REQUIRE(fabs(analyticW - w[i]) < res);
