@@ -35,6 +35,10 @@ This class implements a set of Krylov-based eigensolvers for solving standard an
 
 .. note:: For an excellent and detailed discussion on this class of eigensolvers, one can refer to `SLEPc User Manual <https://slepc.upv.es/documentation/slepc.pdf>`_ and their technical reports.
 
+The returned eigenvalues can be sorted in the following ways:
+
+.. doxygenenum:: TPZEigenSort
+          
 The Krylov-based eigensolvers search for a set of eigenvalues from a given matrix :math:`A` on the Krylov subspace:
 
 .. math::
