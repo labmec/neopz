@@ -98,8 +98,16 @@
 <li class="toctree-l2"><a class="reference internal" href="matrixsolvers.html">TPZMatrixSolver</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">TPZEigenSolver</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#tpzlapackeigensolver">TPZLapackEigenSolver</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#tpzkryloveigensolver">TPZKrylovEigenSolver</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#tpzspectraltransform">TPZSpectralTransform</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tpzkryloveigensolver">TPZKrylovEigenSolver</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sorting-eigenpairs">Sorting eigenpairs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#further-documentation-on-tpzkryloveigensolver">Further documentation on TPZKrylovEigenSolver</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#tpzspectraltransform">TPZSpectralTransform</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tpzstshiftorigin">TPZSTShiftOrigin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tpzstshiftandinvert">TPZSTShiftAndInvert</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#tpzsolver">TPZSolver</a></li>
@@ -183,8 +191,18 @@
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#tpzlapackeigensolver" id="id1">TPZLapackEigenSolver</a></p></li>
-<li><p><a class="reference internal" href="#tpzkryloveigensolver" id="id2">TPZKrylovEigenSolver</a></p></li>
-<li><p><a class="reference internal" href="#tpzspectraltransform" id="id3">TPZSpectralTransform</a></p></li>
+<li><p><a class="reference internal" href="#tpzkryloveigensolver" id="id2">TPZKrylovEigenSolver</a></p>
+<ul>
+<li><p><a class="reference internal" href="#sorting-eigenpairs" id="id3">Sorting eigenpairs</a></p></li>
+<li><p><a class="reference internal" href="#further-documentation-on-tpzkryloveigensolver" id="id4">Further documentation on TPZKrylovEigenSolver</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#tpzspectraltransform" id="id5">TPZSpectralTransform</a></p>
+<ul>
+<li><p><a class="reference internal" href="#tpzstshiftorigin" id="id6">TPZSTShiftOrigin</a></p></li>
+<li><p><a class="reference internal" href="#tpzstshiftandinvert" id="id7">TPZSTShiftAndInvert</a></p></li>
+</ul>
+</li>
 </ul>
 </div>
 <p>The <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver"><span class="n">TPZEigenSolver</span></a></span> represents a solver for Eigenvalue problems (EVP) in which the matrix has entries with the type <code class="xref cpp cpp-type docutils literal notranslate"><span class="pre">TVar</span></code>, where <span class="cpp-expr sig sig-inline cpp"><span class="n">TVar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">STATE</span></span>, for real problems, and <span class="cpp-expr sig sig-inline cpp"><span class="n">TVar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CSTATE</span></span>, for complex problems. It will soon be complemented with an appropriated <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../analysis/index.html#_CPPv411TPZAnalysis" title="TPZAnalysis"><span class="n">TPZAnalysis</span></a></span> class. See <a class="reference internal" href="#section-lapackeigensolver"><span class="std std-ref">TPZLapackEigenSolver</span></a> and <a class="reference internal" href="#section-kryloveigensolver"><span class="std std-ref">TPZKrylovEigenSolver</span></a> for details on the available solvers in NeoPZ.</p>
@@ -320,8 +338,32 @@
 <p>This class implements a set of Krylov-based eigensolvers for solving standard and generalised EVP problems with no restraints regarding the storage format of the matrix. This class of eigensolvers do not solve for all eigenvalues, but for a small set of the original eigenvalues.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For an excellent and detailed discussion on this class of eigensolvers, one can refer to <a class="reference external" href="https://slepc.upv.es/documentation/slepc.pdf">SLEPc User Manual</a> and their technical reports.</p>
+<p>For an excellent and detailed discussion on this class of eigensolvers, one can refer to the Chapters 2 and 3 of <a class="reference external" href="https://slepc.upv.es/documentation/slepc.pdf">SLEPc User Manual</a> and their numerous technical reports.</p>
 </div>
+<p>The Krylov-based eigensolvers search for a set of eigenvalues from a given matrix <span class="math notranslate nohighlight">\(A\)</span> on the Krylov subspace:</p>
+<div class="math notranslate nohighlight">
+\[\text{span}\left\{ v, Av, A^2v, \ldots, A^{n-1}v\right\}.\]</div>
+<p>Currently <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0E20TPZKrylovEigenSolver" title="TPZKrylovEigenSolver"><span class="n">TPZKrylovEigenSolver</span></a></span> implements an Arnoldi solver, which is a good solver for computing external eigenvalues.</p>
+<p>In this class of solvers, an orthonormal basis for the Krylov subspace is obtained by means of an Arnoldi iteration:</p>
+<div class="math notranslate nohighlight">
+\begin{align*}
+&amp;\text{Take an input vector $v$ and set $v_0=v$}\\
+&amp;\text{for }k=0,1,\ldots,m\\
+&amp;\qquad w_k = A v_k\\
+&amp;\qquad \text{for }j =0,\ldots,k\\
+&amp;\qquad \qquad H(j,k) = w_k.v_k\\
+&amp;\qquad \qquad w_k -= H(j,k) v_k\\
+&amp;\qquad \text{if } k &lt; m-1\\
+&amp;\qquad \qquad H(k+1,k) = \lVert w_k \rVert\\
+&amp;\qquad \qquad v_{k+1} = w_k / H(k+1,k)
+\end{align*}</div><p>It is interesting to note that in this iteration, only the product <span class="math notranslate nohighlight">\(A v_k\)</span> has to be performed, thus the sparsity of the matrix is left unchanged.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The matrix <span class="math notranslate nohighlight">\(A\)</span> does not necessarily correspond to the matrix of a standard EVP. See <a class="reference internal" href="#section-spectraltransform"><span class="std std-ref">TPZSpectralTransform</span></a> for details on the matrix that is passed to the Arnoldi iteration.</p>
+</div>
+<p>After the Arnoldi iteration is performed, an EVP for <span class="math notranslate nohighlight">\(H\)</span> is then solved using LAPACK. Given that the dimensions of the Krylov subspace is <span class="math notranslate nohighlight">\(m\ll n_{eq}\)</span>, where <span class="math notranslate nohighlight">\(n_{eq}\)</span> is the original number of equations, using a dense matrix for <span class="math notranslate nohighlight">\(H\)</span> does not represent a big impact.</p>
+<div class="section" id="sorting-eigenpairs">
+<h3><a class="toc-backref" href="#id3">Sorting eigenpairs</a><a class="headerlink" href="#sorting-eigenpairs" title="Permalink to this headline">¶</a></h3>
 <p>The returned eigenvalues can be sorted in the following ways:</p>
 <dl class="cpp enum">
 <dt class="sig sig-object cpp" id="_CPPv412TPZEigenSort">
@@ -366,28 +408,9 @@
 
 </dd></dl>
 
-<p>The Krylov-based eigensolvers search for a set of eigenvalues from a given matrix <span class="math notranslate nohighlight">\(A\)</span> on the Krylov subspace:</p>
-<div class="math notranslate nohighlight">
-\[\text{span}\left\{ v, Av, A^2v, \ldots, A^{n-1}v\right\}.\]</div>
-<p>Currently <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0E20TPZKrylovEigenSolver" title="TPZKrylovEigenSolver"><span class="n">TPZKrylovEigenSolver</span></a></span> implements an Arnoldi solver, which is a good solver for computing external eigenvalues.</p>
-<p>In this class of solvers, an orthonormal basis for the Krylov subspace is obtained by means of an Arnoldi iteration:</p>
-<div class="math notranslate nohighlight">
-\begin{align*}
-&amp;\text{Take an input vector $v$ and set $v_0=v$}\\
-&amp;\text{for }k=0,1,\ldots,m\\
-&amp;\qquad w_k = A v_k\\
-&amp;\qquad \text{for }j =0,\ldots,k\\
-&amp;\qquad \qquad H(j,k) = w_k.v_k\\
-&amp;\qquad \qquad w_k -= H(j,k) v_k\\
-&amp;\qquad \text{if } k &lt; m-1\\
-&amp;\qquad \qquad H(k+1,k) = \lVert w_k \rVert\\
-&amp;\qquad \qquad v_{k+1} = w_k / H(k+1,k)
-\end{align*}</div><p>It is interesting to note that in this iteration, only the product <span class="math notranslate nohighlight">\(A v_k\)</span> has to be performed, thus the sparsity of the matrix is left unchanged.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The matrix <span class="math notranslate nohighlight">\(A\)</span> does not necessarily correspond to the matrix of a standard EVP. See <a class="reference internal" href="#section-spectraltransform"><span class="std std-ref">TPZSpectralTransform</span></a> for details on the matrix that is passed to the Arnoldi iteration.</p>
 </div>
-<p>After the Arnoldi iteration is performed, an EVP for <span class="math notranslate nohighlight">\(H\)</span> is then solved using LAPACK. Given that the dimensions of the Krylov subspace is <span class="math notranslate nohighlight">\(m\ll n_{eq}\)</span>, where <span class="math notranslate nohighlight">\(n_{eq}\)</span> is the original number of equations, using a dense matrix for <span class="math notranslate nohighlight">\(H\)</span> does not represent a big impact.</p>
+<div class="section" id="further-documentation-on-tpzkryloveigensolver">
+<h3><a class="toc-backref" href="#id4">Further documentation on TPZKrylovEigenSolver</a><a class="headerlink" href="#further-documentation-on-tpzkryloveigensolver" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E20TPZKrylovEigenSolver">
 <span id="_CPPv3I0E20TPZKrylovEigenSolver"></span><span id="_CPPv2I0E20TPZKrylovEigenSolver"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZKrylovEigenSolver"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZKrylovEigenSolver</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver"><span class="n"><span class="pre">TPZEigenSolver</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZKrylovEigenSolver" title="TPZKrylovEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E20TPZKrylovEigenSolver" title="Permalink to this definition">¶</a><br /></dt>
@@ -566,8 +589,9 @@
 </dd></dl>
 
 </div>
+</div>
 <div class="section" id="tpzspectraltransform">
-<span id="section-spectraltransform"></span><h2><a class="toc-backref" href="#id3">TPZSpectralTransform</a><a class="headerlink" href="#tpzspectraltransform" title="Permalink to this headline">¶</a></h2>
+<span id="section-spectraltransform"></span><h2><a class="toc-backref" href="#id5">TPZSpectralTransform</a><a class="headerlink" href="#tpzspectraltransform" title="Permalink to this headline">¶</a></h2>
 <p>Spectral transformations are used to create a transformed EVP in which the exterior eigenvalues correspond to the sought eigenvalues of the original problem, and the eigenvectors are left unchanged.</p>
 <p>The following table summarises the transformed problem for both standard and generalised EVPs:</p>
 <table class="docutils align-default">
@@ -587,11 +611,11 @@
 <td><p><span class="math notranslate nohighlight">\(A\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(B^{-1}A\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><span class="cpp-expr sig sig-inline cpp"><span class="n">TPZShiftOrigin</span></span></p></td>
+<tr class="row-odd"><td><p><code class="code docutils literal notranslate"><span class="pre">TPZSTShiftOrigin</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(A-\sigma I\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(B^{-1}A -\sigma I\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><span class="cpp-expr sig sig-inline cpp"><span class="n">TPZShiftAndInvert</span></span></p></td>
+<tr class="row-even"><td><p><code class="code docutils literal notranslate"><span class="pre">TPZSTShiftAndInvert</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\((A-\sigma I)^{-1}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\((A-\sigma B)^{-1}B\)</span></p></td>
 </tr>
@@ -641,6 +665,8 @@
 </div>
 </dd></dl>
 
+<div class="section" id="tpzstshiftorigin">
+<h3><a class="toc-backref" href="#id6">TPZSTShiftOrigin</a><a class="headerlink" href="#tpzstshiftorigin" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E16TPZSTShiftOrigin">
 <span id="_CPPv3I0E16TPZSTShiftOrigin"></span><span id="_CPPv2I0E16TPZSTShiftOrigin"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZSTShiftOrigin"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZSTShiftOrigin</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0E20TPZSpectralTransform" title="TPZSpectralTransform"><span class="n"><span class="pre">TPZSpectralTransform</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E16TPZSTShiftOrigin" title="TPZSTShiftOrigin::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E16TPZSTShiftOrigin" title="Permalink to this definition">¶</a><br /></dt>
@@ -702,6 +728,9 @@
 </div>
 </dd></dl>
 
+</div>
+<div class="section" id="tpzstshiftandinvert">
+<h3><a class="toc-backref" href="#id7">TPZSTShiftAndInvert</a><a class="headerlink" href="#tpzstshiftandinvert" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E19TPZSTShiftAndInvert">
 <span id="_CPPv3I0E19TPZSTShiftAndInvert"></span><span id="_CPPv2I0E19TPZSTShiftAndInvert"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZSTShiftAndInvert"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZSTShiftAndInvert</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0E16TPZSTShiftOrigin" title="TPZSTShiftOrigin"><span class="n"><span class="pre">TPZSTShiftOrigin</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZSTShiftAndInvert" title="TPZSTShiftAndInvert::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E19TPZSTShiftAndInvert" title="Permalink to this definition">¶</a><br /></dt>
@@ -735,6 +764,7 @@
 </div>
 </dd></dl>
 
+</div>
 </div>
 </div>
 
