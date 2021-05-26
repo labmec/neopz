@@ -161,9 +161,9 @@ void TPZDarcyFlow::Solution(const TPZMaterialDataT<STATE> &data, int var, TPZVec
         }
         case 2: {
             // Derivative/GradU
+            TPZFNMatrix<9, STATE> dsoldx;
+            TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dsoldx, data.axes);
             for (int id = 0; id < fDim; id++) {
-                TPZFNMatrix<9, STATE> dsoldx;
-                TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dsoldx, data.axes);
                 solOut[id] = dsoldx(id, 0);
             }
             return;
