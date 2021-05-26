@@ -6,7 +6,7 @@
 template<class TVar>
 TPZL2Projection<TVar>::TPZL2Projection(int id, int dim, int nstate) :
     TPZRegisterClassId(&TPZL2Projection::ClassId),
-    TBase(id), fDim(dim), fNStateVars(nstate), fSol(0)
+    TBase(id), fDim(dim), fNStateVars(nstate), fSol(nstate,0.)
 {
 }
 template<class TVar>
