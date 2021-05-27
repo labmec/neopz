@@ -40,6 +40,7 @@ class TPZMatBase : public TPZMaterialT<TVar>,
                          const TPZFMatrix<TVar> &val1,
                          const TPZVec<TVar> &val2) override;
 
+    template<class... AddInterfaces>
     TPZBndCondT<TVar> *CreateBCImpl(TPZMaterial *reference,
                                     int id, int type,
                                     const TPZFMatrix<TVar> &val1,
@@ -84,17 +85,18 @@ class TPZMatBase : public TPZMaterialT<TVar>,
 };
 
 template<class TVar, class... Interfaces>
-TPZBndCondT<TVar>* TPZMatBase<TVar, Interfaces...>::CreateBC(TPZMaterial * ref,
-                                                             int id, int type,
-                                                             const TPZFMatrix<TVar> &val1,
-                                                             const TPZVec<TVar> &val2) {
-    return CreateBCImpl(ref,id,type,val1,val2);
+template<class... AddInterfaces>
+TPZBndCondT<TVar> *
+TPZMatBase<TVar, Interfaces...>::CreateBCImpl(TPZMaterial *reference, int id, int type, const TPZFMatrix<TVar> &val1,
+                                              const TPZVec<TVar> &val2) {
+    return new TPZBndCondBase<TVar, typename Interfaces::TInterfaceBC...,
+            typename AddInterfaces::TInterfaceBC...>(reference, id, type, val1, val2);
 }
 
 template<class TVar, class... Interfaces>
-TPZBndCondT<TVar> *TPZMatBase<TVar, Interfaces...>::CreateBCImpl(TPZMaterial *ref, int id, int type,
-                                              const TPZFMatrix<TVar> &val1, const TPZVec<TVar> &val2) {
-    return new TPZBndCondBase<TVar, typename Interfaces::TInterfaceBC...>(ref, id, type, val1, val2);
+TPZBndCondT<TVar> *TPZMatBase<TVar, Interfaces...>::CreateBC(TPZMaterial *ref, int id, int type,
+                                                             const TPZFMatrix<TVar> &val1, const TPZVec<TVar> &val2) {
+    return CreateBCImpl<>(ref, id, type, val1, val2);
 }
 
 template<class TVar, class...Interfaces>
