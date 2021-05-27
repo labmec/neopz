@@ -152,10 +152,16 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec);
  * @note Process: uses LAPACK's routine */
 template <class matx, class TVar>
 void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric);
-/// Testing Eigenvalues of a matrix
 
 /**
- * @brief Tests the Eigenvalues/eigenvectors of the generalised eigenproblem Av=wBv to any matrix types. It uses the AutoFill method to create a square matrix with
+ * @brief Tests the Eigenvalues/eigenvectors of a couple of known matrices
+ * @note Process: uses LAPACK's routine */
+template <class TVar>
+void BasicEigenTests();
+
+
+/**
+ * @brief Tests the Eigenvalues/eigenvectors of the standard eigenproblem Av=wv to any matrix types. It uses the AutoFill method to create a square matrix with
  * @param dim Dimension of the square matrix to be build.
  * @param symmetric Whether to build a symmetric matrix
  * @note Process: uses LAPACK's routine */
@@ -881,7 +887,7 @@ TEMPLATE_TEST_CASE("Eigenvalues (REAL)","[matrix_tests]",
                    float,
                    double
                    ) {
-    
+    testmatrix::BasicEigenTests<TestType>();//just for real types
     testmatrix::EigenDecompositionAutoFill<TestType>();
 }
 
@@ -1421,6 +1427,111 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
     REQUIRE(check);
 }
 
+#define GENERATE_COPY_2( ... ) \
+    Catch::Generators::generate( INTERNAL_CATCH_STRINGIZE(INTERNAL_CATCH_UNIQUE_NAME(generator)), \
+                                 CATCH_INTERNAL_LINEINFO, \
+                                 [=]{ using namespace Catch::Generators; return makeGenerators( __VA_ARGS__ ); } )
+  
+template <class TVar>
+void BasicEigenTests() {
+  if constexpr (std::is_same_v<TVar,CTVar>) return;
+  constexpr int dim{10};
+  TPZFMatrix<TVar> ma(dim,dim);
+  TPZFMatrix<TVar> mb(dim,dim);
+  TPZFMatrix<CTVar> cpma(dim,dim);
+
+  TPZManVector < CTVar,10 > w;
+  TPZFNMatrix < 100,CTVar > eigenVectors;  
+  TPZFNMatrix< 10,CTVar > x(dim, 1, 0.);
+
+  SECTION("DiagMatrixRealEigenvectors"){
+    mb.Identity();
+    ma.Zero();
+    cpma.Zero();
+    cpma(0,0) = ma(0,0) = 1;
+    cpma(dim-1,dim-1) = ma(dim-1,dim-1) = 1;
+    
+    const auto generalised = GENERATE(0,1);
+    const auto info = [&](){
+      TPZFMatrix<TVar> tmpa(ma);
+      TPZFMatrix<TVar> tmpb(ma);
+      if(generalised){
+        return tmpa.SolveGeneralisedEigenProblem(tmpb,w,eigenVectors);
+      }
+      else return tmpa.SolveEigenProblem(w, eigenVectors);
+    }();
+    REQUIRE(info == 0);
+    TPZFNMatrix< 10,CTVar > actualx1(dim, 1, 0.);
+    TPZFNMatrix< 10,CTVar > actualx2(dim, 1, 0.);
+    actualx1(0,0) = 1;
+    actualx2(dim-1,0) = 1;
+    // std::cout<<"--------------------\n";
+    // std::cout<<"---------t1---------\n";
+    // std::cout<<"--------------------"<<std::endl;
+    for (int i = 0; i < dim; i++) {
+      eigenVectors.GetSub(0, i, dim, 1, x);
+      // std::cout<<"w: "<<w[i]<<std::endl;
+      // std::cout<<"v: ";
+      // for(int j = 0; j < dim; j++) std::cout<<x(j,0)<<'\t';
+      // std::cout<<std::endl;
+      if(IsZero(w[i])){
+        for(int j = 0; j < dim; j++){
+          CAPTURE(i,j,x(j,0));
+          REQUIRE(IsZero(x(j,0).imag()));
+        }
+      }else{
+        const auto normres1 = Norm(x-actualx1);
+        const bool res1 = IsZero(normres1);
+      
+        const auto normres2 = Norm(x-actualx2);
+        const bool res2 = IsZero(normres2);
+      
+        CAPTURE(normres1);
+        CAPTURE(normres2);
+        const bool res = res1 || res2;
+        REQUIRE(res);
+      }
+    }
+  }
+  
+  SECTION("PerturbedIdentityMatrix"){
+    const auto epsilon = std::numeric_limits<TVar>::epsilon()/
+    std::numeric_limits<TVar>::digits10;
+    ma.Identity();
+    cpma.Identity();
+    cpma(dim-1,0) = ma(dim-1,0) = -epsilon;
+    cpma(0,dim-1) = ma(0,dim-1) = epsilon;
+    
+    const auto generalised = GENERATE(0,1);
+    const auto info = [&](){
+      TPZFMatrix<TVar> tmpa(ma);
+      TPZFMatrix<TVar> tmpb(ma);
+      if(generalised){
+        return tmpa.SolveGeneralisedEigenProblem(tmpb,w,eigenVectors);
+      }
+      else return tmpa.SolveEigenProblem(w, eigenVectors);
+    }();
+    REQUIRE(info == 0);
+    TPZFNMatrix< 10,CTVar > res(dim, 1, 0.);
+    // std::cout<<"--------------------\n";
+    // std::cout<<"---------t2---------\n";
+    // std::cout<<"--------------------"<<std::endl;
+    for (int i = 0; i < dim; i++) {
+      eigenVectors.GetSub(0, i, dim, 1, x);
+      // std::cout<<"w: "<<w[i]<<std::endl;
+      // std::cout<<"v: ";
+      // for(int j = 0; j < dim; j++) std::cout<<x(j,0)<<'\t';
+      // std::cout<<std::endl;
+      
+      res = cpma * x - w[i] * x;
+      const auto norm = Norm(res);
+      CAPTURE(i,norm);
+      REQUIRE(IsZero(norm));
+    }
+  }
+  
+}
+  
 template <class matx, class TVar>
 void TestingEigenDecompositionAutoFill(int dim, int symmetric) {
 matx ma;
