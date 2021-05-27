@@ -74,6 +74,7 @@ TEMPLATE_TEST_CASE("Arnoldi Iteration", "[eigen_tests]",
     }
 }
 
+#ifdef PZ_USING_LAPACK
 TEMPLATE_TEST_CASE("Arnoldi Solver", "[eigen_tests]",
                    double)
 {
@@ -88,7 +89,7 @@ TEMPLATE_TEST_CASE("Arnoldi Solver", "[eigen_tests]",
     {TestArnoldiSolver<TPZSYsmpMatrix<TestType>,TestType>();}
 
 }
-
+#endif
 template<class matx, class TVar>
 void TestArnoldiIteration(bool sym)
 {
