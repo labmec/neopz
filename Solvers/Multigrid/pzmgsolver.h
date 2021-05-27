@@ -10,8 +10,6 @@
 #include "pzfmatrix.h"
 #include "pztransfer.h"
 
-/** @brief Id for MG solver */
-#define TPZMGSOLVER_ID 28291008
 
 /**
  * @ingroup solver
@@ -58,7 +56,7 @@ int ClassId() const override;
 	
 	
 private:
-	TPZMatrixSolver<TVar> * fCoarse;
+	TPZMatrixSolver<TVar> * fCoarse{nullptr};
 	int fNVar;
 	/** @brief Transfer matrix */
 	TPZAutoPointer<TPZMatrix<TVar> > fTransfer;

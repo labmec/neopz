@@ -80,12 +80,19 @@ void TPZSavable::Register(TPZRestoreClassBase *restore) {
 void TPZSavable::RegisterClassId(int classid, TPZRestore_t fun) 
 {
 
-    std::map<int,TPZRestore_t>::iterator it;
+  std::map<int,TPZRestore_t>::iterator it;
 	it = ClassIdMap().find(classid);
 	if(it != ClassIdMap().end()) 
 	{
-		std::cout << "TPZSavable::Register duplicate classid " << it->second->Restore()->ClassId() << std::endl;
-                DebugStop();
+    auto itsrest = it->second->Restore();
+    auto funrest = fun->Restore();
+		std::cout << "TPZSavable::Register duplicate classid\n"
+              << "class id : "<<itsrest->ClassId()<<'\n'
+              << "type id : " << typeid(*(itsrest)).name() <<'\n'
+              << "conflicted with:\n"
+              << "class id : "<<classid<<'\n'
+              << "type id : " << typeid(*(funrest)).name() <<std::endl;
+    DebugStop();
 	}
 	ClassIdMap()[classid] = fun;
     if (fun->GetTranslator()){
@@ -134,6 +141,7 @@ TPZSavable *TPZSavable::CreateInstance(const int &classId) {
             LOGPZ_ERROR(logger,sout.str().c_str());
         }
 #endif
+        TPZPersistenceManager::CloseRead();
         DebugStop();
     }
     

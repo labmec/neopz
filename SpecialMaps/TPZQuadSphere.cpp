@@ -47,7 +47,12 @@ namespace pzgeom {
 		
 	// 	return newel;
 	// }
-	
+	  template<class GeomQuad>
+    int TPZQuadSphere<GeomQuad>::ClassId() const
+    {
+      return Hash("TPZQuadSphere") ^
+        ClassIdOrHash<GeomQuad>() << 1;
+    }
     template<class GeomQuad>
     void TPZQuadSphere<GeomQuad>::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &sz)
     {

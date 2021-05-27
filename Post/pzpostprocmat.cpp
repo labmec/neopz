@@ -26,9 +26,9 @@ TPZPostProcMat::TPZPostProcMat(int64_t id) : TPZRegisterClassId(&TPZPostProcMat:
 
 TPZPostProcMat::~TPZPostProcMat()
 {
-#ifdef PZDEBUG
-    std::cout << "TPZPostProcMat:: Material Id = " << Id() << ", it is being deleted. " << std::endl;
-#endif
+// #ifdef PZDEBUG
+//     std::cout << "TPZPostProcMat:: Material Id = " << Id() << ", it is being deleted. " << std::endl;
+// #endif
 
 }
 

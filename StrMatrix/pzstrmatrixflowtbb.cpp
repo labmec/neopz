@@ -143,7 +143,9 @@ void TPZStructMatrixTBBFlow<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZA
 
 template<class TVar>
 int TPZStructMatrixTBBFlow<TVar>::ClassId() const{
-    return Hash("TPZStructMatrixTBBFlow") ^ TPZStrMatParInterface::ClassId() << 1;
+    return Hash("TPZStructMatrixTBBFlow") ^
+        TPZStrMatParInterface::ClassId() << 1 ^
+        ClassIdOrHash<TVar>() << 2;
 }
 
 template<class TVar>

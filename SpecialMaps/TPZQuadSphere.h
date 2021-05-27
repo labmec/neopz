@@ -68,7 +68,7 @@ namespace pzgeom {
 		
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "QuadSphere";}
-		
+    int ClassId() const override;
 		void SetData(const REAL &R, const TPZVec<REAL> &xc)
 		{
 			fR = R;

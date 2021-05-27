@@ -74,12 +74,7 @@ TPZCompMesh::TPZCompMesh () :
 	//  fChecked = 0;
 	//fName[0] = '\0';
 	//fName[126] = '\0';
-    SetName( "Computational mesh");
-    TPZBaseMatrix &sol = fSolution;
-	fBlock.SetMatrix(&sol);
-	fSolutionBlock.SetMatrix(&sol);
-    
-    fNmeshes = 0;
+  SetName( "Computational mesh");
 }
 
 
@@ -258,7 +253,6 @@ void TPZCompMesh::CleanUp() {
 	
 	fBlock.SetNBlocks(0);
 	fSolutionBlock.SetNBlocks(0);
-	fSolution.Redim(0,1);
 }
 
 void TPZCompMesh::SetName (const string &nm) {

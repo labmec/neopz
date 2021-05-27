@@ -64,7 +64,7 @@ TPZSolver * TPZMGSolver<TVar>::Clone() const {
 
 template <class TVar>
 TPZMGSolver<TVar>::~TPZMGSolver(){
-    delete fCoarse;
+  if(fCoarse) delete fCoarse;
 }
 
 template <class TVar>

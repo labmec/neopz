@@ -103,28 +103,31 @@ public:
 #ifdef PZ_SOLMAT_DEBUG
     if(!fBaseMatrix) DebugStop();
 #endif
-    return fBaseMatrix->Redim(r, c);
+    if(fBaseMatrix) return fBaseMatrix->Redim(r, c);
+    return 0;
   }
   //! Resize the solution \ref matrix "Matrix"
   inline int Resize(const int64_t r, const int64_t c) {
 #ifdef PZ_SOLMAT_DEBUG
     if(!fBaseMatrix) DebugStop();
 #endif
-    return fBaseMatrix->Resize(r, c);
+    if(fBaseMatrix) return fBaseMatrix->Resize(r, c);
+    return 0;
   }
   //! Prints the matrix in an std::ostream
-  void Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted){
+  inline void Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted){
 #ifdef PZ_SOLMAT_DEBUG
     if(!fBaseMatrix) DebugStop();
 #endif
-    return fBaseMatrix->Print(name,out,EFormatted);
+    if(fBaseMatrix) return fBaseMatrix->Print(name,out,EFormatted);
   }
   //! Zeroes the matrix
-  int Zero() {
+  inline int Zero() {
 #ifdef PZ_SOLMAT_DEBUG
     if(!fBaseMatrix) DebugStop();
 #endif
-    return fBaseMatrix->Zero();
+    if(fBaseMatrix) return fBaseMatrix->Zero();
+    return 0;
   }
   //! ClassId method
   int ClassId() const override{
