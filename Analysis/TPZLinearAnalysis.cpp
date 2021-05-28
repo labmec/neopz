@@ -321,6 +321,12 @@ void TPZLinearAnalysis::Read(TPZStream &buf, void *context)
   template                                                          \
   TPZMatrixSolver<TVar> &TPZLinearAnalysis::MatrixSolver<TVar>();
 
+
+
 INSTANTIATE_TEMPLATES(STATE)
 INSTANTIATE_TEMPLATES(CSTATE)
+
+
 #undef INSTANTIATE_TEMPLATES
+
+template class TPZRestoreClass<TPZLinearAnalysis>;
