@@ -100,7 +100,8 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix 
             DebugStop();
         }
 #endif
-        TPZFMatrix<TVar> rhsloc(neqcondense,rhs.Cols(),0.);
+        TPZFMatrix<TVar> rhsloc;
+        if(ComputeRhs()) rhs.Redim(neqcondense, rhs.Cols());
         if(this->fNumThreads){
             this->MultiThread_Assemble(stiffness,rhsloc,guiInterface);
         }
@@ -108,7 +109,7 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix 
             this->Serial_Assemble(stiffness,rhsloc,guiInterface);
         }
         
-        equationFilter.Scatter(rhsloc, rhs);
+        if(ComputeRhs())equationFilter.Scatter(rhsloc, rhs);
     }
     else
     {
@@ -227,7 +228,7 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
     }
 #endif
 #ifdef PZDEBUG
-    if (rhs.Rows() != equationFilter.NActiveEquations()) {
+    if (ComputeRhs() && rhs.Rows() != equationFilter.NActiveEquations()) {
         DebugStop();
     }
 #endif
@@ -332,7 +333,7 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
             //			TPZFMatrix<TVar> test2(stiffness.Rows(),stiffness.Cols(),0.);
             //			stiffness.Print("before assembly",std::cout,EMathematicaInput);
             stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-            rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs())rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
             //			stiffness.Print("stiffness after assembly STK = ",std::cout,EMathematicaInput);
             //			rhs.Print("rhs after assembly Rhs = ",std::cout,EMathematicaInput);
             //			test2.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
@@ -357,7 +358,7 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
                     sout << "Stiffness for computational element without associated geometric element\n";
                 }
                 ek.Print(sout);
-                ef.Print(sout);
+                if(ComputeRhs())ef.Print(sout);
                 LOGPZ_DEBUG(loggerel,sout.str())
             }
 #endif
@@ -368,7 +369,7 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
             ek.ComputeDestinationIndices();
             equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
             stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-            rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs())rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
 #ifdef PZ_LOG
             if(loggerel.isDebugEnabled() && ! dynamic_cast<TPZSubCompMesh *>(cmesh))
             {
@@ -395,7 +396,7 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
         sout << "The comparaison results are : consistency check " << globalresult << " write read check " << writereadresult;
         //stiffness.Print("Matriz de Rigidez: ",sout);
         stiffness.Print("Matriz de Rigidez: ",sout,EMathematicaInput);
-        rhs.Print("Right Handside", sout,EMathematicaInput);
+        if(ComputeRhs()) rhs.Print("Right Handside", sout,EMathematicaInput);
         LOGPZ_DEBUG(loggerCheck,sout.str())
     }
     
@@ -520,12 +521,13 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
 //     }
 // #endif
     ThreadData threaddata(myself, itr, mat, rhs, myself->MaterialIds(),
-                           guiInterface, &fCurrentIndex);
+                          guiInterface, &fCurrentIndex, ComputeRhs());
     threaddata.fElBlocked=&fElBlocked;
     threaddata.fElSequenceColor=&fElSequenceColor;
     threaddata.fElementCompleted = &fElementCompleted;
     threaddata.fComputedElements = &fElementsComputed;
     threaddata.fSomeoneIsSleeping = &fSomeoneIsSleeping;
+    
     for(itr=0; itr<numthreads; itr++)
     {
         allthreads.push_back(std::thread(ThreadData::ThreadWork, &threaddata));
@@ -541,8 +543,8 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
     {
         std::stringstream sout;
         //stiffness.Print("Matriz de Rigidez: ",sout);
-        mat.Print("Matriz de Rigidez: ",sout,EMathematicaInput);
-        rhs.Print("Right Handside", sout,EMathematicaInput);
+        mat.Print("Matrix: ",sout,EMathematicaInput);
+        if(ComputeRhs())rhs.Print("Right Handside", sout,EMathematicaInput);
         LOGPZ_DEBUG(loggerCheck,sout.str())
     }
 #endif
@@ -614,9 +616,9 @@ TPZStructMatrixOT<TVar>::ThreadData::ThreadData(
     TPZStructMatrix *strmat, int seqnum, TPZBaseMatrix &mat,
     TPZBaseMatrix &rhs,const std::set<int> &MaterialIds,
     TPZAutoPointer<TPZGuiInterface> guiInterface,
-    std::atomic<int64_t> *currentIndex)
+    std::atomic<int64_t> *currentIndex, bool computeRhs)
 : fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat),
-  fGlobRhs(&rhs), fThreadSeqNum(seqnum)
+  fGlobRhs(&rhs), fThreadSeqNum(seqnum), fComputeRhs(computeRhs)
 {
     fCurrentIndex = currentIndex;
     
@@ -864,12 +866,12 @@ void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
                 if(!ek.HasDependency())
                 {
                     globMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                    globRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+                    if(data->fComputeRhs) globRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
                 }
                 else
                 {
                     globMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-                    globRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+                    if(data->fComputeRhs)globRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
                 }
                 
             }

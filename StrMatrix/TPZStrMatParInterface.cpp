@@ -11,7 +11,7 @@ TPZBaseMatrix *TPZStrMatParInterface::CreateAssemble(
     TPZBaseMatrix *stiff = myself->Create();
     
     const int64_t cols = MAX(1, rhs.Cols());
-    rhs.Redim(myself->EquationFilter().NEqExpand(), cols);
+    if(ComputeRhs()) rhs.Redim(myself->EquationFilter().NEqExpand(), cols);
     Assemble(*stiff, rhs, guiInterface);
     this->EndCreateAssemble(stiff);
 #ifdef PZ_LOG2
@@ -32,8 +32,10 @@ int TPZStrMatParInterface::ClassId() const{
 
 void TPZStrMatParInterface::Read(TPZStream& buf, void* context) {
     buf.Read(&fNumThreads);
+    buf.Read(fComputeRhs);
 }
 
 void TPZStrMatParInterface::Write(TPZStream& buf, int withclassid) const {
     buf.Write(&fNumThreads);
+    buf.Write(fComputeRhs);
 }

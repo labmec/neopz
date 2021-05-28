@@ -22,7 +22,7 @@ class TPZStructMatrixTBBFlow;
 template<class TVar = STATE>
 class TPZFlowGraph {
 public:
-  TPZFlowGraph(TPZStructMatrixTBBFlow<TVar> *strmat);
+  TPZFlowGraph(TPZStructMatrixTBBFlow<TVar> *strmat, bool computeRhs);
   ~TPZFlowGraph();
   TPZFlowGraph(TPZFlowGraph const &copy);
 
@@ -49,12 +49,15 @@ public:
   TPZMatrix<TVar> *fGlobMatrix;
   /// global rhs vector
   TPZFMatrix<TVar> *fGlobRhs;
+  /// whether to compute rhs
+  bool fComputeRhs{true};
 };
 
 template<class TVar = STATE>
 class TPZFlowNode {
 public:
-  TPZFlowNode(TPZFlowGraph<TVar> *graph, int el) : myGraph(graph), iel(el){};
+  TPZFlowNode(TPZFlowGraph<TVar> *graph, int el, bool computeRhs)
+    : myGraph(graph), iel(el), fComputeRhs(computeRhs){};
 
   ~TPZFlowNode(){};
 
@@ -64,6 +67,8 @@ public:
 
   /// element to be processed by this node
   int iel;
+  /// whether to compute rhs
+  bool fComputeRhs{true};
 };
 
 template<class TVar>
@@ -71,7 +76,8 @@ struct TPZGraphThreadData {
   // copy constructor
   TPZGraphThreadData(TPZCompMesh *cmesh, TPZVec<int> &fnextBlocked,
                      TPZVec<int> &felSequenceColor,
-                     TPZVec<int> &felSequenceColorInv);
+                     TPZVec<int> &felSequenceColorInv,
+                     bool computeRhs);
   // destructor
   ~TPZGraphThreadData();
   // tbb tasks graph
@@ -91,6 +97,8 @@ struct TPZGraphThreadData {
   TPZMatrix<STATE> *fGlobMatrix;
   /// global rhs vector
   TPZFMatrix<STATE> *fGlobRhs;
+  /// whether to compute rhs
+  bool fComputeRhs{true};
 };
 
 template<class TVar>

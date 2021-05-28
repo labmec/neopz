@@ -80,9 +80,9 @@ protected:
     struct ThreadData
     {
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrix *strmat,TPZBaseMatrix &mat, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+        ThreadData(TPZStructMatrix *strmat,TPZBaseMatrix &mat, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface, bool computeRhs);
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrix *strmat, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+        ThreadData(TPZStructMatrix *strmat, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface,bool computeRhs);
         /** @brief Destructor: Destroy the mutex semaphores and others */
         ~ThreadData();
         /** @brief Look for an element index which needs to be computed and put it on the stack */
@@ -114,6 +114,7 @@ protected:
         /** @brief Semaphore (to wake up assembly thread) */
 //        std::condition_variable fAssembly;
         TPZSemaphore fAssembly;
+        bool fComputeRhs{true};
     };
 };
 

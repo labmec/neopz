@@ -67,7 +67,11 @@ public:
     inline int GetNumThreads() const {
         return this->fNumThreads;
     }
-
+    //! Whether the rhs vector will be computed or not
+    inline bool ComputeRhs() const;
+    //! Set whether to compute the rhs vector
+    inline void SetComputeRhs(bool rhs);
+    
     //@{
     int ClassId() const override;
     
@@ -83,6 +87,18 @@ protected:
     TPZStrMatParInterface& operator=(TPZStrMatParInterface&&) = default;
     //! Number of threads in Assemble process.
     int fNumThreads{0};
+    //! Whether the rhs will be computed
+    bool fComputeRhs{true};
 };
 
+
+bool TPZStrMatParInterface::ComputeRhs() const
+{
+    return fComputeRhs;
+}
+
+void TPZStrMatParInterface::SetComputeRhs(bool rhs)
+{
+    fComputeRhs = rhs;
+}
 #endif

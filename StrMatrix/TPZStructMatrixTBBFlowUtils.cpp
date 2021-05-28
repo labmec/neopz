@@ -159,8 +159,9 @@ void TPZFlowGraph<TVar>::ElementColoring()
 }
 
 template<class TVar>
-TPZFlowGraph<TVar>::TPZFlowGraph(TPZStructMatrixTBBFlow<TVar> *strmat)
-: fStartNode(fGraph), fStruct(strmat), fGlobMatrix(0), fGlobRhs(0)
+TPZFlowGraph<TVar>::TPZFlowGraph(TPZStructMatrixTBBFlow<TVar> *strmat, bool computeRhs)
+    : fStartNode(fGraph), fStruct(strmat),
+      fGlobMatrix(0), fGlobRhs(0), fComputeRhs(computeRhs)
 {
 //    if(
 //        !dynamic_cast<TPZMatrix<TVar>*>(&stiff_base)||
@@ -283,13 +284,15 @@ void TPZFlowNode<TVar>::operator()(tbb::flow::continue_msg) const
             // assemble the matrix
             if(!ek.HasDependency()) {
                 myGraph->fGlobMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                myGraph->fGlobRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+                if(fComputeRhs)
+                    myGraph->fGlobRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
             } else {
                 myGraph->fGlobMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-                myGraph->fGlobRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+                if(fComputeRhs)
+                    myGraph->fGlobRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
             }
         } else {
-            if(!ef.HasDependency()) {
+            if(fComputeRhs && !ef.HasDependency()) {
                 myGraph->fGlobRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
             } else {
                 myGraph->fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
@@ -320,7 +323,7 @@ void TPZFlowGraph<TVar>::CreateGraph()
     // each graphnode represents an element that can be computed and assembled
     fNodes.resize(felSequenceColor.NElements());
     for (int64_t i=0; i<felSequenceColor.NElements(); i++) {
-        fNodes[i]= new tbb::flow::continue_node<tbb::flow::continue_msg>(fGraph, TPZFlowNode(this, i));
+        fNodes[i]= new tbb::flow::continue_node<tbb::flow::continue_msg>(fGraph, TPZFlowNode(this, i, fComputeRhs));
     }
     TPZVec<int64_t> elementloaded(nconnects,-1);
     

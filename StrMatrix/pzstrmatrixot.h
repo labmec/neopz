@@ -87,7 +87,7 @@ protected:
     struct ThreadData
     {
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrix *strmat,int seqnum, TPZBaseMatrix &mat, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface, std::atomic<int64_t> *fCurrentIndex);
+        ThreadData(TPZStructMatrix *strmat,int seqnum, TPZBaseMatrix &mat, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface, std::atomic<int64_t> *fCurrentIndex, bool computeRhs);
         /** @brief Initialize the mutex semaphores and others */
         ThreadData(TPZStructMatrix *strmat, int seqnum, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface, std::atomic<int64_t> *fCurrentIndex);
         ~ThreadData();
@@ -122,6 +122,8 @@ protected:
         
         /// All elements below or equal this index have been computed
         int64_t *fElementCompleted;
+        /// Whether the rhs is being computed
+        bool fComputeRhs;
     };
 protected:
     

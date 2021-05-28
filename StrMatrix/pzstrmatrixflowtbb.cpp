@@ -65,9 +65,10 @@ void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMa
             DebugStop();
         }
 #endif
-        TPZFMatrix<STATE> rhsloc(neqcondense,rhs.Cols(),0.);
+        TPZFMatrix<TVar> rhsloc;
+        if(ComputeRhs()) rhs.Redim(neqcondense, rhs.Cols());
         this->MultiThread_Assemble(stiffness,rhsloc,guiInterface);
-        equationFilter.Scatter(rhsloc, rhs);
+        if(ComputeRhs()) equationFilter.Scatter(rhsloc, rhs);
     }
     else
     {
@@ -115,7 +116,7 @@ void TPZStructMatrixTBBFlow<TVar>::InitCreateAssemble()
     NO_TBB
 #else
     this->SetNumThreads(0);
-    this->fFlowGraph = new TPZFlowGraph(this);
+    this->fFlowGraph = new TPZFlowGraph(this,ComputeRhs());
 #endif
 }
 
