@@ -1373,58 +1373,38 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
 
 template <class matx, class TVar>
 void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
+  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
+  matx ma,mb;
+  ma.AutoFill(dim, dim, symmetric);
+  mb.AutoFill(dim, dim, symmetric);
 
-    matx ma, mb;
-    ma.AutoFill(dim, dim, symmetric);
-    mb.AutoFill(dim, dim, symmetric);
-
-    // Making ma and mb copies because ma and mb are modified by the eigenvalues method
-    bool check = true;
-    matx cpmaOriginal(ma);
-    matx cpma(ma), cpmb(mb);
-    TPZFMatrix<CTVar > cpfma(dim, dim), cpfmb(dim, dim);
-    for (int i = 0; i < dim; i++) {
-        for (int j = 0; j < dim; j++) {
-            cpfma(i, j) = ma(i, j);
-            cpfmb(i, j) = mb(i, j);
-        }
+  TPZFMatrix<CTVar> cpma(dim, dim), cpmb(dim,dim);
+  for (int i = 0; i < dim; i++) {
+    for (int j = 0; j < dim; j++) {
+      cpma(i, j) = ma.Get(i, j);
+      cpmb(i, j) = mb.Get(i, j);
     }
+  }
 
-    TPZVec < CTVar > w;
-    TPZFMatrix < CTVar > eigenVectors;
-    cpma.SolveGeneralisedEigenProblem(cpmb, w, eigenVectors);
-    //    ma.Print("a",std::cout , EMathematicaInput);
-    //    mb.Print("b",std::cout , EMathematicaInput);
-    //    std::cout<<"w = ";
-    //    std::cout<<w<<std::endl;
-    //    eigenVectors.Print("eV",std::cout , EMathematicaInput);
-    double mult = 10;
-    if (sizeof (RTVar) == 4) {
-        mult *= 10.;
-    }
-    for (int i = 0; i < dim; i++) {
-        TPZFMatrix< CTVar > res(dim, dim, 0.);
-        TPZFMatrix< CTVar > x(dim, 1, 0.);
-        eigenVectors.GetSub(0, i, dim, 1, x);
+  TPZVec<CTVar> w;
+  TPZFMatrix<CTVar> eigenVectors;
+  ma.SolveGeneralisedEigenProblem(mb,w, eigenVectors);
 
-        res = cpfma * x - w[i] * cpfmb * x;
-        for (int j = 0; j < dim; j++) {
-            bool loccheck = IsZero(RTVar(res(j, 0).real() / mult)) && IsZero(RTVar(res(j, 0).imag() / mult));
-            if (loccheck == false) {
-                std::cout << "diff " << res(j, 0) << std::endl;
-            }
-            check &= loccheck;
-        }
-    }
-
-
-    if (!check) {
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<" has failed\n";
-        
-        cpmaOriginal.Print("Matrix = ", std::cout, EMathematicaInput);
-    }
-    REQUIRE(check);
+  RTVar mult = 1;
+  if (sizeof(RTVar) == 4) {
+    mult *= 10.;
+  }
+  TPZFMatrix<CTVar> x(dim, 1, 0.);
+  TPZFMatrix<CTVar> res(dim, 1, 0.);
+  for (int i = 0; i < dim; i++) {
+    eigenVectors.GetSub(0, i, dim, 1, x);
+    res = cpma * x - w[i] * cpmb * x;
+    const auto norm = Norm(res);
+    CAPTURE(i, norm);
+    REQUIRE(IsZero(norm/mult));
+  }
+  Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
 
   
@@ -1525,65 +1505,41 @@ void BasicEigenTests() {
       REQUIRE(IsZero(norm));
     }
   }
-  
+
 }
   
 template <class matx, class TVar>
 void TestingEigenDecompositionAutoFill(int dim, int symmetric) {
-matx ma;
-    ma.AutoFill(dim, dim, symmetric);
-    //    ma.Print("a",std::cout , EMathematicaInput);
+  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
+  matx ma;
+  ma.AutoFill(dim, dim, symmetric);
 
-    // Making ma and mb copies because ma and mb are modified by the eigenvalues method
-    bool check = true;
-    matx cpmaOriginal(ma);
-    //    if(symmetric){
-    TPZFMatrix< CTVar > cpma(dim, dim);
-    for (int i = 0; i < dim; i++) {
-        for (int j = 0; j < dim; j++) {
-            cpma(i, j) = ma.Get(i, j);
-        }
+  TPZFMatrix<CTVar> cpma(dim, dim);
+  for (int i = 0; i < dim; i++) {
+    for (int j = 0; j < dim; j++) {
+      cpma(i, j) = ma.Get(i, j);
     }
+  }
 
-    TPZVec < CTVar > w;
-    TPZFMatrix < CTVar > eigenVectors;
-    ma.SolveEigenProblem(w, eigenVectors);
+  TPZVec<CTVar> w;
+  TPZFMatrix<CTVar> eigenVectors;
+  ma.SolveEigenProblem(w, eigenVectors);
 
-    //    cpma.Print("a = ",std::cout , EMathematicaInput);
-    //    std::cout<<w<<std::endl;
-    //    eigenVectors.Print("eV = ",std::cout,EMathematicaInput);
-    double mult = 10.;
-    if (sizeof (RTVar) == 4) {
-        mult *= 10.;
-    }
-    for (int i = 0; i < dim; i++) {
-        TPZFMatrix< CTVar > res(dim, 1, 0.);
-        TPZFMatrix< CTVar > x(dim, 1, 0.);
-        for (int j = 0; j < dim; j++) {
-            x(j, 0) = eigenVectors(j, i);
-        }
-        for (int k = 0; k < dim; k++) {
-            res(k, 0) = -(w[i]) * x(k, 0);
-            for (int l = 0; l < dim; l++) {
-                res(k, 0) += cpma(k, l) * x(l, 0);
-            }
-        }
-        for (int j = 0; j < dim; j++) {
-            bool loccheck = IsZero(RTVar(res(j, 0).real() / mult)) && IsZero(RTVar(res(j, 0).imag() / mult));
-            if (loccheck == false) {
-                std::cout << "diff " << res(j, 0) << "i = " << i << " j = " << j << std::endl;
-            }
-            check &= loccheck;
-        }
-    }
-    //    }
-
-    if (!check) {
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<" has failed\n";
-        cpmaOriginal.Print("Matrix = ", std::cout, EMathematicaInput);
-    }
-    REQUIRE(check);
+  RTVar mult = 1.;
+  if (sizeof(RTVar) == 4) {
+    mult *= 10.;
+  }
+  TPZFMatrix<CTVar> x(dim, 1, 0.);
+  TPZFMatrix<CTVar> res(dim, 1, 0.);
+  for (int i = 0; i < dim; i++) {
+    eigenVectors.GetSub(0, i, dim, 1, x);
+    res = cpma * x - w[i] * x;
+    const auto norm = Norm(res);
+    CAPTURE(i, norm);
+    REQUIRE(IsZero(norm/mult));
+  }
+  Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
 
 
