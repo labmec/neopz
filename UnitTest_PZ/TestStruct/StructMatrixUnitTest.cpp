@@ -96,6 +96,7 @@ TEMPLATE_TEST_CASE("Assemble known matrix",
       structTest::CheckStiffnessMatrices<TPZSSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
     }
   }
+  cMesh = nullptr;
 }
 
 
@@ -137,6 +138,7 @@ TEMPLATE_TEST_CASE("Compare parallel and serial matrices","[struct_tests][struct
       structTest::CompareSerialParallelStiffMat<TPZSSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
     }
   }
+  cMesh = nullptr;
 }
 
 TEST_CASE("Compare parallel strategies","[struct_tests][struct][multithread]")
@@ -154,6 +156,7 @@ TEST_CASE("Compare parallel strategies","[struct_tests][struct][multithread]")
     structTest::CompareParallelLayerStiffMat<TPZStructMatrixOT<STATE>,TPZStructMatrixTBBFlow<STATE>>(cMesh, nThreads);
   }
 #endif
+  cMesh = nullptr;
 }
 
 namespace structTest{
