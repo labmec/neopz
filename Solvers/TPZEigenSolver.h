@@ -31,6 +31,21 @@ public:
   /** @name Eigen*/
   /** @{*/
   /**
+   * @brief Solves the EVP (according to IsGeneralised()) and 
+   calculates the eigenvectors
+   * @param[out] w Stores the eigenvalues
+   * @return Returns 1 if executed correctly
+   */
+  inline int Solve(TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors);
+
+  /**
+   * @brief Solves the EVP (according to IsGeneralised()) 
+   and does not calculate the eigenvectors
+   * @param[out] w Stores the eigenvalues
+   * @return Returns 1 if executed correctly
+   */
+  inline int Solve(TPZVec<CTVar> &w);
+  /**
    * @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors
    * @param[out] w Stores the eigenvalues
    * @param[out] eigenVectors Stores the correspondent eigenvectors
@@ -106,6 +121,20 @@ protected:
   /** @brief Container classes */
   TPZAutoPointer<TPZMatrix<TVar>> fMatrixB{nullptr};
 };
+
+template<class TVar>
+int TPZEigenSolver<TVar>::Solve(TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors)
+{
+  if(IsGeneralised()) return SolveGeneralisedEigenProblem(w,eigenVectors);
+  else return SolveEigenProblem(w,eigenVectors);
+}
+
+template<class TVar>
+int TPZEigenSolver<TVar>::Solve(TPZVec<CTVar> &w)
+{
+  if(IsGeneralised()) return SolveGeneralisedEigenProblem(w);
+  else return SolveEigenProblem(w);
+}
 
 extern template class TPZEigenSolver<float>;
 extern template class TPZEigenSolver<double>;
