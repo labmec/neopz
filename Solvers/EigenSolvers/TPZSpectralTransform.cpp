@@ -14,12 +14,12 @@ int TPZSpectralTransform<TVar>::ClassId() const{
 }
 
 template<class TVar>
-TPZMatrix<TVar> *
+TPZAutoPointer<TPZMatrix<TVar>>
 TPZSTShiftOrigin<TVar>::CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) const
 {
   if (B.IsSymmetric()) B.Decompose_LDLt();
   else B.Decompose_LU();
-  TPZMatrix<TVar> * shiftedMat = A.NewMatrix();
+  TPZAutoPointer<TPZMatrix<TVar>> shiftedMat = A.NewMatrix();
   //b-1 * shiftedA will be computed at the arnoldi iteration
   const auto &shift = Shift();
   const auto nRows = A.Rows();
@@ -28,11 +28,11 @@ TPZSTShiftOrigin<TVar>::CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) const
 }
 
 template<class TVar>
-TPZMatrix<TVar> *
+TPZAutoPointer<TPZMatrix<TVar>>
 TPZSTShiftOrigin<TVar>::CalcMatrix(TPZMatrix<TVar> &A) const
 {
   const auto nRows = A.Rows();
-  TPZMatrix<TVar> * shiftedMat = &A;
+  TPZAutoPointer<TPZMatrix<TVar>> shiftedMat = &A;
   //calculating A-sigmaB
   const auto &shift = Shift();
   for(int i = 0; i < nRows; i++) shiftedMat->PutVal(i,i,shiftedMat->GetVal(i,i)-shift);
@@ -68,10 +68,10 @@ TPZSTShiftOrigin<TVar>::Read(TPZStream &buf, void *context)
 }
 
 template<class TVar>
-TPZMatrix<TVar> *
+TPZAutoPointer<TPZMatrix<TVar>>
 TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) const
 {
-  TPZMatrix<TVar> * shiftedMat = A.NewMatrix();
+  TPZAutoPointer<TPZMatrix<TVar>> shiftedMat = A.NewMatrix();
   const auto &shift = this->Shift();
   B*=shift;
   A.Subtract(B,*shiftedMat);
@@ -81,10 +81,10 @@ TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) co
 }
 
 template<class TVar>
-TPZMatrix<TVar> *
+  TPZAutoPointer<TPZMatrix<TVar>>
 TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZMatrix<TVar> &A) const
 {
-  TPZMatrix<TVar> * shiftedMat = A.NewMatrix();
+  TPZAutoPointer<TPZMatrix<TVar>> shiftedMat = A.NewMatrix();
   const auto &shift = this->Shift();
   const auto nRows = A.Rows();
   for(int i = 0; i < nRows; i++) shiftedMat->PutVal(i,i,A.GetVal(i,i)-shift);

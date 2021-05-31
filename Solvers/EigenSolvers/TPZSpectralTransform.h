@@ -10,6 +10,8 @@ template<class T>
 class TPZMatrix;
 template<class T>
 class TPZVec;
+template<class T>
+class TPZAutoPointer;
 /**
    @brief Deifnes the interface for the spectral transformations used in the 
    TPZKrylovEigenSolver class.
@@ -33,10 +35,10 @@ protected:
   /** @name Protected */
   /** @{*/
   //! Calculates the appropriate transformation for a generalised EVP
-  virtual TPZMatrix<TVar> *CalcMatrix(TPZMatrix<TVar> &A,
+  virtual TPZAutoPointer<TPZMatrix<TVar>> CalcMatrix(TPZMatrix<TVar> &A,
                                      TPZMatrix<TVar> &B) const = 0;
   //! Calculates the appropriate transformation for an EVP
-  virtual TPZMatrix<TVar> *CalcMatrix(TPZMatrix<TVar> &A) const = 0;
+  virtual TPZAutoPointer<TPZMatrix<TVar>> CalcMatrix(TPZMatrix<TVar> &A) const = 0;
   //! Calculates the original eigenvalues from the mapped ones
   virtual void TransformEigenvalues(TPZVec<CTVar> &w) const = 0;
   /** @}*/
@@ -71,9 +73,9 @@ protected:
   /**@name Protected*/
   /**@{*/
   //! Calculates the appropriate transformation for a generalised EVP
-  TPZMatrix<TVar> *CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) const override;
+  TPZAutoPointer<TPZMatrix<TVar>> CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) const override;
   //! Calculates the appropriate transformation for an EVP
-  TPZMatrix<TVar> *CalcMatrix(TPZMatrix<TVar> &A) const override;
+  TPZAutoPointer<TPZMatrix<TVar>> CalcMatrix(TPZMatrix<TVar> &A) const override;
   //! Calculates the original eigenvalues from the mapped ones
   void TransformEigenvalues(TPZVec<CTVar> &w) const override;
   /** @} */
@@ -129,9 +131,9 @@ protected:
   /**@name BasicUsage*/
   /**@{*/
   //! Calculates the appropriate transformation for a generalised EVP
-  TPZMatrix<TVar> *CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) const override;
+  TPZAutoPointer<TPZMatrix<TVar>> CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) const override;
   //! Calculates the appropriate transformation for an EVP
-  TPZMatrix<TVar> *CalcMatrix(TPZMatrix<TVar> &A) const override;
+  TPZAutoPointer<TPZMatrix<TVar>> CalcMatrix(TPZMatrix<TVar> &A) const override;
   //! Calculates the original eigenvalues from the mapped ones
   void TransformEigenvalues(TPZVec<CTVar> &w) const override;
   /**@}*/
