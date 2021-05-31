@@ -75,6 +75,8 @@ TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) co
   const auto &shift = this->Shift();
   B*=shift;
   A.Subtract(B,*shiftedMat);
+  if (shiftedMat->IsSymmetric()) shiftedMat->Decompose_LDLt();
+  else shiftedMat->Decompose_LU();
   return shiftedMat;
 }
 
@@ -86,6 +88,8 @@ TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZMatrix<TVar> &A) const
   const auto &shift = this->Shift();
   const auto nRows = A.Rows();
   for(int i = 0; i < nRows; i++) shiftedMat->PutVal(i,i,A.GetVal(i,i)-shift);
+  if (shiftedMat->IsSymmetric()) shiftedMat->Decompose_LDLt();
+  else shiftedMat->Decompose_LU();
   return shiftedMat;
 }
 

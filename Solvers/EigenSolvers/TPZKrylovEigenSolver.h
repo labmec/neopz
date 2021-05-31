@@ -122,6 +122,8 @@ protected:
   TPZAutoPointer<TPZSpectralTransform<TVar>> fST;
   //! Sorting order of the eigenvalues
   TPZEigenSort fEigenSort{TPZEigenSort::EAbsAscending};
+  //! Implementation of Solve methods
+  int SolveImpl(TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors, bool computeVectors);
 };
 
 template<class TVar>

@@ -6,8 +6,11 @@
 #include <numeric>
 
 template<class TVar>
-int TPZKrylovEigenSolver<TVar>::SolveEigenProblem(TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors)
+int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
+                                          TPZFMatrix<CTVar> &eigenVectors,
+                                          bool computeVectors)
 {
+  
 #ifndef USING_LAPACK
   PZError<<__PRETTY_FUNCTION__;
   PZError<<"\nERROR: NeoPZ was not linked against LAPACK. Aborting...\n";
@@ -21,16 +24,17 @@ int TPZKrylovEigenSolver<TVar>::SolveEigenProblem(TPZVec<CTVar> &w,TPZFMatrix<CT
   TPZAutoPointer<TPZMatrix<TVar>> arnoldiMat{nullptr};
   auto st = this->SpectralTransform();
   if(st){
+    TPZSimpleTimer calcMat("ST calc mat");
     if(this->IsGeneralised())
       arnoldiMat = st->CalcMatrix(matA,matB);
     else
       arnoldiMat = st->CalcMatrix(matA);
   }else{
     if(this->IsGeneralised()){
-      arnoldiMat = matA.NewMatrix();
+      arnoldiMat = matA.Clone();
+      TPZSimpleTimer binvert("invert B mat");
       if (matB.IsSymmetric()) matB.Decompose_LDLt();
       else matB.Decompose_LU();
-      *arnoldiMat = matB * matA;
     }
     else
       arnoldiMat = matA.Clone();
@@ -75,24 +79,26 @@ int TPZKrylovEigenSolver<TVar>::SolveEigenProblem(TPZVec<CTVar> &w,TPZFMatrix<CT
     unreachable();
   };
   //sorting eigenvalues
-   TPZVec<int> indices(n);
-   std::iota(indices.begin(),indices.end(),0); //Initializing
-   std::stable_sort( indices.begin(),indices.end(),
-                     [&w, &sortFunc](int i,int j){return sortFunc(w[i],w[j]);} );
-   std::stable_sort( w.begin(),w.end(),
-                     [&sortFunc](auto i,auto j){return sortFunc(i,j);} );
-  
+  TPZVec<int> indices(krylovDim);
+  std::iota(indices.begin(), indices.end(), 0); // Initializing
+  std::stable_sort(
+      indices.begin(), indices.end(),
+      [&w, &sortFunc](int i, int j) { return sortFunc(w[i], w[j]); });
+  std::stable_sort(w.begin(), w.end(),
+                   [&sortFunc](auto i, auto j) { return sortFunc(i, j); });
+
+  w.Resize(n);
+
   // for (int i = 0; i < n; i++)
   //   w[i] = (TVar)1.0/w[i] + shift;
-
-    
+  if(!computeVectors) return lapackres;
   eigenVectors.Redim(nRows,n);
   {
     TPZSimpleTimer evTimer("Computing eigenvectors");
     for (int i = 0; i< n; i++){//which eigenvector from A
       auto il = indices[i];
       for (int j = 0; j < krylovDim; j++){//which vector from Q
-        CTVar *ev = &eigenVectors.g(0,il);
+        CTVar *ev = &eigenVectors.g(0,i);
         const auto lev = lapackEV(j,il);
         TVar *q = &qVecs[j]->g(0,0);
         /*
@@ -111,31 +117,30 @@ int TPZKrylovEigenSolver<TVar>::SolveEigenProblem(TPZVec<CTVar> &w,TPZFMatrix<CT
 }
 
 template<class TVar>
+int TPZKrylovEigenSolver<TVar>::SolveEigenProblem(TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors)
+{
+  return SolveImpl(w,eigenVectors,true);
+}
+
+template<class TVar>
 int TPZKrylovEigenSolver<TVar>::SolveEigenProblem(TPZVec<CTVar> &w)
 {
-  PZError<<__PRETTY_FUNCTION__;
-  PZError<<"\nERROR: Not yet implemented.\nAborting...\n";
-  DebugStop();
-  return -1;
+  TPZFMatrix<CTVar> eigenVectors;
+  return SolveImpl(w,eigenVectors,false);
 }
 
 template<class TVar>
 int TPZKrylovEigenSolver<TVar>::SolveGeneralisedEigenProblem(TPZVec<CTVar> &w,
                                  TPZFMatrix<CTVar> &eigenVectors)
 {
-  PZError<<__PRETTY_FUNCTION__;
-  PZError<<"\nERROR: Not yet implemented.\nAborting...\n";
-  DebugStop();
-  return -1;
+  return SolveImpl(w,eigenVectors,true);
 }
 
 template<class TVar>
 int TPZKrylovEigenSolver<TVar>::SolveGeneralisedEigenProblem(TPZVec<CTVar> &w)
 {
-  PZError<<__PRETTY_FUNCTION__;
-  PZError<<"\nERROR: Not yet implemented.\nAborting...\n";
-  DebugStop();
-  return -1;
+  TPZFMatrix<CTVar> eigenVectors;
+  return SolveImpl(w, eigenVectors,false);
 }
 
 template<class TVar>
@@ -168,7 +173,7 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
     if(this->fIsGeneralised){
       auto st = this->SpectralTransform().operator->();
       auto stshiftinvert = dynamic_cast<TPZSTShiftAndInvert<TVar>*>(st);
-      if(st) return EWhichB::EBBefore;
+      if(stshiftinvert) return EWhichB::EBBefore;
       else return EWhichB::EBAfter;
     }
     return EWhichB::ENoB;
@@ -191,9 +196,9 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
       case EWhichB::ENoB:
         return  A  * *(Q[k]);
       case EWhichB::EBBefore:
-        return A * B * *(Q[k]);
+        return A * (B * *(Q[k]));
       case EWhichB::EBAfter:
-        return B * A * *(Q[k]);
+        return B * (A * *(Q[k]));
       }
       unreachable();
     }();
