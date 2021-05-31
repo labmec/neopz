@@ -315,6 +315,7 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZFMatrix<TVar> &A,
     PZError<<"\nERROR:Unsupported dimensions for matrix A\nAborting...\n";
     DebugStop();
   }
+  TPZFMatrix <CTVar> eigenVectorsLapack;
   char jobvl[] = "N";
   char jobvr[] = "V";
   if(!calcVectors) jobvr[0]='N';
@@ -328,7 +329,7 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZFMatrix<TVar> &A,
   TPZVec<TVar> work(lwork);
 
   eigenValues.Resize(dim,0.);
-  if(calcVectors) eigenVectors.Redim(dim,dim);
+  if(calcVectors) eigenVectorsLapack.Redim(dim,dim);
 #ifdef USING_LAPACK
   if constexpr(std::is_same_v<RTVar,TVar>){//real types
     TPZVec<TVar> realeigen(dim,0.);
@@ -353,13 +354,13 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZFMatrix<TVar> &A,
       for(int i = 0 ; i < dim ; i ++){
         if(imageigen[i] == 0){
           for( int iV = 0 ; iV < dim ; iV++ ){
-            eigenVectors(iV,i) = VR(iV,i);
+            eigenVectorsLapack(iV,i) = VR(iV,i);
           }
         }
         else{
           for( int iV = 0 ; iV < dim ; iV++ ){
-            eigenVectors(iV,i) = VR(iV,i) + (CTVar)1i * VR(iV,i+1) ;
-            eigenVectors(iV,i + 1) = VR(iV,i) - (CTVar)1i * VR(iV,i+1) ;
+            eigenVectorsLapack(iV,i) = VR(iV,i) + (CTVar)1i * VR(iV,i+1) ;
+            eigenVectorsLapack(iV,i + 1) = VR(iV,i) - (CTVar)1i * VR(iV,i+1) ;
           }
           i++;
         }
@@ -371,13 +372,13 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZFMatrix<TVar> &A,
       cgeev_(jobvl, jobvr, &dim, (varfloatcomplex*)A.fElem, &dim,
              (varfloatcomplex*)&eigenValues[0],
              (varfloatcomplex*)VL.fElem, &dim,
-             (varfloatcomplex*)eigenVectors.fElem, &dim,
+             (varfloatcomplex*)eigenVectorsLapack.fElem, &dim,
              (varfloatcomplex*)&work[0], &lwork, &rwork[0], &info);
     }else if constexpr (std::is_same_v<TVar,std::complex<double>>){
       zgeev_(jobvl, jobvr, &dim, (vardoublecomplex*)A.fElem, &dim,
              (vardoublecomplex*)&eigenValues[0],
              (vardoublecomplex*)VL.fElem, &dim,
-             (vardoublecomplex*)eigenVectors.fElem, &dim,
+             (vardoublecomplex*)eigenVectorsLapack.fElem, &dim,
              (vardoublecomplex*)&work[0], &lwork, &rwork[0], &info);
     }else{
     PZError<<__PRETTY_FUNCTION__;
@@ -392,7 +393,21 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZFMatrix<TVar> &A,
     PZError<<"Aborting...\n";
     DebugStop();
   }
-
+  const auto nev = this->NEigenpairs();
+  if(nev > 0){
+    TPZManVector<int,20> indices;
+    this->SortEigenvalues(eigenValues,indices);
+    if(calcVectors){
+      eigenVectors.Resize(dim, nev);
+      for (auto i = 0; i < nev; i++) {
+        auto li = indices[i];
+        for (auto x = 0; x < dim; x++)
+          eigenVectors(x, i) = eigenVectorsLapack(x, li);
+      }
+    }
+  }else{
+    if(calcVectors) eigenVectors = std::move(eigenVectorsLapack);
+  }
   return info;
 }
 
@@ -418,7 +433,7 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
     PZError<<"Incompatible dimensions\nAborting...\n";
     DebugStop();
   }
-
+  TPZFMatrix <CTVar> eigenVectorsLapack;
   char jobvl[] = "N", jobvr[] = "V";
   if(!calcVectors) jobvr[0] = 'N';
   TPZFMatrix< TVar> VL(A.Rows(),A.Cols()),VR(A.Rows(),A.Cols());
@@ -432,7 +447,7 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
 
 #ifdef USING_LAPACK
   
-  if(calcVectors) eigenVectors.Redim(dim,dim);
+  if(calcVectors) eigenVectorsLapack.Redim(dim,dim);
   eigenValues.Resize(dim,0.);
   
   if constexpr(std::is_same_v<TVar,RTVar>){//real types
@@ -457,13 +472,13 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
       for(int i = 0 ; i < dim ; i ++){
         if(imageigen[i] == 0){
           for( int iV = 0 ; iV < dim ; iV++ ){
-            eigenVectors(iV,i) = VR(iV,i);
+            eigenVectorsLapack(iV,i) = VR(iV,i);
           }
         }
         else{
           for( int iV = 0 ; iV < dim ; iV++ ){
-            eigenVectors(iV,i) = VR(iV,i) + (CTVar)1i * VR(iV,i+1) ;
-            eigenVectors(iV,i + 1) = VR(iV,i) - (CTVar)1i * VR(iV,i+1) ;
+            eigenVectorsLapack(iV,i) = VR(iV,i) + (CTVar)1i * VR(iV,i+1) ;
+            eigenVectorsLapack(iV,i + 1) = VR(iV,i) - (CTVar)1i * VR(iV,i+1) ;
           }
           i++;
         }
@@ -478,7 +493,7 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
              (varfloatcomplex*)B.fElem, &dim,
              (varfloatcomplex*)&eigen[0], (varfloatcomplex*)&beta[0],
              (varfloatcomplex*)VL.fElem, &dim,
-             (varfloatcomplex*)eigenVectors.fElem, &dim,
+             (varfloatcomplex*)eigenVectorsLapack.fElem, &dim,
              (varfloatcomplex*)&work[0], &lwork, &rwork[0],&info);
     }else if constexpr (std::is_same_v<TVar,std::complex<double>>){
       zggev_(jobvl, jobvr, &dim,
@@ -486,7 +501,7 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
              (vardoublecomplex*)B.fElem, &dim,
              (vardoublecomplex*)&eigen[0], (vardoublecomplex*)&beta[0],
              (vardoublecomplex*)VL.fElem, &dim,
-             (vardoublecomplex*)eigenVectors.fElem, &dim,
+             (vardoublecomplex*)eigenVectorsLapack.fElem, &dim,
              (vardoublecomplex*)&work[0], &lwork, &rwork[0],&info);
     }
 
@@ -510,6 +525,22 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
     PZError<<"\nERROR:LAPACK call returned with info: "<<info<<"\n";
     PZError<<"Aborting...\n";
     DebugStop();
+  }
+
+  const auto nev = this->NEigenpairs();
+  if(nev > 0){
+    TPZManVector<int,20> indices;
+    this->SortEigenvalues(eigenValues,indices);
+    if(calcVectors){
+      eigenVectors.Resize(dim, nev);
+      for (auto i = 0; i < nev; i++) {
+        auto li = indices[i];
+        for (auto x = 0; x < dim; x++)
+          eigenVectors(x, i) = eigenVectorsLapack(x, li);
+      }
+    }
+  }else{
+    if(calcVectors) eigenVectors = std::move(eigenVectorsLapack);
   }
   return info;
 }
@@ -539,7 +570,7 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZSBMatrix<TVar> &A,
     PZError<<"Incompatible dimensions\nAborting...\n";
     DebugStop();
   }
-
+  TPZFMatrix <CTVar> eigenVectorsLapack;
   char jobz = calcVectors ? 'V' : 'N'; //compute eigenvectors
   char uplo = 'U';//assume upper triangular
   int n = A.Dim();
@@ -553,7 +584,7 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZSBMatrix<TVar> &A,
   int info = -666;
 #ifdef USING_LAPACK
   eigenValues.Resize(n);
-  if(calcVectors) eigenVectors.Redim(n, n);
+  if(calcVectors) eigenVectorsLapack.Redim(n, n);
   
   if constexpr(std::is_same_v<TVar,RTVar>){
     TPZVec<TVar> work(3*n);
@@ -570,7 +601,7 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZSBMatrix<TVar> &A,
     if(calcVectors){
       for (int iVec = 0 ; iVec < n; iVec++) {
         for (int iCol = 0; iCol < n; iCol++) {
-          eigenVectors( iVec , iCol) = z(iVec,iCol);
+          eigenVectorsLapack( iVec , iCol) = z(iVec,iCol);
         }
       }
     }
@@ -580,12 +611,12 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZSBMatrix<TVar> &A,
     if constexpr (std::is_same_v<TVar,std::complex<float>>){
       chbev_(&jobz, &uplo, &n, &kd,
              (varfloatcomplex*)A.fDiag.begin(), &ldab, w.begin(),
-             (varfloatcomplex*)&eigenVectors(0,0), &ldz,
+             (varfloatcomplex*)&eigenVectorsLapack(0,0), &ldz,
              (varfloatcomplex*)work.begin(), rwork.begin(), &info);
     }else if constexpr (std::is_same_v<TVar,std::complex<double>>){
       zhbev_(&jobz, &uplo, &n, &kd,
              (vardoublecomplex*)A.fDiag.begin(), &ldab, w.begin(),
-             (vardoublecomplex*)&eigenVectors(0,0), &ldz,
+             (vardoublecomplex*)&eigenVectorsLapack(0,0), &ldz,
              (vardoublecomplex*)work.begin(), rwork.begin(), &info);
     }
   }else{
@@ -604,6 +635,21 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZSBMatrix<TVar> &A,
 
   for(int i = 0 ; i < n ; i++){
     eigenValues[i] = w[i];
+  }
+  const auto nev = this->NEigenpairs();
+  if(nev > 0){
+    TPZManVector<int,20> indices;
+    this->SortEigenvalues(eigenValues,indices);
+    if(calcVectors){
+      eigenVectors.Resize(n, nev);
+      for (auto i = 0; i < nev; i++) {
+        auto li = indices[i];
+        for (auto x = 0; x < n; x++)
+          eigenVectors(x, i) = eigenVectorsLapack(x, li);
+      }
+    }
+  }else{
+    if(calcVectors) eigenVectors = std::move(eigenVectorsLapack);
   }
   return info;
 }
@@ -629,7 +675,7 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
     DebugStop();
   }
 
-
+  TPZFMatrix <CTVar> eigenVectorsLapack;
   char jobz = calcVectors? 'V' : 'N'; //Compute eigenvectors
   char uplo = 'U';//assume upper triangular
   int n = A.Dim();
@@ -643,7 +689,7 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
   int info = -666;
 #ifdef USING_LAPACK
   eigenValues.Resize(n);
-  if(calcVectors) eigenVectors.Redim(n, n);
+  if(calcVectors) eigenVectorsLapack.Redim(n, n);
   
   if constexpr(std::is_same_v<TVar,RTVar>){
     TPZVec<TVar> work(3*n);
@@ -662,7 +708,7 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
     if(calcVectors){
       for (int iVec = 0 ; iVec < n; iVec++) {
         for (int iCol = 0; iCol < n; iCol++) {
-          eigenVectors( iVec , iCol) = z(iVec,iCol);
+          eigenVectorsLapack( iVec , iCol) = z(iVec,iCol);
         }
       }
     }
@@ -673,13 +719,13 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
       chbgv_(&jobz, &uplo, &n, &ka, &kb,
              (varfloatcomplex *)A.fDiag.begin(), &ldab,
              (varfloatcomplex *)B.fDiag.begin(), &ldbb, w.begin(),
-             (varfloatcomplex *)&eigenVectors(0,0), &ldz,
+             (varfloatcomplex *)&eigenVectorsLapack(0,0), &ldz,
              (varfloatcomplex *)work.begin(),rwork.begin(), &info);
     }else if constexpr (std::is_same_v<TVar,std::complex<double>>){
       zhbgv_(&jobz, &uplo, &n, &ka, &kb,
              (vardoublecomplex *)A.fDiag.begin(), &ldab,
              (vardoublecomplex *)B.fDiag.begin(), &ldbb, w.begin(),
-             (vardoublecomplex *)&eigenVectors(0,0), &ldz,
+             (vardoublecomplex *)&eigenVectorsLapack(0,0), &ldz,
              (vardoublecomplex *)work.begin(),rwork.begin(), &info);
     }
   }else{
@@ -697,6 +743,19 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
 
   for(int i = 0 ; i < n ; i++){
     eigenValues[i] = w[i];
+  }
+  const auto nev = this->NEigenpairs();
+  if(nev > 0){
+    TPZManVector<int,20> indices;
+    this->SortEigenvalues(eigenValues,indices);
+    eigenVectors.Resize(n,nev);
+    for(auto i = 0; i < nev; i++){
+      auto li = indices[i];
+      for(auto x = 0; x < n; x++)
+        eigenVectors(x,i) = eigenVectorsLapack(x,li); 
+    }
+  }else{
+    eigenVectors = std::move(eigenVectorsLapack);
   }
   return info;
 }

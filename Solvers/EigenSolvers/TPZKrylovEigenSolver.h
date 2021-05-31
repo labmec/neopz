@@ -3,15 +3,7 @@
 #include "TPZEigenSolver.h"
 #include "TPZSpectralTransform.h"
 
-//! Sorting method for calculated eigenvalues
-enum class TPZEigenSort{
-  EAbsAscending,/*!< Ascending magnitude*/
-  EAbsDescending,/*!< Descending magnitude*/
-  ERealAscending,/*!< Ascending real part*/
-  ERealDescending,/*!< Descending real part*/
-  EImagAscending,/*!< Ascending imaginary part*/
-  EImagDescending/*!< Descending imaginary part*/
-};
+
 
 /** @brief Solvers for eigenvalue problems using Krylov methods.
     The eigenvalue problem is solved in the projected Krylov subspace 
@@ -68,9 +60,7 @@ public:
       @note If the dimension of the Krylov subspace is insufficient, 
       it will be adjusted to `n`.
   */
-  inline void SetNEigenpairs(int n);
-  //! Gets number of Eigenpairs to calculate
-  inline int NEigenpairs() const;
+  inline void SetNEigenpairs(int n) override;
   /** @brief Sets the dimension of the Krylov subspace. 
       @note If not set, defaults to `10*nev`, where `nev` is the number 
       of sought eigenvalues.*/
@@ -88,11 +78,6 @@ public:
   inline void SetKrylovInitialVector(TPZFMatrix<TVar> q);
   //! Gets the first vector used in the Krylov subspace
   inline TPZFMatrix<TVar> KrylovInitialVector() const;
-  /** @brief Decides criterium for sorting the obtained eigenvalues. 
-      @note By default it is set to TPZEigenSort::EAbsAscending .*/
-  inline void SetEigenSorting(TPZEigenSort ord);
-  //! Returns criterium for sorting the obtained eigenvalues
-  inline TPZEigenSort EigenSorting() const;
   
 
   /** @brief Performs the Arnoldi iteration on a given matrix. 
@@ -110,8 +95,6 @@ public:
                                       TPZFMatrix<TVar> &H);
   /** @}*/
 protected:
-  //! Number of Eigenpairs to calculate
-  int fNEigenpairs{1};
   //! Dimension of the Krylov subspace to calculate
   int fKrylovDim{-1};
   //! Initial vector to be used to create Krylov subspace
@@ -120,8 +103,6 @@ protected:
   RTVar fTolerance{std::numeric_limits<RTVar>::epsilon()};
   //! Spectral Transformation
   TPZAutoPointer<TPZSpectralTransform<TVar>> fST;
-  //! Sorting order of the eigenvalues
-  TPZEigenSort fEigenSort{TPZEigenSort::EAbsAscending};
   //! Implementation of Solve methods
   int SolveImpl(TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors, bool computeVectors);
 };
@@ -143,17 +124,11 @@ template<class TVar>
 void TPZKrylovEigenSolver<TVar>::SetNEigenpairs(int n)
 {
   if(n < 1) n = 1;
-  fNEigenpairs = n;
+  this->fNEigenpairs = n;
   if(n > fKrylovDim){
     fKrylovDim = 10 * n;
     std::cout<< "Adjusted Krylov dim to "<< fKrylovDim<<std::endl;
   }
-}
-
-template<class TVar>
-int TPZKrylovEigenSolver<TVar>::NEigenpairs() const
-{
-  return fNEigenpairs;
 }
 
 template<class TVar>
@@ -191,17 +166,6 @@ void TPZKrylovEigenSolver<TVar>::SetKrylovInitialVector(TPZFMatrix<TVar> q)
   fKrylovVector = q;
 }
 
-template<class TVar>
-TPZEigenSort TPZKrylovEigenSolver<TVar>::EigenSorting() const
-{
-  return fEigenSort;
-}
-
-template<class TVar>
-void TPZKrylovEigenSolver<TVar>::SetEigenSorting(TPZEigenSort ord)
-{
-  fEigenSort = ord;
-}
 template<class TVar>
 TPZFMatrix<TVar> TPZKrylovEigenSolver<TVar>::KrylovInitialVector() const
 {

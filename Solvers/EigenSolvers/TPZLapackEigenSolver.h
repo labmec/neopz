@@ -65,6 +65,15 @@ public:
    * @return Returns info param from LAPACK(0 if executed correctly)
    */
   int SolveGeneralisedEigenProblem(TPZVec<CTVar> &w) override;
+  /** 
+      @brief Sets number of Eigenpairs to compute. 
+      If not set, or set with n < 1, all pairs are returned.
+      @note Since LAPACK only works will full matrices, this number
+      will not affect computation, only the return value.
+  */
+  virtual void SetNEigenpairs(int n) override{
+    this->fNEigenpairs = n;
+  }
   /** @}*/
   //! Class identifier
   int ClassId() const override;

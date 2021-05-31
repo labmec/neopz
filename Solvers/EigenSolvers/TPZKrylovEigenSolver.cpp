@@ -2,15 +2,12 @@
 #include "TPZLapackEigenSolver.h"
 #include "TPZSimpleTimer.h"
 
-
-#include <numeric>
-
 template<class TVar>
 int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
                                           TPZFMatrix<CTVar> &eigenVectors,
                                           bool computeVectors)
 {
-  
+  if(this->NEigenpairs() < 1) SetNEigenpairs(1);
 #ifndef USING_LAPACK
   PZError<<__PRETTY_FUNCTION__;
   PZError<<"\nERROR: NeoPZ was not linked against LAPACK. Aborting...\n";
@@ -40,7 +37,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
       arnoldiMat = matA.Clone();
   }
   
-  const int &n = NEigenpairs();
+  const int &n = this->NEigenpairs();
   if(KrylovDim() == -1){
     SetKrylovDim(10*n);
   }
@@ -66,31 +63,10 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
 
   if(st) st->TransformEigenvalues(w);
 
-  const auto eigOrder = EigenSorting();
-  auto sortFunc = [eigOrder](const CTVar a, const CTVar b){
-    switch(eigOrder){
-    case TPZEigenSort::EAbsAscending: return fabs(a) < fabs(b);
-    case TPZEigenSort::EAbsDescending: return fabs(a) > fabs(b);
-    case TPZEigenSort::ERealAscending: return a.real() < b.real();
-    case TPZEigenSort::ERealDescending: return a.real() > b.real();
-    case TPZEigenSort::EImagAscending: return a.imag() < b.imag();
-    case TPZEigenSort::EImagDescending: return a.imag() > b.imag();
-    }
-    unreachable();
-  };
-  //sorting eigenvalues
-  TPZVec<int> indices(krylovDim);
-  std::iota(indices.begin(), indices.end(), 0); // Initializing
-  std::stable_sort(
-      indices.begin(), indices.end(),
-      [&w, &sortFunc](int i, int j) { return sortFunc(w[i], w[j]); });
-  std::stable_sort(w.begin(), w.end(),
-                   [&sortFunc](auto i, auto j) { return sortFunc(i, j); });
-
-  w.Resize(n);
-
-  // for (int i = 0; i < n; i++)
-  //   w[i] = (TVar)1.0/w[i] + shift;
+  TPZManVector<int,20> indices;
+  
+  this->SortEigenvalues(w,indices);
+  
   if(!computeVectors) return lapackres;
   eigenVectors.Redim(nRows,n);
   {

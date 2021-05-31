@@ -6,8 +6,18 @@
 #define TPZEIGENSOLVER_H
 
 #include "TPZSolver.h"
-
 #include "pzfmatrix.h"
+
+//! Sorting method for calculated eigenvalues
+enum class TPZEigenSort{
+  EAbsAscending,/*!< Ascending magnitude*/
+  EAbsDescending,/*!< Descending magnitude*/
+  ERealAscending,/*!< Ascending real part*/
+  ERealDescending,/*!< Descending real part*/
+  EImagAscending,/*!< Ascending imaginary part*/
+  EImagDescending/*!< Descending imaginary part*/
+};
+
 /**
 * @ingroup solver
 * @brief  Defines an interface for  eigenvalue problems solvers.
@@ -75,6 +85,15 @@ public:
    * @return Returns 1 if executed correctly
    */
   virtual int SolveGeneralisedEigenProblem(TPZVec<CTVar> &w) = 0;
+  /** 
+      @brief Sets number of Eigenpairs to compute. 
+      @note In some solvers, n<1 is equal to all.
+  */
+  virtual void SetNEigenpairs(int n) = 0;
+  //! Gets number of Eigenpairs to calculate
+  inline int NEigenpairs() const{
+    return fNEigenpairs;
+  }
   //!Gets the Matrix A
   inline TPZAutoPointer<TPZMatrix<TVar>> MatrixA(){
     return fMatrixA;
@@ -97,12 +116,26 @@ public:
   }
   //!Configure the solver to solve a generalised eigenvalue problem
   virtual void SetAsGeneralised(bool isGeneralised);
+  /** @brief Decides criterium for sorting the obtained eigenvalues. 
+      @note By default it is set to TPZEigenSort::EAbsAscending .*/
+  inline void SetEigenSorting(TPZEigenSort ord);
+  //! Returns criterium for sorting the obtained eigenvalues
+  inline TPZEigenSort EigenSorting() const;
   /** @}*/
   //! Class identifier
   int ClassId() const override;
   //! Resets Matrices
   void ResetMatrix() override;
 protected:
+  /**
+     @brief Sort the calculated eigenvalues and return a vector with
+     size given by the NEigenvalues() method
+     @param [in/out] eigenvalues
+     @param [out] vector of indices relating the unsorted and sorted eigenvalues.
+  */
+  void SortEigenvalues(TPZVec<CTVar> &w, TPZVec<int> &indices);
+  //! Number of Eigenpairs to calculate
+  int fNEigenpairs{-1};
   /** @brief Whether to solve the eigenvalue problem
    *   is generalised (Ax=uBx) or not (Ax=ux)*/
   bool fIsGeneralised{false};
@@ -120,6 +153,8 @@ protected:
 
   /** @brief Container classes */
   TPZAutoPointer<TPZMatrix<TVar>> fMatrixB{nullptr};
+  //! Sorting order of the eigenvalues
+  TPZEigenSort fEigenSort{TPZEigenSort::EAbsAscending};
 };
 
 template<class TVar>
@@ -134,6 +169,18 @@ int TPZEigenSolver<TVar>::Solve(TPZVec<CTVar> &w)
 {
   if(IsGeneralised()) return SolveGeneralisedEigenProblem(w);
   else return SolveEigenProblem(w);
+}
+
+template<class TVar>
+TPZEigenSort TPZEigenSolver<TVar>::EigenSorting() const
+{
+  return fEigenSort;
+}
+
+template<class TVar>
+void TPZEigenSolver<TVar>::SetEigenSorting(TPZEigenSort ord)
+{
+  fEigenSort = ord;
 }
 
 extern template class TPZEigenSolver<float>;
