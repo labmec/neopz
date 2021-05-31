@@ -275,8 +275,8 @@ TPZWaveguideModalAnalysis::ContributeB(
 
         }
         for (int jSca = 0; jSca < nH1Functions; jSca++) {
-            STATE phiVecDotGradPhiScax = phiHCurl(iVec , 0) * gradPhiH1(jSca , 0);
-            STATE phiVecDotGradPhiScay = phiHCurl(iVec , 1) * gradPhiH1(jSca , 1);
+            STATE phiVecDotGradPhiScax = phiHCurl(iVec , 0) * gradPhiH1(0,jSca);
+            STATE phiVecDotGradPhiScay = phiHCurl(iVec , 1) * gradPhiH1(1,jSca);
 
             CSTATE stiffBzt = 0.;
             stiffBzt += (1./uyy) * phiVecDotGradPhiScax;
@@ -286,8 +286,8 @@ TPZWaveguideModalAnalysis::ContributeB(
     }
     for (int iSca = 0; iSca < nH1Functions; iSca++) {
         for (int jVec = 0; jVec < nHCurlFunctions; jVec++) {
-            STATE phiVecDotGradPhiScax = phiHCurl(jVec , 0) * gradPhiH1(iSca , 0);
-            STATE phiVecDotGradPhiScay = phiHCurl(jVec , 1) * gradPhiH1(iSca , 1);
+            STATE phiVecDotGradPhiScax = phiHCurl(jVec , 0) * gradPhiH1(0,iSca);
+            STATE phiVecDotGradPhiScay = phiHCurl(jVec , 1) * gradPhiH1(1,iSca);
 
             CSTATE stiffBtz = 0.;
             stiffBtz += (1./uyy) * phiVecDotGradPhiScax;
@@ -295,8 +295,8 @@ TPZWaveguideModalAnalysis::ContributeB(
             ek( firstH1 + iSca , firstHCurl +  jVec ) += stiffBtz * weight ;
         }
         for (int jSca = 0; jSca < nH1Functions; jSca++) {
-            STATE gradPhiScaDotGradPhiScax = gradPhiH1(iSca , 0) * gradPhiH1(jSca , 0);
-            STATE gradPhiScaDotGradPhiScay = gradPhiH1(iSca , 1) * gradPhiH1(jSca , 1);
+            STATE gradPhiScaDotGradPhiScax = gradPhiH1(0,iSca) * gradPhiH1(0,jSca);
+            STATE gradPhiScaDotGradPhiScay = gradPhiH1(1,iSca) * gradPhiH1(1,jSca);
 
             CSTATE stiffBzz = 0.;
             stiffBzz +=  (1./uyy) * gradPhiScaDotGradPhiScax;
