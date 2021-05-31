@@ -119,28 +119,17 @@ void TPZPardisoSolver<TVar>::Solve(const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar>
 	}
     if(!fDecomposed) Decompose();
     sol = rhs;
-    auto *tmpSym =
-        dynamic_cast<TPZMatrix<TVar>*>(this->Matrix().operator->());
-    auto *tmpNSym =
-        dynamic_cast<TPZMatrix<TVar>*>(this->Matrix().operator->());
-    if(tmpSym){
-        Solve(tmpSym,rhs,sol);
-    }else if(tmpNSym){
-        Solve(tmpNSym,rhs, sol);
-    }else{
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"This solver is only compatible with sparse matrices.\nAborting...\n";
-        DebugStop();
-    }
+    Solve(this->Matrix().operator->(),rhs,sol);
+
     if(res) res->Redim(rhs.Rows(),rhs.Cols());
 }
 template<class TVar>
 void TPZPardisoSolver<TVar>::Decompose()
 {
     auto *tmpSym =
-        dynamic_cast<TPZMatrix<TVar>*>(this->Matrix().operator->());
+        dynamic_cast<TPZSYsmpMatrix<TVar>*>(this->Matrix().operator->());
     auto *tmpNSym =
-        dynamic_cast<TPZMatrix<TVar>*>(this->Matrix().operator->());
+        dynamic_cast<TPZFYsmpMatrix<TVar>*>(this->Matrix().operator->());
     if(tmpSym){
         Decompose(tmpSym);
     }else if(tmpNSym){
@@ -377,7 +366,7 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
 
 template<class TVar>
 void TPZPardisoSolver<TVar>::SetMessageLevel(int lvl){
-    lvl == 0 ? fMessageLevel = 0 : fMessageLevel =1;
+    lvl == 0 ? fMessageLevel = 0 : fMessageLevel = 1;
 }
 
 template<class TVar>
@@ -405,36 +394,34 @@ long long TPZPardisoSolver<TVar>::MatrixType()
 {
     if (fStructure == MStructure::ENonSymmetric){
         if(fSystemType == MSystemType::ESymmetric){
-            if(is_complex<TVar>::value){
+            if constexpr (is_complex<TVar>::value){
                 fMatrixType = 3;
             }else{
                 fMatrixType = 1;
             }
         }else{
-            if(is_complex<TVar>::value){
+            if constexpr (is_complex<TVar>::value){
                 fMatrixType = 13;
             }else{
                 fMatrixType = 11;
             }
         }
     }else{
-        //if the structure is symmetric therefore the system type is also symmetric.
-#ifdef PZDEBUG
         if(fSystemType != MSystemType::ESymmetric){
-            PZError<<__PRETTY_FUNCTION__;
-            PZError<<"\nERROR: fSystemType is not symmetric but fStructure is\n";
-            PZError<<"Perhaps something was not initialised correctly?\nAborting...\n";
-            DebugStop();
+            if constexpr (is_complex<TVar>::value){
+                fMatrixType = 3;
+            }else{
+                fMatrixType = 1;
+            }
         }
-#endif
-        if(fProperty == MProperty::EPositiveDefinite){
-            if(is_complex<TVar>::value){
+        else if(fProperty == MProperty::EPositiveDefinite){
+            if constexpr (is_complex<TVar>::value){
                 fMatrixType = 4;
             }else{
                 fMatrixType = 2;
             }
         }else{
-            if(is_complex<TVar>::value){
+            if constexpr (is_complex<TVar>::value){
                 fMatrixType = -4;
             }else{
                 fMatrixType = -2;

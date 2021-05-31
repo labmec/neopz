@@ -77,6 +77,10 @@ public:
     void SetMessageLevel(int lvl);
     //! Clones the current object returning a pointer of type TPZSolver
 	TPZPardisoSolver<TVar> *Clone() const override;
+    //! Sets matrix structure
+    void SetStructure(MStructure str){
+        fStructure = str;
+    }
 protected:
     /// Compute the `mtype` parameter of the pardiso_64 call
     long long MatrixType();
@@ -85,10 +89,6 @@ protected:
     /** @brief Use the decomposed matrix to invert the system of equations
      This method assumes that the matrix has been decomposed.*/
     void Solve(const TPZMatrix<TVar> *mat, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const;
-
-    void SetStructure(MStructure str){
-        fStructure = str;
-    }
     
     MSystemType fSystemType{MSystemType::ENonInitialized};
     
