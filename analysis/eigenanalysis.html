@@ -1,0 +1,323 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>FEM Analysis of Eigenvalue Problems &mdash; NeoPZ  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="The Material hierarchy" href="../material/index.html" />
+    <link rel="prev" title="FEM Analysis of Equation Systems" href="linearanalysis.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> NeoPZ
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">The Analysis hierarchy</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="linearanalysis.html">FEM Analysis of Equation Systems</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">FEM Analysis of Eigenvalue Problems</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-tpzeigenanalysis-class">The TPZEigenAnalysis class</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#the-analysis-group">The Analysis Group</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../material/index.html">The Material hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structmatrix/index.html">The StructMatrix hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../solver/index.html">The Solver hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../util/index.html">Utilities</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">NeoPZ</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">The Analysis hierarchy</a> &raquo;</li>
+        
+      <li>FEM Analysis of Eigenvalue Problems</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/analysis/eigenanalysis.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fem-analysis-of-eigenvalue-problems">
+<h1>FEM Analysis of Eigenvalue Problems<a class="headerlink" href="#fem-analysis-of-eigenvalue-problems" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="contents local topic" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#the-tpzeigenanalysis-class" id="id1">The TPZEigenAnalysis class</a></p></li>
+</ul>
+</div>
+<div class="section" id="the-tpzeigenanalysis-class">
+<h2><a class="toc-backref" href="#id1">The TPZEigenAnalysis class</a><a class="headerlink" href="#the-tpzeigenanalysis-class" title="Permalink to this headline">¶</a></h2>
+<p>The <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv416TPZEigenAnalysis" title="TPZEigenAnalysis"><span class="n">TPZEigenAnalysis</span></a></span> class should be use for the analysis of (both standard or generalised) eigenvalue problems.</p>
+<p>Its usage is fairly simple and the following documentation should suffice.</p>
+<p>Users interested in these kind of problems should read the page on <a class="reference internal" href="../solver/eigensolvers.html"><span class="doc">available eigensolvers in NeoPZ</span></a>, specially the sections on <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../solver/eigensolvers.html#_CPPv4I0E20TPZKrylovEigenSolver" title="TPZKrylovEigenSolver"><span class="n">TPZKrylovEigenSolver</span></a></span> and <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../solver/eigensolvers.html#_CPPv4I0E20TPZSpectralTransform" title="TPZSpectralTransform"><span class="n">TPZSpectralTransform</span></a></span>.</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv416TPZEigenAnalysis">
+<span id="_CPPv316TPZEigenAnalysis"></span><span id="_CPPv216TPZEigenAnalysis"></span><span id="TPZEigenAnalysis"></span><span class="target" id="classTPZEigenAnalysis"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZEigenAnalysis</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv411TPZAnalysis" title="TPZAnalysis"><span class="n"><span class="pre">TPZAnalysis</span></span></a><a class="headerlink" href="#_CPPv416TPZEigenAnalysis" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Performs the Finite Element Analysis of a (standard or generalised) eigenvalue problem. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-constructors">Constructors</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16TPZEigenAnalysis16TPZEigenAnalysisEv">
+<span id="_CPPv3N16TPZEigenAnalysis16TPZEigenAnalysisEv"></span><span id="_CPPv2N16TPZEigenAnalysis16TPZEigenAnalysisEv"></span><span id="TPZEigenAnalysis::TPZEigenAnalysis"></span><span class="target" id="classTPZEigenAnalysis_1a9c753707490c555b3b77ed56b5402ed1"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZEigenAnalysis</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16TPZEigenAnalysis16TPZEigenAnalysisEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create an empty <a class="reference internal" href="#classTPZEigenAnalysis"><span class="std std-ref">TPZEigenAnalysis</span></a> object. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16TPZEigenAnalysis16TPZEigenAnalysisEP11TPZCompMeshbRNSt7ostreamE">
+<span id="_CPPv3N16TPZEigenAnalysis16TPZEigenAnalysisEP11TPZCompMeshbRNSt7ostreamE"></span><span id="_CPPv2N16TPZEigenAnalysis16TPZEigenAnalysisEP11TPZCompMeshbRNSt7ostreamE"></span><span id="TPZEigenAnalysis::TPZEigenAnalysis__TPZCompMeshP.b.osR"></span><span class="target" id="classTPZEigenAnalysis_1a26477c6e4fd47ca53bd8fa30db5167a0"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZEigenAnalysis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">mesh</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mustOptimizeBandwidth</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16TPZEigenAnalysis16TPZEigenAnalysisEP11TPZCompMeshbRNSt7ostreamE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create an <a class="reference internal" href="#classTPZEigenAnalysis"><span class="std std-ref">TPZEigenAnalysis</span></a> object from one mesh pointer. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16TPZEigenAnalysis16TPZEigenAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE">
+<span id="_CPPv3N16TPZEigenAnalysis16TPZEigenAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE"></span><span id="_CPPv2N16TPZEigenAnalysis16TPZEigenAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE"></span><span id="TPZEigenAnalysis::TPZEigenAnalysis__TPZAutoPointer:TPZCompMesh:.b.osR"></span><span class="target" id="classTPZEigenAnalysis_1ae6eab7140107ce54d2cb302dcf2ef5dc"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZEigenAnalysis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mesh</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mustOptimizeBandwidth</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16TPZEigenAnalysis16TPZEigenAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create an <a class="reference internal" href="#classTPZEigenAnalysis"><span class="std std-ref">TPZEigenAnalysis</span></a> object from one mesh auto pointer object. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-fem">FEM</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN16TPZEigenAnalysis11EigenSolverER14TPZEigenSolverI4TVarEv">
+<span id="_CPPv3I0EN16TPZEigenAnalysis11EigenSolverEv"></span><span id="_CPPv2I0EN16TPZEigenAnalysis11EigenSolverEv"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZEigenAnalysis_1ad0678f0f29fddc251b659e118c82b9ca"></span><a class="reference internal" href="../solver/eigensolvers.html#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver"><span class="n"><span class="pre">TPZEigenSolver</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN16TPZEigenAnalysis11EigenSolverER14TPZEigenSolverI4TVarEv" title="TPZEigenAnalysis::EigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">EigenSolver</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN16TPZEigenAnalysis11EigenSolverER14TPZEigenSolverI4TVarEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Gets the eigensolver. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16TPZEigenAnalysis9SetSolverERK9TPZSolver">
+<span id="_CPPv3N16TPZEigenAnalysis9SetSolverERK9TPZSolver"></span><span id="_CPPv2N16TPZEigenAnalysis9SetSolverERK9TPZSolver"></span><span id="TPZEigenAnalysis::SetSolver__TPZSolverCR"></span><span class="target" id="classTPZEigenAnalysis_1a81aba324e24f447a6416e15e5e3c8e4a"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetSolver</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../solver/index.html#_CPPv49TPZSolver" title="TPZSolver"><span class="n"><span class="pre">TPZSolver</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">solver</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N16TPZEigenAnalysis9SetSolverERK9TPZSolver" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the solver. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In this function it will be checked if the solver is a <a class="reference internal" href="../solver/eigensolvers.html#classTPZEigenSolver"><span class="std std-ref">TPZEigenSolver</span></a> </p>
+</div>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16TPZEigenAnalysis8AssembleEv">
+<span id="_CPPv3N16TPZEigenAnalysis8AssembleEv"></span><span id="_CPPv2N16TPZEigenAnalysis8AssembleEv"></span><span id="TPZEigenAnalysis::Assemble"></span><span class="target" id="classTPZEigenAnalysis_1a4bceb568e3d49f0f3b16b9486ac53d73"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Assemble</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N16TPZEigenAnalysis8AssembleEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Assemble the matrices associated with the EVP. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16TPZEigenAnalysis5SolveEv">
+<span id="_CPPv3N16TPZEigenAnalysis5SolveEv"></span><span id="_CPPv2N16TPZEigenAnalysis5SolveEv"></span><span id="TPZEigenAnalysis::Solve"></span><span class="target" id="classTPZEigenAnalysis_1a6bb393b031df5afe93ce0560fd4bf5ea"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Solve</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N16TPZEigenAnalysis5SolveEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Solve the EVP problem. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK16TPZEigenAnalysis15GetEigenvectorsEv">
+<span id="_CPPv3NK16TPZEigenAnalysis15GetEigenvectorsEv"></span><span id="_CPPv2NK16TPZEigenAnalysis15GetEigenvectorsEv"></span><span id="TPZEigenAnalysis::GetEigenvectorsC"></span><span class="target" id="classTPZEigenAnalysis_1afe4010f52fc72ba11e0dcef137e2a618"></span><span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CSTATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetEigenvectors</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK16TPZEigenAnalysis15GetEigenvectorsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Gets the eigenvectors calculated by the Solve method. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK16TPZEigenAnalysis14GetEigenvaluesEv">
+<span id="_CPPv3NK16TPZEigenAnalysis14GetEigenvaluesEv"></span><span id="_CPPv2NK16TPZEigenAnalysis14GetEigenvaluesEv"></span><span id="TPZEigenAnalysis::GetEigenvaluesC"></span><span class="target" id="classTPZEigenAnalysis_1ae11380ae0a9fc0946a6be3a4c09d2232"></span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">CSTATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetEigenvalues</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK16TPZEigenAnalysis14GetEigenvaluesEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Gets the eigenvalues by the Solve method. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16TPZEigenAnalysis22SetComputeEigenvectorsEKb">
+<span id="_CPPv3N16TPZEigenAnalysis22SetComputeEigenvectorsEKb"></span><span id="_CPPv2N16TPZEigenAnalysis22SetComputeEigenvectorsEKb"></span><span id="TPZEigenAnalysis::SetComputeEigenvectors__bC"></span><span class="target" id="classTPZEigenAnalysis_1a7686396b1d9c1466980d15ee59c09087"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetComputeEigenvectors</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">opt</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16TPZEigenAnalysis22SetComputeEigenvectorsEKb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set to compute eigenvectors or just eigenvalues. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK16TPZEigenAnalysis19ComputeEigenvectorsEv">
+<span id="_CPPv3NK16TPZEigenAnalysis19ComputeEigenvectorsEv"></span><span id="_CPPv2NK16TPZEigenAnalysis19ComputeEigenvectorsEv"></span><span id="TPZEigenAnalysis::ComputeEigenvectorsC"></span><span class="target" id="classTPZEigenAnalysis_1a3a043623e568a5878ef40e5b6f77eb12"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeEigenvectors</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK16TPZEigenAnalysis19ComputeEigenvectorsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Whether to compute eigenvectors or just eigenvalues. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../material/index.html" class="btn btn-neutral float-right" title="The Material hierarchy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="linearanalysis.html" class="btn btn-neutral float-left" title="FEM Analysis of Equation Systems" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Philippe Devloo et al.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

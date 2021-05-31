@@ -97,9 +97,10 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">The Solver hierarchy</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="matrixsolvers.html">TPZMatrixSolver</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">TPZEigenSolver</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sorting-eigenpairs">Sorting eigenpairs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#further-documentation-on-tpzeigensolver">Further documentation on TPZEigenSolver</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tpzlapackeigensolver">TPZLapackEigenSolver</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tpzkryloveigensolver">TPZKrylovEigenSolver</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#sorting-eigenpairs">Sorting eigenpairs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#further-documentation-on-tpzkryloveigensolver">Further documentation on TPZKrylovEigenSolver</a></li>
 </ul>
 </li>
@@ -190,22 +191,72 @@
 <div class="contents local topic" id="table-of-contents">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#tpzlapackeigensolver" id="id1">TPZLapackEigenSolver</a></p></li>
-<li><p><a class="reference internal" href="#tpzkryloveigensolver" id="id2">TPZKrylovEigenSolver</a></p>
+<li><p><a class="reference internal" href="#sorting-eigenpairs" id="id1">Sorting eigenpairs</a></p></li>
+<li><p><a class="reference internal" href="#further-documentation-on-tpzeigensolver" id="id2">Further documentation on TPZEigenSolver</a></p></li>
+<li><p><a class="reference internal" href="#tpzlapackeigensolver" id="id3">TPZLapackEigenSolver</a></p></li>
+<li><p><a class="reference internal" href="#tpzkryloveigensolver" id="id4">TPZKrylovEigenSolver</a></p>
 <ul>
-<li><p><a class="reference internal" href="#sorting-eigenpairs" id="id3">Sorting eigenpairs</a></p></li>
-<li><p><a class="reference internal" href="#further-documentation-on-tpzkryloveigensolver" id="id4">Further documentation on TPZKrylovEigenSolver</a></p></li>
+<li><p><a class="reference internal" href="#further-documentation-on-tpzkryloveigensolver" id="id5">Further documentation on TPZKrylovEigenSolver</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#tpzspectraltransform" id="id5">TPZSpectralTransform</a></p>
+<li><p><a class="reference internal" href="#tpzspectraltransform" id="id6">TPZSpectralTransform</a></p>
 <ul>
-<li><p><a class="reference internal" href="#tpzstshiftorigin" id="id6">TPZSTShiftOrigin</a></p></li>
-<li><p><a class="reference internal" href="#tpzstshiftandinvert" id="id7">TPZSTShiftAndInvert</a></p></li>
+<li><p><a class="reference internal" href="#tpzstshiftorigin" id="id7">TPZSTShiftOrigin</a></p></li>
+<li><p><a class="reference internal" href="#tpzstshiftandinvert" id="id8">TPZSTShiftAndInvert</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
-<p>The <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver"><span class="n">TPZEigenSolver</span></a></span> represents a solver for Eigenvalue problems (EVP) in which the matrix has entries with the type <code class="xref cpp cpp-type docutils literal notranslate"><span class="pre">TVar</span></code>, where <span class="cpp-expr sig sig-inline cpp"><span class="n">TVar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">STATE</span></span>, for real problems, and <span class="cpp-expr sig sig-inline cpp"><span class="n">TVar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CSTATE</span></span>, for complex problems. It will soon be complemented with an appropriated <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../analysis/index.html#_CPPv411TPZAnalysis" title="TPZAnalysis"><span class="n">TPZAnalysis</span></a></span> class. See <a class="reference internal" href="#section-lapackeigensolver"><span class="std std-ref">TPZLapackEigenSolver</span></a> and <a class="reference internal" href="#section-kryloveigensolver"><span class="std std-ref">TPZKrylovEigenSolver</span></a> for details on the available solvers in NeoPZ.</p>
+<p>The <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver"><span class="n">TPZEigenSolver</span></a></span> represents a solver for Eigenvalue problems (EVP) in which the matrix has entries with the type <code class="xref cpp cpp-type docutils literal notranslate"><span class="pre">TVar</span></code>, where <span class="cpp-expr sig sig-inline cpp"><span class="n">TVar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">STATE</span></span>, for real problems, and <span class="cpp-expr sig sig-inline cpp"><span class="n">TVar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CSTATE</span></span>, for complex problems. It should be used with the <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../analysis/eigenanalysis.html#_CPPv416TPZEigenAnalysis" title="TPZEigenAnalysis"><span class="n">TPZEigenAnalysis</span></a></span> class. See <a class="reference internal" href="#section-lapackeigensolver"><span class="std std-ref">TPZLapackEigenSolver</span></a> and <a class="reference internal" href="#section-kryloveigensolver"><span class="std std-ref">TPZKrylovEigenSolver</span></a> for details on the available solvers in NeoPZ.</p>
+<div class="section" id="sorting-eigenpairs">
+<h2><a class="toc-backref" href="#id1">Sorting eigenpairs</a><a class="headerlink" href="#sorting-eigenpairs" title="Permalink to this headline">¶</a></h2>
+<p>The returned eigenvalues can be sorted in the following ways:</p>
+<dl class="cpp enum">
+<dt class="sig sig-object cpp" id="_CPPv412TPZEigenSort">
+<span id="_CPPv312TPZEigenSort"></span><span id="_CPPv212TPZEigenSort"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72d"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZEigenSort</span></span></span><a class="headerlink" href="#_CPPv412TPZEigenSort" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sorting method for calculated eigenvalues. </p>
+<p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZEigenSort13EAbsAscendingE">
+<span id="_CPPv3N12TPZEigenSort13EAbsAscendingE"></span><span id="_CPPv2N12TPZEigenSort13EAbsAscendingE"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72daf8f25dfa117e524af39e7173df9ded72"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EAbsAscending</span></span></span><a class="headerlink" href="#_CPPv4N12TPZEigenSort13EAbsAscendingE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Ascending magnitude </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZEigenSort14EAbsDescendingE">
+<span id="_CPPv3N12TPZEigenSort14EAbsDescendingE"></span><span id="_CPPv2N12TPZEigenSort14EAbsDescendingE"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72da61707711f70a796c0ab802541be6b5a3"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EAbsDescending</span></span></span><a class="headerlink" href="#_CPPv4N12TPZEigenSort14EAbsDescendingE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Descending magnitude </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZEigenSort14ERealAscendingE">
+<span id="_CPPv3N12TPZEigenSort14ERealAscendingE"></span><span id="_CPPv2N12TPZEigenSort14ERealAscendingE"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72dac20a544d959b75c77da34e43b8367028"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ERealAscending</span></span></span><a class="headerlink" href="#_CPPv4N12TPZEigenSort14ERealAscendingE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Ascending real part </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZEigenSort15ERealDescendingE">
+<span id="_CPPv3N12TPZEigenSort15ERealDescendingE"></span><span id="_CPPv2N12TPZEigenSort15ERealDescendingE"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72da60c3e4e94d0246e5da58889d149920d3"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ERealDescending</span></span></span><a class="headerlink" href="#_CPPv4N12TPZEigenSort15ERealDescendingE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Descending real part </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZEigenSort14EImagAscendingE">
+<span id="_CPPv3N12TPZEigenSort14EImagAscendingE"></span><span id="_CPPv2N12TPZEigenSort14EImagAscendingE"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72da95cabc98463987f190a14d7dd0106ca2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EImagAscending</span></span></span><a class="headerlink" href="#_CPPv4N12TPZEigenSort14EImagAscendingE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Ascending imaginary part </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZEigenSort15EImagDescendingE">
+<span id="_CPPv3N12TPZEigenSort15EImagDescendingE"></span><span id="_CPPv2N12TPZEigenSort15EImagDescendingE"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72dabd35626d60ff4847ec720eb2778e936c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EImagDescending</span></span></span><a class="headerlink" href="#_CPPv4N12TPZEigenSort15EImagDescendingE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Descending imaginary part </p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="further-documentation-on-tpzeigensolver">
+<h2><a class="toc-backref" href="#id2">Further documentation on TPZEigenSolver</a><a class="headerlink" href="#further-documentation-on-tpzeigensolver" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E14TPZEigenSolver">
 <span id="_CPPv3I0E14TPZEigenSolver"></span><span id="_CPPv2I0E14TPZEigenSolver"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZEigenSolver"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZEigenSolver</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv49TPZSolver" title="TPZSolver"><span class="n"><span class="pre">TPZSolver</span></span></a><a class="headerlink" href="#_CPPv4I0E14TPZEigenSolver" title="Permalink to this definition">¶</a><br /></dt>
@@ -374,8 +425,9 @@
 </div>
 </dd></dl>
 
+</div>
 <div class="section" id="tpzlapackeigensolver">
-<span id="section-lapackeigensolver"></span><h2><a class="toc-backref" href="#id1">TPZLapackEigenSolver</a><a class="headerlink" href="#tpzlapackeigensolver" title="Permalink to this headline">¶</a></h2>
+<span id="section-lapackeigensolver"></span><h2><a class="toc-backref" href="#id3">TPZLapackEigenSolver</a><a class="headerlink" href="#tpzlapackeigensolver" title="Permalink to this headline">¶</a></h2>
 <p>This class acts as a wrapper over LAPACK calls that can be used for solving eigenvalue problems. It supports <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZFMatrix</span></span> and <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZSBMatrix</span></span>, therefore it can only be used with the structural matrices <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../structmatrix/structoptions.html#_CPPv4I00E16TPZFStructMatrix" title="TPZFStructMatrix"><span class="n">TPZFStructMatrix</span></a></span> and <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../structmatrix/structoptions.html#_CPPv4I00E20TPZSBandStructMatrix" title="TPZSBandStructMatrix"><span class="n">TPZSBandStructMatrix</span></a></span>. It provides no additional public interfaces.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -394,7 +446,7 @@
 
 </div>
 <div class="section" id="tpzkryloveigensolver">
-<span id="section-kryloveigensolver"></span><h2><a class="toc-backref" href="#id2">TPZKrylovEigenSolver</a><a class="headerlink" href="#tpzkryloveigensolver" title="Permalink to this headline">¶</a></h2>
+<span id="section-kryloveigensolver"></span><h2><a class="toc-backref" href="#id4">TPZKrylovEigenSolver</a><a class="headerlink" href="#tpzkryloveigensolver" title="Permalink to this headline">¶</a></h2>
 <p>This class implements a set of Krylov-based eigensolvers for solving standard and generalised EVP problems with no restraints regarding the storage format of the matrix. This class of eigensolvers do not solve for all eigenvalues, but for a small set of the original eigenvalues.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -422,55 +474,8 @@
 <p>The matrix <span class="math notranslate nohighlight">\(A\)</span> does not necessarily correspond to the matrix of a standard EVP. See <a class="reference internal" href="#section-spectraltransform"><span class="std std-ref">TPZSpectralTransform</span></a> for details on the matrix that is passed to the Arnoldi iteration.</p>
 </div>
 <p>After the Arnoldi iteration is performed, an EVP for <span class="math notranslate nohighlight">\(H\)</span> is then solved using LAPACK. Given that the dimensions of the Krylov subspace is <span class="math notranslate nohighlight">\(m\ll n_{eq}\)</span>, where <span class="math notranslate nohighlight">\(n_{eq}\)</span> is the original number of equations, using a dense matrix for <span class="math notranslate nohighlight">\(H\)</span> does not represent a big impact.</p>
-<div class="section" id="sorting-eigenpairs">
-<h3><a class="toc-backref" href="#id3">Sorting eigenpairs</a><a class="headerlink" href="#sorting-eigenpairs" title="Permalink to this headline">¶</a></h3>
-<p>The returned eigenvalues can be sorted in the following ways:</p>
-<dl class="cpp enum">
-<dt class="sig sig-object cpp" id="_CPPv412TPZEigenSort">
-<span id="_CPPv312TPZEigenSort"></span><span id="_CPPv212TPZEigenSort"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72d"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZEigenSort</span></span></span><a class="headerlink" href="#_CPPv412TPZEigenSort" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Sorting method for calculated eigenvalues. </p>
-<p><em>Values:</em></p>
-<dl class="cpp enumerator">
-<dt class="sig sig-object cpp" id="_CPPv4N12TPZEigenSort13EAbsAscendingE">
-<span id="_CPPv3N12TPZEigenSort13EAbsAscendingE"></span><span id="_CPPv2N12TPZEigenSort13EAbsAscendingE"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72daf8f25dfa117e524af39e7173df9ded72"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EAbsAscending</span></span></span><a class="headerlink" href="#_CPPv4N12TPZEigenSort13EAbsAscendingE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Ascending magnitude </p>
-</dd></dl>
-
-<dl class="cpp enumerator">
-<dt class="sig sig-object cpp" id="_CPPv4N12TPZEigenSort14EAbsDescendingE">
-<span id="_CPPv3N12TPZEigenSort14EAbsDescendingE"></span><span id="_CPPv2N12TPZEigenSort14EAbsDescendingE"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72da61707711f70a796c0ab802541be6b5a3"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EAbsDescending</span></span></span><a class="headerlink" href="#_CPPv4N12TPZEigenSort14EAbsDescendingE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Descending magnitude </p>
-</dd></dl>
-
-<dl class="cpp enumerator">
-<dt class="sig sig-object cpp" id="_CPPv4N12TPZEigenSort14ERealAscendingE">
-<span id="_CPPv3N12TPZEigenSort14ERealAscendingE"></span><span id="_CPPv2N12TPZEigenSort14ERealAscendingE"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72dac20a544d959b75c77da34e43b8367028"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ERealAscending</span></span></span><a class="headerlink" href="#_CPPv4N12TPZEigenSort14ERealAscendingE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Ascending real part </p>
-</dd></dl>
-
-<dl class="cpp enumerator">
-<dt class="sig sig-object cpp" id="_CPPv4N12TPZEigenSort15ERealDescendingE">
-<span id="_CPPv3N12TPZEigenSort15ERealDescendingE"></span><span id="_CPPv2N12TPZEigenSort15ERealDescendingE"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72da60c3e4e94d0246e5da58889d149920d3"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ERealDescending</span></span></span><a class="headerlink" href="#_CPPv4N12TPZEigenSort15ERealDescendingE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Descending real part </p>
-</dd></dl>
-
-<dl class="cpp enumerator">
-<dt class="sig sig-object cpp" id="_CPPv4N12TPZEigenSort14EImagAscendingE">
-<span id="_CPPv3N12TPZEigenSort14EImagAscendingE"></span><span id="_CPPv2N12TPZEigenSort14EImagAscendingE"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72da95cabc98463987f190a14d7dd0106ca2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EImagAscending</span></span></span><a class="headerlink" href="#_CPPv4N12TPZEigenSort14EImagAscendingE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Ascending imaginary part </p>
-</dd></dl>
-
-<dl class="cpp enumerator">
-<dt class="sig sig-object cpp" id="_CPPv4N12TPZEigenSort15EImagDescendingE">
-<span id="_CPPv3N12TPZEigenSort15EImagDescendingE"></span><span id="_CPPv2N12TPZEigenSort15EImagDescendingE"></span><span class="target" id="TPZEigenSolver_8h_1a892da9e32c8f71c7233c9df7f5fea72dabd35626d60ff4847ec720eb2778e936c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EImagDescending</span></span></span><a class="headerlink" href="#_CPPv4N12TPZEigenSort15EImagDescendingE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Descending imaginary part </p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
 <div class="section" id="further-documentation-on-tpzkryloveigensolver">
-<h3><a class="toc-backref" href="#id4">Further documentation on TPZKrylovEigenSolver</a><a class="headerlink" href="#further-documentation-on-tpzkryloveigensolver" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id5">Further documentation on TPZKrylovEigenSolver</a><a class="headerlink" href="#further-documentation-on-tpzkryloveigensolver" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E20TPZKrylovEigenSolver">
 <span id="_CPPv3I0E20TPZKrylovEigenSolver"></span><span id="_CPPv2I0E20TPZKrylovEigenSolver"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZKrylovEigenSolver"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZKrylovEigenSolver</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver"><span class="n"><span class="pre">TPZEigenSolver</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZKrylovEigenSolver" title="TPZKrylovEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E20TPZKrylovEigenSolver" title="Permalink to this definition">¶</a><br /></dt>
@@ -629,7 +634,7 @@
 </div>
 </div>
 <div class="section" id="tpzspectraltransform">
-<span id="section-spectraltransform"></span><h2><a class="toc-backref" href="#id5">TPZSpectralTransform</a><a class="headerlink" href="#tpzspectraltransform" title="Permalink to this headline">¶</a></h2>
+<span id="section-spectraltransform"></span><h2><a class="toc-backref" href="#id6">TPZSpectralTransform</a><a class="headerlink" href="#tpzspectraltransform" title="Permalink to this headline">¶</a></h2>
 <p>Spectral transformations are used to create a transformed EVP in which the exterior eigenvalues correspond to the sought eigenvalues of the original problem, and the eigenvectors are left unchanged.</p>
 <p>The following table summarises the transformed problem for both standard and generalised EVPs:</p>
 <table class="docutils align-default">
@@ -704,7 +709,7 @@
 </dd></dl>
 
 <div class="section" id="tpzstshiftorigin">
-<h3><a class="toc-backref" href="#id6">TPZSTShiftOrigin</a><a class="headerlink" href="#tpzstshiftorigin" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id7">TPZSTShiftOrigin</a><a class="headerlink" href="#tpzstshiftorigin" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E16TPZSTShiftOrigin">
 <span id="_CPPv3I0E16TPZSTShiftOrigin"></span><span id="_CPPv2I0E16TPZSTShiftOrigin"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZSTShiftOrigin"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZSTShiftOrigin</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0E20TPZSpectralTransform" title="TPZSpectralTransform"><span class="n"><span class="pre">TPZSpectralTransform</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E16TPZSTShiftOrigin" title="TPZSTShiftOrigin::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E16TPZSTShiftOrigin" title="Permalink to this definition">¶</a><br /></dt>
@@ -768,7 +773,7 @@
 
 </div>
 <div class="section" id="tpzstshiftandinvert">
-<h3><a class="toc-backref" href="#id7">TPZSTShiftAndInvert</a><a class="headerlink" href="#tpzstshiftandinvert" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id8">TPZSTShiftAndInvert</a><a class="headerlink" href="#tpzstshiftandinvert" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E19TPZSTShiftAndInvert">
 <span id="_CPPv3I0E19TPZSTShiftAndInvert"></span><span id="_CPPv2I0E19TPZSTShiftAndInvert"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZSTShiftAndInvert"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZSTShiftAndInvert</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0E16TPZSTShiftOrigin" title="TPZSTShiftOrigin"><span class="n"><span class="pre">TPZSTShiftOrigin</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZSTShiftAndInvert" title="TPZSTShiftAndInvert::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E19TPZSTShiftAndInvert" title="Permalink to this definition">¶</a><br /></dt>
