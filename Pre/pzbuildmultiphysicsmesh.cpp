@@ -318,21 +318,33 @@ void TPZBuildMultiphysicsMesh::AppendConnects(TPZCompMesh *cmesh, TPZCompMesh *M
 	}
 }
 
+void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec,
+                                                  TPZCompMesh *MFMesh)
+{
+    TPZBaseMatrix &solMF = MFMesh->Solution();
+    
+    auto *realSol = dynamic_cast<TPZFMatrix<STATE>*>(&solMF);
+    auto *cplxSol = dynamic_cast<TPZFMatrix<CSTATE>*>(&solMF);
+    if(realSol) TransferFromMeshesT<STATE>(cmeshVec,MFMesh);
+    else TransferFromMeshesT<CSTATE>(cmeshVec,MFMesh);
+}
 
-void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
+template<class TVar>
+void TPZBuildMultiphysicsMesh::TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshVec,
+                                                   TPZCompMesh *MFMesh)
 {
     
     TPZVec<atomic_index> indexes;
     ComputeAtomicIndexes(MFMesh, indexes);
     int64_t nconnect = indexes.size();
     TPZBlock &blockMF = MFMesh->Block();
-    TPZFMatrix<STATE> &solMF = MFMesh->Solution();
+    TPZFMatrix<TVar> &solMF = MFMesh->Solution();
     for(int64_t connect = 0; connect < nconnect; connect++)
     {
         TPZCompMesh *atomic_mesh = indexes[connect].first;
         if(!atomic_mesh) continue;
 		TPZBlock &block = atomic_mesh->Block();
-        TPZFMatrix<STATE> &sol = atomic_mesh->Solution();
+        TPZFMatrix<TVar> &sol = atomic_mesh->Solution();
         TPZConnect &con = atomic_mesh->ConnectVec()[indexes[connect].second];
         int64_t seqnum = con.SequenceNumber();
         if(seqnum<0) DebugStop();       /// Whether connect was deleted by previous refined process
@@ -354,7 +366,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
         if(msub){
             TPZCompMesh * fathermesh = msub->FatherMesh();
             //TODOCOMPLEX
-            TPZFMatrix<STATE> &fathermeshSol = fathermesh->Solution();
+            TPZFMatrix<TVar> &fathermeshSol = fathermesh->Solution();
             TPZCompEl *compel = dynamic_cast<TPZCompEl*>(msub);
             int nconnect = compel->NConnects();
             
@@ -365,21 +377,21 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
                 if(fatherconIndex == -1) DebugStop();
                 //acessing the block on father mesh
                 TPZBlock &blockfather = fathermesh->Block();
-                TPZFMatrix<STATE> &solfather = fathermesh->Solution();
+                TPZFMatrix<TVar> &solfather = fathermesh->Solution();
                 
                 TPZConnect &confather = fathermesh->ConnectVec()[fatherconIndex];
                 int64_t seqnumfather = confather.SequenceNumber();
                 int nblock = blockfather.Size(seqnumfather);
                 //acessing the block on submesh
                 TPZBlock &blocksub = msub->Block();
-                TPZFMatrix<STATE> &solsub = ((TPZCompMesh *)(msub))->Solution();
-                TPZConnect &consub = msub->ConnectVec()[submeshIndex];
-                int64_t seqnumsub = consub.SequenceNumber();
+                TPZFMatrix<TVar> &solsub = ((TPZCompMesh *)(msub))->Solution();
+                const TPZConnect &consub = msub->ConnectVec()[submeshIndex];
+                const int64_t seqnumsub = consub.SequenceNumber();
                 
                 if(seqnumfather < 0) DebugStop();
                 for(int idf=0 ; idf<nblock; idf++){
-                    int posfather = blockfather.Position(seqnumfather);
-                    STATE valsub = solsub(blocksub.Index(seqnumsub, idf));
+                    const int posfather = blockfather.Position(seqnumfather);
+                    auto valsub = solsub(blocksub.Index(seqnumsub, idf));
                     fathermeshSol(posfather + idf) = valsub;
                 }
             }
@@ -400,18 +412,29 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
 
 void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
+    TPZBaseMatrix &solMF = MFMesh->Solution();
+    
+    auto *realSol = dynamic_cast<TPZFMatrix<STATE>*>(&solMF);
+    auto *cplxSol = dynamic_cast<TPZFMatrix<CSTATE>*>(&solMF);
+    if(realSol) TransferFromMultiPhysicsT<STATE>(cmeshVec,MFMesh);
+    else TransferFromMultiPhysicsT<CSTATE>(cmeshVec,MFMesh);
+}
+
+template<class TVar>
+void TPZBuildMultiphysicsMesh::TransferFromMultiPhysicsT(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
+{
     
     TPZVec<atomic_index> indexes;
     ComputeAtomicIndexes(MFMesh, indexes);
     int64_t nconnect = indexes.size();
     TPZBlock &blockMF = MFMesh->Block();
-    TPZFMatrix<STATE> &solMF = MFMesh->Solution();
+    TPZFMatrix<TVar> &solMF = MFMesh->Solution();
     for(int64_t connect = 0; connect < nconnect; connect++)
     {
         TPZCompMesh *atomic_mesh = indexes[connect].first;
         //TODOCOMPLEX
         if(!atomic_mesh) continue;
-        TPZFMatrix<STATE> &atomic_mesh_sol = atomic_mesh->Solution();
+        TPZFMatrix<TVar> &atomic_mesh_sol = atomic_mesh->Solution();
         TPZBlock &block = atomic_mesh->Block();
         int64_t atomicindexconnect = indexes[connect].second;
         TPZConnect &con = atomic_mesh->ConnectVec()[atomicindexconnect];
@@ -422,9 +445,9 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
         int64_t seqnumMF = conMF.SequenceNumber();
         if(seqnumMF < 0) DebugStop();
         for (int idf=0; idf<blsize; idf++) {
-            STATE val = solMF(blockMF.Index(seqnumMF, idf));
+            TVar val = solMF(blockMF.Index(seqnumMF, idf));
             int64_t pos = block.Position(seqnum);
-            atomic_mesh_sol(pos+idf) = val;          
+            atomic_mesh_sol(pos+idf) = val;
         }
     }
     
@@ -778,6 +801,7 @@ void TPZBuildMultiphysicsMesh::UniformRefineCompEl(TPZCompMesh  *cMesh, int64_t 
  */
 void TPZBuildMultiphysicsMesh::ShowShape(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh, TPZLinearAnalysis &analysis, const std::string &filename, TPZVec<int64_t> &equationindices)
 {
+    
     TPZStack<std::string> scalnames,vecnames;
     scalnames.Push("State");
     analysis.DefineGraphMesh(analysis.Mesh()->Dimension(), scalnames, vecnames, filename);

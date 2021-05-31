@@ -131,6 +131,11 @@ public:
      * mesh and the connect indexes in the atomic meshes
      */
     static void ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<atomic_index> &indexes);
+protected:
+    template<class TVar>
+    static void TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
+    template<class TVar>
+    static void TransferFromMultiPhysicsT(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
 };
 
 #endif
