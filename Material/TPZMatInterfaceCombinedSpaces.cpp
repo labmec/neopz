@@ -53,6 +53,11 @@ void TPZMatInterfaceCombinedSpacesBC<TVar>::
 SetMaterialImpl(TPZMaterial *mat)
 {
     fMatInterface = dynamic_cast<TPZMatInterfaceCombinedSpaces<TVar>*> (mat);
+    if (!fMatInterface) {
+      PZError << __PRETTY_FUNCTION__;
+      PZError << "\nERROR: Invalid reference for creating BC.\nAborting...\n";
+      DebugStop();
+    }
 }
 
 

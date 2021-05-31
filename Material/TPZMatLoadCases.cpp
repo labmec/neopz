@@ -49,6 +49,11 @@ template<class TVar>
 void TPZMatLoadCasesBC<TVar>::SetMaterialImpl(TPZMaterial *mat)
 {
     fMatLoadCases = dynamic_cast<TPZMatLoadCases<TVar>*>(mat);
+    if(!fMatLoadCases){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nERROR: Invalid reference for creating BC.\nAborting...\n";
+        DebugStop();
+    }
     this->fNumLoadCases = fMatLoadCases->NumLoadCases();
 }
 template<class TVar>

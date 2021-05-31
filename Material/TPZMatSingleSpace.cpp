@@ -130,8 +130,13 @@ template<class TVar>
 void TPZMatSingleSpaceBC<TVar>::SetMaterialImpl(TPZMaterial *mat)
 {
     fMatSingleSpace = dynamic_cast<TPZMatSingleSpaceT<TVar>*>(mat);
-}
 
+    if (!fMatSingleSpace) {
+      PZError << __PRETTY_FUNCTION__;
+      PZError << "\nERROR: Invalid reference for creating BC.\nAborting...\n";
+      DebugStop();
+    }
+}
 
 template class TPZMatSingleSpaceT<STATE>;
 template class TPZMatSingleSpaceT<CSTATE>;

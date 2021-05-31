@@ -40,8 +40,13 @@ template<class TVar>
 void
 TPZMatInterfaceSingleSpaceBC<TVar>::SetMaterialImpl(TPZMaterial *mat)
 {
-    auto tmp = dynamic_cast<TPZMatInterfaceSingleSpace<TVar>*>(mat);
-    fMatInterface = tmp;
+    auto fMatInterface = dynamic_cast<TPZMatInterfaceSingleSpace<TVar>*>(mat);
+
+    if(!fMatInterface){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nERROR: Invalid reference for creating BC.\nAborting...\n";
+        DebugStop();
+    }
 }
 
 

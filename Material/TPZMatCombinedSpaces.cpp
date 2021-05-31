@@ -73,6 +73,11 @@ template<class TVar>
 void TPZMatCombinedSpacesBC<TVar>::SetMaterialImpl(TPZMaterial *mat)
 {
     fMatCombinedSpaces = dynamic_cast<TPZMatCombinedSpacesT<TVar>*>(mat);
+    if(!fMatCombinedSpaces){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nERROR: Invalid reference for creating BC.\nAborting...\n";
+        DebugStop();
+    }
 }
 
 template<class TVar>
