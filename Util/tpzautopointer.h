@@ -132,8 +132,7 @@ public:
 	TPZAutoPointer(T2 *obj)
 	{
         if constexpr (!std::is_base_of_v<T, T2>){
-            throw std::logic_error(
-                    "Incompatible types when creating TPZAutoPointer");
+            static_assert(!sizeof(T2*),"Incompatible types when creating TPZAutoPointer");
         }
         fRef = new TPZReference((T*)obj);
 	}
@@ -203,8 +202,7 @@ public:
     TPZAutoPointer &operator=(const TPZAutoPointer<T2> &other)
     {
         if constexpr (!std::is_base_of_v<T, T2>){
-            throw std::logic_error(
-                    "Incompatible types when creating TPZAutoPointer");
+            static_assert(!sizeof(T2*),"Incompatible types when creating TPZAutoPointer");
         }
         if (fRef && fRef->Decrease()){
             Release();
@@ -218,8 +216,7 @@ public:
     TPZAutoPointer &operator=(T2 *other)
     {
         if constexpr (!std::is_base_of_v<T, T2>){
-            throw std::logic_error(
-                    "Incompatible types when creating TPZAutoPointer");
+            static_assert(!sizeof(T2*),"Incompatible types when creating TPZAutoPointer");
         }
         if (fRef && fRef->Decrease()){
             Release();

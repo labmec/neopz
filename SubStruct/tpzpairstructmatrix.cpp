@@ -4,6 +4,7 @@
  */
 
 #include "tpzpairstructmatrix.h"
+#include "TPZSSpStructMatrix.h"
 #include "TPZTimer.h"
 #include "TPZElementMatrixT.h"
 #include "pzcompel.h"
@@ -30,7 +31,7 @@ static TPZLogger loggerel("pz.strmatrix.element");
 
 int TPZPairStructMatrix::gNumThreads = 0;
 
-TPZPairStructMatrix::TPZPairStructMatrix(TPZCompMesh *mesh, TPZVec<int> &permutescatter) : fStrMatrix(mesh)
+TPZPairStructMatrix::TPZPairStructMatrix(TPZCompMesh *mesh, TPZVec<int> &permutescatter) : fStrMatrix( new TPZSSpStructMatrix<STATE>(mesh))
 {
 	fPermuteScatter = permutescatter;
 #ifdef PERF_DEBUG

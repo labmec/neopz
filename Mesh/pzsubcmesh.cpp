@@ -1119,7 +1119,8 @@ void TPZSubCompMesh::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMa
 	}
 	if (! fAnalysis){
 		TPZFStructMatrix<TVar> local(this);
-		TPZAutoPointer<TPZMatrix<TVar> > stiff = local.CreateAssemble(ef.fMat,NULL);
+		TPZAutoPointer<TPZMatrix<TVar> > stiff =
+            dynamic_cast<TPZMatrix<TVar>*>(local.CreateAssemble(ef.fMat,nullptr));
 		ek.fMat = *(stiff.operator->());
 		//		TPZStructMatrix::Assemble(ek.fMat,ef.fMat,*this,-1,-1);
 	}
@@ -1228,7 +1229,13 @@ void TPZSubCompMesh::SetAnalysisSparse(int numThreads)
     str->SetNumThreads(numThreads);
     int64_t numinternal = NumInternalEquations();
     str->EquationFilter().SetMinMaxEq(0, numinternal);
-    TPZAutoPointer<TPZMatrix<STATE> > mat = str->Create();
+    TPZAutoPointer<TPZMatrix<STATE> > mat =
+        dynamic_cast<TPZMatrix<STATE>*>(str->Create());
+    if(!mat){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"ERROR\n: Incompatible types. Aborting...\n";
+        DebugStop();
+    }
     str->EquationFilter().Reset();
     fAnalysis->SetStructuralMatrix(str);
     TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(mat);
@@ -1265,7 +1272,13 @@ void TPZSubCompMesh::SetAnalysisNonSymSparse(int numThreads)
     str->SetNumThreads(numThreads);
     int64_t numinternal = NumInternalEquations();
     str->EquationFilter().SetMinMaxEq(0, numinternal);
-    TPZAutoPointer<TPZMatrix<STATE> > mat = str->Create();
+    TPZAutoPointer<TPZMatrix<STATE> > mat =
+        dynamic_cast<TPZMatrix<STATE>*>(str->Create());
+    if(!mat){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"ERROR\n: Incompatible types. Aborting...\n";
+        DebugStop();
+    }
     str->EquationFilter().Reset();
     fAnalysis->SetStructuralMatrix(str);
     TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(mat);
@@ -1300,7 +1313,8 @@ void TPZSubCompMesh::SetAnalysisFStruct(int numThreads)
     str->SetNumThreads(numThreads);
     int64_t numinternal = NumInternalEquations();
     str->EquationFilter().SetMinMaxEq(0, numinternal);
-    TPZAutoPointer<TPZMatrix<STATE> > mat = str->Create();
+    TPZAutoPointer<TPZMatrix<STATE> > mat =
+        dynamic_cast<TPZMatrix<STATE>*>(str->Create());
     str->EquationFilter().Reset();
     fAnalysis->SetStructuralMatrix(str);
     TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(mat);
@@ -1336,7 +1350,8 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	str->SetNumThreads(numThreads);
     int64_t numinternal = NumInternalEquations();
     str->EquationFilter().SetMinMaxEq(0, numinternal);
-    TPZAutoPointer<TPZMatrix<STATE> > mat = str->Create();
+    TPZAutoPointer<TPZMatrix<STATE> > mat =
+        dynamic_cast<TPZMatrix<STATE>*>(str->Create());
     str->EquationFilter().Reset();
     TPZAutoPointer<TPZMatrix<STATE> > mat2 = mat->Clone();
 	
@@ -1401,7 +1416,8 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
     str->SetNumThreads(numThreads);
     int64_t numinternal = NumInternalEquations();
     str->EquationFilter().SetMinMaxEq(0, numinternal);
-    TPZAutoPointer<TPZMatrix<STATE> > mat = str->Create();
+    TPZAutoPointer<TPZMatrix<STATE> > mat =
+        dynamic_cast<TPZMatrix<STATE>*>(str->Create());
     str->EquationFilter().Reset();
     TPZAutoPointer<TPZMatrix<STATE> > mat2 = mat->Clone();
     
