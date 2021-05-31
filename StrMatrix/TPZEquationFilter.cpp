@@ -51,7 +51,10 @@ template <class T>
 void TPZEquationFilter::GatherInternal(const TPZFMatrix<T> &large,
                                        TPZFMatrix<T> &gathered) const {
   int64_t neqcondense = this->NActiveEquations();
-  if (gathered.Rows() != neqcondense || large.Rows() != fNumEq) {
+  if (gathered.Rows() != neqcondense || large.Rows() != fNumEq ||
+      large.Cols() > gathered.Cols()) {
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Incompatible dimensions\nAborting...\n";
     DebugStop();
   }
   if (!IsActive()) {
@@ -59,15 +62,20 @@ void TPZEquationFilter::GatherInternal(const TPZFMatrix<T> &large,
     return;
   }
   gathered.Zero();
-  for (int64_t i = 0; i < neqcondense; i++)
-    gathered(i, 0) = large.GetVal(fActiveEqs[i], 0);
+  const auto ncols = gathered.Cols();
+  for(auto j = 0; j < ncols ; j++)
+    for (int64_t i = 0; i < neqcondense; i++)
+      gathered(i, j) = large.GetVal(fActiveEqs[i], j);
 }
 
 template <class TVar>
 void TPZEquationFilter::ScatterInternal(const TPZFMatrix<TVar> &vsmall,
                      TPZFMatrix<TVar> &vexpand) const {
   int64_t neqcondense = this->NActiveEquations();
-  if (vsmall.Rows() != neqcondense || vexpand.Rows() != fNumEq) {
+  if (vsmall.Rows() != neqcondense || vexpand.Rows() != fNumEq ||
+      vsmall.Cols() > vexpand.Cols()) {
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Incompatible dimensions\nAborting...\n";
     DebugStop();
   }
   if (!IsActive()) {
@@ -85,8 +93,10 @@ void TPZEquationFilter::ScatterInternal(const TPZFMatrix<TVar> &vsmall,
     }
   }
 #endif
-  for (int64_t i = 0; i < neqcondense; i++)
-    vexpand(fActiveEqs[i], 0) = vsmall.GetVal(i, 0);
+  const auto ncols = vsmall.Cols();
+  for(auto j = 0; j < ncols; j++)
+    for (int64_t i = 0; i < neqcondense; i++)
+      vexpand(fActiveEqs[i], j) = vsmall.GetVal(i, j);
 }
 
 template class TPZRestoreClass<TPZEquationFilter>;
