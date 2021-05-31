@@ -252,8 +252,11 @@ public:
 	 * @param ek element matrix
 	 * @param ef element right hand side
 	 */
-	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef) override{
+	void CalcStiff(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef) override{
         CalcStiffT<STATE>(ek,ef);
+    }
+    void CalcStiff(TPZElementMatrixT<CSTATE> &ek, TPZElementMatrixT<CSTATE> &ef) override{
+        CalcStiffT<CSTATE>(ek,ef);
     }
 	
     /**
@@ -261,8 +264,12 @@ public:
      * @param ek element matrix
      * @param ef element right hand side
      */
-    virtual void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
+    void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
         CalcResidualT<STATE>(ef);
+    }
+    
+    void CalcResidual(TPZElementMatrixT<CSTATE> &ef) override{
+        CalcResidualT<CSTATE>(ef);
     }
     
 	/** @brief Initialize element matrix in which is computed CalcStiff */
