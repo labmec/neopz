@@ -8,7 +8,17 @@ TPZEigenSolver
    :local:
 
 
-The :cpp:expr:`TPZEigenSolver` represents a solver for Eigenvalue problems (EVP) in which the matrix has entries with the type :cpp:type:`TVar`, where :cpp:expr:`TVar=STATE`, for real problems, and :cpp:expr:`TVar=CSTATE`, for complex problems. It will soon be complemented with an appropriated :cpp:expr:`TPZAnalysis` class. See :ref:`section-lapackeigensolver` and :ref:`section-kryloveigensolver` for details on the available solvers in NeoPZ.
+The :cpp:expr:`TPZEigenSolver` represents a solver for Eigenvalue problems (EVP) in which the matrix has entries with the type :cpp:type:`TVar`, where :cpp:expr:`TVar=STATE`, for real problems, and :cpp:expr:`TVar=CSTATE`, for complex problems. It should be used with the :cpp:expr:`TPZEigenAnalysis` class. See :ref:`section-lapackeigensolver` and :ref:`section-kryloveigensolver` for details on the available solvers in NeoPZ.
+
+Sorting eigenpairs
+******************
+
+The returned eigenvalues can be sorted in the following ways:
+
+.. doxygenenum:: TPZEigenSort
+
+Further documentation on TPZEigenSolver
+***************************************
 
 .. doxygenclass:: TPZEigenSolver
    :members:
@@ -67,13 +77,6 @@ It is interesting to note that in this iteration, only the product :math:`A v_k`
    The matrix :math:`A` does not necessarily correspond to the matrix of a standard EVP. See :ref:`section-spectraltransform` for details on the matrix that is passed to the Arnoldi iteration.
    
 After the Arnoldi iteration is performed, an EVP for :math:`H` is then solved using LAPACK. Given that the dimensions of the Krylov subspace is :math:`m\ll n_{eq}`, where :math:`n_{eq}` is the original number of equations, using a dense matrix for :math:`H` does not represent a big impact.
-
-Sorting eigenpairs
-==================
-
-The returned eigenvalues can be sorted in the following ways:
-
-.. doxygenenum:: TPZEigenSort
 
 Further documentation on TPZKrylovEigenSolver
 =============================================
