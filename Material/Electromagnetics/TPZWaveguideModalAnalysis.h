@@ -110,16 +110,19 @@ public:
     void Solution(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
                   int var, TPZVec<CSTATE> &solout) override;
     //! Get the propagation constant used for post processing the solution
-    const CSTATE &GetKz() const;
+    inline const CSTATE &GetKz() const
+    {return fKz;}
     //! Set the propagation constant used for post processing the solution
-    void SetKz(const STATE &kz);
+    inline void SetKz(const CSTATE &kz)
+    { fKz = kz;}
     /** @brief Whether to print only the real part of the electromagnetic field.
      If false, it prints the magnitude of the field.*/
     [[nodiscard]] inline bool ShouldPrintFieldRealPart() const
     { return fPrintFieldRealPart;}
     /** @brief Set to print only the real part of the electromagnetic field.
      If set to false, it prints the magnitude of the field*/
-    void SetPrintFieldRealPart(bool printFieldRealPart);
+    void SetPrintFieldRealPart(bool printFieldRealPart)
+    { fPrintFieldRealPart = printFieldRealPart;}
     /**@}*/
 
     /** @name GeneralisedMethods */

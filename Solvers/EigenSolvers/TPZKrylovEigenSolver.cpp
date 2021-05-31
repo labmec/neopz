@@ -13,7 +13,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   PZError<<"\nERROR: NeoPZ was not linked against LAPACK. Aborting...\n";
   DebugStop();
 #endif
-  TPZSimpleTimer total("ArnoldiSolver");
+  TPZSimpleTimer total("Arnoldi Solver");
   auto &matA = this->fMatrixA.operator*();
   auto &matB = this->fMatrixB.operator*();
   const int nRows = matA.Rows();
@@ -21,7 +21,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   TPZAutoPointer<TPZMatrix<TVar>> arnoldiMat{nullptr};
   auto st = this->SpectralTransform();
   if(st){
-    TPZSimpleTimer calcMat("ST calc mat");
+    TPZSimpleTimer calcMat("ST Calculating matrix");
     if(this->IsGeneralised())
       arnoldiMat = st->CalcMatrix(matA,matB);
     else

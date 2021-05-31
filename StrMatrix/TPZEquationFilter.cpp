@@ -8,20 +8,21 @@ void TPZEquationFilter::Scatter(const TPZBaseMatrix &vsmall,
   if (vsmall_cast_state && vexpand_cast_state) {
     ScatterInternal(*vsmall_cast_state, *vexpand_cast_state);
   }
-  // else{
-  //   auto *vsmall_cast_cstate =
-  //       dynamic_cast<const TPZFMatrix<CSTATE> *>(&vsmall);
-  //   auto *vexpand_cast_cstate =
-  //       dynamic_cast<TPZFMatrix<CSTATE> *>(&vexpand);
-  //   if (vsmall_cast_cstate && vexpand_cast_cstate) {
-  //     ScatterInternal(*vsmall_cast_cstate, *vexpand_cast_cstate);
-  //   }
-  // }
-  else {
-    PZError << __PRETTY_FUNCTION__;
-    PZError << " Incompatible types. Aborting...\n";
-    DebugStop();
+  else{
+    auto *vsmall_cast_cstate =
+        dynamic_cast<const TPZFMatrix<CSTATE> *>(&vsmall);
+    auto *vexpand_cast_cstate =
+        dynamic_cast<TPZFMatrix<CSTATE> *>(&vexpand);
+    if (vsmall_cast_cstate && vexpand_cast_cstate) {
+      ScatterInternal(*vsmall_cast_cstate, *vexpand_cast_cstate);
+    }
+    else {
+      PZError << __PRETTY_FUNCTION__;
+      PZError << " Incompatible types. Aborting...\n";
+      DebugStop();
+    }
   }
+  
 }
 
 void TPZEquationFilter::Gather(const TPZBaseMatrix &large, TPZBaseMatrix &gathered) const {

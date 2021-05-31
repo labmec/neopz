@@ -98,7 +98,8 @@ protected:
 	
 	/** @brief This method maps the index of a point to parameter space as a function of the number of divisions */
 	virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);
-	
+	template<class TVar>
+	void DrawSolutionT(TPZGraphNode *n,TPZVec<int> &solind, TPZDrawStyle st);
 };
 
 #endif

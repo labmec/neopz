@@ -7,6 +7,7 @@
 #include "pzgraphmesh.h"
 #include "pzcompel.h"
 #include "pzgeoel.h"
+#include "pzcmesh.h"
 #include "TPZMaterial.h"
 
 using namespace std;
@@ -112,6 +113,15 @@ void TPZGraphEl::DrawSolution(TPZGraphNode * /*n*/,TPZBlock &,TPZDrawStyle /*st*
 
 void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle st)
 {
+	if(fCompEl->Mesh()->GetSolType() == EReal){
+		return DrawSolutionT<STATE>(n,solind,st);
+	}else{
+		return DrawSolutionT<CSTATE>(n,solind,st);
+	}
+}
+template<class TVar>
+void TPZGraphEl::DrawSolutionT(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle st)
+{
 	int in = ConnectNum(n);
 	//int i,j,incr;
 	int incr;
@@ -127,7 +137,7 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle s
 	int np = NPoints(n);
 	int point=0;
 	TPZManVector<REAL,4> qsi(dim,0.),x(4,0.);
-	TPZManVector<STATE,10> sol(6,0.);
+	TPZManVector<TVar,10> sol(6,0.);
 	int64_t ip = n->FirstPoint();
 	while(point < np) 
 	{
@@ -144,20 +154,21 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle s
 			int iv;
 			for(iv=0; iv<numvar;iv++)
 			{
-#ifdef STATE_COMPLEX //AQUIFRAN
-                if(fabs(sol[iv]) < 1.0e-20) sol[iv] = 0.0;
-                fGraphMesh->Out() << std::real(sol[iv]) << " ";
-#else
-                if(fabs(sol[iv]) < 1.0e-20)
-                {
-                    sol[iv] = 0.0;
-                }
-                fGraphMesh->Out() << sol[iv] << " ";
-#endif
+				auto solprint = [&sol,iv](){
+					if constexpr (std::is_same_v<TVar, RTVar>) {
+						return sol[iv];
+					} else {
+						return std::real(sol[iv]);
+					}
+				}();
+				
+				if (fabs(solprint) < 1.0e-20)
+					{solprint = 0.0;}
+				fGraphMesh->Out() << solprint << " ";
 			}
-			if((st == EMVStyle || st == EV3DStyle) && numvar ==2) fGraphMesh->Out() << 0. << " ";
-			if(st == EVTKStyle && numvar != 1)
-			{
+			if ((st == EMVStyle || st == EV3DStyle) && numvar == 2)
+				{fGraphMesh->Out() << 0. << " ";}
+			if(st == EVTKStyle && numvar != 1){
 				for(; iv<3; iv++) fGraphMesh->Out() << 0. << " ";
 			}
 		}

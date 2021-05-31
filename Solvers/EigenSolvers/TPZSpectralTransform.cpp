@@ -89,9 +89,7 @@ TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) co
       TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
 	typename TPZPardisoSolver<TVar>::MProperty prop =
       TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite;
-#ifdef PZDEBUG
-    pardiso.SetMessageLevel(1);
-#endif
+//     pardiso.SetMessageLevel(1);
 	pardiso.SetStructure(str);
 	pardiso.SetMatrixType(sysType,prop);
     pardiso.SetMatrix(shiftedMat);

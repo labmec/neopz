@@ -148,6 +148,10 @@ protected:
 		fSolution = sol;
 		this->LoadSolution();
 	}
+  virtual void LoadSolution(const TPZFMatrix<CSTATE> &sol){
+		fSolution = sol;
+		this->LoadSolution();
+	}
   
   /** @} */
 
