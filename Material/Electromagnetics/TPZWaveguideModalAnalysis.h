@@ -15,7 +15,7 @@
  * @ingroup material
  * @brief This class implements the weak statement for the modal analysis of waveguides using HCurl and H1 elements.
  * It uses a 2D Hcurl space for the transversal components of the electric field and an 1D H1 space for the longitudinal component.
- * @note Formulation taken from: LEE, J.-F.; SUN, D.-K.; CENDES, Z.J. Full-wave analysis of dielectric waveguides usingtangential vector finite elements.IEEE Transactions on Microwave Theory and Techniques, Institute of Electrical and Electronics Engineers (IEEE), v. 39, n. 8,p. 1262–1271, 1991
+ * @note Formulation taken from: LEE, J.-F.; SUN, D.-K.; CENDES, Z.J. Full-wave analysis of dielectric waveguides using tangential vector finite elements.IEEE Transactions on Microwave Theory and Techniques, Institute of Electrical and Electronics Engineers (IEEE), v. 39, n. 8,p. 1262–1271, 1991
  */
 class  TPZWaveguideModalAnalysis :
     public TPZMatBase<CSTATE,

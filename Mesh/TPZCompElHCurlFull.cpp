@@ -697,14 +697,27 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
         GetSideTransform<TSHAPE>(side,TSHAPE::GetTransformId(side,elNodesIds))
                 .Mult().MultAdd(dPhiSide,dPhiSide,dPhiSideOnElement,1,0,1);
     }
-    const int curlDim = 2*dim - 3;
+    const int curlDim = sideDim ==1 ? 1 : 2* sideDim - 3;
     dphi.Resize(curlDim,nSideShapes);
-    switch(dim){
-        case 2: TPZHCurlAuxClass::ComputeCurl<2>(indexVecShape,dPhiSideOnElement,sideMasterDirectionsOnElement,jac,detjac,axes,dphi);
-        break;
-        case 3: TPZHCurlAuxClass::ComputeCurl<3>(indexVecShape,dPhiSideOnElement,sideMasterDirectionsOnElement,jac,detjac,axes,dphi);
-        break;
-        default: DebugStop();
+    switch(sideDim){
+
+    case 1:
+      TPZHCurlAuxClass::ComputeCurl<1>(indexVecShape, dPhiSideOnElement,
+                                       sideMasterDirectionsOnElement, jac,
+                                       detjac, axes, dphi);
+      break;
+    case 2:
+      TPZHCurlAuxClass::ComputeCurl<2>(indexVecShape, dPhiSideOnElement,
+                                       sideMasterDirectionsOnElement, jac,
+                                       detjac, axes, dphi);
+      break;
+    case 3:
+      TPZHCurlAuxClass::ComputeCurl<3>(indexVecShape, dPhiSideOnElement,
+                                       sideMasterDirectionsOnElement, jac,
+                                       detjac, axes, dphi);
+      break;
+    default:
+      DebugStop();
     }
 }
 

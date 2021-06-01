@@ -869,27 +869,25 @@ void TPZHCurlAuxClass::ComputeCurl<3>(const TPZVec<std::pair<int, int64_t>> &vec
     const auto nShapeFuncs = vecShapeIndex.size();
     curlPhi.Redim(3,nShapeFuncs);
     const REAL jacInv = 1/detJac;
-    const TPZFMatrix<REAL> * dphiPtr = &dphi;
-    const TPZFMatrix<REAL> * masterDirectionsPtr = &masterDirections;
-    const TPZFMatrix<REAL> * jacobianPtr = &jacobian;
-    const TPZFMatrix<REAL> * axesPtr = &axes;
+    TPZFNMatrix<dim,REAL> tempCurl(dim, 1, 0),gradPhiCrossDirections(dim, 1, 0);
+    
     for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
         const auto iVec = vecShapeIndex[iShapeFunc].first;
         const auto iShape = vecShapeIndex[iShapeFunc].second;
-        TPZManVector<REAL, dim> gradPhiCrossDirections(dim, 0);
+        
         for(auto ix = 0; ix < dim; ix++) {
-            gradPhiCrossDirections[ix] =
-                    GETVAL(dphiPtr,dim,(ix+1)%dim,iShape) * GETVAL(masterDirectionsPtr,dim, (ix + 2) % dim,iVec) -
-                    GETVAL(masterDirectionsPtr,dim,(ix + 1) % dim,iVec) * GETVAL(dphiPtr,dim,(ix + 2) % dim,iShape);
+            const auto i = (ix+1)%dim;
+            const auto j = (ix+2)%dim;
+            gradPhiCrossDirections(ix,0) =
+                dphi.GetVal(i,iShape) * masterDirections.GetVal(j,iVec)-
+                dphi.GetVal(j,iShape) * masterDirections.GetVal(i,iVec);
         }
-        TPZManVector<REAL, dim> tempCurl(dim, 0);
-        for (auto i = 0; i < dim; i++) {
-            tempCurl[i] = 0;
-            for (auto j = 0; j < dim; j++) tempCurl[i] += GETVAL(jacobianPtr,dim,i,j) * gradPhiCrossDirections[j];
-        }
-        for (auto i = 0; i < 3; i++) {
-            curlPhi(i, iShapeFunc) = 0;
-            for (auto j = 0; j < dim; j++) curlPhi(i, iShapeFunc) += jacInv * GETVAL(axesPtr,dim,j,i) * tempCurl[j];
+        
+
+        tempCurl = jacobian * gradPhiCrossDirections;
+        tempCurl *= jacInv;
+        for (auto ix = 0; ix < dim; ix++) {
+            curlPhi.PutVal(ix, iShapeFunc,tempCurl.GetVal(ix,0));
         }
     }
 }
@@ -901,11 +899,19 @@ void TPZHCurlAuxClass::ComputeCurl<2>(const TPZVec<std::pair<int, int64_t>> &vec
     const auto nShapeFuncs = vecShapeIndex.size();
     curlPhi.Redim(1,nShapeFuncs);
     const REAL jacInv = 1/detJac;
+    TPZFNMatrix<2,REAL> jacGradPhi(2,1,0);
     for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
         const auto iVec = vecShapeIndex[iShapeFunc].first;
         const auto iShape = vecShapeIndex[iShapeFunc].second;
-        const REAL gradPhiCrossDirections = dphi.GetVal( 1,iShape) * masterDirections.GetVal(0,iVec) -
-                                            masterDirections.GetVal(1,iVec) * dphi.GetVal( 0,iShape);
+        jacGradPhi(0,0) =
+            jacobian.GetVal(0,0) * dphi.GetVal(0, iShape) +
+            jacobian.GetVal(0,1) * dphi.GetVal(1, iShape);
+        jacGradPhi(1,0) =
+            jacobian.GetVal(1,0) * dphi.GetVal(0, iShape) +
+            jacobian.GetVal(1,1) * dphi.GetVal(1, iShape);
+        const REAL gradPhiCrossDirections =
+            jacGradPhi(0,0) * masterDirections.GetVal(1,iVec) -
+            jacGradPhi(1,0) * masterDirections.GetVal(0,iVec);
         curlPhi(0, iShapeFunc) += jacInv * gradPhiCrossDirections;
     }
 }

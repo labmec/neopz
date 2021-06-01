@@ -60,6 +60,8 @@ namespace hcurltest{
      */
     void TestFunctionTracesUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh,
                                        MMeshType type, const int pOrder);
+    void TestFunctionCurlUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh,
+                                       MMeshType type, const int pOrder);
     //auxiliary funcs
     template <class TGEOM>
     void PrintShapeFunctions(const int pOrder);
@@ -93,6 +95,27 @@ TEST_CASE("Testing trace of HCurl functions",
         }
     }
 }
+
+TEST_CASE("Testing curl of HCurl functions",
+          "[hcurl_tests][mesh]") {
+    constexpr int pOrder{1};
+    constexpr int maxK{5};
+    auto meshType = GENERATE(MMeshType::ETriangular,
+                             MMeshType::EQuadrilateral,
+                             MMeshType::ETetrahedral,
+                             MMeshType::EHexahedral,
+                             MMeshType::EPrismatic
+                             );
+    TPZAutoPointer<TPZCompMesh> cmesh =
+        hcurltest::CreateCMesh(meshType,pOrder);
+    
+    for(int k = 1; k < maxK; k++){
+        SECTION("Funcion curl "+MMeshType_Name(meshType)+" p"+std::to_string(k)){
+            hcurltest::TestFunctionCurlUniformMesh(cmesh,meshType,k);
+        }
+    }
+}
+
 
 namespace hcurltest{
 
@@ -602,6 +625,115 @@ namespace hcurltest{
         //            }
     }//hcurltest::TestFunctionTracesUniformMesh
 
+    void TestFunctionCurlUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh,
+                                       MMeshType type, const int pOrder)
+    {
+        const auto oldPrecision = Catch::StringMaker<REAL>::precision;
+        Catch::StringMaker<REAL>::precision = std::numeric_limits<REAL>::max_digits10;
+        const int dim = MMeshType_Dimension(type);
+        const int curlDim = dim == 1 ? 1 : 2 * dim -3;
+        MElementType elType = [&](){
+            switch(type){
+            case MMeshType::ETriangular: return ETriangle;
+            case MMeshType::EQuadrilateral: return EQuadrilateral;
+            case MMeshType::ETetrahedral: return ETetraedro;
+            case MMeshType::EHexahedral: return ECube;
+            case MMeshType::EPrismatic: return EPrisma;
+            case MMeshType::EPyramidal: return EPiramide;
+            default: return ENoType;
+            }
+        }();
+
+        if(pOrder > 1 ){
+            cmesh->SetDefaultOrder(pOrder);
+            for(auto cel : cmesh->ElementVec()){
+                TPZInterpolatedElement *intel =
+                    dynamic_cast<TPZInterpolatedElement *> (cel);
+                if(intel) intel->PRefine(pOrder);
+            }
+            cmesh->AutoBuild();
+            cmesh->AdjustBoundaryElements();
+            cmesh->CleanUpUnconnectedNodes();
+        }
+        
+        for(auto dummyCel : cmesh->ElementVec()){
+            const auto cel = dynamic_cast<TPZInterpolatedElement *>(dummyCel);
+            if(!cel) continue;
+            const auto gel = cel->Reference();
+            //skips boundary els
+            if(!cel || cel->Reference()->Type() != elType) continue;
+
+            TPZMaterialDataT<STATE> elData;
+            cel->InitMaterialData(elData);
+            const int nState = cel->Material()->NStateVariables();
+            const int nShapeFunc = cel->NShapeF();
+            const int nSides = gel->NSides();
+            TPZIntPoints *intRule =
+                gel->CreateSideIntegrationRule(nSides-1, pOrder);
+            const int nIntPts = intRule->NPoints();
+            TPZManVector<REAL,3> qsi(dim);
+            REAL w;
+
+            
+            auto Cross = [dim,curlDim](const TPZFMatrix<REAL> v1,
+                               const TPZFMatrix<REAL>&v2,
+                               TPZFMatrix<REAL> &res)
+            {
+                res.Redim(curlDim,1);
+                switch(dim){
+                case 2:
+                    res(0,0) = v1(0,0) * v2(1,0) - v1(1,0) * v2(0,0);
+                    break;
+                case 3:
+                    res(0,0) = v1(1,0) * v2(2,0) - v1(2,0) * v2(1,0);
+                    res(1,0) = v1(2,0) * v2(0,0) - v1(0,0) * v2(2,0);
+                    res(2,0) = v1(0,0) * v2(1,0) - v1(1,0) * v2(0,0);
+                    break;
+                }
+            };
+            
+            TPZFNMatrix<3,REAL>
+                dir(dim,1,0),
+                gphiHat(dim,1,0),              
+                curlX(curlDim,1,0),
+                curlCalc(curlDim,1,0);
+
+            
+            const auto tol = std::numeric_limits<REAL>::epsilon()*10;
+            const auto &indices = elData.fVecShapeIndex;
+            const auto &directions = elData.fMasterDirections;
+            const auto &axes = elData.axes;
+            
+            for(auto iPt = 0; iPt < nIntPts; iPt++){
+                intRule->Point(iPt, qsi,w);
+                cel->ComputeRequiredData(elData, qsi);
+                const auto &gradPhiVec = elData.dphi;
+                const auto &jac = elData.jacobian;
+                const auto &detjac = elData.detjac;
+                
+                const auto &curlCalcVec = elData.curlphi;
+                for(auto iShape = 0; iShape < nShapeFunc; iShape++){
+                    curlCalcVec.GetSub(0, iShape, curlDim, 1, curlCalc);
+                    const auto &vi = indices[iShape].first;
+                    const auto &pi = indices[iShape].second;
+                    directions.GetSub(0, vi, dim, 1, dir);
+                    gradPhiVec.GetSub(0, pi, dim, 1, gphiHat);
+                    if (dim == 2){
+                        Cross(jac * gphiHat, dir ,curlX);
+                    }else{
+                        Cross(gphiHat, dir ,curlX);
+                        curlX = jac * curlX;
+                    }
+                    curlX *= 1./detjac;
+                    CAPTURE(iShape, jac, gphiHat, dir, curlX,curlCalc);
+                    const auto diff = fabs(Norm(curlX-curlCalc));
+                    REQUIRE(diff == Approx(0.0).margin(tol));
+                }//for iShape
+            }//for iPt
+        }//for dummyCel
+        Catch::StringMaker<REAL>::precision = oldPrecision;
+    }//hcurltest::TestFunctionCurlUniformMesh
+
 
     template <class TGEOM>
     void PrintShapeFunctions(const int pOrder){
@@ -663,8 +795,8 @@ namespace hcurltest{
         constexpr int ndiv{1};
         const int dim = MMeshType_Dimension(type);
         TPZManVector<int,3> nDivVec(dim,ndiv);
-        TPZManVector<REAL,3> minX(3,0.0);
-        TPZManVector<REAL,3> maxX(3,1.0);
+        TPZManVector<REAL,3> minX({0,0,0});
+        TPZManVector<REAL,3> maxX({1,1,1});
         if(dim == 2) maxX[2] = 0.0;
             
         TPZManVector<int,2> matIds(2*dim+1,-1);

@@ -1,6 +1,7 @@
 #include "Electromagnetics/TPZWaveguideModalAnalysis.h"
 #include "TPZBndCondT.h"
 #include "TPZCompElHCurl.h"
+#include "pzaxestools.h"
 
 using namespace std::complex_literals;
 TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis() : TBase()
@@ -182,25 +183,16 @@ TPZWaveguideModalAnalysis::ContributeA(
     const CSTATE &uxx = fUr[0];
     const CSTATE &uyy = fUr[1];
     const CSTATE &uzz = fUr[2];
-    //get h1 functions
+    //get h1 functions for computing hcurl funcs
     const TPZFMatrix<REAL> &phiH1 = datavec[fH1MeshIndex].phi;
-    const TPZFMatrix<REAL> &gradPhiH1 = datavec[fH1MeshIndex].dphix;
     
     TPZFNMatrix<30,REAL> phiHCurl;
-    TPZFNMatrix<90,REAL> curlPhi;
     TPZHCurlAuxClass::ComputeShape(datavec[fHCurlMeshIndex].fVecShapeIndex,
                                    phiH1,
                                    datavec[fHCurlMeshIndex].fDeformedDirections,
                                    phiHCurl);
-
-    TPZHCurlAuxClass::ComputeCurl<2>(datavec[fHCurlMeshIndex].fVecShapeIndex,
-                                     gradPhiH1,
-                                     datavec[fHCurlMeshIndex].fMasterDirections,
-                                     datavec[fHCurlMeshIndex].jacobian,
-                                     datavec[fHCurlMeshIndex].detjac,
-                                     datavec[fHCurlMeshIndex].axes,
-                                     curlPhi);
-
+    
+    auto & curlPhi = datavec[fHCurlMeshIndex].curlphi;
     const REAL k0 = fScaleFactor * 2*M_PI/fLambda;
     /*****************ACTUAL COMPUTATION OF CONTRIBUTION****************/
 
@@ -239,23 +231,17 @@ TPZWaveguideModalAnalysis::ContributeB(
     const CSTATE &uzz = fUr[2];
     //get h1 functions
     const TPZFMatrix<REAL> &phiH1 = datavec[fH1MeshIndex].phi;
-    const TPZFMatrix<REAL> &gradPhiH1 = datavec[fH1MeshIndex].dphix;
+    const TPZFMatrix<REAL> &gradPhiH1axes = datavec[fH1MeshIndex].dphix;
+    TPZFNMatrix<3,REAL> gradPhiH1(3, phiH1.Rows(), 0.);
+    TPZAxesTools<REAL>::Axes2XYZ(gradPhiH1axes, gradPhiH1, datavec[fH1MeshIndex].axes);
     
     TPZFNMatrix<30,REAL> phiHCurl;
-    TPZFNMatrix<90,REAL> curlPhi;
+    
     TPZHCurlAuxClass::ComputeShape(datavec[fHCurlMeshIndex].fVecShapeIndex,
                                    phiH1,
                                    datavec[fHCurlMeshIndex].fDeformedDirections,
                                    phiHCurl);
-
-    TPZHCurlAuxClass::ComputeCurl<2>(datavec[fHCurlMeshIndex].fVecShapeIndex,
-                                     gradPhiH1,
-                                     datavec[fHCurlMeshIndex].fMasterDirections,
-                                     datavec[fHCurlMeshIndex].jacobian,
-                                     datavec[fHCurlMeshIndex].detjac,
-                                     datavec[fHCurlMeshIndex].axes,
-                                     curlPhi);
-
+    
     const REAL k0 = fScaleFactor * 2*M_PI/fLambda;
     /*****************ACTUAL COMPUTATION OF CONTRIBUTION****************/
 
