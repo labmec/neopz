@@ -172,6 +172,12 @@ public:
     /** @brief This method should never be called. Throws.*/
     virtual void Solution(const TPZVec<TPZMaterialDataT<TVar>> &datavec, int var,
                           TPZVec<TVar> &sol) override;
+    /**
+     * @brief Fill material data parameter with necessary requirements for the
+     * Contribute method. Here, in base class, all requirements are considered
+     * as not necessary.
+     */
+    virtual void FillDataRequirements(TPZVec<TPZMaterialDataT<TVar>> &datavec) const override;
 
     [[nodiscard]] int ClassId() const override;
 protected:

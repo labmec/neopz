@@ -98,6 +98,18 @@ void TPZMatCombinedSpacesBC<TVar>::Contribute(const TPZVec<TPZMaterialDataT<TVar
     fMatCombinedSpaces->ContributeBC(datavec,weight,ef,*tmp);
 }
 
+/**
+ * @brief Fill material data parameter with necessary requirements for the
+ * Contribute method. Here, in base class, all requirements are considered
+ * as not necessary.
+ */
+template<class TVar>
+void TPZMatCombinedSpacesBC<TVar>::FillDataRequirements(TPZVec<TPZMaterialDataT<TVar>> &datavec) const
+{
+    auto *tmp = dynamic_cast<const TPZBndCondT<TVar>*>(this);
+    fMatCombinedSpaces->FillBoundaryConditionDataRequirements(tmp->Type(), datavec);
+}
+
 template<class TVar>
 void TPZMatCombinedSpacesBC<TVar>::ContributeBC(const TPZVec<TPZMaterialDataT<TVar>> &datavec, REAL weight,
                   TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef,
