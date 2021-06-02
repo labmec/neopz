@@ -185,9 +185,7 @@ protected:
 
     /** @name Errors */
 	/** @{ */
-	void Errors(const TPZVec<REAL> &x, const TPZVec<STATE> &u,
-				const TPZFMatrix<STATE> &dudx,
-                const TPZFMatrix<REAL> &axes,
+	void Errors(const TPZMaterialDataT<STATE> &data,
                 TPZVec<STATE> &values) override;
     /** @} */
     

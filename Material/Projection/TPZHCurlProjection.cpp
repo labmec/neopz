@@ -159,13 +159,19 @@ void TPZHCurlProjection<TVar>::Solution(const TPZMaterialDataT<TVar> &data,
 }
 
 template<class TVar>
-void TPZHCurlProjection<TVar>::Errors(const TPZVec<REAL> &x,
-                                     const TPZVec<TVar> &u,
-                                     const TPZFMatrix<TVar> &curlU,
-                                     const TPZFMatrix<REAL> &axes,
+void TPZHCurlProjection<TVar>::Errors(const TPZMaterialDataT<TVar>&data,
                                      TPZVec<REAL> &values)
 {
-
+    const auto &x = data.x;
+    const auto &u = data.sol[0];
+    const auto &curlU = data.curlsol[0];
+#ifdef PZDEBUG
+    if(!this->HasExactSol()){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nThe material has no associated exact solution. Aborting...\n";
+        DebugStop();
+    }
+#endif
     TPZManVector<TVar,3> u_exact(fDim);
     TPZFNMatrix<3,TVar> curlU_exact(fCurlDim);
     this->ExactSol()(x, u_exact, curlU_exact);

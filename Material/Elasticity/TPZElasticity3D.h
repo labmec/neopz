@@ -146,9 +146,7 @@ class TPZElasticity3D :
 	
 	/** @brief Evaluate error between approximate (FEM) and exact solutions */
 protected:
-	void Errors(const TPZVec<REAL> &x,const TPZVec<STATE> &u,
-                const TPZFMatrix<STATE> &dudx,
-                const TPZFMatrix<REAL> &axes,
+	void Errors(const TPZMaterialDataT<STATE> &data,
                 TPZVec<REAL> &values) override;
 public:
 	/** @brief Returns the number of norm errors: 3 (Semi H1, L2 and H1) */

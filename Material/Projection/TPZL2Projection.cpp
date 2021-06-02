@@ -163,24 +163,34 @@ void TPZL2Projection<TVar>::Solution(const TPZMaterialDataT<TVar> &data,
 }
 
 template<class TVar>
-void TPZL2Projection<TVar>::Errors(const TPZVec<REAL> &x,
-                                   const TPZVec<TVar> &u,
-                                   const TPZFMatrix<TVar> &dudx,
-                                   const TPZFMatrix<REAL> &axes,
+void TPZL2Projection<TVar>::Errors(const TPZMaterialDataT<TVar>&data,
                                    TPZVec<REAL> &values) {
+    const auto &x = data.x;
+    const auto &u = data.sol[0];
+    const auto &dudx = data.dsol[0];
+    const auto &axes = data.axes;
 
+#ifdef PZDEBUG
+    if(!this->HasExactSol()){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nThe material has no associated exact solution. Aborting...\n";
+        DebugStop();
+    }
+#endif
     TPZManVector<TVar,1> u_exact={0.};
     TPZFNMatrix<3,TVar> du_exact(3,1,0.);
+    
     this->ExactSol()(x,u_exact,du_exact);
+    
     values.Resize(this->NEvalErrors());
     values.Fill(0.0);
-    TPZManVector<TVar> sol(1),dsol(3,0.);
+    
     TPZFNMatrix<3,TVar> gradu(3,1);
     TPZAxesTools<TVar>::Axes2XYZ(dudx,gradu,axes);
     
     //values[0] : error in H1 norm
-    //values[1] : eror in L2 norm
-    //values[2] : erro in H1 semi-norm
+    //values[1] : error in L2 norm
+    //values[2] : error in H1 semi-norm
     TVar diff = (u[0] - u_exact[0]);
     if constexpr (is_complex<TVar>::value){
         values[1]  = std::real((diff*std::conj(diff)));

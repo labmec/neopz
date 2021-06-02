@@ -86,8 +86,7 @@ public:
     void GetSolDimensions(uint64_t &u_len, uint64_t &du_row, uint64_t &du_col) const override;
 
     // TODO document method
-    void Errors(const TPZVec<REAL> &x, const TPZVec<STATE> &sol, const TPZFMatrix<STATE> &dsol,
-                const TPZFMatrix<REAL> &axes, TPZVec<REAL> &errors) override;
+    void Errors(const TPZMaterialDataT<STATE> &data, TPZVec<REAL> &errors) override;
 
     // TODO add doc
     void FillDataRequirements(TPZMaterialData &data) const override;

@@ -86,9 +86,8 @@ public:
     /** Evaluate error between approximate (FEM) and exact solutions.
     *  Method not implemented
     */
-    virtual void Errors(const TPZVec<REAL> &x,const TPZVec<REAL> &u, const TPZFMatrix<REAL> &dudx,
-                      const TPZFMatrix<REAL> &axes,
-                      TPZVec<REAL> &values) override;
+    void Errors(const TPZMaterialDataT<STATE>&data,
+                        TPZVec<REAL> &values) override;
 
     void GetSolDimensions(uint64_t &u_len,
                           uint64_t &du_row,

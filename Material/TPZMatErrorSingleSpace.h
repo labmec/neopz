@@ -27,35 +27,22 @@ class TPZMatErrorSingleSpace : public TPZMatError<TVar>{
     [[nodiscard]] int ClassId() const override;
     //!@name Error
     /** @{*/
-    //! Public interface for calculating errors
-    void Errors(const TPZMaterialDataT<TVar> &data,
-                TPZVec<REAL> &errors);
+    /** @brief Public interface for calculating errors
+     See TPZMaterialData and TPZMaterialDataT for the available data.*/
+    virtual void Errors(const TPZMaterialDataT<TVar> &data,
+                TPZVec<REAL> &errors) = 0;
     /** @brief Returns the number of error norms.
         Default is 3: norm, L2 and seminorm. */
     int NEvalErrors() override{return TPZMatError<TVar>::NEvalErrors();}
     /** @}*/
-protected:
-    /*!
-      \brief Calculates the error at a given point x.
-      \param[in] x coordinates in the domain (not reference element)
-      \param[in] sol Solution at point `x`
-      \param[in] dsol Solution derivative  at point `x`
-      \param[in] axes Transformation between element axis and R3 space
-      \param[in] errors The calculated errors.
-     */
-    virtual void Errors(const TPZVec<REAL> &x, const TPZVec<TVar> &sol,
-                        const TPZFMatrix<TVar> &dsol,
-                        const TPZFMatrix<REAL> &axes,
-                        TPZVec<REAL> &errors) = 0;
 };
 
+//!BC Interface for TPZMatErrorSingleSpace
 template<class TVar>
 class TPZMatErrorSingleSpaceBC : public TPZMatErrorSingleSpace<TVar>{
 protected:
     void SetMaterialImpl(TPZMaterial *mat) {}
-    void Errors(const TPZVec<REAL> &x, const TPZVec<TVar> &sol,
-                const TPZFMatrix<TVar> &dsol,
-                const TPZFMatrix<REAL> &axes,
+    void Errors(const TPZMaterialDataT<TVar> &data,
                 TPZVec<REAL> &errors) override{};
 };
 extern template class TPZMatErrorSingleSpace<STATE>;

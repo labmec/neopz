@@ -297,9 +297,21 @@ void TPZDarcyFlow::GetSolDimensions(uint64_t &u_len, uint64_t &du_row, uint64_t 
     du_col=1;
 }
 
-void TPZDarcyFlow::Errors(const TPZVec<REAL> &x, const TPZVec<STATE> &sol, const TPZFMatrix<STATE> &dsol,
-                          const TPZFMatrix<REAL> &axes, TPZVec<REAL> &errors) {
+void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
+                          TPZVec<REAL> &errors) {
+    const TPZVec<REAL> &x = data.x;
+    const TPZVec<STATE> &sol = data.sol[0];
+    const TPZFMatrix<STATE> &dsol = data.dsol[0];
+    const TPZFMatrix<REAL> &axes = data.axes;
 
+#ifdef PZDEBUG
+    if(!this->HasExactSol()){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nThe material has no associated exact solution. Aborting...\n";
+        DebugStop();
+    }
+#endif
+    
     errors.Resize(NEvalErrors(), 0.);
 
     TPZVec<STATE> exact_pressure(1, 0);

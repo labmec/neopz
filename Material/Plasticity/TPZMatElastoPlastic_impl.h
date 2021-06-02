@@ -874,13 +874,20 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(const TPZMaterialDataT<STATE> &da
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::Errors(const TPZVec<REAL> &x,
-                                         const TPZVec<REAL> &u,
-                                         const TPZFMatrix<REAL> &dudx,
-                                         const TPZFMatrix<REAL> &axes,
+void TPZMatElastoPlastic<T,TMEM>::Errors(const TPZMaterialDataT<STATE>&data,
                                          TPZVec<REAL> &values)
 {
+    const auto &x = data.x;
+    const auto &u = data.sol[0];
+    const auto &dudx = data.dsol[0];
 
+#ifdef PZDEBUG
+    if(!this->HasExactSol()){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nThe material has no associated exact solution. Aborting...\n";
+        DebugStop();
+    }
+#endif
     TPZManVector<STATE,3> u_exact(3);
     TPZFNMatrix<9,STATE> du_exact(3,3,0.);
     this->fExactSol(x,u_exact,du_exact);

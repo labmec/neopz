@@ -931,12 +931,20 @@ void TPZElasticity2D::ContributeVecShapeBC(const TPZMaterialDataT<STATE> &data,
 	}      //  eh nulo introduzindo o BIGNUMBER pelos valores da condicao
 }
 
-void TPZElasticity2D::Errors(const TPZVec<REAL> &x,
-                             const TPZVec<STATE> &u,
-                             const TPZFMatrix<STATE> &dudx,
-                             const TPZFMatrix<REAL> &axes, 
+void TPZElasticity2D::Errors(const TPZMaterialDataT<STATE> &data,
                              TPZVec<REAL> &values) {
 
+    const auto &x = data.x;
+    const auto &u = data.sol[0];
+    const auto &dudx = data.dsol[0];
+    const auto &axes = data.axes;
+#ifdef PZDEBUG
+    if(!this->HasExactSol()){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nThe material has no associated exact solution. Aborting...\n";
+        DebugStop();
+    }
+#endif
     TPZManVector<STATE,3> u_exact(3,0.);
     TPZFNMatrix<9,STATE> du_exact(2,2,0.);
     this->ExactSol()(x,u_exact,du_exact);

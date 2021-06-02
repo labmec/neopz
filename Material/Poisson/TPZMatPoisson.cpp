@@ -170,11 +170,20 @@ void TPZMatPoisson<TVar>::Solution(const TPZMaterialDataT<TVar> &data,
 }
 
 template<class TVar>
-void TPZMatPoisson<TVar>::Errors(const TPZVec<REAL> &x,
-                                   const TPZVec<TVar> &u,
-                                   const TPZFMatrix<TVar> &dudx,
-                                   const TPZFMatrix<REAL> &axes,
-                                   TPZVec<REAL> &values) {
+void TPZMatPoisson<TVar>::Errors(const TPZMaterialDataT<TVar>&data,
+                                 TPZVec<REAL> &values) {
+    const auto &x = data.x;
+    const auto &u = data.sol[this->fPostProcIndex];
+    const auto &dudx = data.dsol[this->fPostProcIndex];
+    const auto &axes = data.axes;
+
+#ifdef PZDEBUG
+    if(!this->HasExactSol()){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nThe material has no associated exact solution. Aborting...\n";
+        DebugStop();
+    }
+#endif
 
     TPZManVector<TVar,1> u_exact={0.};
     TPZFNMatrix<3,TVar> du_exact(3,1,0.);

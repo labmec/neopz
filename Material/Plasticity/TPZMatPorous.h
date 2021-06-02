@@ -84,10 +84,8 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
       /** Evaluate error between approximate (FEM) and exact solutions.
 	   *  Method not implemented
        */
-      virtual void Errors(const TPZVec<REAL> &x, const TPZVec<REAL> &u,
-                          const TPZFMatrix<REAL> &dudx,
-                          const TPZFMatrix<REAL> &axes,
-                          TPZVec<REAL> &values) override;
+      void Errors(const TPZMaterialDataT<STATE>&data,
+                  TPZVec<REAL> &values) override;
       /**
        * Returns the number of norm errors: 3 (Semi H1, L2 and H1)
 	   * Method not implemented

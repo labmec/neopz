@@ -79,9 +79,7 @@ public:
                           uint64_t &du_row,
                           uint64_t &du_col) const override;
 
-    void Errors(const TPZVec<REAL> &x, const TPZVec<TVar> &sol,
-                const TPZFMatrix<TVar> &dsol,
-                const TPZFMatrix<REAL> &axes,
+    void Errors(const TPZMaterialDataT<TVar> &data,
                 TPZVec<REAL> &errors) override;
     
     virtual int ClassId() const override;
