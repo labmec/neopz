@@ -140,18 +140,48 @@ private:
 //the following macros are for internal usage
 
 /// Define log for debug
-#define LOGPZ_DEBUG(A,B) pzinternal::LogPzDebugImpl(A,B,__FILE__,__LINE__);
+#define LOGPZ_DEBUG(logger, msg) { \
+   if (logger.isDebugEnabled()) {\
+      std::stringstream msg_stream; \
+      msg_stream << msg; \
+      pzinternal::LogPzDebugImpl(logger, msg_stream.str(),__FILE__,__LINE__); \
+   }\
+}
 
 /// Define log for info
-#define LOGPZ_INFO(A,B) pzinternal::LogPzInfoImpl(A,B,__FILE__,__LINE__);
+#define LOGPZ_INFO(logger, msg) { \
+   if (logger.isInfoEnabled()) {\
+      std::stringstream msg_stream; \
+      msg_stream << msg; \
+      pzinternal::LogPzInfoImpl(logger, msg_stream.str(),__FILE__,__LINE__); \
+   }\
+}
 
 /// Define log for warnings
-#define LOGPZ_WARN(A,B) pzinternal::LogPzWarnImpl(A,B,__FILE__,__LINE__);
+#define LOGPZ_WARN(logger, msg) { \
+   if (logger.isWarnEnabled()) {\
+      std::stringstream msg_stream; \
+      msg_stream << msg; \
+      pzinternal::LogPzWarnImpl(logger, msg_stream.str(),__FILE__,__LINE__); \
+   }\
+}
 
 /// Define log for errors
-#define LOGPZ_ERROR(A,B) pzinternal::LogPzErrorImpl(A,B,__FILE__,__LINE__);
+#define LOGPZ_ERROR(logger, msg) { \
+   if (logger.isErrorEnabled()) {\
+      std::stringstream msg_stream; \
+      msg_stream << msg; \
+      pzinternal::LogPzErrorImpl(logger, msg_stream.str(),__FILE__,__LINE__); \
+   }\
+}
 /// Define log for fatal errors
-#define LOGPZ_FATAL(A,B) pzinternal::LogPzFatalImpl(A,B,__FILE__,__LINE__);
+#define LOGPZ_FATAL(logger, msg) { \
+   if (logger.isFatalEnabled()) {\
+      std::stringstream msg_stream; \
+      msg_stream << msg; \
+      pzinternal::LogPzFatalImpl(logger, msg_stream.str(),__FILE__,__LINE__); \
+   }\
+}
 
 
 #else
@@ -174,21 +204,21 @@ public:
 };
 // Just to allow the macros being called regardless
 // of whether the log is enabled or not
-#define LOGPZ_DEBUG(A,B)
+#define LOGPZ_DEBUG(logger, msg)
 
-#define LOGPZ_INFO(A,B)
+#define LOGPZ_INFO(logger, msg)
 
-#define LOGPZ_WARN(A,B)
+#define LOGPZ_WARN(logger, msg)
 
-#define LOGPZ_ERROR(A,B)   \
+#define LOGPZ_ERROR(logger, msg)   \
 {                          \
-  std::cout<<B<<std::endl; \
+  std::cout<<msg<<std::endl; \
   DebugStop();             \
 }
 
-#define LOGPZ_FATAL(A,B)   \
+#define LOGPZ_FATAL(logger, msg)   \
 {                          \
-  std::cout<<B<<std::endl; \
+  std::cout<<msg<<std::endl; \
   DebugStop();             \
 }
 
