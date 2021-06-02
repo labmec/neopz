@@ -33,37 +33,26 @@ TEMPLATE_TEST_CASE("Compatibility Uniform Mesh", "[derham_tests]",
 #ifndef PZ_USING_LAPACK
   return;
 #endif
-  return;
   constexpr int dim = TestType::value;
   ESpace leftSpace = GENERATE(ESpace::H1, ESpace::HCurl, ESpace::HDiv);
-  int k = GENERATE(1);
+  int k = GENERATE(1,2,3,4,5);
   SECTION(names.at(leftSpace)) {
     switch (leftSpace) {
     case ESpace::H1:
-      SECTION(names.at(ESpace::HCurl)) {
-        CheckCompatibilityUniformMesh<ESpace::H1,ESpace::HCurl,dim>(k);
-      }
+      CheckCompatibilityUniformMesh<ESpace::H1,ESpace::HCurl,dim>(k);
       if constexpr (dim == 2){
-        SECTION(names.at(ESpace::HDiv)) {
-          CheckCompatibilityUniformMesh<ESpace::H1, ESpace::HDiv, dim>(k);
-        }
+        CheckCompatibilityUniformMesh<ESpace::H1, ESpace::HDiv, dim>(k);
       }
       break;
     case ESpace::HCurl:
       if constexpr (dim == 2){
-        SECTION(names.at(ESpace::L2)) {
-          CheckCompatibilityUniformMesh<ESpace::HCurl, ESpace::L2, dim>(k);
-        }
+        CheckCompatibilityUniformMesh<ESpace::HCurl, ESpace::L2, dim>(k);
       }else{
-        SECTION(names.at(ESpace::HDiv)) {
-          CheckCompatibilityUniformMesh<ESpace::HCurl, ESpace::HDiv, dim>(k);
-        }
+        CheckCompatibilityUniformMesh<ESpace::HCurl, ESpace::HDiv, dim>(k);
       }
       break;
     case ESpace::HDiv:
-      SECTION(names.at(ESpace::L2)) {
-        CheckCompatibilityUniformMesh<ESpace::HDiv,ESpace::L2,dim>(k);
-      }
+      CheckCompatibilityUniformMesh<ESpace::HDiv,ESpace::L2,dim>(k);
       break;
     case ESpace::L2:
       break;
@@ -83,9 +72,7 @@ void CheckCompatibilityUniformMesh(int kRight) {
   const auto elName = MMeshType_Name(elType);
   const auto elDim = MMeshType_Dimension(elType);
   
-  if(elDim != dim) return;
-  
-  SECTION(elName){
+  if(elDim == dim){
 
     int kLeft;
     auto *matLeft = [&kLeft,kRight]()
@@ -94,7 +81,8 @@ void CheckCompatibilityUniformMesh(int kRight) {
         kLeft = kRight + 1;
         return new TPZMatDeRhamH1(matId, dim);
       } else if constexpr (leftSpace == ESpace::HCurl) {
-        kLeft = kRight;
+        //TODOPhil: is it correct or are there missing functions?
+        kLeft = dim == 2 ? kRight+1 : kRight;
         return new TPZMatDeRhamHCurl(matId,dim);
       } else if constexpr (leftSpace == ESpace::HDiv) {
         kLeft = kRight;
@@ -223,16 +211,18 @@ void CheckCompatibilityUniformMesh(int kRight) {
     const int rankL = CalcRank(SL);
     const int rankR = CalcRank(SR);
     const int kerR = dimR-rankR;
-
-    if(
-        !strcmp(nameLeft,"HCurl")||
-        !strcmp(nameRight,"HCurl")){
-      ;//for now let us debug without hcurl
-    }
-    else{
-      CAPTURE(kLeft,kRight,dimR,dimL,rankL,kerR,rankR);
+      
+    CAPTURE(kLeft,kRight,dimR,dimL,rankL,kerR,rankR);
+    // if(leftSpace==ESpace::HDiv && rightSpace==ESpace::L2){
+    //   std::cout<<nameLeft<<" "<<nameRight
+    //            <<"\n"<<elName<<" kL "<<kLeft<<" kR "<<kRight
+    //            <<"\n rankL "<<rankL<<" kerR "<<rankR<<std::endl;
+    // }
+      
+    if(rightSpace==ESpace::L2)//for L2 the operator is -> 0
+      REQUIRE(rankL >= rankR);
+    else
       REQUIRE(rankL >= kerR);
-    }
     delete matLeft;
     delete matRight;
   }

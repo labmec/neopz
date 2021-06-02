@@ -9,7 +9,7 @@ void TPZMatDeRhamL2::Contribute(const TPZMaterialDataT<STATE> &data,
   const int nFuncs = phi.Rows();
   for (int i = 0; i < nFuncs; i++) {
     for (int j = 0; j < nFuncs; j++) {
-      ek(i, j) = phi(i, 0) * phi(j, 0);
+      ek(i, j) += phi(i, 0) * phi(j, 0);
     }
   }
 }

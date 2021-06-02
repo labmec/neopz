@@ -13,7 +13,7 @@ TPZMatDeRhamHDiv::Contribute(const TPZMaterialDataT<STATE> &data, REAL weight,
   
   for (int i = 0; i < nFuncs; i++) {
     for (int j = 0; j < nFuncs; j++) {
-      ek(i, j) = divPhi(i,0)*divPhi(j,0);
+      ek(i, j) += divPhi(i,0)*divPhi(j,0);
     }
   }
 }
