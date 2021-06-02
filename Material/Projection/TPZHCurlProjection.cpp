@@ -7,7 +7,8 @@
 template<class TVar>
 TPZHCurlProjection<TVar>::TPZHCurlProjection(int id, int dim) :
     TPZRegisterClassId(&TPZHCurlProjection::ClassId),
-    TBase(id), fDim(dim), fCurlDim(2*dim-3){
+    TBase(id){
+    SetDimension(dim);
 }
 
 template<class TVar>
@@ -25,11 +26,12 @@ void TPZHCurlProjection<TVar>::Contribute(const TPZMaterialDataT<TVar> &data,
      * constant vector fields
      */
 	TPZFNMatrix<30,REAL> phiHCurl;
-    TPZHCurlAuxClass::ComputeShape(data.fVecShapeIndex,data.phi,data.fDeformedDirections,phiHCurl);
+    TPZHCurlAuxClass::ComputeShape(data.fVecShapeIndex,data.phi,
+                                   data.fDeformedDirections,phiHCurl);
     
     const TPZFMatrix<REAL> &curlPhi = data.curlphi;
 
-    //last position of solLoc is the divergence
+    //last position of solLoc is the curl
     TPZManVector<TVar,6> solLoc(fDim + fCurlDim);
     if(!this->HasForcingFunction()){
         PZError<<__PRETTY_FUNCTION__;
@@ -39,13 +41,19 @@ void TPZHCurlProjection<TVar>::Contribute(const TPZMaterialDataT<TVar> &data,
     }
     this->fForcingFunction(data.x,solLoc);
     TPZManVector<TVar,3> curlSol(fCurlDim,0.);
-    for(int i = 0; i < fCurlDim; i++){curlSol[i] = solLoc[3+i];}
+    for(int i = 0; i < fCurlDim; i++){curlSol[i] = solLoc[fDim+i];}
     
     const auto nHCurlFunctions = phiHCurl.Rows();
     for (auto iVec = 0; iVec < nHCurlFunctions; iVec++) {
         TVar load = 0.;
-        for(auto x = 0; x < fDim; x++)   load += phiHCurl(iVec, x) * solLoc[x];
+        
+        for(auto x = 0; x < fDim; x++)
+            {load += phiHCurl.GetVal(iVec, x) * solLoc[x];}
+        for(auto x = 0; x < fCurlDim; x++)
+            {load += curlPhi.GetVal(x, iVec) * curlSol[x];}
+        
         ef(iVec,0) += load * weight;
+        
         for (auto jVec = 0; jVec < nHCurlFunctions; jVec++) {
 
             STATE phiIdotPhiJ = 0.;
@@ -54,9 +62,10 @@ void TPZHCurlProjection<TVar>::Contribute(const TPZMaterialDataT<TVar> &data,
                     phiHCurl.GetVal(iVec, x) * phiHCurl.GetVal(jVec, x);
             }
             STATE curlIcurlJ = 0.;
+
             for(auto x = 0; x < fCurlDim; x++){
                 curlIcurlJ +=
-                    curlPhi.GetVal(iVec,x) * curlPhi.GetVal(jVec,x);
+                    curlPhi.GetVal(x,iVec) * curlPhi.GetVal(x,jVec);
             }
 
             ek(iVec, jVec) += (phiIdotPhiJ + curlIcurlJ) * weight;
@@ -129,9 +138,8 @@ int TPZHCurlProjection<TVar>::VariableIndex(const std::string &name) const{
 template<class TVar>
 int TPZHCurlProjection<TVar>::NSolutionVariables(int var) const{
 	if(var == ESolution) return fDim;
-    if (var == ECurl) {
-        return 2*fDim-3;
-    }
+    if (var == ECurl) return fCurlDim;
+    
 	
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -160,7 +168,7 @@ void TPZHCurlProjection<TVar>::Solution(const TPZMaterialDataT<TVar> &data,
 
 template<class TVar>
 void TPZHCurlProjection<TVar>::Errors(const TPZMaterialDataT<TVar>&data,
-                                     TPZVec<REAL> &values)
+                                      TPZVec<REAL> &values)
 {
     const auto &x = data.x;
     const auto &u = data.sol[0];
@@ -183,11 +191,11 @@ void TPZHCurlProjection<TVar>::Errors(const TPZMaterialDataT<TVar>&data,
 
     // values[1] : E error using L2 norm
     for (int id = 0; id < fDim; id++) {
-        const TVar diffE = u[id]-u_exact[id];
+        const TVar diffU = u[id]-u_exact[id];
         if constexpr (is_complex<TVar>::value){
-            values[1] += std::norm(std::conj(diffE)*diffE);
+            values[1] += std::norm(std::conj(diffU)*diffU);
         }else{
-            values[1] += diffE*diffE;
+            values[1] += diffU*diffU;
         }
     }
 

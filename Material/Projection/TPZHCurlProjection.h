@@ -52,10 +52,14 @@ public:
     [[nodiscard]] REAL ScaleFactor() const
     {return fScale;}
 
-	int Dimension() const  override { return this->fDim; }
+	inline int Dimension() const  override { return this->fDim; }
     
     /** @brief Sets problem dimension */
-    virtual void SetDimension(int dim) { this->fDim = dim; }
+    inline void SetDimension(int dim) {
+        this->fDim = dim;
+        if(this->fDim==1) fCurlDim = 1;
+        else fCurlDim = 2*dim - 3;//1 for 2D and 2 for 3D
+    }
 	
     int NStateVariables() const override { return 1; }
     void Contribute(const TPZMaterialDataT<TVar> &data,
@@ -86,8 +90,8 @@ public:
     virtual int ClassId() const override;
 protected:
     /** @brief Problem dimension */
-	int fDim;
-    int fCurlDim;
+	int fDim{-1};
+    int fCurlDim{-1};
     /** @brief Scale factor applied to the stiffness matrix and right hand side */
     REAL fScale{1};
 };

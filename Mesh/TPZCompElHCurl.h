@@ -241,6 +241,10 @@ protected:
                              TPZFMatrix<REAL> &phiTrace
 //                             ,TPZFMatrix<REAL> &curlTrace
                              ) const;
+
+    //Computes the deformed directions for TPZMaterialData
+    void ComputeDeformedDirections(TPZMaterialData &data);
+
 };
 
 

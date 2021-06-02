@@ -410,15 +410,7 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
 }
 
 template<class TSHAPE>
-template<class TVar>
-void TPZCompElHCurl<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL> &qsi){
-
-    {
-        const bool needsSol = data.fNeedsSol;
-        data.fNeedsSol = false;
-        TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);//in this method, Shape will be called
-        data.fNeedsSol = needsSol;
-    }
+void TPZCompElHCurl<TSHAPE>::ComputeDeformedDirections(TPZMaterialData &data){
     constexpr auto nVec{TSHAPE::Dimension*TSHAPE::NSides};
     data.fDeformedDirections.Resize(3,nVec);
     constexpr auto dim{TSHAPE::Dimension};
@@ -435,11 +427,28 @@ void TPZCompElHCurl<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, 
             for (auto j = 0; j < dim; j++) data.fDeformedDirections(i, iVec) += data.axes(j, i) * tempDirection[j];
         }
     }
+}
+
+template<class TSHAPE>
+template<class TVar>
+void TPZCompElHCurl<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL> &qsi){
+
+    {
+        const bool needsSol = data.fNeedsSol;
+        data.fNeedsSol = false;
+        TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);//in this method, Shape will be called
+        data.fNeedsSol = needsSol;
+    }
+
+    ComputeDeformedDirections(data);
+    
     /******************************************************************************************************************
     * at this point, we already have the basis functions on the deformed element, since we have data.phi,
     * data.fVecShapeIndex and data.fDeformedDirections. Now it is time to compute the curl, which will be stored in
     * data.curlphi.
     *******************************************************************************************************************/
+
+    constexpr auto dim{TSHAPE::Dimension};
     data.curlphi.Redim(2*dim - 3 > 0 ? 2*dim - 3 : 1, this->NShapeF());
     ComputeCurl(data.fVecShapeIndex,data.dphi,this->fMasterDirections,data.jacobian,data.detjac,data.axes,data.curlphi);
     if (data.fNeedsSol) {
@@ -467,12 +476,24 @@ void TPZCompElHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZF
 
 template<class TSHAPE>
 void TPZCompElHCurl<TSHAPE>::ReallyComputeSolution(TPZMaterialDataT<STATE> &data){
+    ComputeDeformedDirections(data);
+
+    constexpr auto dim{TSHAPE::Dimension};
+    data.curlphi.Redim(2*dim - 3 > 0 ? 2*dim - 3 : 1, this->NShapeF());
+    ComputeCurl(data.fVecShapeIndex,data.dphi,this->fMasterDirections,data.jacobian,data.detjac,data.axes,data.curlphi);
+    
     ComputeSolutionHCurlT(data.fVecShapeIndex,
                          data.fDeformedDirections, data.phi, data.curlphi,
                          data.sol, data.curlsol);
 }
 template<class TSHAPE>
 void TPZCompElHCurl<TSHAPE>::ReallyComputeSolution(TPZMaterialDataT<CSTATE> &data){
+    ComputeDeformedDirections(data);
+
+    constexpr auto dim{TSHAPE::Dimension};
+    data.curlphi.Redim(2*dim - 3 > 0 ? 2*dim - 3 : 1, this->NShapeF());
+    ComputeCurl(data.fVecShapeIndex,data.dphi,this->fMasterDirections,data.jacobian,data.detjac,data.axes,data.curlphi);
+    
     ComputeSolutionHCurlT(data.fVecShapeIndex,
                          data.fDeformedDirections, data.phi, data.curlphi,
                          data.sol, data.curlsol);
