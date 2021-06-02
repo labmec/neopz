@@ -10,12 +10,15 @@
 
 //! Sorting method for calculated eigenvalues
 enum class TPZEigenSort{
-  EAbsAscending,/*!< Ascending magnitude*/
-  EAbsDescending,/*!< Descending magnitude*/
-  ERealAscending,/*!< Ascending real part*/
-  ERealDescending,/*!< Descending real part*/
-  EImagAscending,/*!< Ascending imaginary part*/
-  EImagDescending/*!< Descending imaginary part*/
+  AbsAscending,/*!< Ascending magnitude*/
+  AbsDescending,/*!< Descending magnitude*/
+  RealAscending,/*!< Ascending real part*/
+  RealDescending,/*!< Descending real part*/
+  ImagAscending,/*!< Ascending imaginary part*/
+  ImagDescending,/*!< Descending imaginary part*/
+  TargetRealPart,/*!< Real part closest to target*/
+  TargetImagPart,/*!< Imaginary part closest to target*/
+  TargetMagnitude/*!< Magnitude closest to target*/
 };
 
 /**
@@ -154,7 +157,7 @@ protected:
   /** @brief Container classes */
   TPZAutoPointer<TPZMatrix<TVar>> fMatrixB{nullptr};
   //! Sorting order of the eigenvalues
-  TPZEigenSort fEigenSort{TPZEigenSort::EAbsAscending};
+  TPZEigenSort fEigenSort{TPZEigenSort::AbsAscending};
 };
 
 template<class TVar>
