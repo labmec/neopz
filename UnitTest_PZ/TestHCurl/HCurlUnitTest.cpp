@@ -5,7 +5,6 @@
  */
 #include <iostream>
 
-#include "pzlog.h"
 #include "TPZTopologyUtils.h"
 #include "TPZGeoMeshTools.h"
 

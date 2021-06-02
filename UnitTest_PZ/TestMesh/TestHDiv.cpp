@@ -36,8 +36,6 @@
 
 #include "TPZLinearAnalysis.h"
 
-#include "pzlog.h"
-
 #include "pzshapelinear.h"
 #include "TPZRefPatternTools.h"
 #include "pzshtmat.h"

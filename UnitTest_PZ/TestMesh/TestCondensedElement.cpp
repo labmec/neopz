@@ -28,7 +28,6 @@
 
 #include "pzcondensedcompel.h"
 
-#include "pzlog.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.testmesh");

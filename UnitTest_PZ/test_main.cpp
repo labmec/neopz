@@ -1,4 +1,20 @@
+#define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
+#ifdef PZ_LOG
+#include "pzlog.h"
+#endif
+
+int main( int argc, char* argv[] ) {
+  // global setup...
+#ifdef PZ_LOG
+    TPZLogger::InitializePZLOG();
+#endif
+  int result = Catch::Session().run( argc, argv );
+
+  // global clean-up...
+
+  return result;
+}
 
 /*
 TEMPLATE_TEST_CASE_SYNTAX:

@@ -5,7 +5,6 @@
  */
 #include <iostream>
 
-#include "pzlog.h"
 #include "TPZRefPatternDataBase.h"
 
 #include "pzgeotriangle.h"

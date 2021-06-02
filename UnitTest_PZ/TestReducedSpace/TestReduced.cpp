@@ -37,8 +37,6 @@
 
 #include "TPZLinearAnalysis.h"
 
-#include "pzlog.h"
-
 #include "pzshapelinear.h"
 #include "TPZRefPatternTools.h"
 #include "pzshtmat.h"
@@ -135,7 +133,6 @@ std::vector<MElementType> allmeshes = {EQuadrilateral,ETriangle,ETetraedro,EPris
 // Tests for the 'voidflux' class.
 TEST_CASE("reduced_space","[reduced_space]")
 {
-    TPZLogger::InitializePZLOG();
     int nelem = 2;
     int ndiv = 0;
     int ntypes = allmeshes.size();

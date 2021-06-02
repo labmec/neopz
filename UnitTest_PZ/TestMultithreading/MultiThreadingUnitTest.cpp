@@ -6,7 +6,6 @@
 #include <iostream>
 #include <chrono>
 
-#include "pzlog.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "TPZLinearAnalysis.h"
@@ -55,7 +54,6 @@ namespace threadTest {
 
 TEST_CASE("Parallel post process error test","[multithread_tests][multithread][struct][analysis]")
 {
-  TPZLogger::InitializePZLOG();
   threadTest::ComparePostProcError<TPZSkylineStructMatrix<STATE>>(4);
 }
 
