@@ -960,7 +960,13 @@ void TPZHCurlAuxClass::ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecSha
 
 #define IMPLEMENTHCURL(TSHAPE) \
 \
-template class TPZCompElHCurl<TSHAPE>;
+template class TPZCompElHCurl<TSHAPE>; \
+ template void \
+ TPZCompElHCurl<TSHAPE>::ComputeRequiredDataT<STATE>(TPZMaterialDataT<STATE> &data, \
+                                                     TPZVec<REAL> &qsi); \
+ template void \
+ TPZCompElHCurl<TSHAPE>::ComputeRequiredDataT<CSTATE>(TPZMaterialDataT<CSTATE> &data, \
+                                                     TPZVec<REAL> &qsi);
 
 IMPLEMENTHCURL(pzshape::TPZShapeLinear)
 IMPLEMENTHCURL(pzshape::TPZShapeTriang)
