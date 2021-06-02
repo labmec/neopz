@@ -15,7 +15,7 @@ TPZMatDeRhamH1::Contribute(const TPZMaterialDataT<STATE> &data, REAL weight,
     for (int i = 0; i < nFuncs; i++) {
       for (int j = 0; j < nFuncs; j++) {
         for (int x = 0; x < fDim; x++)
-          ek(i, j) += gradPhi(x, i) * gradPhi(x, j);
+          ek(i, j) += gradPhi(x, i) * gradPhi(x, j) * weight;
       }
     }
 }

@@ -81,8 +81,7 @@ void CheckCompatibilityUniformMesh(int kRight) {
         kLeft = kRight + 1;
         return new TPZMatDeRhamH1(matId, dim);
       } else if constexpr (leftSpace == ESpace::HCurl) {
-        //TODOPhil: is it correct or are there missing functions?
-        kLeft = dim == 2 ? kRight+1 : kRight;
+        kLeft = kRight + 1;
         return new TPZMatDeRhamHCurl(matId,dim);
       } else if constexpr (leftSpace == ESpace::HDiv) {
         kLeft = kRight;

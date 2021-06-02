@@ -15,7 +15,7 @@ TPZMatDeRhamHCurl::Contribute(const TPZMaterialDataT<STATE> &data, REAL weight,
   for (int i = 0; i < nFuncs; i++) {
     for (int j = 0; j < nFuncs; j++) {
       for (int x = 0; x < curlDim; x++)
-        ek(i, j) += curlPhi(x,i) * curlPhi(x,j);
+        ek(i, j) += curlPhi(x,i) * curlPhi(x,j) * weight;
     }
   }
 }
