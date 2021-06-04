@@ -156,7 +156,7 @@ public:
 	void FillDataRequirements(TPZMaterialData &data) const override;
 	
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
-    void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data) const override
+    void FillBoundaryConditionDataRequirements(int type,TPZMaterialData &data) const override
     {
         // default is no specific data requirements
         if(type == 50)

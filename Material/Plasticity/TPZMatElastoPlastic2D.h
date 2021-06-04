@@ -85,7 +85,7 @@ public:
     /**
      * This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition
      */
-    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data) const override;
+    virtual void FillBoundaryConditionDataRequirements(int type,TPZMaterialData &data) const override;
     
 	/**
 	 * It computes a contribution to the stiffness matrix and load vector at one BC integration point.

@@ -92,7 +92,7 @@ public:
     void FillDataRequirements(TPZMaterialData &data) const override;
 
     // TODO add doc
-    void FillBoundaryConditionDataRequirement(int type, TPZMaterialData &data) const override;
+    void FillBoundaryConditionDataRequirements(int type, TPZMaterialData &data) const override;
 
     /**
      * @brief Returns an unique class identifier

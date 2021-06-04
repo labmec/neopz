@@ -126,7 +126,7 @@ public :
 
     void FillDataRequirements(TPZMaterialData &data) const override;
 
-    void FillBoundaryConditionDataRequirement(int type, TPZMaterialData &data) const override;
+    void FillBoundaryConditionDataRequirements(int type, TPZMaterialData &data) const override;
         
 	
 	/** @} */

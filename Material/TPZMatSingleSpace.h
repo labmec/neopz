@@ -49,7 +49,7 @@ public:
      * \param type Boundary condition type.
      * \param data The TPZMaterialData instance to be filled
      */
-    virtual void FillBoundaryConditionDataRequirement([[maybe_unused]]int type,
+    virtual void FillBoundaryConditionDataRequirements([[maybe_unused]]int type,
                                                       [[maybe_unused]]TPZMaterialData &data) const;
     
     /** @brief Gets the order of the integration rule necessary to
@@ -187,7 +187,9 @@ public:
     /** @brief This method should never be called. Throws.*/
     void Solution(const TPZMaterialDataT<TVar> &data, int var,
                   TPZVec<TVar> &sol) override;
-
+    /** @brief Forward the call to TPZMatSingleSpaceT::FillBoundaryConditionDataRequirements*/
+    void FillDataRequirements(TPZMaterialData &data) const override;
+    
     int ClassId() const override;
 protected:
     /** @brief Pointer to material which created this BC. */

@@ -250,7 +250,7 @@ public:
     /**
      * This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition
      */
-    void FillBoundaryConditionDataRequirement(int type,
+    void FillBoundaryConditionDataRequirements(int type,
                                               TPZMaterialData &data) const override;
 
     enum ESolutionVar {

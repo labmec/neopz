@@ -318,7 +318,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(const TPZMaterialDataT<STATE> &d
 
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic2D<T,TMEM>::FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data) const
+void TPZMatElastoPlastic2D<T,TMEM>::FillBoundaryConditionDataRequirements(int type,TPZMaterialData &data) const
 {
     
     data.fNeedsSol = true;

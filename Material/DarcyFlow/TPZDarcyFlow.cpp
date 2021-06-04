@@ -376,7 +376,7 @@ void TPZDarcyFlow::FillDataRequirements(TPZMaterialData &data) const {
 }
 
 
-void TPZDarcyFlow::FillBoundaryConditionDataRequirement(int type, TPZMaterialData &data) const {
+void TPZDarcyFlow::FillBoundaryConditionDataRequirements(int type, TPZMaterialData &data) const {
 
     data.SetAllRequirements(false);
     if (type == 50) {

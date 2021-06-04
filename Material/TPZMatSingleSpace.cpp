@@ -14,7 +14,7 @@ void TPZMatSingleSpace::FillDataRequirements(TPZMaterialData &data) const{
     data.SetAllRequirements(false);
 }
 
-void TPZMatSingleSpace::FillBoundaryConditionDataRequirement(int type,
+void TPZMatSingleSpace::FillBoundaryConditionDataRequirements(int type,
                                                                  TPZMaterialData &data) const{
     data.SetAllRequirements(false);
 }
@@ -119,6 +119,12 @@ void TPZMatSingleSpaceBC<TVar>::Solution(const TPZMaterialDataT<TVar> &data,
     PZError<< "should not be called! Aborting...\n";
     DebugStop();
 }
+
+template<class TVar>
+void TPZMatSingleSpaceBC<TVar>::FillDataRequirements(TPZMaterialData &data) const{
+    auto *tmp = dynamic_cast<const TPZBndCondT<TVar>*>(this);
+    fMatSingleSpace->FillBoundaryConditionDataRequirements(tmp->Type(), data);
+}   
 
 template<class TVar>
 int TPZMatSingleSpaceBC<TVar>::ClassId() const

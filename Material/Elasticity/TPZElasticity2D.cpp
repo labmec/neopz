@@ -383,7 +383,7 @@ void TPZElasticity2D::FillDataRequirements(TPZMaterialData &data) const
 
 }
 
-void TPZElasticity2D::FillBoundaryConditionDataRequirement(int type,
+void TPZElasticity2D::FillBoundaryConditionDataRequirements(int type,
                                                            TPZMaterialData &data) const
 {
     data.fNeedsSol = false;
