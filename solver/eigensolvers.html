@@ -389,6 +389,16 @@
 </dd></dl>
 
 <dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14TPZEigenSolver9SetTargetE4TVar">
+<span id="_CPPv3N14TPZEigenSolver9SetTargetE4TVar"></span><span id="_CPPv2N14TPZEigenSolver9SetTargetE4TVar"></span><span id="TPZEigenSolver::SetTarget__TVar"></span><span class="target" id="classTPZEigenSolver_1a900ed61c596a88bb33ddfe4e2e5f70e4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetTarget</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">t</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14TPZEigenSolver9SetTargetE4TVar" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sets target eigenvalue. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If there is a shift of origin or shift and invert spectral transformation associated with the solver, then setting a target will also set the corresponding shift </p>
+</div>
+</dd></dl>
+
+<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N14TPZEigenSolver7MatrixAEv">
 <span id="_CPPv3N14TPZEigenSolver7MatrixAEv"></span><span id="_CPPv2N14TPZEigenSolver7MatrixAEv"></span><span id="TPZEigenSolver::MatrixA"></span><span class="target" id="classTPZEigenSolver_1ab478e8268372d0c92f7be814cc1b7351"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MatrixA</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14TPZEigenSolver7MatrixAEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the Matrix A. </p>
@@ -610,6 +620,12 @@
 <dt class="sig sig-object cpp" id="_CPPv4NK20TPZKrylovEigenSolver9ToleranceEv">
 <span id="_CPPv3NK20TPZKrylovEigenSolver9ToleranceEv"></span><span id="_CPPv2NK20TPZKrylovEigenSolver9ToleranceEv"></span><span id="TPZKrylovEigenSolver::ToleranceC"></span><span class="target" id="classTPZKrylovEigenSolver_1a1ef065768e67e095371e0a82810b8af7"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">RTVar</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tolerance</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK20TPZKrylovEigenSolver9ToleranceEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets tolerances. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20TPZKrylovEigenSolver9SetTargetE4TVar">
+<span id="_CPPv3N20TPZKrylovEigenSolver9SetTargetE4TVar"></span><span id="_CPPv2N20TPZKrylovEigenSolver9SetTargetE4TVar"></span><span id="TPZKrylovEigenSolver::SetTarget__TVar"></span><span class="target" id="classTPZKrylovEigenSolver_1af538edcfe32f6bf1cef724211a03e041"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetTarget</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0E20TPZKrylovEigenSolver" title="TPZKrylovEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">target</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N20TPZKrylovEigenSolver9SetTargetE4TVar" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set target eigenvalue and adjust spectral transform if needed. </p>
 </dd></dl>
 
 <dl class="cpp function">
