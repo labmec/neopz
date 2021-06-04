@@ -35,10 +35,8 @@ public :
 	//! Set type of BC.
 	void SetType(int type){ this->fType = type; }
     //! Material identifier
-    [[nodiscard]] int Id() const {
-        return fMaterial->Id();
-    }
-    
+    [[nodiscard]] virtual int Id() const = 0;
+
     [[nodiscard]] int ClassId() const override;
     //! Whether the boundary condition has a forcing function
     [[nodiscard]] virtual bool HasForcingFunctionBC() const = 0;

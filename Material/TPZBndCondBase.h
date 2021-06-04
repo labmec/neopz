@@ -39,7 +39,10 @@ class TPZBndCondBase :
     {return this->fMaterial->Dimension();}
     int NStateVariables() const final
     {return this->fMaterial->NStateVariables();}
-    
+
+    [[nodiscard]] int Id() const override {
+        return TPZMaterial::Id();
+    }
 };
 
 template<class TVar, class...Interfaces>
