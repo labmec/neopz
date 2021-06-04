@@ -25,19 +25,7 @@ void TPZEigenSolver<TVar>::ResetMatrix()
 template<class TVar>
 void TPZEigenSolver<TVar>::SortEigenvalues(TPZVec<CTVar> &w, TPZVec<int> &indices)
 {
-  const CTVar target = [this]() -> TVar{
-    auto krylov =
-      dynamic_cast<TPZKrylovEigenSolver<TVar>*>(this);
-    if(krylov){
-      auto st =
-        dynamic_cast<TPZSTShiftAndInvert<TVar>*>
-        (krylov->SpectralTransform().operator->());
-      if(st){
-        return st->Shift();
-      }
-    }
-    return 0;
-  }();
+  const CTVar target = Target();
   
   const auto eigOrder = EigenSorting();
   auto sortFunc = [eigOrder,target](const CTVar a, const CTVar b) {

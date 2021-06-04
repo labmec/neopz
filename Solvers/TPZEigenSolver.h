@@ -97,6 +97,15 @@ public:
   inline int NEigenpairs() const{
     return fNEigenpairs;
   }
+  /** @brief Sets target eigenvalue
+      @note If there is a shift of origin or shift and invert 
+      spectral transformation associated with
+      the solver, then setting a target will also set the
+      corresponding shift
+  */
+  inline virtual void SetTarget(TVar t);
+  
+  inline TVar Target() const;
   //!Gets the Matrix A
   inline TPZAutoPointer<TPZMatrix<TVar>> MatrixA(){
     return fMatrixA;
@@ -158,6 +167,8 @@ protected:
   TPZAutoPointer<TPZMatrix<TVar>> fMatrixB{nullptr};
   //! Sorting order of the eigenvalues
   TPZEigenSort fEigenSort{TPZEigenSort::AbsAscending};
+  //! Target eigenvalue
+  TVar fTarget{0};
 };
 
 template<class TVar>
@@ -184,6 +195,18 @@ template<class TVar>
 void TPZEigenSolver<TVar>::SetEigenSorting(TPZEigenSort ord)
 {
   fEigenSort = ord;
+}
+
+template<class TVar>
+void TPZEigenSolver<TVar>::SetTarget(TVar target)
+{
+  fTarget = target;
+}
+
+template<class TVar>
+TVar TPZEigenSolver<TVar>::Target() const
+{
+  return fTarget;
 }
 
 extern template class TPZEigenSolver<float>;

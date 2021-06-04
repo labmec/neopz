@@ -3,6 +3,24 @@
 #include "TPZSimpleTimer.h"
 
 template<class TVar>
+void TPZKrylovEigenSolver<TVar>::SetTarget(TVar target)
+{
+  TPZEigenSolver<TVar>::SetTarget(target);
+  fUserTarget=true;
+  AdjustTargetST();
+}
+
+template<class TVar>
+void TPZKrylovEigenSolver<TVar>::AdjustTargetST()
+{
+  auto st =
+    dynamic_cast<TPZSTShiftOrigin<TVar>*>(this->SpectralTransform().operator->());
+  if(st){
+    st->SetShift(this->Target());
+  }
+}
+
+template<class TVar>
 int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
                                           TPZFMatrix<CTVar> &eigenVectors,
                                           bool computeVectors)
@@ -17,7 +35,9 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   auto &matA = this->fMatrixA.operator*();
   auto &matB = this->fMatrixB.operator*();
   const int nRows = matA.Rows();
-
+  
+  if(fUserTarget) AdjustTargetST();
+  
   TPZAutoPointer<TPZMatrix<TVar>> arnoldiMat{nullptr};
   auto st = this->SpectralTransform();
   if(st){

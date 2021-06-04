@@ -71,6 +71,8 @@ public:
   inline void SetTolerance(RTVar s);
   //! Gets tolerances
   inline RTVar Tolerance() const;
+  //! Set target eigenvalue and adjust spectral transform if needed
+  void SetTarget(TVar target) override;
   /** @brief Sets the first vector to be used in the Krylov subspace
       @note The input vector will be normalized. If not set, a random 
       vector will be generated.
@@ -103,8 +105,12 @@ protected:
   RTVar fTolerance{std::numeric_limits<RTVar>::epsilon()};
   //! Spectral Transformation
   TPZAutoPointer<TPZSpectralTransform<TVar>> fST;
+  //! whether the target has been set by user
+  bool fUserTarget{false};
   //! Implementation of Solve methods
   int SolveImpl(TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors, bool computeVectors);
+  //! Set target of spectral transformation equal to user-defined target
+  void AdjustTargetST();
 };
 
 template<class TVar>
