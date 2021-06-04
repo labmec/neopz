@@ -1904,16 +1904,23 @@ TPZCompMesh* TPZCompMesh::Clone() const {
  */
 
 void TPZCompMesh::CopyMaterials(TPZCompMesh &mesh) const {
-	//  int nmat = fMaterialVec.size();
-	std::map<int, TPZMaterial * >::const_iterator mit;
-	//  int m;
-	for(mit=fMaterialVec.begin(); mit!=fMaterialVec.end(); mit++) {
-		if(!dynamic_cast<TPZBndCond *> (mit->second)) mit->second->Clone(mesh.fMaterialVec);
-	}
-	for(mit=fMaterialVec.begin(); mit!=fMaterialVec.end(); mit++) {
-		if(dynamic_cast<TPZBndCond *> (mit->second)) mit->second->Clone(mesh.fMaterialVec);
-	}
-	
+    // Clone volumetric mats
+    for (auto it : fMaterialVec) {
+        if (!dynamic_cast<TPZBndCond *> (it.second)) {
+            it.second->Clone(mesh.fMaterialVec);
+        }
+    }
+    // Clone BC mats
+    for (auto it : fMaterialVec) {
+        auto *bc = dynamic_cast<TPZBndCond *> (it.second);
+        if (bc) {
+            it.second->Clone(mesh.fMaterialVec);
+            auto *cloned_mat = mesh.FindMaterial(bc->Material()->Id());
+            auto *new_bc = dynamic_cast<TPZBndCond*>(mesh.FindMaterial(bc->Id()));
+            if (!new_bc) DebugStop();
+            new_bc->SetMaterial(cloned_mat);
+        }
+    }
 }
 
 void TPZCompMesh::DeleteMaterial(const int matId) {
