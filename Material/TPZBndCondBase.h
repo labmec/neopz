@@ -43,6 +43,10 @@ class TPZBndCondBase :
     [[nodiscard]] int Id() const override {
         return TPZMaterial::Id();
     }
+
+    [[nodiscard]] TPZMaterial* NewMaterial() const override {
+        return new TPZBndCondBase(*this);
+    }
 };
 
 template<class TVar, class...Interfaces>
