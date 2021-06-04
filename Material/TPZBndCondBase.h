@@ -35,9 +35,9 @@ class TPZBndCondBase :
 
     void SetMaterial(TPZMaterial *) final;
     
-    int Dimension() const final
+    [[nodiscard]] int Dimension() const final
     {return this->fMaterial->Dimension();}
-    int NStateVariables() const final
+    [[nodiscard]] int NStateVariables() const final
     {return this->fMaterial->NStateVariables();}
 
     [[nodiscard]] int Id() const override {
