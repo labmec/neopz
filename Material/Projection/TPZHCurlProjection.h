@@ -87,6 +87,7 @@ public:
     void Errors(const TPZMaterialDataT<TVar> &data,
                 TPZVec<REAL> &errors) override;
     
+    [[nodiscard]] int IntegrationRuleOrder(const int elPMaxOrder) const override;
     virtual int ClassId() const override;
 protected:
     /** @brief Problem dimension */

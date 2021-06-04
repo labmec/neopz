@@ -244,6 +244,13 @@ void TPZHDivProjection<TVar>::Errors(const TPZMaterialDataT<TVar> &data,
 }
 
 template<class TVar>
+int TPZHDivProjection<TVar>::IntegrationRuleOrder(const int elPMaxOrder) const
+{
+    //for order k functions of order k+1
+    return  TBase::IntegrationRuleOrder(elPMaxOrder+1);
+}
+
+template<class TVar>
 int TPZHDivProjection<TVar>::ClassId() const{
     return Hash("TPZHDivProjection") ^ TBase::ClassId() << 1;
 }

@@ -57,16 +57,12 @@ void TPZHCurlProjection<TVar>::Contribute(const TPZMaterialDataT<TVar> &data,
         for (auto jVec = 0; jVec < nHCurlFunctions; jVec++) {
 
             STATE phiIdotPhiJ = 0.;
-            for(auto x = 0; x < fDim; x++){
-                phiIdotPhiJ +=
-                    phiHCurl.GetVal(iVec, x) * phiHCurl.GetVal(jVec, x);
-            }
+            for(auto x = 0; x < fDim; x++)
+                {phiIdotPhiJ += phiHCurl.GetVal(iVec, x) * phiHCurl.GetVal(jVec, x);}
             STATE curlIcurlJ = 0.;
 
-            for(auto x = 0; x < fCurlDim; x++){
-                curlIcurlJ +=
-                    curlPhi.GetVal(x,iVec) * curlPhi.GetVal(x,jVec);
-            }
+            for(auto x = 0; x < fCurlDim; x++)
+                {curlIcurlJ +=curlPhi.GetVal(x,iVec) * curlPhi.GetVal(x,jVec);}
 
             ek(iVec, jVec) += (phiIdotPhiJ + curlIcurlJ) * weight;
         }
@@ -211,6 +207,13 @@ void TPZHCurlProjection<TVar>::Errors(const TPZMaterialDataT<TVar>&data,
 
     // values[0] : E error using HCurl norm (values[1]+values[2])
     values[0] = values[1] + values[2];
+}
+
+template<class TVar>
+int TPZHCurlProjection<TVar>::IntegrationRuleOrder(const int elPMaxOrder) const
+{
+    //for order k functions of order k+1
+    return  TBase::IntegrationRuleOrder(elPMaxOrder+1);
 }
 
 template<class TVar>
