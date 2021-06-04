@@ -920,20 +920,13 @@ void TPZHCurlAuxClass::ComputeCurl<2>(const TPZVec<std::pair<int, int64_t>> &vec
     const auto nShapeFuncs = vecShapeIndex.size();
     curlPhi.Redim(1,nShapeFuncs);
     const REAL jacInv = 1/detJac;
-    TPZFNMatrix<2,REAL> jacGradPhi(2,1,0);
     for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
         const auto iVec = vecShapeIndex[iShapeFunc].first;
         const auto iShape = vecShapeIndex[iShapeFunc].second;
-        jacGradPhi(0,0) =
-            jacobian.GetVal(0,0) * dphi.GetVal(0, iShape) +
-            jacobian.GetVal(0,1) * dphi.GetVal(1, iShape);
-        jacGradPhi(1,0) =
-            jacobian.GetVal(1,0) * dphi.GetVal(0, iShape) +
-            jacobian.GetVal(1,1) * dphi.GetVal(1, iShape);
         const REAL gradPhiCrossDirections =
-            jacGradPhi(0,0) * masterDirections.GetVal(1,iVec) -
-            jacGradPhi(1,0) * masterDirections.GetVal(0,iVec);
-        curlPhi(0, iShapeFunc) += jacInv * gradPhiCrossDirections;
+            dphi.GetVal(0,iShape) * masterDirections.GetVal(1,iVec) -
+            dphi.GetVal(1,iShape) * masterDirections.GetVal(0,iVec);
+        curlPhi(0, iShapeFunc) = jacInv * gradPhiCrossDirections;
     }
 }
 

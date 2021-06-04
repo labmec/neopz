@@ -717,10 +717,8 @@ namespace hcurltest{
                     const auto &pi = indices[iShape].second;
                     directions.GetSub(0, vi, dim, 1, dir);
                     gradPhiVec.GetSub(0, pi, dim, 1, gphiHat);
-                    if (dim == 2){
-                        Cross(jac * gphiHat, dir ,curlX);
-                    }else{
-                        Cross(gphiHat, dir ,curlX);
+                    Cross(gphiHat, dir ,curlX);
+                    if (dim == 3){
                         curlX = jac * curlX;
                     }
                     curlX *= 1./detjac;
