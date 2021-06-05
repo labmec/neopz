@@ -3,6 +3,7 @@
 #include "pzvec.h"
 #include "TPZStream.h"
 #include "pzmatrix.h"
+#include "TPZFMatrixRef.h"
 #include "pzysmp.h"
 #include "pzsysmp.h"
 #include "TPZPardisoSolver.h"
@@ -17,24 +18,24 @@ int TPZSpectralTransform<TVar>::ClassId() const{
 
 template<class TVar>
 TPZAutoPointer<TPZMatrix<TVar>>
-TPZSTShiftOrigin<TVar>::CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) const
+TPZSTShiftOrigin<TVar>::CalcMatrix(TPZAutoPointer<TPZMatrix<TVar>>A, TPZAutoPointer<TPZMatrix<TVar>>B) const
 {
-  if (B.IsSymmetric()) B.Decompose_LDLt();
-  else B.Decompose_LU();
-  TPZAutoPointer<TPZMatrix<TVar>> shiftedMat = A.NewMatrix();
+  if (B->IsSymmetric()) B->Decompose_LDLt();
+  else B->Decompose_LU();
+  TPZAutoPointer<TPZMatrix<TVar>> shiftedMat = A;
   //b-1 * shiftedA will be computed at the arnoldi iteration
   const auto &shift = Shift();
-  const auto nRows = A.Rows();
+  const auto nRows = A->Rows();
   for(int i = 0; i < nRows; i++) shiftedMat->PutVal(i,i,shiftedMat->GetVal(i,i)-shift);
   return shiftedMat;
 }
 
 template<class TVar>
 TPZAutoPointer<TPZMatrix<TVar>>
-TPZSTShiftOrigin<TVar>::CalcMatrix(TPZMatrix<TVar> &A) const
+TPZSTShiftOrigin<TVar>::CalcMatrix(TPZAutoPointer<TPZMatrix<TVar>>A) const
 {
-  const auto nRows = A.Rows();
-  TPZAutoPointer<TPZMatrix<TVar>> shiftedMat = &A;
+  const auto nRows = A->Rows();
+  TPZAutoPointer<TPZMatrix<TVar>> shiftedMat = A;
   //calculating A-sigmaB
   const auto &shift = Shift();
   for(int i = 0; i < nRows; i++) shiftedMat->PutVal(i,i,shiftedMat->GetVal(i,i)-shift);
@@ -71,12 +72,17 @@ TPZSTShiftOrigin<TVar>::Read(TPZStream &buf, void *context)
 
 template<class TVar>
 TPZAutoPointer<TPZMatrix<TVar>>
-TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) const
+TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZAutoPointer<TPZMatrix<TVar>>A, TPZAutoPointer<TPZMatrix<TVar>>B) const
 {
-  TPZAutoPointer<TPZMatrix<TVar>> shiftedMat = A.NewMatrix();
+  TPZAutoPointer<TPZMatrix<TVar>> shiftedMat = A;
   const auto &shift = this->Shift();
-  B*=shift;
-  A.Subtract(B,*shiftedMat);
+  if(shiftedMat->Storage().Rows() != B->Storage().Rows()){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Matrices have uncompatible storage formats.\nAborting...\n";
+    DebugStop();
+  }
+  shiftedMat->Storage() -= B->Storage() * shift;
+  
   auto spmat = dynamic_cast<TPZFYsmpMatrix<TVar>*>(shiftedMat.operator->());
   auto sspmat = dynamic_cast<TPZSYsmpMatrix<TVar>*>(shiftedMat.operator->());
   if(spmat || sspmat){
@@ -88,7 +94,7 @@ TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) co
       TPZPardisoSolver<TVar>::MSystemType::ESymmetric: 
       TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
 	typename TPZPardisoSolver<TVar>::MProperty prop =
-      TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite;
+      TPZPardisoSolver<TVar>::MProperty::EIndefinite;
 //     pardiso.SetMessageLevel(1);
 	pardiso.SetStructure(str);
 	pardiso.SetMatrixType(sysType,prop);
@@ -102,12 +108,12 @@ TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZMatrix<TVar> &A, TPZMatrix<TVar> &B) co
 
 template<class TVar>
   TPZAutoPointer<TPZMatrix<TVar>>
-TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZMatrix<TVar> &A) const
+TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZAutoPointer<TPZMatrix<TVar>>A) const
 {
-  TPZAutoPointer<TPZMatrix<TVar>> shiftedMat = A.NewMatrix();
+  TPZAutoPointer<TPZMatrix<TVar>> shiftedMat = A;
   const auto &shift = this->Shift();
-  const auto nRows = A.Rows();
-  for(int i = 0; i < nRows; i++) shiftedMat->PutVal(i,i,A.GetVal(i,i)-shift);
+  const auto nRows = A->Rows();
+  for(int i = 0; i < nRows; i++) shiftedMat->PutVal(i,i,A->GetVal(i,i)-shift);
   if (shiftedMat->IsSymmetric()) shiftedMat->Decompose_LDLt();
   else shiftedMat->Decompose_LU();
   return shiftedMat;

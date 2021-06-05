@@ -32,9 +32,9 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   DebugStop();
 #endif
   TPZSimpleTimer total("Arnoldi Solver");
-  auto &matA = this->fMatrixA.operator*();
-  auto &matB = this->fMatrixB.operator*();
-  const int nRows = matA.Rows();
+
+  
+  const int nRows = this->MatrixA()->Rows();
   
   if(fUserTarget) AdjustTargetST();
   
@@ -43,18 +43,16 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   if(st){
     TPZSimpleTimer calcMat("ST Calculating matrix");
     if(this->IsGeneralised())
-      arnoldiMat = st->CalcMatrix(matA,matB);
+      arnoldiMat = st->CalcMatrix(this->MatrixA(),this->MatrixA());
     else
-      arnoldiMat = st->CalcMatrix(matA);
+      arnoldiMat = st->CalcMatrix(this->MatrixA());
   }else{
+    arnoldiMat = this->MatrixA();
     if(this->IsGeneralised()){
-      arnoldiMat = matA.Clone();
       TPZSimpleTimer binvert("invert B mat");
-      if (matB.IsSymmetric()) matB.Decompose_LDLt();
-      else matB.Decompose_LU();
+      if (this->MatrixB()->IsSymmetric()) this->MatrixB()->Decompose_LDLt();
+      else this->MatrixB()->Decompose_LU();
     }
-    else
-      arnoldiMat = matA.Clone();
   }
   
   const int &n = this->NEigenpairs();
