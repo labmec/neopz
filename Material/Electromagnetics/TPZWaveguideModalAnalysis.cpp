@@ -314,8 +314,8 @@ void TPZWaveguideModalAnalysis::ContributeBCA(
     
     const CSTATE v1 = bc.Val1()(0,0);
     const CSTATE v2 = bc.Val2()[0];
-    constexpr REAL tol = 1e-15;
-    if(std::abs(v1) > tol || std::abs(v2) > tol){
+    constexpr STATE tol = std::numeric_limits<STATE>::epsilon();
+    if(std::abs(v2) > tol){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<"\nThis method supports only homogeneous boundary conditions.\n";
         std::cout<<"Stopping now..."<<std::endl;

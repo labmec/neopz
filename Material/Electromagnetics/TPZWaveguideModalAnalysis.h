@@ -63,9 +63,9 @@ public:
     [[nodiscard]] int NStateVariables() const override{return 1;}
     
     /** @brief Index of the HCurl approximation space*/
-    [[nodiscard]] inline static int HCurlIndex() { return fHCurlMeshIndex;}
+    [[nodiscard]] inline static constexpr int HCurlIndex() { return fHCurlMeshIndex;}
     /** @brief Index of the H1 approximation space*/
-    [[nodiscard]] inline static int H1Index() { return fH1MeshIndex;}
+    [[nodiscard]] inline static constexpr int H1Index() { return fH1MeshIndex;}
 
     /**
        @name ParamMethods
