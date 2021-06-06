@@ -742,6 +742,7 @@ namespace hcurltest{
         TPZManVector<REAL,3> coords(3, 0.);
         for(int iNode = 0 ; iNode < nNodes; iNode++){
             TGEOM::ParametricDomainNodeCoord(iNode,coords);
+            coords.Resize(3);
             auto newindex = gmesh->NodeVec().AllocateNewElement();
             gmesh->NodeVec()[newindex].Initialize(coords, *gmesh);
         }
@@ -755,7 +756,7 @@ namespace hcurltest{
         cmesh->SetDefaultOrder(pOrder);
         cmesh->SetDimModel(dim);
 
-        auto mat = new TPZHCurlProjection(dim,1,1);
+        auto mat = new TPZHCurlProjection(1,dim);
         cmesh->InsertMaterialObject(mat);
         cmesh->SetAllCreateFunctionsHCurl();
         cmesh->AutoBuild();
@@ -772,7 +773,7 @@ namespace hcurltest{
 
         const std::string plotfile = "shapeFuncs"+executionInfo+".vtk";//where to print the vtk files
         TPZStack<std::string> scalnames, vecnames;
-        vecnames.Push("E");//print the state variable
+        vecnames.Push("Solution");//print the state variable
         TPZFMatrix<STATE>& sol = an.Solution();
         sol.Zero();
         for(int i = 0; i < sol.Rows(); i++){
