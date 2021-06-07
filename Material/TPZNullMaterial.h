@@ -95,6 +95,12 @@ public:
 
     /** @brief Reads the element data from a stream */
     void Read(TPZStream &buf, void *context) override;
+
+    /**
+     * @brief Creates another material of the same type
+     */
+    [[nodiscard]] TPZMaterial *NewMaterial() const override;
+
 protected:
 
 

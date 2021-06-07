@@ -58,5 +58,10 @@ void TPZNullMaterial<TVar>::Print(std::ostream &out) const {
     out << "NState " << fNState << std::endl;
 }
 
+template<class TVar>
+TPZMaterial *TPZNullMaterial<TVar>::NewMaterial() const {
+    return new TPZNullMaterial<TVar>(*this);
+}
+
 template class TPZNullMaterial<STATE>;
 template class TPZNullMaterial<CSTATE>;
