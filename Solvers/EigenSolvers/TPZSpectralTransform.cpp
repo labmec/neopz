@@ -6,7 +6,6 @@
 #include "TPZFMatrixRef.h"
 #include "pzysmp.h"
 #include "pzsysmp.h"
-#include "TPZPardisoSolver.h"
 #include <complex>
 
 
@@ -82,26 +81,8 @@ TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZAutoPointer<TPZMatrix<TVar>>A, TPZAutoP
     DebugStop();
   }
   shiftedMat->Storage() -= B->Storage() * shift;
-  
-  auto spmat = dynamic_cast<TPZFYsmpMatrix<TVar>*>(shiftedMat.operator->());
-  auto sspmat = dynamic_cast<TPZSYsmpMatrix<TVar>*>(shiftedMat.operator->());
-  if(spmat || sspmat){
-    TPZPardisoSolver<TVar> pardiso;
-    const typename TPZPardisoSolver<TVar>::MStructure str =
-      TPZPardisoSolver<TVar>::MStructure::ESymmetric;
-	const typename TPZPardisoSolver<TVar>::MSystemType sysType =
-      sspmat ?
-      TPZPardisoSolver<TVar>::MSystemType::ESymmetric: 
-      TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
-	typename TPZPardisoSolver<TVar>::MProperty prop =
-      TPZPardisoSolver<TVar>::MProperty::EIndefinite;
-//     pardiso.SetMessageLevel(1);
-	pardiso.SetStructure(str);
-	pardiso.SetMatrixType(sysType,prop);
-    pardiso.SetMatrix(shiftedMat);
-    pardiso.Decompose();
-  }
-  else if (shiftedMat->IsSymmetric()) shiftedMat->Decompose_LDLt();
+
+  if (shiftedMat->IsSymmetric()) shiftedMat->Decompose_LDLt();
   else shiftedMat->Decompose_LU();
   return shiftedMat;
 }
