@@ -29,7 +29,7 @@
 #include "TPZMultiphysicsInterfaceEl.h"
 
 #include "TPZVTKGeoMesh.h"
-#include "TPZNullMaterial.h"
+#include "TPZNullMaterialCS.h"
 #include "pzlog.h"
 
 #ifdef PZ_LOG
@@ -121,7 +121,7 @@ void TPZMHMixedMeshControl::InsertPeriferalMaterialObjects()
         return;
     }
     
-    auto *nullmat = new TPZNullMaterial<STATE>(fSkeletonMatId);
+    auto *nullmat = new TPZNullMaterialCS<STATE>(fSkeletonMatId);
     nullmat->SetDimension(mat->Dimension()-1);
     nullmat->SetNStateVariables(nstate);
     fCMesh->InsertMaterialObject(nullmat);
