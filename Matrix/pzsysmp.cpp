@@ -410,6 +410,13 @@ void TPZSYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & so
 	}
 }
 
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::SetIsDecomposed(int val)
+{
+	if(val)
+		fPardisoControl.fDecomposed = true;
+	TPZBaseMatrix::SetIsDecomposed(val);
+}
 
 #ifdef USING_MKL
 
@@ -470,14 +477,6 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
 {
     return Decompose_Cholesky();
-}
-
-template<class TVar>
-void TPZSYsmpMatrix<TVar>::SetIsDecomposed(int val)
-{
-	if(val)
-		fPardisoControl.fDecomposed = true;
-	TPZBaseMatrix::SetIsDecomposed(val);
 }
 
 template<class TVar>
