@@ -29,22 +29,17 @@ void TPZEquationFilter::Gather(const TPZBaseMatrix &large, TPZBaseMatrix &gather
   auto *large_cast_state = dynamic_cast<const TPZFMatrix<STATE> *>(&large);
   auto *gathered_cast_state = dynamic_cast<TPZFMatrix<STATE> *>(&gathered);
   if (large_cast_state && gathered_cast_state) {
-    GatherInternal(*large_cast_state, *gathered_cast_state);
+    return GatherInternal(*large_cast_state, *gathered_cast_state);
   }
-  // else{
-  //   auto *large_cast_cstate =
-  //       dynamic_cast<const TPZFMatrix<CSTATE> *>(&large);
-  //   auto *gathered_cast_cstate =
-  //       dynamic_cast<TPZFMatrix<CSTATE> *>(&gathered);
-  //   if (large_cast_cstate && gathered_cast_cstate) {
-  //     GatherInternal(*large_cast_cstate, *gathered_cast_cstate);
-  //   }
-  // }
-  else {
-    PZError << __PRETTY_FUNCTION__;
-    PZError << " Incompatible types. Aborting...\n";
-    DebugStop();
+  auto *large_cast_cstate = dynamic_cast<const TPZFMatrix<CSTATE> *>(&large);
+  auto *gathered_cast_cstate = dynamic_cast<TPZFMatrix<CSTATE> *>(&gathered);
+  if (large_cast_cstate && gathered_cast_cstate) {
+    return GatherInternal(*large_cast_cstate, *gathered_cast_cstate);
   }
+
+  PZError << __PRETTY_FUNCTION__;
+  PZError << " Incompatible types. Aborting...\n";
+  DebugStop();
 }
 
 template <class T>
