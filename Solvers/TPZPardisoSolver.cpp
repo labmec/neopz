@@ -220,7 +220,9 @@ void TPZPardisoSolver<TVar>::Decompose(TPZMatrix<TVar> *mat)
         fParam[4] = 0;
     }
     //fParam[9]  Perturb the pivot elements with 1E-fParam[9]
-    fParam[9] = 13;  
+    fParam[9] = 13;
+    //fParam[26] Whether to check matrix data
+    fParam[26] = 1;
     //fParam[59]  Do not use OOC
     fParam[59] = 0;
     
