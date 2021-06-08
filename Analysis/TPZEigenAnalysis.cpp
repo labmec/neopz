@@ -116,7 +116,8 @@ void TPZEigenAnalysis::AssembleT()
       this->SetSolver(defaultSolver);
     }
   }
-  const auto sz = fCompMesh->NEquations();
+  
+  const auto sz = fStructMatrix->EquationFilter().NActiveEquations();
   auto &eigSolver = this->EigenSolver<TVar>();
   if (eigSolver.IsGeneralised()) {
     
