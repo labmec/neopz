@@ -31,6 +31,7 @@ set(public_headers
     TPZMatInterfaceCombinedSpaces.h
     #other
     TPZNullMaterial.h
+    TPZNullMaterialCS.h
     TPZLagrangeMultiplier.h
     TPZLagrangeMultiplierCS.h
     )
@@ -61,6 +62,7 @@ set(headers
     TPZMatInterfaceCombinedSpaces.h
     #other
     TPZNullMaterial.h
+    TPZNullMaterialCS.h
     TPZLagrangeMultiplier.h
     TPZLagrangeMultiplierCS.h
    )
@@ -86,6 +88,7 @@ set(sources
     TPZMatInterfaceCombinedSpaces.cpp
     #other
     TPZNullMaterial.cpp
+    TPZNullMaterialCS.cpp
     TPZLagrangeMultiplier.cpp
     TPZLagrangeMultiplierCS.cpp
    )
