@@ -43,7 +43,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   if(st){
     TPZSimpleTimer calcMat("ST Calculating matrix");
     if(this->IsGeneralised())
-      arnoldiMat = st->CalcMatrix(this->MatrixA(),this->MatrixA());
+      arnoldiMat = st->CalcMatrix(this->MatrixA(),this->MatrixB());
     else
       arnoldiMat = st->CalcMatrix(this->MatrixA());
   }else{
