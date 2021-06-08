@@ -167,6 +167,13 @@ TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph,
                 }
                 AddColEqs(colsize,colpos);
 			}
+            //we need to sort the entries of ja otherwise pardiso will complain
+            const auto firstentry = Eq[ieq];
+            const auto nentries = pos-Eq[ieq];
+
+            std::stable_sort(&EqCol[firstentry],
+                             &EqCol[firstentry]+nentries);
+            
 			ieq++;
 		}
     }
