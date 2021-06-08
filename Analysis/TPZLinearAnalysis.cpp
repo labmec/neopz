@@ -103,7 +103,17 @@ void TPZLinearAnalysis::AssembleResidual()
       PZError << "\nERROR: Null mesh.\nAborting...\n";
       DebugStop();
     }
-	int64_t sz = this->Mesh()->NEquations();
+    if (!this->fStructMatrix) {
+      if(fSolType == EReal){
+        TPZSkylineNSymStructMatrix<STATE> defaultMatrix(fCompMesh);
+        this->SetStructuralMatrix(defaultMatrix);
+      }
+      else{
+        TPZSkylineNSymStructMatrix<CSTATE> defaultMatrix(fCompMesh);
+        this->SetStructuralMatrix(defaultMatrix);
+      }
+    }
+    int64_t sz = this->Mesh()->NEquations();
 	this->Rhs().Redim(sz,numloadcases);
   //int64_t othersz = fStructMatrix->Mesh()->NEquations();
 	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
