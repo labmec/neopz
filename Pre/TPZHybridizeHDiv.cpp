@@ -22,6 +22,7 @@
 #include "pztrnsform.h"
 #include "tpzintpoints.h"
 #include "TPZNullMaterial.h"
+#include "TPZNullMaterialCS.h"
 
 #include "TPZMultiphysicsCompMesh.h"
 
@@ -601,14 +602,14 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
     
     if (!cmesh_Hybrid->FindMaterial(fLagrangeInterface)) {
         std::cout<<"LagrangeInterface MatId "<<fLagrangeInterface<<std::endl;
-        auto matPerif = new TPZNullMaterial(fLagrangeInterface);
+        auto matPerif = new TPZNullMaterialCS<STATE>(fLagrangeInterface);
         matPerif->SetNStateVariables(fNState);
         matPerif->SetDimension(dim-1);
         cmesh_Hybrid->InsertMaterialObject(matPerif);
     }
     if (!cmesh_Hybrid->FindMaterial(fHDivWrapMatid)) {
         std::cout<<"HDivWrapMatid MatId "<<fHDivWrapMatid<<std::endl;
-        auto matPerif = new TPZNullMaterial(fHDivWrapMatid);
+        auto matPerif = new TPZNullMaterialCS<STATE>(fHDivWrapMatid);
         matPerif->SetNStateVariables(fNState);
         matPerif->SetDimension(dim-1);
         cmesh_Hybrid->InsertMaterialObject(matPerif);
