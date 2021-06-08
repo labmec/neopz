@@ -1045,6 +1045,14 @@ int TPZFYsmpMatrix<TVar>::Decompose_LU()
 }
 
 template<class TVar>
+void TPZFYsmpMatrix<TVar>::SetIsDecomposed(int val)
+{
+	if(val)
+		fPardisoControl.fDecomposed = true;
+	TPZBaseMatrix::SetIsDecomposed(val);
+}
+
+template<class TVar>
 int TPZFYsmpMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const
 {
     

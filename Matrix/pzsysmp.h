@@ -77,7 +77,8 @@ public :
       }
     return 0;
   }
-    
+
+  void SetIsDecomposed(int val) override;
     /** @brief Fill matrix storage with randomic values */
     /** This method use GetVal and PutVal which are implemented by each type matrices */
     void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;

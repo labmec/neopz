@@ -117,7 +117,7 @@ public:
   /** @} */
 
   /** @brief Sets current matrix to decomposed state */
-  void SetIsDecomposed(int val) {
+  virtual void SetIsDecomposed(int val) {
     fDecomposed = (char)val; }
 
   /** @brief decompose the system of equations acording to the decomposition

@@ -473,6 +473,14 @@ int TPZSYsmpMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
 }
 
 template<class TVar>
+void TPZSYsmpMatrix<TVar>::SetIsDecomposed(int val)
+{
+	if(val)
+		fPardisoControl.fDecomposed = true;
+	TPZBaseMatrix::SetIsDecomposed(val);
+}
+
+template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
 {
     TPZFMatrix<TVar> x(*b);
