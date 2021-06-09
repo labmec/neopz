@@ -600,28 +600,30 @@ namespace hcurltest{
         /***********************************************************************************************************
          *              the following lines might be useful for analysing the basis functions
          ***********************************************************************************************************/
-        //            TPZLinearAnalysis an(cmesh,false);
-        //            const int postProcessResolution = 3;
-        //            const std::string executionInfo = [&](){
-        //                std::string name("");
-        //                name.append(MMeshType_Name(type));
-        //                name.append(std::to_string(pOrder));
-        //                return name;
-        //            }();
-        //
-        //            const std::string plotfile = "solution"+executionInfo+".vtk";//where to print the vtk files
-        //            TPZStack<std::string> scalnames, vecnames;
-        //            vecnames.Push("E");//print the state variable
-        //            auto sol = an.Solution();
-        //            sol.Zero();
-        //            for(int i = 0; i < sol.Rows(); i++){
-        //                sol(i - 1 < 0 ? 0 : i - 1 , 0) = 0;
-        //                sol(i,0) = 1;
-        //                an.LoadSolution(sol);
-        //                an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-        //                an.SetStep(i);
-        //                an.PostProcess(postProcessResolution);
-        //            }
+
+        // TPZLinearAnalysis an(cmesh, false);
+        // const int postProcessResolution = 3;
+        // const std::string executionInfo = [&]() {
+        //   std::string name("");
+        //   name.append(MMeshType_Name(type));
+        //   name.append(std::to_string(pOrder));
+        //   return name;
+        // }();
+
+        // const std::string plotfile =
+        //     "solution" + executionInfo + ".vtk"; // where to print the vtk files
+        // TPZStack<std::string> scalnames, vecnames;
+        // vecnames.Push("Solution"); // print the state variable
+        // TPZFMatrix<STATE> sol(an.Solution().Rows(), 1);
+        // sol.Zero();
+        // for (int i = 0; i < sol.Rows(); i++) {
+        //   sol(i - 1 < 0 ? 0 : i - 1, 0) = 0;
+        //   sol(i, 0) = 1;
+        //   an.LoadSolution(sol);
+        //   an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+        //   an.SetStep(i);
+        //   an.PostProcess(postProcessResolution);
+        // }
     }//hcurltest::TestFunctionTracesUniformMesh
 
     void TestFunctionCurlUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh,
