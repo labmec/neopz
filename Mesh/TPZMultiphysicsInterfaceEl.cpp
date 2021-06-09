@@ -799,13 +799,12 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredDataT(TPZMaterialDataT<TVar
     
     TPZMaterial *mat = Material();
     auto *matInterface =
-       dynamic_cast<TPZMatInterfaceSingleSpace<TVar>*>(mat);
+       dynamic_cast<TPZMatInterfaceCombinedSpaces<TVar>*>(mat);
     if (!matInterface) {
         PZError<<__PRETTY_FUNCTION__;
         PZError<<" requires an interface material.\nAborting...\n";
         DebugStop();
     }
-    matInterface->FillDataRequirementsInterface(data);
     if (data.fNeedsNormal)
     {
         
