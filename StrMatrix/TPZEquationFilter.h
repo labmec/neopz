@@ -235,10 +235,10 @@ public:
 private:
 
     /// Numero de equacoes do sistema original
-    int64_t fNumEq;
+    int64_t fNumEq{0};
     
     /// Flag indicating whether the filter is active
-    bool fIsActive;
+    bool fIsActive{false};
     
     /// Equacoes ativas
     TPZVec<int64_t> fActiveEqs;
