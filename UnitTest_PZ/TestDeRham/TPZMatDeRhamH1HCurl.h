@@ -51,19 +51,19 @@ public:
        @name SolutionMethods
        @{*/
     //! Variable index of a given solution
-    int VariableIndex(const std::string &name) const override {return 0;}
+    int VariableIndex(const std::string &name) const override;
     //! Number of variables associated with a given solution
-    int NSolutionVariables(int var) const override {return 0;}
+    int NSolutionVariables(int var) const override;
     //! Computes the solution at an integration point
     void Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
-                  int var, TPZVec<STATE> &solout) override {}
+                  int var, TPZVec<STATE> &solout) override;
     /**@}*/
 
 protected:
     TPZMatDeRhamH1HCurl() = default;
     int fDim{-1};
-    static constexpr int fH1MeshIndex{1};
-    static constexpr int fHCurlMeshIndex{0};
+    static constexpr int fH1MeshIndex{0};
+    static constexpr int fHCurlMeshIndex{1};
 };
 
 inline TPZMatDeRhamH1HCurl::TPZMatDeRhamH1HCurl(int id, int dim) :
