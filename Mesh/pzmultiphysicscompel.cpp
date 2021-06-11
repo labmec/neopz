@@ -28,6 +28,9 @@
 #include "pzcompelwithmem.h"
 #include "TPZTimer.h"
 #include "pzbndcond.h"
+#ifdef PZ_LOG
+static TPZLogger loggerTime("contributeTime");
+#endif
 
 #include <set>
 
@@ -787,6 +790,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CleanupMaterialData(TPZVec<TPZMaterialDat
         msp->CleanupMaterialData(dataVec[iref]);
     }
 }
+
 double contributeTime;
 int64_t contributeCounter;
 template <class TGeometry>
@@ -873,13 +877,24 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
         }
         
         this->ComputeRequiredData(intpointtemp,trvec,datavec);
-        TPZTimer timer;
-        timer.start();
+        
+#ifdef PZ_LOG
+                TPZTimer timer;
+                if (loggerTime.isDebugEnabled()){
+                    timer.start();
+                }
+#endif
+    
         material->Contribute(datavec,weight,ek.fMat,ef.fMat);
-        timer.stop();
-        contributeTime+=timer.seconds();
-        contributeCounter++;
-    }//loop over integration points
+        
+#ifdef PZ_LOG
+                if (loggerTime.isDebugEnabled()){
+                    timer.stop();
+                    contributeTime+=timer.seconds();
+                    contributeCounter++;
+                }
+#endif
+        }//loop over integration points
     
     CleanupMaterialData(datavec);
 }//CalcStiff

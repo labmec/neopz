@@ -41,6 +41,10 @@ static TPZLogger loggerCheck("pz.strmatrix.checkconsistency");
 static TPZLogger loggerGlobStiff("pz.strmatrix.globalstiffness");
 #endif
 
+#ifdef PZ_LOG
+static TPZLogger loggerCS("calcstiffTime");
+#endif
+
 #ifdef CHECKCONSISTENCY
 static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
@@ -187,11 +191,19 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         calcstiff.start();
         ek.Reset();
         ef.Reset();
+        
+#ifdef PZ_LOG
         TPZTimer timer;
-        timer.start();
+        if(loggerCS.isDebugEnabled()){
+            timer.start();}
+#endif
         el->CalcStiff(ek, ef);
+#ifdef PZ_LOG
+        if(loggerCS.isDebugEnabled()){
         timer.stop();
         calcstiffTime += timer.seconds();
+        }
+#endif
         if (guiInterface) if (guiInterface->AmIKilled()) {
                 return;
             }
