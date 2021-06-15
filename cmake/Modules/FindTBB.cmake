@@ -389,18 +389,11 @@ if (NOT TBB_INCLUDE_DIR)
   return()
 endif ()
 
-set(_tbb_libpath_suffix_orig "lib/intel64")
-if(CMAKE_SIZEOF_VOID_P EQUAL 4) # 32 bit
-    set(_tbb_libpath_suffix_orig "lib/ia32")
-endif()
 
+set(_tbb_libpath_suffix_orig "lib")
 set(_tbb_libpath_suffix ${_tbb_libpath_suffix_orig})
 list(APPEND _tbb_libpath_suffix "latest/${_tbb_libpath_suffix_orig}")
-
-
-foreach (pre ${COMPILER_PREFIX})
-    list(APPEND _tbb_libpath_suffix "latest/${_tbb_libpath_suffix_orig}/${pre}")
-endforeach ()         
+  
 if(WIN32)
     list(APPEND _tbb_libpath_suffix "${_tbb_libpath_suffix_orig}_win")
     list(APPEND _tbb_libpath_suffix "latest/${_tbb_libpath_suffix_orig}_win")
@@ -421,6 +414,18 @@ else() # LINUX
     set(_tbb_shared_lib ".so")
     set(_tbb_static_lib ".a")
 endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # 32 bit
+    set(_tbb_arch_suffix "ia32")
+else() # 64 bit
+    set(_tbb_arch_suffix "intel64")
+endif()
+
+
+foreach (pre ${COMPILER_PREFIX})
+  list(APPEND _tbb_libpath_suffix "latest/${_tbb_libpath_suffix_orig}/${pre}")
+  list(APPEND _tbb_libpath_suffix "latest/${_tbb_libpath_suffix_orig}/${_tbb_arch_suffix}/${pre}")
+endforeach ()
 
 if(CMAKE_TBB_DEBUG)
     message(STATUS "Lib suffixes for TBB:")

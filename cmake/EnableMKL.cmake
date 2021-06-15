@@ -26,9 +26,9 @@ function(enable_mkl target)
   endif()
   #on our test machine it was needed to link directly with mkl core
   #perhaps on newer mkl installs this is not needed anymore?
-  if(APPLE)
-      target_link_libraries(${target} PRIVATE ${_mkl_core_lib})
-  endif()
+  #if(APPLE)
+ #     target_link_libraries(${target} PRIVATE ${_mkl_core_lib})
+  #endif()
   target_include_directories(${target} PRIVATE ${MKL_INCLUDE_DIR})
   target_compile_definitions(${target} PRIVATE USING_MKL)
   target_compile_definitions(${target} PRIVATE USING_LAPACK)

@@ -159,33 +159,36 @@ endif(CMAKE_MKL_DEBUG)
 
 # Determine MKL's library folder
 #
-set(_mkl_libpath_suffix_orig "lib/intel64")
-if(CMAKE_SIZEOF_VOID_P EQUAL 4) # 32 bit
-    set(_mkl_libpath_suffix_orig "lib/ia32")
-endif()
+set(_mkl_libpath_suffix_orig "lib")
 
-set(_mkl_libpath_suffix ${_mkl_libpath_suffix_orig})
+set(_mkl_libpath_suffix  ${_mkl_libpath_suffix_orig})
 list(APPEND _mkl_libpath_suffix "latest/${_mkl_libpath_suffix_orig}")
+
 if(WIN32)
-    list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix_orig}_win")
-    list(APPEND _mkl_libpath_suffix "latest/${_mkl_libpath_suffix_orig}_win")
+    set(_mkl_platform_suffix "_win")
     set(_mkl_libname_prefix "")
     set(_mkl_shared_lib "_dll.lib")
     set(_mkl_static_lib ".lib")
 elseif(APPLE)
-    list(APPEND _mkl_libpath_suffix "lib")
-    list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix_orig}_mac")
-    list(APPEND _mkl_libpath_suffix "latest/${_mkl_libpath_suffix_orig}_mac")
+    set(_mkl_platform_suffix "_mac")
     set(_mkl_libname_prefix "lib")
     set(_mkl_shared_lib ".dylib")
     set(_mkl_static_lib ".a")
 else() # LINUX
-    list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix_orig}_lin")
-    list(APPEND _mkl_libpath_suffix "latest/${_mkl_libpath_suffix_orig}_lin")
+    set(_mkl_platform_suffix "_lin")
     set(_mkl_libname_prefix "lib")
     set(_mkl_shared_lib ".so")
     set(_mkl_static_lib ".a")
 endif()
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # 32 bit
+    set(_mkl_arch_suffix "ia32")
+else() # 64 bit
+    set(_mkl_arch_suffix "intel64")
+endif()
+list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix_orig}/${_mkl_arch_suffix}")
+list(APPEND _mkl_libpath_suffix "latest/${_mkl_libpath_suffix_orig}/${_mkl_arch_suffix}")
+list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix_orig}/${_mkl_arch_suffix}${_mkl_plaform_suffix}")
+list(APPEND _mkl_libpath_suffix "latest/${_mkl_libpath_suffix_orig}/${_mkl_arch_suffix}${_mkl_plaform_suffix}")
 
 foreach (dir IN LISTS ${EXTRA_SEARCH_DIRS})
   list(APPEND _mkl_search_paths "${dir}" "${dir}/mkl" "${dir}/mkl/compiler")
