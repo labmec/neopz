@@ -35,7 +35,7 @@ void CheckCompatibilityUniformMesh(int k);
 /** @brief Checks if the functions of the right space span the range of the
     operator of the left space*/
 template <ESpace leftSpace, ESpace rightSpace, int dim>
-void CheckInclusionUniformMesh(int kRight);
+void CheckExactSequence(int kRight);
 
 TEMPLATE_TEST_CASE("Compatibility Uniform Mesh", "[derham_tests]",
                    (typename std::integral_constant<int,2>),
@@ -95,7 +95,7 @@ TEMPLATE_TEST_CASE("Inclusion Uniform Mesh", "[derham_tests]",
   SECTION(names.at(leftSpace)) {
     switch (leftSpace) {
     case ESpace::H1:
-      CheckInclusionUniformMesh<ESpace::H1,ESpace::HCurl,dim>(k);
+      CheckExactSequence<ESpace::H1,ESpace::HCurl,dim>(k);
       //TODOFIX
       // if constexpr (dim == 2){
       //   CheckCompatibilityUniformMesh<ESpace::H1, ESpace::HDiv, dim>(k);
@@ -249,7 +249,7 @@ void CheckCompatibilityUniformMesh(int kRight) {
 }
 
 template <ESpace leftSpace, ESpace rightSpace, int dim>
-void CheckInclusionUniformMesh(int kRight) {
+void CheckExactSequence(int kRight) {
   const auto nameLeft = names.at(leftSpace);
   const auto nameRight = names.at(rightSpace);
   constexpr int matId = 1;
@@ -282,17 +282,9 @@ void CheckInclusionUniformMesh(int kRight) {
     auto *matRight = new TPZNullMaterial<STATE>(matId,dim,1);
 
     CAPTURE(nameLeft, nameRight, elName);
-
-    auto gmesh = CreateGMesh(dim, elType, matId);
-    
-    for(int i = 1; i < gmesh->NElements(); i++){
-      if(gmesh->ElementVec()[i]) delete gmesh->ElementVec()[i];
-      gmesh->ElementVec()[i] = nullptr;
-    }
-    gmesh->ElementVec().Resize(1);
-    gmesh->SetMaxElementId(0);
-    gmesh->ResetConnectivities();
-    gmesh->BuildConnectivity();
+    constexpr bool createBoundEls{false};
+    TPZAutoPointer<TPZGeoMesh> gmesh =
+        TPZGeoMeshTools::CreateGeoMeshSingleEl(elType, matId, createBoundEls);
     
     auto cmeshL = CreateCMesh(gmesh, matLeft, matId, kLeft, leftSpace);
     auto cmeshR = CreateCMesh(gmesh, matRight, matId, kRight, rightSpace);

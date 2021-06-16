@@ -10,20 +10,20 @@ void TPZMatDeRhamH1HCurl::Contribute(
   const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight,
   TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-  const TPZFMatrix<REAL> &phiH1 = datavec[fH1MeshIndex].phi;
+  
   const TPZFMatrix<REAL> &gradPhiH1axes = datavec[fH1MeshIndex].dphix;
-  TPZFNMatrix<3,REAL> gradPhiH1(3, phiH1.Rows(), 0.);
+  TPZFNMatrix<3,REAL> gradPhiH1(3, gradPhiH1axes.Rows(), 0.);
   TPZAxesTools<REAL>::Axes2XYZ(gradPhiH1axes, gradPhiH1, datavec[fH1MeshIndex].axes);
   
   TPZFNMatrix<30,REAL> phiHCurl;
   
   TPZHCurlAuxClass::ComputeShape(datavec[fHCurlMeshIndex].fVecShapeIndex,
-                                 phiH1,
+                                 datavec[fHCurlMeshIndex].phi,
                                  datavec[fHCurlMeshIndex].fDeformedDirections,
                                  phiHCurl);
 
   const int nHCurl  = phiHCurl.Rows();
-  const int nH1  = phiH1.Rows();
+  const int nH1  = gradPhiH1.Cols();
   //position of first h1 func
   const int firstH1 = fH1MeshIndex * nHCurl;
   //position of first hcurl func
