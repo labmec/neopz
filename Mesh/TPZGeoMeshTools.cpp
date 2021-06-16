@@ -3,6 +3,13 @@
 #include "TPZRefPatternDataBase.h"
 #include "TPZGenGrid2D.h"
 #include "TPZGenGrid3D.h"
+#include "tpztriangle.h"
+#include "tpzquadrilateral.h"
+#include "tpztetrahedron.h"
+#include "tpzcube.h"
+#include "tpzprism.h"
+#include "tpzpyramid.h"
+#include "pzgeoelbc.h"
 
 void TPZGeoMeshTools::DividePyramidsIntoTetra(TPZGeoMesh *gmesh) {
     const char buf[] =
@@ -211,4 +218,73 @@ TPZGeoMeshTools::CreateGeoMeshOnGrid(int dim, const TPZVec<REAL> &minX, const TP
         }
     }();
 
+}
+
+TPZGeoMesh *TPZGeoMeshTools::CreateGeoMeshSingleEl(const MMeshType meshType,
+                                                   const int matid,
+                                                   const bool createBoundEls,
+                                                   const int matidbc)
+{
+  auto gmesh = [=]() ->TPZGeoMesh* {
+    switch (meshType) {
+    case MMeshType::ETriangular:
+      return CreateGeoMeshSingleElT<pztopology::TPZTriangle>(
+          matid, createBoundEls, matidbc);
+    case MMeshType::EQuadrilateral:
+      return CreateGeoMeshSingleElT<pztopology::TPZQuadrilateral>(
+          matid, createBoundEls, matidbc);
+    case MMeshType::ETetrahedral:
+      return CreateGeoMeshSingleElT<pztopology::TPZTetrahedron>(
+          matid, createBoundEls, matidbc);
+    case MMeshType::EPyramidal:
+      return CreateGeoMeshSingleElT<pztopology::TPZPyramid>(
+          matid, createBoundEls, matidbc);
+    case MMeshType::EPrismatic:
+      return CreateGeoMeshSingleElT<pztopology::TPZPrism>(
+          matid, createBoundEls, matidbc);
+    case MMeshType::EHexahedral:
+      return CreateGeoMeshSingleElT<pztopology::TPZCube>(
+          matid, createBoundEls, matidbc);
+    case MMeshType::EHexaPyrMixed:
+      return nullptr;
+    case MMeshType::ENoType:
+      return nullptr;
+    }
+  }();
+  return gmesh;
+}
+
+template <class TGEOM>
+TPZGeoMesh *TPZGeoMeshTools::CreateGeoMeshSingleElT(const int matid,
+                                                    const bool createBoundEls,
+                                                    const int matidbc)
+{
+  constexpr auto nNodes{TGEOM::NCornerNodes};
+  constexpr auto dim{TGEOM::Dimension};
+  TPZGeoMesh *gmesh = new TPZGeoMesh();
+  gmesh->SetDimension(dim);
+  // Auxiliary vector to store coordinates:
+  TPZManVector<REAL, 3> coords(3, 0.);
+  for (int iNode = 0; iNode < nNodes; iNode++) {
+    TGEOM::ParametricDomainNodeCoord(iNode, coords);
+    coords.Resize(3);
+    auto newindex = gmesh->NodeVec().AllocateNewElement();
+    gmesh->NodeVec()[newindex].Initialize(coords, *gmesh);
+  }
+  TPZManVector<int64_t, TGEOM::NCornerNodes> nodesIdVec(TGEOM::NCornerNodes,
+                                                        -1);
+  for (int i = 0; i < TGEOM::NCornerNodes; i++)
+    nodesIdVec[i] = i;
+  int64_t index{-1};
+  TPZGeoEl *gel =
+      gmesh->CreateGeoElement(TGEOM::Type(), nodesIdVec, matid, index, 0);
+  gmesh->BuildConnectivity();
+
+  if (createBoundEls) {
+    const auto fside = gel->FirstSide(dim - 1);
+    const auto lastside = fside + gel->NSides(dim - 1);
+    for (int iside = fside; iside < lastside; iside++)
+      TPZGeoElBC(gel, iside, matidbc);
+  }
+  return gmesh;
 }

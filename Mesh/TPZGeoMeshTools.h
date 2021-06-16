@@ -41,6 +41,17 @@ namespace TPZGeoMeshTools{
     TPZGeoMesh *
     CreateGeoMesh1D(const REAL minX, const REAL maxX, const int nEls,
                     const TPZVec<int> &matids, bool createBoundEls);
+
+    /*! Create a geometric mesh with a single element corresponding to the reference element.
+      It calls TPZGeoMeshTools::CreateGeoMeshSingleElT.
+    */
+    TPZGeoMesh *
+    CreateGeoMeshSingleEl(const MMeshType meshType, const int matid, const bool createBoundEls, const int matidbc = -1);
+    /*! Create a geometric mesh with a single element corresponding to the reference element. Optionally creates boundary elements as well.
+    */
+    template<class TGEO>
+    TPZGeoMesh *
+    CreateGeoMeshSingleElT(const int matid, const bool createBoundEls, const int matidbc = -1);
 }
 
 #endif

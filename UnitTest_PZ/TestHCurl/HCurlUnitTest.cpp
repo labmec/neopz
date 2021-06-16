@@ -736,23 +736,9 @@ namespace hcurltest{
 
     template <class TGEOM>
     void PrintShapeFunctions(const int pOrder){
-        constexpr auto nNodes{TGEOM::NCornerNodes};
-        constexpr auto dim{TGEOM::Dimension};
-        TPZGeoMesh *gmesh = new TPZGeoMesh();
-        gmesh->SetDimension(dim);
-        //Auxiliary vector to store coordinates:
-        TPZManVector<REAL,3> coords(3, 0.);
-        for(int iNode = 0 ; iNode < nNodes; iNode++){
-            TGEOM::ParametricDomainNodeCoord(iNode,coords);
-            coords.Resize(3);
-            auto newindex = gmesh->NodeVec().AllocateNewElement();
-            gmesh->NodeVec()[newindex].Initialize(coords, *gmesh);
-        }
-        TPZManVector<int64_t,TGEOM::NCornerNodes> nodesIdVec(TGEOM::NCornerNodes,-1);
-        for(int i = 0 ; i < TGEOM::NCornerNodes; i++) nodesIdVec[i] = i;
-        int64_t index{-1};
-        TPZGeoEl *gel = gmesh->CreateGeoElement(TGEOM::Type(), nodesIdVec, 1, index, 0);
-        gmesh->BuildConnectivity();
+        constexpr auto dim = TGEOM::Dimension;
+        TPZGeoMesh *gmesh =
+            TPZGeoMeshTools::CreateGeoMeshSingleElT<TGEOM>(1,false);
         TPZCompMesh *cmesh = new TPZCompMesh (gmesh);
 
         cmesh->SetDefaultOrder(pOrder);
