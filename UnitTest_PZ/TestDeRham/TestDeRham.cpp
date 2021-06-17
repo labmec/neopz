@@ -9,6 +9,7 @@
 #include "TPZMatDeRhamHDiv.h"
 #include "TPZMatDeRhamL2.h"
 #include "TPZMatDeRhamH1HCurl.h"
+#include "TPZNullMaterial.h"
 #include "TPZGeoMeshTools.h"
 #include "pzcmesh.h"
 #include "pzstepsolver.h"
@@ -34,7 +35,7 @@ void CheckCompatibilityUniformMesh(int k);
 /** @brief Checks if the functions of the right space span the range of the
     operator of the left space*/
 template <ESpace leftSpace, ESpace rightSpace, int dim>
-void CheckInclusionUniformMesh(int kRight);
+void CheckExactSequence(int kRight);
 
 TEMPLATE_TEST_CASE("Compatibility Uniform Mesh", "[derham_tests]",
                    (typename std::integral_constant<int,2>),
@@ -94,7 +95,7 @@ TEMPLATE_TEST_CASE("Inclusion Uniform Mesh", "[derham_tests]",
   SECTION(names.at(leftSpace)) {
     switch (leftSpace) {
     case ESpace::H1:
-      CheckInclusionUniformMesh<ESpace::H1,ESpace::HCurl,dim>(k);
+      CheckExactSequence<ESpace::H1,ESpace::HCurl,dim>(k);
       //TODOFIX
       // if constexpr (dim == 2){
       //   CheckCompatibilityUniformMesh<ESpace::H1, ESpace::HDiv, dim>(k);
@@ -248,7 +249,7 @@ void CheckCompatibilityUniformMesh(int kRight) {
 }
 
 template <ESpace leftSpace, ESpace rightSpace, int dim>
-void CheckInclusionUniformMesh(int kRight) {
+void CheckExactSequence(int kRight) {
   const auto nameLeft = names.at(leftSpace);
   const auto nameRight = names.at(rightSpace);
   constexpr int matId = 1;
@@ -266,37 +267,25 @@ void CheckInclusionUniformMesh(int kRight) {
   }
   if (elDim == dim) {
 
-    int kLeft;
-    auto *matLeft = [&kLeft, kRight]() -> TPZMaterial * {
+    const int kLeft = [kRight]() {
       if constexpr (leftSpace == ESpace::H1) {
-        kLeft = kRight + 1;
-        return new TPZMatDeRhamH1(matId, dim);
+        return kRight + 1;
       } else if constexpr (leftSpace == ESpace::HCurl) {
-        kLeft = kRight + 1;
-        return new TPZMatDeRhamHCurl(matId, dim);
+        return kRight + 1;
       } else if constexpr (leftSpace == ESpace::HDiv) {
-        kLeft = kRight;
-        return new TPZMatDeRhamHDiv(matId, dim);
+        return kRight;
       } else if constexpr (leftSpace == ESpace::L2) {
-        return nullptr;
+        return -1;
       }
     }();
-
-    auto *matRight = []() -> TPZMaterial * {
-      if constexpr (rightSpace == ESpace::H1) {
-        return nullptr;
-      } else if constexpr (rightSpace == ESpace::HCurl) {
-        return new TPZMatDeRhamHCurl(matId, dim);
-      } else if constexpr (rightSpace == ESpace::HDiv) {
-        return new TPZMatDeRhamHDiv(matId, dim);
-      } else if constexpr (rightSpace == ESpace::L2) {
-        return new TPZMatDeRhamL2(matId, dim);
-      }
-    }();
+    auto *matLeft = new TPZNullMaterial<STATE>(matId,dim,1);
+    auto *matRight = new TPZNullMaterial<STATE>(matId,dim,1);
 
     CAPTURE(nameLeft, nameRight, elName);
-    REQUIRE((matLeft != nullptr && matRight != nullptr));
-    auto gmesh = CreateGMesh(dim, elType, matId);
+    constexpr bool createBoundEls{false};
+    TPZAutoPointer<TPZGeoMesh> gmesh =
+        TPZGeoMeshTools::CreateGeoMeshSingleEl(elType, matId, createBoundEls);
+    
     auto cmeshL = CreateCMesh(gmesh, matLeft, matId, kLeft, leftSpace);
     auto cmeshR = CreateCMesh(gmesh, matRight, matId, kRight, rightSpace);
 
@@ -349,10 +338,10 @@ void CheckInclusionUniformMesh(int kRight) {
       dynamic_cast<TPZFMatrix<STATE>&> (
           analysis.MatrixSolver<STATE>().Matrix().operator*());
 
-    //the first block of the matrix should be phi i . phi j of the right space
     const int rLeftEqs = cmeshR->NEquations();
+    const int lLeftEqs = cmeshL->NEquations();
     TPZFMatrix<STATE> rightMatrix(rLeftEqs,rLeftEqs);
-    mfMatrix.GetSub(0, 0, rLeftEqs, rLeftEqs, rightMatrix);
+    mfMatrix.GetSub(lLeftEqs, lLeftEqs, rLeftEqs, rLeftEqs, rightMatrix);
 
 
     TPZFMatrix<STATE> Sfull, Sright;
@@ -363,10 +352,51 @@ void CheckInclusionUniformMesh(int kRight) {
       rightMatrix.SVD(Udummy, Sright, VTdummy, 'N', 'N');
     }
     
-    static constexpr auto tol = std::numeric_limits<STATE>::epsilon()*10;
+    static constexpr auto tol = std::numeric_limits<STATE>::epsilon()*100;
+    auto fullDim = Sfull.Rows();
     auto fullRank = CalcRank(Sfull,tol);
+    auto rightDim = Sright.Rows();
     auto rightRank = CalcRank(Sright,tol);
-    CAPTURE(elName,kLeft,kRight,fullRank,rightRank);
+
+
+    // if(elType == MMeshType::ETriangular){
+    //   const int postProcessResolution = 3;
+    //   const std::string executionInfo = [&]() {
+    //     std::string name("");
+    //     name.append(elName);
+    //     name.append(std::to_string(kRight));
+    //     return name;
+    //   }();
+
+    //   const std::string plotfile =
+    //       "solution" + executionInfo + ".vtk"; // where to print the vtk files
+    //   TPZStack<std::string> scalnames, vecnames;
+    //   if constexpr (leftSpace == ESpace::HDiv || leftSpace == ESpace::HCurl) {
+    //     vecnames.Push("SolutionLeft"); // print the state variable
+    //   } else {
+    //     scalnames.Push("SolutionLeft"); // print the state variable
+    //   }
+
+    //   if constexpr (rightSpace == ESpace::HDiv || rightSpace == ESpace::HCurl) {
+    //     vecnames.Push("SolutionRight"); // print the state variable
+    //   } else {
+    //     scalnames.Push("SolutionRight"); // print the state variable
+    //   }
+
+    //   analysis.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+    //   TPZFMatrix<STATE> sol(cmeshMF->NEquations(), 1);
+    //   sol.Zero();
+    //   for (int i = 0; i < sol.Rows(); i++) {
+    //     sol(i - 1 < 0 ? 0 : i - 1, 0) = 0;
+    //     sol(i, 0) = 1;
+    //     analysis.LoadSolution(sol);
+    //     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(
+    //         meshVecIn, cmeshMF.operator->());
+    //     analysis.PostProcess(postProcessResolution);
+    //   }
+    // }
+
+    CAPTURE(kLeft,kRight,fullDim, fullRank,rightDim, rightRank);
     REQUIRE(fullRank == rightRank);
   }
 }

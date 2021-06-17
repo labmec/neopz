@@ -10,20 +10,20 @@ void TPZMatDeRhamH1HCurl::Contribute(
   const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight,
   TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-  const TPZFMatrix<REAL> &phiH1 = datavec[fH1MeshIndex].phi;
+  
   const TPZFMatrix<REAL> &gradPhiH1axes = datavec[fH1MeshIndex].dphix;
-  TPZFNMatrix<3,REAL> gradPhiH1(3, phiH1.Rows(), 0.);
+  TPZFNMatrix<3,REAL> gradPhiH1(3, gradPhiH1axes.Rows(), 0.);
   TPZAxesTools<REAL>::Axes2XYZ(gradPhiH1axes, gradPhiH1, datavec[fH1MeshIndex].axes);
   
   TPZFNMatrix<30,REAL> phiHCurl;
   
   TPZHCurlAuxClass::ComputeShape(datavec[fHCurlMeshIndex].fVecShapeIndex,
-                                 phiH1,
+                                 datavec[fHCurlMeshIndex].phi,
                                  datavec[fHCurlMeshIndex].fDeformedDirections,
                                  phiHCurl);
 
   const int nHCurl  = phiHCurl.Rows();
-  const int nH1  = phiH1.Rows();
+  const int nH1  = gradPhiH1.Cols();
   //position of first h1 func
   const int firstH1 = fH1MeshIndex * nHCurl;
   //position of first hcurl func
@@ -61,5 +61,48 @@ void TPZMatDeRhamH1HCurl::Contribute(
       }
       ek(firstH1 + iH1, firstH1 + jH1) += gradPhiIgradPhiJ * weight;
     }
+  }
+}
+
+
+int TPZMatDeRhamH1HCurl::VariableIndex(const std::string &name) const
+{
+  if( strcmp(name.c_str(), "SolutionLeft") == 0) return 0;
+  if( strcmp(name.c_str(), "SolutionRight") == 0) return 1;
+  DebugStop();
+  return -1;
+}
+
+int TPZMatDeRhamH1HCurl::NSolutionVariables(int var) const
+{
+  switch (var) {
+  case 0: // SolutionLeft
+    return 1;
+  case 1: // SolutionRight
+    return fDim;
+  default:
+    DebugStop();
+    break;
+  }
+  return 1;
+}
+
+void TPZMatDeRhamH1HCurl::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec, int var,
+              TPZVec<STATE> &solout)
+{
+  auto solH1 = datavec[fH1MeshIndex].sol[0];
+  auto solHCurl = datavec[fHCurlMeshIndex].sol[0];
+
+  switch (var) {
+  case 0: {
+    solout = solH1;
+    break;
+  }
+  case 1: {
+    solout = solHCurl;
+    break;
+  }
+  default:
+    DebugStop();
   }
 }
