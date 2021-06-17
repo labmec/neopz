@@ -357,6 +357,8 @@ include(cmake/InstallPZConfigFile.cmake)
 #this is useful for Publications and Projects targets
 set(CMAKE_IS_PZ_BUILDTREE ON)
 mark_as_advanced(CMAKE_IS_PZ_BUILDTREE)
+include(cmake/add_pz_target.cmake)
+
 if(BUILD_PROJECTS)
   include(cmake/EnableNeoPZExamples.cmake)
   enable_neopzexamples()
