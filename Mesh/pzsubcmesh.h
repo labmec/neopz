@@ -293,8 +293,8 @@ public:
     virtual void Assemble() override;
     
   	/** @brief Calculates the submesh stiffness matrix */
-	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override{
-        CalcStiffInternal<STATE>(ef,ef);
+    void CalcStiff(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef) override {
+        CalcStiffInternal<STATE>(ek, ef);
     }
 	
     /// Initialize the datastructure of ef
