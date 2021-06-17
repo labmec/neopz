@@ -31,10 +31,9 @@ function(enable_mkl target)
   #endif()
   target_include_directories(${target} PRIVATE ${MKL_INCLUDE_DIR})
   target_compile_definitions(${target} PRIVATE USING_MKL)
-  target_compile_definitions(${target} PRIVATE USING_LAPACK)
   target_compile_definitions(${target} INTERFACE PZ_USING_MKL)
-  target_compile_definitions(${target} INTERFACE PZ_USING_LAPACK)
-  target_compile_definitions(${target} PRIVATE MKLLAPACK)
+
+  set(USING_LAPACK ON CACHE PATH "Whether the LAPACK library will be linked in" FORCE)
   #TODOWIN32: should we do something with mkl_rt on windows?
   mark_as_advanced(MKL_THREAD_MODEL)
 endfunction()
