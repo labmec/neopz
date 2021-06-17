@@ -348,6 +348,7 @@ install(FILES
         "${CMAKE_CURRENT_BINARY_DIR}/NeoPZConfig.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/NeoPZConfigVersion.cmake"
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_pz_target.cmake"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/check_pz_opt.cmake"
         DESTINATION ${PZ_CMAKE_INSTALL_DIR}
         )
 
@@ -358,6 +359,7 @@ include(cmake/InstallPZConfigFile.cmake)
 set(CMAKE_IS_PZ_BUILDTREE ON)
 mark_as_advanced(CMAKE_IS_PZ_BUILDTREE)
 include(cmake/add_pz_target.cmake)
+include(cmake/check_pz_opt.cmake)
 
 if(BUILD_PROJECTS)
   include(cmake/EnableNeoPZExamples.cmake)
