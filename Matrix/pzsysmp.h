@@ -199,6 +199,9 @@ public :
     int ClassId() const override;
 
     void ComputeDiagonal();
+    //! Gets reference to TPZPardisoSolver instance for fine-tuning
+    TPZPardisoSolver<TVar> & GetPardisoControl()
+    {return fPardisoControl;}
 protected:
   void CheckTypeCompatibility(const TPZMatrix<TVar>*aPtr,
                               const TPZMatrix<TVar>*bPtr)const override;

@@ -201,6 +201,9 @@ public:
 
 	
 	void ComputeDiagonal();
+    //! Gets reference to TPZPardisoSolver instance for fine-tuning
+    TPZPardisoSolver<TVar> & GetPardisoControl()
+    {return fPardisoControl;}
 private:	
 	/*
 	 * @brief Perform row update of the sparse matrix
