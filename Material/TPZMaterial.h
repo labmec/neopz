@@ -58,8 +58,20 @@ public:
     //! Prints data associated with the material.
     virtual void Print(std::ostream &out = std::cout) const;
 
-     /** @brief To create another material of the same type*/
+     /** @brief Create another material of the same type*/
     virtual TPZMaterial * NewMaterial() const;
+    /**
+        @brief Change the value of the penalty constant
+     */
+    void SetBigNumber(REAL bignumber){
+        fBigNumber = bignumber;
+    }
+    /**
+        @brief Access method to the penaly constant
+     */
+    REAL BigNumber() {
+        return fBigNumber;
+    }
     /** @} */
 
     /** @name PostProcess
