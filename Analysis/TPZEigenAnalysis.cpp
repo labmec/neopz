@@ -6,6 +6,7 @@
 #include "TPZEigenSolver.h"
 #include "TPZKrylovEigenSolver.h"
 #include "TPZSpStructMatrix.h"
+#include "TPZSkylineNSymStructMatrix.h"
 #include "TPZMatGeneralisedEigenVal.h"
 #include "TPZMaterial.h"
 #include "pzcmesh.h"
@@ -94,9 +95,15 @@ void TPZEigenAnalysis::AssembleT()
     return;
   }
   if (!this->fStructMatrix) {
+#ifdef USING_MKL
     std::cout << "Setting default struct matrix: sparse(non-symmetric)"
               << std::endl;
     TPZSpStructMatrix<TVar> defaultMatrix(fCompMesh);
+#else
+    std::cout << "Setting default struct matrix: skyline(non-symmetric)"
+              << std::endl;
+    TPZSkylineNSymStructMatrix<TVar> defaultMatrix(fCompMesh);
+#endif
     this->SetStructuralMatrix(defaultMatrix);
   }
   
