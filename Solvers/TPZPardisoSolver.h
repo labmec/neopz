@@ -81,6 +81,9 @@ public:
     void SetStructure(MStructure str){
         fStructure = str;
     }
+    //! Gets reference to pardiso fParam array
+    inline TPZVec<long long> & GetParam()
+    {return fParam;}
 protected:
     /// Compute the `mtype` parameter of the pardiso_64 call
     long long MatrixType();
