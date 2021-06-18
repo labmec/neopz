@@ -188,7 +188,7 @@ TPZWaveguideModalAnalysis::ContributeA(
     
     TPZFNMatrix<30,REAL> phiHCurl;
     TPZHCurlAuxClass::ComputeShape(datavec[fHCurlMeshIndex].fVecShapeIndex,
-                                   phiH1,
+                                   datavec[fHCurlMeshIndex].phi,
                                    datavec[fHCurlMeshIndex].fDeformedDirections,
                                    phiHCurl);
     
@@ -238,7 +238,7 @@ TPZWaveguideModalAnalysis::ContributeB(
     TPZFNMatrix<30,REAL> phiHCurl;
     
     TPZHCurlAuxClass::ComputeShape(datavec[fHCurlMeshIndex].fVecShapeIndex,
-                                   phiH1,
+                                   datavec[fHCurlMeshIndex].phi,
                                    datavec[fHCurlMeshIndex].fDeformedDirections,
                                    phiHCurl);
     
