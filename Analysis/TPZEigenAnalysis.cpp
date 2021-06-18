@@ -6,6 +6,8 @@
 #include "TPZEigenSolver.h"
 #include "TPZKrylovEigenSolver.h"
 #include "TPZSpStructMatrix.h"
+#include "pzysmp.h"
+#include "pzsysmp.h"
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZMatGeneralisedEigenVal.h"
 #include "TPZMaterial.h"
@@ -81,6 +83,23 @@ void TPZEigenAnalysis::Assemble()
 template<class TVar>
 void TPZEigenAnalysis::AssembleT()
 {
+  //this lambda will be used to prevent pardiso for disturbing pivots
+  auto PardisoConfig = [](TPZAutoPointer<TPZMatrix<TVar>> mat){
+    auto ssp = TPZAutoPointerDynamicCast<TPZSYsmpMatrix<TVar>>(mat);
+    auto sp = TPZAutoPointerDynamicCast<TPZFYsmpMatrix<TVar>>(mat);
+    TPZPardisoSolver<TVar> *pardiso{nullptr};
+    if(ssp){
+      pardiso = &(ssp->GetPardisoControl());
+    }else if(sp){
+      pardiso = &(sp->GetPardisoControl());
+    }
+    if(pardiso){
+      auto param = pardiso->GetParam();
+      //do not perturb pivot elements
+      param[0] = 0;
+    }
+  };
+  
   //it wont be resized or anything.
   TPZFMatrix<TVar> dummyRhs;
   if (!fCompMesh) {
@@ -155,6 +174,7 @@ void TPZEigenAnalysis::AssembleT()
           fStructMatrix->CreateAssemble(dummyRhs, fGuiInterface));
     eigSolver.SetMatrixA(mat);
   }
+  PardisoConfig(eigSolver.MatrixA());
   // fSolver->UpdateFrom(fSolver->MatrixA());
   if (eigSolver.IsGeneralised()) {
     auto &materialVec = fCompMesh->MaterialVec();
@@ -182,6 +202,7 @@ void TPZEigenAnalysis::AssembleT()
           fStructMatrix->CreateAssemble(dummyRhs, fGuiInterface));
       eigSolver.SetMatrixB(mat);
     }
+    PardisoConfig(eigSolver.MatrixB());
   }
 }
 
