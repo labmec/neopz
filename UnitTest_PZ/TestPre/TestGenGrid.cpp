@@ -72,13 +72,9 @@ namespace gengridtest{
             gel->Jacobian(qsi,jac,axes,detjac,jacinv);
 
             // Require that det(J) be positive
-            REAL zero = ZeroTolerance();
-            bool cond = detjac > zero;
-            if(!cond){
-                std::cerr << "\n"<<testName<<" failed\n";
-                std::cerr << " GenGrid3D, MMeshType: "<<gel->TypeName();
-                std::cerr<<"\nThere is one or more elements with negative detjacobian\n";
-            }
+            const REAL zero = ZeroTolerance();
+            const bool cond = detjac > zero;
+            CAPTURE(gel->Index(),jac,detjac);
             REQUIRE(cond);
         }
     }
