@@ -96,8 +96,22 @@ TPZGeoMesh* TPZGenGrid3D::BuildVolumetricElements(const int matIdDomain){
         for(auto iZ = 0; iZ < nelz; iZ++){
             for(auto iY = 0; iY < nely; iY++){
                 for(auto iX = 0; iX < nelx; iX++){
-                    const auto count = iX + iY + iZ;
+                    const int permut = (iX + iY + iZ)%2; // Alternates 0 and 1 when moving on either of 3 directions
                     const auto firstNodeId = iZ * (nelx+1) * (nely+1) + iY * (nelx+1) + iX;/*lower left node*/
+
+
+                    // Lablelling node indices by cube node for readability
+                    const int64_t cubenode[8] = {
+                                                    firstNodeId,
+                                                    firstNodeId + 1, /* +1 moves up a layer in x direction*/
+                                                    firstNodeId + 1 + (nelx+1), /* +(nelx+1) moves up a layer in y direction*/
+                                                    firstNodeId + (nelx+1),
+                                                    firstNodeId                 + (nelx+1) * (nely+1), /* +(nelx+1)*(nely+1) moves up a layer in z direction*/
+                                                    firstNodeId + 1             + (nelx+1) * (nely+1),
+                                                    firstNodeId + 1 + (nelx+1)  + (nelx+1) * (nely+1),
+                                                    firstNodeId + (nelx+1)      + (nelx+1) * (nely+1)
+                                                };
+
                     switch (fMeshType) {
                         case MMeshType::ETetrahedral:
                             nodesIdVec[0] = firstNodeId;
