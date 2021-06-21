@@ -142,31 +142,32 @@ TPZGeoMesh* TPZGenGrid3D::BuildVolumetricElements(const int matIdDomain){
                             break;
                         case MMeshType::EHexahedral:
                         case MMeshType::EHexaPyrMixed:
-                            nodesIdVec[0] = firstNodeId;
-                            nodesIdVec[1] = firstNodeId + 1;
-                            nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
-                            nodesIdVec[3] = firstNodeId + (nelx+1);
-                            nodesIdVec[4] = firstNodeId + (nelx+1) * (nely+1);
-                            nodesIdVec[5] = firstNodeId + (nelx+1) * (nely+1) + 1;
-                            nodesIdVec[6] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1) + 1;
-                            nodesIdVec[7] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1);
+                        case MMeshType::EPyramidal:
+                            nodesIdVec[0] = cubenode[0];
+                            nodesIdVec[1] = cubenode[1];
+                            nodesIdVec[2] = cubenode[2];
+                            nodesIdVec[3] = cubenode[3];
+                            nodesIdVec[4] = cubenode[4];
+                            nodesIdVec[5] = cubenode[5];
+                            nodesIdVec[6] = cubenode[6];
+                            nodesIdVec[7] = cubenode[7];
                             new TPZGeoElRefPattern<pzgeom::TPZGeoCube>(nodesIdVec,matIdDomain,*fGmesh);
                             break;
                         case MMeshType::EPrismatic:
-                            nodesIdVec[0] = firstNodeId;
-                            nodesIdVec[1] = firstNodeId + 1;
-                            nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
-                            nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
-                            nodesIdVec[4] = firstNodeId + (nelx+1) * (nely+1) + 1;
-                            nodesIdVec[5] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1) + 1;
+                            nodesIdVec[0] = cubenode[0];
+                            nodesIdVec[1] = cubenode[1];
+                            nodesIdVec[2] = cubenode[2];
+                            nodesIdVec[3] = cubenode[4];
+                            nodesIdVec[4] = cubenode[5];
+                            nodesIdVec[5] = cubenode[6];
                             new TPZGeoElRefPattern<pzgeom::TPZGeoPrism>(nodesIdVec,matIdDomain,*fGmesh);
 
-                            nodesIdVec[0] = firstNodeId;
-                            nodesIdVec[1] = firstNodeId + (nelx+1);
-                            nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
-                            nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
-                            nodesIdVec[4] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1);
-                            nodesIdVec[5] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1) + 1;
+                            nodesIdVec[0] = cubenode[0];
+                            nodesIdVec[1] = cubenode[2];
+                            nodesIdVec[2] = cubenode[3];
+                            nodesIdVec[3] = cubenode[4];
+                            nodesIdVec[4] = cubenode[6];
+                            nodesIdVec[5] = cubenode[7];
                             new TPZGeoElRefPattern<pzgeom::TPZGeoPrism>(nodesIdVec,matIdDomain,*fGmesh);
                             break;
                         default:
