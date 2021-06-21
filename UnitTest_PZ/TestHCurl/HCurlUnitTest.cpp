@@ -277,49 +277,10 @@ namespace hcurltest{
                             REAL diffTrace{0};
                             TPZManVector<REAL,3> elTrace,neighTrace;
                             const bool checkTraces = CheckTracesFunc(diffTrace,elVec,neighVec,vec,sideDim,elTrace,neighTrace);
-
-                            {
-                                std::ostringstream traceMsg;
-                                if(!checkTraces){
-                                    traceMsg <<"el index: "<<gel->Index()<<std::endl;
-                                    traceMsg <<"neigh index: "<<neighGel->Index()<<std::endl;
-                                    traceMsg <<"el vec index: "<<elVecIndex<<std::endl;
-                                    traceMsg <<"neigh vec index: "<<neighVecIndex<<std::endl;
-                                    traceMsg <<"el vec (master el): ";
-                                    for (auto x = 0; x < gel->Dimension(); x++) traceMsg << elData.fMasterDirections(x,elVecIndex)<<"\t";
-                                    traceMsg <<"\n";
-                                    traceMsg<<"neigh vec (master el): ";
-                                    for (auto x = 0; x < neighDim; x++) traceMsg << neighData.fMasterDirections(x,neighVecIndex)<<"\t";
-                                    traceMsg <<"\n";
-                                    traceMsg <<"el vec (deformed): ";
-                                    for (auto x = 0; x < 3; x++) traceMsg << elVec[x]<<"\t";
-                                    traceMsg<<"\nneigh vec (deformed): ";
-                                    for (auto x = 0; x < 3; x++) traceMsg << neighVec[x]<<"\t";
-                                    traceMsg <<"\n";
-                                    traceMsg <<"el trace: ";
-                                    for (auto x = 0; x < elTrace.size(); x++) traceMsg << elTrace[x]<<"\t";
-                                    traceMsg<<"\nneigh trace: ";
-                                    for (auto x = 0; x < neighTrace.size(); x++) traceMsg << neighTrace[x]<<"\t";
-                                    traceMsg <<"\n";
-                                    if(sideDim == 2) traceMsg<<"normal vector: ";
-                                    else traceMsg<<"tangent vector: ";
-                                    for (auto x = 0; x < vec.size(); x++) traceMsg << vec[x]<<"\t";
-                                    traceMsg <<"\n";
-                                    traceMsg<<"el jacobian: ";
-                                    elData.jacobian.Print(traceMsg);
-                                    traceMsg<<"el axes: ";
-                                    elData.axes.Print(traceMsg);
-                                    traceMsg<<"neigh jacobian: ";
-                                    neighData.jacobian.Print(traceMsg);
-                                    traceMsg<<"neigh axes: ";
-                                    neighData.axes.Print(traceMsg);
-                                    std::cerr<<"topology: "<<MMeshType_Name(type)<<"\n";
-                                    std::cerr<<"side: "<<std::to_string(iSide)<<"\n";
-                                    std::cerr<<"diff traces: "<<std::to_string(diffTrace)<<'\n';
-                                    std::cerr<< traceMsg.str() << std::endl;
-                                }
-                                REQUIRE(checkTraces);
-                            }
+                            CAPTURE(gel->Index(),neighGel->Index());
+                            CAPTURE(elVecIndex,neighVecIndex);
+                            CAPTURE(elData.jacobian,neighData.jacobian);
+                            REQUIRE(checkTraces);
                         }
                     }
                     neighGelSide = neighGelSide.Neighbour();
@@ -386,7 +347,6 @@ namespace hcurltest{
                 TPZGeoElSide gelSide(gel, iSide);
                 const auto sideDim = gelSide.Dimension();
 
-                TPZGeoElSide neighGelSide = gelSide.Neighbour();
                 //the following vector will be the edge tg vector if 2D, the normal vector if 3D
                 TPZManVector<REAL,3> vec(3,0);
                 switch(sideDim){
@@ -429,7 +389,8 @@ namespace hcurltest{
                 TPZStack<int> smallSides;
                 gel->LowerDimensionSides(iSide,smallSides);
                 smallSides.Push(iSide);//include the side itself
-
+                //iterate on the neighbouring sides
+                TPZGeoElSide neighGelSide = gelSide.Neighbour();
                 while(neighGelSide != gelSide) {
                     const auto neighCel = dynamic_cast<TPZInterpolatedElement *> (neighGelSide.Element()->Reference());
                     if (!neighCel) {
@@ -522,23 +483,16 @@ namespace hcurltest{
                                 REAL diffTrace{0};
                                 TPZManVector<REAL,3> elTrace,neighTrace;
                                 const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,neighShapeFunc,vec,sideDim,elTrace,neighTrace);
+                                
+                                CAPTURE(gel->Index(),neighGel->Index());                                
+                                CAPTURE(iSide,neighSide);
+                                CAPTURE(subSide,neighSubSide);
+                                CAPTURE(ptEl,elData.x);
+                                CAPTURE(ptNeigh,neighData.x);
+                                CAPTURE(elPhiIndex,neighPhiIndex);
+                                CAPTURE(elShapeFunc,neighShapeFunc);
+                                REQUIRE(checkTraces);
 
-                                {
-                                    std::ostringstream traceMsg;
-                                    if(!checkTraces){
-                                        traceMsg <<"el func: ";
-                                        for (auto x = 0; x < 3; x++) traceMsg << elShapeFunc[x]<<"\t";
-                                        traceMsg<<"\nneigh func: ";
-                                        for (auto x = 0; x < 3; x++) traceMsg << neighShapeFunc[x]<<"\t";
-                                        traceMsg <<"\n";
-                                        traceMsg <<"el trace: ";
-                                        for (auto x = 0; x < elTrace.size(); x++) traceMsg << elTrace[x]<<"\t";
-                                        traceMsg<<"\nneigh trace: ";
-                                        for (auto x = 0; x < neighTrace.size(); x++) traceMsg << neighTrace[x]<<"\t";
-                                        traceMsg <<"\n";
-                                    }
-                                    REQUIRE(checkTraces);
-                                }
                                 anyWrongCheck = !checkTraces || anyWrongCheck;
                                 if(anyWrongCheck) {
                                     break;
@@ -568,22 +522,9 @@ namespace hcurltest{
                                     REAL diffTrace{0};
                                     TPZManVector<REAL,3> elTrace, sideTrace;
                                     const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,sideShapeFunc,vec,sideDim,elTrace,sideTrace);
-                                    {
-                                        std::ostringstream traceMsg;
-                                        if(!checkTraces){
-                                            traceMsg <<"el func: ";
-                                            for (auto x = 0; x < 3; x++) traceMsg << elShapeFunc[x]<<"\t";
-                                            traceMsg<<"\nside func: ";
-                                            for (auto x = 0; x < 3; x++) traceMsg << sideShapeFunc[x]<<"\t";
-                                            traceMsg <<"\n";
-                                            traceMsg <<"el trace: ";
-                                            for (auto x = 0; x < elTrace.size(); x++) traceMsg << elTrace[x]<<"\t";
-                                            traceMsg<<"\nside trace: ";
-                                            for (auto x = 0; x < elTrace.size(); x++) traceMsg << sideTrace[x]<<"\t";
-                                            traceMsg <<"\n";
-                                        }
-                                        REQUIRE(checkTraces);
-                                    }
+                                    CAPTURE(elShapeFunc,sideShapeFunc);
+                                    CAPTURE(elTrace,sideTrace);
+                                    REQUIRE(checkTraces);
                                     anyWrongCheck = !checkTraces || anyWrongCheck;
                                 }
                                 if(anyWrongCheck){
@@ -794,7 +735,7 @@ namespace hcurltest{
         //                TPZVec<TPZGeoEl*> sons;
         //                gmesh->Element(0)->Divide(sons);
         //            }
-#ifdef VERBOSE_HCURL
+#ifdef HCURL_OUTPUT_TXT
         std::ofstream outTXT("gmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
         gmesh->Print(outTXT);
         outTXT.close();
