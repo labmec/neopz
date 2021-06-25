@@ -499,7 +499,8 @@ void TPZSubCompMesh::MakeAllInternal(){
 	std::map<int64_t,int64_t>::iterator it;
 	for (it=fFatherToLocal.begin(); it!=fFatherToLocal.end(); it++) {
 		// put the candidate nodes in the stack
-		if (father->ConnectVec()[it->first].NElConnected() == 1) 
+        TPZConnect &fatherconnect = father->ConnectVec()[it->first];
+		if (fatherconnect.NElConnected() == 1 || fatherconnect.HasDependency())
 		{
 			cantransfer.insert(it->second);
 		}
@@ -1350,8 +1351,8 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	str->SetNumThreads(numThreads);
     int64_t numinternal = NumInternalEquations();
     str->EquationFilter().SetMinMaxEq(0, numinternal);
-    TPZAutoPointer<TPZMatrix<STATE> > mat =
-        dynamic_cast<TPZMatrix<STATE>*>(str->Create());
+    TPZMatrix<STATE> *skylmat = dynamic_cast<TPZMatrix<STATE> *>(str->Create());
+    TPZAutoPointer<TPZMatrix<STATE> > mat = skylmat;
     str->EquationFilter().Reset();
     TPZAutoPointer<TPZMatrix<STATE> > mat2 = mat->Clone();
 	
