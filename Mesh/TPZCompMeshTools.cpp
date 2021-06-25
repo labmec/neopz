@@ -30,7 +30,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static TPZLogger logger("pz.analysis");
+static TPZLogger logger("pz.TPZCompMeshTools");
 #endif
 
 #ifdef USING_BOOST
@@ -500,6 +500,15 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::
             }
         }
         subcmesh->MakeAllInternal();
+        subcmesh->CleanUpUnconnectedNodes();
+#ifdef PZ_LOG
+        if(logger.isDebugEnabled())
+        {
+            std::ofstream sout("subcmesh.txt");
+            subcmesh->Print(sout);
+//            LOGPZ_DEBUG(logger, sout.str());
+        }
+#endif
     }
 
     
