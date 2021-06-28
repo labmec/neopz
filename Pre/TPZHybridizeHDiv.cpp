@@ -227,6 +227,64 @@ TPZCompElSide TPZHybridizeHDiv::RightElement(TPZInterpolatedElement *intel, int 
     return TPZCompElSide();
 }
 
+void TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
+    
+    // ==> Getting meshes
+    TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
+    TPZCompMesh *pressuremesh = meshvec_Hybrid[1];
+    TPZGeoMesh *gmesh = fluxmesh->Reference();
+    
+    
+    // ==> Splitting flux mesh connect
+    gmesh->ResetReference();
+    fluxmesh->LoadReferences();
+    TPZCompElSide celsideright = RightElement(intelleft, side);
+    std::tuple<int64_t, int> pindexporder;
+    if (celsideright) {
+        pindexporder = SplitConnects(celsideleft, celsideright, meshvec_Hybrid);
+    }
+    else {
+#ifdef PZDEBUG
+        cout << "Cannot find right side connect. "
+        "Interface could be already hybridized, skipping..." << endl;
+#endif
+        return;
+    }
+    
+    
+    fluxmesh->InitializeBlock();
+    fluxmesh->ComputeNodElCon();
+    
+    // ==> Creating lagrange multiplier element
+    gmesh->ResetReference();
+    pressuremesh->SetDimModel(gmesh->Dimension()-1);
+    int64_t elindex;
+    int order;
+    std::tie(elindex, order) = pindexporder;
+    TPZGeoEl *gel = gmesh->Element(elindex);
+    int64_t celindex;
+    TPZCompEl *cel = pressuremesh->ApproxSpace().CreateCompEl(gel, *pressuremesh, celindex);
+    TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cel);
+    TPZCompElDisc *intelDisc = dynamic_cast<TPZCompElDisc *> (cel);
+    if (intel){
+        intel->PRefine(order);
+    } else if (intelDisc) {
+        intelDisc->SetDegree(order);
+        intelDisc->SetTrueUseQsiEta();
+    } else {
+        DebugStop();
+    }
+    int n_connects = cel->NConnects();
+    for (int i = 0; i < n_connects; ++i) {
+        cel->Connect(i).SetLagrangeMultiplier(2);
+    }
+    gel->ResetReference();
+    
+    pressuremesh->InitializeBlock();
+    pressuremesh->SetDimModel(gmesh->Dimension());
+}
+
+
 
 /// split the connects between flux elements and create a dim-1 pressure element
 
