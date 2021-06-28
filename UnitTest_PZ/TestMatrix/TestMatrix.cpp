@@ -1596,12 +1596,26 @@ void TestSVD_Simple(int nrows, int ncols) {
 	U.DeterminantInverse(detU,inverse);
 	if(!IsZero(std::abs(detU) - 1.)) 
 		{check = false;}
+    TMatrix UTU(U.Rows(),U.Cols()); //< U transposed * U
+    U.Multiply(U,UTU,true);
+	for(int i=0; i<UTU.Rows(); i++){
+		for(int j=0; j<UTU.Cols(); j++){
+			if(!IsZero(std::abs(UTU(i,j)) - TVar(i==j))) check = false;
+		}
+	}
 	// Test if VT is orthogonal
 	inverse.Resize(nrows,nrows);
 	TVar detVT = 0.;
 	VT.DeterminantInverse(detVT,inverse);
 	if(!IsZero(std::abs(detVT) - 1.)) 
 		{check = false;}
+    TMatrix VVT(VT.Rows(),VT.Cols()); //< V * V transposed
+    VT.Multiply(VT,VVT,true);
+	for(int i=0; i<VVT.Rows(); i++){
+		for(int j=0; j<VVT.Cols(); j++){
+			if(!IsZero(std::abs(VVT(i,j)) - TVar(i==j))) check = false;
+		}
+	}
 	
 	if (!check) {
 		PZError <<__PRETTY_FUNCTION__
