@@ -484,15 +484,23 @@ void TPZCompElHCurlFull<TSHAPE>::CalculateSideShapeOrders(TPZVec<int> &ord) cons
     for(auto iCon = 0; iCon < nConnects; iCon++){
         const auto iSide = iCon + TSHAPE::NCornerNodes;
         const auto sideDim = TSHAPE::SideDimension(iSide);
-        /*some H1 functions associated with the side iSide of dimension dim might be needed for computing
-        the shape functions of a side with dimension dim+1 that contains the side iSide*/
+        const bool quadSide = TSHAPE::Type(iSide) == EQuadrilateral;
+        /*some H1 functions associated with the side iSide of dimension dim 
+          might be needed for computing the shape functions of a side with 
+          dimension dim+1 that contains the side iSide.
+          It is also worth noting that quadrilateral sides require functions
+          of order k+1*/
         TPZStack<int> highDimSides;
         TSHAPE::HigherDimensionSides(iSide, highDimSides);
-        auto maxOrder = this->EffectiveSideOrder(iSide);
+        const auto sideOrder = this->EffectiveSideOrder(iSide);
+        auto maxOrder = quadSide ? sideOrder + 1: sideOrder;
         for(auto &iHighSide : highDimSides){
             if(TSHAPE::SideDimension(iHighSide) != sideDim+1) break;
-            else if(maxOrder < this->EffectiveSideOrder(iHighSide)){
-                maxOrder = this->EffectiveSideOrder(iHighSide);
+            else {
+                const auto hSideOrder = this->EffectiveSideOrder(iHighSide);
+                const auto hQuadSide = TSHAPE::Type(iHighSide) == EQuadrilateral;
+                const auto hMaxOrder = hQuadSide ? hSideOrder + 1 : hSideOrder;
+                maxOrder = std::max(maxOrder, hMaxOrder);
             }
         }
         ord[iCon] = maxOrder;
