@@ -47,13 +47,13 @@ namespace pzshape {
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
          */
-        static void ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders);//, TPZVec<int64_t> &sides
+        static void ShapeOrder(const TPZVec<int64_t> &id, const TPZVec<int> &order, TPZGenMatrix<int> &shapeorders);//, TPZVec<int64_t> &sides
         
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the internal shapefunctions of a side
          * @param sides is a vector with copy of side as much as needed, it depends on the order
          */
-        static void SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders);
+        static void SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders);
         
 		
 		/**

@@ -284,7 +284,7 @@ namespace pzshape {
 		}
 	}
 	
-    void TPZShapeLinear::ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
+    void TPZShapeLinear::ShapeOrder(const TPZVec<int64_t> &id, const TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
     {
         int nshape = 2+(order[0]-1);
         if (shapeorders.Rows() != nshape) {
@@ -298,7 +298,7 @@ namespace pzshape {
     }
     
     
-    void TPZShapeLinear::SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
+    void TPZShapeLinear::SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders)
     {
         DebugStop();
     }

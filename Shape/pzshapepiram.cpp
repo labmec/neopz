@@ -407,7 +407,7 @@ namespace pzshape {
 		
 	}
     
-    void TPZShapePiram::ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
+    void TPZShapePiram::ShapeOrder(const TPZVec<int64_t> &id, const TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
     {
         //DebugStop();
         int64_t nsides = TPZShapePiram::NSides;
@@ -440,7 +440,7 @@ namespace pzshape {
     }
     
     
-    void TPZShapePiram::SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
+    void TPZShapePiram::SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders)
     {
         //DebugStop();
         if (side<=4)

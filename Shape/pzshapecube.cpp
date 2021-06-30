@@ -335,7 +335,7 @@ void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMa
 		}
 	}
     
-    void TPZShapeCube::ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
+    void TPZShapeCube::ShapeOrder(const TPZVec<int64_t> &id, const TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
     {
         //DebugStop();
     
@@ -369,7 +369,7 @@ void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMa
     }
     
     
-    void TPZShapeCube::SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
+    void TPZShapeCube::SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders)
     {
         //DebugStop();
         if (side<=7)

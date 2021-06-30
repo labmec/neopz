@@ -489,7 +489,7 @@ void TPZShapeTetra::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFM
 		
 	}
     
-    void TPZShapeTetra::ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
+    void TPZShapeTetra::ShapeOrder(const TPZVec<int64_t> &id, const TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
     {
         //DebugStop();
         
@@ -524,7 +524,7 @@ void TPZShapeTetra::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFM
     }
     
     
-    void TPZShapeTetra::SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
+    void TPZShapeTetra::SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders)
     {
         //DebugStop();
         if (side<=3)

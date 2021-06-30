@@ -184,7 +184,7 @@ namespace pzshape {
 		
 	}
     
-    void TPZShapeTriang::ShapeOrder(TPZVec<int64_t> &id, TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
+    void TPZShapeTriang::ShapeOrder(const TPZVec<int64_t> &id, const TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)//, TPZVec<int64_t> &sides
     {
         int64_t nsides = TPZTriangle::NSides;
         // o que eh o vetor order?
@@ -234,7 +234,7 @@ namespace pzshape {
     }
     
     
-    void TPZShapeTriang::SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
+    void TPZShapeTriang::SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders)
     {
         
         if (side<=2)
