@@ -61,52 +61,51 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
         DebugStop();
     }
 #endif
-    if(order == 0) return 0;//given the choice of implementation, there are no shape functions for k=0
+    //given the choice of implementation, there are no shape functions for k=0
+    if(order == 0) return 0;
     const auto nFaces = TSHAPE::Dimension < 2 ? 0 : TSHAPE::NumSides(2);
     const auto nEdges = TSHAPE::NumSides(1);
-    const auto sideOrder = this->EffectiveSideOrder(side);
     const int nShapeF = [&](){
         if (side < TSHAPE::NCornerNodes + nEdges) {//edge connect
-            return 1 + sideOrder;
+            return 1 + order;
         }
         else if(side < TSHAPE::NCornerNodes + nEdges + nFaces){//face connect
-            const int factor = [&](){
-
-                switch(TSHAPE::Type(side)){
-                    case ETriangle://triangular face
-                        return 1;
-                    case EQuadrilateral://quadrilateral face
-                        return 2;
-                    default:
-                        PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
-                        DebugStop();
-                        return 0;
-                }
-            }();
-            return factor * (sideOrder - 1) * (sideOrder + 1);
+            switch(TSHAPE::Type(side)){
+            case ETriangle://triangular face
+                return (order - 1) * (order+1);
+            case EQuadrilateral://quadrilateral face
+                return 2 * order * (order+1);
+            default:
+                PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
+                DebugStop();
+                return 0;
+            }
         }
         else{//internal connect (3D element only)
             int count = 0;
+            //first we count the face-based interior functions \phi^{K,F}
             for(int iFace = 0; iFace < nFaces; iFace++){
                 switch(TSHAPE::Type(TSHAPE::NCornerNodes+nEdges + iFace)){
                     case ETriangle://triangular face
-                        count +=  (sideOrder - 1) * ( sideOrder - 2)/2;
+                        count +=  (order - 1) * ( order - 2)/2;
                         break;
                     case EQuadrilateral://quadrilateral face
-                        count +=  (sideOrder - 1) * ( sideOrder - 1);
+                        count +=  (order - 1) * ( order - 1);
                         break;
                     default:
                         PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
                         DebugStop();
                 }
             }
+            //now we count the interior bubble functions
+            
             //number of H1 funcs
-            const auto nFuncsK = TSHAPE::NConnectShapeF(side, sideOrder);
+            const auto nFuncsK = TSHAPE::NConnectShapeF(side, order);
             if constexpr (TSHAPE::Type() == ECube){
               //make sure there are no negative vals
               const int nFuncsKminusOne =
-                TSHAPE::NConnectShapeF(side, sideOrder-1) >= 0 ? 
-                TSHAPE::NConnectShapeF(side, sideOrder-1) : 
+                TSHAPE::NConnectShapeF(side, order-1) >= 0 ? 
+                TSHAPE::NConnectShapeF(side, order-1) : 
                 0;
               //include all internal functions of k-1 (3*(k-2)^2 funcs)
               count += 3 * (nFuncsKminusOne);
@@ -115,17 +114,17 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
               TPZGenMatrix<int> shapeorders(nFuncsK,3);
               //not really used since we are interested in internal funcs
               TPZManVector<int64_t,0> idvec(0);
-              TSHAPE::SideShapeOrder(side,idvec,sideOrder,shapeorders);
+              TSHAPE::SideShapeOrder(side,idvec,order,shapeorders);
               /*for compatibility, we need the spaces
                 Q^{k-1,k,k} \times Q^{k,k-1,k} \times Q^{k,k,k-1}
                */
               int countIntK = 0;
               /*i am supposing that #funcs in xi-dir is equal to 
                 #funcs in eta-dir and in zeta-dir. So I will just
-                see how many we will have in xi-dir afte rskipping
+                see how many we will have in xi-dir after skipping
                 internals that were included in the k-1 set of funcs*/
               for(int ifunc = nFuncsKminusOne; ifunc < nFuncsK; ifunc++){
-                if(shapeorders(ifunc,0) < sideOrder) {countIntK++;}
+                if(shapeorders(ifunc,0) < order) {countIntK++;}
               }
               count += 3* countIntK;
                 
@@ -143,7 +142,7 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
         std::stringstream sout;
         sout << __PRETTY_FUNCTION__<<std::endl;
         sout<<"\tside "<<side<<"\tcon "<<icon<<std::endl;
-        sout<<"\torder "<<order<<"\teffective order "<<sideOrder<<std::endl;
+        sout<<"\torder "<<order<<std::endl;
         sout<<"\tn shape funcs "<<nShapeF;
         LOGPZ_DEBUG(logger,sout.str())
     }
