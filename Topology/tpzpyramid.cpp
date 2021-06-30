@@ -1309,7 +1309,7 @@ namespace pztopology {
 		DebugStop();
 	}
     
-    int TPZPyramid::GetTransformId(int side, TPZVec<int64_t> &id){
+    int TPZPyramid::GetTransformId(const int side, const TPZVec<int64_t> &id){
         switch (side) {
             case 0:
             case 1:

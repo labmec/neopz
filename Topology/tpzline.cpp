@@ -394,7 +394,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZLine::GetTransformId(TPZVec<int64_t> &id)
+	int TPZLine::GetTransformId(const TPZVec<int64_t> &id)
 	{
 		return id[0] < id[1] ? 0 : 1;
 	}
@@ -405,7 +405,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZLine::GetTransformId(int side, TPZVec<int64_t> &id)
+	int TPZLine::GetTransformId(const int side, const TPZVec<int64_t> &id)
 	{
 		switch (side) {
 			case 0:

@@ -1043,7 +1043,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZCube::GetTransformId(TPZVec<int64_t> &id)
+	int TPZCube::GetTransformId(const TPZVec<int64_t> &id)
 	{
 		LOGPZ_ERROR(logger,"GetTransformId not implemented")
 		return -1;
@@ -1054,7 +1054,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZCube::GetTransformId(int side, TPZVec<int64_t> &id)
+	int TPZCube::GetTransformId(const int side, const TPZVec<int64_t> &id)
 	{
 		switch (side) {
 			case 0:

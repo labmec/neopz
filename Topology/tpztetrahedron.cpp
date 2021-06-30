@@ -1113,10 +1113,9 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZTetrahedron::GetTransformId(TPZVec<int64_t> &id)
+	int TPZTetrahedron::GetTransformId(const TPZVec<int64_t> &id)
 	{
-		LOGPZ_ERROR(logger,"Please implement me")
-		return -1;
+        return GetTransformId(NSides-1,id);
 	}
 	
 	/**
@@ -1125,7 +1124,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZTetrahedron::GetTransformId(int side, TPZVec<int64_t> &id)
+	int TPZTetrahedron::GetTransformId(const int side, const TPZVec<int64_t> &id)
 	{
         switch (side) {
             case 0:

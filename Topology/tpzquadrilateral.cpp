@@ -588,7 +588,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */
-	int TPZQuadrilateral::GetTransformId(TPZVec<int64_t> &id)
+	int TPZQuadrilateral::GetTransformId(const TPZVec<int64_t> &id)
 	{
 		int id0, id1, minid;
 		id0 = (id[0] < id[1]) ? 0 : 1;
@@ -655,7 +655,7 @@ namespace pztopology {
 	 * @param id indexes of the corner nodes
 	 * @return index of the transformation of the point corresponding to the topology
 	 */	
-	int TPZQuadrilateral::GetTransformId(int side, TPZVec<int64_t> &id)
+	int TPZQuadrilateral::GetTransformId(const int side, const TPZVec<int64_t> &id)
 	{
 		switch (side) {
 			case 0:
