@@ -183,20 +183,15 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
     const auto nEdges = TSHAPE::NumSides(1);
     constexpr auto nNodes = TSHAPE::NCornerNodes;
     constexpr auto nConnects = TSHAPE::NSides - nNodes;
-    TPZManVector<int, TSHAPE::NSides - nNodes> transformationIds(TSHAPE::NSides - nNodes, -1);
+    TPZManVector<int64_t,nNodes> nodes(nNodes, 0);
     {
-        TPZManVector<int64_t,nNodes> nodes(nNodes, 0);
         for (auto iNode = 0; iNode < nNodes; iNode++) nodes[iNode] = this->Reference()->NodeIndex(iNode);
-        //computing transformation id for sides.
-        for (auto iCon = 0; iCon < nConnects; iCon++) {
-            transformationIds[iCon] = TSHAPE::GetTransformId(nNodes + iCon, nodes);
-        }
     }
 
     TPZManVector<int64_t, TSHAPE::NSides - nNodes> firstH1ShapeFunc(TSHAPE::NSides - nNodes,
                                                                                   0);
     //calculates the first shape function associated with each side of dim > 0
-    TPZManVector<int,TSHAPE::NSides> sidesH1Ord(TSHAPE::NSides);
+    TPZManVector<int,TSHAPE::NSides-nNodes> sidesH1Ord(TSHAPE::NSides - nNodes);
     this->CalculateSideShapeOrders(sidesH1Ord);
     firstH1ShapeFunc[0] = nNodes;
     for (int iSide = nNodes + 1; iSide < TSHAPE::NSides; iSide++) {
@@ -219,7 +214,8 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
     indexVecShape.Resize(this->NShapeF());
     TPZVec<unsigned int> shapeCountVec(TSHAPE::NSides - nNodes, 0);
 
-    StaticIndexShapeToVec(indexVecShape, connectOrder, firstH1ShapeFunc,sidesH1Ord, shapeCountVec, transformationIds);
+    StaticIndexShapeToVec(indexVecShape, connectOrder, firstH1ShapeFunc,sidesH1Ord, shapeCountVec, nodes);
+
 
 
 #ifdef PZDEBUG
@@ -278,7 +274,7 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
                                                        const TPZVec<int64_t>& firstH1ShapeFunc,
                                                        const TPZVec<int>& sidesH1Ord,
                                                        TPZVec<unsigned int>& shapeCountVec,
-                                                       const TPZVec<int>& transformationIds) {
+                                                       const TPZVec<int64_t>& nodeIds) {
     /******************************************************************************************************************
     * The directions are calculated based on the LOCAL side ids (and SideNodeLocId), such as the H1 shape functions.
     * For instance, for the triangle, the vectors are:
@@ -291,9 +287,20 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
     * In order to ensure that the functions will coincide in two neighbouring elements, they will be then sorted by
     * their sides' GLOBAL ids instead of their LOCAL ids
     ******************************************************************************************************************/
+
+    
     const auto nFaces = TSIDESHAPE::Dimension < 2 ? 0 : TSIDESHAPE::NumSides(2);
     const auto nEdges = TSIDESHAPE::NumSides(1);
-    const auto nNodes = TSIDESHAPE::NCornerNodes;
+    constexpr auto nNodes = TSIDESHAPE::NCornerNodes;
+
+    const auto nConnects = connectOrder.size();
+    TPZManVector<int, TSIDESHAPE::NSides - nNodes>
+        transformationIds(TSHAPE::NSides - nNodes, -1);
+    //computing transformation id for sides.
+    for (auto iCon = 0; iCon < nConnects; iCon++) {
+        transformationIds[iCon] = TSIDESHAPE::GetTransformId(nNodes + iCon, nodeIds);
+    }
+    
 	unsigned int shapeCount = 0;
 
 
@@ -340,31 +347,26 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
      * b) faceEdges the edges contained in a certain face
      * c) firstVftVec the first Vft vector. Then, it is firstVftVec + 2*iFace + iVec
      * d) firstVfOrthVec the first VfOrthVec. Then, it is firstVfOrthVec + iFace
-     * e) nFaceInternalFunctions number of internal SCALAR functions associated with each face
      */
     TPZManVector<int> firstVfeVec(nFaces,-1);
     TPZManVector<TPZStack<int>> faceEdges(nFaces,TPZStack<int>(0,0));
-    TPZManVector<int> nFaceInternalFunctions(nFaces,-1);
     {
+        //we skip v^{e,a} and v^{e,T} vectors
         const int nEdgeVectors = nEdges * 3;
         firstVfeVec[0] = nEdgeVectors;
-        nFaceInternalFunctions[0] = TSIDESHAPE::NConnectShapeF(0 + nEdges + nNodes,connectOrder[nEdges + 0]);
-        for(auto iFace = 1; iFace < nFaces; iFace++){
-            TSIDESHAPE::LowerDimensionSides(iFace - 1 + nEdges + nNodes, faceEdges[iFace-1], 1);
-            const int nFaceEdges = faceEdges[iFace-1].size();
-            firstVfeVec[iFace] = firstVfeVec[iFace - 1] + nFaceEdges;
-            nFaceInternalFunctions[iFace] = TSIDESHAPE::NConnectShapeF(iFace + nEdges + nNodes,connectOrder[nEdges + iFace]);
+        for(auto iFace = 0; iFace < nFaces; iFace++){
+            TSIDESHAPE::LowerDimensionSides(iFace + nEdges + nNodes, faceEdges[iFace], 1);
+            const int nFaceEdges = faceEdges[iFace].size();
+            firstVfeVec[iFace] = iFace == 0 ?
+                firstVfeVec[iFace] : firstVfeVec[iFace - 1] + nFaceEdges;
         }
-        TSIDESHAPE::LowerDimensionSides(nFaces - 1 + nEdges + nNodes, faceEdges[nFaces-1], 1);
     }
     const int firstVftVec = firstVfeVec[nFaces-1] + faceEdges[nFaces-1].size();
     const int firstVfOrthVec = firstVftVec + 2 * nFaces;
 
-    //first the phi Fe functions
     for(auto iCon = nEdges; iCon < nEdges + nFaces; iCon++){
         const auto iSide = iCon + nNodes;
         const auto iFace = iCon - nEdges;
-        const auto pOrder = connectOrder[iCon];
         TPZManVector<int,4> permutedSideSides = [&](){
             TPZVec<int> perm;
             switch(TSIDESHAPE::Type(iSide)){
@@ -393,11 +395,15 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
 
 
         const int nFaceNodes = TSIDESHAPE::NSideNodes(iSide);
-        const int &nFaceEdges = nFaceNodes;//this is not a mistake, since for faces nEdges = nNodes
+        //this is not a mistake, since for faces nEdges = nNodes
+        const int &nFaceEdges = nFaceNodes;
+
+        //first the phi Fe functions
         for(auto iEdge = 0; iEdge < nFaceEdges; iEdge++ ){
             const auto currentLocalEdge = permutedSideSides[iEdge+nFaceNodes];
             const auto currentEdge = TSIDESHAPE::ContainedSideLocId(iSide, currentLocalEdge);
             const auto vecIndex = firstVfeVec[iFace] + currentLocalEdge - nFaceNodes;
+            const auto pOrder = sidesH1Ord[currentEdge-nNodes];
             for(auto iEdgeInternal = 0; iEdgeInternal < pOrder - 1; iEdgeInternal++){
                 const int shapeIndex = firstH1ShapeFunc[currentEdge - nNodes] + iEdgeInternal;
                 indexVecShape[shapeCount] = std::make_pair(vecIndex,shapeIndex);
@@ -405,15 +411,73 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
                 shapeCountVec[iCon]++;
             }
         }
-        //now the phi Fi functions
-        const auto nFaceInternalFuncs = 2 * nFaceInternalFunctions[iFace];
-        for(auto iFunc = 0; iFunc < nFaceInternalFuncs; iFunc++ ){
-            const auto vecIndex = firstVftVec + 2*iFace + iFunc % 2;//it should alternate between them
-            const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc / 2;
-            indexVecShape[shapeCount] = std::make_pair(vecIndex,shapeIndex);
-            shapeCount++;
-            shapeCountVec[iCon]++;
+
+        const auto nVfeFuncs = shapeCountVec[iCon];
+        
+        /**now the phi Fi functions
+         They are calculated differently for quad and triangular faces.
+         For triangular faces, all the face functions of order k are taken,
+         and each is multiplied by each of the tangent vectors associated with
+         the face.
+         For quadrilateral faces, the face functions of order k+1 are taken:
+         since we are interested in the Q_{k,k+1}\times Q_{k+1,k} space,
+         we check their orders.*/
+
+        //max order of h1 functions associated with face
+        const auto h1FaceOrder = sidesH1Ord[nEdges+iFace];
+        //number of h1 face funcs
+        const auto nH1FaceFuncs =
+            TSIDESHAPE::NConnectShapeF(iSide,h1FaceOrder);
+        
+        const auto quadFace = TSIDESHAPE::Type(iSide) == EQuadrilateral;
+        
+        if(quadFace){
+            TPZGenMatrix<int> shapeorders(nH1FaceFuncs,3);
+            TSIDESHAPE::SideShapeOrder(iSide,nodeIds,h1FaceOrder,shapeorders);
+            const auto hCurlFaceOrder = h1FaceOrder-1;
+            /**now we assume that the first vft vec is in the x direction
+               and that the next one is in the y direction.*/
+            const auto xVecIndex = firstVftVec + 2*iFace;
+            const auto yVecIndex = xVecIndex + 1;
+            for(auto iFunc = 0; iFunc < nH1FaceFuncs; iFunc++ ){
+                const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc;
+                if(shapeorders(iFunc,0) <= hCurlFaceOrder){
+                    indexVecShape[shapeCount] = std::make_pair(xVecIndex,shapeIndex);
+                    shapeCount++;
+                    shapeCountVec[iCon]++;
+                }
+                if(shapeorders(iFunc,1) <= hCurlFaceOrder){
+                    indexVecShape[shapeCount] = std::make_pair(yVecIndex,shapeIndex);
+                    shapeCount++;
+                    shapeCountVec[iCon]++;
+                }
+            }
         }
+        else{
+            //ok that one is easy to guess
+            const auto nFaceInternalFuncs =
+                2 * nH1FaceFuncs;
+            for(auto iFunc = 0; iFunc < nFaceInternalFuncs; iFunc++ ){
+                //it should alternate between them
+                const auto vecIndex = firstVftVec + 2*iFace + iFunc % 2;
+                //they should repeat
+                const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc / 2;
+                indexVecShape[shapeCount] = std::make_pair(vecIndex,shapeIndex);
+                shapeCount++;
+                shapeCountVec[iCon]++;
+            }
+        }
+
+        const auto nVfiFuncs = shapeCountVec[iCon] - nVfeFuncs;
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
+        std::ostringstream sout;
+        sout << "iFace: "<<iFace<<' '
+             << "nVfeFuncs: "<< nVfeFuncs <<' '
+             << "nVfiFuncs: "<< nVfiFuncs << '\n';
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     }
     const int firstInternalShape = shapeCount;
 
@@ -435,7 +499,10 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
         const int iCon = nEdges + nFaces;
         //first, the phi KF functions
         for(int iFace = 0; iFace < nFaces; iFace++){
-            const auto nFaceInternalHCurlFuncs = TSIDESHAPE::NConnectShapeF(iFace + nEdges + nNodes,sidesH1Ord[nEdges + iFace]);
+            const auto faceOrder = TSIDESHAPE::Type(iFace) == EQuadrilateral ?
+                sidesH1Ord[nEdges+iFace] - 1 : sidesH1Ord[nEdges+iFace];
+            const auto nFaceInternalHCurlFuncs =
+                TSIDESHAPE::NConnectShapeF(iFace + nEdges + nNodes,faceOrder);
             const auto vecIndex = firstVfOrthVec + iFace;
             for(auto iFunc = 0; iFunc < nFaceInternalHCurlFuncs; iFunc++ ){
                 const auto shapeIndex = firstH1ShapeFunc[nEdges + iFace] + iFunc;
@@ -625,15 +692,15 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
         switch (sidetype) {
             case EOned://these wont be really used, just for signs purposes
                 pztopology::TPZLine::ComputeHCurlDirections(gradxSide,sideMasterDirections,transformationIds);
-                StaticIndexShapeToVec<pzshape::TPZShapeLinear>(indexVecShape,connectOrders,firstH1ShapeFunc,sidesH1Ord,shapeCountVec,transformationIds);
+                StaticIndexShapeToVec<pzshape::TPZShapeLinear>(indexVecShape,connectOrders,firstH1ShapeFunc,sidesH1Ord,shapeCountVec,sideNodesId);
                 break;
             case EQuadrilateral:
                 pztopology::TPZQuadrilateral::ComputeHCurlDirections(gradxSide,sideMasterDirections,transformationIds);
-                StaticIndexShapeToVec<pzshape::TPZShapeQuad>(indexVecShape,connectOrders,firstH1ShapeFunc,sidesH1Ord,shapeCountVec,transformationIds);
+                StaticIndexShapeToVec<pzshape::TPZShapeQuad>(indexVecShape,connectOrders,firstH1ShapeFunc,sidesH1Ord,shapeCountVec,sideNodesId);
                 break;
             case ETriangle:
                 pztopology::TPZTriangle::ComputeHCurlDirections(gradxSide,sideMasterDirections,transformationIds);
-                StaticIndexShapeToVec<pzshape::TPZShapeTriang>(indexVecShape,connectOrders,firstH1ShapeFunc,sidesH1Ord,shapeCountVec,transformationIds);
+                StaticIndexShapeToVec<pzshape::TPZShapeTriang>(indexVecShape,connectOrders,firstH1ShapeFunc,sidesH1Ord,shapeCountVec,sideNodesId);
                 break;
             default:
                 DebugStop();
@@ -744,15 +811,15 @@ template class TPZCompElHCurlFull<TSHAPE>; \
 template void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec<pzshape::TPZShapeLinear>(TPZVec<std::pair<int,int64_t>> & indexVecShape,\
 const TPZVec<int>& connectOrder,\
 const TPZVec<int64_t>& firstH1ShapeFunc,const TPZVec<int>& sidesH1Ord, TPZVec<unsigned int>& shapeCountVec,\
-const TPZVec<int>& transformationIds);\
+const TPZVec<int64_t>& nodeIds);\
 template void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec<pzshape::TPZShapeTriang>(TPZVec<std::pair<int,int64_t>> & indexVecShape,\
 const TPZVec<int>& connectOrder,\
 const TPZVec<int64_t>& firstH1ShapeFunc,const TPZVec<int>& sidesH1Ord, TPZVec<unsigned int>& shapeCountVec,\
-const TPZVec<int>& transformationIds);\
+const TPZVec<int64_t>& nodeIds);\
 template void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec<pzshape::TPZShapeQuad>(TPZVec<std::pair<int,int64_t>> & indexVecShape,\
 const TPZVec<int>& connectOrder,\
 const TPZVec<int64_t>& firstH1ShapeFunc,const TPZVec<int>& sidesH1Ord, TPZVec<unsigned int>& shapeCountVec,\
-const TPZVec<int>& transformationIds);
+const TPZVec<int64_t>& nodeIds);
 
 
 IMPLEMENTHCURLFULL(pzshape::TPZShapeLinear)
