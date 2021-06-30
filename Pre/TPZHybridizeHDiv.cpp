@@ -227,9 +227,10 @@ TPZCompElSide TPZHybridizeHDiv::RightElement(TPZInterpolatedElement *intel, int 
     return TPZCompElSide();
 }
 
-void TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
+void TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZMultiphysicsCompMesh* mmesh) {
     
     // ==> Getting meshes
+    TPZVec<TPZCompMesh *> &meshvec_Hybrid = mmesh->MeshVector();
     TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
     TPZCompMesh *pressuremesh = meshvec_Hybrid[1];
     TPZGeoMesh *gmesh = fluxmesh->Reference();
@@ -282,6 +283,8 @@ void TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     
     pressuremesh->InitializeBlock();
     pressuremesh->SetDimModel(gmesh->Dimension());
+    
+    CreateInterfaceElements(mmesh, meshvec_Hybrid);
 }
 
 

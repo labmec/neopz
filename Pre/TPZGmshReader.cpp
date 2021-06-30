@@ -406,31 +406,37 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                         bool physical_identifier_Q = n_physical_identifier != 0;
                         if(physical_identifier_Q)
                         {
-                            int gmsh_physical_identifier = m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag][0];
-                            physical_identifier = m_dim_physical_tag_and_physical_tag[entity_dim][gmsh_physical_identifier];
-                            if(n_physical_identifier !=1){
-                                std::cout << "The entity with tag " << entity_tag << std::endl;
-                                std::cout << "Has associated the following physical tags : " << std::endl;
-                                for (int i_data = 0; i_data < n_physical_identifier; i_data++) {
-                                    std::cout << m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag][i_data] << std::endl;
-                                }
+                        
+                            std::cout << "The entity with tag " << entity_tag << std::endl;
+                            std::cout << "Has associated " << n_physical_identifier << "  physical tags" << std::endl;
+                            std::cout << "Creating different elements for each one..." << std::endl;
+                            read.getline(buf, 1024);
+                            int el_identifier, n_el_nodes;
+                            n_el_nodes = GetNumberofNodes(entity_el_type);
+                            read >> el_identifier;
+                            std::vector<int> node_identifiers(n_el_nodes);
+                            for (int i_node = 0; i_node < n_el_nodes; i_node++) {
+                                read >> node_identifiers[i_node];
+                            }
+                            
+                            for (int i_data = 0; i_data < n_physical_identifier; i_data++) {
+                              if (i_data > 0) {
+                                el_identifier = max_element_tag + i_data;
+                                max_element_tag = el_identifier;
+                                gmesh->SetMaxElementId(el_identifier-1);
+                              }
                                 
-                                std::cout << "Automatically, the assgined pz physical tag = " << physical_identifier << " is used.  The other ones are dropped out." << std::endl;
+                              const int64_t gmshPhysicalTagTemp = m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag][i_data];
+                              physical_identifier = m_dim_physical_tag_and_physical_tag[entity_dim][gmshPhysicalTagTemp];
+                              std::cout << "Creating el for tag " << gmshPhysicalTagTemp << " with physical id = " << physical_identifier << std::endl;
+                              
+                              /// Internally the nodes index and element index is converted to zero based indexation
+                              InsertElement(gmesh, physical_identifier, entity_el_type, el_identifier, node_identifiers);
+                                                            
                             }
-                            
-                            
-                            read.getline(buf, 1024);
-                            int el_identifier, n_el_nodes;
-                            n_el_nodes = GetNumberofNodes(entity_el_type);
-                            read >> el_identifier;
-                            std::vector<int> node_identifiers(n_el_nodes);
-                            for (int i_node = 0; i_node < n_el_nodes; i_node++) {
-                                read >> node_identifiers[i_node];
-                            }
-                            /// Internally the nodes index and element index is converted to zero based indexation
-                            InsertElement(gmesh, physical_identifier, entity_el_type, el_identifier, node_identifiers);
-                            
+                                                        
                         }else{
+                          
                             read.getline(buf, 1024);
                             int el_identifier, n_el_nodes;
                             n_el_nodes = GetNumberofNodes(entity_el_type);
@@ -439,6 +445,9 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                             for (int i_node = 0; i_node < n_el_nodes; i_node++) {
                                 read >> node_identifiers[i_node];
                             }
+                            std::cout << "Please associate physical tag to entity tag number " << entity_tag << " which is used for element " << el_identifier << std::endl;
+                            DebugStop();
+
                             std::cout << "The entity with tag " << entity_tag << " does not have a physical tag, element " << el_identifier << " skipped " << std::endl;
                         }
 
