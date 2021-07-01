@@ -37,7 +37,7 @@ void CheckCompatibilityUniformMesh(int k);
 template <ESpace leftSpace, ESpace rightSpace, int dim>
 void CheckExactSequence(int kRight);
 
-TEMPLATE_TEST_CASE("Compatibility Uniform Mesh", "[derham_tests]",
+TEMPLATE_TEST_CASE("Dimension Compatibility", "[derham_tests]",
                    (typename std::integral_constant<int,2>),
                    (typename std::integral_constant<int,3>))
 {
@@ -78,7 +78,7 @@ TEMPLATE_TEST_CASE("Compatibility Uniform Mesh", "[derham_tests]",
   }
 }
 
-TEMPLATE_TEST_CASE("Inclusion Uniform Mesh", "[derham_tests]",
+TEMPLATE_TEST_CASE("Inclusion", "[derham_tests]",
                    (typename std::integral_constant<int,2>),
                    (typename std::integral_constant<int,3>))
 {
@@ -98,7 +98,7 @@ TEMPLATE_TEST_CASE("Inclusion Uniform Mesh", "[derham_tests]",
       CheckExactSequence<ESpace::H1,ESpace::HCurl,dim>(k);
       //TODOFIX
       // if constexpr (dim == 2){
-      //   CheckCompatibilityUniformMesh<ESpace::H1, ESpace::HDiv, dim>(k);
+      //   CheckExactSequence<ESpace::H1, ESpace::HDiv, dim>(k);
       // }
       break;
       //TODOFIX
