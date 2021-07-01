@@ -76,13 +76,20 @@ namespace hcurltest{
 
 TEST_CASE("Testing trace of HCurl functions",
           "[hcurl_tests][mesh][topology]") {
+    
+    // SECTION("PrintFunctions"){
+    //     constexpr int pOrder{3};
+    //     hcurltest::PrintShapeFunctions<pztopology::TPZQuadrilateral>(pOrder);
+    // }
+    
     constexpr int pOrder{1};
     constexpr int maxK{5};
     auto meshType = GENERATE(MMeshType::ETriangular,
                              MMeshType::EQuadrilateral,
-                             MMeshType::ETetrahedral,
-                             MMeshType::EHexahedral,
-                             MMeshType::EPrismatic);
+                             MMeshType::ETetrahedral
+                             // MMeshType::EHexahedral,
+                             // MMeshType::EPrismatic
+                             );
     TPZAutoPointer<TPZCompMesh> cmesh =
         hcurltest::CreateCMesh(meshType,pOrder);
     SECTION("Vector traces"+MMeshType_Name(meshType)){
@@ -102,9 +109,9 @@ TEST_CASE("Testing curl of HCurl functions",
     constexpr int maxK{5};
     auto meshType = GENERATE(MMeshType::ETriangular,
                              MMeshType::EQuadrilateral,
-                             MMeshType::ETetrahedral,
-                             MMeshType::EHexahedral,
-                             MMeshType::EPrismatic
+                             MMeshType::ETetrahedral
+                             // MMeshType::EHexahedral,
+                             // MMeshType::EPrismatic
                              );
     TPZAutoPointer<TPZCompMesh> cmesh =
         hcurltest::CreateCMesh(meshType,pOrder);
