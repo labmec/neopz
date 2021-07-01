@@ -75,6 +75,7 @@ target_compile_definitions(pz PRIVATE
                            "$<$<CONFIG:RELEASE>:NODEBUG>"
                            "$<$<CONFIG:RELEASE>:ZERO_INTERNAL_RESIDU>"
                            "$<$<CONFIG:RELEASE>:MAKEINTERNAL>"
+                           PUBLIC
                            "$<$<CONFIG:DEBUG>:PZDEBUG>")
 if(APPLE)                         
   set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
