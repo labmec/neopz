@@ -278,16 +278,16 @@ void TPZGenMatrix<TObj>::Print (const char *c, ostream & out) const {
 		cout << "NULL TPZGenMatrix<TObj>\n";
 		return;
 	}
-//	out << c << endl;
-//	out << "TPZGenMatrix<TObj>  Rows = " << this->fRows << " columns = " << this->fCols << endl;
-//	for (int64_t i=0; i<this->fRows; i++) {
-//		out << "\n row " << i;
-//		for (int64_t j=0; j<this->fCols; j++) {
-//			if ( !(j%6) ) out << "\n";
-//			out << "  " << fMem[(i*this->fCols)+j];
-//		}
-//	}
-//	out << "\n";
+	out << c << endl;
+	out << "TPZGenMatrix<TObj>  Rows = " << this->fRows << " columns = " << this->fCols << endl;
+	for (int64_t i=0; i<this->fRows; i++) {
+		out << "\n row " << i;
+		for (int64_t j=0; j<this->fCols; j++) {
+			if ( !(j%6) ) out << "\n";
+			out << "  " << fMem[(i*this->fCols)+j];
+		}
+	}
+	out << "\n";
 	return;
 }
 
