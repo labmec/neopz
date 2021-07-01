@@ -295,7 +295,7 @@ inline TPZManVector< T, NumExtAlloc >::TPZManVector(TPZManVector< T, NumExtAlloc
         // No memory was allocated by the constructor.
         this->fNAlloc = 0;
     } else {// The size requested is bigger than the size already provided.
-        this->fStore = std::move(rval.fStore);
+        this->fStore = rval.fStore;
         this->fNElements = size;
         this->fNAlloc = size;
     }
@@ -366,7 +366,7 @@ TPZManVector< T, NumExtAlloc >& TPZManVector< T, NumExtAlloc >::operator=(TPZMan
         this->fNAlloc = 0;
         this->fNElements = nel;
       } else {
-        this->fStore = std::move(rval.fStore);
+        this->fStore = rval.fStore;
         this->fNAlloc = nel;
         this->fNElements = nel;
       }

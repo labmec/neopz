@@ -340,19 +340,18 @@ TPZVec<T>::TPZVec(const TPZVec<T> &copy){
 }
 
 template< class T >
-TPZVec<T>::TPZVec(TPZVec<T> &&rval) : fNElements(std::move(rval.fNElements)){
+TPZVec<T>::TPZVec(TPZVec<T> &&rval) : fNElements(rval.fNElements){
     if(rval.fNAlloc){
         fStore = rval.fStore;
-        fNAlloc = std::move(rval.fNAlloc);
+        fNAlloc = rval.fNAlloc;
+        rval.fStore = nullptr;
         rval.fNAlloc = 0;
     }else{//rval did not allocate memory. let us just copy
         fStore = new T[fNElements];
         for(int64_t i=0; i<fNElements; i++)
-		fStore[i]=rval.fStore[i];
+            fStore[i]=rval.fStore[i];
     }
     
-    rval.fStore = nullptr;
-    rval.fNElements = 0;    
 }
 
 template<class T>
