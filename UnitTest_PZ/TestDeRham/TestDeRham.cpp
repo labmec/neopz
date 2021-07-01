@@ -140,21 +140,25 @@ void CheckCompatibilityUniformMesh(int kRight) {
   //TODOFIX
   if constexpr(leftSpace==ESpace::HCurl||
                rightSpace==ESpace::HCurl){
-    if(elType!=MMeshType::ETriangular &&
-       elType!=MMeshType::ETetrahedral){
+    if(elType==MMeshType::EHexahedral ||
+       elType==MMeshType::EPrismatic){
       return;
     }
   }
   if(elDim == dim){
 
     int kLeft;
-    auto *matLeft = [&kLeft,kRight]()
+    auto *matLeft = [&kLeft,kRight,elType]()
       -> TPZMaterial* {
       if constexpr (leftSpace == ESpace::H1) {
         kLeft = kRight + 1;
         return new TPZMatDeRhamH1(matId, dim);
       } else if constexpr (leftSpace == ESpace::HCurl) {
-        kLeft = kRight + 1;
+        if(elType == MMeshType::EQuadrilateral){
+          kLeft = kRight;
+        }else{
+          kLeft = kRight + 1;
+        }
         return new TPZMatDeRhamHCurl(matId,dim);
       } else if constexpr (leftSpace == ESpace::HDiv) {
         kLeft = kRight;
@@ -261,17 +265,21 @@ void CheckExactSequence(int kRight) {
 
   // TODOFIX
   if constexpr (leftSpace == ESpace::HCurl || rightSpace == ESpace::HCurl) {
-    if (elType != MMeshType::ETriangular && elType != MMeshType::ETetrahedral) {
+    if (elType==MMeshType::EHexahedral ||
+        elType==MMeshType::EPrismatic) {
       return;
     }
   }
   if (elDim == dim) {
 
-    const int kLeft = [kRight]() {
+    const int kLeft = [kRight,elType]() {
       if constexpr (leftSpace == ESpace::H1) {
         return kRight + 1;
       } else if constexpr (leftSpace == ESpace::HCurl) {
-        return kRight + 1;
+        if(elType == MMeshType::EQuadrilateral)
+          {return kRight;}
+        else
+          {return kRight + 1;}
       } else if constexpr (leftSpace == ESpace::HDiv) {
         return kRight;
       } else if constexpr (leftSpace == ESpace::L2) {

@@ -58,7 +58,7 @@ protected:
     template<class TSIDESHAPE=TSHAPE>
     static void StaticIndexShapeToVec(TPZVec<std::pair<int,int64_t>> & indexVecShape, const TPZVec<int>& connectOrder,
                                       const TPZVec<int64_t>& firstH1ShapeFunc, const TPZVec<int> &sidesH1Ord, TPZVec<unsigned int>& shapeCountVec,
-                                      const TPZVec<int>& transformationIds);
+                                      const TPZVec<int64_t>& nodeIds);
 
     /**
      * @brief This method calculates the appropriate side orders for the correct calculation of the SCALAR shape functions.
