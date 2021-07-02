@@ -569,11 +569,17 @@ void TPZCompMesh::LoadReferences() {
 void TPZCompMesh::CleanUpUnconnectedNodes() {
 	ComputeNodElCon();
 	int64_t i, nconnects = NConnects();
-	int64_t ndepblocks = 0, nvalidblocks = 0, nremoved = 0, ncondensed = 0;
+    int64_t ndepblocks = 0, nvalidblocks = 0, nremoved = 0, ncondensed = 0, maxseq = -1, numnowithseq = 0;
 	for (i=0;i<nconnects;i++)
     {
 		TPZConnect &no = fConnectVec[i];
 		int64_t seq = no.SequenceNumber();
+        if(seq>maxseq) maxseq = seq;
+        if(seq >= 0) numnowithseq++;
+        if(seq < 0 && (no.NElConnected() || no.IsCondensed()))
+        {
+            DebugStop();
+        }
 		if(!no.NElConnected() && !no.IsCondensed() && seq != -1)
 		{
 			nremoved++;
@@ -588,6 +594,11 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
             DebugStop();
         }
 #endif
+    }
+    if(maxseq != numnowithseq-1)
+    {
+        std::cout << "Input sequence numbers inconsistent\n";
+        DebugStop();
     }
 	int need = 0;
 	for (i=0;i<nconnects;i++) {
@@ -629,6 +640,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 			if(no.NElConnected() == 0 && !no.IsCondensed())
 			{
 				permute[seq] = nvalidblocks+ndepblocks+iremovedblocks+ncondensed;
+                if(permute[seq] > maxseq) DebugStop();
 				down[seq] = 1;
 				fBlock.Set(seq,0);
                 no.Reset();
@@ -638,12 +650,14 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 			}
 			else if(no.HasDependency()) {
 				permute[seq] = nvalidblocks+ncondensed+idepblocks;
+                if(permute[seq] > maxseq) DebugStop();
 				down[seq] = 1;
 				idepblocks++;
 			}
             else if(no.IsCondensed())
             {
 				permute[seq] = nvalidblocks+icondensed;
+                if(permute[seq] > maxseq) DebugStop();
 				down[seq] = 1;
 				icondensed++;
                 
@@ -655,6 +669,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 			if(permute[i] == -1)
 			{
 				permute[i] = i-down[i];
+                if(permute[i]> maxseq) DebugStop();
 			}
 		}
 	}
@@ -688,7 +703,17 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 #ifdef PZDEBUG
 		std::set<int64_t> check;
 		nconnects = permute.NElements();
-		for(i=0; i<nconnects; i++) check.insert(permute[i]);
+		for(i=0; i<nconnects; i++)
+        {
+            if(permute[i] < 0 || permute[i] >= nconnects)
+            {
+                std::cout << "value of permute " << permute[i] << " is larger than " << nconnects << std::endl;
+            }
+            else
+            {
+                check.insert(permute[i]);
+            }
+        }
 		if(static_cast<int>(check.size()) != nconnects)
 		{
 			cout << __PRETTY_FUNCTION__ << " The permutation vector is not a permutation!\n" << permute << endl;
