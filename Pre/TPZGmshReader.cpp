@@ -407,9 +407,9 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                         if(physical_identifier_Q)
                         {
                         
-                            std::cout << "The entity with tag " << entity_tag << std::endl;
-                            std::cout << "Has associated " << n_physical_identifier << "  physical tags" << std::endl;
-                            std::cout << "Creating different elements for each one..." << std::endl;
+//                            std::cout << "The entity with tag " << entity_tag << std::endl;
+//                            std::cout << "Has associated " << n_physical_identifier << "  physical tags" << std::endl;
+//                            std::cout << "Creating different elements for each one..." << std::endl;
                             read.getline(buf, 1024);
                             int el_identifier, n_el_nodes;
                             n_el_nodes = GetNumberofNodes(entity_el_type);
