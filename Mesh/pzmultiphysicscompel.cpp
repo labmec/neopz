@@ -1086,8 +1086,9 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeIntegrationRule()
         DebugStop(); // This case should be treated before
     }
     
+    auto basemat = this->Material();
     auto *material =
-        dynamic_cast<TPZMatCombinedSpaces*>(this->Material());
+        dynamic_cast<TPZMatCombinedSpaces*>(basemat);
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
         DebugStop();
