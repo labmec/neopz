@@ -245,7 +245,7 @@ void TPZMixedDarcyFlow::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &data
 
 void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec, int var, TPZVec<STATE> &solOut) {
     solOut.Resize(this->NSolutionVariables(var));
-
+    solOut.Fill(0.);
     TPZManVector<STATE, 10> SolP, SolQ;
 
     TPZFNMatrix<9, STATE> K(1, 1, 0);
@@ -257,6 +257,7 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
 
     // SolQ = datavec[0].sol[0];
     SolP = datavec[1].sol[0];
+    if(SolP.size() == 0) SolP.Resize(1,0.);
 
     if (var == 1) { //function (state variable Q)
         for (int i = 0; i < 3; i++) {
@@ -324,13 +325,12 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
 
     if (var == 9) {
 
-        TPZFNMatrix<9, REAL> dsoldx(fDim, 1.);
-        TPZFNMatrix<9, REAL> dsoldaxes(fDim, 1);
+        if(datavec[1].fShapeType == TPZMaterialData::EEmpty) return;
+        TPZFNMatrix<9, REAL> dsoldx(3, 1.,0.);
+        TPZFNMatrix<9, REAL> dsoldaxes(fDim, 1,0.);
 
         dsoldaxes = datavec[1].dsol[0];
-
         TPZAxesTools<REAL>::Axes2XYZ(dsoldaxes, dsoldx, datavec[1].axes);
-
 
         for (int i = 0; i < fDim; i++) {
             solOut[i] = dsoldx(i, 0);
@@ -421,7 +421,7 @@ void TPZMixedDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZV
     errors.Resize(NEvalErrors());
     errors.Fill(0.0);
 
-    TPZManVector<STATE, 3> fluxfem(3), pressurefem(1);
+    TPZManVector<STATE, 3> fluxfem(3), pressurefem(1,0);
     fluxfem = data[0].sol[0];
     STATE divsigmafem = data[0].divsol[0][0];
 
@@ -439,7 +439,8 @@ void TPZMixedDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZV
     }
 
     REAL residual = (divsigma[0] - divsigmafem) * (divsigma[0] - divsigmafem);
-    pressurefem[0] = data[1].sol[0][0];
+    if(data[1].sol[0].size())
+        pressurefem[0] = data[1].sol[0][0];
 
     TPZFNMatrix<9, STATE> K(fDim, fDim, 0);
     TPZFNMatrix<9, STATE> InvK(fDim, fDim, 0);
