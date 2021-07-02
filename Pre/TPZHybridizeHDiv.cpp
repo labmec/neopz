@@ -227,7 +227,7 @@ TPZCompElSide TPZHybridizeHDiv::RightElement(TPZInterpolatedElement *intel, int 
     return TPZCompElSide();
 }
 
-void TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZMultiphysicsCompMesh* mmesh) {
+bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZMultiphysicsCompMesh* mmesh, TPZCompElSide& celsideright) {
     
     // ==> Getting meshes
     TPZVec<TPZCompMesh *> &meshvec_Hybrid = mmesh->MeshVector();
@@ -239,7 +239,7 @@ void TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     // ==> Splitting flux mesh connect
     gmesh->ResetReference();
     fluxmesh->LoadReferences();
-    TPZCompElSide celsideright = RightElement(intelleft, side);
+    celsideright = RightElement(intelleft, side);
     std::tuple<int64_t, int> pindexporder;
     if (celsideright) {
         pindexporder = SplitConnects(celsideleft, celsideright, meshvec_Hybrid);
@@ -249,7 +249,7 @@ void TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
         cout << "Cannot find right side connect. "
         "Interface could be already hybridized, skipping..." << endl;
 #endif
-        return;
+        return false;
     }
     
     
@@ -284,7 +284,7 @@ void TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     pressuremesh->InitializeBlock();
     pressuremesh->SetDimModel(gmesh->Dimension());
     
-    CreateInterfaceElements(mmesh, meshvec_Hybrid);
+    return true;
 }
 
 

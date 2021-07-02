@@ -50,6 +50,8 @@ struct TPZHybridizeHDiv {
 
     }
     
+    int interfaceMatID() {return fInterfaceMatid.first;}
+    
     /// return true if a material id is a peripheral material
     bool IsPeriferalMaterialId(int matid)
     {
@@ -67,7 +69,7 @@ struct TPZHybridizeHDiv {
     void CreateInterfaceElements(TPZMultiphysicsCompMesh *cmesh_Hybrid);
     
     /// Hybridize a single interface based on the fluxmesh side connect
-    void HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intel, int side, TPZMultiphysicsCompMesh* mmesh);
+    bool HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intel, int side, TPZMultiphysicsCompMesh* mmesh, TPZCompElSide& celsideright);
     
     /// create a multiphysics mesh for the hybrid formulation using the materials of another mesh and the given atomic meshes
     TPZCompMesh * CreateMultiphysicsMesh(TPZCompMesh *cmesh_HDiv, TPZVec<TPZCompMesh *> &meshvec_Hybrid, double Lagrange_term_multiplier = 1.);
