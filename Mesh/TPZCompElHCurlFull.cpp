@@ -90,47 +90,51 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
                         count +=  (order - 1) * ( order - 2)/2;
                         break;
                     case EQuadrilateral://quadrilateral face
-                        count +=  (order - 1) * ( order - 1);
+                        //we need the functions of k+1
+                        count +=  order * order;
                         break;
                     default:
                         PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
                         DebugStop();
                 }
             }
+
+            const int nVkf = count;
             //now we count the interior bubble functions
             
             //number of H1 funcs
-            const auto nFuncsK = TSHAPE::NConnectShapeF(side, order);
-            if constexpr (TSHAPE::Type() == ECube){
-              //make sure there are no negative vals
-              const int nFuncsKminusOne =
-                TSHAPE::NConnectShapeF(side, order-1) >= 0 ? 
-                TSHAPE::NConnectShapeF(side, order-1) : 
-                0;
-              //include all internal functions of k-1 (3*(k-2)^2 funcs)
-              count += 3 * (nFuncsKminusOne);
+            const auto orderH1 = TSHAPE::Type() == ECube ?
+                order +1 : order;
+            
+            const auto nFuncsH1 = TSHAPE::NConnectShapeF(side, orderH1);
+            if constexpr (TSHAPE::Type() == ECube) {
               //shapeorders[k] contains the polynomial orders
               //in xi, eta and zeta for each of the internal funcs
-              TPZGenMatrix<int> shapeorders(nFuncsK,3);
+              TPZGenMatrix<int> shapeorders(nFuncsH1,3);
               //not really used since we are interested in internal funcs
               TPZManVector<int64_t,0> idvec(0);
-              TSHAPE::SideShapeOrder(side,idvec,order,shapeorders);
+              TSHAPE::SideShapeOrder(side,idvec,orderH1,shapeorders);              
               /*for compatibility, we need the spaces
-                Q^{k-1,k,k} \times Q^{k,k-1,k} \times Q^{k,k,k-1}
-               */
-              int countIntK = 0;
-              /*i am supposing that #funcs in xi-dir is equal to 
+                Q^{k,k+1,k+1} \times Q^{k+1,k,k+1} \times Q^{k+1,k+1,k}
+                I am supposing that #funcs in xi-dir is equal to 
                 #funcs in eta-dir and in zeta-dir. So I will just
                 see how many we will have in xi-dir after skipping
                 internals that were included in the k-1 set of funcs*/
-              for(int ifunc = nFuncsKminusOne; ifunc < nFuncsK; ifunc++){
-                if(shapeorders(ifunc,0) < order) {countIntK++;}
+              int countInt = 0;
+              for(int ifunc = 0; ifunc < nFuncsH1; ifunc++){
+                if(shapeorders(ifunc,0) < order) {countInt++;}
               }
-              count += 3* countIntK;
-                
+              count += 3* countInt;
+
+              const auto nVki = count - nVkf;
+              // std::stringstream sout;
+              // sout << __PRETTY_FUNCTION__<<'\n'
+              //      <<"\tside "<<side<<"\tcon "<<icon<<"\torder "<<order<<'\n'
+              //      <<"\tnfuncs "<<count<<"\tnvkf "<<nVkf<<"\tnvki "<<nVki<<'\n';
+              // std::cout<<sout.str()<<std::flush;
             }
             else{
-              count += 3 * nFuncsK;
+              count += 3 * nFuncsH1;
             }
             return count;
         }
