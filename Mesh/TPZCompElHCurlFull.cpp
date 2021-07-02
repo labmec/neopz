@@ -550,7 +550,8 @@ void TPZCompElHCurlFull<TSHAPE>::CalculateSideShapeOrders(TPZVec<int> &ord) cons
     for(auto iCon = 0; iCon < nConnects; iCon++){
         const auto iSide = iCon + TSHAPE::NCornerNodes;
         const auto sideDim = TSHAPE::SideDimension(iSide);
-        const bool quadSide = TSHAPE::Type(iSide) == EQuadrilateral;
+        const bool quadSide = TSHAPE::Type(iSide) == EQuadrilateral ||
+            TSHAPE::Type(iSide) == ECube;
         /*some H1 functions associated with the side iSide of dimension dim 
           might be needed for computing the shape functions of a side with 
           dimension dim+1 that contains the side iSide.
@@ -564,7 +565,8 @@ void TPZCompElHCurlFull<TSHAPE>::CalculateSideShapeOrders(TPZVec<int> &ord) cons
             if(TSHAPE::SideDimension(iHighSide) != sideDim+1) break;
             else {
                 const auto hSideOrder = this->EffectiveSideOrder(iHighSide);
-                const auto hQuadSide = TSHAPE::Type(iHighSide) == EQuadrilateral;
+                const auto hQuadSide = TSHAPE::Type(iHighSide) == EQuadrilateral ||
+                    TSHAPE::Type(iSide) == ECube;
                 const auto hMaxOrder = hQuadSide ? hSideOrder + 1 : hSideOrder;
                 maxOrder = std::max(maxOrder, hMaxOrder);
             }
