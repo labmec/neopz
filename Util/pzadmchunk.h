@@ -197,7 +197,7 @@ int TPZAdmChunkVector<T, EXP>::AllocateNewElement() {
 // Indicate an element as free
 template< class T, int EXP >
 void TPZAdmChunkVector<T, EXP>::SetFree(int index) {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
     if (index < 0) {
         PZError << "TPZAdmChunkVector::SetFree. Bad parameter index." << std::endl;
         PZError.flush();
@@ -278,7 +278,7 @@ TPZAdmChunkVector<T, EXP> & TPZAdmChunkVector<T, EXP>::operator=(
 
 template< class T, int EXP >
 void TPZAdmChunkVector<T, EXP>::Resize(const int newsize) {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
     if (newsize < 0) {
         PZError << "TPZAdmChunkVector::Resize. Bad parameter newsize." << std::endl;
         PZError.flush();

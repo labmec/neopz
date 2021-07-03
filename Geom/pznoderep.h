@@ -104,7 +104,7 @@ namespace pzgeom {
         void Initialize(TPZVec<int64_t> &nodeindexes)
         {
             int64_t nn = nodeindexes.NElements() < N ? nodeindexes.NElements() : N;
-#ifndef NODEBUG
+#ifndef PZNODEBUG
             if(nodeindexes.NElements() != N)
             {
                 std::stringstream sout;

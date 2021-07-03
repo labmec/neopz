@@ -213,7 +213,7 @@ namespace pzshape {
 	
 	void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		//	num = number of functions to compute
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 		if ( order[0] < 0 ) {
 			PZError << "Compelbas::shape --> Invalid dimension for arguments: order = " << order[0]
 			<< " phi.Rows = " << (int) phi.Rows() << " dphi.Cols = " << (int) dphi.Cols() << "\n";

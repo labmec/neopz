@@ -501,7 +501,7 @@ fElem(buf),fGiven(buf),fSize(sz) {
     else if(size > sz)
     {
         fElem=new TVar[size];
-#ifndef NODEBUG
+#ifndef PZNODEBUG
         if ( fElem == NULL && size) Error( "Constructor <memory allocation error>." );
 #endif
     }
@@ -615,7 +615,7 @@ inline const TVar TPZFMatrix<TVar>::GetVal( const int64_t row, const int64_t col
 
 template<class TVar>
 inline TVar &TPZFMatrix<TVar>::operator()( const int64_t row, const int64_t col) {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
         DebugStop();
@@ -626,7 +626,7 @@ inline TVar &TPZFMatrix<TVar>::operator()( const int64_t row, const int64_t col)
 
 template<class TVar>
 inline TVar TPZFMatrix<TVar>::operator()( const int64_t row, const int64_t col) const {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
         DebugStop();
@@ -682,7 +682,7 @@ inline int TPZFMatrix<TVar>::Redim(const int64_t newRows,const int64_t newCols) 
     } else {
         this->fElem = new TVar[ newsize ] ;
     }
-#ifndef NODEBUG
+#ifndef PZNODEBUG
     if (newsize && this->fElem == NULL )
         Error( "Resize <memory allocation error>." );
 #endif

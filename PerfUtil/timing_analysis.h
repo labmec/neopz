@@ -20,8 +20,8 @@
 #ifndef NDEBUG
 #error "PERF_ANALYSIS require the code to be compiled with NDEBUG"
 #endif
-#ifndef NODEBUG
-#error "PERF_ANALYSIS require the code to be compiled with NODEBUG"
+#ifndef PZNODEBUG
+#error "PERF_ANALYSIS require the code to be compiled with PZNODEBUG"
 #endif
 #if (defined PZ_LOG) && !(defined PERF_DEBUG)
 #error "PERF_ANALYSIS require the code to be compiled without PZ_LOG"

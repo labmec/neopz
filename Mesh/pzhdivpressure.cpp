@@ -159,7 +159,7 @@ int TPZCompElHDivPressure<TSHAPE>::NConnects() const {
 
 template<class TSHAPE>
 void TPZCompElHDivPressure<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 		if(i<0 || i>= this->NConnects()) {
 				std::cout << " TPZCompElHDivPressure<TSHAPE>::SetConnectIndex index " << i <<
 				" out of range\n";
@@ -216,7 +216,7 @@ void TPZCompElHDivPressure<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
 
 template<class TSHAPE>
 int64_t TPZCompElHDivPressure<TSHAPE>::ConnectIndex(int con) const{
-//#ifndef NODEBUG
+//#ifndef PZNODEBUG
 //		if(con<0 || con>= this->NConnects()) {
 //				std::cout << "TPZCompElHDivPressure::ConnectIndex wrong parameter connect " << con <<
 //				" NConnects " << this-> NConnects() << std::endl;

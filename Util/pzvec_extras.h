@@ -97,7 +97,7 @@ double sdot(TPZVec< T1 > & x, TPZVec< T1 > & y) {
     int size = x.NElements();
     double sum = 0.0;
 
-#ifndef NODEBUG
+#ifndef PZNODEBUG
     if (size != y.NElements()) {
         PZError << "SDOT error!" << std::endl
                 << "Vectors with different sizes #x = " << size

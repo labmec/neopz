@@ -120,7 +120,7 @@ MElementType TPZIntelGen<TSHAPE>::Type() {
 
 template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if(i<0 || i>= TSHAPE::NSides) {
 		std::cout << " TPZIntelGen<TSHAPE>::SetConnectIndex index " << i <<
 		" out of range\n";
@@ -194,7 +194,7 @@ int TPZIntelGen<TSHAPE>::PreferredSideOrder(int side) {
 template<class TSHAPE>
 int64_t TPZIntelGen<TSHAPE>::ConnectIndex(int con) const{
 	
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if(con<0 || con>= NConnects()) {
 		std::cout << "TPZIntelgen::ConnectIndex wrong parameter con " << con <<
 		" NSides " << TSHAPE::NSides << " NConnects " << NConnects() << std::endl;

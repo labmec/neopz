@@ -199,7 +199,7 @@ int TPZCompElHDiv<TSHAPE>::NConnects() const {
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if(i<0 || i>= this->NConnects()) {
 		std::cout << " TPZCompElHDiv<TSHAPE>::SetConnectIndex index " << i <<
 		" out of range\n";
@@ -515,7 +515,7 @@ int TPZCompElHDiv<TSHAPE>::PreferredSideOrder(int side) {
 
 template<class TSHAPE>
 int64_t TPZCompElHDiv<TSHAPE>::ConnectIndex(int con) const{
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if(con<0 || con > TSHAPE::NFacets) {
 		std::cout << "TPZCompElHDiv::ConnectIndex wrong parameter connect " << con <<
 		" NConnects " << TSHAPE::NFacets << std::endl;
@@ -525,7 +525,7 @@ int64_t TPZCompElHDiv<TSHAPE>::ConnectIndex(int con) const{
 
 #endif
 
-//    #ifndef NODEBUG
+//    #ifndef PZNODEBUG
 //    	if(con<0) {
 //    		std::cout << "TPZCompElHDiv::ConnectIndex wrong parameter connect " << con <<
 //    		" NConnects " << this-> NConnects() << std::endl;

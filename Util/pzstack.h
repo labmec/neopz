@@ -56,7 +56,7 @@ public:
 	/** 
 	 * If no objects exist on the stack, the method will return an
 	 * object created with the empty constructor. \n 
-	 * If the NODEBUG is not defined and no * object exists on the stack, a warning
+	 * If the PZNODEBUG is not defined and no * object exists on the stack, a warning
 	 * message is sent to PZError.
 	 */
 	T Pop();

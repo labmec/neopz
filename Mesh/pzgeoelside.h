@@ -382,7 +382,7 @@ std::ostream  &operator << (std::ostream & out,const TPZGeoElSide &geoside);
 
 inline void TPZGeoElSide::AllNeighbours(TPZStack<TPZGeoElSide> &allneigh) {
 	TPZGeoElSide neigh = Neighbour();
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if(! Exists() || ! neigh.Exists()) 
     {
 		std::cout << "TPZGeoElSide AllNeighbours inconsistent\n";

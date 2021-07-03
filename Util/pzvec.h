@@ -110,7 +110,7 @@ public:
 	TPZVec<T>& operator=(const T& a);
 	
 	/**
-	 * @brief Access operator, will perform bounds checking unless the variable NODEBUG is defined
+	 * @brief Access operator, will perform bounds checking unless the variable PZNODEBUG is defined
 	 * @param index element in the vector which will be acessed
 	 * @return a reference to the element specified by index\
 	 */
@@ -253,7 +253,7 @@ inline TPZVec<T>::TPZVec() : fStore( nullptr ), fNElements( 0 ), fNAlloc(0)
 template< class T >
 TPZVec<T>::TPZVec( const int64_t size ) : fStore( nullptr )
 {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if( size < 0 )
 	{
 		PZError << __PRETTY_FUNCTION__;
@@ -280,7 +280,7 @@ TPZVec<T>::TPZVec( const int64_t size ) : fStore( nullptr )
 template< class T >
 TPZVec<T>::TPZVec( const int64_t size, const T& copy ) : fStore( nullptr )
 {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if( size < 0 )
 	{
 		PZError << __PRETTY_FUNCTION__;
@@ -421,7 +421,7 @@ TPZVec<T>& TPZVec<T>::operator=( const T& a )
 
 template< class T >
 void TPZVec<T>::Resize(const int64_t newsize,const T& object) {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if(newsize<0) {
 		PZError << "TPZVec::Resize. Bad parameter newsize." << std::endl;
 		PZError.flush();
@@ -453,7 +453,7 @@ void TPZVec<T>::Resize(const int64_t newsize,const T& object) {
 
 template< class T >
 void TPZVec<T>::Resize(const int64_t newsize) {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
     //	int64_t nlongsize = 2147483647;
 	if(newsize<0) {
 		PZError << "TPZVec::Resize. Bad parameter newsize: " << newsize <<  std::endl;
@@ -515,7 +515,7 @@ T *TPZVec<T>::end() const {
 
 template< class T >
 void TPZVec<T>::Fill(const T& copy, const int64_t from, const int64_t numelem){
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if(numelem<0 && numelem != -1) {
 		PZError << "TPZVec::Fill" << std::endl
 		<< "It's negative parameter numelem, then numelem = "

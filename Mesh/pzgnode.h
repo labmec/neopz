@@ -97,7 +97,7 @@ int ClassId() const override;
 };
 
 inline REAL TPZGeoNode::Coord(int i) const {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if(i > 2 || i < 0) {
 		PZError << "Not exist (TPZGeoNode) coordinate " << i << std::endl;
 		return 1.e12;

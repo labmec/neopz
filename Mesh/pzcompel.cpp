@@ -277,7 +277,7 @@ TPZCompMesh *TPZCompEl::Mesh() const {
 }
 
 TPZConnect &TPZCompEl::Connect(int i) const{
-#ifndef NODEBUG
+#ifndef PZNODEBUG
     if(fMesh) {
         int64_t connectindex = ConnectIndex(i);
         if(connectindex >= 0) {

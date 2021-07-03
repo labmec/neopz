@@ -524,7 +524,7 @@ inline int TPZInt1Point::NPoints() const{
 }
 
 inline void TPZInt1Point::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if(ip!=0) {
 		std::cout << "TPZInt1Point:: Bad number point " << ip << std::endl;
 		return;

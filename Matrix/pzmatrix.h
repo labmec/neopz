@@ -820,7 +820,7 @@ inline const TVar TPZMatrix<TVar>::Get(const int64_t row, const int64_t col ) co
 template<class TVar>
 inline TVar &TPZMatrix<TVar>::operator()(const int64_t row, const int64_t col) {
 	// bound checking
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col<0 ) {
 		Error("TPZMatrix<TVar>::Operator()","Index out of range");
         DebugStop();
@@ -832,7 +832,7 @@ inline TVar &TPZMatrix<TVar>::operator()(const int64_t row, const int64_t col) {
 template<class TVar>
 inline TVar TPZMatrix<TVar>::operator()(const int64_t row, const int64_t col) const{
 	// bound checking
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col<0 ) {
 		Error("TPZMatrix<TVar>::Operator()","Index out of range");
         DebugStop();

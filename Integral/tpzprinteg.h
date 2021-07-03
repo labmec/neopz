@@ -64,7 +64,7 @@ public:
     }
     void SetOrder(TPZVec<int> &ord, int type = 0) override
     {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 		if(ord.NElements() < Dim) {
 			std::cout << "TPZPrInteg::SetOrder: number of integration points specified smaller than dimension\n";
 			return;
@@ -76,7 +76,7 @@ public:
     }
     void GetOrder(TPZVec<int> &ord) const override
     {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
 		if(ord.NElements() < Dim) {
 			std::cout << "TPZPrInteg::GetOrder: number of integration points specified smaller than dimension\n";
 			return;

@@ -246,9 +246,9 @@ public:
 
     /** @brief Returns a reference to the ith element of the vector. */
     /**
-     * If NODEBUG is defined, the element is returned without any
+     * If PZNODEBUG is defined, the element is returned without any
      * bounds checking, else a bounds check is performed and the \n
-     * code exits if the index is out of bounds.  Note that NODEBUG
+     * code exits if the index is out of bounds.  Note that PZNODEBUG
      * may modify the result of the code.
      */
     T &operator[](const int64_t nelem) const;
@@ -313,7 +313,7 @@ TPZChunkVector<T, EXP>::~TPZChunkVector() {
 
 template< class T, int EXP>
 void TPZChunkVector<T, EXP>::Resize(const int64_t newsize) {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
     if (newsize < 0) {
         PZError << "TPZChunkVector::Resize. Bad parameter newsize." << std::endl;
         PZError.flush();
@@ -372,7 +372,7 @@ int64_t TPZChunkVector<T, EXP>::FindObject(T *obj) {
 
 template< class T, int EXP >
 inline T &TPZChunkVector<T, EXP>::operator[](const int64_t nelem) const {
-#ifndef NODEBUG
+#ifndef PZNODEBUG
     if (nelem < 0 || nelem >= NElements()) {
         PZError << "TPZChunkVector::operator[]. "
                 << "Bad parameter nelem." << nelem << " NElements "
