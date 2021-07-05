@@ -122,7 +122,7 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
                 internals that were included in the k-1 set of funcs*/
               int countInt = 0;
               for(int ifunc = 0; ifunc < nFuncsH1; ifunc++){
-                if(shapeorders(ifunc,0) < order) {countInt++;}
+                if(shapeorders(ifunc,0) <= order) {countInt++;}
               }
               count += 3* countInt;
 
