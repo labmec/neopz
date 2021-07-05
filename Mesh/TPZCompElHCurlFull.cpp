@@ -194,7 +194,7 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
     TPZManVector<int64_t, TSHAPE::NSides - nNodes> firstH1ShapeFunc(TSHAPE::NSides - nNodes,
                                                                                   0);
     //calculates the first shape function associated with each side of dim > 0
-    TPZManVector<int,TSHAPE::NSides-nNodes> sidesH1Ord(TSHAPE::NSides - nNodes);
+    TPZManVector<int,TSHAPE::NSides-nNodes> sidesH1Ord(TSHAPE::NSides - nNodes,-1);
     this->CalculateSideShapeOrders(sidesH1Ord);
     firstH1ShapeFunc[0] = nNodes;
     for (int iSide = nNodes + 1; iSide < TSHAPE::NSides; iSide++) {
@@ -502,8 +502,7 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
         const int iCon = nEdges + nFaces;
         //first, the phi KF functions
         for(int iFace = 0; iFace < nFaces; iFace++){
-            const auto faceOrder = TSIDESHAPE::Type(iFace) == EQuadrilateral ?
-                sidesH1Ord[nEdges+iFace] - 1 : sidesH1Ord[nEdges+iFace];
+            const auto faceOrder = sidesH1Ord[nEdges+iFace];
             const auto nFaceInternalHCurlFuncs =
                 TSIDESHAPE::NConnectShapeF(iFace + nEdges + nNodes,faceOrder);
             const auto vecIndex = firstVfOrthVec + iFace;
@@ -514,35 +513,53 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
                 shapeCountVec[iCon]++;
             }
         }
+        //for the hexahedral element we need some internal functions of k+1
+        const auto h1SideOrder = sidesH1Ord[nEdges+nFaces];
+        //hcurl connect order
         const auto sideOrder = connectOrder[iCon];
         //now the phi Ki funcs
         const int firstInternalVec = firstVfOrthVec + nFaces;
         //ALL H1 internal functions
-        const auto nH1Internal = TSIDESHAPE::NConnectShapeF(TSIDESHAPE::NSides - 1, sideOrder);
-        const auto nInternalFuncs = 3 * nH1Internal;
+        const auto nH1Internal =
+            TSIDESHAPE::NConnectShapeF(TSIDESHAPE::NSides - 1, h1SideOrder);
         //only for hexahedron
         TPZGenMatrix<int> shapeorders(nH1Internal,3);
-        if constexpr(TSIDESHAPE::Type() == ECube)
-          {
+        if constexpr(TSIDESHAPE::Type() == ECube){
             //not really used since we are interested in internal funcs
-            TPZManVector<int64_t,0> idvec(0);
-            TSHAPE::SideShapeOrder(TSIDESHAPE::NSides-1,idvec,
-                                   sideOrder,shapeorders);
-          }
-        for(auto iFunc = 0; iFunc < nInternalFuncs; iFunc++ ){
+            TSHAPE::SideShapeOrder(TSIDESHAPE::NSides-1,nodeIds,
+                                   h1SideOrder,shapeorders);
+        }
+        const auto xVecIndex = firstInternalVec + 0;
+        const auto yVecIndex = firstInternalVec + 1;
+        const auto zVecIndex = firstInternalVec + 2;
+
+        auto addFunc = [&indexVecShape,&shapeCount,&shapeCountVec,iCon](
+            int vIndex, int sIndex){
+            indexVecShape[shapeCount] = std::make_pair(vIndex, sIndex);
+            shapeCount++;
+            shapeCountVec[iCon]++;
+        };
+        
+        for(auto iFunc = 0; iFunc < nH1Internal; iFunc++ ){
           //it should alternate between them
-          const auto dir = iFunc % 3;
-          const auto vecIndex = firstInternalVec + dir;
-          const auto intShapeIndex = iFunc/3;
-          const auto shapeIndex = firstH1ShapeFunc[iCon] + intShapeIndex;
+          const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc;
           if constexpr(TSIDESHAPE::Type() == ECube)
             {
-              if(shapeorders(intShapeIndex,dir) >= sideOrder)
-                {continue;}
+              if(shapeorders(iFunc,0) <= sideOrder){
+                  addFunc(xVecIndex,shapeIndex);
+              }
+              if(shapeorders(iFunc,1) <= sideOrder){
+                  addFunc(yVecIndex,shapeIndex);
+              }
+              if(shapeorders(iFunc,2) <= sideOrder){
+                  addFunc(zVecIndex,shapeIndex);
+              }
             }
-          indexVecShape[shapeCount] = std::make_pair(vecIndex, shapeIndex);
-          shapeCount++;
-          shapeCountVec[iCon]++;
+          else{
+              addFunc(xVecIndex,shapeIndex);
+              addFunc(yVecIndex,shapeIndex);
+              addFunc(zVecIndex,shapeIndex);
+          }
         }
     }
 }
