@@ -61,8 +61,10 @@ protected:
                                       const TPZVec<int64_t>& nodeIds);
 
     /**
-     * @brief This method calculates the appropriate side orders for the correct calculation of the SCALAR shape functions.
-     * @param[out] ord Vector that will be filled with the corresponding order of each connect to compute the desired h1 functions
+       @brief This method calculates the appropriate side orders for the correct calculation of the SCALAR shape functions.
+       @param[out] ord Vector that will be filled with the corresponding order of each connect to compute the desired h1 functions
+       @note since the h1 vertex functions are always needed, ord has size 
+       `NSides-NCornerNodes`.
      */
     void CalculateSideShapeOrders(TPZVec<int> &ord) const override;
 };
