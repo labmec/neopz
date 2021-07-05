@@ -67,6 +67,20 @@ protected:
        `NSides-NCornerNodes`.
      */
     void CalculateSideShapeOrders(TPZVec<int> &ord) const override;
+protected:
+    /**
+       @brief Internal method for calculating the needed h1 order for each side given
+       the HCurl connect orders listed in `ordHCurl` param
+       @param[in] ordHCurl The effective order of each HCurl connect associated with
+       a the side of shape TSIDESHAPE
+       @param[out] the order of the h1 connects needed for computing the hcurl functions
+       
+       @note since the h1 vertex functions are always needed, ord has size 
+       `NSides-NCornerNodes`.
+     */
+    template<class TSIDESHAPE=TSHAPE>
+    static void StaticCalculateSideShapeOrders(const TPZVec<int> &ordHCurl,
+                                               TPZVec<int> &ord);
 };
 
 

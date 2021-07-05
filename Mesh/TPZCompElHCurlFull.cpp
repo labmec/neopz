@@ -564,42 +564,58 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
     }
 }
 
+
 template<class TSHAPE>
 void TPZCompElHCurlFull<TSHAPE>::CalculateSideShapeOrders(TPZVec<int> &ord) const{
-    constexpr auto nConnects = TSHAPE::NSides-TSHAPE::NCornerNodes;
-    if(ord.size() != nConnects)  ord.Resize(nConnects,-1);
+    const auto nConnects = this->NConnects();
+    TPZVec<int> hcurlOrders(nConnects);
+    for(auto i = 0; i < nConnects; i++){
+        hcurlOrders[i] = this->EffectiveSideOrder(TSHAPE::NCornerNodes + i);
+    }
+    StaticCalculateSideShapeOrders<TSHAPE>(hcurlOrders, ord);
+}
+
+template<class TSHAPE>
+template<class TSIDESHAPE>
+void TPZCompElHCurlFull<TSHAPE>::StaticCalculateSideShapeOrders(
+    const TPZVec<int> &ordHCurl,
+    TPZVec<int> &ordH1)
+{
+    constexpr auto nConnects = TSIDESHAPE::NSides-TSIDESHAPE::NCornerNodes;
+    if(ordH1.size() != nConnects)  ordH1.Resize(nConnects,-1);
     for(auto iCon = 0; iCon < nConnects; iCon++){
-        const auto iSide = iCon + TSHAPE::NCornerNodes;
-        const auto sideDim = TSHAPE::SideDimension(iSide);
-        const bool quadSide = TSHAPE::Type(iSide) == EQuadrilateral ||
-            TSHAPE::Type(iSide) == ECube;
+        const auto iSide = iCon + TSIDESHAPE::NCornerNodes;
+        const auto sideDim = TSIDESHAPE::SideDimension(iSide);
+        const bool quadSide = TSIDESHAPE::Type(iSide) == EQuadrilateral ||
+            TSIDESHAPE::Type(iSide) == ECube;
         /*some H1 functions associated with the side iSide of dimension dim 
           might be needed for computing the shape functions of a side with 
           dimension dim+1 that contains the side iSide.
           It is also worth noting that quadrilateral sides require functions
-          of order k+1*/
+          of ordH1er k+1*/
         TPZStack<int> highDimSides;
-        TSHAPE::HigherDimensionSides(iSide, highDimSides);
-        const auto sideOrder = this->EffectiveSideOrder(iSide);
+        TSIDESHAPE::HigherDimensionSides(iSide, highDimSides);
+        const auto sideOrder = ordHCurl[iCon];
         auto maxOrder = quadSide ? sideOrder + 1: sideOrder;
         for(auto &iHighSide : highDimSides){
-            if(TSHAPE::SideDimension(iHighSide) != sideDim+1) break;
+            if(TSIDESHAPE::SideDimension(iHighSide) != sideDim+1) break;
             else {
-                const auto hSideOrder = this->EffectiveSideOrder(iHighSide);
-                const auto hQuadSide = TSHAPE::Type(iHighSide) == EQuadrilateral ||
-                    TSHAPE::Type(iSide) == ECube;
+                const auto hSideOrder = ordHCurl[iHighSide-TSIDESHAPE::NCornerNodes];
+                const auto hQuadSide = TSIDESHAPE::Type(iHighSide) == EQuadrilateral ||
+                    TSIDESHAPE::Type(iSide) == ECube;
                 const auto hMaxOrder = hQuadSide ? hSideOrder + 1 : hSideOrder;
                 maxOrder = std::max(maxOrder, hMaxOrder);
             }
         }
-        ord[iCon] = maxOrder;
+        ordH1[iCon] = maxOrder;
     }
 }
 
 template<class TSHAPE>
 void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
-    const int sideDim = TSHAPE::SideDimension(side);
     const int dim = TSHAPE::Dimension;
+    const int sideDim = TSHAPE::SideDimension(side);
+    const MElementType sidetype = TSHAPE::Type(side);
 #ifdef PZDEBUG
     if(side >= TSHAPE::NSides || side < TSHAPE::NCornerNodes){
         PZError<<__PRETTY_FUNCTION__<<"\n";
@@ -616,15 +632,44 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
     const int connectLocalId = this->MidSideConnectLocId(side);
     const int connectOrder = this->Connect(connectLocalId).Order();
     const int nContainedSides = TSHAPE::NContainedSides(side);
+    const int nSideNodes = TSHAPE::NSideNodes(side);
+    const int nSideConnects = nContainedSides - nSideNodes;
+    //vector with the connect order for each side of dim >=1 contained in side
+    TPZVec<int> ordHCurl(nSideConnects);
+    for (auto is=nSideNodes; is< nContainedSides; is++) {
+        const int subSide = TSHAPE::ContainedSideLocId(side,is);
+        ordHCurl[is-nSideNodes] = this->EffectiveSideOrder(subSide);
+    }
+    //get h1 connect orders
+    TPZVec<int> ordH1(nSideConnects);
+    switch(sidetype){
+    case EOned:
+        StaticCalculateSideShapeOrders<pztopology::TPZLine>(ordHCurl,
+                                                            ordH1);
+        break;
+    case ETriangle:
+        StaticCalculateSideShapeOrders<pztopology::TPZTriangle>(ordHCurl,
+                                                                ordH1);
+        break;
+    case EQuadrilateral:
+        StaticCalculateSideShapeOrders<pztopology::TPZQuadrilateral>(ordHCurl,
+                                                                     ordH1);
+        break;
+    default:
+        PZError<<__PRETTY_FUNCTION__
+               <<"\n invalid side type.Aborting...\n";
+        DebugStop();
+    }
+    //number of HCURL shape functions
     const int nSideShapes = [&]{
 
         int nShapes = 0;
-        for (auto is=0; is< nContainedSides; is++) {
+        for (auto is=nSideNodes; is< nContainedSides; is++) {
             const int subSide = TSHAPE::ContainedSideLocId(side,is);
             const int subSideDim = TSHAPE::SideDimension(subSide);
             if(subSideDim < 1) continue;
             const int subConnectLocalId = this->MidSideConnectLocId(subSide);
-            const int subConnectOrder = this->Connect(subConnectLocalId).Order();
+            const int subConnectOrder = ordHCurl[is-nSideNodes];
             nShapes += this->NConnectShapeF(subConnectLocalId,subConnectOrder);
         }
         return nShapes;
@@ -635,8 +680,6 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
     }
 #endif
     //get the ids of the side nodes
-    const int  nSideNodes = TSHAPE::NSideNodes(side);
-    const int nSideConnects = nContainedSides - nSideNodes;
     TPZGeoEl *gel = this->Reference();
     TPZManVector<int64_t,8> sideNodesId(nSideNodes);
     TPZManVector<int, 5> transformationIds(nSideConnects, -1);
@@ -644,56 +687,47 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
         const int localId = TSHAPE::SideNodeLocId(side,ic);
         sideNodesId[ic] = gel->Node(localId).Id();
     }
-    for (auto iSide = nSideNodes; iSide < nContainedSides; iSide++) {
-        MElementType sidetype = TSHAPE::Type(side);
-        transformationIds[iSide-nSideNodes] = [&](){
+    for (auto iSubSide = nSideNodes; iSubSide < nContainedSides; iSubSide++) {
+        transformationIds[iSubSide-nSideNodes] = [&](){
             switch(sidetype){
-                case EOned:
-                    return pztopology::TPZLine::GetTransformId(iSide, sideNodesId);
-                    break;
-                case ETriangle:
-                    return pztopology::TPZTriangle::GetTransformId(iSide, sideNodesId);
-                    break;
-                case EQuadrilateral:
-                    return pztopology::TPZQuadrilateral::GetTransformId(iSide, sideNodesId);
-                    break;
-                default:
-                    DebugStop();
-                    return -1;
+            case EOned:
+                return pztopology::TPZLine::GetTransformId(iSubSide,
+                                                           sideNodesId);
+                break;
+            case ETriangle:
+                return pztopology::TPZTriangle::GetTransformId(iSubSide,
+                                                               sideNodesId);
+                break;
+            case EQuadrilateral:
+                return pztopology::TPZQuadrilateral::GetTransformId(iSubSide,
+                                                                    sideNodesId);
+                break;
+            default:
+                DebugStop();
+                return -1;
             }
         }();
-//        const int localId = TSHAPE::ContainedSideLocId(side,iSide);
-//        transformationIds[iSide-nSideNodes] = TSHAPE::GetTransformId(localId, elNodes);
+//        const int localId = TSHAPE::ContainedSideLocId(side,iSubSide);
+//        transformationIds[iSubSide-nSideNodes] = TSHAPE::GetTransformId(localId, elNodes);
     }
 
 
-    //calculates the directions on the master element associated with the side and the indexes associating
-    //the side with the respective h1 scalar function
+    //calculates the directions on the master element associated with the side
+    //and the indexes associating the side with the respective h1 scalar function
     TPZFMatrix<REAL> sideMasterDirections(sideDim,sideDim * nContainedSides,0);
     TPZManVector<std::pair<int,int64_t>> indexVecShape(nSideShapes);
     {
         MElementType sidetype = TSHAPE::Type(side);
         TPZManVector<unsigned int,5> shapeCountVec(nSideConnects,-1);
         TPZManVector<int64_t,5> firstH1ShapeFunc(nSideConnects,-1);
-        //calculates the first SCALAR shape function associated with each side of dim > 0
-        TPZVec<int> sidesH1Ord(nSideConnects,-1);
-        TPZVec<int> connectOrders(nSideConnects,-1);
-        for(auto iCon = 0; iCon < nSideConnects; iCon++){
-            const auto iSide = iCon + TSHAPE::NCornerNodes;
-            const auto sideDim = TSHAPE::SideDimension(iSide);
-            TPZStack<int> highDimSides;
-            TSHAPE::HigherDimensionSides(iSide, highDimSides);
-            const auto ord = this->EffectiveSideOrder(iSide);
-            sidesH1Ord[iCon] = ord;
-            connectOrders[iCon] = ord;
 
-        }
-
+        //calculates the first SCALAR shape function associated with each
+        // side of dim > 0
         firstH1ShapeFunc[0] = nSideNodes;
         for (int iSide = nSideNodes + 1; iSide < nContainedSides; iSide++) {
             const int prevLocalId = TSHAPE::ContainedSideLocId(side,iSide-1);
             const int &lastFirstH1 = firstH1ShapeFunc[iSide - nSideNodes - 1];
-            const int nShapeF = TSHAPE::NConnectShapeF(prevLocalId, sidesH1Ord[iSide-nSideNodes-1]);
+            const int nShapeF = TSHAPE::NConnectShapeF(prevLocalId, ordH1[iSide-nSideNodes-1]);
             firstH1ShapeFunc[iSide - nSideNodes] = lastFirstH1 + nShapeF;
 //            firstH1ShapeFunc[iSide - nSideNodes] = firstH1ShapeFunc[iSide - nSideNodes - 1]
 //                                                + TSHAPE::NConnectShapeF(prevCon, sidesH1Ord[iSide-nSideNodes-1]);
@@ -708,21 +742,21 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-
+        //calculates hcurl dirs and vec shape index
         TPZFNMatrix<9,REAL> gradxSide(sideDim,sideDim,0);
         for(auto ix = 0; ix < sideDim; ix++) gradxSide(ix,ix) = 1;
         switch (sidetype) {
             case EOned://these wont be really used, just for signs purposes
                 pztopology::TPZLine::ComputeHCurlDirections(gradxSide,sideMasterDirections,transformationIds);
-                StaticIndexShapeToVec<pzshape::TPZShapeLinear>(indexVecShape,connectOrders,firstH1ShapeFunc,sidesH1Ord,shapeCountVec,sideNodesId);
+                StaticIndexShapeToVec<pzshape::TPZShapeLinear>(indexVecShape,ordHCurl,firstH1ShapeFunc,ordH1,shapeCountVec,sideNodesId);
                 break;
             case EQuadrilateral:
                 pztopology::TPZQuadrilateral::ComputeHCurlDirections(gradxSide,sideMasterDirections,transformationIds);
-                StaticIndexShapeToVec<pzshape::TPZShapeQuad>(indexVecShape,connectOrders,firstH1ShapeFunc,sidesH1Ord,shapeCountVec,sideNodesId);
+                StaticIndexShapeToVec<pzshape::TPZShapeQuad>(indexVecShape,ordHCurl,firstH1ShapeFunc,ordH1,shapeCountVec,sideNodesId);
                 break;
             case ETriangle:
                 pztopology::TPZTriangle::ComputeHCurlDirections(gradxSide,sideMasterDirections,transformationIds);
-                StaticIndexShapeToVec<pzshape::TPZShapeTriang>(indexVecShape,connectOrders,firstH1ShapeFunc,sidesH1Ord,shapeCountVec,sideNodesId);
+                StaticIndexShapeToVec<pzshape::TPZShapeTriang>(indexVecShape,ordHCurl,firstH1ShapeFunc,ordH1,shapeCountVec,sideNodesId);
                 break;
             default:
                 DebugStop();
@@ -737,9 +771,9 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
     gelside.Jacobian(point, jac, axes, detjac, jacinv);
 
     //compute side scalar shape functions
-    TPZManVector<int,TSHAPE::NSides> ord(TSHAPE::NSides,connectOrder);
     TPZFNMatrix<50,REAL> phiSide(nSideShapes,1),dPhiSide(sideDim,nSideShapes);
-    TSHAPE::SideShape(side, point, sideNodesId, ord, phiSide, dPhiSide);
+    TSHAPE::SideShape(side, point, sideNodesId, ordH1, phiSide, dPhiSide);
+    
     const int phiDim = [&](){
         switch(sideDim){
             case 1: return 1;
@@ -749,7 +783,7 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
                 return -1;
         }
     }();
-
+    //gets sideDeformedDirections
     TPZFMatrix<REAL> sideDeformedDirections(3,sideDim * nContainedSides,0);
     const int nVec = sideMasterDirections.Cols();
     for (auto iVec = 0; iVec < nVec; iVec++) {
@@ -764,6 +798,8 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
             for (auto j = 0; j < sideDim; j++) sideDeformedDirections(i, iVec) += axes(j, i) * tempDirection[j];
         }
     }
+
+    //calculates phi
     phi.Redim(nSideShapes,3);
     TPZHCurlAuxClass::ComputeShape(indexVecShape, phiSide, sideDeformedDirections,phi);
 
