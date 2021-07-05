@@ -230,10 +230,11 @@ protected:
     virtual void IndexShapeToVec(TPZVec<std::pair<int,int64_t> > & indexVecShape, const TPZVec<int>& connectOrder) const = 0;
 
     /**
-     * @brief This method calculates the appropriate side orders for the correct calculation of the SCALAR shape functions.
-     * @param[out] ord Order of the side connects different from the corner connects to compute the desired h1 functions
+       @brief Computes the needed order of the H1 functions for creating the HCurl functions.
+       @param[out] ord Order of the side connects different from the corner connects to compute the desired h1 functions
+       @note This method skips the h1 connects associated with vertices
      */
-    virtual void CalculateSideShapeOrders(TPZVec<int> &ord) const = 0;
+    virtual void CalcH1ShapeOrders(TPZVec<int> &ord) const = 0;
 
 
     void CalcShapeSideTraces(const int side, const TPZFMatrix<REAL> &phi,

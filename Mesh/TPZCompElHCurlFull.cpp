@@ -195,7 +195,7 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
                                                                                   0);
     //calculates the first shape function associated with each side of dim > 0
     TPZManVector<int,TSHAPE::NSides-nNodes> sidesH1Ord(TSHAPE::NSides - nNodes,-1);
-    this->CalculateSideShapeOrders(sidesH1Ord);
+    this->CalcH1ShapeOrders(sidesH1Ord);
     firstH1ShapeFunc[0] = nNodes;
     for (int iSide = nNodes + 1; iSide < TSHAPE::NSides; iSide++) {
         const int iCon = iSide - nNodes;
@@ -566,18 +566,18 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
 
 
 template<class TSHAPE>
-void TPZCompElHCurlFull<TSHAPE>::CalculateSideShapeOrders(TPZVec<int> &ord) const{
+void TPZCompElHCurlFull<TSHAPE>::CalcH1ShapeOrders(TPZVec<int> &ord) const{
     const auto nConnects = this->NConnects();
     TPZVec<int> hcurlOrders(nConnects);
     for(auto i = 0; i < nConnects; i++){
         hcurlOrders[i] = this->EffectiveSideOrder(TSHAPE::NCornerNodes + i);
     }
-    StaticCalculateSideShapeOrders<TSHAPE>(hcurlOrders, ord);
+    StaticCalcH1ShapeOrders<TSHAPE>(hcurlOrders, ord);
 }
 
 template<class TSHAPE>
 template<class TSIDESHAPE>
-void TPZCompElHCurlFull<TSHAPE>::StaticCalculateSideShapeOrders(
+void TPZCompElHCurlFull<TSHAPE>::StaticCalcH1ShapeOrders(
     const TPZVec<int> &ordHCurl,
     TPZVec<int> &ordH1)
 {
@@ -644,15 +644,15 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
     TPZVec<int> ordH1(nSideConnects);
     switch(sidetype){
     case EOned:
-        StaticCalculateSideShapeOrders<pztopology::TPZLine>(ordHCurl,
+        StaticCalcH1ShapeOrders<pztopology::TPZLine>(ordHCurl,
                                                             ordH1);
         break;
     case ETriangle:
-        StaticCalculateSideShapeOrders<pztopology::TPZTriangle>(ordHCurl,
+        StaticCalcH1ShapeOrders<pztopology::TPZTriangle>(ordHCurl,
                                                                 ordH1);
         break;
     case EQuadrilateral:
-        StaticCalculateSideShapeOrders<pztopology::TPZQuadrilateral>(ordHCurl,
+        StaticCalcH1ShapeOrders<pztopology::TPZQuadrilateral>(ordHCurl,
                                                                      ordH1);
         break;
     default:

@@ -466,7 +466,7 @@ void TPZCompElHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZF
     }
     constexpr auto nConnects{TSHAPE::NSides-TSHAPE::NCornerNodes};
     TPZManVector<int, nConnects> ord(nConnects,0);
-    CalculateSideShapeOrders(ord);
+    CalcH1ShapeOrders(ord);
     const int nShape = TSHAPE::NShapeF(ord);
 
     phi.Redim(nShape, 1);

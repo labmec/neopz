@@ -66,7 +66,7 @@ protected:
        @note since the h1 vertex functions are always needed, ord has size 
        `NSides-NCornerNodes`.
      */
-    void CalculateSideShapeOrders(TPZVec<int> &ord) const override;
+    void CalcH1ShapeOrders(TPZVec<int> &ord) const override;
 protected:
     /**
        @brief Internal method for calculating the needed h1 order for each side given
@@ -79,8 +79,8 @@ protected:
        `NSides-NCornerNodes`.
      */
     template<class TSIDESHAPE=TSHAPE>
-    static void StaticCalculateSideShapeOrders(const TPZVec<int> &ordHCurl,
-                                               TPZVec<int> &ord);
+    static void StaticCalcH1ShapeOrders(const TPZVec<int> &ordHCurl,
+                                             TPZVec<int> &ord);
 };
 
 
