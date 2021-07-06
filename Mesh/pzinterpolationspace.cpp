@@ -275,7 +275,7 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 template<class TVar>
 void TPZInterpolationSpace::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
                                                 TPZVec<REAL> &qsi){
-    data.intGlobPtIndex = -1;
+//    data.intGlobPtIndex = -1;
     this->ComputeShape(qsi, data);
     
     if (data.fNeedsSol){
