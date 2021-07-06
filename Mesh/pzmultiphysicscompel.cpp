@@ -22,7 +22,7 @@
 #include "TPZGeoLinear.h"
 #include "pzgeopyramid.h"
 #include "TPZMaterial.h"
-#include "TPZNullMaterial.h"
+#include "TPZNullMaterialCS.h"
 #include "TPZElementMatrixT.h"
 #include "pzconnect.h"
 #include "pzinterpolationspace.h"
@@ -805,7 +805,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiffT(TPZElementMatrixT<TVar> &ek, T
         return;
     }
     
-    auto *nullmat = dynamic_cast<TPZNullMaterial<TVar> *>(material);
+    auto *nullmat = dynamic_cast<TPZNullMaterialCS<TVar> *>(material);
     if(nullmat)
     {
         ek.Reset();
@@ -1149,7 +1149,7 @@ template<class TGeometry>
 template<class TVar>
 void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool store_errors) {
   errors.Fill(0.);
-  auto *nullmat = dynamic_cast<TPZNullMaterial<TVar> *>(this->Material());
+  auto *nullmat = dynamic_cast<TPZNullMaterialCS<TVar> *>(this->Material());
     if(nullmat) return;
   auto *mat =
       dynamic_cast<TPZMatCombinedSpacesT<TVar>*>(this->Material());
