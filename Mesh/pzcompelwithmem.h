@@ -264,7 +264,10 @@ template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialDataT<STATE> &data,
                                                          TPZVec<REAL> &qsi){
     TBASE::ComputeRequiredData(data, qsi);
-    data.intGlobPtIndex = GetGlobalIntegrationPointIndex(data);
+    if(fIntPtIndices.size())
+    {
+        data.intGlobPtIndex = GetGlobalIntegrationPointIndex(data);
+    }
     //material index for the n-th CompEl integration point
 }
 
@@ -272,7 +275,15 @@ template <class TBASE>
 inline int64_t TPZCompElWithMem<TBASE>::GetGlobalIntegrationPointIndex(TPZMaterialData &data)
 {
     int64_t glIntegralPt = -1;
-    if (data.intLocPtIndex >= 0) {
+    auto np = fIntPtIndices.size();
+#ifdef PZDEBUG
+    if(fIntPtIndices.size()==0 && data.intLocPtIndex)
+    {
+        std::cout << __PRETTY_FUNCTION__ << "\nInconsistent data structure intLocPtIndex "
+        << data.intLocPtIndex << " no point indices ";
+    }
+#endif
+    if (np && data.intLocPtIndex >= 0) {
         glIntegralPt = fIntPtIndices[ data.intLocPtIndex ]; // returning the
     }
     return glIntegralPt;
