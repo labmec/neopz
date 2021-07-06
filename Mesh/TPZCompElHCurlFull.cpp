@@ -334,12 +334,15 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
 #ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::ostringstream sout;
-        sout << "vec shape index (edge connects):" << std::endl;
-        for (int iShape = 0; iShape < firstFaceShape; iShape++) {
-            auto pair = indexVecShape[iShape];
-            sout << "\tvec: " << pair.first << "\tshape: " << pair.second << std::endl;
-
-        }
+        sout << __PRETTY_FUNCTION__ << '\n'
+             << " n shape funcs (edge connects): "<<shapeCount<<'\n';
+        //thats way too much info, uncomment if needed
+        
+        // sout << "vec shape index (edge connects):" << std::endl;
+        // for (int iShape = 0; iShape < firstFaceShape; iShape++) {
+        //     auto pair = indexVecShape[iShape];
+        //     sout << "\tvec: " << pair.first << "\tshape: " << pair.second << std::endl;
+        // }
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -487,12 +490,14 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
 #ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::ostringstream sout;
-        sout << "vec shape index (face connects):" << std::endl;
-        for (int iShape = firstFaceShape; iShape < firstInternalShape; iShape++) {
-            auto pair = indexVecShape[iShape];
-            sout << "\tvec: " << pair.first << "\tshape: " << pair.second << std::endl;
-
-        }
+        sout << "n shape funcs (face connects): "
+             << firstInternalShape - firstFaceShape << '\n';
+        //way too much info, uncomment if needed
+        // sout << "vec shape index (face connects):" << std::endl;
+        // for (int iShape = firstFaceShape; iShape < firstInternalShape; iShape++) {
+        //     auto pair = indexVecShape[iShape];
+        //     sout << "\tvec: " << pair.first << "\tshape: " << pair.second << std::endl;
+        // }
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -513,6 +518,8 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
                 shapeCountVec[iCon]++;
             }
         }
+
+        const auto nKfFuncs = shapeCount - firstInternalShape;
         //for the hexahedral element we need some internal functions of k+1
         const auto h1SideOrder = sidesH1Ord[nEdges+nFaces];
         //hcurl connect order
@@ -561,6 +568,19 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
               addFunc(zVecIndex,shapeIndex);
           }
         }
+
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
+            const auto nInternalFuncs = shapeCount - firstInternalShape;
+            const auto nKiFuncs = nInternalFuncs - nKfFuncs;
+            std::ostringstream sout;
+            sout << "n shape funcs (internal connect): "
+                 << shapeCount - firstInternalShape << '\n'
+                 << "\t n kf funcs : " << nKfFuncs 
+                 << "\t n ki funcs : " << nKiFuncs << '\n';
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
     }
 }
 
