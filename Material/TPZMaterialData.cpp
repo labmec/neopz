@@ -3,7 +3,7 @@
 
 TPZMaterialData::TPZMaterialData() :
     TPZRegisterClassId(&TPZMaterialData::ClassId), 
-    normal(3,0.),x(3,0.)
+    normal(3,0.),x(3,0.), fUserData(0)
 {
 
 }
