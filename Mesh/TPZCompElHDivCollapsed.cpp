@@ -475,14 +475,22 @@ int64_t TPZCompElHDivCollapsed<TSHAPE>::ConnectIndex(int con) const
 /**
  * @brief Destroy internally allocated data structures
  */
+//auto datapair = new std::pair<TPZMaterialDataT<TVar>,TPZMaterialDataT<TVar>>;
 template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::CleanupMaterialData(TPZMaterialData &data)
 {
-    std::pair<TPZMaterialDataT<STATE>,TPZMaterialDataT<STATE>> *userdataS = (std::pair<TPZMaterialDataT<STATE>,TPZMaterialDataT<STATE>> *) data.fUserData;
-    if(userdataS) delete userdataS;
-
-    std::pair<TPZMaterialDataT<CSTATE>,TPZMaterialDataT<CSTATE>> *userdataC = (std::pair<TPZMaterialDataT<CSTATE>,TPZMaterialDataT<CSTATE>> *) data.fUserData;
-    if(userdataC) delete userdataC;
+    TPZMaterialDataT<STATE> *dataS = dynamic_cast<TPZMaterialDataT<STATE> *>(&data);
+    if(dataS)
+    {
+        std::pair<TPZMaterialDataT<STATE>,TPZMaterialDataT<STATE>> *userdataS = (std::pair<TPZMaterialDataT<STATE>,TPZMaterialDataT<STATE>> *) data.fUserData;
+        if(userdataS) delete userdataS;
+    }
+    TPZMaterialDataT<CSTATE> *dataC = dynamic_cast<TPZMaterialDataT<CSTATE> *>(&data);
+    if(dataC)
+    {
+        std::pair<TPZMaterialDataT<CSTATE>,TPZMaterialDataT<CSTATE>> *userdataC = (std::pair<TPZMaterialDataT<CSTATE>,TPZMaterialDataT<CSTATE>> *) data.fUserData;
+        if(userdataC) delete userdataC;
+    }
     data.fUserData = nullptr;
 }
 
