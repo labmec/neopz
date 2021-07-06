@@ -89,9 +89,11 @@ public:
 //    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<int64_t> &indices);
     
     virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialDataT<STATE>> &datavec){
+        if(datavec.size()) ComputeRequiredData(datavec[0],point);
         ComputeRequiredDataT(point,trvec,datavec);
     }
     virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialDataT<CSTATE>> &datavec){
+        if(datavec.size()) ComputeRequiredData(datavec[0],point);
         ComputeRequiredDataT(point,trvec,datavec);
     }
     
