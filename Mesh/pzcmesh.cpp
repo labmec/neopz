@@ -567,14 +567,23 @@ void TPZCompMesh::LoadReferences() {
 }
 
 void TPZCompMesh::CleanUpUnconnectedNodes() {
+    // we assume the sequence numbers of the connects are distinct and that each
+    // connect with a sequence number >= 0 has a corresponding block
+    // the values of the solution vector will be permuted toghether with the sequence
+    // numbers
 	ComputeNodElCon();
-	int64_t i, nconnects = NConnects();
+	int64_t nconnects = NConnects();
     int64_t ndepblocks = 0, nvalidblocks = 0, nremoved = 0, ncondensed = 0, maxseq = -1, numnowithseq = 0;
-	for (i=0;i<nconnects;i++)
+    int64_t nblocks = fBlock.NBlocks();
+
+	for (int64_t i=0;i<nconnects;i++)
     {
 		TPZConnect &no = fConnectVec[i];
 		int64_t seq = no.SequenceNumber();
-        if(seq>maxseq) maxseq = seq;
+        // a connect with a sequence number needs a representation in the fblock
+        // data structure
+        if(seq >= 0 && seq >= nblocks) DebugStop();
+        if(seq > maxseq) maxseq = seq;
         if(seq >= 0) numnowithseq++;
         if(seq < 0 && (no.NElConnected() || no.IsCondensed()))
         {
@@ -595,13 +604,12 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
         }
 #endif
     }
+	int need = 0;
     if(maxseq != numnowithseq-1)
     {
-        std::cout << "Input sequence numbers inconsistent\n";
-        DebugStop();
+        need = 1;
     }
-	int need = 0;
-	for (i=0;i<nconnects;i++) {
+	for (int64_t i=0;i<nconnects;i++) {
 		TPZConnect &no = fConnectVec[i];
 		if (no.SequenceNumber() == -1) continue;
 		if (no.HasDependency() && no.NElConnected() == 0) {
@@ -627,83 +635,86 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 			break;
 		}
 	}
-	int64_t nblocks = fBlock.NBlocks();
-	TPZManVector<int64_t> permute(nblocks,-1), down(nblocks,0);
+    TPZManVector<int64_t> permute(nblocks,-1);
+    // the down datastructure will be equal 1 for the sequence numbers that
+    // have been assigned and zero for the others
+    // the down data structure allows for sequence numbers with "holes"
+    TPZManVector<int64_t> down(nblocks,0);
 	int64_t idepblocks = 0, iremovedblocks= 0, icondensed = 0;
 	
 	if (need) {
-		for(i=0; i<nconnects; i++) {
+		for(int64_t i=0; i<nconnects; i++) {
 			TPZConnect &no = fConnectVec[i];
 			if(no.SequenceNumber() == -1) continue;
 			int seq = no.SequenceNumber();
-            // a condensed connect will never by removed
+            // if the value of permute is not -1, then there are connects with
+            // duplicate sequence number
+            if(permute[seq] != -1) DebugStop();
+            // if the sequence number is larger than the number of blocks
+            // the datastructure is inconsistent
+            if(seq >= nblocks) DebugStop();
+            // a condensed connect cannot be removed
 			if(no.NElConnected() == 0 && !no.IsCondensed())
 			{
 				permute[seq] = nvalidblocks+ndepblocks+iremovedblocks+ncondensed;
-                if(permute[seq] > maxseq) DebugStop();
 				down[seq] = 1;
 				fBlock.Set(seq,0);
                 no.Reset();
-                //				no.SetSequenceNumber(-1);
 				fConnectVec.SetFree(i);
 				iremovedblocks++;
 			}
 			else if(no.HasDependency()) {
 				permute[seq] = nvalidblocks+ncondensed+idepblocks;
-                if(permute[seq] > maxseq) DebugStop();
 				down[seq] = 1;
 				idepblocks++;
 			}
             else if(no.IsCondensed())
             {
 				permute[seq] = nvalidblocks+icondensed;
-                if(permute[seq] > maxseq) DebugStop();
 				down[seq] = 1;
 				icondensed++;
-                
             }
 		}
-		for(i=1; i<nblocks; i++) down[i] += down[i-1];
-		for(i=0; i<nblocks; i++)
+		for(int64_t i=1; i<nblocks; i++) down[i] += down[i-1];
+		for(int64_t i=0; i<nblocks; i++)
 		{
 			if(permute[i] == -1)
 			{
 				permute[i] = i-down[i];
-                if(permute[i]> maxseq) DebugStop();
 			}
 		}
 	}
 #ifdef PZ_LOG
 	if(need)
         if (logger.isDebugEnabled())
-    {
-		std::stringstream sout;
-		sout << "permute to put the free connects to the back\n";
-        if(nblocks < 50)
         {
-            sout << "original sequence numbers|nelconected\n";
-            int64_t nel = fConnectVec.NElements();
-            for (int64_t el=0; el<nel; el++) {
-                TPZConnect &c = fConnectVec[el];
-                int64_t seqnum = c.SequenceNumber();
-                sout << seqnum << '|' << c.NElConnected() << " ";
+            std::stringstream sout;
+            sout << "permute to put the free connects to the back\n";
+            if(nblocks < 50)
+            {
+                sout << "original sequence numbers|nelconected\n";
+                int64_t nel = fConnectVec.NElements();
+                for (int64_t el=0; el<nel; el++) {
+                    TPZConnect &c = fConnectVec[el];
+                    int64_t seqnum = c.SequenceNumber();
+                    sout << seqnum << '|' << c.NElConnected() << " ";
+                }
+                sout << std::endl;
             }
-            sout << std::endl;
+            if(nblocks < 50) {
+                for (int64_t i=0;i<nblocks;i++) sout << permute[i] << ' ';
+                sout << std::endl;
+            }
+            sout << "need = " << need << endl;
+            LOGPZ_DEBUG(logger,sout.str());
         }
-        if(nblocks < 50) {
-            for (i=0;i<nblocks;i++) sout << permute[i] << ' ';
-            sout << std::endl;
-        }
-		sout << "need = " << need << endl;
-		LOGPZ_DEBUG(logger,sout.str());
-    }
 #endif
 	
 	if (need) {
 #ifdef PZDEBUG
 		std::set<int64_t> check;
 		nconnects = permute.NElements();
-		for(i=0; i<nconnects; i++)
+		for(int64_t i=0; i<nconnects; i++)
         {
             if(permute[i] < 0 || permute[i] >= nconnects)
             {
