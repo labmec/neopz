@@ -227,10 +227,9 @@ TPZCompElSide TPZHybridizeHDiv::RightElement(TPZInterpolatedElement *intel, int 
     return TPZCompElSide();
 }
 
-bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZMultiphysicsCompMesh* mmesh, TPZCompElSide& celsideright) {
+bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid) {
     
     // ==> Getting meshes
-    TPZVec<TPZCompMesh *> &meshvec_Hybrid = mmesh->MeshVector();
     TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
     TPZCompMesh *pressuremesh = meshvec_Hybrid[1];
     TPZGeoMesh *gmesh = fluxmesh->Reference();
@@ -239,7 +238,7 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     // ==> Splitting flux mesh connect
     gmesh->ResetReference();
     fluxmesh->LoadReferences();
-    celsideright = RightElement(intelleft, side);
+    TPZCompElSide celsideright = RightElement(intelleft, side);
     std::tuple<int64_t, int> pindexporder;
     if (celsideright) {
         pindexporder = SplitConnects(celsideleft, celsideright, meshvec_Hybrid);
@@ -353,6 +352,68 @@ void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hyb
     }
     pressuremesh->InitializeBlock();
     pressuremesh->SetDimModel(gmesh->Dimension());
+}
+
+void TPZHybridizeHDiv::CreateInterfaceElementsForGeoEl(TPZCompMesh *cmesh_Hybrid, TPZVec<TPZCompMesh *> &meshvec_Hybrid, TPZGeoEl *gel) {
+    
+    TPZCompMesh *pressuremesh = meshvec_Hybrid[1];
+    int dim = gel->Dimension()+1;
+    
+    cmesh_Hybrid->Reference()->ResetReference();
+    cmesh_Hybrid->LoadReferences();
+    
+    TPZStack<TPZCompElSide> celstack;
+//    TPZGeoEl *gel = cel->Reference();
+    TPZCompEl *mphysics = gel->Reference();
+    TPZGeoElSide gelside(gel, gel->NSides() - 1);
+    TPZCompElSide celside = gelside.Reference();
+    gelside.EqualLevelCompElementList(celstack, 0, 0);
+    int count = 0;
+    for (auto &celstackside : celstack) {
+        if (celstackside.Reference().Element()->Dimension() == dim - 1) {
+            int matid = fInterfaceMatid.first;
+            if(count == 1) matid = fInterfaceMatid.second;
+            TPZGeoElBC gbc(gelside, matid);
+            // check if the right side has a dependency
+            TPZCompEl *celneigh = celstackside.Element();
+            if (celneigh->NConnects() != 1) {
+                DebugStop();
+            }
+            int64_t index;
+            TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), index, celside, celstackside);
+            count++;
+        }
+    }
+    if (count == 1)
+    {
+        TPZCompElSide clarge = gelside.LowerLevelCompElementList2(false);
+        if(!clarge) DebugStop();
+        TPZGeoElSide glarge = clarge.Reference();
+        if (glarge.Element()->Dimension() == dim) {
+            TPZGeoElSide neighbour = glarge.Neighbour();
+            while(neighbour != glarge)
+            {
+                if (neighbour.Element()->Dimension() < dim) {
+                    break;
+                }
+                neighbour = neighbour.Neighbour();
+            }
+            if(neighbour == glarge) DebugStop();
+            glarge = neighbour;
+        }
+        clarge = glarge.Reference();
+        if(!clarge) DebugStop();
+        TPZGeoElBC gbc(gelside, fInterfaceMatid.second);
+
+        int64_t index;
+        TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), index, celside, clarge);
+        count++;
+    }
+    if (count != 2 && count != 0) {
+        DebugStop();
+    }
+    
+    pressuremesh->InitializeBlock();
 }
 
 void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
@@ -721,7 +782,7 @@ TPZMultiphysicsCompMesh *TPZHybridizeHDiv::Hybridize(TPZMultiphysicsCompMesh *mu
     CreateInterfaceElements(result);
     if(group_elements)
     {
-        GroupandCondenseElements(result);
+      GroupandCondenseElements(result);
     }
     if(!result) DebugStop();
     return result;

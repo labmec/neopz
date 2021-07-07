@@ -19,6 +19,7 @@ class TPZMaterial;
 class TPZCompElSide;
 class TPZInterpolatedElement;
 class TPZMultiphysicsCompMesh;
+class TPZGeoEl;
 
 struct TPZHybridizeHDiv {
     
@@ -58,8 +59,15 @@ struct TPZHybridizeHDiv {
         return matid == fHDivWrapMatid || matid == fLagrangeInterface || matid == fInterfaceMatid.first ||
         matid == fInterfaceMatid.second;
     }
+    
+    ///
+    const int lagrangeInterfaceMatId() {return fLagrangeInterface;}
+    
     /// split the connects between flux elements and create a dim-1 pressure element
     void HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
+    
+    /// Creates the multiphysics interface for one geoel only
+    void CreateInterfaceElementsForGeoEl(TPZCompMesh *cmesh_Hybrid, TPZVec<TPZCompMesh *> &meshvec_Hybrid, TPZGeoEl *gel);
 
     /// Create interface elements with material id InterfaceMatid
     void CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec<TPZCompMesh *> &meshvec_Hybrid);
@@ -69,7 +77,7 @@ struct TPZHybridizeHDiv {
     void CreateInterfaceElements(TPZMultiphysicsCompMesh *cmesh_Hybrid);
     
     /// Hybridize a single interface based on the fluxmesh side connect
-    bool HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intel, int side, TPZMultiphysicsCompMesh* mmesh, TPZCompElSide& celsideright);
+    bool HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intel, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid);
     
     /// create a multiphysics mesh for the hybrid formulation using the materials of another mesh and the given atomic meshes
     TPZCompMesh * CreateMultiphysicsMesh(TPZCompMesh *cmesh_HDiv, TPZVec<TPZCompMesh *> &meshvec_Hybrid, double Lagrange_term_multiplier = 1.);
