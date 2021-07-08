@@ -10,6 +10,8 @@
 
 #include <iostream>
 #include <map>
+#include "pzstack.h"
+//#include "pzgeoelrefless.h"
 
 template<class T>
 class TPZVec;
@@ -20,6 +22,9 @@ class TPZCompElSide;
 class TPZInterpolatedElement;
 class TPZMultiphysicsCompMesh;
 class TPZGeoEl;
+
+template<class T, int N>
+class TPZStack;
 
 struct TPZHybridizeHDiv {
     
@@ -119,10 +124,16 @@ struct TPZHybridizeHDiv {
 private:
     
     std::tuple<int64_t,int> SplitConnects(const TPZCompElSide &left, const TPZCompElSide &right, TPZVec<TPZCompMesh *> &meshvec_Hybrid);
+    
+    std::tuple<int64_t, int> SplitConnects(const TPZCompElSide &left, const TPZStack<TPZCompElSide> &cellsidestack, TPZVec<TPZCompMesh *> &meshvec_Hybrid);
 
 public:
     
     static TPZCompElSide RightElement(TPZInterpolatedElement *intel, int side);
+    
+
+
+    static void GetAllConnectedCompElSides(TPZInterpolatedElement *intel, int side, TPZStack<TPZCompElSide> &celsidestack);
 
 };
 

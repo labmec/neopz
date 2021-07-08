@@ -428,7 +428,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                                 
                               const int64_t gmshPhysicalTagTemp = m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag][i_data];
                               physical_identifier = m_dim_physical_tag_and_physical_tag[entity_dim][gmshPhysicalTagTemp];
-                              std::cout << "Creating el for tag " << gmshPhysicalTagTemp << " with physical id = " << physical_identifier << std::endl;
+//                              std::cout << "Creating el for tag " << gmshPhysicalTagTemp << " with physical id = " << physical_identifier << std::endl;
                               
                               /// Internally the nodes index and element index is converted to zero based indexation
                               InsertElement(gmesh, physical_identifier, entity_el_type, el_identifier, node_identifiers);

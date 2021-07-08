@@ -227,6 +227,111 @@ TPZCompElSide TPZHybridizeHDiv::RightElement(TPZInterpolatedElement *intel, int 
     return TPZCompElSide();
 }
 
+std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &left, const TPZStack<TPZCompElSide> &cellsidestack, TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
+    if (fHDivWrapMatid == 0 || fLagrangeInterface == 0) {
+        std::cerr << "Using uninitialized TPZHybridizeHDiv object. You need to call ComputePeriferalMaterialIds function first!" << std::endl;
+        DebugStop();
+    }
+    
+    TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
+    
+    // All left connect needed variables
+    TPZGeoElSide gleft(left.Reference());
+    TPZInterpolatedElement *intelleft = dynamic_cast<TPZInterpolatedElement *> (left.Element());
+    intelleft->SetSideOrient(left.Side(), 1);
+    TPZConnect &cleft = intelleft->SideConnect(0, left.Side());
+    
+    TPZManVector<TPZInterpolatedElement*> intelvec(cellsidestack.size());
+    int count = 0;
+    if (cleft.HasDependency()){
+        DebugStop(); // Please implement me!
+    }
+    else {
+        for (auto celside : cellsidestack){
+            int64_t newindex = fluxmesh->AllocateNewConnect(cleft);
+            TPZConnect &newcon = fluxmesh->ConnectVec()[newindex];
+            cleft.DecrementElConnected();
+            newcon.IncrementElConnected();
+            newcon.SetSequenceNumber(fluxmesh->NConnects() - 1);
+            
+            
+            TPZInterpolatedElement *inteltochange = dynamic_cast<TPZInterpolatedElement *> (celside.Element());
+            if (!inteltochange)
+                DebugStop();
+            
+            intelvec[count++] = inteltochange;
+            int oldindex = inteltochange->SideConnectLocId(0, celside.Side());
+            inteltochange->SetConnectIndex(oldindex, newindex);
+        }
+    }
+    int sideorder = cleft.Order();
+    fluxmesh->SetDefaultOrder(sideorder);
+            
+    // Create HdivBound first for left element
+    TPZCompEl *wrapleft;
+    TPZManVector<TPZCompEl*> wrapvec(cellsidestack.size());
+    {
+        for (TPZCompEl* cel : intelvec)
+            cel->Reference()->ResetReference();
+        intelleft->LoadElementReference();
+        intelleft->SetPreferredOrder(sideorder);
+        TPZGeoElBC gbc(gleft, fHDivWrapMatid); // creates geoelbc for side
+        int64_t index;
+        wrapleft = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh, index);
+        if(cleft.Order() != sideorder)
+        {
+            DebugStop();
+        }
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (wrapleft);
+        int wrapside = gbc.CreatedElement()->NSides() - 1;
+        intel->SetSideOrient(wrapside, 1);
+        intelleft->Reference()->ResetReference();
+        wrapleft->Reference()->ResetReference();
+    }
+    
+    // Create HdivBound first for all others
+    intelleft->Reference()->ResetReference();
+    int i = 0;
+    for (TPZCompElSide celside : cellsidestack) {
+        TPZInterpolatedElement* intel = intelvec[i];
+        intel->LoadElementReference();
+        TPZConnect &con = intel->SideConnect(0, celside.Side());
+        int prevorder = con.Order();
+        intel->SetPreferredOrder(con.Order());
+        
+        TPZGeoElSide gelside(celside.Reference());
+        TPZGeoElBC gbc(gelside,fHDivWrapMatid);
+        int64_t index;
+        TPZCompEl* wrap = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh, index);
+        wrapvec[i++] = wrap;
+        if (con.Order() != prevorder)
+            DebugStop();
+        
+        TPZInterpolatedElement* intelwrap = dynamic_cast<TPZInterpolatedElement*>(wrap);
+        int wrapside = gbc.CreatedElement()->NSides()-1;
+        intelwrap->SetSideOrient(wrapside, 1);
+        intel->Reference()->ResetReference();
+        wrap->Reference()->ResetReference();
+    }
+    wrapleft->LoadElementReference();
+    for (TPZCompEl* wrap : wrapvec)
+        wrap->LoadElementReference();
+    
+    int64_t pressureindex;
+    int pressureorder;
+    {
+      TPZGeoElBC gbc(gleft, fLagrangeInterface);
+      pressureindex = gbc.CreatedElement()->Index();
+      pressureorder = sideorder;
+    }
+    
+    intelleft->LoadElementReference();
+    for (TPZInterpolatedElement* intel : intelvec)
+        intel->LoadElementReference();
+    
+    return std::make_tuple(pressureindex,pressureorder);
+}
+
 bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid) {
     
     // ==> Getting meshes
@@ -238,17 +343,26 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     // ==> Splitting flux mesh connect
     gmesh->ResetReference();
     fluxmesh->LoadReferences();
-    TPZCompElSide celsideright = RightElement(intelleft, side);
+    
+    const bool isFractureIntersectionMesh = true;
     std::tuple<int64_t, int> pindexporder;
-    if (celsideright) {
-        pindexporder = SplitConnects(celsideleft, celsideright, meshvec_Hybrid);
+    if (isFractureIntersectionMesh) {
+        TPZStack<TPZCompElSide> celsidestack;
+        GetAllConnectedCompElSides(intelleft, side, celsidestack);
+        pindexporder = SplitConnects(celsideleft, celsidestack, meshvec_Hybrid);
     }
-    else {
-#ifdef PZDEBUG
-        cout << "Cannot find right side connect. "
-        "Interface could be already hybridized, skipping..." << endl;
-#endif
-        return false;
+    else{
+        TPZCompElSide celsideright = RightElement(intelleft, side);
+        if (celsideright) {
+            pindexporder = SplitConnects(celsideleft, celsideright, meshvec_Hybrid);
+        }
+        else {
+    #ifdef PZDEBUG
+            cout << "Cannot find right side connect. "
+            "Interface could be already hybridized, skipping..." << endl;
+    #endif
+            return false;
+        }
     }
     
     
@@ -408,9 +522,6 @@ void TPZHybridizeHDiv::CreateInterfaceElementsForGeoEl(TPZCompMesh *cmesh_Hybrid
         int64_t index;
         TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), index, celside, clarge);
         count++;
-    }
-    if (count != 2 && count != 0) {
-        DebugStop();
     }
     
     pressuremesh->InitializeBlock();
@@ -908,4 +1019,33 @@ void TPZHybridizeHDiv::VerifySolutionConsistency(TPZCompMesh *fluxmesh, std::ost
             }
         }
     }
+}
+
+void TPZHybridizeHDiv::GetAllConnectedCompElSides(TPZInterpolatedElement *intel, int side, TPZStack<TPZCompElSide> &celsidestack) {
+    bool isrestrained = false;
+    {
+        TPZConnect &c = intel->SideConnect(0, side);
+        if (c.HasDependency()) {
+            isrestrained = true;
+        }
+    }
+    TPZGeoEl *gel = intel->Reference();
+    TPZGeoElSide gelside(gel, side);
+
+    if (isrestrained == true) {
+        /// if the side is restrained we will hybridize between the element and the larger element
+        DebugStop();
+    } else {
+        // if the connect is not restrained
+        // - the neighbour should be of the same dimension
+        //   if the neighbour is of lower dimension it is a boundary element
+        TPZStack<TPZCompElSide> celstack;
+        gelside.EqualLevelCompElementList(celstack, 1, 0);
+        for (auto cel : celstack) {
+            TPZGeoEl *neigh = cel.Element()->Reference();
+            if (neigh->Dimension() == gel->Dimension()) {
+                celsidestack.push_back(cel);
+            }
+        } // cel
+    } // else
 }
