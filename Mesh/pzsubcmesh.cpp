@@ -405,8 +405,8 @@ void TPZSubCompMesh::TransferDependencies(int64_t local)
 		int64_t r = listdepend->fDepMatrix.Rows();
 		int64_t c = listdepend->fDepMatrix.Cols();
 		ConnectVec()[local].AddDependency(local,depindexlocal,listdepend->fDepMatrix,0,0,r,c);
-		father->ConnectVec()[superind].RemoveDepend(superind,depfatherindex);
-		listdepend = father->ConnectVec()[superind].FirstDepend();
+		//father->ConnectVec()[superind].RemoveDepend(superind,depfatherindex);
+        listdepend = listdepend->fNext;
 	}
 }
 
@@ -430,7 +430,7 @@ void TPZSubCompMesh::MakeInternalFast(int64_t local){
 	TransferDependencies(local);
 	int64_t localindex = fExternalLocIndex[local];
 	int64_t fatherindex = fConnectIndex[localindex];
-    Mesh()->ConnectVec()[fatherindex].RemoveDepend();
+//    Mesh()->ConnectVec()[fatherindex].RemoveDepend();
 	fConnectIndex[localindex] = -1;
 	fFatherToLocal.erase(fatherindex);
 	fExternalLocIndex[local]= -1;
@@ -500,6 +500,16 @@ void TPZSubCompMesh::MakeAllInternal(){
 	for (it=fFatherToLocal.begin(); it!=fFatherToLocal.end(); it++) {
 		// put the candidate nodes in the stack
         TPZConnect &fatherconnect = father->ConnectVec()[it->first];
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled() && fatherconnect.HasDependency())
+        {
+            std::stringstream sout;
+            sout << "Father connect indexes " << it->first;
+            sout << "Submesh connect index " << it->second;
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
+
 		if (fatherconnect.NElConnected() == 1 || fatherconnect.HasDependency())
 		{
 			cantransfer.insert(it->second);
@@ -532,6 +542,12 @@ void TPZSubCompMesh::MakeAllInternal(){
                         delaytransfer.insert(submeshconnectindex);
                         cantransfer.erase(submeshconnectindex);
                     }
+                }
+                else
+                {
+                    std::cout << "The dependency of a connect should be transferred with " <<
+                    " the element \n";
+//                    DebugStop();
                 }
             }
 		}
@@ -720,11 +736,21 @@ int64_t TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int64_t elindex){
     
 //    if(!interf && !multinterf)
     {
-        int ncon = cel->NConnects();
-        for (int i=0; i<ncon; i++){
-            int64_t superind = cel->ConnectIndex(i);
+        TPZStack<int64_t> allc;
+        std::map<int64_t,int64_t> fathertolocal;
+        cel->BuildConnectList(allc);
+        int64_t ncon = allc.size();
+        for (int64_t i=0; i<ncon; i++){
+            int64_t superind = allc[i];
             int64_t subindex = GetFromSuperMesh(superind,father);
-            cel->SetConnectIndex(i,subindex);
+            fathertolocal[superind] = subindex;
+        }
+        int64_t ncon2 = cel->NConnects();
+        for (int64_t ic = 0; ic<ncon2; ic++) {
+            int64_t cindex = cel->ConnectIndex(ic);
+            if(fathertolocal.find(cindex) == fathertolocal.end()) DebugStop();
+            int64_t subindex = fathertolocal[cindex];
+            cel->SetConnectIndex(ic,subindex);
         }
     }
 
@@ -1744,7 +1770,7 @@ void TPZSubCompMesh::LoadSolutionInternal(TPZFMatrix<TVar> &mysol) {
 //    fSolution.Print(std::cout);
     
 	if(fAnalysis) fAnalysis->LoadSolution(mysol);
-	TPZCompMesh::LoadSolution(fSolution);
+	else TPZCompMesh::LoadSolution(fSolution);
 }
 
 void TPZSubCompMesh::LoadSolution(){
