@@ -355,7 +355,7 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
         std::stringstream sout;
         stiffness.Print("GK = ",sout,EMathematicaInput);
         if(ComputeRhs())rhs.Print("GR = ", sout,EMathematicaInput);
-        LOGPZ_DEBUG(loggerel,sout.str())
+        LOGPZ_DEBUG(loggerGlobStiff,sout.str())
     }
 
 #endif

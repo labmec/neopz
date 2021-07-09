@@ -239,6 +239,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     TPZGeoElSide gleft(left.Reference());
     TPZInterpolatedElement *intelleft = dynamic_cast<TPZInterpolatedElement *> (left.Element());
     intelleft->SetSideOrient(left.Side(), 1);
+    
     TPZConnect &cleft = intelleft->SideConnect(0, left.Side());
     
     TPZManVector<TPZInterpolatedElement*> intelvec(cellsidestack.size());
@@ -247,9 +248,9 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
         DebugStop(); // Please implement me!
     }
     else {
-        for (auto celside : cellsidestack){
-            int64_t newindex = fluxmesh->AllocateNewConnect(cleft);
-            TPZConnect &newcon = fluxmesh->ConnectVec()[newindex];
+        for (auto& celside : cellsidestack){
+            int64_t newmeshindex = fluxmesh->AllocateNewConnect(cleft);
+            TPZConnect &newcon = fluxmesh->ConnectVec()[newmeshindex];
             cleft.DecrementElConnected();
             newcon.IncrementElConnected();
             newcon.SetSequenceNumber(fluxmesh->NConnects() - 1);
@@ -259,9 +260,11 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
             if (!inteltochange)
                 DebugStop();
             
+            inteltochange->SetSideOrient(celside.Side(), 1);
+            
             intelvec[count++] = inteltochange;
-            int oldindex = inteltochange->SideConnectLocId(0, celside.Side());
-            inteltochange->SetConnectIndex(oldindex, newindex);
+            int oldelindex = inteltochange->SideConnectLocId(0, celside.Side());
+            inteltochange->SetConnectIndex(oldelindex, newmeshindex);
         }
     }
     int sideorder = cleft.Order();
@@ -289,7 +292,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
         wrapleft->Reference()->ResetReference();
     }
     
-    // Create HdivBound first for all others
+    // Create HdivBound then for all others
     intelleft->Reference()->ResetReference();
     int i = 0;
     for (TPZCompElSide celside : cellsidestack) {
@@ -811,7 +814,7 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZVec<TPZCompMesh *> &mes
     }
     
     if(meshvec_Hybrid[0]!=NULL){
-    
+
         TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
         if (!fluxmesh->FindMaterial(fHDivWrapMatid)) {
             auto matPerif = new TPZNullMaterial(fHDivWrapMatid);
@@ -1041,7 +1044,7 @@ void TPZHybridizeHDiv::GetAllConnectedCompElSides(TPZInterpolatedElement *intel,
         //   if the neighbour is of lower dimension it is a boundary element
         TPZStack<TPZCompElSide> celstack;
         gelside.EqualLevelCompElementList(celstack, 1, 0);
-        for (auto cel : celstack) {
+        for (auto& cel : celstack) {
             TPZGeoEl *neigh = cel.Element()->Reference();
             if (neigh->Dimension() == gel->Dimension()) {
                 celsidestack.push_back(cel);

@@ -22,8 +22,8 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         force = res[0];
     }
 
-    TPZFNMatrix<1, STATE> K(1, 1, 0);
-    TPZFNMatrix<1, STATE> InvK(1, 1, 0);
+    TPZFNMatrix<1, STATE> K(3, 3, 0);
+    TPZFNMatrix<1, STATE> InvK(3, 3, 0);
 
     fPermeabilityFunction(datavec[0].x, K, InvK);
     const REAL perm = K(0, 0);
@@ -80,7 +80,7 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
             int jvecind = datavec[0].fVecShapeIndex[jq].first;
             int jshapeind = datavec[0].fVecShapeIndex[jq].second;
 
-            for (int id = 0; id < fDim; id++) {
+            for (int id = 0; id < 3; id++) {
                 jvec(id, 0) = datavec[0].fDeformedDirections(id, jvecind);
             }
 
@@ -248,8 +248,8 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
     solOut.Fill(0.);
     TPZManVector<STATE, 10> SolP, SolQ;
 
-    TPZFNMatrix<9, STATE> K(1, 1, 0);
-    TPZFNMatrix<9, STATE> InvK(1, 1, 0);
+    TPZFNMatrix<9, STATE> K(3, 3, 0);
+    TPZFNMatrix<9, STATE> InvK(3, 3, 0);
 
     fPermeabilityFunction(datavec[0].x, K, InvK);
     const REAL perm = K(0, 0);
