@@ -686,23 +686,43 @@ void TPZCondensedCompEl::LoadSolution()
     //TPZFMatrix<REAL> u1(dim1,1,0.);
 	TPZFMatrix<STATE> u1(dim1,1,0.);
     //TPZFMatrix<REAL> elsol(dim0+dim1,1,0.);
-	TPZFMatrix<STATE> elsol(dim0+dim1,1,0.);
+	TPZFNMatrix<60,STATE> elsol(dim0+dim1,1,0.);
     for (int ic=0; ic<nc1 ; ic++) {
         TPZConnect &c = Connect(ic);
         int64_t seqnum = c.SequenceNumber();
         int blsize = bl.Size(seqnum);
-        for (int ibl=0; ibl<blsize; ibl++) {
-            u1(count++,0) = sol.at(bl.at(seqnum,0,ibl,0));
+        if(blsize)
+        {
+            int64_t firsteq = bl.Position(seqnum);
+            for (int ibl=0; ibl<blsize; ibl++) {
+                u1(count++,0) = sol(firsteq+ibl,0);
+            }
         }
     }
 #ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
+        TPZManVector<int64_t,60> u1eq(dim1);
+        int64_t count = 0;
+        for (int ic=0; ic<nc1 ; ic++) {
+            TPZConnect &c = Connect(ic);
+            int64_t seqnum = c.SequenceNumber();
+            int blsize = bl.Size(seqnum);
+            if(blsize)
+            {
+                int64_t firsteq = bl.Position(seqnum);
+                for (int ibl=0; ibl<blsize; ibl++) {
+                    u1eq[count++] = firsteq+ibl;
+                }
+            }
+        }
         std::stringstream sout;
         sout << "Computing UGlobal Index " << Index();
         sout << " Norm fK01 " << Norm(fCondensed.K01()) << std::endl;
         TPZVec<STATE> u1vec(dim1);
         for(int i=0; i<u1vec.size(); i++) u1vec[i] = u1(i,0);
-        sout << "u1 " << u1vec;
+        sout << "u1 " << u1vec << std::endl;
+        sout << "u1 eq " << u1eq << std::endl;
+        for(int i=0; i<dim1; i++) sout << sol(u1eq[i],0) << ' ';
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
