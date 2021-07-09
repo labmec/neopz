@@ -281,7 +281,8 @@ void TPZAnalysis::OptimizeBandwidth() {
     } catch(...)
     {
         fRenumber->PlotElementGroups("ElementGroups.vtk", fCompMesh);
-        fCompMesh->Print();
+        std::ofstream out("fElementGroups.txt");
+        fCompMesh->Print(out);
         shouldstop = true;
     }
     if(shouldstop) DebugStop();
