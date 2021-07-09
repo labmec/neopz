@@ -27,8 +27,8 @@ protected:
     int64_t fNumTotalEqs = 0;
 	TPZMatRed<STATE, TPZFMatrix<STATE> > fCondensed;
     TPZCompEl *fReferenceCompEl;
-    TPZManVector<int64_t,27> fIndexes;
-    TPZManVector<int64_t,10> fCondensedConnectIndexes;
+    TPZManVector<int64_t,62> fIndexes;
+    TPZManVector<int64_t,55> fCondensedConnectIndexes;
     TPZManVector<int64_t,10> fActiveConnectIndexes;
     bool fKeepMatrix = true;
     void Resequence();
