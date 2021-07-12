@@ -32,88 +32,52 @@ void TPZLogger::InitializeLogLevels()
      fIsInfoEnabled = logPtr->isInfoEnabled();
      fIsErrorEnabled = logPtr->isErrorEnabled();
      fIsFatalEnabled = logPtr->isFatalEnabled();
-    fLogNotInitialized = false;
+     fLogNotInitialized = false;
 }
 
 
-void pzinternal::LogPzDebugImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
+void pzinternal::LogPzDebugImpl(TPZLogger pzlg, std::string msg,
+                                const char *funcName,const char *fileName,
+                                const std::size_t lineN){
   log4cxx::LoggerPtr lg = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(pzlg.fLogName));
-  if (lg->isDebugEnabled()) {
-    std::scoped_lock lock(glogmutex);
-    LOG4CXX_DEBUG(lg,msg);
-  } else {
-    static bool firstTime{true};
-      if (firstTime) {
-        std::cout << "Please set isDebugEnabled at ";
-        std::cout << fileName << ":" << lineN;
-        std::cout << std::endl;
-        firstTime = false;
-      }
-  }
+  log4cxx::helpers::MessageBuffer oss_;
+  lg->forcedLog(log4cxx::Level::getDebug(), oss_.str(oss_ << msg),
+                log4cxx::spi::LocationInfo(fileName, funcName,lineN));
 }
 
-void pzinternal::LogPzInfoImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
+void pzinternal::LogPzInfoImpl(TPZLogger pzlg, std::string msg,
+                               const char *funcName,const char *fileName,
+                               const std::size_t lineN){
   log4cxx::LoggerPtr lg = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(pzlg.fLogName));
-  if (lg->isInfoEnabled()) {
-    std::scoped_lock lock(glogmutex);
-    LOG4CXX_INFO(lg, msg);
-  } else {
-      static bool firstTime{true};
-      if (firstTime) {
-        std::cout << "Please set isInfoEnabled at ";
-        std::cout << fileName << ":" << lineN;
-        std::cout << std::endl;
-        firstTime = false;
-      }
-  }
+  log4cxx::helpers::MessageBuffer oss_;
+  lg->forcedLog(log4cxx::Level::getInfo(), oss_.str(oss_ << msg),
+                log4cxx::spi::LocationInfo(fileName,funcName,lineN));
 }
-void pzinternal::LogPzWarnImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
+void pzinternal::LogPzWarnImpl(TPZLogger pzlg, std::string msg,
+                               const char *funcName, const char *fileName,
+                               const std::size_t lineN){
   log4cxx::LoggerPtr lg = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(pzlg.fLogName));
-  if (lg->isWarnEnabled()) {
-    std::scoped_lock lock(glogmutex);
-    LOG4CXX_WARN(lg, msg);
-  }else {
-    static bool firstTime{true};
-    if (firstTime) {
-      std::cout << "Please set isWarnEnabled at ";
-      std::cout << fileName << ":" << lineN;
-      std::cout << std::endl;
-      firstTime = false;
-    }
-  }
+  log4cxx::helpers::MessageBuffer oss_;
+  lg->forcedLog(log4cxx::Level::getWarn(), oss_.str(oss_ << msg),
+                log4cxx::spi::LocationInfo(fileName, funcName,lineN));
 }
 
-void pzinternal::LogPzErrorImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
+void pzinternal::LogPzErrorImpl(TPZLogger pzlg, std::string msg,
+                                const char *funcName, const char *fileName,
+                                const std::size_t lineN){
   log4cxx::LoggerPtr lg = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(pzlg.fLogName));
-  if (lg->isErrorEnabled()) {
-    std::scoped_lock lock(glogmutex);
-    LOG4CXX_ERROR(lg, msg);
-    DebugStop();
-  }else {
-    static bool firstTime{true};
-    if (firstTime) {
-      std::cout << "Please set isErrorEnabled at ";
-      std::cout << fileName << ":" << lineN;
-      std::cout << std::endl;
-      firstTime = false;
-    }
-  }
+  log4cxx::helpers::MessageBuffer oss_;
+  lg->forcedLog(log4cxx::Level::getError(), oss_.str(oss_ << msg),
+                log4cxx::spi::LocationInfo(fileName,funcName,lineN));
 }
 
-void pzinternal::LogPzFatalImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
+void pzinternal::LogPzFatalImpl(TPZLogger pzlg, std::string msg,
+                                const char *funcName, const char *fileName,
+                                const std::size_t lineN) {
   log4cxx::LoggerPtr lg = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(pzlg.fLogName));
-  if (lg->isFatalEnabled()) {
-    std::scoped_lock lock(glogmutex);
-    LOG4CXX_FATAL(lg, msg);
-  }else {
-    static bool firstTime{true};
-    if (firstTime) {
-      std::cout << "Please set isFatalEnabled at ";
-      std::cout << fileName << ":" << lineN;
-      std::cout << std::endl;
-      firstTime = false;
-    }
-  }
+  log4cxx::helpers::MessageBuffer oss_; 
+  lg->forcedLog(::log4cxx::Level::getFatal(), oss_.str(oss_ << msg),
+                log4cxx::spi::LocationInfo(fileName,funcName,lineN));
 }
 
 /**
