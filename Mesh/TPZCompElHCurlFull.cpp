@@ -881,6 +881,18 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
 #include "pzshapecube.h"
 #include "pzshapeprism.h"
 
+template<class TSHAPE>
+int TPZCompElHCurlFull<TSHAPE>::MaxOrder(){
+    const int maxorder = TPZInterpolationSpace::MaxOrder();
+    if constexpr (std::is_same_v<TSHAPE,pzshape::TPZShapeCube> ||
+                  std::is_same_v<TSHAPE,pzshape::TPZShapeQuad>){
+        return maxorder+1;
+    }else{
+        return maxorder;
+    }
+}
+
+
 #define IMPLEMENTHCURLFULL(TSHAPE) \
 \
 template class \

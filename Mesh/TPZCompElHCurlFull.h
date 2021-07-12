@@ -67,6 +67,8 @@ protected:
        `NSides-NCornerNodes`.
      */
     void CalcH1ShapeOrders(TPZVec<int> &ord) const override;
+
+    [[nodiscard]] int MaxOrder() override;
 protected:
     /**
        @brief Internal method for calculating the needed h1 order for each side given
