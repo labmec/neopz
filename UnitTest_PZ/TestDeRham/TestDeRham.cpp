@@ -140,8 +140,7 @@ void CheckCompatibilityUniformMesh(int kRight) {
   //TODOFIX
   if constexpr(leftSpace==ESpace::HCurl||
                rightSpace==ESpace::HCurl){
-    if(elType==MMeshType::EHexahedral ||
-       elType==MMeshType::EPrismatic){
+    if(elType==MMeshType::EPrismatic){
       return;
     }
   }
@@ -183,45 +182,51 @@ void CheckCompatibilityUniformMesh(int kRight) {
 
     CAPTURE(nameLeft,nameRight,elName);
     REQUIRE((matLeft != nullptr && matRight != nullptr));
+    TPZAutoPointer<TPZGeoMesh> gmesh{nullptr};
+    //for debugging
+    constexpr bool singleElement{true};
 
-    auto gmesh = CreateGMesh(dim,elType,matId);
+    if constexpr(singleElement){
+      constexpr bool createBoundEls{false};
+      gmesh = TPZGeoMeshTools::CreateGeoMeshSingleEl(elType, matId, createBoundEls);
+    }else{
+      gmesh = CreateGMesh(dim,elType,matId);
+    }
     auto cmeshL = CreateCMesh(gmesh, matLeft, matId, kLeft, leftSpace);
     auto cmeshR = CreateCMesh(gmesh, matRight, matId, kRight, rightSpace);
 
     TPZAutoPointer<TPZMatrix<STATE>> matPtrL = nullptr;
     TPZAutoPointer<TPZMatrix<STATE>> matPtrR = nullptr;
 
-    //for debugging
-    constexpr bool singleElement{true};
-
-    if constexpr (singleElement){
-      TPZCompEl* celL = cmeshL->Element(0);
-      TPZCompEl* celR = cmeshR->Element(0);
+    {
+    
+      constexpr bool reorderEqs{false};
+      constexpr int nThreads{4};
+      TPZLinearAnalysis anL(cmeshL,reorderEqs);
+      TPZLinearAnalysis anR(cmeshR, reorderEqs);
       
-      const int neqL = celL->NEquations();
-      const int neqR = celR->NEquations();
+      TPZFStructMatrix<STATE> strmtrxL(cmeshL);
+      strmtrxL.SetNumThreads(nThreads);
+      anL.SetStructuralMatrix(strmtrxL);
+
+      TPZFStructMatrix<STATE> strmtrxR(cmeshR);
+      strmtrxR.SetNumThreads(nThreads);
+      anR.SetStructuralMatrix(strmtrxR);
       
-      TPZElementMatrixT<STATE> matKL, matKR, matFL, matFR;
+      TPZStepSolver<STATE> step;
+      step.SetDirect(ELU);
 
-      celL->CalcStiff(matKL, matFL);
-
-      celR->CalcStiff(matKR, matFR);
+      anL.SetSolver(step);
+      anR.SetSolver(step);
       
-      auto *matL = new TPZFMatrix<STATE>(matKL.Matrix());
-      matPtrL = TPZAutoPointer<TPZMatrix<STATE>>(matL);
-
-      auto *matR = new TPZFMatrix<STATE>(matKR.Matrix());
-      matPtrR = TPZAutoPointer<TPZMatrix<STATE>>(matR);
-    }else{
-      TPZLinearAnalysis anL(cmeshL,false);
-      TPZLinearAnalysis anR(cmeshR, false);
       anL.Assemble();
       anR.Assemble();
 
       matPtrL = anL.MatrixSolver<STATE>().Matrix();
       matPtrR = anR.MatrixSolver<STATE>().Matrix();
-    }
 
+    }
+    
     TPZFMatrix<STATE> matL(*matPtrL);
     TPZFMatrix<STATE> matR(*matPtrR);
 
@@ -241,7 +246,7 @@ void CheckCompatibilityUniformMesh(int kRight) {
     const int kerR = dimR-rankR;
       
     CAPTURE(kLeft,kRight,dimL,rankL,dimR,kerR,rankR);
-
+    CAPTURE(SL,SR);
     if constexpr (rightSpace==ESpace::L2)//for L2 the operator is -> 0
       REQUIRE(rankL == rankR);
     else
@@ -265,8 +270,7 @@ void CheckExactSequence(int kRight) {
 
   // TODOFIX
   if constexpr (leftSpace == ESpace::HCurl || rightSpace == ESpace::HCurl) {
-    if (elType==MMeshType::EHexahedral ||
-        elType==MMeshType::EPrismatic) {
+    if (elType==MMeshType::EPrismatic) {
       return;
     }
   }

@@ -395,17 +395,17 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
     IndexShapeToVec(data.fVecShapeIndex, connectOrders);
 
 
-#ifdef PZ_LOG
-    if(logger.isDebugEnabled()){
-		std::stringstream sout;
-		sout << "Vector/Shape indexes \n";
-        for (int i = 0; i < data.fVecShapeIndex.size(); i++) {
-            sout << i << '|' << data.fVecShapeIndex[i] << " ";
-        }
-        sout << std::endl;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
+// #ifdef PZ_LOG
+//     if(logger.isDebugEnabled()){
+// 		std::stringstream sout;
+// 		sout << "Vector/Shape indexes \n";
+//         for (int i = 0; i < data.fVecShapeIndex.size(); i++) {
+//             sout << i << '|' << data.fVecShapeIndex[i] << " ";
+//         }
+//         sout << std::endl;
+// 		LOGPZ_DEBUG(logger,sout.str())
+// 	}
+// #endif
 
 }
 
@@ -466,7 +466,7 @@ void TPZCompElHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZF
     }
     constexpr auto nConnects{TSHAPE::NSides-TSHAPE::NCornerNodes};
     TPZManVector<int, nConnects> ord(nConnects,0);
-    CalculateSideShapeOrders(ord);
+    CalcH1ShapeOrders(ord);
     const int nShape = TSHAPE::NShapeF(ord);
 
     phi.Redim(nShape, 1);
