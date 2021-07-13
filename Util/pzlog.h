@@ -42,18 +42,23 @@ class TPZLogger;
 
 namespace pzinternal{
 void LogPzDebugImpl(TPZLogger lg, std::string msg,
+                    [[maybe_unused]] const char *funcName,
                     [[maybe_unused]] const char *fileName,
                     [[maybe_unused]] const std::size_t lineN);
 void LogPzInfoImpl(TPZLogger lg, std::string msg,
+                   [[maybe_unused]] const char *funcName,
                    [[maybe_unused]] const char *fileName,
                    [[maybe_unused]] const std::size_t lineN);
 void LogPzWarnImpl(TPZLogger lg, std::string msg,
+                   [[maybe_unused]] const char *funcName,
                    [[maybe_unused]] const char *fileName,
                    [[maybe_unused]] const std::size_t lineN);
 void LogPzErrorImpl(TPZLogger lg, std::string msg,
+                    [[maybe_unused]] const char *funcName,
                     [[maybe_unused]] const char *fileName,
                     [[maybe_unused]] const std::size_t lineN);
 void LogPzFatalImpl(TPZLogger lg, std::string msg,
+                    [[maybe_unused]] const char *funcName,
                     [[maybe_unused]] const char *fileName,
                     [[maybe_unused]] const std::size_t lineN);
 }
@@ -121,18 +126,23 @@ private:
   bool fIsFatalEnabled;
 
   friend void pzinternal::LogPzDebugImpl(TPZLogger lg, std::string msg,
+                                         const char *funcName,
                                          const char *fileName,
                                          const std::size_t lineN);
   friend void pzinternal::LogPzInfoImpl(TPZLogger lg, std::string msg,
+                                        const char *funcName,
                                         const char *fileName,
                                         const std::size_t lineN);
   friend void pzinternal::LogPzWarnImpl(TPZLogger lg, std::string msg,
+                                        const char *funcName,
                                         const char *fileName,
                                         const std::size_t lineN);
   friend void pzinternal::LogPzErrorImpl(TPZLogger lg, std::string msg,
+                                         const char *funcName,
                                          const char *fileName,
                                          const std::size_t lineN);
   friend void pzinternal::LogPzFatalImpl(TPZLogger lg, std::string msg,
+                                         const char *funcName,
                                          const char *fileName,
                                          const std::size_t lineN);
 };
@@ -141,10 +151,11 @@ private:
 
 /// Define log for debug
 #define LOGPZ_DEBUG(logger, msg) { \
-   if (logger.isDebugEnabled()) {\
+    if (logger.isDebugEnabled()) {  \
       std::stringstream msg_stream; \
       msg_stream << msg; \
-      pzinternal::LogPzDebugImpl(logger, msg_stream.str(),__FILE__,__LINE__); \
+      pzinternal::LogPzDebugImpl(logger, msg_stream.str(),\
+                                 __PRETTY_FUNCTION__,__FILE__,__LINE__); \
    }\
 }
 
@@ -153,7 +164,8 @@ private:
    if (logger.isInfoEnabled()) {\
       std::stringstream msg_stream; \
       msg_stream << msg; \
-      pzinternal::LogPzInfoImpl(logger, msg_stream.str(),__FILE__,__LINE__); \
+      pzinternal::LogPzInfoImpl(logger, msg_stream.str(),\
+                                __PRETTY_FUNCTION__,__FILE__,__LINE__); \
    }\
 }
 
@@ -162,7 +174,8 @@ private:
    if (logger.isWarnEnabled()) {\
       std::stringstream msg_stream; \
       msg_stream << msg; \
-      pzinternal::LogPzWarnImpl(logger, msg_stream.str(),__FILE__,__LINE__); \
+      pzinternal::LogPzWarnImpl(logger, msg_stream.str(),\
+                                __PRETTY_FUNCTION__,__FILE__,__LINE__); \
    }\
 }
 
@@ -171,7 +184,8 @@ private:
    if (logger.isErrorEnabled()) {\
       std::stringstream msg_stream; \
       msg_stream << msg; \
-      pzinternal::LogPzErrorImpl(logger, msg_stream.str(),__FILE__,__LINE__); \
+      pzinternal::LogPzErrorImpl(logger, msg_stream.str(),\
+                                 __PRETTY_FUNCTION__,__FILE__,__LINE__); \
    }\
 }
 /// Define log for fatal errors
@@ -179,7 +193,8 @@ private:
    if (logger.isFatalEnabled()) {\
       std::stringstream msg_stream; \
       msg_stream << msg; \
-      pzinternal::LogPzFatalImpl(logger, msg_stream.str(),__FILE__,__LINE__); \
+      pzinternal::LogPzFatalImpl(logger, msg_stream.str(),\
+                                 __PRETTY_FUNCTION__,__FILE__,__LINE__); \
    }\
 }
 
