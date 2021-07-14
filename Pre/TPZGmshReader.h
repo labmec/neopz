@@ -170,7 +170,7 @@ public:
     //////////// Members related to file format with version 4 ////////////
     
     /// Convert a Gmsh *.msh file with format 4 to a TPZGeoMesh object
-    TPZGeoMesh * GeometricGmshMesh4(std::string file_name, TPZGeoMesh *gmesh = NULL);
+    TPZGeoMesh * GeometricGmshMesh4(std::string file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
     
     void InsertElement(TPZGeoMesh * gmesh, int & physical_identifier, int & el_type, int & el_identifier, std::vector<int> & node_identifiers);
     

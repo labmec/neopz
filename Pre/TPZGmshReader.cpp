@@ -154,7 +154,7 @@ const TPZGmshReader & TPZGmshReader::operator=(const TPZGmshReader & other){
     return *this;
 }
 
-TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh *gmesh_input){
+TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh *gmesh_input, bool addNonAssignedEls){
     
     //  Mesh Creation
     TPZGeoMesh * gmesh = gmesh_input;
@@ -209,10 +209,11 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                     read >> name;
                     name.erase(0,1);
                     name.erase(name.end()-1,name.end());
-                    m_dim_physical_tag_and_name[dimension][id] = name;
                     
                     if(m_dim_name_and_physical_tag[dimension].find(name) == m_dim_name_and_physical_tag[dimension].end())
                     {
+                        if (!addNonAssignedEls)
+                            continue;
                         std::cout << "Automatically associating " << name << " with material id " << id << std::endl;
                         m_dim_name_and_physical_tag[dimension][name] = id;
                     }
@@ -222,7 +223,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                         std::cout << "Associating " << name << " with material id " << id <<
                         " with pz material id " << pzmatid << std::endl;
                     }
-                    
+                    m_dim_physical_tag_and_name[dimension][id] = name;
                     m_dim_physical_tag_and_physical_tag[dimension][id] = m_dim_name_and_physical_tag[dimension][name];
                     
                     if (max_dimension < dimension) {
@@ -250,9 +251,12 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                 read >> m_n_surfaces;
                 read >> m_n_volumes;
 
-                if(max_dimension < 3 && m_n_volumes > 0) max_dimension = 3;
-                else if(max_dimension < 2 && m_n_surfaces > 0) max_dimension = 2;
-                else if(max_dimension < 1 && m_n_curves > 0) max_dimension = 1;
+                if (addNonAssignedEls){
+                    // Dont want to change dimension of mesh if not adding non assigned elements
+                    if(max_dimension < 3 && m_n_volumes > 0) max_dimension = 3;
+                    else if(max_dimension < 2 && m_n_surfaces > 0) max_dimension = 2;
+                    else if(max_dimension < 1 && m_n_curves > 0) max_dimension = 1;
+                }
                 
                 int n_physical_tag;
                 std::pair<int, std::vector<int> > chunk;
@@ -421,18 +425,24 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                             
                             for (int i_data = 0; i_data < n_physical_identifier; i_data++) {
                               if (i_data > 0) {
-                                el_identifier = max_element_tag + i_data;
-                                max_element_tag = el_identifier;
-                                gmesh->SetMaxElementId(el_identifier-1);
+                                  el_identifier = max_element_tag + i_data;
+                                  max_element_tag = el_identifier;
+                                  gmesh->SetMaxElementId(el_identifier-1);
                               }
-                                
+                              
                               const int64_t gmshPhysicalTagTemp = m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag][i_data];
-                              physical_identifier = m_dim_physical_tag_and_physical_tag[entity_dim][gmshPhysicalTagTemp];
-//                              std::cout << "Creating el for tag " << gmshPhysicalTagTemp << " with physical id = " << physical_identifier << std::endl;
+                              
+                              if(m_dim_physical_tag_and_physical_tag[entity_dim].find(gmshPhysicalTagTemp) != m_dim_physical_tag_and_physical_tag[entity_dim].end()){
+                                  physical_identifier = m_dim_physical_tag_and_physical_tag[entity_dim][gmshPhysicalTagTemp];
+                              } else {
+                                  continue; // not adding elements without physical identifier
+                              }
+                            
+                              // std::cout << "Creating el for tag " << gmshPhysicalTagTemp << " with physical id = " << physical_identifier << std::endl;
                               
                               /// Internally the nodes index and element index is converted to zero based indexation
                               InsertElement(gmesh, physical_identifier, entity_el_type, el_identifier, node_identifiers);
-                                                            
+                              
                             }
                                                         
                         }else{
