@@ -1,0 +1,5 @@
+set(outputPath log4cxx.cfg)
+if(EXISTS ${outputPath})
+    message(WARNING "Existing log4cxx config file found and renamed to 'log4cxx-backup.cfg'!")
+    file(RENAME ${outputPath} log4cxx-backup.cfg)
+endif()
