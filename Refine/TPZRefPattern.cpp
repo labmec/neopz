@@ -88,14 +88,14 @@ TPZRefPattern::TPZRefPattern(const std::string &file ) : fSideRefPattern(0), fId
      */
 }
 
-int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
+int TPZRefPattern::operator==(const TPZRefPattern& compare) const
 {
-	if(fRefPatternMesh.NNodes() != compare->fRefPatternMesh.NNodes() || fRefPatternMesh.NElements() != compare->fRefPatternMesh.NElements())
+	if(fRefPatternMesh.NNodes() != compare.fRefPatternMesh.NNodes() || fRefPatternMesh.NElements() != compare.fRefPatternMesh.NElements())
 	{
 		return 0;
 	}
 	TPZGeoEl *father = fRefPatternMesh.ElementVec()[0];
-	TPZGeoEl *compfather = compare->fRefPatternMesh.ElementVec()[0];
+	TPZGeoEl *compfather = compare.fRefPatternMesh.ElementVec()[0];
 	if(father->Type() != compfather->Type())
 	{
 		return 0;
@@ -121,7 +121,7 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
 		for(jn = 0; jn < nnodes; jn++){
 			int j;
 			for(j = 0; j < 3; j++){
-				coordcompare[j] = compare->fRefPatternMesh.NodeVec()[jn].Coord(j);
+				coordcompare[j] = compare.fRefPatternMesh.NodeVec()[jn].Coord(j);
 			}
 
 			for(j=0 ; j<dim; j++){
@@ -165,7 +165,7 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
 				continue;
 			}
 			std::set<int> compnodeset;
-			TPZGeoEl *jgel = compare->fRefPatternMesh.ElementVec()[jel];
+			TPZGeoEl *jgel = compare.fRefPatternMesh.ElementVec()[jel];
 			int jnnode = jgel->NNodes();
 
 			int jn;
