@@ -521,8 +521,7 @@ void TPZGeoElRefPattern<TGeo>::SetRefPattern (TPZAutoPointer<TPZRefPattern> refp
 	}
 #endif
 	
-	if(fRefPattern == refpat)
-	{
+	if(fRefPattern && (*fRefPattern == *refpat)){//they are the same refinement pattern
 		return;
 	}
 	else if(this->HasSubElement())
