@@ -88,9 +88,23 @@ set(sources
     )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Util)
+
 if(USING_LOG4CXX)
-    install(FILES log4cxx.cfg DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Util)
+    set(inputPath ${CMAKE_CURRENT_SOURCE_DIR}/log4cxx.cfg)
+    set(outputPath ${CMAKE_CURRENT_BINARY_DIR}/log4cxx.cfg)
+
+    add_custom_command(
+        OUTPUT ${outputPath}
+        DEPENDS ${inputPath}
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/log4cxx_config_backup_gen.cmake
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${inputPath} ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    add_custom_target(log4cxx-config DEPENDS ${outputPath})
+    add_dependencies(pz log4cxx-config)
+
+    install(FILES ${outputPath} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Util)
 endif()
+
 target_sources(pz PRIVATE ${headers} ${sources})
 add_subdirectory(Hash)
 #for doxygen
