@@ -294,7 +294,7 @@ public:
      */
     TPZRefPattern(const TPZRefPattern &copy, const TPZPermutation &permute);
 
-    int operator==(const TPZAutoPointer<TPZRefPattern> compare) const;
+    int operator==(const TPZRefPattern &compare) const;
 
 	virtual ~TPZRefPattern() = default;
 
