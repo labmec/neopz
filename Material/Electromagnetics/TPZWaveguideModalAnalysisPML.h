@@ -17,21 +17,26 @@ class  TPZWaveguideModalAnalysisPML :
     public TPZWaveguideModalAnalysis
 {
 protected:
-    bool fAttX;
-    STATE fPmlBeginX;
-    bool fAttY;
-    STATE fPmlBeginY;
+    bool fAttX{false};
+    REAL fPmlBeginX{-1};
+    bool fAttY{false};
+    REAL fPmlBeginY{-1};
     
-    STATE fAlphaMax;
-    STATE fD;
+    STATE fAlphaMaxX{-1};
+    STATE fAlphaMaxY{-1};
+    STATE fDX{-1};
+    STATE fDY{-1};
     TPZWaveguideModalAnalysisPML() = default;
 
     void ComputeSParameters(const TPZVec<REAL> &x, CSTATE&sx, CSTATE&sy);
 public:
-    TPZWaveguideModalAnalysisPML(const int id,const TPZWaveguideModalAnalysis &mat,
-                    const bool &attX, REAL &pmlBeginX,
-                    const bool &attY, REAL &pmlBeginY,
-                    const REAL &alphaMax, const REAL &d);
+    //! Creates PML based on another domain region
+    TPZWaveguideModalAnalysisPML(const int id,
+                                 const TPZWaveguideModalAnalysis &mat);
+    //! Sets information regarding the attenuation of the PML in the x-direction
+    void SetAttX(const REAL pmlBegin, const STATE alpha, const REAL d);
+    //! Sets information regarding the attenuation of the PML in the y-direction
+    void SetAttY(const REAL pmlBegin, const STATE alpha, const REAL d);
 
     TPZWaveguideModalAnalysisPML * NewMaterial() const override;
     

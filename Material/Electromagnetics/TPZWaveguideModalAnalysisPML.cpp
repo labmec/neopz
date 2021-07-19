@@ -4,31 +4,50 @@
 using namespace std::complex_literals;
 
 TPZWaveguideModalAnalysisPML::TPZWaveguideModalAnalysisPML(
-    const int id,const TPZWaveguideModalAnalysis &mat,
-    const bool &attX, REAL &pmlBeginX,
-    const bool &attY, REAL &pmlBeginY,
-    const REAL &alphaMax, const REAL &d) :
-    TPZWaveguideModalAnalysis(mat),
-    fAttX(attX), fAttY(attY), fPmlBeginX(pmlBeginX),fPmlBeginY(pmlBeginY),
-    fAlphaMax(alphaMax), fD(d)
+    const int id, const TPZWaveguideModalAnalysis &mat):
+    TPZWaveguideModalAnalysis(mat)
 {
     this->SetId(id);
-    if(fAlphaMax < 0){//for the attenuation to happen this value must be positive
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"alpha max is invalid : "<<alphaMax<<std::endl;
-        DebugStop();
-    }
-     
-    if(fD < 0){ // pml width must be positive
+}
+
+void TPZWaveguideModalAnalysisPML::SetAttX(const REAL pmlBegin,
+                                           const STATE alpha,
+                                           const REAL d)
+{
+    if(d < 0){ // pml width must be positive
         PZError<<__PRETTY_FUNCTION__;
         PZError<<"PML width is invalid : "<<d<<std::endl;
         DebugStop();
     }
-    if(!fAttX && !fAttY){//a pml should attenuate at some direction
+    if(alpha < 0){//for the attenuation to happen this value must be positive
         PZError<<__PRETTY_FUNCTION__;
-        PZError<<"PML must attenuate at at least one direction"<<std::endl;
+        PZError<<"alpha max is invalid : "<<alpha<<std::endl;
         DebugStop();
     }
+    fAttX = true;
+    fPmlBeginX = pmlBegin;
+    fAlphaMaxX = alpha;
+    fDX = d;
+}
+
+void TPZWaveguideModalAnalysisPML::SetAttY(const REAL pmlBegin,
+                                           const STATE alpha,
+                                           REAL d)
+{
+    if(d < 0){ // pml width must be positive
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"PML width is invalid : "<<d<<std::endl;
+        DebugStop();
+    }
+    if(alpha < 0){//for the attenuation to happen this value must be positive
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"alpha max is invalid : "<<alpha<<std::endl;
+        DebugStop();
+    }
+    fAttY = true;
+    fPmlBeginY = pmlBegin;
+    fAlphaMaxY = alpha;
+    fDY = d;
 }
 
 TPZWaveguideModalAnalysisPML * TPZWaveguideModalAnalysisPML::NewMaterial() const
@@ -51,10 +70,12 @@ void TPZWaveguideModalAnalysisPML::ComputeSParameters(const TPZVec<REAL> &x,
     sx = 1;
     sy = 1;
     if(fAttX){
-        sx = 1. - 1i * fAlphaMax * ((x[0]-fPmlBeginX) / fD ) * ((x[0]-fPmlBeginX) / fD );
+        sx = 1. - 1i * fAlphaMaxX * ((x[0]-fPmlBeginX) / fDX )
+            * ((x[0]-fPmlBeginX) / fDX );
     }
     if(fAttY){
-        sy = 1. - 1i * fAlphaMax * ((x[1]-fPmlBeginY) / fD ) * ((x[1]-fPmlBeginY) / fD );
+        sy = 1. - 1i * fAlphaMaxY * ((x[1]-fPmlBeginY) / fDY ) *
+            ((x[1]-fPmlBeginY) / fDY );
     }
 }
 void TPZWaveguideModalAnalysisPML::Contribute(
