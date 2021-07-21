@@ -174,7 +174,7 @@ static TPZLogger logger("pz.mesh.testgeom");
         gmesh->BuildConnectivity();
 #ifdef BLEND_OUTPUT_TXT
         {
-          constexpr std::string meshFileName = "gmesh_circle.txt";
+          const std::string meshFileName = "gmesh_circle.txt";
           std::ofstream outTXT(meshFileName.c_str());
           gmesh->Print(outTXT);
           outTXT.close();          
@@ -182,7 +182,7 @@ static TPZLogger logger("pz.mesh.testgeom");
 #endif
 #ifdef BLEND_OUTPUT_VTK
         {
-            constexpr std::string meshFileName = "gmesh_circle.vtk";
+            const std::string meshFileName = "gmesh_circle.vtk";
             std::ofstream outVTK(meshFileName.c_str());
             TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
             outVTK.close();
@@ -516,7 +516,7 @@ static TPZLogger logger("pz.mesh.testgeom");
 #ifdef BLEND_OUTPUT_TXT
             {
               const std::string meshFileName =
-                  "gmesh_" + TGeo::TypeName() ".txt";
+                  "gmesh_" + TGeo::TypeName() + ".txt";
               std::ofstream outTXT(meshFileName.c_str());
               gmesh->Print(outTXT);
               outTXT.close();
@@ -525,7 +525,7 @@ static TPZLogger logger("pz.mesh.testgeom");
 #ifdef BLEND_OUTPUT_VTK
             {
               const std::string meshFileName =
-                  "gmesh_" + TGeo::TypeName() ".vtk";
+                  "gmesh_" + TGeo::TypeName() + ".vtk";
               std::ofstream outVTK(meshFileName.c_str());
               TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
               outVTK.close();
@@ -570,7 +570,7 @@ static TPZLogger logger("pz.mesh.testgeom");
                                     TPZManVector<REAL, 3> xNeigh(3);
                                     neigh.X(neighXi, xNeigh);
                                     std::cout<<"x_neigh_blend:"<<std::endl;
-p
+
                                     for (int i = 0; i < xNeigh.size(); i++) {
                                         std::cout << std::setw(VAL_WIDTH) << std::right << xNeigh[i] - coordsOffset[i]
                                                   << "\t";
@@ -757,7 +757,7 @@ p
 #ifdef BLEND_OUTPUT_TXT
             {
               const std::string meshFileName =
-                  "gmesh_nonlin_" + TGeo::TypeName() ".txt";
+                  "gmesh_nonlin_" + TGeo::TypeName() + ".txt";
               std::ofstream outTXT(meshFileName.c_str());
               gmesh->Print(outTXT);
               outTXT.close();
@@ -766,7 +766,7 @@ p
 #ifdef BLEND_OUTPUT_VTK
             {
               const std::string meshFileName =
-                  "gmesh_nonlin_" + TGeo::TypeName() ".vtk";
+                  "gmesh_nonlin_" + TGeo::TypeName()+ ".vtk";
               std::ofstream outVTK(meshFileName.c_str());
               TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
               outVTK.close();
@@ -1005,7 +1005,7 @@ p
 #ifdef BLEND_OUTPUT_TXT
             {
               const std::string meshFileName =
-                  "blendmesh2D_partial" + TGeo::TypeName() ".txt";
+                  "blendmesh2D_partial.txt";
               std::ofstream outTXT(meshFileName.c_str());
               gmesh->Print(outTXT);
               outTXT.close();
@@ -1014,7 +1014,7 @@ p
 #ifdef BLEND_OUTPUT_VTK
             {
               const std::string meshFileName =
-                  "blendmesh2D_partial" + TGeo::TypeName() ".vtk";
+                  "blendmesh2D_partial.vtk";
               std::ofstream outVTK(meshFileName.c_str());
               TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
               outVTK.close();
@@ -1097,7 +1097,7 @@ p
 #ifdef BLEND_OUTPUT_TXT
             {
               const std::string meshFileName =
-                  "blendmesh2D" + TGeo::TypeName() ".txt";
+                  "blendmesh2D.txt";
               std::ofstream outTXT(meshFileName.c_str());
               gmesh->Print(outTXT);
               outTXT.close();
@@ -1106,7 +1106,7 @@ p
 #ifdef BLEND_OUTPUT_VTK
             {
               const std::string meshFileName =
-                  "blendmesh2D" + TGeo::TypeName() ".vtk";
+                  "blendmesh2D.vtk";
               std::ofstream outVTK(meshFileName.c_str());
               TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
               outVTK.close();
@@ -1272,7 +1272,7 @@ p
 #ifdef BLEND_OUTPUT_TXT
             {
               const std::string meshFileName =
-                  "blendmesh3D_partial" + TGeo::TypeName() ".txt";
+                  "blendmesh3D_partial.txt";
               std::ofstream outTXT(meshFileName.c_str());
               gmesh->Print(outTXT);
               outTXT.close();
@@ -1281,7 +1281,7 @@ p
 #ifdef BLEND_OUTPUT_VTK
             {
               const std::string meshFileName =
-                  "blendmesh3D_partial" + TGeo::TypeName() ".vtk";
+                  "blendmesh3D_partial.vtk";
               std::ofstream outVTK(meshFileName.c_str());
               TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
               outVTK.close();
@@ -1368,7 +1368,7 @@ p
 #ifdef BLEND_OUTPUT_TXT
             {
               const std::string meshFileName =
-                  "blendmesh3D" + TGeo::TypeName() ".txt";
+                  "blendmesh3D.txt";
               std::ofstream outTXT(meshFileName.c_str());
               gmesh->Print(outTXT);
               outTXT.close();
@@ -1377,7 +1377,7 @@ p
 #ifdef BLEND_OUTPUT_VTK
             {
               const std::string meshFileName =
-                  "blendmesh3D" + TGeo::TypeName() ".vtk";
+                  "blendmesh3D.vtk";
               std::ofstream outVTK(meshFileName.c_str());
               TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
               outVTK.close();
