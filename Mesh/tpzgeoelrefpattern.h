@@ -535,10 +535,16 @@ void TPZGeoElRefPattern<TGeo>::SetRefPattern (TPZAutoPointer<TPZRefPattern> refp
 		return;
 	}
 	fRefPattern = refpat;
-	int i;
-	int nsubel = refpat->NSubElements();
-	fSubEl.Resize(nsubel);
-	for(i=0;i<nsubel;i++) fSubEl[i] = -1;
+    if(!refpat)
+    {
+        fSubEl.Resize(0);
+    }
+    else
+    {
+        int nsubel = refpat->NSubElements();
+        fSubEl.Resize(nsubel);
+        for(int i=0;i<nsubel;i++) fSubEl[i] = -1;
+    }
 }
 
 template<class TGeo>
