@@ -1254,12 +1254,13 @@ int TPZMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const {
 /*** Error ***/
 template <class TVar>
 int TPZMatrix<TVar>::Error(const char *msg ,const char *msg2) {
-    ostringstream out;
-    out << "TPZMatrix::" << msg;
-    if(msg2) out << msg2;
-    out << ".\n";
-    LOGPZ_ERROR (logger, out.str().c_str());
-    DebugStop();
+  ostringstream out;
+  out << "TPZMatrix::" << msg;
+  if(msg2) out << msg2;
+  out << ".\n";
+  std::cout<<out.str()<<std::endl;
+  LOGPZ_ERROR (logger, out.str().c_str());
+  DebugStop();
 	std::bad_exception myex;
 	throw myex;
 }
