@@ -50,7 +50,7 @@ TEMPLATE_TEST_CASE("Dimension Compatibility", "[derham_tests]",
   ESpace leftSpace = GENERATE(ESpace::H1,
                               ESpace::HCurl,
                               ESpace::HDiv);
-  int k = GENERATE(1,2,3,4,5);
+  int k = GENERATE(1,2,3);
   SECTION(names.at(leftSpace)) {
     switch (leftSpace) {
     case ESpace::H1:
@@ -91,7 +91,7 @@ TEMPLATE_TEST_CASE("Inclusion", "[derham_tests]",
   ESpace leftSpace = GENERATE(ESpace::H1,
                               ESpace::HCurl,
                               ESpace::HDiv);
-  int k = GENERATE(1,2,3,4,5);
+  int k = GENERATE(1,2,3);
   SECTION(names.at(leftSpace)) {
     switch (leftSpace) {
     case ESpace::H1:
