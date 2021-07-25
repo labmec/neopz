@@ -98,7 +98,7 @@ TPZGeoElSide::TPZGeoElSide(TPZGeoEl *gel) : fGeoEl(gel), fSide(-1)
 }
 
 
-bool TPZGeoElSide::IsAncestor(TPZGeoElSide other){
+bool TPZGeoElSide::IsAncestor(const TPZGeoElSide &other) const {
 	if(*this == other) return true;
 	TPZGeoElSide father = this->Father2();
 	if(father.Element()){
@@ -114,7 +114,7 @@ bool TPZGeoElSide::IsAncestor(TPZGeoElSide other){
 	return false;
 }
 
-bool TPZGeoElSide::IsRelative(TPZGeoElSide other){
+bool TPZGeoElSide::IsRelative(const TPZGeoElSide &other) const {
 	if( this->IsAncestor(other) ) return true;
 	if( other.IsAncestor(*this) ) return true;
 	return false;

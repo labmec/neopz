@@ -105,10 +105,10 @@ public:
 	TPZCompElSide LowerLevelCompElementList2(int onlyinterpolated);
 	
 	/** @brief Checks whether other is a relative (son or ancestor) of this */
-	bool IsRelative(TPZGeoElSide other);
+	bool IsRelative(const TPZGeoElSide &other) const;
 	
 	/** @brief Checks whether other is an ancestor of this */
-	bool IsAncestor(TPZGeoElSide other);
+	bool IsAncestor(const TPZGeoElSide &other) const;
     
     /** @brief Checks whether other is a neighbour of the current element */
     bool IsNeighbour(const TPZGeoElSide &other) const
