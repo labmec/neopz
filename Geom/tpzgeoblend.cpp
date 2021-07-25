@@ -659,7 +659,8 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
             continue;
         }
         TPZManVector<T, 3> Xside(3, 0.);
-        Neighbour(side, gmesh).X(neighXi, Xside);
+        TPZGeoElSide neighbour = Neighbour(side, gmesh);
+        neighbour.X(neighXi, Xside);
         for (int x = 0; x < 3; x++) {
             nonLinearSideMappings(sideIndex, x) = Xside[x];
         }
