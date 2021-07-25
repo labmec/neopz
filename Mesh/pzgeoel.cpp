@@ -1943,11 +1943,20 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 		if(NextSideNeighbour.Exists() && !NextSideNeighbour.Element()->IsLinearMapping() && !NextSideNeighbour.Element()->IsGeoBlendEl())
 		{
 			if(NextSideNeighbour.IsRelative(ElemSide) == false){
-				TPZGeoElSide NeighSide = NextSideNeighbour;
-				TPZTransform<> NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
-				ElemSide.SideTransform3(NeighSide,NeighTransf);
-				this->SetNeighbourInfo(side,NeighSide,NeighTransf);
-				return;
+                if(NextSideNeighbour.Element()->IsGeoElMapped() == true) {
+                    // only use this element as map if this element has a REAL father
+                    // meaning the father is not a neighbour
+                    // if the father is a neighbour, then we will get to the father looping over the neighbours
+                    auto NextSideNeighbourFather = NextSideNeighbour.Father2();
+                    if(!NextSideNeighbour.IsNeighbour(NextSideNeighbourFather))
+                    {
+                        TPZGeoElSide NeighSide = NextSideNeighbour;
+                        TPZTransform<> NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
+                        ElemSide.SideTransform3(NeighSide,NeighTransf);
+                        this->SetNeighbourInfo(side,NeighSide,NeighTransf);
+                        return;
+                    }
+                }
 			}//if IsRelative == false
 		}
 		NextSide = NextSide.Neighbour();
