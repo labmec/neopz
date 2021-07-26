@@ -10,6 +10,7 @@
 #include <sstream>
 #include <set>
 #include <random>
+#include <limits>
 //#include "pzfmatrix.h"
 #include "pzmatrix.h"
 #include "TPZMatrixSolver.h"
@@ -227,283 +228,172 @@ std::istream & operator>>(std::istream& in,TPZMatrix<TVar> &A)
 
 template<class TVar>
 void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const {
-  if constexpr (std::is_same<TVar, TFad<6, REAL>>::value ||
-                std::is_same<TVar, Fad<float>>::value ||
-                std::is_same<TVar, Fad<double>>::value ||
-                std::is_same<TVar, Fad<long double>>::value) {
-    out << name << std::endl;
-    for (int64_t i = 0; i < fRow; i++) {
-      for (int64_t j = 0; j < fCol; j++) {
-        out << "i = " << i << " j = " << j << " val " << Get(i, j) << std::endl;
-      }
-    }
-    return;
+    if constexpr (std::is_same<TVar, TFad<6, REAL>>::value ||
+                  std::is_same<TVar, Fad<float>>::value ||
+                  std::is_same<TVar, Fad<double>>::value ||
+                  std::is_same<TVar, Fad<long double>>::value) {
+        out << name << std::endl;
+        for (int64_t i = 0; i < fRow; i++) {
+            for (int64_t j = 0; j < fCol; j++) {
+                out << "i = " << i << " j = " << j << " val " << Get(i, j) << std::endl;
+            }
+        }
+        return;
    
-  }
-    if(form == EFormatted) {
-		out << "Writing matrix '";
-		if(name) out << name;
-		out << "' (" << Rows() << " x " << Cols() << "):\n";
-		
-		for ( int64_t row = 0; row < Rows(); row++) {
-			out << "\t";
-			for ( int64_t col = 0; col < Cols(); col++ ) {
-				out << Get( row, col) << "  ";
-			}
-			out << "\n";
-		}
-    	out << "\n";
-	} else if (form == EFixedColumn) {
-		out << "Writing matrix '";
-		if(name) out << name;
-		out << "' (" << Rows() << " x " << Cols() << "):\n";
-		TVar value;
-		int columnlength = 15;
-		for ( int64_t row = 0; row < Rows(); row++) {
-			for ( int64_t col = 0; col < Cols(); col++ ) {
-				value = Get( row, col);
-				if(value<0.) {
-					out << std::setw(columnlength+1) << std::left << value << " ";
-				}else{
-					out << " ";
-					out << std::setw(columnlength)   << std::left << value << " ";
-				}
-			}
-			out << "\n";
-		}
-		out << "\n";
-	} else if (form == EInputFormat) {
-		out << Rows() << " " << Cols() << endl;
-		for ( int64_t row = 0; row < Rows(); row++) {
-			for ( int64_t col = 0; col < Cols(); col++ ) {
-				TVar val = Get (row, col);
-				if(val != (TVar)0.) out << row << ' ' << col << ' ' << val << std::endl;
-			}
-		}
-		out << "-1 -1 0.\n";
-	} else if( form == EMathematicaInput)
-	{
-		char number[256];
-		out << name << "\n{ ";
-		for ( int64_t row = 0; row < Rows(); row++) {
-			out << "\n{ ";
-			for ( int64_t col = 0; col < Cols(); col++ ) {
-				TVar val = Get (row, col);
-				#ifdef STATE_COMPLEX
-				  sprintf(number, "%16.16Lf",(long double) fabs(val));
-				#else
-                sprintf(number, "%16.14Lf",(long double) TPZExtractVal::val(val) );
-				#endif
-				out << number;
-				if(col < Cols()-1)
-					out << ", ";
-				if((col+1) % 6 == 0)out << std::endl;
-			}
-			out << " }";
-			if(row < Rows()-1)
-				out << ",";
-		}
-		
-		out << " };\n";
-		
-	}else if( form == ECSV)
-    {
-        char number[256];
-        for ( int64_t row = 0; row < Rows(); row++) {
-            for ( int64_t col = 0; col < Cols(); col++ ) {
-                TVar val = Get (row, col);
-                sprintf(number, "%16.14Lf",(long double) TPZExtractVal::val(val) );
-                out << number;
-                if(col < Cols()-1)  out << " , ";
-            }
-            if(row < Rows()-1)
-                out << "\n";
-        }
-
-    } else if( form == EMatlabNonZeros)
-	{
-		out << name;
-		for ( int64_t row = 0; row < Rows(); row++) {
-			out << "\n|";
-			for ( int64_t col = 0; col < Cols(); col++ )
-				if(IsZero(Get (row, col)) ){
-					out << ".";
-				}else{
-					out << "#";
-				}
-			out << "|";
-		}
-		out << "\n";
-	}
-    else if( form == EMatrixMarket)
-    {
-        bool sym = IsSymmetric();
-        int64_t numzero = 0;
-        int64_t nrow = Rows();
-        for ( int64_t row = 0; row < Rows(); row++) {
-            int64_t colmax = nrow;
-            if (sym) colmax = row+1;
-            for (int64_t col = 0; col < colmax; col++ )
-            {
-                TVar val = GetVal(row, col);
-                if (val != (TVar)0.) {
-                    numzero++;
-                }
-            }
-        }
-        out << "%%"<< name << std::endl;
-        out << Rows() << ' ' << Cols() << ' ' << numzero << std::endl;
-        for ( int64_t row = 0; row < Rows(); row++) {
-            int64_t colmax = nrow;
-            if (sym) colmax = row+1;
-            for (int64_t col = 0; col < colmax; col++ )
-            {
-                TVar val = GetVal(row, col);
-                if (val != (TVar)0.) {
-                    out << row+1 << ' ' << col+1 << ' ' << val << std::endl;
-                }
-            }
-        }
     }
-}
+    //getting current settings of std::ostream instance
+    std::ios cout_state(nullptr);
+    cout_state.copyfmt(out);
 
-template<>
-void TPZMatrix<std::complex<float> >::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const {
+    typedef std::numeric_limits< RTVar > typlim;
+    out << std::setprecision(typlim::max_digits10);
+
+    const auto nrows = Rows();
+    const auto ncols = Cols();
+    
     if(form == EFormatted) {
         out << "Writing matrix '";
         if(name) out << name;
-        out << "' (" << Rows() << " x " << Cols() << "):\n";
-        
-        for ( int64_t row = 0; row < Rows(); row++) {
+        out << "' (" << nrows << " x " << ncols << "):\n";
+		
+        for ( int64_t row = 0; row < nrows; row++) {
             out << "\t";
-            for ( int64_t col = 0; col < Cols(); col++ ) {
-                out << Get( row, col).real() << "  " << Get(row, col).imag() << " ";
+            for ( int64_t col = 0; col < ncols; col++ ) {
+                out << GetVal( row, col) << "  ";//complex numbers are (a,b)
+            }
+            out << "\n";
+        }
+        out << "\n";
+    } else if (form == EFixedColumn) {
+        out << "Writing matrix '";
+        if(name) out << name;
+        out << "' (" << nrows << " x " << ncols << "):\n";
+        TVar value;
+        constexpr int columnlength = typlim::max_digits10;
+
+        auto PrintVal = [columnlength](std::ostream &out, RTVar val){
+            if(val<0.) {
+                out << std::setw(columnlength+1) << std::left << val << " ";
+            }else{
+                out << " ";
+                out << std::setw(columnlength)   << std::left << val << " ";
+            }
+        };
+        
+        for ( int64_t row = 0; row < nrows; row++) {
+            for ( int64_t col = 0; col < ncols; col++ ) {
+                value = Get( row, col);
+                if constexpr (std::is_same_v<RTVar,TVar>){
+                    PrintVal(out,value);
+                }else{
+                    out<<"(";
+                    PrintVal(out,value.real());
+                    out<<",";
+                    PrintVal(out,value.imag());
+                    out<<")";
+                }
             }
             out << "\n";
         }
         out << "\n";
     } else if (form == EInputFormat) {
-        out << Rows() << " " << Cols() << endl;
-        for ( int64_t row = 0; row < Rows(); row++) {
-            for ( int64_t col = 0; col < Cols(); col++ ) {
-                std::complex<double> val = Get (row, col);
-                if(val != 0.) out << row << ' ' << col << ' ' << val.real() << " " << val.imag() << std::endl;
+        out << nrows << " " << ncols << endl;
+        for ( int64_t row = 0; row < nrows; row++) {
+            for ( int64_t col = 0; col < ncols; col++ ) {
+                const TVar val = GetVal(row, col);
+                if(val != (TVar)0.) out << row << ' ' << col << ' ' << val << std::endl;
             }
         }
         out << "-1 -1 0.\n";
     } else if( form == EMathematicaInput)
-    {
-        char number[128];
-        out << name << "\n{ ";
-        for ( int64_t row = 0; row < Rows(); row++) {
-            out << "\n{ ";
-            for ( int64_t col = 0; col < Cols(); col++ ) {
-                std::complex<double> val = Get (row, col);
-                
-                sprintf(number, "%16.16lf + I %16.16lf", val.real(), val.imag());
-                
-                
-                out << number;
-                if(col < Cols()-1)
-                    out << ", ";
-                if((col+1) % 6 == 0)out << std::endl;
-            }
-            out << " }";
-            if(row < Rows()-1)
-                out << ",";
-        }
-        
-        out << " };\n";
-        
-    }else if( form == EMatlabNonZeros)
-    {
-        out << name;
-        for ( int64_t row = 0; row < Rows(); row++) {
-            out << "\n|";
-            for ( int64_t col = 0; col < Cols(); col++ )
-                if(IsZero(Get (row, col)) ){
-                    out << "."; 
-                }else{
-                    out << "#";
+        {
+            
+            out << name << "\n{ ";
+            for ( int64_t row = 0; row < nrows; row++) {
+                out << "\n{ ";
+                for ( int64_t col = 0; col < ncols; col++ ) {
+                    const TVar val = GetVal(row, col);
+                    if constexpr (std::is_same_v<TVar,RTVar>){
+                        out << val;
+                    }else{
+                        out << val.real() << "+I"<<val.imag();
+                    }
+                    if(col < ncols-1)
+                        out << ", ";
+                    if((col+1) % 6 == 0) out << '\n';
                 }
-            out << "|";
-        }
-        out << "\n";
-    }
-}
+                out << " }";
+                if(row < nrows-1)
+                    out << ",";
+            }
+		
+            out << " };"<<std::endl;
+		
+        }else if( form == ECSV)
+        {
+         
+            for ( int64_t row = 0; row < nrows; row++) {
+                for ( int64_t col = 0; col < ncols; col++ ) {
+                    const TVar val = GetVal(row, col);
+                    if constexpr (std::is_same_v<TVar,RTVar>){
+                        out << val;
+                    }else{
+                        const auto signchar = val.imag() > 0 ? '+' : '-';
+                        out << val.real() <<signchar<<std::fabs(val.imag())<<"j";
+                    }
+                    if(col < ncols-1)  out << " , ";
+                }
+                if(row < nrows-1)
+                    out << "\n";
+            }
 
-template<>
-void TPZMatrix<std::complex<double> >::Print(const char *name, std::ostream& out, const MatrixOutputFormat form) const {
-    //std::cout << __PRETTY_FUNCTION__ << " please implement me!\n";
-    //DebugStop();
-    if(form == EFormatted) {
-		out << "Writing matrix '";
-		if(name) out << name;
-		out << "' (" << Rows() << " x " << Cols() << "):\n";
-		
-		for ( int64_t row = 0; row < Rows(); row++) {
-			out << "\t";
-			for ( int64_t col = 0; col < Cols(); col++ ) {
-				out << Get( row, col).real() << "  " << Get(row, col).imag() << " ";
-			}
-			out << "\n";
-		}
-    	out << "\n";
-	} else if (form == EInputFormat) {
-		out << Rows() << " " << Cols() << endl;
-		for ( int64_t row = 0; row < Rows(); row++) {
-			for ( int64_t col = 0; col < Cols(); col++ ) {
-				std::complex<double> val = Get (row, col);
-				if(val != 0.) out << row << ' ' << col << ' ' << val.real() << " " << val.imag() << std::endl;
-			}
-		}
-		out << "-1 -1 0.\n";
-	} else if( form == EMathematicaInput)
-	{
-		char number[128];
-		out << name << "\n{ ";
-		for ( int64_t row = 0; row < Rows(); row++) {
-			out << "\n{ ";
-			for ( int64_t col = 0; col < Cols(); col++ ) {
-				std::complex<double> val = Get (row, col);
-				
-				  sprintf(number, "%16.16lf + I %16.16lf", val.real(), val.imag());
-				
-				 
-				out << number;
-				if(col < Cols()-1)
-					out << ", ";
-				if((col+1) % 6 == 0)out << std::endl;
-			}
-			out << " }";
-			if(row < Rows()-1)
-				out << ",";
-		}
-		
-		out << " };\n";
-		
-	}else if( form == EMatlabNonZeros)
-	{
-		out << name;
-		for ( int64_t row = 0; row < Rows(); row++) {
-			out << "\n|";
-			for ( int64_t col = 0; col < Cols(); col++ )
-				if(IsZero(Get (row, col)) ){
-					out << "."; 
-				}else{
-					out << "#";
-				}
-			out << "|";
-		}
-		out << "\n";
+        } else if( form == EMatlabNonZeros)
+        {
+            out << name;
+            for ( int64_t row = 0; row < nrows; row++) {
+                out << "\n|";
+                for ( int64_t col = 0; col < ncols; col++ )
+                    if(IsZero(GetVal(row, col)) ){
+                        out << ".";
+                    }else{
+                        out << "#";
+                    }
+                out << "|";
+            }
+            out << "\n";
         }
-	
-}
-
-template<>
-void TPZMatrix<std::complex<long double> >::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const {
-    std::cout << __PRETTY_FUNCTION__ << " please implement me!\n";
-    DebugStop();
+    else if( form == EMatrixMarket)
+        {
+            bool sym = IsSymmetric();
+            int64_t numzero = 0;
+            int64_t nrow = nrows;
+            for ( int64_t row = 0; row < nrows; row++) {
+                int64_t colmax = nrow;
+                if (sym) colmax = row+1;
+                for (int64_t col = 0; col < colmax; col++ )
+                    {
+                        TVar val = GetVal(row, col);
+                        if (val != (TVar)0.) {
+                            numzero++;
+                        }
+                    }
+            }
+            out << "%%"<< name << std::endl;
+            out << nrows << ' ' << ncols << ' ' << numzero << std::endl;
+            for ( int64_t row = 0; row < nrows; row++) {
+                int64_t colmax = nrow;
+                if (sym) colmax = row+1;
+                for (int64_t col = 0; col < colmax; col++ )
+                    {
+                        const TVar val = GetVal(row, col);
+                        if (val != (TVar)0.) {
+                            out << row+1 << ' ' << col+1 << ' ' << val << '\n';
+                        }
+                    }
+            }
+        }
+    //restore precision
+    out.copyfmt(cout_state);
 }
 
 template<class TVar>
