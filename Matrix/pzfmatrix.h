@@ -86,7 +86,7 @@ public:
      @param rows Initial number of rows
      @param columns Number of columns
      */
-    inline  TPZFMatrix(const int64_t rows ,const int64_t columns = 1) : 
+    explicit inline  TPZFMatrix(const int64_t rows ,const int64_t columns = 1) : 
     TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId),
     TPZMatrix<TVar>(rows,columns), fElem(0),fGiven(0),fSize(0) {
         if(rows*columns) fElem = new TVar[rows*columns];

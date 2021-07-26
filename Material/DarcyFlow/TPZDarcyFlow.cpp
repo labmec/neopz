@@ -345,7 +345,7 @@ void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
     // errors[4] - L2 norm of the y-component of the flux, if applicable
     // errors[5] - L2 norm of the z-component of the flux, if applicable
     TPZFNMatrix<9, STATE> dsoldx;
-    TPZAxesTools<STATE>::Axes2XYZ(dsol[0], dsoldx, axes);
+    TPZAxesTools<STATE>::Axes2XYZ(dsol, dsoldx, axes);
     TPZManVector<STATE, 3> flux_sol(fDim, 0);
     for (int id = 0; id < fDim; id++) {
         flux_sol[id] = - perm * dsoldx(id, 0);

@@ -177,7 +177,7 @@ void TPZHCurlProjection<TVar>::Errors(const TPZMaterialDataT<TVar>&data,
     }
 #endif
     TPZManVector<TVar,3> u_exact(fDim);
-    TPZFNMatrix<3,TVar> curlU_exact(fCurlDim);
+    TPZFNMatrix<3,TVar> curlU_exact(fCurlDim,1);
     this->ExactSol()(x, u_exact, curlU_exact);
     values.Fill(0.0);
 
