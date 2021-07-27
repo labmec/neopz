@@ -133,8 +133,9 @@ void TPZWaveguideModalAnalysis::SetPermittivity(const TPZVec<CSTATE>&er)
 void TPZWaveguideModalAnalysis::SetMatrixA()
 {
     TPZMatGeneralisedEigenVal::SetMatrixA();
-    fCurrentContribute = [this](const auto &arg1, auto arg2, auto &arg3, auto &arg4){
-        this->ContributeA(arg1,arg2,arg3,arg4);
+    fCurrentContribute = [this](const auto &arg1, auto arg2, auto &arg3,
+                                auto &arg4, const auto &arg5, const auto &arg6){
+        this->ContributeA(arg1,arg2,arg3,arg4,arg5,arg6);
     };
     fCurrentContributeBC = [this](const auto &arg1, auto arg2, auto &arg3,
                                   auto &arg4, auto &arg5){
@@ -144,13 +145,26 @@ void TPZWaveguideModalAnalysis::SetMatrixA()
 void TPZWaveguideModalAnalysis::SetMatrixB()
 {
     TPZMatGeneralisedEigenVal::SetMatrixB();
-    fCurrentContribute = [this](const auto &arg1, auto arg2, auto &arg3, auto &arg4){
-        this->ContributeB(arg1,arg2,arg3,arg4);
+    fCurrentContribute = [this](const auto &arg1, auto arg2, auto &arg3,
+                                auto &arg4, const auto &arg5, const auto &arg6){
+        this->ContributeB(arg1,arg2,arg3,arg4, arg5, arg6);
     };
     fCurrentContributeBC = [this](const auto &arg1, auto arg2, auto &arg3,
                                   auto &arg4, auto &arg5){
         this->ContributeBCB(arg1,arg2,arg3,arg4,arg5);
     };
+}
+
+void TPZWaveguideModalAnalysis::GetPermittivity(
+  [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &er) const
+{
+    er = fEr;
+}
+
+void TPZWaveguideModalAnalysis::GetPermeability(
+  [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &ur) const
+{
+    ur = fUr;
 }
 
 void
@@ -159,7 +173,10 @@ TPZWaveguideModalAnalysis::Contribute(
     REAL weight,
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef)
 {
-    fCurrentContribute(datavec,weight,ek,ef);
+    TPZManVector<CSTATE,3> er(3,0.),ur(3,0.);
+    GetPermittivity(datavec[0].x, er);
+    GetPermeability(datavec[0].x, ur);
+    fCurrentContribute(datavec,weight,ek,ef,er,ur);
 }
 
 void TPZWaveguideModalAnalysis::ContributeBC(
@@ -175,14 +192,15 @@ void
 TPZWaveguideModalAnalysis::ContributeA(
     const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
     REAL weight,
-    TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef)
+    TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
+    const TPZVec<CSTATE> &er, const TPZVec<CSTATE> &ur)
 {
-    const CSTATE &exx = fEr[0];
-    const CSTATE &eyy = fEr[1];
-    const CSTATE &ezz = fEr[2];
-    const CSTATE &uxx = fUr[0];
-    const CSTATE &uyy = fUr[1];
-    const CSTATE &uzz = fUr[2];
+    const CSTATE &exx = er[0];
+    const CSTATE &eyy = er[1];
+    const CSTATE &ezz = er[2];
+    const CSTATE &uxx = ur[0];
+    const CSTATE &uyy = ur[1];
+    const CSTATE &uzz = ur[2];
     //get h1 functions for computing hcurl funcs
     const TPZFMatrix<REAL> &phiH1 = datavec[fH1MeshIndex].phi;
     
@@ -221,14 +239,15 @@ void
 TPZWaveguideModalAnalysis::ContributeB(
     const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
     REAL weight,
-    TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef)
+    TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
+    const TPZVec<CSTATE> &er, const TPZVec<CSTATE> &ur)
 {
-    const CSTATE &exx = fEr[0];
-    const CSTATE &eyy = fEr[1];
-    const CSTATE &ezz = fEr[2];
-    const CSTATE &uxx = fUr[0];
-    const CSTATE &uyy = fUr[1];
-    const CSTATE &uzz = fUr[2];
+    const CSTATE &exx = er[0];
+    const CSTATE &eyy = er[1];
+    const CSTATE &ezz = er[2];
+    const CSTATE &uxx = ur[0];
+    const CSTATE &uyy = ur[1];
+    const CSTATE &uzz = ur[2];
     //get h1 functions
     const TPZFMatrix<REAL> &phiH1 = datavec[fH1MeshIndex].phi;
     const TPZFMatrix<REAL> &gradPhiH1axes = datavec[fH1MeshIndex].dphix;
@@ -397,12 +416,16 @@ void TPZWaveguideModalAnalysis::Solution(
     int var,
     TPZVec<CSTATE> &solout)
 {
-    const CSTATE &exx = fEr[0];
-    const CSTATE &eyy = fEr[1];
-    const CSTATE &ezz = fEr[2];
-    const CSTATE &uxx = fUr[0];
-    const CSTATE &uyy = fUr[1];
-    const CSTATE &uzz = fUr[2];
+    TPZManVector<CSTATE,3> er(3,0.), ur(3,0.);
+
+    GetPermittivity(datavec[0].x, er);
+    GetPermeability(datavec[0].x, ur);
+    const CSTATE &exx = er[0];
+    const CSTATE &eyy = er[1];
+    const CSTATE &ezz = er[2];
+    const CSTATE &uxx = ur[0];
+    const CSTATE &uyy = ur[1];
+    const CSTATE &uzz = ur[2];
     
     TPZManVector<CSTATE,3> et(3,0.);
     TPZManVector<CSTATE,1> ez(1,0.);
