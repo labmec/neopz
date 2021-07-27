@@ -28,7 +28,7 @@ protected:
     STATE fDY{-1};
     TPZWaveguideModalAnalysisPML() = default;
 
-    void ComputeSParameters(const TPZVec<REAL> &x, CSTATE&sx, CSTATE&sy);
+    void ComputeSParameters(const TPZVec<REAL> &x, CSTATE&sx, CSTATE&sy) const;
 public:
     //! Creates PML based on another domain region
     TPZWaveguideModalAnalysisPML(const int id,
@@ -38,23 +38,14 @@ public:
     //! Sets information regarding the attenuation of the PML in the y-direction
     void SetAttY(const REAL pmlBegin, const STATE alpha, const REAL d);
 
+    //! Gets the permeability of the material
+    void GetPermeability(const TPZVec<REAL> &x,TPZVec<CSTATE> &ur) const override;
+    //! Gets the permittivity of the material
+    void GetPermittivity(const TPZVec<REAL> &x,TPZVec<CSTATE> &er) const override;
+    
     TPZWaveguideModalAnalysisPML * NewMaterial() const override;
     
     std::string Name() const override { return "TPZWaveguideModalAnalysisPML";}
-    /**
-       @name ContributeMethods
-       @{
-    */
-    void Contribute(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
-                    TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef) override;
-    /**@}*/
-    /**
-       @name SolutionMethods
-       @{*/
-    //! Computes the solution at an integration point
-    void Solution(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
-                  int var, TPZVec<CSTATE> &solout) override;
-    /**@}*/
 
     int IntegrationRuleOrder(const TPZVec<int> &elPMaxOrder) const override;
 };

@@ -57,7 +57,7 @@ TPZWaveguideModalAnalysisPML * TPZWaveguideModalAnalysisPML::NewMaterial() const
 
 void TPZWaveguideModalAnalysisPML::ComputeSParameters(const TPZVec<REAL> &x,
                                                       CSTATE &sx,
-                                                      CSTATE &sy)
+                                                      CSTATE &sy) const
 {
     /*****************CALCULATE S PML PARAMETERS*************************
      * In the current application, the waveguide's cross section is always
@@ -78,51 +78,29 @@ void TPZWaveguideModalAnalysisPML::ComputeSParameters(const TPZVec<REAL> &x,
             ((x[1]-fPmlBeginY) / fDY );
     }
 }
-void TPZWaveguideModalAnalysisPML::Contribute(
-    const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
-    TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef)
+
+void TPZWaveguideModalAnalysisPML::GetPermittivity(
+  const TPZVec<REAL> &x,TPZVec<CSTATE> &er) const
 {
-    
-    TPZManVector<CSTATE,3> oldUr(fUr);
-    TPZManVector<CSTATE,3> oldEr(fEr);
+    TPZWaveguideModalAnalysis::GetPermittivity(x,er);
     CSTATE sx{1}, sy{1};
-    ComputeSParameters(datavec[0].x,sx,sy);
-    fUr={
-        oldUr[0] * sy / sx,
-        oldUr[1] * sx / sy,
-        oldUr[2] * sy * sx
-    };
-    fEr={
-        oldEr[0] * sy / sx,
-        oldEr[1] * sx / sy,
-        oldEr[2] * sy * sx
-    };
-    TPZWaveguideModalAnalysis::Contribute(datavec,weight,ek,ef);
-    fUr=oldUr;
-    fEr=oldEr;
+    ComputeSParameters(x,sx,sy);
+
+    er[0] *= sy / sx;
+    er[1] *= sx / sy;
+    er[2] *= sy * sx;
 }
 
-void TPZWaveguideModalAnalysisPML::Solution(
-    const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
-    int var, TPZVec<CSTATE> &solout)
+void TPZWaveguideModalAnalysisPML::GetPermeability(
+  const TPZVec<REAL> &x,TPZVec<CSTATE> &ur) const
 {
-    TPZManVector<CSTATE,3> oldUr(fUr);
-    TPZManVector<CSTATE,3> oldEr(fEr);
+    TPZWaveguideModalAnalysis::GetPermeability(x,ur);
     CSTATE sx{1}, sy{1};
-    ComputeSParameters(datavec[0].x,sx,sy);
-    fUr={
-        oldUr[0] * sy / sx,
-        oldUr[1] * sx / sy,
-        oldUr[2] * sy * sx
-    };
-    fEr={
-        oldEr[0] * sy / sx,
-        oldEr[1] * sx / sy,
-        oldEr[2] * sy * sx
-    };
-    TPZWaveguideModalAnalysis::Solution(datavec,var,solout);
-    fUr=oldUr;
-    fEr=oldEr;
+    ComputeSParameters(x,sx,sy);
+    
+    ur[0] *= sy / sx;
+    ur[1] *= sx / sy;
+    ur[2] *= sy * sx;
 }
 
 int TPZWaveguideModalAnalysisPML::IntegrationRuleOrder(const TPZVec<int> &elPMaxOrder) const
