@@ -60,6 +60,7 @@ public:
     /// Set active approximation spaces
     void BuildMultiphysicsSpaceWithMemory(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector);
     
+    void BuildMultiphysicsSpaceWithMemory(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector, std::set<int> &matsWithMem, std::set<int> &matsWithOutMem);
     void LoadSolutionFromMeshes();
     
     void LoadSolutionFromMultiPhysics();
