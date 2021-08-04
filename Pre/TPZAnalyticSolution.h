@@ -9,9 +9,6 @@
 
 #include <string>
 
-
-// typedef void (ExactFunc)(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu);
-
 struct TPZAnalyticSolution
 {
     
@@ -25,138 +22,33 @@ struct TPZAnalyticSolution
     TPZAnalyticSolution(const TPZAnalyticSolution &cp);
     
     TPZAnalyticSolution &operator=(const TPZAnalyticSolution &copy);
-
-    class TForce : public TPZFunction<STATE>
+    
+    std::function<void (const TPZVec<REAL> &, TPZVec<STATE> &)> ForcingFunction() const
     {
-        const TPZAnalyticSolution *fAnalytic;
-        
-    public:
-        TForce(const TPZAnalyticSolution *root) : fAnalytic(root)
+        return [this](const TPZVec<REAL> &loc, TPZVec<STATE> &result)
         {
-        }
-        
-        virtual ~TForce()
-        {
-            
-        }
-        /** @brief Simpler version of Execute method which does not compute function derivatives */
-        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f) override {
-            fAnalytic->Force(x,f);
-            for(auto &it:f) it *= fAnalytic->fSignConvention;
-        }
-        /** @brief Simpler version of Execute method which does not compute function derivatives */
-        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &nada) override {
-            fAnalytic->Force(x,f);
-            for(auto &it:f) it *= fAnalytic->fSignConvention;
-        }
-        
-        /** @brief Polynomial order of this function. */
-        /** In case of non-polynomial function it can be a reasonable approximation order. */
-        virtual int PolynomialOrder() const override {
-            return 5;
-        }
-
+            this->Force(loc, result);
+            for (auto &it : result)
+                it *= this->fSignConvention;
+        };
     };
     
-    class Tensor : public TPZFunction<STATE>
-    {
-        TPZAnalyticSolution *fAnalytic;
-        
-    public:
-        Tensor(TPZAnalyticSolution *root) : fAnalytic(root)
-        {
-            
-        }
-        
-        virtual ~Tensor()
-        {
-            
-        }
-        /**
-         * @brief Performs function computation
-         * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
-         * @param f function values
-         * @param df function derivatives
-         */
-        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df) override
-        {
-            fAnalytic->Sigma(x,df);
-            TPZFNMatrix<9,STATE> dsol(df);
-            fAnalytic->Solution(x, f, dsol);
-        }
-        /** @brief Polynomial order of this function. */
-        /** In case of non-polynomial function it can be a reasonable approximation order. */
-        virtual int PolynomialOrder() const override
-        {
-            return 5;
-        }
-
-    };
-    
-    class TExactState : public TPZFunction<STATE>
-    {
-        const TPZAnalyticSolution *fAnalytic;
-        
-    public:
-        TExactState(const TPZAnalyticSolution *root) : fAnalytic(root)
-        {
-            
-        }
-        virtual ~TExactState()
-        {
-            
-        }
-        /**
-         * @brief Performs function computation
-         * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
-         * @param f function values
-         * @param df function derivatives
-         */
-        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df) override
-        {
-            fAnalytic->Solution(x,f,df);
-        }
-        /**
-         * @brief Performs function computation
-         * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
-         * @param f function values
-         * @param df function derivatives
-         */
-        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f) override
-        {
-            TPZFNMatrix<9,STATE> df(3,3);
-            fAnalytic->Solution(x,f,df);
-        }
-        /** @brief Polynomial order of this function. */
-        /** In case of non-polynomial function it can be a reasonable approximation order. */
-        virtual int PolynomialOrder() const override
-        {
-            return 5;
-        }
-        
-    };
-    
-    TPZAutoPointer<TPZFunction<STATE> > ForcingFunction() const
-    {
-        return new TForce(this);
-    };
-    
-    TPZAutoPointer<TPZFunction<STATE> > Exact() const
-    {
-        return new TExactState(this);
-    };
-    
-    std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> ExactSolution() const
+    std::function<void (const TPZVec<REAL> &, TPZVec<STATE> &, TPZFMatrix<STATE> &)> ExactSolution() const
     {
         return [this](const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
         {
-            this->Solution(loc,result,deriv);
+            this->Solution(loc, result, deriv);
         };
     }
     
-    TPZAutoPointer<TPZFunction<STATE> > TensorFunction()
+    std::function<void (const TPZVec<REAL> &, TPZVec<STATE> &, TPZFMatrix<STATE> &)> TensorFunction() const
     {
-        return new Tensor(this);
+        return [this](const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
+        {
+            this->Sigma(loc, deriv);
+            TPZFNMatrix<9,STATE> dsol(deriv);
+            this->Solution(loc, result, dsol);
+        };
     }
     
     virtual ~TPZAnalyticSolution()
@@ -319,7 +211,6 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
     static void ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
 };
-
 
 struct TLaplaceExample1 : public TPZAnalyticSolution
 {
@@ -515,4 +406,3 @@ struct TStokesAnalytic : public TPZAnalyticSolution
 };
 
 #endif
-
