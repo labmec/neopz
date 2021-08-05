@@ -400,6 +400,10 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     pressuremesh->InitializeBlock();
     pressuremesh->SetDimModel(gmesh->Dimension());
     
+    // Sets the fluxmesh as reference again if user wants to split another interface
+    gmesh->ResetReference();
+    fluxmesh->LoadReferences();
+    
     return true;
 }
 
