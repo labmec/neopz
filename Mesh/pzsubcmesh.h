@@ -115,6 +115,10 @@ public:
 
     /** @brief Sets the analysis type. Nonsymmetric type*/
     void SetAnalysisNonSymSparse(int numThreads);
+    
+    void SetAnalysis(TPZAutoPointer<TPZLinearAnalysis> analysis){
+        fAnalysis = analysis;
+    }
    
     /** @brief Sets the analysis type. */
     void SetAnalysisFStruct(int numThreads);
