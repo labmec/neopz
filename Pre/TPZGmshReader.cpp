@@ -435,7 +435,9 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                               if(m_dim_physical_tag_and_physical_tag[entity_dim].find(gmshPhysicalTagTemp) != m_dim_physical_tag_and_physical_tag[entity_dim].end()){
                                   physical_identifier = m_dim_physical_tag_and_physical_tag[entity_dim][gmshPhysicalTagTemp];
                               } else {
-                                  continue; // not adding elements without physical identifier
+                                  if (!addNonAssignedEls) {
+                                      continue; // not adding elements without physical identifier
+                                  }                                  
                               }
                             
                               // std::cout << "Creating el for tag " << gmshPhysicalTagTemp << " with physical id = " << physical_identifier << std::endl;
