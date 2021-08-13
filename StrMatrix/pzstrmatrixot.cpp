@@ -101,7 +101,7 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix 
         }
 #endif
         TPZFMatrix<TVar> rhsloc;
-        if(ComputeRhs()) rhs.Redim(neqcondense, rhs.Cols());
+        if(ComputeRhs()) rhsloc.Redim(neqcondense, rhs.Cols());
         if(this->fNumThreads){
             this->MultiThread_Assemble(stiffness,rhsloc,guiInterface);
         }

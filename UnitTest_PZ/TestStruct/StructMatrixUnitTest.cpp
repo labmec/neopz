@@ -12,6 +12,7 @@
 #include "TPZSSpStructMatrix.h"
 #include "pzmatrix.h"
 #include "TPZMatrixSolver.h"
+#include "pzstepsolver.h"
 #include "tpzautopointer.h"
 
 //parallel layer classes
@@ -47,6 +48,9 @@ namespace structTest{
                               const int nThreads);
   template <class TSTMAT>
   void CompareSerialParallelStiffMat(TPZAutoPointer<TPZCompMesh> cMesh,
+                                     const int nThreads);
+  template <class TSTMAT>
+  void TestEquationFilter(TPZAutoPointer<TPZCompMesh> cMesh,
                                      const int nThreads);
   template <class TSTMAT1, class TSTMAT2>
   void CompareParallelLayerStiffMat(TPZAutoPointer<TPZCompMesh> cMesh,
@@ -141,6 +145,21 @@ TEMPLATE_TEST_CASE("Compare parallel and serial matrices","[struct_tests][struct
   cMesh = nullptr;
 }
 
+TEMPLATE_TEST_CASE("Test Equation Filter support",
+                   "[struct_tests][struct][multithread]",
+                   TPZStructMatrixOR<STATE>,TPZStructMatrixOT<STATE>
+#ifdef PZ_USING_TBB
+                   ,TPZStructMatrixTBBFlow<STATE>
+#endif
+                   )
+{
+  auto cMesh = structTest::CreateCMesh2D();
+  constexpr int nThreads{4};
+
+  structTest::TestEquationFilter<TestType>(cMesh, nThreads);
+  cMesh = nullptr;
+}
+
 TEST_CASE("Compare parallel strategies","[struct_tests][struct][multithread]")
 {
   auto cMesh = structTest::CreateCMesh2D();
@@ -171,6 +190,9 @@ namespace structTest{
       TSTMAT matskl(cMesh);
       matskl.SetNumThreads(nThreads);
       an.SetStructuralMatrix(matskl);
+      TPZStepSolver<STATE> defaultSolver;
+      defaultSolver.SetDirect(ELU);
+      an.SetSolver(defaultSolver);
       an.Assemble();
       return an.MatrixSolver<STATE>().Matrix();
     }();
@@ -201,6 +223,9 @@ namespace structTest{
       TSTMAT matskl(cMesh);
       matskl.SetNumThreads(nThreads);
       an.SetStructuralMatrix(matskl);
+      TPZStepSolver<STATE> defaultSolver;
+      defaultSolver.SetDirect(ELU);
+      an.SetSolver(defaultSolver);
       an.Assemble();
       return an.MatrixSolver<STATE>().Matrix();
     };
@@ -218,6 +243,42 @@ namespace structTest{
     REQUIRE(normDiff == Approx(0.0).margin(
                 10*std::numeric_limits<STATE>::epsilon()));
     Catch::StringMaker<STATE>::precision = oldPrecision;
+  }
+
+  template <class TPARLAYER>
+  void TestEquationFilter(TPZAutoPointer<TPZCompMesh> cMesh,
+                                     const int nThreads)
+  {
+
+    auto GetMatrix = [cMesh](const int nThreads){
+      constexpr bool optimizeBandwidth{false};
+      TPZLinearAnalysis an(cMesh, optimizeBandwidth);
+      const auto neqOld = cMesh->NEquations();
+      const int neq = neqOld/2;
+      TPZVec<int64_t> activeEqs(neq);
+      for(int i = 0; i < neq; i++){
+        activeEqs[i] = i;
+      }
+
+      TPZSkylineStructMatrix<STATE,TPARLAYER> matskl(cMesh);
+      matskl.SetNumThreads(nThreads);
+      matskl.EquationFilter().SetActiveEquations(activeEqs);
+      an.SetStructuralMatrix(matskl);
+      TPZStepSolver<STATE> defaultSolver;
+      defaultSolver.SetDirect(ELU);
+      an.SetSolver(defaultSolver);
+      an.Assemble();
+      return an.MatrixSolver<STATE>().Matrix();
+    };
+    auto matParallel = GetMatrix(nThreads);
+
+    CAPTURE(true);
+    if constexpr (std::is_same_v<TPARLAYER, TPZStructMatrixTBBFlow<STATE>>){
+      return;
+    }
+    
+    auto matSerial = GetMatrix(0);
+    CAPTURE(true);
   }
 
 
@@ -238,6 +299,9 @@ namespace structTest{
       }
       strmat->SetNumThreads(nThreads);
       an.SetStructuralMatrix(strmat);
+      TPZStepSolver<STATE> defaultSolver;
+      defaultSolver.SetDirect(ELU);
+      an.SetSolver(defaultSolver);
       an.Assemble();
       return an.MatrixSolver<STATE>().Matrix();
     };

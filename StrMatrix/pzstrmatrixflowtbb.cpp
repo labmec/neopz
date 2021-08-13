@@ -66,7 +66,7 @@ void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMa
         }
 #endif
         TPZFMatrix<TVar> rhsloc;
-        if(ComputeRhs()) rhs.Redim(neqcondense, rhs.Cols());
+        if(ComputeRhs()) rhsloc.Redim(neqcondense, rhs.Cols());
         this->MultiThread_Assemble(stiffness,rhsloc,guiInterface);
         if(ComputeRhs()) equationFilter.Scatter(rhsloc, rhs);
     }
