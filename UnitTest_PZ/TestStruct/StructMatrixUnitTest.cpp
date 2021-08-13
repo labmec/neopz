@@ -273,10 +273,12 @@ namespace structTest{
     auto matParallel = GetMatrix(nThreads);
 
     CAPTURE(true);
+
+#ifdef PZ_USING_TBB    
     if constexpr (std::is_same_v<TPARLAYER, TPZStructMatrixTBBFlow<STATE>>){
       return;
     }
-    
+#endif
     auto matSerial = GetMatrix(0);
     CAPTURE(true);
   }
