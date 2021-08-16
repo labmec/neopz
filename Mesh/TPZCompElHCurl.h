@@ -194,17 +194,13 @@ protected:
 
     /**
      * This method computes the solution of an HCurl-conforming element and its derivatives in the local coordinate qsi
-     * @param vecShapeIndex associates which scalar function multiplies which vector
-     * @param deformedDirections directions on the deformed element
-     * @param phi scalar shape function
+     * @param phi hcurl shape function
      * @param curlphi curl of the shape function
      * @param sol finite element solution
      * @param curlsol curl of the finite element solution
      */
     template<class TVar>
-    void ComputeSolutionHCurlT(const TPZVec<std::pair<int,int64_t> > &vecShapeIndex,
-                              const TPZFMatrix<REAL> &deformedDirections,
-                              const TPZFMatrix<REAL> &phi,
+    void ComputeSolutionHCurlT(const TPZFMatrix<REAL> &phi,
                               const TPZFMatrix<REAL> &curlphi,
                               TPZSolVec<TVar> &sol,
                               TPZSolVec<TVar> &curlsol);

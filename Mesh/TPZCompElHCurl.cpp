@@ -482,8 +482,10 @@ void TPZCompElHCurl<TSHAPE>::ReallyComputeSolution(TPZMaterialDataT<STATE> &data
     data.curlphi.Redim(2*dim - 3 > 0 ? 2*dim - 3 : 1, this->NShapeF());
     ComputeCurl(data.fVecShapeIndex,data.dphi,this->fMasterDirections,data.jacobian,data.detjac,data.axes,data.curlphi);
     
-    ComputeSolutionHCurlT(data.fVecShapeIndex,
-                         data.fDeformedDirections, data.phi, data.curlphi,
+    TPZFMatrix<REAL> phiHCurl;
+    TPZHCurlAuxClass::ComputeShape(data.fVecShapeIndex,data.phi,
+                                   data.fDeformedDirections,phiHCurl);
+    ComputeSolutionHCurlT(phiHCurl, data.curlphi,
                          data.sol, data.curlsol);
 }
 template<class TSHAPE>
@@ -493,9 +495,11 @@ void TPZCompElHCurl<TSHAPE>::ReallyComputeSolution(TPZMaterialDataT<CSTATE> &dat
     constexpr auto dim{TSHAPE::Dimension};
     data.curlphi.Redim(2*dim - 3 > 0 ? 2*dim - 3 : 1, this->NShapeF());
     ComputeCurl(data.fVecShapeIndex,data.dphi,this->fMasterDirections,data.jacobian,data.detjac,data.axes,data.curlphi);
-    
-    ComputeSolutionHCurlT(data.fVecShapeIndex,
-                         data.fDeformedDirections, data.phi, data.curlphi,
+
+    TPZFMatrix<REAL> phiHCurl;
+    TPZHCurlAuxClass::ComputeShape(data.fVecShapeIndex,data.phi,
+                                   data.fDeformedDirections,phiHCurl);
+    ComputeSolutionHCurlT(phiHCurl, data.curlphi,
                          data.sol, data.curlsol);
 }
 
@@ -769,14 +773,9 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
 template<class TSHAPE>
 template<class TVar>
 void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
-    const TPZVec<std::pair<int,int64_t> > &vecShapeIndex,
-    const TPZFMatrix<REAL> &deformedDirections,
-    const TPZFMatrix<REAL> &phi, const TPZFMatrix<REAL> &curlPhi,
+  const TPZFMatrix<REAL> &phiHCurl, const TPZFMatrix<REAL> &curlPhi,
     TPZSolVec<TVar> &sol, TPZSolVec<TVar> &curlSol)
 {
-    
-    TPZFMatrix<REAL> phiHCurl;
-    TPZHCurlAuxClass::ComputeShape(vecShapeIndex,phi,deformedDirections,phiHCurl);
     constexpr int dim = TSHAPE::Dimension;
     constexpr int curlDim = [dim](){
         if constexpr (dim == 1) return 1;
