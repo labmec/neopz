@@ -70,6 +70,7 @@ void TPZHybridizeHDiv::ComputePeriferalMaterialIds(TPZVec<TPZCompMesh*>& meshvec
     fLagrangeInterface = maxMatId + 2;
     fInterfaceMatid.first = maxMatId + 3;
     fInterfaceMatid.second = maxMatId + 4;
+    fLagrangeInterfaceEnd = maxMatId + 5;
 }
 
 /// split the connect between two neighbouring elements
@@ -174,9 +175,10 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     wrap1->LoadElementReference();
     wrap2->LoadElementReference();
     int64_t pressureindex;
+    int lagmatid = fLagrangeInterface;
     int pressureorder;
     {
-        TPZGeoElBC gbc(gleft, fLagrangeInterface);
+        TPZGeoElBC gbc(gleft, lagmatid);
         pressureindex = gbc.CreatedElement()->Index();
         pressureorder = sideorder;
     }
@@ -227,7 +229,7 @@ TPZCompElSide TPZHybridizeHDiv::RightElement(TPZInterpolatedElement *intel, int 
     return TPZCompElSide();
 }
 
-std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &left, const TPZStack<TPZCompElSide> &cellsidestack, TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
+std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &left, const TPZStack<TPZCompElSide> &cellsidestack, TPZVec<TPZCompMesh *> &meshvec_Hybrid, const bool isIntersectEnd) {
     if (fHDivWrapMatid == 0 || fLagrangeInterface == 0) {
         std::cerr << "Using uninitialized TPZHybridizeHDiv object. You need to call ComputePeriferalMaterialIds function first!" << std::endl;
         DebugStop();
@@ -322,8 +324,12 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     
     int64_t pressureindex;
     int pressureorder;
+    int lagmatid = fLagrangeInterface;
+    if (isIntersectEnd) {
+        lagmatid = fLagrangeInterfaceEnd;
+    }
     {
-      TPZGeoElBC gbc(gleft, fLagrangeInterface);
+      TPZGeoElBC gbc(gleft, lagmatid);
       pressureindex = gbc.CreatedElement()->Index();
       pressureorder = sideorder;
     }
@@ -335,7 +341,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     return std::make_tuple(pressureindex,pressureorder);
 }
 
-bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid) {
+bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid, const bool isIntersectEnd) {
     
     // ==> Getting meshes
     TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
@@ -352,7 +358,7 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     if (isFractureIntersectionMesh) {
         TPZStack<TPZCompElSide> celsidestack;
         GetAllConnectedCompElSides(intelleft, side, celsidestack);
-        pindexporder = SplitConnects(celsideleft, celsidestack, meshvec_Hybrid);
+        pindexporder = SplitConnects(celsideleft, celsidestack, meshvec_Hybrid, isIntersectEnd);
     }
     else{
         TPZCompElSide celsideright = RightElement(intelleft, side);
@@ -816,6 +822,12 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZVec<TPZCompMesh *> &mes
         matPerif->SetNStateVariables(fNState);
         pressuremesh->InsertMaterialObject(matPerif);
     }
+    if (!pressuremesh->FindMaterial(fLagrangeInterfaceEnd)) {
+        auto matPerif = new TPZNullMaterial(fLagrangeInterfaceEnd);
+        matPerif->SetDimension(dim-1);
+        matPerif->SetNStateVariables(fNState);
+        pressuremesh->InsertMaterialObject(matPerif);
+    }
     
     if(meshvec_Hybrid[0]!=NULL){
 
@@ -843,6 +855,13 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
     if (!cmesh_Hybrid->FindMaterial(fLagrangeInterface)) {
         std::cout<<"LagrangeInterface MatId "<<fLagrangeInterface<<std::endl;
         auto matPerif = new TPZNullMaterialCS<STATE>(fLagrangeInterface);
+        matPerif->SetNStateVariables(fNState);
+        matPerif->SetDimension(dim-1);
+        cmesh_Hybrid->InsertMaterialObject(matPerif);
+    }
+    if (!cmesh_Hybrid->FindMaterial(fLagrangeInterfaceEnd)) {
+        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterfaceEnd<<std::endl;
+        auto matPerif = new TPZNullMaterialCS<STATE>(fLagrangeInterfaceEnd);
         matPerif->SetNStateVariables(fNState);
         matPerif->SetDimension(dim-1);
         cmesh_Hybrid->InsertMaterialObject(matPerif);

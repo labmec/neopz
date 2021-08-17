@@ -814,6 +814,11 @@ public:
     inline  TPZFMatrix<TVar> &operator=(const TPZFMatrix<TVar> &copy) {
         return TPZFMatrix<TVar>::operator=(copy);
     }
+    
+    inline  TPZFMatrix<TVar> &operator=(const TVar val) {
+        return TPZFMatrix<TVar>::operator=(val);
+    }
+    
     inline  TPZFNMatrix<N, TVar> &operator=(const TPZFNMatrix<N, TVar> &copy) {
         TPZFMatrix<TVar>::operator=(copy);
         return *this;

@@ -32,6 +32,7 @@ struct TPZHybridizeHDiv {
     int fHDivWrapMatid = -10;
     // material id of the lagrange interface (either pressure or displacement)
     int fLagrangeInterface = -9;
+    int fLagrangeInterfaceEnd = -7;
     // material id of the interface elements
     std::pair<int,int> fInterfaceMatid = {-8,-8};
     // number of state variables
@@ -67,6 +68,7 @@ struct TPZHybridizeHDiv {
     
     ///
     const int lagrangeInterfaceMatId() {return fLagrangeInterface;}
+    const int lagrangeInterfaceEndMatId() {return fLagrangeInterfaceEnd;}
     
     /// split the connects between flux elements and create a dim-1 pressure element
     void HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
@@ -82,7 +84,7 @@ struct TPZHybridizeHDiv {
     void CreateInterfaceElements(TPZMultiphysicsCompMesh *cmesh_Hybrid);
     
     /// Hybridize a single interface based on the fluxmesh side connect
-    bool HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intel, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid);
+    bool HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intel, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid, const bool isIntersectEnd = false);
     
     /// create a multiphysics mesh for the hybrid formulation using the materials of another mesh and the given atomic meshes
     TPZCompMesh * CreateMultiphysicsMesh(TPZCompMesh *cmesh_HDiv, TPZVec<TPZCompMesh *> &meshvec_Hybrid, double Lagrange_term_multiplier = 1.);
@@ -125,7 +127,7 @@ private:
     
     std::tuple<int64_t,int> SplitConnects(const TPZCompElSide &left, const TPZCompElSide &right, TPZVec<TPZCompMesh *> &meshvec_Hybrid);
     
-    std::tuple<int64_t, int> SplitConnects(const TPZCompElSide &left, const TPZStack<TPZCompElSide> &cellsidestack, TPZVec<TPZCompMesh *> &meshvec_Hybrid);
+    std::tuple<int64_t, int> SplitConnects(const TPZCompElSide &left, const TPZStack<TPZCompElSide> &cellsidestack, TPZVec<TPZCompMesh *> &meshvec_Hybrid, const bool isIntersectEnd = false);
 
 public:
     

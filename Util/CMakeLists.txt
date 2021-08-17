@@ -24,6 +24,7 @@ set(public_headers
   tpzautopointer.h  
   pzfunction.h
   TPZExactFunction.h
+  pzvec_extras.h
   )
 set(headers
     TPZAssert.h
