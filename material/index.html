@@ -282,7 +282,7 @@ scenarios where the domain is homogeneous by parts).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n">TPZMatBase</span></a></span> is a variadic class template. Therefore</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="o">*</span><span class="n">mat</span> <span class="o">=</span> <span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">TPZMatBase</span><span class="o">&lt;</span><span class="n">STATE</span><span class="o">&gt;*&gt;</span><span class="p">(</span><span class="n">someMat</span><span class="p">);</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="o">*</span><span class="n">mat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">TPZMatBase</span><span class="o">&lt;</span><span class="n">STATE</span><span class="o">&gt;*&gt;</span><span class="p">(</span><span class="n">someMat</span><span class="p">);</span><span class="w"></span>
 </pre></div>
 </div>
 <p>is expected to fail, since <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n">TPZMatBase</span></a><span class="p">&lt;</span><span class="n">STATE</span><span class="p">&gt;</span></span> and <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n">TPZMatBase</span></a><span class="p">&lt;</span><span class="n">STATE</span><span class="p">,</span><span class="w"> </span><span class="n">Interface1</span><span class="p">,</span><span class="w"> </span><span class="n">Interface2</span><span class="p">&gt;</span></span> are different types. If needed, cast to <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv411TPZMaterial" title="TPZMaterial"><span class="n">TPZMaterial</span></a></span>, <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0E12TPZMaterialT" title="TPZMaterialT"><span class="n">TPZMaterialT</span></a></span> or to any interfaces.</p>
@@ -299,18 +299,18 @@ scenarios where the domain is homogeneous by parts).</p>
 </dd></dl>
 
 <p>Lambdas can be used for easily creating forcing functions as</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cm">/*let us assume that mat inherits from a TPZMaterialT&lt;STATE&gt;*/</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cm">/*let us assume that mat inherits from a TPZMaterialT&lt;STATE&gt;*/</span><span class="w"></span>
 
 
-<span class="k">auto</span> <span class="n">forcingFunction</span> <span class="o">=</span> <span class="p">[](</span><span class="k">const</span> <span class="n">TPZVec</span><span class="o">&lt;</span><span class="n">REAL</span><span class="o">&gt;&amp;</span><span class="n">x</span><span class="p">,</span> <span class="n">TPZVec</span><span class="o">&lt;</span><span class="n">STATE</span><span class="o">&gt;&amp;</span><span class="n">u</span><span class="p">){</span>
-  <span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
-  <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
-  <span class="n">u</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
-<span class="p">};</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">forcingFunction</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="k">const</span><span class="w"> </span><span class="n">TPZVec</span><span class="o">&lt;</span><span class="n">REAL</span><span class="o">&gt;&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">TPZVec</span><span class="o">&lt;</span><span class="n">STATE</span><span class="o">&gt;&amp;</span><span class="n">u</span><span class="p">){</span><span class="w"></span>
+<span class="w">  </span><span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"></span>
+<span class="w">  </span><span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span><span class="w"></span>
+<span class="w">  </span><span class="n">u</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
 
 <span class="c1">//pOrder is the suggested integration rule for the forcing function</span>
-<span class="k">constexpr</span> <span class="kt">int</span> <span class="n">pOrder</span><span class="p">{</span><span class="mi">2</span><span class="p">};</span>
-<span class="n">mat</span><span class="o">-&gt;</span><span class="n">SetForcingFunction</span><span class="p">(</span><span class="n">forcingFunction</span><span class="p">,</span><span class="n">pOrder</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pOrder</span><span class="p">{</span><span class="mi">2</span><span class="p">};</span><span class="w"></span>
+<span class="n">mat</span><span class="o">-&gt;</span><span class="n">SetForcingFunction</span><span class="p">(</span><span class="n">forcingFunction</span><span class="p">,</span><span class="n">pOrder</span><span class="p">);</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The class <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0E12TPZMaterialT" title="TPZMaterialT"><span class="n">TPZMaterialT</span></a></span> contains the forcing function-related methods.</p>
@@ -808,33 +808,33 @@ scenarios where the domain is homogeneous by parts).</p>
 <span class="cm">* mat: pointer to a given material</span>
 <span class="cm">*      representing a weak form using only real variables</span>
 <span class="cm">* cmesh: pointer to the computational mesh</span>
-<span class="cm">*/</span>
+<span class="cm">*/</span><span class="w"></span>
 
 <span class="cm">/*</span>
 <span class="cm">val1 is the matrix of values that goes on the FEM matrix.</span>
 <span class="cm">In this example, it is a 1x1 matrix</span>
-<span class="cm">*/</span>
-<span class="n">TPZFMatrix</span><span class="o">&lt;</span><span class="n">STATE</span><span class="o">&gt;</span> <span class="n">v1</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.</span><span class="p">);</span>
+<span class="cm">*/</span><span class="w"></span>
+<span class="n">TPZFMatrix</span><span class="o">&lt;</span><span class="n">STATE</span><span class="o">&gt;</span><span class="w"> </span><span class="n">v1</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.</span><span class="p">);</span><span class="w"></span>
 <span class="c1">//val2 is the vector of values that goes on the rhs</span>
-<span class="n">TPZVec</span><span class="o">&lt;</span><span class="n">STATE</span><span class="o">&gt;</span> <span class="n">v2</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="n">TPZVec</span><span class="o">&lt;</span><span class="n">STATE</span><span class="o">&gt;</span><span class="w"> </span><span class="n">v2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
 <span class="cm">/*</span>
 <span class="cm">boundary identifier: each identifier should be unique in a given mesh</span>
-<span class="cm">*/</span>
-<span class="k">const</span> <span class="kt">int</span> <span class="n">bcIdentifier</span><span class="p">{</span><span class="mi">-1</span><span class="p">};</span>
+<span class="cm">*/</span><span class="w"></span>
+<span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bcIdentifier</span><span class="p">{</span><span class="mi">-1</span><span class="p">};</span><span class="w"></span>
 <span class="cm">/*</span>
 <span class="cm">boundary condition type: In the available NeoPZ materials,</span>
 <span class="cm">                         Dirichlet=0,</span>
 <span class="cm">                         Neumann=1,</span>
 <span class="cm">                         Robin=2</span>
 <span class="cm">                         but in your own materials any value can be used</span>
-<span class="cm">*/</span>
-<span class="k">const</span> <span class="kt">int</span> <span class="n">bcType</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="cm">*/</span><span class="w"></span>
+<span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bcType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
 
 <span class="c1">//Creates a boundary condition associated with mat</span>
-<span class="n">TPZBndCond</span> <span class="o">*</span> <span class="n">bnd</span> <span class="o">=</span> <span class="n">mat</span><span class="o">-&gt;</span><span class="n">CreateBC</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span><span class="n">bcIdentifier</span><span class="p">,</span><span class="n">boundType</span><span class="p">,</span><span class="n">val1</span><span class="p">,</span><span class="n">val2</span><span class="p">);</span>
+<span class="n">TPZBndCond</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">bnd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mat</span><span class="o">-&gt;</span><span class="n">CreateBC</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span><span class="n">bcIdentifier</span><span class="p">,</span><span class="n">boundType</span><span class="p">,</span><span class="n">val1</span><span class="p">,</span><span class="n">val2</span><span class="p">);</span><span class="w"></span>
 
 <span class="c1">//inserts into the computational mesh</span>
-<span class="n">cmesh</span><span class="o">-&gt;</span><span class="n">InsertMaterialObject</span><span class="p">(</span><span class="n">bnd</span><span class="p">)</span>
+<span class="n">cmesh</span><span class="o">-&gt;</span><span class="n">InsertMaterialObject</span><span class="p">(</span><span class="n">bnd</span><span class="p">)</span><span class="w"></span>
 </pre></div>
 </div>
 <p>Read the next section for a better comprehension of the <span class="cpp-expr sig sig-inline cpp"><span class="n">val1</span></span> and <span class="cpp-expr sig sig-inline cpp"><span class="n">val2</span></span> variables.</p>
@@ -919,38 +919,38 @@ scenarios where the domain is homogeneous by parts).</p>
 </dd></dl>
 
 <p>When forcing functions are not being used, than <span class="cpp-expr sig sig-inline cpp"><span class="n">Val1</span></span> and <span class="cpp-expr sig sig-inline cpp"><span class="n">Val2</span></span> should be used for extracting the user-prescribed values for the boundary conditions. A simple example to illustrate their usage follows:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span> <span class="cm">/*</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="cm">/*</span>
 <span class="cm"> * This is inside the ContributeBC method</span>
 <span class="cm"> * we suppose that the material is expecting</span>
 <span class="cm"> * a vec of size 3 for val 2</span>
 <span class="cm"> * and a 3x3 matrix for val1</span>
-<span class="cm"> */</span>
+<span class="cm"> */</span><span class="w"></span>
 
- <span class="c1">//TPZManVector has static and dynamic storage</span>
- <span class="n">TPZManVector</span><span class="o">&lt;</span><span class="n">TVar</span><span class="p">,</span><span class="mi">3</span><span class="o">&gt;</span> <span class="n">v2</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mf">0.</span><span class="p">);</span>
- <span class="c1">//TPZFNMatrix is a matrix equivalent of TPZManVector</span>
- <span class="n">TFNMatrix</span><span class="o">&lt;</span><span class="mi">9</span><span class="p">,</span><span class="n">TVar</span><span class="o">&gt;</span> <span class="n">v1</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mf">0.</span><span class="p">);</span>
+<span class="w"> </span><span class="c1">//TPZManVector has static and dynamic storage</span>
+<span class="w"> </span><span class="n">TPZManVector</span><span class="o">&lt;</span><span class="n">TVar</span><span class="p">,</span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">v2</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mf">0.</span><span class="p">);</span><span class="w"></span>
+<span class="w"> </span><span class="c1">//TPZFNMatrix is a matrix equivalent of TPZManVector</span>
+<span class="w"> </span><span class="n">TFNMatrix</span><span class="o">&lt;</span><span class="mi">9</span><span class="p">,</span><span class="n">TVar</span><span class="o">&gt;</span><span class="w"> </span><span class="n">v1</span><span class="w"> </span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mf">0.</span><span class="p">);</span><span class="w"></span>
 
- <span class="k">if</span><span class="p">(</span><span class="n">bc</span><span class="p">.</span><span class="n">HasForcingFunctionBC</span><span class="p">()){</span>
-   <span class="n">bc</span><span class="p">.</span><span class="n">ForcingFunctionBC</span><span class="p">()(</span><span class="n">data</span><span class="p">.</span><span class="n">x</span><span class="p">,</span><span class="n">v2</span><span class="p">,</span><span class="n">v1</span><span class="p">);</span>
- <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-   <span class="n">v2</span> <span class="o">=</span> <span class="n">bc</span><span class="p">.</span><span class="n">Val2</span><span class="p">();</span>
-   <span class="n">v1</span> <span class="o">=</span> <span class="n">bc</span><span class="p">.</span><span class="n">Val1</span><span class="p">();</span>
- <span class="p">}</span>
+<span class="w"> </span><span class="k">if</span><span class="p">(</span><span class="n">bc</span><span class="p">.</span><span class="n">HasForcingFunctionBC</span><span class="p">()){</span><span class="w"></span>
+<span class="w">   </span><span class="n">bc</span><span class="p">.</span><span class="n">ForcingFunctionBC</span><span class="p">()(</span><span class="n">data</span><span class="p">.</span><span class="n">x</span><span class="p">,</span><span class="n">v2</span><span class="p">,</span><span class="n">v1</span><span class="p">);</span><span class="w"></span>
+<span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">   </span><span class="n">v2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bc</span><span class="p">.</span><span class="n">Val2</span><span class="p">();</span><span class="w"></span>
+<span class="w">   </span><span class="n">v1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bc</span><span class="p">.</span><span class="n">Val1</span><span class="p">();</span><span class="w"></span>
+<span class="w"> </span><span class="p">}</span><span class="w"></span>
 
- <span class="cm">/*example of dirichlet BC using big number*/</span>
- <span class="k">const</span> <span class="k">auto</span> <span class="o">&amp;</span><span class="n">big</span> <span class="o">=</span> <span class="n">TPZMaterial</span><span class="o">::</span><span class="n">fBigNumber</span><span class="p">;</span>
- <span class="k">switch</span> <span class="p">(</span><span class="n">bc</span><span class="p">.</span><span class="n">Type</span><span class="p">()){</span>
- <span class="c1">// Dirichlet condition</span>
- <span class="k">case</span> <span class="mi">0</span> <span class="o">:</span> <span class="p">{</span>
-   <span class="k">for</span><span class="p">(</span><span class="k">auto</span> <span class="n">in</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">;</span> <span class="n">in</span> <span class="o">&lt;</span> <span class="n">phr</span><span class="p">;</span> <span class="n">in</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-     <span class="n">ef</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="o">+=</span> <span class="n">big</span> <span class="o">*</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">phi</span><span class="p">.</span><span class="n">GetVal</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">weight</span><span class="p">;</span>
-       <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="n">jn</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">;</span> <span class="n">jn</span> <span class="o">&lt;</span> <span class="n">phr</span><span class="p">;</span> <span class="n">jn</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-         <span class="n">ek</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="n">jb</span><span class="p">)</span> <span class="o">+=</span> <span class="n">big</span> <span class="o">*</span> <span class="n">phi</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">phi</span><span class="p">(</span><span class="n">jn</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">weight</span><span class="p">;</span>
-       <span class="p">}</span><span class="c1">//jn</span>
-     <span class="p">}</span><span class="c1">//in</span>
-   <span class="k">break</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="w"> </span><span class="cm">/*example of dirichlet BC using big number*/</span><span class="w"></span>
+<span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="n">big</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TPZMaterial</span><span class="o">::</span><span class="n">fBigNumber</span><span class="p">;</span><span class="w"></span>
+<span class="w"> </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">bc</span><span class="p">.</span><span class="n">Type</span><span class="p">()){</span><span class="w"></span>
+<span class="w"> </span><span class="c1">// Dirichlet condition</span>
+<span class="w"> </span><span class="k">case</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">   </span><span class="k">for</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">phr</span><span class="p">;</span><span class="w"> </span><span class="n">in</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">     </span><span class="n">ef</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">big</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">phi</span><span class="p">.</span><span class="n">GetVal</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">weight</span><span class="p">;</span><span class="w"></span>
+<span class="w">       </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">jn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="n">jn</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">phr</span><span class="p">;</span><span class="w"> </span><span class="n">jn</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">         </span><span class="n">ek</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="n">jb</span><span class="p">)</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">big</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">phi</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">phi</span><span class="p">(</span><span class="n">jn</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">weight</span><span class="p">;</span><span class="w"></span>
+<span class="w">       </span><span class="p">}</span><span class="c1">//jn</span>
+<span class="w">     </span><span class="p">}</span><span class="c1">//in</span>
+<span class="w">   </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 <span class="c1">//more code...</span>
 </pre></div>
 </div>
@@ -1208,32 +1208,32 @@ see <a class="reference internal" href="singlespace.html"><span class="doc">The 
 <p>However, special care must be taken due to the materials associated with boundary conditions: In some cases the boundary condition material might need to forward function calls to its associated material, or sometimes it needs to be cast to the interface type.</p>
 <p>For this to happen, an auxiliary class for the interface is needed, as it can be seen in the following example:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">//forward declare bc auxiliary class</span>
-<span class="k">class</span> <span class="nc">TPZMyInterfaceBC</span><span class="p">;</span>
+<span class="k">class</span> <span class="nc">TPZMyInterfaceBC</span><span class="p">;</span><span class="w"></span>
 
-<span class="k">class</span> <span class="nc">TPZMyInterface</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TPZSavable</span><span class="p">{</span>
-<span class="k">public</span><span class="o">:</span>
-  <span class="k">using</span> <span class="n">TInterfaceBC</span> <span class="o">=</span> <span class="n">TPZMyInterfaceBC</span><span class="p">;</span>
-  <span class="c1">//declare all the virtual methods and etc as usual</span>
-  <span class="c1">//@{</span>
-  <span class="c1">//! Read and Write methods</span>
-  <span class="kt">int</span> <span class="nf">ClassId</span><span class="p">()</span> <span class="k">const</span> <span class="k">override</span><span class="p">;</span>
-  <span class="kt">void</span> <span class="nf">Read</span><span class="p">(</span><span class="n">TPZStream</span><span class="o">&amp;</span><span class="p">,</span><span class="kt">int</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
-  <span class="kt">void</span> <span class="nf">Write</span><span class="p">(</span><span class="n">TPZStream</span><span class="o">&amp;</span><span class="p">,</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
-  <span class="c1">//@}</span>
-<span class="p">};</span>
+<span class="k">class</span> <span class="nc">TPZMyInterface</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">TPZSavable</span><span class="p">{</span><span class="w"></span>
+<span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">TInterfaceBC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TPZMyInterfaceBC</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="c1">//declare all the virtual methods and etc as usual</span>
+<span class="w">  </span><span class="c1">//@{</span>
+<span class="w">  </span><span class="c1">//! Read and Write methods</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="nf">ClassId</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">Read</span><span class="p">(</span><span class="n">TPZStream</span><span class="o">&amp;</span><span class="p">,</span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">Write</span><span class="p">(</span><span class="n">TPZStream</span><span class="o">&amp;</span><span class="p">,</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="c1">//@}</span>
+<span class="p">};</span><span class="w"></span>
 
 <span class="c1">//maybe this forward declaration is needed</span>
-<span class="k">class</span> <span class="nc">TPZMaterial</span><span class="p">;</span>
+<span class="k">class</span> <span class="nc">TPZMaterial</span><span class="p">;</span><span class="w"></span>
 
-<span class="k">class</span> <span class="nc">TPZMyInterfaceBC</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TPZMyInterface</span><span class="p">{</span>
-<span class="k">protected</span><span class="o">:</span>
-  <span class="n">TPZMyInterface</span> <span class="o">*</span><span class="n">fMatMyInterface</span><span class="p">{</span><span class="k">nullptr</span><span class="p">};</span>
-  <span class="kt">void</span> <span class="nf">SetMaterialImpl</span><span class="p">(</span><span class="n">TPZMaterial</span><span class="o">*</span> <span class="n">mat</span><span class="p">){</span>
-    <span class="n">fMatMyInterface</span> <span class="o">=</span> <span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">TPZMyInterface</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">mat</span><span class="p">);</span>
-  <span class="p">}</span>
-<span class="k">public</span><span class="o">:</span>
+<span class="k">class</span> <span class="nc">TPZMyInterfaceBC</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">TPZMyInterface</span><span class="p">{</span><span class="w"></span>
+<span class="k">protected</span><span class="o">:</span><span class="w"></span>
+<span class="w">  </span><span class="n">TPZMyInterface</span><span class="w"> </span><span class="o">*</span><span class="n">fMatMyInterface</span><span class="p">{</span><span class="k">nullptr</span><span class="p">};</span><span class="w"></span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">SetMaterialImpl</span><span class="p">(</span><span class="n">TPZMaterial</span><span class="o">*</span><span class="w"> </span><span class="n">mat</span><span class="p">){</span><span class="w"></span>
+<span class="w">    </span><span class="n">fMatMyInterface</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">TPZMyInterface</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">mat</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="k">public</span><span class="o">:</span><span class="w"></span>
 <span class="c1">//overload the methods as needed.</span>
-<span class="p">};</span>
+<span class="p">};</span><span class="w"></span>
 </pre></div>
 </div>
 <p>In this example, an interface is given in the class <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZMyInterface</span></span>. The rules for <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZMyInterface</span></span> to be a valid interface are, as follows:</p>
