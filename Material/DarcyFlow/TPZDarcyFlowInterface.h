@@ -2,8 +2,8 @@
 // Created by Gustavo Batistela on 5/13/21.
 //
 
-#ifndef TPZISOTROPICDARCYFLOWINTERFACE_H
-#define TPZISOTROPICDARCYFLOWINTERFACE_H
+#ifndef TPZDARCYFLOWINTERFACE_H
+#define TPZDARCYFLOWINTERFACE_H
 
 #include <functional>
 #include "pzreal.h"
