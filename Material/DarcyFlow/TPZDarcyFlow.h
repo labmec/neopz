@@ -14,7 +14,7 @@
  * @ingroup material
  * @brief This class implements an H1-conforming approximation for the Darcy flow equation for isotropic materials.
  *
- * The Darcy flow equation is given by: \f[- \nabla \cdot K \nabla u = f\f], where \f$u\f$ is the pressure field
+ * The Darcy flow equation is given by: \f[- \nabla \cdot K \nabla u = f,\f] where \f$u\f$ is the pressure field
  * to be solved, \f$K\f$ is the permeability tensor and \f$f\f$ is the source term.
  *
  * @see TPZMixedDarcyFlow For an approximation using the mixed method.
