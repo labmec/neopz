@@ -25,7 +25,6 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
     REAL d = coef[0];
     REAL Delta; //teste;
 	
-	//    cout << a << "x³ + " << b << "x² + " << c << "x + " << d << " = 0.0\n";
     if (a == 0.0) {
         cout << "Se a=0, a equacao nao e' do terceiro grau.";
         return 0;
@@ -38,7 +37,6 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
         if (Delta > 0) {
             raiz[1] = (-1 * b + sqrt(Delta)) / (2 * a);
             raiz[2] = (-1 * b - sqrt(Delta)) / (2 * a);
-            //Colocação das tensões em ordem crescente
             sort(&raiz[0], &raiz[3], greater<REAL>());
             return 1;
         }
@@ -73,7 +71,6 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
         raiz[0] = 2.* pow( r, (REAL) (1. / 3.)) * cos(t / 3.) - A / 3;
         raiz[1] = 2.* pow( r, (REAL) (1. / 3.)) * cos((t + 2. * pi) / 3.) - A / 3.;
         raiz[2] = 2.* pow( r, (REAL) (1. / 3.)) * cos((t + 4. * pi) / 3.) - A / 3.;
-        //Colocação das tensões em ordem crescente
 		sort(&raiz[0], &raiz[3], greater<REAL>());
         return 1;
     }
@@ -108,7 +105,6 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
         else {
             raiz[1] = Real + Imag;
             raiz[2] = Real - Imag;
-            //Colocação das tensões em ordem crescente
 			sort(&raiz[0], &raiz[3], greater<REAL>());
             return 2;
         }
@@ -184,7 +180,6 @@ int TPZPolynomial::SetRoots() {
             X[0] = fCo[2] / fCo[3];
             X[1] = 0.0;
             X[2] = 0.0;
-            //Colocação das tensões em ordem crescente
 			sort(&X[0], &X[3], greater<REAL>());
 			fReal = X;
 //			copy(&X[0], &X[3], &fReal[0]);
@@ -203,7 +198,7 @@ int TPZPolynomial::SetRoots() {
                 if (tol <= fTolerance) j = 10001;
                 x = X[0];
             }
-            //Caso falhe a primeira aproximação
+            //Caso falhe a primeira aproximaï¿½ï¿½o
             if (j == 10002 || j == 10000) {
                 x = -1e5 * x;
                 j = 0;
@@ -219,7 +214,6 @@ int TPZPolynomial::SetRoots() {
             }
             if (j == 10002 || j == 10000) {
                 cout << "TPZPolynomial::SetRoots().\nErro no calculo das raizes!!!!! j= " << j << "\n";
-                //cout << fCo[3] << "x³ + " << fCo[2] << "x² + " << fCo[1] << "x + " << fCo[0] << " = 0.0\n";
                 return -1;
             }
             REAL teste;
@@ -232,7 +226,7 @@ int TPZPolynomial::SetRoots() {
 			b2 = fCo[2] + X[0] * b3;
 			b1 = fCo[1] + X[0] * b2;
 			
-            /** Calculo das outras duas raizes (X[1] e X[2]) b3*x² + b2*x + b1 = 0 */
+            /** Calculo das outras duas raizes (X[1] e X[2]) b3*x^2 + b2*x + b1 = 0 */
             REAL delta;
             delta = b2 * b2 - 4.0 * b1 * b3;
             if (delta < 0.0) {

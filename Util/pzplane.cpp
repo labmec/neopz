@@ -14,7 +14,7 @@ TPZPlane::TPZPlane(){
 TPZPlane::~TPZPlane(){
 }
 
-/** Dado três pontos calcula a equação do plano que os contém. */
+// Calculate the equation of the plane defined by the given 3 points
 int TPZPlane::SetPlane(const TPZVec<REAL> &p1, const TPZVec<REAL> &p2,const TPZVec<REAL> &p3){
 	REAL matrix[3][3];
 	TPZVec<REAL> desloc1(3), desloc2(3);
@@ -28,7 +28,7 @@ int TPZPlane::SetPlane(const TPZVec<REAL> &p1, const TPZVec<REAL> &p2,const TPZV
 	TPZNumeric::ProdVetorial(desloc1, desloc2, aux);
 	REAL norm = inner_product(&aux[0], &aux[3], &aux[0], REAL(0.0));
 	if(norm <= 1e-10){
-		cerr << "TPZPlane::SetPlane - Erro: Pontos alinhados nao eh possivel determinar um unico plano\n";
+		cerr << "TPZPlane::SetPlane - Error: Colinear points can't define a single plane\n";
 		return 0;
 	}
 	else{
@@ -83,7 +83,7 @@ int TPZPlane::SetPlane(const TPZVec<REAL> &p1, const TPZVec<REAL> &p2,const TPZV
 	return 1;	
 }
 
-/** Verifica se o ponto[3] pertence ao plano. Se pertencer retorna 1, caso contrário 0.*/
+// Verify if a point belong to the plane
 bool TPZPlane::Belongs(const TPZVec<REAL> &ponto){
 	REAL aux=0.0;
 	int i;
@@ -98,7 +98,7 @@ bool TPZPlane::Belongs(const TPZVec<REAL> &ponto){
 	else return false;
 }
 
-/** Verifica se o plano coincide com plano formado pelos três pontos passados. Se pertencer retorna 1, caso contrário 0. */
+// Verify if the plane and the plane formed by the 3 given points are coincident
 bool TPZPlane::Belongs(const TPZVec<REAL> &ponto1, const TPZVec<REAL> &ponto2, const TPZVec<REAL> &ponto3){
 	int aux=0;
 	int i;
@@ -106,33 +106,32 @@ bool TPZPlane::Belongs(const TPZVec<REAL> &ponto1, const TPZVec<REAL> &ponto2, c
 	aux = aux + Belongs(ponto2);
 	aux = aux + Belongs(ponto3);
 	TPZVec<REAL> aux1(3), aux2(3);
+    // Verify if the points are colinear
 	if(aux==3) {
-		/**verificando se os pontos estão alinhados */
-		//criando vetores de deslocalmentos entre pontos
 		for(i=0;i<3;i++) {
 			aux1[i]=100.*(ponto1[i]-ponto2[i]);
 			aux2[i]=100.*(ponto2[i]-ponto3[i]);
 		}
-		//verificando se os vetores de deslocamentos tem a mesma direção
-		aux=0;    
+		// Verify if the displacement vectors have the same direction
+		aux=0;
 		TPZNumeric::ProdVetorial(aux1, aux2, aux1);
 		for(i=0;i<3;i++) {
 			if(fabs(aux1[i])<0.0000009) aux++;
 		}
 		if(aux==3) {
-			cout << "TPZPlane::Belongs(p1, p2, p3) - Warning: Os 3 pontos de entrada estao alinhados\n";
+			cout << "TPZPlane::Belongs(p1, p2, p3) - Warning: The 3 input points are colinear\n";
 		}
 		return true;
 	}
 	else return false;
 }
 
-/** Calcula o determinante da matriz[3][3]. */
+// Calculate the determinant of the matrix
 void MatrixDet(REAL matrix[3][3], REAL &det) {
 	det = MatrixDet(matrix);	
 }
 
-/** Calcula o determinante da matriz[3][3]. */
+// Calculate the determinant of the matrix
 REAL MatrixDet(REAL matrix[3][3]) {
 	int i;
 	REAL aux = 0.0;
