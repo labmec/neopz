@@ -2,27 +2,41 @@
 // Created by Gustavo Batistela on 5/13/21.
 //
 
-#ifndef TPZISOTROPICDARCYFLOWINTERFACE_H
-#define TPZISOTROPICDARCYFLOWINTERFACE_H
+#ifndef TPZDARCYFLOWINTERFACE_H
+#define TPZDARCYFLOWINTERFACE_H
 
 #include <functional>
 #include "pzreal.h"
 #include "pzvec.h"
 #include "pzfmatrix.h"
 
+// Alias to improve readability of the permeability function type
 using PermeabilityFunctionType = std::function<void(const TPZVec<REAL> &coord,
                                                     TPZMatrix<REAL> &K,
                                                     TPZMatrix<REAL> &InvK)>;
 
+// Forward declaration of dummy BC interface class
 class TPZDarcyFlowInterfaceBC;
 
+/**
+ * @brief  This class implements the interface with the methods required to
+ * handle the permeability tensor of an isotropic material.
+ */
 class TPZDarcyFlowInterface : public TPZSavable {
 
 public:
     using TInterfaceBC = TPZDarcyFlowInterfaceBC;
 
+    /**
+     * @brief Set a constant permeability to the material
+     * @param [in] constant permeability value
+     */
     void SetPermeabilityFunction(REAL constant);
 
+    /**
+     * @brief Set a varying permeability field to the material
+     * @param [in] perm_function function that describes the permeability field
+     */
     void SetPermeabilityFunction(PermeabilityFunctionType &perm_function);
 
     [[nodiscard]] int ClassId() const override;
@@ -35,8 +49,8 @@ protected:
     PermeabilityFunctionType fPermeabilityFunction;
 };
 
+// Dummy BC interface class
 class TPZMaterial;
-
 class TPZDarcyFlowInterfaceBC : public TPZDarcyFlowInterface {
 protected:
     static void SetMaterialImpl(TPZMaterial *) {}

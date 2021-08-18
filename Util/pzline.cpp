@@ -20,21 +20,21 @@ TPZLine::TPZLine():fPoint(3, 0.0), fDirection(3,1.0){
 TPZLine::~TPZLine(){
 }
 
-/** Armazena um ponto da reta e sua direção. */
+// Store a point in the line and its direction
 void TPZLine::SetLine(const TPZVec<REAL> &point, const TPZVec<REAL> &dir){
 	assert(point.NElements()==3 && dir.NElements()==3);
 	fPoint = point;
 	fDirection = dir;
 }
 
-/** Verifica se o ponto[3] pertence a reta. */
+// Verify if the point belongs to the line
 bool TPZLine::Belongs(const TPZVec<REAL> &point){
 	assert(point.NElements()==3);
 	int i;
 	TPZVec<REAL> vetor(3);
 	REAL norma;
 	vetor = point;
-	//Calculando o vetor deslocamento, do point ao fPoint
+	// Calculate the vector of displacement between point and fPoint
 	for(i=0; i<3; i++){
 		vetor[i]= (fPoint[i] - vetor[i]);
 	}
@@ -44,12 +44,12 @@ bool TPZLine::Belongs(const TPZVec<REAL> &point){
 	else return false;
 }
 
-/** Especifica a tolerância para os cálculos */
+// Specify calculation tolerance
 void TPZLine::SetTolerance(const REAL &tol){
 	fTolerance = tol;
 }
 
-/** Fornece a tolerância do cálculo, armazenando em tol. */
+// Get the calculation tolerance
 REAL TPZLine::GetTolerance(){
 	return fTolerance;
 }
