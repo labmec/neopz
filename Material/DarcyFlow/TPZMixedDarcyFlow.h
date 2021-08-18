@@ -14,9 +14,9 @@
  * @ingroup material
  * @brief This class implements a mixed approximation for the Darcy flow equation for isotropic materials.
  *
- * The Darcy flow equation is given by: \f[\nabla \cdot \sigma = f,\f] where \f[\sigma = -K \nabla u\f] and \f$u\f$
- * are the flux and pressure field to be solved respectively, \f$K\f$ is the permeability tensor and
- * \f$f\f$ is the source term.
+ * The Darcy flow equation is given by: \f[\nabla \cdot \boldsymbol{\sigma} = f,\f]
+ * where \f$\boldsymbol{\sigma} = -K \nabla u\f$ and \f$u\f$ are the flux and pressure field to be solved respectively,
+ * \f$K\f$ is the permeability tensor and \f$f\f$ is the source term.
  *
  * @see TPZDarcyFlow For an H1-conforming approximation.
  * @see TPZDarcyFlowInterface For setting the permeability field.
