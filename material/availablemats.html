@@ -123,6 +123,12 @@
 <li class="toctree-l4"><a class="reference internal" href="#modal-analysis-of-waveguides">Modal Analysis of Waveguides</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#darcy-flow">Darcy flow</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tpzdarcyflow">TPZDarcyFlow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tpzmixeddarcyflow">TPZMixedDarcyFlow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tpzdarcyflowinterface">TPZDarcyFlowInterface</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="commoninterfaces.html">Common Interfaces</a></li>
@@ -211,39 +217,46 @@
 <div class="contents local topic" id="list-of-available-materials-in-neopz">
 <p class="topic-title">List of available materials in NeoPZ</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#projections-group" id="id8">Projections Group</a></p>
+<li><p><a class="reference internal" href="#projections-group" id="id9">Projections Group</a></p>
 <ul>
-<li><p><a class="reference internal" href="#tpzl2projection" id="id9">TPZL2Projection</a></p></li>
-<li><p><a class="reference internal" href="#tpzhdivprojection" id="id10">TPZHDivProjection</a></p></li>
-<li><p><a class="reference internal" href="#tpzhcurlprojection" id="id11">TPZHCurlProjection</a></p></li>
+<li><p><a class="reference internal" href="#tpzl2projection" id="id10">TPZL2Projection</a></p></li>
+<li><p><a class="reference internal" href="#tpzhdivprojection" id="id11">TPZHDivProjection</a></p></li>
+<li><p><a class="reference internal" href="#tpzhcurlprojection" id="id12">TPZHCurlProjection</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#the-lagrange-multiplier-group" id="id12">The Lagrange Multiplier Group</a></p>
+<li><p><a class="reference internal" href="#the-lagrange-multiplier-group" id="id13">The Lagrange Multiplier Group</a></p>
 <ul>
-<li><p><a class="reference internal" href="#tpzlagrangemultiplier" id="id13">TPZLagrangeMultiplier</a></p></li>
-<li><p><a class="reference internal" href="#tpzlagrangemultipliercs" id="id14">TPZLagrangeMultiplierCS</a></p></li>
+<li><p><a class="reference internal" href="#tpzlagrangemultiplier" id="id14">TPZLagrangeMultiplier</a></p></li>
+<li><p><a class="reference internal" href="#tpzlagrangemultipliercs" id="id15">TPZLagrangeMultiplierCS</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#tpznullmaterial" id="id15">TPZNullMaterial</a></p></li>
-<li><p><a class="reference internal" href="#poisson" id="id16">Poisson</a></p>
+<li><p><a class="reference internal" href="#tpznullmaterial" id="id16">TPZNullMaterial</a></p></li>
+<li><p><a class="reference internal" href="#poisson" id="id17">Poisson</a></p>
 <ul>
-<li><p><a class="reference internal" href="#tpzmatpoisson" id="id17">TPZMatPoisson</a></p></li>
+<li><p><a class="reference internal" href="#tpzmatpoisson" id="id18">TPZMatPoisson</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#elasticity-group" id="id18">Elasticity Group</a></p>
+<li><p><a class="reference internal" href="#elasticity-group" id="id19">Elasticity Group</a></p>
 <ul>
-<li><p><a class="reference internal" href="#tpzelasticity2d" id="id19">TPZElasticity2D</a></p></li>
-<li><p><a class="reference internal" href="#tpzelasticity3d" id="id20">TPZElasticity3D</a></p></li>
+<li><p><a class="reference internal" href="#tpzelasticity2d" id="id20">TPZElasticity2D</a></p></li>
+<li><p><a class="reference internal" href="#tpzelasticity3d" id="id21">TPZElasticity3D</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#electromagnetics-group" id="id21">Electromagnetics Group</a></p>
+<li><p><a class="reference internal" href="#electromagnetics-group" id="id22">Electromagnetics Group</a></p>
 <ul>
-<li><p><a class="reference internal" href="#modal-analysis-of-waveguides" id="id22">Modal Analysis of Waveguides</a></p>
+<li><p><a class="reference internal" href="#modal-analysis-of-waveguides" id="id23">Modal Analysis of Waveguides</a></p>
 <ul>
-<li><p><a class="reference internal" href="#tpzwaveguidemodalanalysis" id="id23">TPZWaveguideModalAnalysis</a></p></li>
-<li><p><a class="reference internal" href="#tpzwaveguidemodalanalysispml" id="id24">TPZWaveguideModalAnalysisPML</a></p></li>
+<li><p><a class="reference internal" href="#tpzwaveguidemodalanalysis" id="id24">TPZWaveguideModalAnalysis</a></p></li>
+<li><p><a class="reference internal" href="#tpzwaveguidemodalanalysispml" id="id25">TPZWaveguideModalAnalysisPML</a></p></li>
 </ul>
 </li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#darcy-flow" id="id26">Darcy flow</a></p>
+<ul>
+<li><p><a class="reference internal" href="#tpzdarcyflow" id="id27">TPZDarcyFlow</a></p></li>
+<li><p><a class="reference internal" href="#tpzmixeddarcyflow" id="id28">TPZMixedDarcyFlow</a></p></li>
+<li><p><a class="reference internal" href="#tpzdarcyflowinterface" id="id29">TPZDarcyFlowInterface</a></p></li>
 </ul>
 </li>
 </ul>
@@ -257,20 +270,20 @@
 <p>If you write a material that you think it should be available in NeoPZ, please feel free to submit a pull request.</p>
 </div>
 <div class="section" id="projections-group">
-<h2><a class="toc-backref" href="#id8">Projections Group</a><a class="headerlink" href="#projections-group" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id9">Projections Group</a><a class="headerlink" href="#projections-group" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 </div>
 <div class="contents local topic" id="table-of-contents">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#tpzl2projection" id="id25">TPZL2Projection</a></p></li>
-<li><p><a class="reference internal" href="#tpzhdivprojection" id="id26">TPZHDivProjection</a></p></li>
-<li><p><a class="reference internal" href="#tpzhcurlprojection" id="id27">TPZHCurlProjection</a></p></li>
+<li><p><a class="reference internal" href="#tpzl2projection" id="id30">TPZL2Projection</a></p></li>
+<li><p><a class="reference internal" href="#tpzhdivprojection" id="id31">TPZHDivProjection</a></p></li>
+<li><p><a class="reference internal" href="#tpzhcurlprojection" id="id32">TPZHCurlProjection</a></p></li>
 </ul>
 </div>
 <p>This group has materials related projecting a given solution into a discrete approximation space. These classes can be used to see how to interact with <span class="math notranslate nohighlight">\(H^1(\Omega)\)</span>, <span class="math notranslate nohighlight">\(H(\text{div},\Omega)\)</span> and <span class="math notranslate nohighlight">\(H(\text{curl},\Omega)\)</span> approximation spaces.</p>
 <div class="section" id="tpzl2projection">
-<h3><a class="toc-backref" href="#id25">TPZL2Projection</a><a class="headerlink" href="#tpzl2projection" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id30">TPZL2Projection</a><a class="headerlink" href="#tpzl2projection" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E15TPZL2Projection">
 <span id="_CPPv3I0E15TPZL2Projection"></span><span id="_CPPv2I0E15TPZL2Projection"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZL2Projection"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZL2Projection</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n"><span class="pre">TPZMatBase</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="singlespace.html#_CPPv4I0E22TPZMatErrorSingleSpace" title="TPZMatErrorSingleSpace"><span class="n"><span class="pre">TPZMatErrorSingleSpace</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E15TPZL2Projection" title="Permalink to this definition">¶</a><br /></dt>
@@ -403,7 +416,7 @@
 
 </div>
 <div class="section" id="tpzhdivprojection">
-<h3><a class="toc-backref" href="#id26">TPZHDivProjection</a><a class="headerlink" href="#tpzhdivprojection" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id31">TPZHDivProjection</a><a class="headerlink" href="#tpzhdivprojection" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E17TPZHDivProjection">
 <span id="_CPPv3I0E17TPZHDivProjection"></span><span id="_CPPv2I0E17TPZHDivProjection"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZHDivProjection"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZHDivProjection</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n"><span class="pre">TPZMatBase</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="singlespace.html#_CPPv4I0E22TPZMatErrorSingleSpace" title="TPZMatErrorSingleSpace"><span class="n"><span class="pre">TPZMatErrorSingleSpace</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E17TPZHDivProjection" title="Permalink to this definition">¶</a><br /></dt>
@@ -519,7 +532,7 @@
 
 </div>
 <div class="section" id="tpzhcurlprojection">
-<h3><a class="toc-backref" href="#id27">TPZHCurlProjection</a><a class="headerlink" href="#tpzhcurlprojection" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id32">TPZHCurlProjection</a><a class="headerlink" href="#tpzhcurlprojection" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E18TPZHCurlProjection">
 <span id="_CPPv3I0E18TPZHCurlProjection"></span><span id="_CPPv2I0E18TPZHCurlProjection"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZHCurlProjection"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZHCurlProjection</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n"><span class="pre">TPZMatBase</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="singlespace.html#_CPPv4I0E22TPZMatErrorSingleSpace" title="TPZMatErrorSingleSpace"><span class="n"><span class="pre">TPZMatErrorSingleSpace</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E18TPZHCurlProjection" title="Permalink to this definition">¶</a><br /></dt>
@@ -636,18 +649,18 @@
 </div>
 </div>
 <div class="section" id="the-lagrange-multiplier-group">
-<h2><a class="toc-backref" href="#id12">The Lagrange Multiplier Group</a><a class="headerlink" href="#the-lagrange-multiplier-group" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id13">The Lagrange Multiplier Group</a><a class="headerlink" href="#the-lagrange-multiplier-group" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 </div>
 <div class="contents local topic" id="id1">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#tpzlagrangemultiplier" id="id28">TPZLagrangeMultiplier</a></p></li>
-<li><p><a class="reference internal" href="#tpzlagrangemultipliercs" id="id29">TPZLagrangeMultiplierCS</a></p></li>
+<li><p><a class="reference internal" href="#tpzlagrangemultiplier" id="id33">TPZLagrangeMultiplier</a></p></li>
+<li><p><a class="reference internal" href="#tpzlagrangemultipliercs" id="id34">TPZLagrangeMultiplierCS</a></p></li>
 </ul>
 </div>
 <div class="section" id="tpzlagrangemultiplier">
-<h3><a class="toc-backref" href="#id28">TPZLagrangeMultiplier</a><a class="headerlink" href="#tpzlagrangemultiplier" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id33">TPZLagrangeMultiplier</a><a class="headerlink" href="#tpzlagrangemultiplier" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E21TPZLagrangeMultiplier">
 <span id="_CPPv3I0E21TPZLagrangeMultiplier"></span><span id="_CPPv2I0E21TPZLagrangeMultiplier"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZLagrangeMultiplier"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZLagrangeMultiplier</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n"><span class="pre">TPZMatBase</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E21TPZLagrangeMultiplier" title="TPZLagrangeMultiplier::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E21TPZLagrangeMultiplier" title="TPZLagrangeMultiplier::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="singlespace.html#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace"><span class="n"><span class="pre">TPZMatInterfaceSingleSpace</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E21TPZLagrangeMultiplier" title="TPZLagrangeMultiplier::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">TPZLagrangeMultiplierBase</span></span><a class="headerlink" href="#_CPPv4I0E21TPZLagrangeMultiplier" title="Permalink to this definition">¶</a><br /></dt>
@@ -671,7 +684,7 @@
 
 </div>
 <div class="section" id="tpzlagrangemultipliercs">
-<h3><a class="toc-backref" href="#id29">TPZLagrangeMultiplierCS</a><a class="headerlink" href="#tpzlagrangemultipliercs" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id34">TPZLagrangeMultiplierCS</a><a class="headerlink" href="#tpzlagrangemultipliercs" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E23TPZLagrangeMultiplierCS">
 <span id="_CPPv3I0E23TPZLagrangeMultiplierCS"></span><span id="_CPPv2I0E23TPZLagrangeMultiplierCS"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZLagrangeMultiplierCS"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZLagrangeMultiplierCS</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n"><span class="pre">TPZMatBase</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E23TPZLagrangeMultiplierCS" title="TPZLagrangeMultiplierCS::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E21TPZMatCombinedSpacesT" title="TPZMatCombinedSpacesT"><span class="n"><span class="pre">TPZMatCombinedSpacesT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E23TPZLagrangeMultiplierCS" title="TPZLagrangeMultiplierCS::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E29TPZMatInterfaceCombinedSpaces" title="TPZMatInterfaceCombinedSpaces"><span class="n"><span class="pre">TPZMatInterfaceCombinedSpaces</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E23TPZLagrangeMultiplierCS" title="TPZLagrangeMultiplierCS::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">TPZLagrangeMultiplierBase</span></span><a class="headerlink" href="#_CPPv4I0E23TPZLagrangeMultiplierCS" title="Permalink to this definition">¶</a><br /></dt>
@@ -696,7 +709,7 @@
 </div>
 </div>
 <div class="section" id="tpznullmaterial">
-<h2><a class="toc-backref" href="#id15">TPZNullMaterial</a><a class="headerlink" href="#tpznullmaterial" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id16">TPZNullMaterial</a><a class="headerlink" href="#tpznullmaterial" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 </div>
 <p>When dealing with combined approximation spaces, there are atomic FEM meshes associated with a multiphysic mesh. In these cases, one needs a dummy material in the atomic meshes, since no computation needs to be done. This can be easily done by using the following class</p>
@@ -707,13 +720,13 @@
 
 </div>
 <div class="section" id="poisson">
-<h2><a class="toc-backref" href="#id16">Poisson</a><a class="headerlink" href="#poisson" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id17">Poisson</a><a class="headerlink" href="#poisson" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 </div>
 <div class="contents local topic" id="id3">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#tpzmatpoisson" id="id30">TPZMatPoisson</a></p></li>
+<li><p><a class="reference internal" href="#tpzmatpoisson" id="id35">TPZMatPoisson</a></p></li>
 </ul>
 </div>
 <p>Material for solving the Poisson Equation</p>
@@ -721,7 +734,7 @@
 \[-\text{div}\,\nabla u = f\]</div>
 <p>for one, two and three-dimensional domains. The right hand side <span class="math notranslate nohighlight">\(f\)</span> can be a function of the spatial coordinates, and the class can solve for multiple right hand sides at once, and it can perform error analysis based on a given solution.</p>
 <div class="section" id="tpzmatpoisson">
-<h3><a class="toc-backref" href="#id30">TPZMatPoisson</a><a class="headerlink" href="#tpzmatpoisson" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id35">TPZMatPoisson</a><a class="headerlink" href="#tpzmatpoisson" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E13TPZMatPoisson">
 <span id="_CPPv3I0E13TPZMatPoisson"></span><span id="_CPPv2I0E13TPZMatPoisson"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZMatPoisson"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatPoisson</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n"><span class="pre">TPZMatBase</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="singlespace.html#_CPPv4I0E22TPZMatErrorSingleSpace" title="TPZMatErrorSingleSpace"><span class="n"><span class="pre">TPZMatErrorSingleSpace</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="commoninterfaces.html#_CPPv4I0E15TPZMatLoadCases" title="TPZMatLoadCases"><span class="n"><span class="pre">TPZMatLoadCases</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E13TPZMatPoisson" title="Permalink to this definition">¶</a><br /></dt>
@@ -839,19 +852,19 @@
 </div>
 </div>
 <div class="section" id="elasticity-group">
-<h2><a class="toc-backref" href="#id18">Elasticity Group</a><a class="headerlink" href="#elasticity-group" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id19">Elasticity Group</a><a class="headerlink" href="#elasticity-group" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 </div>
 <div class="contents local topic" id="id4">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#tpzelasticity2d" id="id31">TPZElasticity2D</a></p></li>
-<li><p><a class="reference internal" href="#tpzelasticity3d" id="id32">TPZElasticity3D</a></p></li>
+<li><p><a class="reference internal" href="#tpzelasticity2d" id="id36">TPZElasticity2D</a></p></li>
+<li><p><a class="reference internal" href="#tpzelasticity3d" id="id37">TPZElasticity3D</a></p></li>
 </ul>
 </div>
 <p>This group has materials related to problems involving elasticity.</p>
 <div class="section" id="tpzelasticity2d">
-<h3><a class="toc-backref" href="#id31">TPZElasticity2D</a><a class="headerlink" href="#tpzelasticity2d" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id36">TPZElasticity2D</a><a class="headerlink" href="#tpzelasticity2d" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv415TPZElasticity2D">
 <span id="_CPPv315TPZElasticity2D"></span><span id="_CPPv215TPZElasticity2D"></span><span id="TPZElasticity2D"></span><span class="target" id="classTPZElasticity2D"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZElasticity2D</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n"><span class="pre">TPZMatBase</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="singlespace.html#_CPPv4I0E22TPZMatErrorSingleSpace" title="TPZMatErrorSingleSpace"><span class="n"><span class="pre">TPZMatErrorSingleSpace</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="commoninterfaces.html#_CPPv4I0E15TPZMatLoadCases" title="TPZMatLoadCases"><span class="n"><span class="pre">TPZMatLoadCases</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv415TPZElasticity2D" title="Permalink to this definition">¶</a><br /></dt>
@@ -1028,7 +1041,7 @@
 
 </div>
 <div class="section" id="tpzelasticity3d">
-<h3><a class="toc-backref" href="#id32">TPZElasticity3D</a><a class="headerlink" href="#tpzelasticity3d" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id37">TPZElasticity3D</a><a class="headerlink" href="#tpzelasticity3d" title="Permalink to this headline">¶</a></h3>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv415TPZElasticity3D">
 <span id="_CPPv315TPZElasticity3D"></span><span id="_CPPv215TPZElasticity3D"></span><span id="TPZElasticity3D"></span><span class="target" id="classTPZElasticity3D"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZElasticity3D</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n"><span class="pre">TPZMatBase</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="singlespace.html#_CPPv4I0E22TPZMatErrorSingleSpace" title="TPZMatErrorSingleSpace"><span class="n"><span class="pre">TPZMatErrorSingleSpace</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="commoninterfaces.html#_CPPv4I0E15TPZMatLoadCases" title="TPZMatLoadCases"><span class="n"><span class="pre">TPZMatLoadCases</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv415TPZElasticity3D" title="Permalink to this definition">¶</a><br /></dt>
@@ -1195,23 +1208,23 @@
 </div>
 </div>
 <div class="section" id="electromagnetics-group">
-<h2><a class="toc-backref" href="#id21">Electromagnetics Group</a><a class="headerlink" href="#electromagnetics-group" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id22">Electromagnetics Group</a><a class="headerlink" href="#electromagnetics-group" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 </div>
 <div class="contents local topic" id="id5">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#modal-analysis-of-waveguides" id="id33">Modal Analysis of Waveguides</a></p>
+<li><p><a class="reference internal" href="#modal-analysis-of-waveguides" id="id38">Modal Analysis of Waveguides</a></p>
 <ul>
-<li><p><a class="reference internal" href="#tpzwaveguidemodalanalysis" id="id34">TPZWaveguideModalAnalysis</a></p></li>
-<li><p><a class="reference internal" href="#tpzwaveguidemodalanalysispml" id="id35">TPZWaveguideModalAnalysisPML</a></p></li>
+<li><p><a class="reference internal" href="#tpzwaveguidemodalanalysis" id="id39">TPZWaveguideModalAnalysis</a></p></li>
+<li><p><a class="reference internal" href="#tpzwaveguidemodalanalysispml" id="id40">TPZWaveguideModalAnalysisPML</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <p>This group has materials related to electromagnetic problems.</p>
 <div class="section" id="modal-analysis-of-waveguides">
-<h3><a class="toc-backref" href="#id33">Modal Analysis of Waveguides</a><a class="headerlink" href="#modal-analysis-of-waveguides" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id38">Modal Analysis of Waveguides</a><a class="headerlink" href="#modal-analysis-of-waveguides" title="Permalink to this headline">¶</a></h3>
 <p>The following classes implement a <span class="math notranslate nohighlight">\(H(\text{curl},\Omega)\times H^1(\Omega)\)</span> formulation for the analysis of waveguides. More precisely, they implement:</p>
 <p>Find non-trivial <span class="math notranslate nohighlight">\(\left(\beta^2,{e_t}, {e_z}\right) \in (\mathbb{C} \times [\mathbb{C}]^N \times [\mathbb{C}]^M)\)</span> such that:</p>
 <div class="math notranslate nohighlight">
@@ -1254,7 +1267,7 @@ e_z
   - k_0^2 \epsilon_{zz} \varphi_i \varphi_j\right] d\Omega\text{.}\label{eq:fem-mat-5}\end{split}\]</div>
 <p>This formulation was presented originally in this work <a class="footnote-reference brackets" href="#lee1991" id="id6">1</a>. In this work <a class="footnote-reference brackets" href="#orlandini2018" id="id7">2</a> a very detailed derivation along with results obtained using NeoPZ are presented.</p>
 <div class="section" id="tpzwaveguidemodalanalysis">
-<h4><a class="toc-backref" href="#id34">TPZWaveguideModalAnalysis</a><a class="headerlink" href="#tpzwaveguidemodalanalysis" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id39">TPZWaveguideModalAnalysis</a><a class="headerlink" href="#tpzwaveguidemodalanalysis" title="Permalink to this headline">¶</a></h4>
 <p>This class supports materials with the following form of anisotropy:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\epsilon_r =
@@ -1389,7 +1402,7 @@ e_z
 </div>
 </div>
 <div class="section" id="tpzwaveguidemodalanalysispml">
-<h4><a class="toc-backref" href="#id35">TPZWaveguideModalAnalysisPML</a><a class="headerlink" href="#tpzwaveguidemodalanalysispml" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id40">TPZWaveguideModalAnalysisPML</a><a class="headerlink" href="#tpzwaveguidemodalanalysispml" title="Permalink to this headline">¶</a></h4>
 <p>This class implements a rectangular PML to be used with TPZWaveguideModalAnalysis.</p>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv428TPZWaveguideModalAnalysisPML">
@@ -1452,6 +1465,441 @@ e_z
 </dl>
 </p>
 </div>
+</div>
+</div>
+<div class="section" id="darcy-flow">
+<h2><a class="toc-backref" href="#id26">Darcy flow</a><a class="headerlink" href="#darcy-flow" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<div class="contents local topic" id="id8">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#tpzdarcyflow" id="id41">TPZDarcyFlow</a></p></li>
+<li><p><a class="reference internal" href="#tpzmixeddarcyflow" id="id42">TPZMixedDarcyFlow</a></p></li>
+<li><p><a class="reference internal" href="#tpzdarcyflowinterface" id="id43">TPZDarcyFlowInterface</a></p></li>
+</ul>
+</div>
+<p>Materials for solving the Darcy flow equation:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}-\nabla \cdot \boldsymbol{\sigma} = f\\\boldsymbol{\sigma} = - K \nabla u\end{aligned}\end{align} \]</div>
+<div class="section" id="tpzdarcyflow">
+<h3><a class="toc-backref" href="#id41">TPZDarcyFlow</a><a class="headerlink" href="#tpzdarcyflow" title="Permalink to this headline">¶</a></h3>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv412TPZDarcyFlow">
+<span id="_CPPv312TPZDarcyFlow"></span><span id="_CPPv212TPZDarcyFlow"></span><span id="TPZDarcyFlow"></span><span class="target" id="classTPZDarcyFlow"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZDarcyFlow</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n"><span class="pre">TPZMatBase</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="singlespace.html#_CPPv4I0E22TPZMatErrorSingleSpace" title="TPZMatErrorSingleSpace"><span class="n"><span class="pre">TPZMatErrorSingleSpace</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv421TPZDarcyFlowInterface" title="TPZDarcyFlowInterface"><span class="n"><span class="pre">TPZDarcyFlowInterface</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv412TPZDarcyFlow" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This class implements an H1-conforming approximation for the Darcy flow equation for isotropic materials. </p>
+<p>The Darcy flow equation is given by: <div class="math notranslate nohighlight">
+\[- \nabla \cdot K \nabla u = f,\]</div>
+ where <span class="math notranslate nohighlight">\(u\)</span> is the pressure field to be solved, <span class="math notranslate nohighlight">\(K\)</span> is the permeability tensor and <span class="math notranslate nohighlight">\(f\)</span> is the source term.</p>
+<p><dl class="simple">
+<dt><strong>See</strong></dt><dd><p><a class="reference internal" href="#classTPZMixedDarcyFlow"><span class="std std-ref">TPZMixedDarcyFlow</span></a> For an approximation using the mixed method. </p>
+</dd>
+<dt><strong>See</strong></dt><dd><p><a class="reference internal" href="#classTPZDarcyFlowInterface"><span class="std std-ref">TPZDarcyFlowInterface</span></a> For setting the permeability field. </p>
+</dd>
+</dl>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZDarcyFlow12TPZDarcyFlowEv">
+<span id="_CPPv3N12TPZDarcyFlow12TPZDarcyFlowEv"></span><span id="_CPPv2N12TPZDarcyFlow12TPZDarcyFlowEv"></span><span id="TPZDarcyFlow::TPZDarcyFlow"></span><span class="target" id="classTPZDarcyFlow_1a8fd7968374546da5cce48edd67693451"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZDarcyFlow</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12TPZDarcyFlow12TPZDarcyFlowEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Default constructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZDarcyFlow12TPZDarcyFlowEii">
+<span id="_CPPv3N12TPZDarcyFlow12TPZDarcyFlowEii"></span><span id="_CPPv2N12TPZDarcyFlow12TPZDarcyFlowEii"></span><span id="TPZDarcyFlow::TPZDarcyFlow__i.i"></span><span class="target" id="classTPZDarcyFlow_1a84c1f1db90e7d9a889c016fd151e9ff6"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZDarcyFlow</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">id</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dim</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12TPZDarcyFlow12TPZDarcyFlowEii" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Class constructor. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> – <strong>[in]</strong> material id </p></li>
+<li><p><strong>dim</strong> – <strong>[in]</strong> problem dimension </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZDarcyFlow4NameEv">
+<span id="_CPPv3NK12TPZDarcyFlow4NameEv"></span><span id="_CPPv2NK12TPZDarcyFlow4NameEv"></span><span id="TPZDarcyFlow::NameC"></span><span class="target" id="classTPZDarcyFlow_1ac234779979c44f5ddf4befe01fa00b94"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Name</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK12TPZDarcyFlow4NameEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns a ‘std::string’ with the name of the material. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZDarcyFlow9DimensionEv">
+<span id="_CPPv3NK12TPZDarcyFlow9DimensionEv"></span><span id="_CPPv2NK12TPZDarcyFlow9DimensionEv"></span><span id="TPZDarcyFlow::DimensionC"></span><span class="target" id="classTPZDarcyFlow_1a2b40dd1ebe0cf3c421dfdd712d4e2cb1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Dimension</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK12TPZDarcyFlow9DimensionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the problem dimension. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZDarcyFlow15NStateVariablesEv">
+<span id="_CPPv3NK12TPZDarcyFlow15NStateVariablesEv"></span><span id="_CPPv2NK12TPZDarcyFlow15NStateVariablesEv"></span><span id="TPZDarcyFlow::NStateVariablesC"></span><span class="target" id="classTPZDarcyFlow_1a7a22c2020e9c6faaec6e2c9028b194ad"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NStateVariables</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK12TPZDarcyFlow15NStateVariablesEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the number of state variables. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZDarcyFlow11NEvalErrorsEv">
+<span id="_CPPv3N12TPZDarcyFlow11NEvalErrorsEv"></span><span id="_CPPv2N12TPZDarcyFlow11NEvalErrorsEv"></span><span id="TPZDarcyFlow::NEvalErrors"></span><span class="target" id="classTPZDarcyFlow_1a3a74b7da6dc397c185d0690c61793351"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEvalErrors</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N12TPZDarcyFlow11NEvalErrorsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the number of errors to be evaluated. </p>
+<p>Returns the number of errors to be evaluated, that is, the number of error norms associated with the problem. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZDarcyFlow12SetDimensionEi">
+<span id="_CPPv3N12TPZDarcyFlow12SetDimensionEi"></span><span id="_CPPv2N12TPZDarcyFlow12SetDimensionEi"></span><span id="TPZDarcyFlow::SetDimension__i"></span><span class="target" id="classTPZDarcyFlow_1ac356bc296714a4044a018517edd38396"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetDimension</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dim</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12TPZDarcyFlow12SetDimensionEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sets problem dimension. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZDarcyFlow10ContributeERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEE">
+<span id="_CPPv3N12TPZDarcyFlow10ContributeERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEE"></span><span id="_CPPv2N12TPZDarcyFlow10ContributeERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEE"></span><span id="TPZDarcyFlow::Contribute__TPZMaterialDataT:STATE:CR.STATE.TPZFMatrix:STATE:R.TPZFMatrix:STATE:R"></span><span class="target" id="classTPZDarcyFlow_1a2d916ff46125aac3b477750326bad2cd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Contribute</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N12TPZDarcyFlow10ContributeERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>It computes a contribution to the stiffness matrix and load vector at one integration point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> stores all input data </p></li>
+<li><p><strong>weight</strong> – <strong>[in]</strong> is the weight of the integration rule </p></li>
+<li><p><strong>ek</strong> – <strong>[out]</strong> is the element matrix </p></li>
+<li><p><strong>ef</strong> – <strong>[out]</strong> is the rhs vector </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZDarcyFlow12ContributeBCERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE">
+<span id="_CPPv3N12TPZDarcyFlow12ContributeBCERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE"></span><span id="_CPPv2N12TPZDarcyFlow12ContributeBCERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE"></span><span id="TPZDarcyFlow::ContributeBC__TPZMaterialDataT:STATE:CR.STATE.TPZFMatrix:STATE:R.TPZFMatrix:STATE:R.TPZBndCondT:STATE:R"></span><span class="target" id="classTPZDarcyFlow_1a3150b1d28211fc9c00d797d62e3c8bb5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ContributeBC</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span>, <a class="reference internal" href="index.html#_CPPv4I0E11TPZBndCondT" title="TPZBndCondT"><span class="n"><span class="pre">TPZBndCondT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bc</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N12TPZDarcyFlow12ContributeBCERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>It computes a contribution to the stiffness matrix and load vector at one BC integration point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> stores all input data </p></li>
+<li><p><strong>weight</strong> – <strong>[in]</strong> is the weight of the integration rule </p></li>
+<li><p><strong>ek</strong> – <strong>[out]</strong> is the element matrix </p></li>
+<li><p><strong>ef</strong> – <strong>[out]</strong> is the rhs vector </p></li>
+<li><p><strong>bc</strong> – <strong>[in]</strong> is the boundary condition material </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZDarcyFlow13VariableIndexERKNSt6stringE">
+<span id="_CPPv3NK12TPZDarcyFlow13VariableIndexERKNSt6stringE"></span><span id="_CPPv2NK12TPZDarcyFlow13VariableIndexERKNSt6stringE"></span><span id="TPZDarcyFlow::VariableIndex__ssCRC"></span><span class="target" id="classTPZDarcyFlow_1addde703f4f8e2d19fff2c2320e24028f"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VariableIndex</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">name</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK12TPZDarcyFlow13VariableIndexERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns an integer associated with a post-processing variable name. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – <strong>[in]</strong> string containing the name of the post-processing variable. Ex: “Pressure”. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZDarcyFlow18NSolutionVariablesEi">
+<span id="_CPPv3NK12TPZDarcyFlow18NSolutionVariablesEi"></span><span id="_CPPv2NK12TPZDarcyFlow18NSolutionVariablesEi"></span><span id="TPZDarcyFlow::NSolutionVariables__iC"></span><span class="target" id="classTPZDarcyFlow_1a5507ec7cb4e778c65218b47b280ccef2"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NSolutionVariables</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">var</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK12TPZDarcyFlow18NSolutionVariablesEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns an integer with the dimension of a post-processing variable. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>var</strong> – <strong>[in]</strong> index of the post-processing variable, according to <a class="reference internal" href="#classTPZDarcyFlow_1addde703f4f8e2d19fff2c2320e24028f"><span class="std std-ref">TPZDarcyFlow::VariableIndex</span></a> method. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZDarcyFlow8SolutionERK16TPZMaterialDataTI5STATEEiR6TPZVecI5STATEE">
+<span id="_CPPv3N12TPZDarcyFlow8SolutionERK16TPZMaterialDataTI5STATEEiR6TPZVecI5STATEE"></span><span id="_CPPv2N12TPZDarcyFlow8SolutionERK16TPZMaterialDataTI5STATEEiR6TPZVecI5STATEE"></span><span id="TPZDarcyFlow::Solution__TPZMaterialDataT:STATE:CR.i.TPZVec:STATE:R"></span><span class="target" id="classTPZDarcyFlow_1a83cca4c2f408baf284ef8a8bf71fe0a2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Solution</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">var</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">solOut</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N12TPZDarcyFlow8SolutionERK16TPZMaterialDataTI5STATEEiR6TPZVecI5STATEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the solution associated with the var index based on the finite element approximation at a point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> material data associated with a given integration point </p></li>
+<li><p><strong>var</strong> – <strong>[in]</strong> index of the variable to be calculated </p></li>
+<li><p><strong>solOut</strong> – <strong>[out]</strong> vector to store the solution </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZDarcyFlow16GetSolDimensionsER8uint64_tR8uint64_tR8uint64_t">
+<span id="_CPPv3NK12TPZDarcyFlow16GetSolDimensionsER8uint64_tR8uint64_tR8uint64_t"></span><span id="_CPPv2NK12TPZDarcyFlow16GetSolDimensionsER8uint64_tR8uint64_tR8uint64_t"></span><span id="TPZDarcyFlow::GetSolDimensions__uint64_tR.uint64_tR.uint64_tRC"></span><span class="target" id="classTPZDarcyFlow_1af3b9cd5eb6ab1ccb8888b0e6f97efa05"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSolDimensions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">u_len</span></span>, <span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">du_row</span></span>, <span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">du_col</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK12TPZDarcyFlow16GetSolDimensionsER8uint64_tR8uint64_tR8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the dimensions of the solution for each state variable. </p>
+<p>This will be used for initializing the corresponding <a class="reference internal" href="index.html#classTPZMaterialData"><span class="std std-ref">TPZMaterialData</span></a> </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u_len</strong> – <strong>[out]</strong> solution dimension </p></li>
+<li><p><strong>du_row</strong> – <strong>[out]</strong> number of rows of the derivative </p></li>
+<li><p><strong>du_col</strong> – <strong>[out]</strong> number of columns of the derivative </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZDarcyFlow6ErrorsERK16TPZMaterialDataTI5STATEER6TPZVecI4REALE">
+<span id="_CPPv3N12TPZDarcyFlow6ErrorsERK16TPZMaterialDataTI5STATEER6TPZVecI4REALE"></span><span id="_CPPv2N12TPZDarcyFlow6ErrorsERK16TPZMaterialDataTI5STATEER6TPZVecI4REALE"></span><span id="TPZDarcyFlow::Errors__TPZMaterialDataT:STATE:CR.TPZVec:REAL:R"></span><span class="target" id="classTPZDarcyFlow_1a8731294dd8620bdf3a80ac7e28cad388"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Errors</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">errors</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N12TPZDarcyFlow6ErrorsERK16TPZMaterialDataTI5STATEER6TPZVecI4REALE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Calculates the approximation error at a point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> material data of the integration point </p></li>
+<li><p><strong>errors</strong> – <strong>[out]</strong> calculated errors </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZDarcyFlow7ClassIdEv">
+<span id="_CPPv3NK12TPZDarcyFlow7ClassIdEv"></span><span id="_CPPv2NK12TPZDarcyFlow7ClassIdEv"></span><span id="TPZDarcyFlow::ClassIdC"></span><span class="target" id="classTPZDarcyFlow_1ad0622ee106e93d3e2e08ef20eef5146d"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClassId</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK12TPZDarcyFlow7ClassIdEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns an unique class identifier. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZDarcyFlow11NewMaterialEv">
+<span id="_CPPv3NK12TPZDarcyFlow11NewMaterialEv"></span><span id="_CPPv2NK12TPZDarcyFlow11NewMaterialEv"></span><span id="TPZDarcyFlow::NewMaterialC"></span><span class="target" id="classTPZDarcyFlow_1ae228e0c9e37ee4690feb8fbe1c063b58"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv411TPZMaterial" title="TPZMaterial"><span class="n"><span class="pre">TPZMaterial</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NewMaterial</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK12TPZDarcyFlow11NewMaterialEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Creates another material of the same type. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZDarcyFlow5PrintERNSt7ostreamE">
+<span id="_CPPv3NK12TPZDarcyFlow5PrintERNSt7ostreamE"></span><span id="_CPPv2NK12TPZDarcyFlow5PrintERNSt7ostreamE"></span><span id="TPZDarcyFlow::Print__osRC"></span><span class="target" id="classTPZDarcyFlow_1a0d14d0f6f29655d82ccfd17d7fa0ab06"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Print</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK12TPZDarcyFlow5PrintERNSt7ostreamE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Prints data associated with the material. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="tpzmixeddarcyflow">
+<h3><a class="toc-backref" href="#id42">TPZMixedDarcyFlow</a><a class="headerlink" href="#tpzmixeddarcyflow" title="Permalink to this headline">¶</a></h3>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv417TPZMixedDarcyFlow">
+<span id="_CPPv317TPZMixedDarcyFlow"></span><span id="_CPPv217TPZMixedDarcyFlow"></span><span id="TPZMixedDarcyFlow"></span><span class="target" id="classTPZMixedDarcyFlow"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMixedDarcyFlow</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n"><span class="pre">TPZMatBase</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E21TPZMatCombinedSpacesT" title="TPZMatCombinedSpacesT"><span class="n"><span class="pre">TPZMatCombinedSpacesT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E25TPZMatErrorCombinedSpaces" title="TPZMatErrorCombinedSpaces"><span class="n"><span class="pre">TPZMatErrorCombinedSpaces</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv421TPZDarcyFlowInterface" title="TPZDarcyFlowInterface"><span class="n"><span class="pre">TPZDarcyFlowInterface</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv417TPZMixedDarcyFlow" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This class implements a mixed approximation for the Darcy flow equation for isotropic materials. </p>
+<p>The Darcy flow equation is given by: <div class="math notranslate nohighlight">
+\[\nabla \cdot \boldsymbol{\sigma} = f,\]</div>
+ where <span class="math notranslate nohighlight">\(\boldsymbol{\sigma} = -K \nabla u\)</span> and <span class="math notranslate nohighlight">\(u\)</span> are the flux and pressure field to be solved respectively, <span class="math notranslate nohighlight">\(K\)</span> is the permeability tensor and <span class="math notranslate nohighlight">\(f\)</span> is the source term.</p>
+<p><dl class="simple">
+<dt><strong>See</strong></dt><dd><p><a class="reference internal" href="#classTPZDarcyFlow"><span class="std std-ref">TPZDarcyFlow</span></a> For an H1-conforming approximation. </p>
+</dd>
+<dt><strong>See</strong></dt><dd><p><a class="reference internal" href="#classTPZDarcyFlowInterface"><span class="std std-ref">TPZDarcyFlowInterface</span></a> For setting the permeability field. </p>
+</dd>
+</dl>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZMixedDarcyFlow17TPZMixedDarcyFlowEv">
+<span id="_CPPv3N17TPZMixedDarcyFlow17TPZMixedDarcyFlowEv"></span><span id="_CPPv2N17TPZMixedDarcyFlow17TPZMixedDarcyFlowEv"></span><span id="TPZMixedDarcyFlow::TPZMixedDarcyFlow"></span><span class="target" id="classTPZMixedDarcyFlow_1abc3f095d368f9d65aa27519adfda2dde"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZMixedDarcyFlow</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZMixedDarcyFlow17TPZMixedDarcyFlowEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Default constructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZMixedDarcyFlow17TPZMixedDarcyFlowEii">
+<span id="_CPPv3N17TPZMixedDarcyFlow17TPZMixedDarcyFlowEii"></span><span id="_CPPv2N17TPZMixedDarcyFlow17TPZMixedDarcyFlowEii"></span><span id="TPZMixedDarcyFlow::TPZMixedDarcyFlow__i.i"></span><span class="target" id="classTPZMixedDarcyFlow_1a2ccaf72bc7375ce8dd044a739546b598"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZMixedDarcyFlow</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">id</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dim</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZMixedDarcyFlow17TPZMixedDarcyFlowEii" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Class constructor. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> – <strong>[in]</strong> material id </p></li>
+<li><p><strong>dim</strong> – <strong>[in]</strong> problem dimension </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMixedDarcyFlow4NameEv">
+<span id="_CPPv3NK17TPZMixedDarcyFlow4NameEv"></span><span id="_CPPv2NK17TPZMixedDarcyFlow4NameEv"></span><span id="TPZMixedDarcyFlow::NameC"></span><span class="target" id="classTPZMixedDarcyFlow_1a28a68a37bfce812dea4993df63446cb3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Name</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK17TPZMixedDarcyFlow4NameEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns a ‘std::string’ with the name of the material. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMixedDarcyFlow9DimensionEv">
+<span id="_CPPv3NK17TPZMixedDarcyFlow9DimensionEv"></span><span id="_CPPv2NK17TPZMixedDarcyFlow9DimensionEv"></span><span id="TPZMixedDarcyFlow::DimensionC"></span><span class="target" id="classTPZMixedDarcyFlow_1afb96fa1ef48bfb6c84756c5c2ab8876c"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Dimension</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK17TPZMixedDarcyFlow9DimensionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the problem dimension. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMixedDarcyFlow15NStateVariablesEv">
+<span id="_CPPv3NK17TPZMixedDarcyFlow15NStateVariablesEv"></span><span id="_CPPv2NK17TPZMixedDarcyFlow15NStateVariablesEv"></span><span id="TPZMixedDarcyFlow::NStateVariablesC"></span><span class="target" id="classTPZMixedDarcyFlow_1a993d800bdc0a36920aa4483b7a4327e3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NStateVariables</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK17TPZMixedDarcyFlow15NStateVariablesEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the number of state variables. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZMixedDarcyFlow11NEvalErrorsEv">
+<span id="_CPPv3N17TPZMixedDarcyFlow11NEvalErrorsEv"></span><span id="_CPPv2N17TPZMixedDarcyFlow11NEvalErrorsEv"></span><span id="TPZMixedDarcyFlow::NEvalErrors"></span><span class="target" id="classTPZMixedDarcyFlow_1ab152b3de18b379c9120dc63a9d2754a3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEvalErrors</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZMixedDarcyFlow11NEvalErrorsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the number of errors to be evaluated. </p>
+<p>Returns the number of errors to be evaluated, that is, the number of error norms associated with the problem. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZMixedDarcyFlow12SetDimensionEi">
+<span id="_CPPv3N17TPZMixedDarcyFlow12SetDimensionEi"></span><span id="_CPPv2N17TPZMixedDarcyFlow12SetDimensionEi"></span><span id="TPZMixedDarcyFlow::SetDimension__i"></span><span class="target" id="classTPZMixedDarcyFlow_1ad1d4bba932248611d2168b7e2b0fbe24"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetDimension</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dim</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZMixedDarcyFlow12SetDimensionEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sets problem dimension. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZMixedDarcyFlow10ContributeERK6TPZVecI16TPZMaterialDataTI5STATEEE4REALR10TPZFMatrixI5STATEER10TPZFMatrixI5STATEE">
+<span id="_CPPv3N17TPZMixedDarcyFlow10ContributeERK6TPZVecI16TPZMaterialDataTI5STATEEE4REALR10TPZFMatrixI5STATEER10TPZFMatrixI5STATEE"></span><span id="_CPPv2N17TPZMixedDarcyFlow10ContributeERK6TPZVecI16TPZMaterialDataTI5STATEEE4REALR10TPZFMatrixI5STATEER10TPZFMatrixI5STATEE"></span><span id="TPZMixedDarcyFlow::Contribute__TPZVec:TPZMaterialDataT:STATE::CR.REAL.TPZFMatrix:STATE:R.TPZFMatrix:STATE:R"></span><span class="target" id="classTPZMixedDarcyFlow_1a4e9d9cc426d799981059e3eb0e7415f2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Contribute</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="index.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">datavec</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZMixedDarcyFlow10ContributeERK6TPZVecI16TPZMaterialDataTI5STATEEE4REALR10TPZFMatrixI5STATEER10TPZFMatrixI5STATEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>It computes a contribution to the stiffness matrix and load vector at one integration point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datavec</strong> – <strong>[in]</strong> stores all input data </p></li>
+<li><p><strong>weight</strong> – <strong>[in]</strong> is the weight of the integration rule </p></li>
+<li><p><strong>ek</strong> – <strong>[out]</strong> is the element matrix </p></li>
+<li><p><strong>ef</strong> – <strong>[out]</strong> is the rhs vector </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZMixedDarcyFlow12ContributeBCERK6TPZVecI16TPZMaterialDataTI5STATEEE4REALR10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE">
+<span id="_CPPv3N17TPZMixedDarcyFlow12ContributeBCERK6TPZVecI16TPZMaterialDataTI5STATEEE4REALR10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE"></span><span id="_CPPv2N17TPZMixedDarcyFlow12ContributeBCERK6TPZVecI16TPZMaterialDataTI5STATEEE4REALR10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE"></span><span id="TPZMixedDarcyFlow::ContributeBC__TPZVec:TPZMaterialDataT:STATE::CR.REAL.TPZFMatrix:STATE:R.TPZFMatrix:STATE:R.TPZBndCondT:STATE:R"></span><span class="target" id="classTPZMixedDarcyFlow_1aa877863092f61967b91610867410759d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ContributeBC</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="index.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">datavec</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span>, <a class="reference internal" href="index.html#_CPPv4I0E11TPZBndCondT" title="TPZBndCondT"><span class="n"><span class="pre">TPZBndCondT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bc</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZMixedDarcyFlow12ContributeBCERK6TPZVecI16TPZMaterialDataTI5STATEEE4REALR10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>It computes a contribution to the stiffness matrix and load vector at one BC integration point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datavec</strong> – <strong>[in]</strong> stores all input data </p></li>
+<li><p><strong>weight</strong> – <strong>[in]</strong> is the weight of the integration rule </p></li>
+<li><p><strong>ek</strong> – <strong>[out]</strong> is the element matrix </p></li>
+<li><p><strong>ef</strong> – <strong>[out]</strong> is the rhs vector </p></li>
+<li><p><strong>bc</strong> – <strong>[in]</strong> is the boundary condition material </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMixedDarcyFlow13VariableIndexERKNSt6stringE">
+<span id="_CPPv3NK17TPZMixedDarcyFlow13VariableIndexERKNSt6stringE"></span><span id="_CPPv2NK17TPZMixedDarcyFlow13VariableIndexERKNSt6stringE"></span><span id="TPZMixedDarcyFlow::VariableIndex__ssCRC"></span><span class="target" id="classTPZMixedDarcyFlow_1a9e97adf248c883931bdc519800fa5f0a"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VariableIndex</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">name</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK17TPZMixedDarcyFlow13VariableIndexERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns an integer associated with a post-processing variable name. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – <strong>[in]</strong> string containing the name of the post-processing variable. Ex: “Pressure”. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMixedDarcyFlow18NSolutionVariablesEi">
+<span id="_CPPv3NK17TPZMixedDarcyFlow18NSolutionVariablesEi"></span><span id="_CPPv2NK17TPZMixedDarcyFlow18NSolutionVariablesEi"></span><span id="TPZMixedDarcyFlow::NSolutionVariables__iC"></span><span class="target" id="classTPZMixedDarcyFlow_1aa930f36229a0242655f8db86c8ce1744"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NSolutionVariables</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">var</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK17TPZMixedDarcyFlow18NSolutionVariablesEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns an integer with the dimension of a post-processing variable. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>var</strong> – <strong>[in]</strong> index of the post-processing variable, according to <a class="reference internal" href="#classTPZDarcyFlow_1addde703f4f8e2d19fff2c2320e24028f"><span class="std std-ref">TPZDarcyFlow::VariableIndex</span></a> method. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZMixedDarcyFlow8SolutionERK6TPZVecI16TPZMaterialDataTI5STATEEEiR6TPZVecI5STATEE">
+<span id="_CPPv3N17TPZMixedDarcyFlow8SolutionERK6TPZVecI16TPZMaterialDataTI5STATEEEiR6TPZVecI5STATEE"></span><span id="_CPPv2N17TPZMixedDarcyFlow8SolutionERK6TPZVecI16TPZMaterialDataTI5STATEEEiR6TPZVecI5STATEE"></span><span id="TPZMixedDarcyFlow::Solution__TPZVec:TPZMaterialDataT:STATE::CR.i.TPZVec:STATE:R"></span><span class="target" id="classTPZMixedDarcyFlow_1a18d1b2875a11508c0e6d60cbf147110f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Solution</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="index.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">datavec</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">var</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">solOut</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZMixedDarcyFlow8SolutionERK6TPZVecI16TPZMaterialDataTI5STATEEEiR6TPZVecI5STATEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the solution associated with the var index based on the finite element approximation at a point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datavec</strong> – <strong>[in]</strong> material data associated with a given integration point </p></li>
+<li><p><strong>var</strong> – <strong>[in]</strong> index of the variable to be calculated </p></li>
+<li><p><strong>solOut</strong> – <strong>[out]</strong> vector to store the solution </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZMixedDarcyFlow6ErrorsERK6TPZVecI16TPZMaterialDataTI5STATEEER6TPZVecI4REALE">
+<span id="_CPPv3N17TPZMixedDarcyFlow6ErrorsERK6TPZVecI16TPZMaterialDataTI5STATEEER6TPZVecI4REALE"></span><span id="_CPPv2N17TPZMixedDarcyFlow6ErrorsERK6TPZVecI16TPZMaterialDataTI5STATEEER6TPZVecI4REALE"></span><span id="TPZMixedDarcyFlow::Errors__TPZVec:TPZMaterialDataT:STATE::CR.TPZVec:REAL:R"></span><span class="target" id="classTPZMixedDarcyFlow_1ac4195a83a146345cabe72eee28af11b6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Errors</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="index.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">errors</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZMixedDarcyFlow6ErrorsERK6TPZVecI16TPZMaterialDataTI5STATEEER6TPZVecI4REALE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Calculates the approximation error at a point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> material data of the integration point </p></li>
+<li><p><strong>errors</strong> – <strong>[out]</strong> calculated errors </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMixedDarcyFlow7ClassIdEv">
+<span id="_CPPv3NK17TPZMixedDarcyFlow7ClassIdEv"></span><span id="_CPPv2NK17TPZMixedDarcyFlow7ClassIdEv"></span><span id="TPZMixedDarcyFlow::ClassIdC"></span><span class="target" id="classTPZMixedDarcyFlow_1aa45251b51e0fe6bc665536e25dab497a"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClassId</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK17TPZMixedDarcyFlow7ClassIdEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns an unique class identifier. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMixedDarcyFlow11NewMaterialEv">
+<span id="_CPPv3NK17TPZMixedDarcyFlow11NewMaterialEv"></span><span id="_CPPv2NK17TPZMixedDarcyFlow11NewMaterialEv"></span><span id="TPZMixedDarcyFlow::NewMaterialC"></span><span class="target" id="classTPZMixedDarcyFlow_1a8cc42ffeb25fb864e93bbb03c00d981d"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv411TPZMaterial" title="TPZMaterial"><span class="n"><span class="pre">TPZMaterial</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NewMaterial</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK17TPZMixedDarcyFlow11NewMaterialEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Creates another material of the same type. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMixedDarcyFlow5PrintERNSt7ostreamE">
+<span id="_CPPv3NK17TPZMixedDarcyFlow5PrintERNSt7ostreamE"></span><span id="_CPPv2NK17TPZMixedDarcyFlow5PrintERNSt7ostreamE"></span><span id="TPZMixedDarcyFlow::Print__osRC"></span><span class="target" id="classTPZMixedDarcyFlow_1abc3f98e1499cd1f571c8d8a240a2860e"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Print</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK17TPZMixedDarcyFlow5PrintERNSt7ostreamE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Prints data associated with the material. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="tpzdarcyflowinterface">
+<h3><a class="toc-backref" href="#id43">TPZDarcyFlowInterface</a><a class="headerlink" href="#tpzdarcyflowinterface" title="Permalink to this headline">¶</a></h3>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv421TPZDarcyFlowInterface">
+<span id="_CPPv321TPZDarcyFlowInterface"></span><span id="_CPPv221TPZDarcyFlowInterface"></span><span id="TPZDarcyFlowInterface"></span><span class="target" id="classTPZDarcyFlowInterface"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZDarcyFlowInterface</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><a class="headerlink" href="#_CPPv421TPZDarcyFlowInterface" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This class implements the interface with the methods required to handle the permeability tensor of an isotropic material. </p>
+<p>Subclassed by TPZDarcyFlowInterfaceBC</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N21TPZDarcyFlowInterface23SetPermeabilityFunctionE4REAL">
+<span id="_CPPv3N21TPZDarcyFlowInterface23SetPermeabilityFunctionE4REAL"></span><span id="_CPPv2N21TPZDarcyFlowInterface23SetPermeabilityFunctionE4REAL"></span><span id="TPZDarcyFlowInterface::SetPermeabilityFunction__REAL"></span><span class="target" id="classTPZDarcyFlowInterface_1a0bf5b07925994acee1f476c746afbff1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPermeabilityFunction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">constant</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N21TPZDarcyFlowInterface23SetPermeabilityFunctionE4REAL" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set a constant permeability to the material. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>constant</strong> – <strong>[in]</strong> permeability value </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N21TPZDarcyFlowInterface23SetPermeabilityFunctionER24PermeabilityFunctionType">
+<span id="_CPPv3N21TPZDarcyFlowInterface23SetPermeabilityFunctionER24PermeabilityFunctionType"></span><span id="_CPPv2N21TPZDarcyFlowInterface23SetPermeabilityFunctionER24PermeabilityFunctionType"></span><span id="TPZDarcyFlowInterface::SetPermeabilityFunction__PermeabilityFunctionTypeR"></span><span class="target" id="classTPZDarcyFlowInterface_1a247a5c5d13ca0d2362f48e8d8c92d634"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPermeabilityFunction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PermeabilityFunctionType</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">perm_function</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N21TPZDarcyFlowInterface23SetPermeabilityFunctionER24PermeabilityFunctionType" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set a varying permeability field to the material. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>perm_function</strong> – <strong>[in]</strong> function that describes the permeability field </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK21TPZDarcyFlowInterface7ClassIdEv">
+<span id="_CPPv3NK21TPZDarcyFlowInterface7ClassIdEv"></span><span id="_CPPv2NK21TPZDarcyFlowInterface7ClassIdEv"></span><span id="TPZDarcyFlowInterface::ClassIdC"></span><span class="target" id="classTPZDarcyFlowInterface_1a2d6c48de959b90818c1d3c488b62b12e"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClassId</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK21TPZDarcyFlowInterface7ClassIdEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Unique identifier for each class. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N21TPZDarcyFlowInterface4ReadER9TPZStreamPv">
+<span id="_CPPv3N21TPZDarcyFlowInterface4ReadER9TPZStreamPv"></span><span id="_CPPv2N21TPZDarcyFlowInterface4ReadER9TPZStreamPv"></span><span id="TPZDarcyFlowInterface::Read__TPZStreamR.voidP"></span><span class="target" id="classTPZDarcyFlowInterface_1adbc25023a9ae54fd03daa9d9e290eeee"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Read</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZStream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">context</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N21TPZDarcyFlowInterface4ReadER9TPZStreamPv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Reads an objects from the TPZStream buffer. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK21TPZDarcyFlowInterface5WriteER9TPZStreami">
+<span id="_CPPv3NK21TPZDarcyFlowInterface5WriteER9TPZStreami"></span><span id="_CPPv2NK21TPZDarcyFlowInterface5WriteER9TPZStreami"></span><span id="TPZDarcyFlowInterface::Write__TPZStreamR.iC"></span><span class="target" id="classTPZDarcyFlowInterface_1a5119e1dcb0fa36a8800fc1a7a7808918"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Write</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZStream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">withclassid</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK21TPZDarcyFlowInterface5WriteER9TPZStreami" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Writes this object to the TPZStream buffer. Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
 </div>
 </div>
 </div>

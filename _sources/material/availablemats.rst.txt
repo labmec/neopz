@@ -23,3 +23,5 @@ Available Materials in NeoPZ
 .. include:: elasticity.inc
             
 .. include:: electromagnetics.inc
+
+.. include:: darcyflow.inc
