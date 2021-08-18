@@ -11,7 +11,7 @@ Materials for solving the Darcy flow equation:
 
 .. math::
 
-   -\nabla \cdot \boldsymbol{\sigma} = f
+   \nabla \cdot \boldsymbol{\sigma} = f
 
    \boldsymbol{\sigma} = - K \nabla u
 
