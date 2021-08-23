@@ -259,7 +259,10 @@ protected:
 public:
     /// divide the skeleton elements
     void DivideSkeletonElements(int ndivide);
-    
+
+    /// divide a skeleton given its gel id
+    void DivideSkeletonElement(int64_t skel_id);
+
     /// divide the boundary skeleton elements
     void DivideBoundarySkeletonElements();
     
