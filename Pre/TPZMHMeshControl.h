@@ -312,6 +312,11 @@ public:
         return fGeoToMHMDomain;
     }
 
+    // Return a std::map containing information on the interfaces
+    std::map<int64_t, std::pair<int64_t, int64_t>> GetInterfaces() {
+        return fInterfaces;
+    }
+
     /// return the coarseindex to submesh index data structure
     std::map<int64_t,int64_t> &Coarse_to_Submesh()
     {
