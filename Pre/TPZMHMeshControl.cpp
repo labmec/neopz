@@ -425,6 +425,35 @@ void TPZMHMeshControl::DivideSkeletonElements(int ndivide)
     //std::cout << "fHdivWrapMatId "<<fHDivWrapMatid<<std::endl;
 }
 
+void TPZMHMeshControl::DivideSkeletonElement(const int64_t skel_id)
+{
+    auto it = fInterfaces.find(skel_id);
+    if (it == fInterfaces.end()) {
+        PZError << "No interface associated with given skel_id ID was found! Aborting...\n";
+        DebugStop();
+    }
+    TPZGeoEl *gel = fGMesh->Element(skel_id);
+    TPZAutoPointer<TPZRefPattern> refpat = TPZRefPatternTools::PerfectMatchRefPattern(gel);
+    gel->SetRefPattern(refpat);
+    TPZManVector<TPZGeoEl *, 10> subels;
+    gel->Divide(subels);
+    int64_t nsub = subels.size();
+    for (int isub = 0; isub < nsub; isub++) {
+        const int64_t sub_id = subels[isub]->Index();
+        if (sub_id >= fGeoToMHMDomain.size()) {
+            fGeoToMHMDomain.Resize(subels[isub]->Index() + 1000, -1);
+        }
+        fGeoToMHMDomain[sub_id] = fGeoToMHMDomain[skel_id];
+        fInterfaces[sub_id] = it->second;
+        // for boundary elements, the second element isub the interface element
+        if (skel_id == it->second.second) {
+            fInterfaces[sub_id].second = subels[isub]->Index();
+        }
+    }
+    fInterfaces.erase(skel_id);
+    fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
+}
+
 /// divide the skeleton elements
 void TPZMHMeshControl::DivideBoundarySkeletonElements()
 {
