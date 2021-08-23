@@ -382,47 +382,16 @@ void TPZMHMeshControl::CreateSkeletonElements()
 }
 
 /// divide the skeleton elements
-void TPZMHMeshControl::DivideSkeletonElements(int ndivide)
-{
-    std::map<int64_t, std::pair<int64_t,int64_t> >::iterator it;
-    for (int divide=0; divide<ndivide; divide++)
-    {
-        std::map<int64_t, std::pair<int64_t,int64_t> > mapdivided;
-        for (it=fInterfaces.begin(); it!=fInterfaces.end(); it++) {
-            int64_t elindex = it->first;
-//            if (elindex == it->second.second) {
-//                mapdivided[elindex] = it->second;
-//                continue;
-//            }
-            TPZGeoEl *gel = fGMesh->Element(elindex);
-            TPZAutoPointer<TPZRefPattern> refpat = TPZRefPatternTools::PerfectMatchRefPattern(gel);
-            gel->SetRefPattern(refpat);
-            TPZManVector<TPZGeoEl *,10> subels;
-            gel->Divide(subels);
-            int64_t nsub = subels.size();
-            for (int is=0; is<nsub; is++) {
-                if (subels[is]->Index() >= fGeoToMHMDomain.size()) {
-                    fGeoToMHMDomain.Resize(subels[is]->Index()+1000, -1);
-                }
-                fGeoToMHMDomain[subels[is]->Index()] = fGeoToMHMDomain[elindex];
-                mapdivided[subels[is]->Index()] = it->second;
-                // for boundary elements, the second element is the interface element
-                if(elindex == it->second.second)
-                {
-                    mapdivided[subels[is]->Index()].second = subels[is]->Index();
-                }
-            }
+void TPZMHMeshControl::DivideSkeletonElements(const int ndivide) {
+    for (int divide = 0; divide < ndivide; divide++) {
+        // Since the content of fInterfaces changes inside the loop,
+        // we create a copy to be able to iterate on its original data.
+        auto interfaces_copy = fInterfaces;
+        for (auto & interface : interfaces_copy) {
+            int64_t elindex = interface.first;
+            DivideSkeletonElement(elindex);
         }
-        fInterfaces = mapdivided;
     }
-//    BuildWrapMesh(fGMesh->Dimension());
-//    BuildWrapMesh(fGMesh->Dimension()-1);
-    fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
-
-    std::cout<<"WrapMatId created \n";
-    std::cout << "fSkeletonWrapMatId "<<fSkeletonWrapMatId<<std::endl;
-    std::cout << "fBoundaryWrapMatId "<<fBoundaryWrapMatId<<std::endl;
-    //std::cout << "fHdivWrapMatId "<<fHDivWrapMatid<<std::endl;
 }
 
 void TPZMHMeshControl::DivideSkeletonElement(const int64_t skel_id)
