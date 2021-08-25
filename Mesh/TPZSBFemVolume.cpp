@@ -604,31 +604,30 @@ void TPZSBFemVolume::CreateGraphicalElement(TPZGraphMesh &graphmesh, int dimensi
 
 #include "pzaxestools.h"
 
-void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error) {
-    auto *matError =
-        dynamic_cast<TPZMatErrorSingleSpace<STATE>*>(this->Material());
-    int NErrors = matError->NEvalErrors();
-    errors.Resize(NErrors);
-    errors.Fill(0.);
-    TPZMaterial * material = Material();
-    //TPZMaterial * matptr = material.operator->();
-    if (!material) {
-        PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
-        Print(PZError);
-        return;
+void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error)
+{
+    auto *material = this->Material();
+	auto* matError =
+        dynamic_cast<TPZMatErrorSingleSpace<STATE> *>(this->Material());
+    if (!matError || !(matError->HasExactSol()))
+    {
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" the material has no associated exact solution\n";
+        PZError<<"Aborting...";
+        DebugStop();
     }
-    if (dynamic_cast<TPZBndCond *> (material)) {
+    if (dynamic_cast<TPZBndCond *> (matError))
+    {
         std::cout << "Exiting EvaluateError - null error - boundary condition material.";
         DebugStop();
     }
+    int NErrors = matError->NEvalErrors();
+    errors.Resize(NErrors);
+    errors.Fill(0.);
     int problemdimension = Mesh()->Dimension();
     TPZGeoEl *ref = Reference();
     if (ref->Dimension() < problemdimension) return;
 
-    // Adjust the order of the integration rule
-    //Cesar 2007-06-27 ==>> Begin
-    //this->MaxOrder is usefull to evaluate polynomial function of the aproximation space.
-    //fp can be any function and max order of the integration rule could produce best results
     int dim = Dimension();
     TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides() - 1, 5);
     int maxIntOrder = intrule->GetMaxOrder();

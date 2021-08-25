@@ -50,6 +50,7 @@
 #include "tpzsparseblockdiagonal.h"        // for TPZSparseBlockDiagonal
 #include "TPZMatError.h"
 #include "TPZSimpleTimer.h"
+#include "pzelementgroup.h"
 #ifdef WIN32
 #include "pzsloan.h"                       // for TPZSloan
 #endif
@@ -540,16 +541,10 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
     if ( iel >= nelem ) continue;
     
     TPZCompEl *cel = data->fElvec[iel];
-    auto *matError =
-          dynamic_cast<TPZMatError<STATE>*>(cel->Material());
-    if (matError && matError->HasExactSol()) {
-      cel->EvaluateError(errors, data->fStoreError);
-    } else {
-      PZError<<__PRETTY_FUNCTION__;
-      PZError<<" the material has no associated exact solution\n";
-      PZError<<"Aborting...";
-      DebugStop();
-    }
+
+    if(!cel) continue;
+    
+    cel->EvaluateError(errors, data->fStoreError);
     
     const int nerrors = errors.NElements();
     data->fvalues[myid].Resize(nerrors, 0.);

@@ -374,11 +374,15 @@ void TPZElementGroup::EvaluateError(TPZVec<REAL> &errors, bool store_error)
     int nerr = errors.size();
     errors.Fill(0.);
     int meshdim = Mesh()->Dimension();
-    int nel = fElGroup.size();
-    for (int el=0; el<nel; el++) {
+    for (auto cel : fElGroup)
+    {
+#ifdef PZDEBUG
+        if(!cel){
+            DebugStop();
+        }
+#endif
         TPZManVector<REAL,10> errloc(nerr,0.);
-        TPZGeoEl *elref = fElGroup[el]->Reference();
-        fElGroup[el]->EvaluateError(errloc, store_error);
+        cel->EvaluateError(errloc, store_error);
         if (errloc.size() != nerr) {
             nerr = errloc.size();
             errors.Resize(nerr, 0.);
