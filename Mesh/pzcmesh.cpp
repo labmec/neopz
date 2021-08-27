@@ -42,6 +42,7 @@
 #include "pztransfer.h"                    // for TPZTransfer
 #include "pztrnsform.h"                    // for TPZTransform
 #include "pzvec.h"                         // for TPZVec, operator<<
+#include "TPZMatError.h"
 
 #ifndef STATE_COMPLEX
 	#include "TPZAgglomerateEl.h" // for TPZAgglomerateElement
@@ -1502,7 +1503,7 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
         cel = fElementVec[el];
 
         if (!cel) continue;
-
+        
         cel->EvaluateError(true_error, store_error);
 
         int64_t nerrors = true_error.NElements();

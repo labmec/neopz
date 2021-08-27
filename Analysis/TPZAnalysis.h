@@ -334,8 +334,6 @@ protected:
   virtual void PostProcessErrorSerial(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
     
   virtual void PostProcessErrorParallel(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
-    
-  void CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvec);
 
   /** @brief Common steps in setting a computational mesh. */
 	void SetCompMeshInit(TPZCompMesh * mesh, bool mustOptimizeBandwidth);

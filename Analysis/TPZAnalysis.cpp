@@ -50,6 +50,7 @@
 #include "tpzsparseblockdiagonal.h"        // for TPZSparseBlockDiagonal
 #include "TPZMatError.h"
 #include "TPZSimpleTimer.h"
+#include "pzelementgroup.h"
 #ifdef WIN32
 #include "pzsloan.h"                       // for TPZSloan
 #endif
@@ -485,30 +486,6 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, bool store_error, std::o
   }
 }
 
-void TPZAnalysis::CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvecToComputeError){
-  
-  int64_t neq = fCompMesh->NEquations();
-  TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
-  const int64_t ncompel = elvec.NElements();
-  elvecToComputeError.Resize(ncompel);
-  int64_t i, nel = elvec.NElements();
-  int64_t nelToCompute = 0;
-  for(i=0;i<nel;i++) {
-    TPZCompEl *el = (TPZCompEl *) elvec[i];
-    if(el) {
-      TPZMaterial *mat = el->Material();
-      TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
-      if(!bc){
-        elvecToComputeError[nelToCompute] = el;
-        nelToCompute++;
-      }
-    }//if(el)
-  }//i
-  
-  elvecToComputeError.Resize(nelToCompute);
-  
-}
-
 void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
 {
   ThreadData *data = (ThreadData *) datavoid;
@@ -540,16 +517,10 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
     if ( iel >= nelem ) continue;
     
     TPZCompEl *cel = data->fElvec[iel];
-    auto *matError =
-          dynamic_cast<TPZMatError<STATE>*>(cel->Material());
-    if (matError && matError->HasExactSol()) {
-      cel->EvaluateError(errors, data->fStoreError);
-    } else {
-      PZError<<__PRETTY_FUNCTION__;
-      PZError<<" the material has no associated exact solution\n";
-      PZError<<"Aborting...";
-      DebugStop();
-    }
+
+    if(!cel) continue;
+    
+    cel->EvaluateError(errors, data->fStoreError);
     
     const int nerrors = errors.NElements();
     data->fvalues[myid].Resize(nerrors, 0.);
@@ -571,12 +542,7 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
   const int numthreads = this->fNthreadsError;
   std::vector<std::thread> allthreads;
 
-  TPZAdmChunkVector<TPZCompEl *> elvec;
-  {
-      TPZSimpleTimer t("CreateListOfCompElsToComputeError");
-      CreateListOfCompElsToComputeError(elvec);
-  }
-  
+  TPZAdmChunkVector<TPZCompEl *> & elvec = fCompMesh->ElementVec();
   
   ThreadData threaddata(elvec,store_error);
   threaddata.fvalues.Resize(numthreads);
