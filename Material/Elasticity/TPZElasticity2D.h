@@ -153,6 +153,15 @@ public :
     /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
     int NEvalErrors() override {return 6;}
 
+    void GetSolDimensions(uint64_t &u_len,
+                          uint64_t &du_row,
+                          uint64_t &du_col) const override
+    {
+        u_len=2;
+        du_row=2;
+        du_col=2;
+    };
+
     /** @} */
     
     /** @brief Creates a new material from the current object   ??*/

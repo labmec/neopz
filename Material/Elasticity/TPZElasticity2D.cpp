@@ -229,13 +229,30 @@ void TPZElasticity2D::ContributeBC(const TPZMaterialDataT<STATE> &data,
 	
 //		In general when the problem is  needed to stablish any convention for ContributeBC implementations
 
-//     REAL v2[2];
-// 	v2[0] = bc.Val2()(0,0);
-// 	v2[1] = bc.Val2()(1,0);
     int nstate = NStateVariables();
 
-    const TPZFMatrix<STATE> &v1 = bc.Val1();
+    const auto nloads = this->fNumLoadCases;
+    constexpr int nvars = 2;
+    const auto &bcNumLoads =
+        dynamic_cast<TPZMatLoadCasesBC<STATE>&>(bc);
 
+    TPZManVector<STATE,10> v2(nvars*nloads);
+    TPZFNMatrix<30,STATE> v1(nvars,1);
+	[&bc = std::as_const(bc),
+     &bcNumLoads = std::as_const(bcNumLoads),
+     &data = std::as_const(data),
+     nvars,nloads]( TPZFMatrix<STATE> &v1, TPZVec<STATE> &v2) {
+        if(bc.HasForcingFunctionBC()){
+            bc.ForcingFunctionBC()(data.x,v2,v1);
+        }else {
+            for(auto l = 0; l < nloads; l++){
+                const auto &val2 = bcNumLoads.GetBCRhsVal(l);
+                for(auto i = 0; i < nvars; i++)
+                    v2[nvars*l+i] = val2[i];
+            }
+            v1 = bc.Val1();
+        }
+    }(v1,v2);
 
     switch (bc.Type()) {
         case 0 :			// Dirichlet condition
@@ -243,7 +260,6 @@ void TPZElasticity2D::ContributeBC(const TPZMaterialDataT<STATE> &data,
             for(in = 0 ; in < phr; in++) {
                 for (int il = 0; il<NumLoadCases(); il++)
                 {
-                    const TPZVec<STATE> &v2 = bcLoadCases.GetBCRhsVal(il);
                     ef(2*in,il)   += BIGNUMBER * v2[0] * phi(in,0) * weight;        // forced v2 displacement
                     ef(2*in+1,il) += BIGNUMBER * v2[1] * phi(in,0) * weight;        // forced v2 displacement
                 }
@@ -262,7 +278,6 @@ void TPZElasticity2D::ContributeBC(const TPZMaterialDataT<STATE> &data,
             {
                 for (int il = 0; il <fNumLoadCases; il++) 
                 {
-                    const auto &v2 = bcLoadCases.GetBCRhsVal(il);
                     ef(2*in,il) += v2[0] * phi(in,0) * weight;        // force in x direction
                     ef(2*in+1,il) +=  v2[1] * phi(in,0) * weight;      // force in y direction
                 }
