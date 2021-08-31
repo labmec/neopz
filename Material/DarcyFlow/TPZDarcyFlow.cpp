@@ -39,20 +39,12 @@ void TPZDarcyFlow::Contribute(const TPZMaterialDataT<STATE> &data, STATE weight,
         source_term = -res[0];
     }
 
-    // Kdphi = K*dphi
-    TPZFMatrix<STATE> Kdphi(fDim, phr, 0);
-    for (int i_phi = 0; i_phi < phr; i_phi++) {
-        for (int i_dim = 0; i_dim < fDim; i_dim++) {
-            Kdphi(i_phi, i_phi) += perm * dphi(i_dim, i_phi);
-        }
-    }
-
     // Darcy's equation
     for (int in = 0; in < phr; in++) {
         ef(in, 0) -= weight * source_term * (phi(in, 0));
         for (int jn = 0; jn < phr; jn++) {
             for (int kd = 0; kd < fDim; kd++) {
-                ek(in, jn) += weight * (dphi(kd, in) * Kdphi(kd, jn));
+                ek(in, jn) += weight * (dphi(kd, in) * perm * dphi(kd, jn));
             }
         }
     }
@@ -318,6 +310,9 @@ void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
     TPZFMatrix<STATE> exact_flux(fDim, 1, 0);
     fExactSol(x, exact_pressure, exact_flux);
 
+    TPZFNMatrix<3,STATE> gradu(3,1);
+    TPZAxesTools<STATE>::Axes2XYZ(dsol,gradu,axes);
+
     // errors[1] - L2 norm error
     REAL diff = fabs(sol[0] - exact_pressure[0]);
     errors[1] = diff * diff;
@@ -329,7 +324,7 @@ void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
 
     TPZVec<REAL> graduDiff(fDim, 0);
     for (int id = 0; id < fDim; id++) {
-        graduDiff[id] += fabs(dsol[id] - exact_flux(id, 0));
+        graduDiff[id] += fabs(gradu(id) - exact_flux(id, 0));
     }
     diff = 0;
     for (int id = 0; id < fDim; id++) {

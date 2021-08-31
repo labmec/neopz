@@ -6,10 +6,8 @@
 
 void TPZDarcyFlowInterface::SetPermeabilityFunction(const REAL constant) {
     auto perm_func = [constant](const TPZVec<REAL> &coord, TPZMatrix<REAL> &K, TPZMatrix<REAL> &InvK) {
-        for (int i = 0; i < 3; i++) {
-            K(i, i) = constant;
-            InvK(i, i) = 1 / constant;
-        }
+        K(0, 0) = constant;
+        InvK(0, 0) = 1 / constant;
     };
     fPermeabilityFunction = perm_func;
 }
