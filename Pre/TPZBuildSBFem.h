@@ -36,7 +36,7 @@ class TPZBuildSBFem
 public:
     
     /// simple constructor
-    TPZBuildSBFem(TPZAutoPointer<TPZGeoMesh> gmesh, int skeletonmatid, std::map<int,int> &matidtranslation) : fGMesh(gmesh), fMatIdTranslation(matidtranslation), fSkeletonMatId(skeletonmatid)
+    TPZBuildSBFem(TPZAutoPointer<TPZGeoMesh> & gmesh, int skeletonmatid, std::map<int,int> &matidtranslation) : fGMesh(gmesh), fMatIdTranslation(matidtranslation), fSkeletonMatId(skeletonmatid)
     {
         fElementPartition.resize(fGMesh->NElements());
         fElementPartition.Fill(-1);

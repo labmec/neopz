@@ -55,7 +55,7 @@ class TPZSBFemVolume : public TPZInterpolationSpace
     TPZManVector<int64_t> fLocalIndices;
     
     /// extend the border shape functions for SBFem computations
-    void ExtendShapeFunctions(TPZMaterialData &data1d, TPZMaterialData &data2d);
+    void ExtendShapeFunctions(TPZMaterialDataT<STATE> &data1d, TPZMaterialDataT<STATE> &data2d);
     
     /// Density associated with the mass matrix
     REAL fDensity = 1.;

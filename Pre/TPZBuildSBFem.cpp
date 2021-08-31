@@ -720,10 +720,6 @@ void TPZBuildSBFem::CreateElementGroups(TPZCompMesh &cmesh)
         if (!sbfemgroup) {
             DebugStop();
         }
-        if (TPZSBFemElementGroup::gDefaultPolynomialOrder != 0)
-        {
-            sbfemgroup->InitializeInternalConnect();
-        }
         const TPZVec<TPZCompEl *> &subgr = sbfemgroup->GetElGroup();
         int64_t nsub = subgr.NElements();
         for (int64_t is=0; is<nsub; is++) {
@@ -734,7 +730,28 @@ void TPZBuildSBFem::CreateElementGroups(TPZCompMesh &cmesh)
             }
             femvol->SetElementGroupIndex(index);
         }
+        if (TPZSBFemElementGroup::gDefaultPolynomialOrder != 0)
+        {
+            sbfemgroup->InitializeInternalConnect();
+        }
     }
+
+    for (int64_t el=0; el<numgroups; el++) {
+        int64_t index;
+        
+        index = elementgroupindices[el];
+        TPZCompEl *cel = cmesh.Element(index);
+        TPZSBFemElementGroup *sbfemgroup = dynamic_cast<TPZSBFemElementGroup *>(cel);
+        if (!sbfemgroup || sbfemgroup->NConnects() == 0) {
+            continue;
+        }
+        /// PHIL doing all compute intensive during construction hides the execution time of the
+        // computation of the global stiffness matrix
+        // this implies that the time intensive computations are done serial
+        // you will spend 95%cpu "constructing" the mesh and 5% "solving" the fem problem?
+        sbfemgroup->ComputeEigenvalues();
+    }
+
     cmesh.InitializeBlock();
 }
 

@@ -10,26 +10,31 @@
 #define TPZSBFemElementGroup_hpp
 
 #include <stdio.h>
-#include "TPZElementMatrixT.h"
+
 #include "pzelementgroup.h"
 #include "TPZSBFemVolume.h"
 #include "pzcmesh.h"
+#include "pzcondensedcompel.h"
 
 
 class TPZSBFemElementGroup : public TPZElementGroup
 {
     
 public:
-    enum EComputationMode {EStiff, EOnlyMass, EMass};
+    enum EComputationMode {EStiff, EOnlyMass, EMass, EStiffBubble};
 
+    /// Default polynomial order for internal bubble functions
+    // if its value is zero, there are no internal functions
     static int gDefaultPolynomialOrder;
+    
+    static bool gPolynomialShapeFunctions;
     
 private:
     
     /// Matrix of eigenvectors which compose the stiffness matrix
-    TPZFMatrix<std::complex<double> > fPhi;
+    TPZFNMatrix<100,std::complex<double> > fPhi;
 
-    /// Matrix of coefficients that compose the stiffness matrix for bubble functions
+    /// Matrix of eigenvectors which compose the stiffness matrix
     TPZFNMatrix<100,std::complex<double> > fPhiBubble;
     
     /// Inverse of the eigenvector matrix (transfers eigenvector coeficients to side shape coeficients)
@@ -41,11 +46,14 @@ private:
     /// Vector of eigenvalues of the SBFem analyis
     TPZManVector<std::complex<double> > fEigenvalues;
     
-    /// Vector of bubble exponents of the SBFem analyis with source term
+    /// Vector of eigenvalues of the SBFem analyis
     TPZManVector<std::complex<double> > fEigenvaluesBubble;
+
+    /// Matrix of eigenvectors which compose the stiffness matrix
+    TPZFNMatrix<100,std::complex<double> > fQVectors;
     
     /// Multiplying coefficients of each eigenvector
-    TPZFMatrix<std::complex<double> > fCoef;
+    TPZFNMatrix<100,std::complex<double> > fCoef;
     
     TPZFMatrix<STATE> fMassMatrix;
     
@@ -56,32 +64,31 @@ private:
     
     /// timestep coeficient
     REAL fDelt = 1.;
-    
-    /// Compute the mass matrix based on the value of M0 and the eigenvectors
-    void ComputeMassMatrix(TPZElementMatrixT<STATE>& M0);
 
     int fInternalPolynomialOrder = 0;
+        
+    bool fPolynomialShapeFunctions = false;
 
-    int64_t fInternalConnectIndex = -1;
+    int64_t fInternalConnectIndex = 0;
+    
+    /// Compute the mass matrix based on the value of M0 and the eigenvectors
+    void ComputeMassMatrix(TPZElementMatrixT<STATE> &M0);
     
 public:
     
+    /// constructor
     TPZSBFemElementGroup() : TPZElementGroup()
+    {
+        
+    }
+
+    virtual ~TPZSBFemElementGroup()
     {
         
     }
     
     /// constructor
-    TPZSBFemElementGroup(TPZCompMesh &mesh, int64_t &index) : TPZElementGroup(mesh,index)
-    {
-        fInternalPolynomialOrder = TPZSBFemElementGroup::gDefaultPolynomialOrder;
-        if (fInternalPolynomialOrder != 0) {
-            int nshape = 0;
-            int nvar = 1;
-            int64_t newindex = Mesh()->AllocateNewConnect(nshape, nvar, fInternalPolynomialOrder);
-            fInternalConnectIndex = newindex;
-        }
-    }
+    TPZSBFemElementGroup(TPZCompMesh &mesh, int64_t &index);
     
     /** @brief add an element to the element group
      */
@@ -97,9 +104,14 @@ public:
      * @param ek element stiffness matrix
      * @param ef element load vector
      */
-    void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override;
+    virtual void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override;
 
-    void CalcStiffBlaze(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef);
+    /// @TODO why put a comment is the purpose of this function is so obvious!!!
+    void ComputeEigenvalues();
+
+    void ComputeEigenvaluesBlaze();
+
+    void ComputeEigenvaluesMKL();
 
     /// set the density or specific heat of the material
     void SetDensity(REAL density)
@@ -109,10 +121,6 @@ public:
     /// Set the element to compute the mass matrix
     void SetComputeOnlyMassMatrix()
     {
-        if(fMassMatrix.Rows() == 0)
-        {
-            DebugStop();
-        }
         fComputationMode = EOnlyMass;
     }
     
@@ -126,6 +134,11 @@ public:
     void SetComputeStiff()
     {
         fComputationMode = EStiff;
+    }
+
+    void SetComputeFullBubbleStiff()
+    {
+        fComputationMode = EStiffBubble;
     }
     /**
      * @brief Prints element data
@@ -159,20 +172,6 @@ public:
             out << std::endl;
         }
 
-/*
-        out << "EigenVectors for displacement\n";
-        fPhi.Print("Phi = ",out,EMathematicaInput);
-        out << "Inverse EigenVectors\n";
-        fPhiInverse.Print("PhiInv = ",out,EMathematicaInput);
-        out << "EigenValues " << fEigenvalues << std::endl;
-        out << "Mass Matrix\n";
-        fMassMatrix.Print("Mass = ",out);
-        out << "Solution Coeficients\n";
-        fCoef.Print("Coef ",out);
-        for (int el=0; el<nel; el++) {
-            fElGroup[el]->Print(out);
-        }
- */
         out << "End of " << __PRETTY_FUNCTION__ << std::endl;
     }
     
@@ -182,9 +181,9 @@ public:
      * @brief Computes the element right hand side
      * @param ef element load vector(s)
      */
-    void CalcResidual(TPZElementMatrixT<STATE> &ef) override
+    virtual void CalcResidual(TPZElementMatrixT<STATE> &ef) override
     {
-        TPZElementMatrixT<STATE> ek(Mesh(),TPZElementMatrix::EK);
+        TPZElementMatrixT<STATE> ek(Mesh(),TPZElementMatrixT<STATE>::EK);
         CalcStiff(ek,ef);
     }
     
@@ -197,15 +196,13 @@ public:
     virtual void LoadSolution() override;
 
     /** @brief Loads the geometric element referece */
-    virtual void LoadElementReference() override 
+    virtual void LoadElementReference() override
     {
         for (int64_t i = 0; i < fElGroup.size(); i++) {
             fElGroup[i]->LoadElementReference();
         }
     }
     
-
-
     int64_t NumEigenValues()
     {
         return fEigenvalues.size();
@@ -216,27 +213,17 @@ public:
     /// method to compute the stiffness
     /// method to compute the solution
     
-    TPZVec<STATE> MultiplyingCoeficients()
-    {
-        int nel = fCoef.Rows();
-        TPZVec<STATE> result(nel,0.);
-        for (int ir=0; ir<nel; ir++) {
-            result[ir] = fCoef(ir,0).real();
-        }
-        return result;
-    }
-    
-    TPZVec<std::complex<double> > &EigenValues()
+    TPZManVector<std::complex<REAL> > &EigenValues()
     {
         return fEigenvalues;
     }
     
-    TPZFMatrix<std::complex<double> > &Phi()
+    TPZFMatrix<std::complex<REAL> > &Phi()
     {
         return fPhi;
     }
     
-    TPZFMatrix<std::complex<double> > &PhiInverse()
+    TPZFMatrix<std::complex<REAL> > &PhiInverse()
     {
         return fPhiInverse;
     }
@@ -246,7 +233,7 @@ public:
         return fMassMatrix;
     }
     
-    TPZFMatrix<std::complex<double> > Coeficients()
+    TPZFMatrix<std::complex<REAL> > Coeficients()
     {
         return fCoef;
     }
@@ -265,7 +252,7 @@ public:
         return phireal;
     }
     
-    TPZManVector<double> EigenvaluesReal()
+    TPZManVector<REAL> EigenvaluesReal()
     {
         int64_t nel = fEigenvalues.NElements();
         TPZManVector<double> eig(nel);
@@ -276,7 +263,18 @@ public:
         return eig;
     }
     
-    TPZFMatrix<double> CoeficientsReal()
+    TPZManVector<REAL> EigenvaluesBubbleReal()
+    {
+        int64_t nel = fEigenvaluesBubble.NElements();
+        TPZManVector<double> eig(nel);
+        for(int64_t el=0; el<nel; el++)
+        {
+            eig[el] = fEigenvaluesBubble[el].real();
+        }
+        return eig;
+    }
+    
+    TPZFMatrix<REAL> CoeficientsReal()
     {
         int64_t rows = fCoef.Rows(),cols = fCoef.Cols();
         TPZFMatrix<double> coefreal(rows,cols);
@@ -290,10 +288,17 @@ public:
         return coefreal;
     }
 
+    // Initialize the connects related to the bubble functions
     void InitializeInternalConnect();
 
+    // Update the fEigenvalues, fPhi and fPhiInverse with the values needed to construct the bubble functions
     void ComputeBubbleParameters();
 
+    // Overwrite eigenvalues and eigenvectors to use a polynomial approx (i.e, uses a collapsed FE approx instead of the SBFEM approximation)
+    void OverwritePhis(TPZElementMatrixT<STATE> &E0, TPZElementMatrixT<STATE> &E1, TPZElementMatrixT<STATE> &E2, TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef);
+
+    // 
+    void SolveEigenProblemSBFEM(TPZFMatrix<STATE> &globmatkeep, TPZManVector<std::complex<double> > &eigenvalues, TPZFNMatrix<100,std::complex<double> > &eigenvectors);
 };
 
 #endif /* TPZSBFemElementGroup_hpp */
