@@ -21,13 +21,8 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         fForcingFunction(datavec[1].x, res);
         force = res[0];
     }
-
-    TPZFNMatrix<1, STATE> K(3, 3, 0);
-    TPZFNMatrix<1, STATE> InvK(3, 3, 0);
-
-    fPermeabilityFunction(datavec[0].x, K, InvK);
-    const REAL perm = K(0, 0);
-    const REAL inv_perm = 1 / perm;
+    const STATE perm = GetPermeability(datavec[0].x);
+    const STATE inv_perm = 1 / perm;
 
     // Setting the phis
     TPZFMatrix<REAL> &phiQ = datavec[0].phi;
@@ -158,10 +153,7 @@ void TPZMixedDarcyFlow::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &data
         TPZFNMatrix<9, STATE> gradu(3, 1);
         bc.ForcingFunctionBC()(datavec[0].x, res, gradu);
 
-        TPZFNMatrix<9, STATE> K(1, 1, 0);
-        TPZFNMatrix<9, STATE> InvK(1, 1, 0);
-        fPermeabilityFunction(datavec[0].x, K, InvK);
-        REAL perm = K(0, 0);
+        const STATE perm = GetPermeability(datavec[0].x);
 
         for (int i = 0; i < 3; i++) {
             normflux += datavec[0].normal[i] * perm * gradu(i, 0);
@@ -247,13 +239,8 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
     solOut.Resize(this->NSolutionVariables(var));
     solOut.Fill(0.);
     TPZManVector<STATE, 10> SolP, SolQ;
-
-    TPZFNMatrix<9, STATE> K(3, 3, 0);
-    TPZFNMatrix<9, STATE> InvK(3, 3, 0);
-
-    fPermeabilityFunction(datavec[0].x, K, InvK);
-    const REAL perm = K(0, 0);
-    const REAL inv_perm = 1 / perm;
+    const STATE perm = GetPermeability(datavec[0].x);
+    const STATE inv_perm = 1 / perm;
 
     // SolQ = datavec[0].sol[0];
     SolP = datavec[1].sol[0];
@@ -365,7 +352,7 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
         return;
     }
     if (var == 13) {
-        solOut[0] = K(0, 0);
+        solOut[0] = perm;
         return;
     }
 
@@ -442,12 +429,8 @@ void TPZMixedDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZV
     if(data[1].sol[0].size())
         pressurefem[0] = data[1].sol[0][0];
 
-    TPZFNMatrix<9, STATE> K(fDim, fDim, 0);
-    TPZFNMatrix<9, STATE> InvK(fDim, fDim, 0);
-
-    fPermeabilityFunction(data[0].x, K, InvK);
-    const REAL perm = K(0, 0);
-    const REAL inv_perm = 1 / perm;
+    const STATE perm = GetPermeability(data[0].x);
+    const STATE inv_perm = 1 / perm;
 
     TPZManVector<STATE, 3> gradpressurefem(3, 0.);
     this->Solution(data, VariableIndex("GradPressure"), gradpressurefem);

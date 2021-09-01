@@ -26,11 +26,7 @@ void TPZDarcyFlow::Contribute(const TPZMaterialDataT<STATE> &data, STATE weight,
     const TPZFMatrix<REAL> &jacinv = data.jacinv;
     int phr = phi.Rows();
 
-    TPZFNMatrix<1, REAL> K(1, 1), invK(1, 1);
-    fPermeabilityFunction(data.x, K, invK);
-
-    // Since this is an isotropic material, we get the permeability from an 1x1 matrix as follows:
-    REAL perm = K(0, 0);
+    const STATE perm = GetPermeability(data.x);
 
     STATE source_term = 0;
     if (this->HasForcingFunction()) {
@@ -164,11 +160,7 @@ void TPZDarcyFlow::Solution(const TPZMaterialDataT<STATE> &data, int var, TPZVec
             // KDuDx;
             TPZFNMatrix<9, STATE> dsoldx;
             TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dsoldx, data.axes);
-
-            TPZFNMatrix<1, REAL> K(1, 1), invK(1, 1);
-            fPermeabilityFunction(data.x, K, invK);
-            REAL perm = K(0, 0);
-
+            const STATE perm = GetPermeability(data.x);
             solOut[0] = perm * dsoldx(0, 0);
             return;
         }
@@ -176,11 +168,7 @@ void TPZDarcyFlow::Solution(const TPZMaterialDataT<STATE> &data, int var, TPZVec
             // KDuDy;
             TPZFNMatrix<9, STATE> dsoldx;
             TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dsoldx, data.axes);
-
-            TPZFNMatrix<1, REAL> K(1, 1), invK(1, 1);
-            fPermeabilityFunction(data.x, K, invK);
-            REAL perm = K(0, 0);
-
+            const STATE perm = GetPermeability(data.x);
             solOut[0] = perm * dsoldx(1, 0);
             return;
         }
@@ -188,11 +176,7 @@ void TPZDarcyFlow::Solution(const TPZMaterialDataT<STATE> &data, int var, TPZVec
             // KDuDz;
             TPZFNMatrix<9, STATE> dsoldx;
             TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dsoldx, data.axes);
-
-            TPZFNMatrix<1, REAL> K(1, 1), invK(1, 1);
-            fPermeabilityFunction(data.x, K, invK);
-            REAL perm = K(0, 0);
-
+            const STATE perm = GetPermeability(data.x);
             solOut[0] = perm * dsoldx(2, 0);
             return;
         }
@@ -201,9 +185,7 @@ void TPZDarcyFlow::Solution(const TPZMaterialDataT<STATE> &data, int var, TPZVec
             TPZFNMatrix<9, STATE> dsoldx;
             TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dsoldx, data.axes);
 
-            TPZFNMatrix<1, REAL> K(1, 1), invK(1, 1);
-            fPermeabilityFunction(data.x, K, invK);
-            REAL perm = K(0, 0);
+            const STATE perm = GetPermeability(data.x);
             STATE res = 0;
             for (int id = 0; id < fDim; id++) {
                 res += perm * dsoldx(id, 0) * perm * dsoldx(id, 0);
@@ -215,10 +197,7 @@ void TPZDarcyFlow::Solution(const TPZMaterialDataT<STATE> &data, int var, TPZVec
             // MinusKGradU/Flux;
             TPZFNMatrix<9, STATE> dsoldx;
             TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dsoldx, data.axes);
-
-            TPZFNMatrix<1, REAL> K(1, 1), invK(1, 1);
-            fPermeabilityFunction(data.x, K, invK);
-            REAL perm = K(0, 0);
+            const STATE perm = GetPermeability(data.x);
             for (int id = 0; id < fDim; id++) {
                 solOut[id] = - perm * dsoldx(id, 0);
             }
@@ -251,10 +230,7 @@ void TPZDarcyFlow::Solution(const TPZMaterialDataT<STATE> &data, int var, TPZVec
             // Div/Divergence
             TPZFNMatrix<9, STATE> dsoldx;
             TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dsoldx, data.axes);
-
-            TPZFNMatrix<1, REAL> K(1, 1), invK(1, 1);
-            fPermeabilityFunction(data.x, K, invK);
-            REAL perm = K(0, 0);
+            const STATE perm = GetPermeability(data.x);
             STATE res = 0;
             for (int id = 0; id < fDim; id++) {
                 res += - perm * dsoldx(id, 0);
@@ -318,9 +294,7 @@ void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
     errors[1] = diff * diff;
 
     // errors[2] - H1 semi-norm: |H1| = K*(grad[u] - grad[u_exact])
-    TPZFNMatrix<1, REAL> K(1, 1), invK(1, 1);
-    fPermeabilityFunction(x, K, invK);
-    REAL perm = K(0, 0);
+    const STATE perm = GetPermeability(data.x);
 
     TPZVec<REAL> graduDiff(fDim, 0);
     for (int id = 0; id < fDim; id++) {
