@@ -1,18 +1,18 @@
 # @file neopz/Material/DarcyFlow/CMakeLists.txt
 
 set(public_headers
-    TPZDarcyFlowInterface.h
+    TPZIsotropicPermeability.h
     TPZDarcyFlow.h
     TPZMixedDarcyFlow.h
     )
 
 set(headers
-    TPZDarcyFlowInterface.h
+    TPZIsotropicPermeability.h
     TPZDarcyFlow.h
     TPZMixedDarcyFlow.h
     )
 set(sources
-    TPZDarcyFlowInterface.cpp
+    TPZIsotropicPermeability.cpp
     TPZDarcyFlow.cpp
     TPZMixedDarcyFlow.cpp
     )

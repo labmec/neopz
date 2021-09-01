@@ -8,7 +8,7 @@
 #include "TPZMatBase.h"
 #include "TPZMatCombinedSpaces.h"
 #include "TPZMatErrorCombinedSpaces.h"
-#include "TPZDarcyFlowInterface.h"
+#include "TPZIsotropicPermeability.h"
 
 /**
  * @ingroup material
@@ -19,15 +19,15 @@
  * \f$K\f$ is the permeability tensor and \f$f\f$ is the source term.
  *
  * @see TPZDarcyFlow For an H1-conforming approximation.
- * @see TPZDarcyFlowInterface For setting the permeability field.
+ * @see TPZIsotropicPermeability For setting the permeability field.
  */
 
 class TPZMixedDarcyFlow : public TPZMatBase<STATE, TPZMatCombinedSpacesT<STATE>,
-        TPZMatErrorCombinedSpaces<STATE>, TPZDarcyFlowInterface> {
+        TPZMatErrorCombinedSpaces<STATE>, TPZIsotropicPermeability> {
 
     // type alias to improve constructor readability
     using TBase = TPZMatBase<STATE, TPZMatCombinedSpacesT<STATE>,
-            TPZMatErrorCombinedSpaces<STATE>, TPZDarcyFlowInterface>;
+            TPZMatErrorCombinedSpaces<STATE>, TPZIsotropicPermeability>;
 
 public:
     /**
