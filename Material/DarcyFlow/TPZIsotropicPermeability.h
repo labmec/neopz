@@ -51,7 +51,10 @@ public:
 
 protected:
 
+    // Member variable to describe a constant permeability field
     STATE fConstantPermeability{};
+
+    // Member variable to describe a varying permeability field
     PermeabilityFunctionType fPermeabilityFunction{};
 };
 
