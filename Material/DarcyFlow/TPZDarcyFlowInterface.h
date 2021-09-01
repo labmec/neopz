@@ -11,9 +11,7 @@
 #include "pzfmatrix.h"
 
 // Alias to improve readability of the permeability function type
-using PermeabilityFunctionType = std::function<void(const TPZVec<REAL> &coord,
-                                                    TPZMatrix<REAL> &K,
-                                                    TPZMatrix<REAL> &InvK)>;
+using PermeabilityFunctionType = std::function<STATE(const TPZVec<REAL> &coord)>;
 
 // Forward declaration of dummy BC interface class
 class TPZDarcyFlowInterfaceBC;
