@@ -37,6 +37,12 @@ public:
      */
     void SetPermeabilityFunction(PermeabilityFunctionType &perm_function);
 
+    /**
+     * @brief Return the permeability value at a coordinate
+     * @param [in] coord coordinate of interest
+     */
+    STATE GetPermeability(const TPZVec<REAL> &coord);
+
     [[nodiscard]] int ClassId() const override;
 
     void Read(TPZStream &buf, void *context) override {};

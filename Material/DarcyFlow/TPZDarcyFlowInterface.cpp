@@ -12,6 +12,10 @@ void TPZDarcyFlowInterface::SetPermeabilityFunction(PermeabilityFunctionType &pe
     fPermeabilityFunction = perm_function;
 }
 
+STATE TPZDarcyFlowInterface::GetPermeability(const TPZVec<REAL> &coord) {
+    return fPermeabilityFunction ? fPermeabilityFunction(coord) : fConstantPermeability;
+}
+
 int TPZDarcyFlowInterface::ClassId() const {
     return Hash("TPZDarcyFlowInterface");
 }
