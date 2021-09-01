@@ -49,7 +49,7 @@ public:
 
     void Write(TPZStream &buf, int withclassid) const override {};
 
-protected:
+private:
 
     // Member variable to describe a constant permeability field
     STATE fConstantPermeability{};
