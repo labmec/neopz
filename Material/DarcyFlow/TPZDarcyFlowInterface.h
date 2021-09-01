@@ -29,7 +29,7 @@ public:
      * @brief Set a constant permeability to the material
      * @param [in] constant permeability value
      */
-    void SetPermeabilityFunction(REAL constant);
+    void SetConstantPermeability(STATE constant);
 
     /**
      * @brief Set a varying permeability field to the material
@@ -44,7 +44,9 @@ public:
     void Write(TPZStream &buf, int withclassid) const override {};
 
 protected:
-    PermeabilityFunctionType fPermeabilityFunction;
+
+    STATE fConstantPermeability{};
+    PermeabilityFunctionType fPermeabilityFunction{};
 };
 
 // Dummy BC interface class
