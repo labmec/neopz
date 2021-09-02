@@ -22,7 +22,7 @@
  * @see TPZIsotropicPermeability For setting the permeability field.
  */
 
-class TPZMixedDarcyFlow : public TPZMatBase<STATE, TPZMatCombinedSpacesT<STATE>,
+class TPZMixedDarcyFlow : public virtual TPZMatBase<STATE, TPZMatCombinedSpacesT<STATE>,
         TPZMatErrorCombinedSpaces<STATE>, TPZIsotropicPermeability> {
 
     // type alias to improve constructor readability
