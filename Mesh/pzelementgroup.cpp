@@ -8,6 +8,7 @@
 #include "pzlog.h"
 #include "pzstepsolver.h"
 #include "pzcmesh.h"
+#include "TPZBndCond.h"
 #include <algorithm>
 
 #ifdef PZ_LOG
@@ -381,6 +382,9 @@ void TPZElementGroup::EvaluateError(TPZVec<REAL> &errors, bool store_error)
             DebugStop();
         }
 #endif
+        // Do not calculate error for BC
+        if (dynamic_cast<TPZBndCond*>(cel->Material())) continue;
+
         TPZManVector<REAL,10> errloc(nerr,0.);
         cel->EvaluateError(errloc, store_error);
         if (errloc.size() != nerr) {

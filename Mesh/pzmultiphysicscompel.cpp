@@ -1153,14 +1153,20 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool
     if(nullmat) return;
   auto *mat =
       dynamic_cast<TPZMatCombinedSpacesT<TVar>*>(this->Material());
+  auto *bc =
+      dynamic_cast<TPZBndCond*>(this->Material());
   auto *matError =
       dynamic_cast<TPZMatErrorCombinedSpaces<TVar>*>(mat);
   
-  //TPZMaterial * matptr = material.operator->();
   if (!mat) {
       PZError << __PRETTY_FUNCTION__;
       PZError<<" no material for this element\n";
       return;
+  }
+  if (bc) {
+    PZError << __PRETTY_FUNCTION__;
+    PZError<<" material is bc\n";
+    return;
   }
   if(!matError){
       PZError << __PRETTY_FUNCTION__;
@@ -1168,13 +1174,10 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool
       PZError<<"See TPZMatErrorCombinedSpaces\n";
       return;
   }
-      
+
   const int NErrors = matError->NEvalErrors();
   errors.Resize(NErrors);
   errors.Fill(0.);
-
-  // Return if BC
-  if (this->NConnects() == 0) return;
 
   // Adjust the order of the integration rule
   int dim = Dimension();

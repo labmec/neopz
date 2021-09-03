@@ -1503,7 +1503,11 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
         cel = fElementVec[el];
 
         if (!cel) continue;
-        
+
+        TPZMaterial *mat = cel->Material();
+        auto *bndCnd = dynamic_cast<TPZBndCond *>(mat);
+        if (bndCnd) continue;
+
         cel->EvaluateError(true_error, store_error);
 
         int64_t nerrors = true_error.NElements();
