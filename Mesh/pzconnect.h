@@ -111,7 +111,7 @@ public:
     void Reset()
     {
         if (fDependList) {
-            DebugStop();
+            //DebugStop();
             delete fDependList;
             fDependList = 0;
         }
