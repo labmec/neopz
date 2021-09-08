@@ -1133,14 +1133,14 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
         }
     }
     
-#ifdef PZ_LOG
-    if (loggerLBF->isDebugEnabled()) {
-        std::stringstream sout;
-        eflocal.Print("eflocal = ", sout, EMathematicaInput);
-        f.Print("f = ", sout, EMathematicaInput);
-        eflocalbubble.Print("eflocalbubble = ", sout, EMathematicaInput);
-        fbubble.Print("fbubble = ", sout, EMathematicaInput);
-        LOGPZ_DEBUG(loggerLBF, sout.str())
-    }
-#endif
+// #ifdef PZ_LOG
+//     if (loggerLBF->isDebugEnabled()) {
+//         std::stringstream sout;
+//         eflocal.Print("eflocal = ", sout, EMathematicaInput);
+//         f.Print("f = ", sout, EMathematicaInput);
+//         eflocalbubble.Print("eflocalbubble = ", sout, EMathematicaInput);
+//         fbubble.Print("fbubble = ", sout, EMathematicaInput);
+//         LOGPZ_DEBUG(loggerLBF, sout.str())
+//     }
+// #endif
 }
