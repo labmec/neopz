@@ -542,8 +542,9 @@ template <class TVar>
 /** @brief Initialize pivot with i = i  */
 void TPZFMatrix<TVar>::InitializePivot()
 {
-    fPivot.Resize(this->Rows());
-    for(int64_t i = 0; i < this->Rows(); i++){
+    const int nRows = this->Rows();
+    fPivot.Resize(nRows);
+    for(int64_t i = 0; i < nRows; i++){
         fPivot[i] = i+1; // Fortran based indexing
     }
 }
@@ -1166,7 +1167,12 @@ int TPZFMatrix<double>::Decompose_LU(TPZVec<int> &index) {
     int zero = 0;
     double b;int info;
     
-    fPivot.Resize(nRows);
+    // If the matrix is 1x1, the lapack function dgesv_ does not modify
+    // fPivot. And, if fPivot is not initialized it can lead to problems
+    // when the function Substitution() is called. That is why we are
+    // now initializing fPivot before calling dgesv_
+//    fPivot.Resize(nRows);
+    InitializePivot();
     
     //    int sgesv_(__CLPK_integer *__n, __CLPK_integer *__nrhs, __CLPK_real *__a,
     //               __CLPK_integer *__lda, __CLPK_integer *__ipiv, __CLPK_real *__b,
