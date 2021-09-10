@@ -1,5 +1,5 @@
 Darcy flow
--------
+----------
 
 .. toctree::
    :maxdepth: 1
@@ -17,19 +17,19 @@ Materials for solving the Darcy flow equation:
 
 
 TPZDarcyFlow
-^^^^^^^^^^^^^
+^^^^^^^^^^^^
 
 .. doxygenclass:: TPZDarcyFlow
    :members:
 
 TPZMixedDarcyFlow
-^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 
 .. doxygenclass:: TPZMixedDarcyFlow
    :members:
 
-TPZDarcyFlowInterface
-^^^^^^^^^^^^^
+TPZIsotropicPermeability
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenclass:: TPZDarcyFlowInterface
+.. doxygenclass:: TPZIsotropicPermeability
    :members:
