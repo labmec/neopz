@@ -95,6 +95,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../solver/index.html">The Solver hierarchy</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Utilities</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#tpzsimpletimer">TPZSimpleTimer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tpzlogger">TPZLogger</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#configuring-the-logger-for-an-application">Configuring the logger for an application</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -172,6 +176,11 @@
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#tpzsimpletimer" id="id1">TPZSimpleTimer</a></p></li>
+<li><p><a class="reference internal" href="#tpzlogger" id="id2">TPZLogger</a></p>
+<ul>
+<li><p><a class="reference internal" href="#configuring-the-logger-for-an-application" id="id3">Configuring the logger for an application</a></p></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="section" id="tpzsimpletimer">
@@ -215,6 +224,45 @@
 </div>
 </dd></dl>
 
+</div>
+<div class="section" id="tpzlogger">
+<h2><a class="toc-backref" href="#id2">TPZLogger</a><a class="headerlink" href="#tpzlogger" title="Permalink to this headline">¶</a></h2>
+<p>Logging in NeoPZ is currently done through the
+<a class="reference external" href="https://logging.apache.org/log4cxx/latest_stable/">log4cxx</a> library, and its
+linkage with NeoPZ can be configured through the <code class="docutils literal notranslate"><span class="pre">USING_LOG4CXX</span></code> CMake option.</p>
+<p>A user familiarised with the log4cxx library should expect no trouble creating their
+own custom logger, but NeoPZ has several loggers available with sane defaults. However,
+one is able to easily change the verbosity levels (and adding their own loggers) through
+the configuration file.</p>
+<div class="section" id="configuring-the-logger-for-an-application">
+<h3><a class="toc-backref" href="#id3">Configuring the logger for an application</a><a class="headerlink" href="#configuring-the-logger-for-an-application" title="Permalink to this headline">¶</a></h3>
+<p>The configuration of the loggers can be done through a call to</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9TPZLogger15InitializePZLOGEv">
+<span id="_CPPv3N9TPZLogger15InitializePZLOGEv"></span><span id="_CPPv2N9TPZLogger15InitializePZLOGEv"></span><span id="TPZLogger::InitializePZLOG"></span><span class="target" id="classTPZLogger_1a1b0f9d8a43fdeb4bc65d85f2acec3311"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">TPZLogger</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">InitializePZLOG</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9TPZLogger15InitializePZLOGEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<p>The default configuration file is <code class="docutils literal notranslate"><span class="pre">$INSTALL_DIR/include/Util/log4cxx.cfg</span></code>
+(or <code class="docutils literal notranslate"><span class="pre">$BUILD_DIR/Util/log4cxx.cfg</span></code> when inside the NeoPZ buildtree). This file is
+generated based on the <code class="docutils literal notranslate"><span class="pre">$SOURCE_DIR/Util/log4cxx.cfg</span></code>, which should <strong>not</strong> be modified
+by the user.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">log4cxx.cfg</span></code> in the source directory is modified
+(by a user that does not care about this documentation,
+or by means of a <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code>),
+then it will be copied to both the build and install directories.
+Any existing configuration file will be renamed with a <code class="docutils literal notranslate"><span class="pre">-backup</span></code> suffix.</p>
+</div>
+<p>Alternatively, the user can provide a custom configuration file and call</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9TPZLogger15InitializePZLOGERKNSt6stringE">
+<span id="_CPPv3N9TPZLogger15InitializePZLOGERKNSt6stringE"></span><span id="_CPPv2N9TPZLogger15InitializePZLOGERKNSt6stringE"></span><span id="TPZLogger::InitializePZLOG__ssCR"></span><span class="target" id="classTPZLogger_1a8ea73aef81fa9736938592fd2a376f83"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">TPZLogger</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">InitializePZLOG</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">configfile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9TPZLogger15InitializePZLOGERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<p>which is the recommended method for external projects, since each might have quite
+distinct verbosity levels for their loggers.</p>
+</div>
 </div>
 </div>
 
