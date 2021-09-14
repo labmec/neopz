@@ -1181,7 +1181,8 @@ int TPZFMatrix<double>::Decompose_LU(TPZVec<int> &index) {
     //                                                                __IPHONE_4_0);
     
     
-    dgesv_(&nRows,&zero,fElem,&nRows,&fPivot[0],&b,&nRows,&info);
+    dgetrf_(&nRows,&nRows,fElem,&nRows,&fPivot[0],&info);
+//    dgesv_(&nRows,&zero,fElem,&nRows,&fPivot[0],&b,&nRows,&info);
     index = fPivot;
     this->fDecomposed = ELUPivot;
     return 1;
