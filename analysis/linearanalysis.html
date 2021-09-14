@@ -1,74 +1,35 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>FEM Analysis of Equation Systems &mdash; NeoPZ  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="FEM Analysis of Eigenvalue Problems" href="eigenanalysis.html" />
     <link rel="prev" title="The Analysis hierarchy" href="index.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> NeoPZ
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -76,18 +37,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">The Analysis hierarchy</a><ul class="current">
@@ -105,75 +55,33 @@
 <li class="toctree-l1"><a class="reference internal" href="../util/index.html">Utilities</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">NeoPZ</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="index.html">The Analysis hierarchy</a> &raquo;</li>
-        
       <li>FEM Analysis of Equation Systems</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/analysis/linearanalysis.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="fem-analysis-of-equation-systems">
-<h1>FEM Analysis of Equation Systems<a class="headerlink" href="#fem-analysis-of-equation-systems" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="fem-analysis-of-equation-systems">
+<h1>FEM Analysis of Equation Systems<a class="headerlink" href="#fem-analysis-of-equation-systems" title="Permalink to this headline"></a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <div class="contents local topic" id="table-of-contents">
@@ -182,30 +90,30 @@
 <li><p><a class="reference internal" href="#the-tpzlinearanalysis-class" id="id1">The TPZLinearAnalysis class</a></p></li>
 </ul>
 </div>
-<div class="section" id="the-tpzlinearanalysis-class">
-<h2><a class="toc-backref" href="#id1">The TPZLinearAnalysis class</a><a class="headerlink" href="#the-tpzlinearanalysis-class" title="Permalink to this headline">¶</a></h2>
+<section id="the-tpzlinearanalysis-class">
+<h2><a class="toc-backref" href="#id1">The TPZLinearAnalysis class</a><a class="headerlink" href="#the-tpzlinearanalysis-class" title="Permalink to this headline"></a></h2>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv417TPZLinearAnalysis">
-<span id="_CPPv317TPZLinearAnalysis"></span><span id="_CPPv217TPZLinearAnalysis"></span><span id="TPZLinearAnalysis"></span><span class="target" id="classTPZLinearAnalysis"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZLinearAnalysis</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv411TPZAnalysis" title="TPZAnalysis"><span class="n"><span class="pre">TPZAnalysis</span></span></a><a class="headerlink" href="#_CPPv417TPZLinearAnalysis" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv317TPZLinearAnalysis"></span><span id="_CPPv217TPZLinearAnalysis"></span><span id="TPZLinearAnalysis"></span><span class="target" id="classTPZLinearAnalysis"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZLinearAnalysis</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv411TPZAnalysis" title="TPZAnalysis"><span class="n"><span class="pre">TPZAnalysis</span></span></a><a class="headerlink" href="#_CPPv417TPZLinearAnalysis" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Performs the Finite Element Analysis of a equation system. </p>
 <p>Subclassed by TPZNonLinearAnalysis, TPZPostProcAnalysis, TPZSubMeshAnalysis</p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-constructors">Constructors</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisEv">
-<span id="_CPPv3N17TPZLinearAnalysis17TPZLinearAnalysisEv"></span><span id="_CPPv2N17TPZLinearAnalysis17TPZLinearAnalysisEv"></span><span id="TPZLinearAnalysis::TPZLinearAnalysis"></span><span class="target" id="classTPZLinearAnalysis_1aec21c0404fdc5c2252e88f20b822d2d8"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZLinearAnalysis</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis17TPZLinearAnalysisEv"></span><span id="_CPPv2N17TPZLinearAnalysis17TPZLinearAnalysisEv"></span><span id="TPZLinearAnalysis::TPZLinearAnalysis"></span><span class="target" id="classTPZLinearAnalysis_1aec21c0404fdc5c2252e88f20b822d2d8"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZLinearAnalysis</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Create an empty <a class="reference internal" href="#classTPZLinearAnalysis"><span class="std std-ref">TPZLinearAnalysis</span></a> object. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshbRNSt7ostreamE">
-<span id="_CPPv3N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshbRNSt7ostreamE"></span><span id="_CPPv2N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshbRNSt7ostreamE"></span><span id="TPZLinearAnalysis::TPZLinearAnalysis__TPZCompMeshP.b.osR"></span><span class="target" id="classTPZLinearAnalysis_1a026d2f0bf337b92e62ffb3347c4c8a59"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZLinearAnalysis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">mesh</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mustOptimizeBandwidth</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshbRNSt7ostreamE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshbRNSt7ostreamE"></span><span id="_CPPv2N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshbRNSt7ostreamE"></span><span id="TPZLinearAnalysis::TPZLinearAnalysis__TPZCompMeshP.b.osR"></span><span class="target" id="classTPZLinearAnalysis_1a026d2f0bf337b92e62ffb3347c4c8a59"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZLinearAnalysis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">mesh</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mustOptimizeBandwidth</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshbRNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Create an <a class="reference internal" href="#classTPZLinearAnalysis"><span class="std std-ref">TPZLinearAnalysis</span></a> object from one mesh pointer. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE">
-<span id="_CPPv3N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE"></span><span id="_CPPv2N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE"></span><span id="TPZLinearAnalysis::TPZLinearAnalysis__TPZAutoPointer:TPZCompMesh:.b.osR"></span><span class="target" id="classTPZLinearAnalysis_1a0f56ec1c4f12028ac93ae072302f5346"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZLinearAnalysis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mesh</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mustOptimizeBandwidth</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE"></span><span id="_CPPv2N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE"></span><span id="TPZLinearAnalysis::TPZLinearAnalysis__TPZAutoPointer:TPZCompMesh:.b.osR"></span><span class="target" id="classTPZLinearAnalysis_1a0f56ec1c4f12028ac93ae072302f5346"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZLinearAnalysis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mesh</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mustOptimizeBandwidth</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Create an <a class="reference internal" href="#classTPZLinearAnalysis"><span class="std std-ref">TPZLinearAnalysis</span></a> object from one mesh auto pointer object. </p>
 </dd></dl>
 
@@ -214,37 +122,37 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-fem">FEM</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4I0EN17TPZLinearAnalysis12MatrixSolverER15TPZMatrixSolverI4TVarEv">
-<span id="_CPPv3I0EN17TPZLinearAnalysis12MatrixSolverEv"></span><span id="_CPPv2I0EN17TPZLinearAnalysis12MatrixSolverEv"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZLinearAnalysis_1abdee9a8417d91e21c34dc06bda0f34b1"></span><span class="n"><span class="pre">TPZMatrixSolver</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN17TPZLinearAnalysis12MatrixSolverER15TPZMatrixSolverI4TVarEv" title="TPZLinearAnalysis::MatrixSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">MatrixSolver</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN17TPZLinearAnalysis12MatrixSolverER15TPZMatrixSolverI4TVarEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3I0EN17TPZLinearAnalysis12MatrixSolverEv"></span><span id="_CPPv2I0EN17TPZLinearAnalysis12MatrixSolverEv"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZLinearAnalysis_1abdee9a8417d91e21c34dc06bda0f34b1"></span><span class="n"><span class="pre">TPZMatrixSolver</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN17TPZLinearAnalysis12MatrixSolverER15TPZMatrixSolverI4TVarEv" title="TPZLinearAnalysis::MatrixSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">MatrixSolver</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN17TPZLinearAnalysis12MatrixSolverER15TPZMatrixSolverI4TVarEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Get the matrix solver. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis3RhsEv">
-<span id="_CPPv3N17TPZLinearAnalysis3RhsEv"></span><span id="_CPPv2N17TPZLinearAnalysis3RhsEv"></span><span id="TPZLinearAnalysis::Rhs"></span><span class="target" id="classTPZLinearAnalysis_1a697ed834097da39cefe7a3cf63d3c2a2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSolutionMatrix</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rhs</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis3RhsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis3RhsEv"></span><span id="_CPPv2N17TPZLinearAnalysis3RhsEv"></span><span id="TPZLinearAnalysis::Rhs"></span><span class="target" id="classTPZLinearAnalysis_1a697ed834097da39cefe7a3cf63d3c2a2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSolutionMatrix</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rhs</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis3RhsEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Returns the load vector. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis8AssembleEv">
-<span id="_CPPv3N17TPZLinearAnalysis8AssembleEv"></span><span id="_CPPv2N17TPZLinearAnalysis8AssembleEv"></span><span id="TPZLinearAnalysis::Assemble"></span><span class="target" id="classTPZLinearAnalysis_1a548d44c9216693195cfa4c19e015662b"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Assemble</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis8AssembleEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis8AssembleEv"></span><span id="_CPPv2N17TPZLinearAnalysis8AssembleEv"></span><span id="TPZLinearAnalysis::Assemble"></span><span class="target" id="classTPZLinearAnalysis_1a548d44c9216693195cfa4c19e015662b"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Assemble</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis8AssembleEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Assemble the stiffness matrix and load vector. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis16AssembleResidualEv">
-<span id="_CPPv3N17TPZLinearAnalysis16AssembleResidualEv"></span><span id="_CPPv2N17TPZLinearAnalysis16AssembleResidualEv"></span><span id="TPZLinearAnalysis::AssembleResidual"></span><span class="target" id="classTPZLinearAnalysis_1a72897600dceffadd39d8e4d655db97dd"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AssembleResidual</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis16AssembleResidualEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis16AssembleResidualEv"></span><span id="_CPPv2N17TPZLinearAnalysis16AssembleResidualEv"></span><span id="TPZLinearAnalysis::AssembleResidual"></span><span class="target" id="classTPZLinearAnalysis_1a72897600dceffadd39d8e4d655db97dd"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AssembleResidual</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis16AssembleResidualEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Assemble the load vector. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis5SolveEv">
-<span id="_CPPv3N17TPZLinearAnalysis5SolveEv"></span><span id="_CPPv2N17TPZLinearAnalysis5SolveEv"></span><span id="TPZLinearAnalysis::Solve"></span><span class="target" id="classTPZLinearAnalysis_1a4aa7f25923f05ee4189b89ccf649caa6"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Solve</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis5SolveEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis5SolveEv"></span><span id="_CPPv2N17TPZLinearAnalysis5SolveEv"></span><span id="TPZLinearAnalysis::Solve"></span><span class="target" id="classTPZLinearAnalysis_1a4aa7f25923f05ee4189b89ccf649caa6"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Solve</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis5SolveEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Invert the stiffness matrix. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis9SetSolverERK9TPZSolver">
-<span id="_CPPv3N17TPZLinearAnalysis9SetSolverERK9TPZSolver"></span><span id="_CPPv2N17TPZLinearAnalysis9SetSolverERK9TPZSolver"></span><span id="TPZLinearAnalysis::SetSolver__TPZSolverCR"></span><span class="target" id="classTPZLinearAnalysis_1aac7036e3dd30133f413aed56a41453aa"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetSolver</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../solver/index.html#_CPPv49TPZSolver" title="TPZSolver"><span class="n"><span class="pre">TPZSolver</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">solver</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis9SetSolverERK9TPZSolver" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis9SetSolverERK9TPZSolver"></span><span id="_CPPv2N17TPZLinearAnalysis9SetSolverERK9TPZSolver"></span><span id="TPZLinearAnalysis::SetSolver__TPZSolverCR"></span><span class="target" id="classTPZLinearAnalysis_1aac7036e3dd30133f413aed56a41453aa"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetSolver</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../solver/index.html#_CPPv49TPZSolver" title="TPZSolver"><span class="n"><span class="pre">TPZSolver</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">solver</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis9SetSolverERK9TPZSolver" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Set the solver. </p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -257,37 +165,37 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-graphical">Graphical</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis10AnimateRunE7int64_tiR6TPZVecINSt6stringEER6TPZVecINSt6stringEERKNSt6stringE">
-<span id="_CPPv3N17TPZLinearAnalysis10AnimateRunE7int64_tiR6TPZVecINSt6stringEER6TPZVecINSt6stringEERKNSt6stringE"></span><span id="_CPPv2N17TPZLinearAnalysis10AnimateRunE7int64_tiR6TPZVecINSt6stringEER6TPZVecINSt6stringEERKNSt6stringE"></span><span id="TPZLinearAnalysis::AnimateRun__int64_t.i.TPZVec:ss:R.TPZVec:ss:R.ssCR"></span><span class="target" id="classTPZLinearAnalysis_1afa7bd68649a6082e3848626b7ff16125"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AnimateRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">int64_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">num_iter</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">steps</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">scalnames</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">vecnames</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">plotfile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis10AnimateRunE7int64_tiR6TPZVecINSt6stringEER6TPZVecINSt6stringEERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis10AnimateRunE7int64_tiR6TPZVecINSt6stringEER6TPZVecINSt6stringEERKNSt6stringE"></span><span id="_CPPv2N17TPZLinearAnalysis10AnimateRunE7int64_tiR6TPZVecINSt6stringEER6TPZVecINSt6stringEERKNSt6stringE"></span><span id="TPZLinearAnalysis::AnimateRun__int64_t.i.TPZVec:ss:R.TPZVec:ss:R.ssCR"></span><span class="target" id="classTPZLinearAnalysis_1afa7bd68649a6082e3848626b7ff16125"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AnimateRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">int64_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">num_iter</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">steps</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">scalnames</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">vecnames</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">plotfile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis10AnimateRunE7int64_tiR6TPZVecINSt6stringEER6TPZVecINSt6stringEERKNSt6stringE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Run and print the solution step by step. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis11PostProcessEii">
-<span id="_CPPv3N17TPZLinearAnalysis11PostProcessEii"></span><span id="_CPPv2N17TPZLinearAnalysis11PostProcessEii"></span><span id="TPZLinearAnalysis::PostProcess__i.i"></span><span class="target" id="classTPZLinearAnalysis_1a79ceb338f5bcce3b0292289e8bc56cdb"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">resolution</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dimension</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis11PostProcessEii" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis11PostProcessEii"></span><span id="_CPPv2N17TPZLinearAnalysis11PostProcessEii"></span><span id="TPZLinearAnalysis::PostProcess__i.i"></span><span class="target" id="classTPZLinearAnalysis_1a79ceb338f5bcce3b0292289e8bc56cdb"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">resolution</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dimension</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis11PostProcessEii" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Draw solution over mesh by dimension </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis7SetTimeE4REAL">
-<span id="_CPPv3N17TPZLinearAnalysis7SetTimeE4REAL"></span><span id="_CPPv2N17TPZLinearAnalysis7SetTimeE4REAL"></span><span id="TPZLinearAnalysis::SetTime__REAL"></span><span class="target" id="classTPZLinearAnalysis_1a51f6b7828326c4b3201b31c5a9cf7876"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetTime</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis7SetTimeE4REAL" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis7SetTimeE4REAL"></span><span id="_CPPv2N17TPZLinearAnalysis7SetTimeE4REAL"></span><span id="TPZLinearAnalysis::SetTime__REAL"></span><span class="target" id="classTPZLinearAnalysis_1a51f6b7828326c4b3201b31c5a9cf7876"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetTime</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis7SetTimeE4REAL" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Sets time used in OpenDX files. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4NK17TPZLinearAnalysis7GetTimeEv">
-<span id="_CPPv3NK17TPZLinearAnalysis7GetTimeEv"></span><span id="_CPPv2NK17TPZLinearAnalysis7GetTimeEv"></span><span id="TPZLinearAnalysis::GetTimeC"></span><span class="target" id="classTPZLinearAnalysis_1a0a83850be04a59e1946a632c42ace317"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetTime</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK17TPZLinearAnalysis7GetTimeEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK17TPZLinearAnalysis7GetTimeEv"></span><span id="_CPPv2NK17TPZLinearAnalysis7GetTimeEv"></span><span id="TPZLinearAnalysis::GetTimeC"></span><span class="target" id="classTPZLinearAnalysis_1a0a83850be04a59e1946a632c42ace317"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetTime</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK17TPZLinearAnalysis7GetTimeEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Gets time used in OpenDX files. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE">
-<span id="_CPPv3N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE"></span><span id="_CPPv2N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE"></span><span id="TPZLinearAnalysis::PostProcess__TPZVec:REAL:R.osR"></span><span class="target" id="classTPZLinearAnalysis_1a88bf163420d82e5c9d297341237b68d0"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">loc</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE"></span><span id="_CPPv2N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE"></span><span id="TPZLinearAnalysis::PostProcess__TPZVec:REAL:R.osR"></span><span class="target" id="classTPZLinearAnalysis_1a88bf163420d82e5c9d297341237b68d0"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">loc</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Compute the local error over all elements and global errors in several norms and print out. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis11PostProcessEi">
-<span id="_CPPv3N17TPZLinearAnalysis11PostProcessEi"></span><span id="_CPPv2N17TPZLinearAnalysis11PostProcessEi"></span><span id="TPZLinearAnalysis::PostProcess__i"></span><span class="target" id="classTPZLinearAnalysis_1a62654378cdf39a0d41faeefdc97e3640"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">resolution</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis11PostProcessEi" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N17TPZLinearAnalysis11PostProcessEi"></span><span id="_CPPv2N17TPZLinearAnalysis11PostProcessEi"></span><span id="TPZLinearAnalysis::PostProcess__i"></span><span class="target" id="classTPZLinearAnalysis_1a62654378cdf39a0d41faeefdc97e3640"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">resolution</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis11PostProcessEi" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Draw solution over mesh for all dimensions. </p>
 </dd></dl>
 
@@ -300,55 +208,38 @@
 </div>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="eigenanalysis.html" class="btn btn-neutral float-right" title="FEM Analysis of Eigenvalue Problems" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="The Analysis hierarchy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="eigenanalysis.html" class="btn btn-neutral float-right" title="FEM Analysis of Eigenvalue Problems" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, Philippe Devloo et al.
-
-    </p>
+    <p>&#169; Copyright 2021, Philippe Devloo et al.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
