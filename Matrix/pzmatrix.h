@@ -33,7 +33,7 @@ class TPZMatrix: public TPZBaseMatrix
 
 {
 public:
-    
+  using Type = TVar;
 	/** @brief Default constructor */
 	TPZMatrix() = default;
 	/**@brief Copy constructor */
