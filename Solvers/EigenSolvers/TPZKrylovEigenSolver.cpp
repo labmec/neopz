@@ -180,48 +180,60 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
   
   TPZSimpleTimer arnoldiIteration("ArnoldiIteration");
   const auto &tol = Tolerance();
-  for(auto k = 0; k < n; k++){
+
+  for(auto k = 1; k < n+1; k++){
     // TPZSimpleTimer arnoldiStep("step"+std::to_string(k));
-      
+
+
+    //let us generate a first guess for w: w = A.q_{k-1}
     TPZFMatrix<TVar> w = [&A,&B,&Q,k,whichB]()
     {
       // TPZSimpleTimer matMult("matmult");
       switch(whichB){
       case EWhichB::ENoB:
-        return  A  * *(Q[k]);
+        return  A  * *(Q[k-1]);
       case EWhichB::EBBefore:
-        return A * (B * *(Q[k]));
+        return A * (B * *(Q[k-1]));
       case EWhichB::EBAfter:
-        return B * (A * *(Q[k]));
+        return B * (A * *(Q[k-1]));
       }
       unreachable();
     }();
+
+    RTVar normW{1};
+    bool success = false;
     /** after orthogonalising w.r.t. previous vectors (gram-schmidt)
         we will then have w_k = Av_k - sum_j^k (h_{jk} v_j)
     */
-    {
-      //tests indicated better precision if the loop is done with decreasing j
-      // TPZSimpleTimer orth("orthogonalising");
-      for(auto j = k; j >=0; j--){
+    while(!success){
+      for(auto j = k-1; j >= 0; j--){
         const auto& qj = *(Q[j]);
-        H.PutVal(j,k,Dot(w,qj));
-        w -= qj * H.GetVal(j,k);
+        const auto dotqj = Dot(w,qj);
+        H.PutVal(j,k-1,dotqj);
+        w -= qj * dotqj;
+      }
+
+      normW = Norm(w);
+      if(normW > tol || k == n){
+        success = true;
+      }
+      else{
+        //generate random unit vector and try again
+        w.AutoFill(nRows,1,0);
+        w *= 1/Norm(w);
       }
     }
-      
-    const auto normW = Norm(w);
-    if(k<n-1) {
-      H(k+1,k) = normW;
+
+    
+    if(k < n){
+      H.PutVal(k,k-1,normW);
       w *= (TVar)1./normW;
-      (*(Q[k+1])) = std::move(w);
+      (*(Q[k])) = std::move(w);
     }
-    if (normW < tol){
-      PZError<<__PRETTY_FUNCTION__;
-      PZError<<"\nERROR:could not create krylov subspace\n";
-      return false;
-    }
+
+    
   }//for k
-  
+
   return true;
 }
 
