@@ -91,7 +91,12 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric);
  * @param symmetric Whether to build a symmetric matrix
  * @note Process: build square matrix with randomic values, compute its square twice using Multiply function with two different copies of itself and checks whether the result is the same
  */
-
+  
+/*
+Test Dot Product and Norm
+*/
+template <class TVar>
+void TestingDotNorm(int dim);
 /*
 Test Add operation
 */
@@ -294,6 +299,16 @@ void TestSVD(int nrows, int ncols);
         }
     }
 
+  template<class TVar>
+  void DotNorm(){
+    for (auto dim = 5; dim < 100; dim += 500) {
+      SECTION("TPZFMatrix"){
+        TestingDotNorm<TVar>(dim);
+      }
+    }
+  }
+
+  
   template<class TVar>
     void Add(){
       for (auto dim = 5; dim < 100; dim += 500) {
@@ -697,6 +712,17 @@ TEMPLATE_TEST_CASE("Inverse (CPLX)","[matrix_tests]",
     testmatrix::Inverse<TestType>();
 }
 
+TEMPLATE_TEST_CASE("DotNorm","[matrix_tests]",
+                   float,
+                   double,
+                   long double,
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+                   ) {
+    testmatrix::DotNorm<TestType>();
+}
+
 TEMPLATE_TEST_CASE("Add","[matrix_tests]",
                    float,
                    double,
@@ -1079,6 +1105,72 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
     Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
 
+template <class TVar>
+void TestingDotNorm(int dim){
+  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
+  TPZFMatrix<TVar> ma1(dim,1,0);
+  TPZFMatrix<TVar> ma2(dim,1,0);
+  
+  for(int i = 0; i < dim; i++) ma1.PutVal(i,0,i+1);
+
+  SECTION("dot product with zero vec"){
+    TVar res = Dot(ma1,ma2);
+    REQUIRE(res == (TVar)0.);
+  }
+  
+  for(int i = 0; i < dim; i++) ma2.PutVal(i,0,i+1);
+
+  const auto res_check = [dim]{
+    TVar res = 0;
+    for(int i = 0; i < dim; i++) res+= (i+1)*(i+1);
+    return res;
+  }();
+  
+  SECTION("dot vs norm comparison"){
+    TVar res = Dot(ma1,ma2);
+    REQUIRE(res == res_check);
+  }
+  
+  //complex tests
+  if constexpr (std::is_same_v<TVar,CTVar>){
+    using namespace std::complex_literals;
+    CAPTURE(dim);
+
+    constexpr RTVar tol = std::numeric_limits<RTVar>::epsilon()/
+      (10*std::numeric_limits<RTVar>::digits10);
+
+    for(int i = 0; i < dim; i++){
+      const TVar val = (TVar)(i+1);
+      ma1.PutVal(i,0,val*(TVar)1.0i);
+      ma2.PutVal(i,0,val);
+    }
+    const auto res = Dot(ma1,ma2);
+    CAPTURE(res);
+    CAPTURE(res_check);
+    REQUIRE(res == res_check * (TVar)1i);
+    
+    for(int i = 0; i < dim; i++){
+      const TVar val = (TVar)(i+1) * (TVar) 1i;
+      ma2.PutVal(i,0, val);
+      ma2.PutVal(i,0,-val);
+    }
+    //ma1 is the conjugate of ma2
+    const auto dot1 = Dot(ma1,ma2);
+    const auto dot2 = Dot(ma2,ma1);
+    const auto norm1 = Norm(ma1);
+    const auto norm2 = Norm(ma2);
+    CAPTURE(dot1);
+    CAPTURE(dot2);
+    REQUIRE(std::abs(dot1) == Approx(norm1*norm1).margin(tol));
+    REQUIRE(std::abs(dot1) == Approx(norm2*norm2).margin(tol));
+    REQUIRE(std::abs(dot1-dot2) == Approx(0).margin(tol));
+  }
+  
+  Catch::StringMaker<RTVar>::precision = oldPrecision;
+}
+
+  
 template <class matx, class TVar>
 void TestingAdd(int row, int col, int symmetric) {
   auto oldPrecision = Catch::StringMaker<RTVar>::precision;
