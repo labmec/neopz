@@ -87,6 +87,8 @@ public:
 
     /// Reorder the connects in increasing number of elements connected
     void ReorderConnects();
+
+    void ReorderConnects(TPZManVector<int64_t> &connects);
     
     const TPZVec<TPZCompEl *> &GetElGroup(){
         return fElGroup;

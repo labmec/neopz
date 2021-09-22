@@ -60,8 +60,8 @@ set(sources
     )
 
 if (USING_MKL)
-    list(APPEND headers TPZBuildSBFem.h)
-    list(APPEND sources TPZBuildSBFem.cpp)
+	list(APPEND headers TPZBuildSBFem.h TPZBuildSBFemMultiphysics.h)
+	list(APPEND sources TPZBuildSBFem.cpp TPZBuildSBFemMultiphysics.cpp)
 endif()
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Pre)

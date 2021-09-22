@@ -113,8 +113,22 @@ set(sources
 )
 
 if(USING_MKL)
-  list(APPEND headers TPZSBFemElementGroup.h TPZSBFemVolume.h)
-  list(APPEND sources TPZSBFemElementGroup.cpp TPZSBFemVolume.cpp)
+  list(APPEND headers
+    TPZSBFemElementGroup.h
+    TPZSBFemMultiphysicsElGroup.h
+    TPZSBFemVolume.h
+	  TPZSBFemVolumeHdiv.h
+	  TPZSBFemVolumeL2.h
+	  TPZSBFemVolumeMultiphysics.h
+    TPZCompElHDivSBFem.h)
+  list(APPEND sources
+    TPZSBFemElementGroup.cpp
+    TPZSBFemMultiphysicsElGroup.cpp
+    TPZSBFemVolume.cpp
+	  TPZSBFemVolumeHdiv.cpp
+	  TPZSBFemVolumeL2.cpp
+	  TPZSBFemVolumeMultiphysics.cpp
+    TPZCompElHDivSBFem.cpp)
 endif()
 
   
