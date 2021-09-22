@@ -106,12 +106,7 @@ public:
      */
     virtual void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override;
 
-    /// @TODO why put a comment is the purpose of this function is so obvious!!!
-    void ComputeEigenvalues();
-
-    void ComputeEigenvaluesBlaze();
-
-    void ComputeEigenvaluesMKL();
+    void CalcStiffBlaze(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef);
 
     /// set the density or specific heat of the material
     void SetDensity(REAL density)

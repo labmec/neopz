@@ -730,29 +730,36 @@ void TPZBuildSBFem::CreateElementGroups(TPZCompMesh &cmesh)
             }
             femvol->SetElementGroupIndex(index);
         }
-        if (TPZSBFemElementGroup::gDefaultPolynomialOrder != 0)
+    }
+
+    if (TPZSBFemElementGroup::gDefaultPolynomialOrder != 0)
+    {
+        for (int64_t el=0; el<numgroups; el++)
         {
+            int64_t index;
+            
+            index = elementgroupindices[el];
+            TPZCompEl *cel = cmesh.Element(index);
+            TPZSBFemElementGroup *sbfemgroup = dynamic_cast<TPZSBFemElementGroup *>(cel);
+            if (!sbfemgroup || sbfemgroup->NConnects() == 0) {
+                continue;
+            }
             sbfemgroup->InitializeInternalConnect();
         }
     }
-
-    for (int64_t el=0; el<numgroups; el++) {
-        int64_t index;
+    // for (int64_t el=0; el<numgroups; el++) {
+    //     int64_t index;
         
-        index = elementgroupindices[el];
-        TPZCompEl *cel = cmesh.Element(index);
-        TPZSBFemElementGroup *sbfemgroup = dynamic_cast<TPZSBFemElementGroup *>(cel);
-        if (!sbfemgroup || sbfemgroup->NConnects() == 0) {
-            continue;
-        }
-        /// PHIL doing all compute intensive during construction hides the execution time of the
-        // computation of the global stiffness matrix
-        // this implies that the time intensive computations are done serial
-        // you will spend 95%cpu "constructing" the mesh and 5% "solving" the fem problem?
-        sbfemgroup->ComputeEigenvalues();
-    }
+    //     index = elementgroupindices[el];
+    //     TPZCompEl *cel = cmesh.Element(index);
+    //     TPZSBFemElementGroup *sbfemgroup = dynamic_cast<TPZSBFemElementGroup *>(cel);
+    //     if (!sbfemgroup || sbfemgroup->NConnects() == 0) {
+    //         continue;
+    //     }
+        
 
-    cmesh.InitializeBlock();
+        // sbfemgroup->ComputeEigenvalues();
+    // }
 }
 
 /// Divide de skeleton elements
