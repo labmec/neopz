@@ -608,6 +608,13 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
     PZError<<"Aborting..."<<std::endl;
     DebugStop();
 }
+
+void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFemMultiphysics(int dimension){
+    PZError<<__PRETTY_FUNCTION__<<" depends on MKL!\n";
+    PZError<<"Please configure NeoPZ with USING_MKL=ON\n";
+    PZError<<"Aborting..."<<std::endl;
+    DebugStop();
+}
 #endif
 
 ////#include "pzhdivfull.h"

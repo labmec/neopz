@@ -100,7 +100,7 @@ public:
     
     /** @brief Create SBFem approximation space. Depends on MKL. */
     void SetAllCreateFunctionsSBFem(int meshdim);
-
+    /** @brief Create an approximation space based on SBFem multiphysics elements */
     void SetAllCreateFunctionsSBFemMultiphysics(int meshdim);
 
 #ifndef STATE_COMPLEX
@@ -109,8 +109,6 @@ public:
 #endif
     /** @brief Create approximation spaces corresponding to the space defined by cel */
 	void SetAllCreateFunctions(TPZCompEl &cel, TPZCompMesh *mesh);
-    /** @brief Create an approximation space based on SBFem multiphysics elements */
-	void SetAllCreateFunctionsSBFemMultiphysicElem();
     /** @brief Create an approximation space based on multiphysics elements */
 	void SetAllCreateFunctionsMultiphysicElem();
     /** @brief Create an approximation space based on multiphysics elements with memory*/	
