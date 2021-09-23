@@ -536,6 +536,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
 #if defined(USING_MKL) && defined(USING_LAPACK) && !defined(STATE_COMPLEX)
 
 #include "TPZSBFemVolume.h"
+#include "TPZSBFemVolumeMultiphysics.h"
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
     
@@ -569,8 +570,46 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
             break;
     }
 }
+void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFemMultiphysics(int dimension){
+    fStyle = EMultiphysicsSBFem;
+    switch (dimension) {
+        case 1:
+            DebugStop();
+            break;
+        case 2:
+            fp[EPoint] = CreateMultiphysicsPointEl;
+            fp[EOned] = CreateMultiphysicsLinearEl;
+            fp[ETriangle] = CreateMultiphysicsTriangleEl;
+            fp[EQuadrilateral] = CreateSBFemMultiphysicsQuadEl; // SBFem
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 3:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = CreateNoElement;
+            fp[ETriangle] = CreateNoElement;
+            fp[EQuadrilateral] = CreateNoElement;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateSBFemMultiphysicsPrismaEl;
+            fp[ECube] = CreateSBFemMultiphysicsCubeEl;
+            break;
+        default:
+            DebugStop();
+            break;
+    }
+}
 #else
 void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
+    PZError<<__PRETTY_FUNCTION__<<" depends on MKL!\n";
+    PZError<<"Please configure NeoPZ with USING_MKL=ON\n";
+    PZError<<"Aborting..."<<std::endl;
+    DebugStop();
+}
+
+void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFemMultiphysics(int dimension){
     PZError<<__PRETTY_FUNCTION__<<" depends on MKL!\n";
     PZError<<"Please configure NeoPZ with USING_MKL=ON\n";
     PZError<<"Aborting..."<<std::endl;

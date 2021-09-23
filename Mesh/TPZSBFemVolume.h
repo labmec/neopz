@@ -17,7 +17,7 @@
 
 class TPZSBFemVolume : public TPZInterpolationSpace
 {
-    
+protected:
     /// index of element group
     int64_t fElementGroupIndex = -1;
     

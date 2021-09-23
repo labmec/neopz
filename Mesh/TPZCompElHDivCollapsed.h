@@ -20,9 +20,10 @@
 template<class TSHAPE>
 class TPZCompElHDivCollapsed : public TPZCompElHDiv<TSHAPE> {
 	
+protected:
     /// vector which defines whether the normal is outward or not
     TPZCompElHDivBound2<TSHAPE> fBottom,fTop;
-protected:
+    
     /** @brief To append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
     template<class TVar>

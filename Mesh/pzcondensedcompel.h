@@ -222,6 +222,8 @@ public:
 		return 0;
     }
 
+    void PermuteActiveConnects(TPZManVector<int64_t> &perm);
+
 virtual int ClassId() const override;
 
 
