@@ -122,7 +122,8 @@ public:
     
     /** @brief Pass the data to the class. */
     virtual void SetData( TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A );
-	
+  /** @brief Get the data from the class*/
+  virtual void GetData(TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A);
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const override;
 	
@@ -277,6 +278,13 @@ inline void TPZFYsmpMatrix<TVar>::SetData( TPZVec<int64_t> &IA, TPZVec<int64_t> 
     fIA = IA;
     fJA = JA;
     fA = A;
+}
+
+template<class TVar>
+inline void TPZFYsmpMatrix<TVar>::GetData( TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A ){
+    IA = fIA;
+    JA = fJA;
+    A = fA;
 }
 
 #endif
