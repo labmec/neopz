@@ -1364,8 +1364,6 @@ namespace pztopology {
             default:
                 break;
         }
-                
-                
 	}
     
     template <class TVar>
@@ -1456,8 +1454,49 @@ namespace pztopology {
                 
             }        
 
-        }
+        } 
 
+    }
+
+    /// Compute the directions of the HDiv vectors
+    // template <class TVar>
+    void TPZTetrahedron::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div)
+    {
+        TPZFNMatrix<NCornerNodes> phis(NCornerNodes,1);
+        TPZFNMatrix<NSides*Dimension*Dimension> directions(Dimension,NSides*Dimension);
+        TPZFNMatrix<Dimension*Dimension> gradx(Dimension,Dimension);
+        TPZFNMatrix<Dimension*NCornerNodes> dphis(Dimension,NCornerNodes);
+        gradx.Identity();
+        vecDiv.Zero();
+        div.Fill(0.);
+
+        ComputeHDivDirections(gradx,directions);
+        Shape(point,phis,dphis);
+
+        int first_face = NSides-1-NFacets;
+        for (size_t iface = first_face; iface < NSides-1; iface++)
+        {
+            int face_count = iface - first_face;
+            int nsubsides = NContainedSides(iface);
+            int firstVecIndex = 0;
+            int ncorner = NSideNodes(iface);
+
+            for (size_t ivec = 0; ivec < ncorner; ivec++)
+            {
+                TPZManVector<REAL,Dimension> vec(Dimension);
+                int vecIndex = firstVecIndex + ivec;
+                int vertex = SideNodeLocId(iface,ivec);
+                REAL divlocal = 0.;
+
+                for (size_t i = 0; i < Dimension; i++)
+                {
+                    divlocal += directions(i,vecIndex) * dphis(i,vertex) / NSideNodes(iface);
+                    vecDiv(i,face_count) += directions(i,vecIndex) / NSideNodes(iface);
+                }//i
+                div[face_count] += divlocal;
+            }
+            firstVecIndex += nsubsides;
+        }
     }
 
     

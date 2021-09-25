@@ -15,6 +15,7 @@
 #include "tpzcube.h"
 #include "tpzprism.h"
 #include "tpzpyramid.h"
+#include "pzgeotetrahedra.h"
 
 #include <catch2/catch.hpp>
 
@@ -24,6 +25,8 @@ namespace topologytests{
     void TestingSideProjections();
     template <class top>
     void TestingSideNodeProjections();
+    template <class top>
+    void TestingConstantDivergent();
 }
 
 TEST_CASE("projection_tests_1","[topology_tests]")
@@ -47,6 +50,14 @@ TEST_CASE("projection_tests_1","[topology_tests]")
         topologytests::TestingSideNodeProjections<TPZPyramid>();
     }
 
+TEST_CASE("constant_divergent_test","[topology_tests]")
+    {
+        topologytests::TestingConstantDivergent<TPZTriangle>();
+        topologytests::TestingConstantDivergent<TPZQuadrilateral>();
+        topologytests::TestingConstantDivergent<TPZTetrahedron>();
+        topologytests::TestingConstantDivergent<TPZCube>();
+        topologytests::TestingConstantDivergent<TPZPrism>();
+    }
 
 namespace topologytests{
     template <class top>
@@ -131,4 +142,51 @@ namespace topologytests{
             }
         }
     }//TestingSideNodeProjections
+
+
+    template <class top>
+    void TestingConstantDivergent() {
+        
+        static std::string testName = __PRETTY_FUNCTION__;
+        const  int64_t pOrderIntRule = 5;
+        const auto nSides = top::NSides;
+        const auto nCorner = top::NCornerNodes;
+        const auto dim = top::Dimension;
+        const auto nFaces = top::NFacets;
+        auto type = top::Type();
+        const REAL tol = 10;
+
+        auto gel = pzgeom::TPZNodeRep<nCorner,top>();
+
+        TPZIntPoints* intRule = gel.CreateSideIntegrationRule(nSides-1, pOrderIntRule);     
+
+        TPZFMatrix<REAL> vecDiv(dim,nFaces);
+        TPZVec<REAL> div(nFaces);
+        TPZVec<REAL> node(dim);
+
+        const int npts = intRule->NPoints();
+        TPZManVector<REAL, 3> xi(dim, 0);
+        REAL w;
+        for (auto ipt = 0; ipt < npts; ipt++) {
+            intRule->Point(ipt, node, w);
+            //Compute the divergent for each face
+            top::ComputeConstantHDiv(node,vecDiv,div);
+
+            //Checks if all faces have the same divergent
+            bool cond = true;
+            for (int i = 0; i < dim; i++){
+                for (int j = 1; j < nFaces; j++){
+                    if (fabs(vecDiv(i,j)-vecDiv(i,j-1)) > tol){
+                        cond = false;
+                    } 
+                }
+            }
+            if(!cond){
+                std::cerr << "\n" + testName + " failed" +
+                                "\ntopology: " + MElementType_Name(type);
+            }
+            REQUIRE(cond);
+        }
+    }//Testing Constant Divergent
+
 }//namespace
