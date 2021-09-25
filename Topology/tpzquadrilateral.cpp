@@ -169,7 +169,6 @@ namespace pztopology {
         dphi(0,3) =-0.25*(1.+eta);
         dphi(1,3) = 0.25*(1.-qsi);
 
-
     }
 
     template<class T>
@@ -1139,6 +1138,56 @@ namespace pztopology {
             directions(i,16)        = v1[i];
             directions(i,17)        = v2[i];
         }
+    }
+
+    /// Compute the directions of the HDiv vectors
+    // template <class TVar>
+    void TPZQuadrilateral::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
+    {
+        REAL scale = 2.;
+        REAL qsi = point[0];
+        REAL eta = point[1];
+
+        //Face functions
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
+        RT0function(0,0) = 0.;
+        RT0function(1,0) = -0.5 * (1. - eta) / scale;
+        div[0] = 0.5 / scale; 
+
+        RT0function(0,1) = 0.5 * (1. + qsi) / scale;
+        RT0function(1,1) = 0.;
+        div[1] = 0.5 / scale; 
+
+        RT0function(0,2) = 0.;
+        RT0function(1,2) = 0.5 * (1. + eta) / scale;
+        div[2] = 0.5 / scale; 
+
+        RT0function(0,3) = -0.5 * (1. - qsi) / scale;
+        RT0function(1,3) = 0.;
+        div[3] = 0.5 / scale; 
+        
+    }
+
+    // template <class TVar>
+    void TPZQuadrilateral::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl)
+    {
+        REAL scale = 4.;
+        REAL qsi = point[0];
+        REAL eta = point[1];
+
+        //Nedelec functions
+        N0function(0,0) = 0.5 * (1. - eta) / scale;
+        curl(2,0) = 0.5/scale;
+
+        N0function(1,1) = 0.5 * (1. + qsi) / scale;
+        curl(2,1) = 0.5/scale;
+
+        N0function(0,2) = -0.5 * (1. + eta) / scale;
+        curl(2,2) = 0.5/scale;
+
+        N0function(1,3) = 0.5 * (1. - qsi) / scale;
+        curl(2,3) = -0.5/scale;
+        
     }
 
     template <class TVar>

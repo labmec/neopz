@@ -1070,6 +1070,55 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         }
     }
 
+    /// Compute the directions of the HDiv vectors
+    // template <class TVar>
+    void TPZTriangle::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
+    {
+        REAL scale = 1.;
+        REAL qsi = point[0];
+        REAL eta = point[1];
+
+        //Face functions
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
+        scale = 1.;
+        RT0function(0,0) = qsi / scale;
+        RT0function(1,0) = (eta - 1.) / scale;
+        div[0] = 1./scale + 1./scale;
+
+        scale = M_SQRT2;
+        RT0function(0,1) = (M_SQRT2 * qsi) / scale;
+        RT0function(1,1) = (M_SQRT2 * eta) / scale;
+        div[1] = M_SQRT2/scale + M_SQRT2/scale;
+
+        scale = 1.;
+        RT0function(0,2) = (qsi - 1.) / scale;
+        RT0function(1,2) = eta / scale;
+        div[2] = 1./scale + 1./scale;
+
+    }
+
+    /// Compute the directions of the HDiv vectors
+    // template <class TVar>
+    void TPZTriangle::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl)
+    {
+        REAL scale = 2.;
+        REAL qsi = point[0];
+        REAL eta = point[1];
+
+        //First type Nedelec functions
+        N0function(0,0) = (1. - eta) / scale;
+        N0function(1,0) = qsi / scale;
+        curl(2,0) = 2./scale;
+
+        N0function(0,1) = -eta / scale;
+        N0function(1,1) =  qsi / scale;
+        curl(2,1) = 2./scale;
+
+        N0function(0,2) = eta / scale;
+        N0function(1,2) = (1. - qsi) / scale;
+        curl(2,2) = -2./scale;
+    }
+
     template <class TVar>
     void TPZTriangle::ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions, const TPZVec<int> &transformationIds)
     {
