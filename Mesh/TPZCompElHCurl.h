@@ -66,6 +66,10 @@ public:
 template<class TSHAPE>
 class TPZCompElHCurl : public TPZIntelGen<TSHAPE> {
 protected:
+    ///! Indexes of the connects associated with the elements
+    TPZManVector<int64_t,TSHAPE::NSides - TSHAPE::NCornerNodes> fConnectIndexes =
+        TPZManVector<int64_t,TSHAPE::NSides - TSHAPE::NCornerNodes>(TSHAPE::NSides-TSHAPE::NCornerNodes,-1);
+    
     /// vector describing the permutation associated with each side
     TPZManVector<int, TSHAPE::NSides - TSHAPE::NCornerNodes> fSidePermutation;
 
@@ -95,11 +99,11 @@ public:
     //since TPZCompElHCurl is an abstract class
     static int StaticClassId();
     /** @brief Set create function in TPZCompMesh to create elements of this type */
-	void SetCreateFunctions(TPZCompMesh *mesh) override;
+    void SetCreateFunctions(TPZCompMesh *mesh) override;
 
     MElementType Type() override;
 
-	int NConnects() const override;
+    int NConnects() const override;
 	/** @brief return the local index for connect */
     int SideConnectLocId(int con, int side) const override;
 
@@ -109,9 +113,16 @@ public:
         return 0;
     }
 
+    void GetInterpolationOrder(TPZVec<int> &ord) override;
+        
     int64_t ConnectIndex(int con) const override;
 
     void SetConnectIndex(int i, int64_t connectindex) override;
+
+    //! Reference to the connect vector
+    const TPZVec<int64_t> & ConnectVec() const override{
+        return fConnectIndexes;
+    }
 
     /**
     * @brief Number of shapefunctions of the connect associated

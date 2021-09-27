@@ -28,6 +28,9 @@ class TPZCompElHDiv : public TPZIntelGen<TSHAPE> {
     std::list<TPZOneShapeRestraint> fRestraints;
 
 protected:
+  ///! Indexes of the connects associated with the elements
+  TPZManVector<int64_t,TSHAPE::NFacets+1> fConnectIndexes =
+    TPZManVector<int64_t,TSHAPE::NFacets+1>(TSHAPE::NFacets+1,-1);
     /** @brief To append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
 
@@ -79,6 +82,11 @@ public:
 	virtual int NConnects() const override;
 	
 	virtual void SetConnectIndex(int i, int64_t connectindex) override;
+
+  //! Reference to the connect vector
+  inline const TPZVec<int64_t> & ConnectVec() const override{
+    return fConnectIndexes;
+  }
 	
     /// return the first one dof restraint
     int RestrainedFace();

@@ -374,66 +374,69 @@ void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(TPZCompMesh *cmesh)
     cmesh->ApproxSpace().SetCreateFunctions(functions);
 }
 
+
+#include "TPZCompElH1.h"
+
 using namespace pzshape;
 
-template class TPZCompElPostProc< TPZIntelGen<TPZShapePoint> >;
-template class TPZCompElPostProc< TPZIntelGen<TPZShapeLinear> >;
-template class TPZCompElPostProc< TPZIntelGen<TPZShapeQuad> >;
-template class TPZCompElPostProc< TPZIntelGen<TPZShapeTriang> >;
-template class TPZCompElPostProc< TPZIntelGen<TPZShapeCube> >;
-template class TPZCompElPostProc< TPZIntelGen<TPZShapePrism> >;
-template class TPZCompElPostProc< TPZIntelGen<TPZShapePiram> >;
-template class TPZCompElPostProc< TPZIntelGen<TPZShapeTetra> >;
+template class TPZCompElPostProc< TPZCompElH1<TPZShapePoint> >;
+template class TPZCompElPostProc< TPZCompElH1<TPZShapeLinear> >;
+template class TPZCompElPostProc< TPZCompElH1<TPZShapeQuad> >;
+template class TPZCompElPostProc< TPZCompElH1<TPZShapeTriang> >;
+template class TPZCompElPostProc< TPZCompElH1<TPZShapeCube> >;
+template class TPZCompElPostProc< TPZCompElH1<TPZShapePrism> >;
+template class TPZCompElPostProc< TPZCompElH1<TPZShapePiram> >;
+template class TPZCompElPostProc< TPZCompElH1<TPZShapeTetra> >;
 template class TPZCompElPostProc< TPZCompElDisc >;
 
-template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapePoint> >>;
-template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeLinear> >>;
-template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeQuad> >>;
-template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeTriang> >>;
-template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeCube> >>;
-template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapePrism> >>;
-template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapePiram> >>;
-template class TPZRestoreClass<TPZCompElPostProc< TPZIntelGen<TPZShapeTetra> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZCompElH1<TPZShapePoint> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZCompElH1<TPZShapeLinear> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZCompElH1<TPZShapeQuad> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZCompElH1<TPZShapeTriang> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZCompElH1<TPZShapeCube> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZCompElH1<TPZShapePrism> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZCompElH1<TPZShapePiram> >>;
+template class TPZRestoreClass<TPZCompElPostProc< TPZCompElH1<TPZShapeTetra> >>;
 template class TPZRestoreClass<TPZCompElPostProc< TPZCompElDisc >>;
 
 TPZCompEl *TPZPostProcAnalysis::CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc< TPZIntelGen<TPZShapePoint> >(mesh,gel,index);
+		return new TPZCompElPostProc< TPZCompElH1<TPZShapePoint> >(mesh,gel,index);
 	return NULL;
 }
 TPZCompEl *TPZPostProcAnalysis::CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc<TPZIntelGen<TPZShapeLinear> >(mesh,gel,index);
+		return new TPZCompElPostProc<TPZCompElH1<TPZShapeLinear> >(mesh,gel,index);
 	return NULL;
 }
 TPZCompEl *TPZPostProcAnalysis::CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc<TPZIntelGen<TPZShapeQuad> >(mesh,gel,index);
+		return new TPZCompElPostProc<TPZCompElH1<TPZShapeQuad> >(mesh,gel,index);
 	return NULL;
 }
 TPZCompEl *TPZPostProcAnalysis::CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc<TPZIntelGen<TPZShapeTriang> >(mesh,gel,index);
+		return new TPZCompElPostProc<TPZCompElH1<TPZShapeTriang> >(mesh,gel,index);
 	return NULL;
 }
 TPZCompEl *TPZPostProcAnalysis::CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc<TPZIntelGen<TPZShapeCube> >(mesh,gel,index);
+		return new TPZCompElPostProc<TPZCompElH1<TPZShapeCube> >(mesh,gel,index);
 	return NULL;
 }
 TPZCompEl *TPZPostProcAnalysis::CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc< TPZIntelGen<TPZShapePrism> >(mesh,gel,index);
+		return new TPZCompElPostProc< TPZCompElH1<TPZShapePrism> >(mesh,gel,index);
 	return NULL;
 }
 TPZCompEl *TPZPostProcAnalysis::CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc<TPZIntelGen<TPZShapePiram> >(mesh,gel,index);
+		return new TPZCompElPostProc<TPZCompElH1<TPZShapePiram> >(mesh,gel,index);
 	return NULL;
 }
 TPZCompEl *TPZPostProcAnalysis::CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc<TPZIntelGen<TPZShapeTetra> >(mesh,gel,index);
+		return new TPZCompElPostProc<TPZCompElH1<TPZShapeTetra> >(mesh,gel,index);
 	return NULL;
 }
 

@@ -181,7 +181,10 @@ int TPZCompElHCurl<TSHAPE>::ClassId() const{
 
 template<class TSHAPE>
 int TPZCompElHCurl<TSHAPE>::StaticClassId(){
-    return Hash("TPZCompElHCurl") ^ TPZIntelGen<TSHAPE>().ClassId() << 1;
+    //TODO:NATHANFRAN
+    DebugStop();
+    // return Hash("TPZCompElHCurl") ^ TPZIntelGen<TSHAPE>()::ClassId() << 1;
+    return -1;
 }
 
 
@@ -334,6 +337,14 @@ int TPZCompElHCurl<TSHAPE>::EffectiveSideOrder(int side) const{
         DebugStop();
     }
 	return -1;
+}
+
+template<class TSHAPE>
+void TPZCompElHCurl<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
+	ord.Resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
+	for(auto i=0; i<TSHAPE::NSides-TSHAPE::NCornerNodes; i++) {
+		ord[i] = this->Connect(i).Order();
+	}
 }
 
 template<class TSHAPE>

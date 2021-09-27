@@ -21,12 +21,15 @@
  */
 template<class TSHAPE>
 class TPZCompElHDivBound2 : public TPZIntelGen<TSHAPE> {
-    
-    int fSideOrient;
+  int fSideOrient;
 	
 	/** @brief Method to append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
-    
+
+protected:
+  ///! Indexes of the connects associated with the elements
+  TPZManVector<int64_t,1> fConnectIndexes =
+    TPZManVector<int64_t,1>(1,-1);
 public:
 	
 	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
@@ -73,7 +76,11 @@ public:
 	virtual void SetConnectIndex(int i, int64_t connectindex) override;
 	
 	virtual int NConnectShapeF(int connect, int order) const override;
-	
+
+  inline const TPZVec<int64_t> & ConnectVec() const override{
+    return fConnectIndexes;
+  }
+  
 	virtual int Dimension() const  override {
 		return TSHAPE::Dimension;
 	}
