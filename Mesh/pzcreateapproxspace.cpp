@@ -8,6 +8,7 @@
 #include "pzcmesh.h"
 #include "pzcondensedcompel.h"
 #include "pzinterpolationspace.h" 
+#include "TPZCompElH1.h"
 
 #include "pzshapecube.h"
 #include "pzshapelinear.h"
@@ -71,7 +72,7 @@ TPZCompEl *CreateNoElement(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
     {
-		return new TPZIntelGen<TPZShapePoint>(mesh,gel,index);
+		return new TPZCompElH1<TPZShapePoint>(mesh,gel,index);
     }
     index = -1;
 	return NULL;
@@ -79,7 +80,7 @@ TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
     {
-		TPZCompEl *result = new TPZIntelGen<TPZShapeLinear>(mesh,gel,index);
+		TPZCompEl *result = new TPZCompElH1<TPZShapeLinear>(mesh,gel,index);
         return result;//new TPZCondensedCompel(result);
     }
     index = -1;
@@ -88,7 +89,7 @@ TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
     {
-		return new TPZIntelGen<TPZShapeQuad>(mesh,gel,index);
+		return new TPZCompElH1<TPZShapeQuad>(mesh,gel,index);
     }
     index = -1;
 	return NULL;
@@ -96,31 +97,31 @@ TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 
 TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZIntelGen<TPZShapeTriang>(mesh,gel,index);
+		return new TPZCompElH1<TPZShapeTriang>(mesh,gel,index);
     index = -1;
 	return NULL;
 }
 TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZIntelGen<TPZShapeCube>(mesh,gel,index);
+		return new TPZCompElH1<TPZShapeCube>(mesh,gel,index);
     index = -1;
 	return NULL;
 }
 TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZIntelGen<TPZShapePrism>(mesh,gel,index);
+		return new TPZCompElH1<TPZShapePrism>(mesh,gel,index);
     index = -1;
 	return NULL;
 }
 TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZIntelGen<TPZShapePiram>(mesh,gel,index);
+		return new TPZCompElH1<TPZShapePiram>(mesh,gel,index);
     index = -1;
 	return NULL;
 }
 TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZIntelGen<TPZShapeTetra>(mesh,gel,index);
+		return new TPZCompElH1<TPZShapeTetra>(mesh,gel,index);
     index = -1;
 	return NULL;
 }
@@ -129,49 +130,49 @@ TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 // with mem
 TPZCompEl *CreatePointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZIntelGen<TPZShapePoint> >(mesh,gel,index) ;
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapePoint> >(mesh,gel,index) ;
     index = -1;
 	return NULL;
 }
 TPZCompEl *CreateLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZIntelGen<TPZShapeLinear> >(mesh,gel,index);
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapeLinear> >(mesh,gel,index);
     index = -1;
 	return NULL;
 }
 TPZCompEl *CreateQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZIntelGen<TPZShapeQuad> >(mesh,gel,index);
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapeQuad> >(mesh,gel,index);
     index = -1;
 	return NULL;
 }
 TPZCompEl *CreateTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem < TPZIntelGen<TPZShapeTriang> >(mesh,gel,index);
+		return new TPZCompElWithMem < TPZCompElH1<TPZShapeTriang> >(mesh,gel,index);
     index = -1;
 	return NULL;
 }
 TPZCompEl *CreateCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZIntelGen<TPZShapeCube> >(mesh,gel,index);
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapeCube> >(mesh,gel,index);
     index = -1;
 	return NULL;
 }
 TPZCompEl *CreatePrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZIntelGen<TPZShapePrism> >(mesh,gel,index);
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapePrism> >(mesh,gel,index);
     index = -1;
 	return NULL;
 }
 TPZCompEl *CreatePyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZIntelGen<TPZShapePiram> >(mesh,gel,index);
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapePiram> >(mesh,gel,index);
     index = -1;
 	return NULL;
 }
 TPZCompEl *CreateTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZIntelGen<TPZShapeTetra> >(mesh,gel,index);
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapeTetra> >(mesh,gel,index);
     index = -1;
 	return NULL;
 }

@@ -59,6 +59,7 @@ set(headers
   pzhdivpressurebound.h
   tpzagglomeratemesh.h
   TPZAgglomerateEl.h
+  TPZCompElH1.h
 )
 
 set(sources
@@ -110,6 +111,7 @@ set(sources
   pzhdivpressure.cpp
   pzhdivpressurebound.cpp
   TPZAgglomerateEl.cpp
+  TPZCompElH1.cpp
 )
 
 if(USING_MKL)

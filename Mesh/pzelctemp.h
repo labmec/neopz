@@ -21,9 +21,6 @@ class TPZIntelGen : public TPZInterpolatedElement {
 	
 protected:
 	
-    /// Indexes of the connects associated with the elements
-    TPZManVector<int64_t,TSHAPE::NSides> fConnectIndexes;
-	
     /// Integration rule associated with the topology of the element
 	typename TSHAPE::IntruleType fIntRule;
 	
@@ -43,11 +40,9 @@ public:
 	
 	TPZIntelGen();
 	
-	virtual ~TPZIntelGen();
+	~TPZIntelGen() = default;
 	
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override {
-		return new TPZIntelGen<TSHAPE> (mesh, *this);
-	}
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override = 0;
 	
 	/**
 	 * @brief Create a copy of the given element. The clone copy have the connect indexes
@@ -56,21 +51,20 @@ public:
 	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
 	 * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
 	 */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const override
-	{
-		return new TPZIntelGen<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
-	}
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const override = 0;
 	
 	
 	virtual MElementType Type() override;
+
+
+  //! Reference to the connect vector
+  virtual const TPZVec<int64_t> & ConnectVec() const = 0;
+  
+	virtual int NConnects() const override = 0;
 	
-	virtual int NConnects() const override{
-		return fConnectIndexes.size();
-	}
+	void SetConnectIndex(int i, int64_t connectindex) override = 0;
 	
-	virtual void SetConnectIndex(int i, int64_t connectindex) override;
-	
-	virtual int NConnectShapeF(int connect, int order) const override;
+	int NConnectShapeF(int connect, int order) const override = 0;
 	
 	virtual int Dimension() const override {
 		return TSHAPE::Dimension;
@@ -80,9 +74,9 @@ public:
 		return TSHAPE::NCornerNodes;
 	}
 	
-	virtual int NSideConnects(int side) const override;
+	virtual int NSideConnects(int side) const override = 0;
 	
-	virtual int SideConnectLocId(int node, int side) const override;
+	virtual int SideConnectLocId(int node, int side) const override = 0;
 	
 	virtual int64_t ConnectIndex(int node) const  override;
     
@@ -92,7 +86,7 @@ public:
 	virtual void SetInterpolationOrder(int order);
 	
 	/** @brief Identifies the interpolation order on the interior of the element*/
-	virtual void GetInterpolationOrder(TPZVec<int> &ord) override;
+	virtual void GetInterpolationOrder(TPZVec<int> &ord) override = 0;
 	
 	/** @brief Returns the preferred order of the polynomial along side iside*/
 	virtual int PreferredSideOrder(int iside) override;
@@ -103,17 +97,17 @@ public:
 	virtual void SetPreferredOrder(int order) override;
 	
 	/** @brief Sets the interpolation order of side to order*/
-	virtual void SetSideOrder(int side, int order) override;
+	void SetSideOrder(int side, int order) override = 0;
 	
 	/** @brief Returns the actual interpolation order of the polynomial along the side*/
-    virtual int EffectiveSideOrder(int side) const override;
+   int EffectiveSideOrder(int side) const override = 0;
 	/** @brief Returns the actual interpolation order of the polynomial for a connect*/
 	virtual int ConnectOrder(int connect) const;
 
 	/** @brief Compute the values of the shape function of the side*/
-	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
+	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override = 0;
 	
-	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
+	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override = 0;
 	
 	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) override;
 	

@@ -39,6 +39,22 @@ public:
     /** @brief Returns the unique identifier for reading/writing objects to streams */
     int ClassId() const override;
 
+  virtual TPZCompEl *Clone(TPZCompMesh &mesh) const  override {
+		return new TPZCompElHCurlFull<TSHAPE> (mesh, *this);
+	}
+	
+	/**
+	 * @brief Create a copy of the given element. The clone copy have the connect indexes
+	 * mapped to the local clone connects by the given map
+	 * @param mesh Patch clone mesh
+	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
+	 * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
+	 */
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const override
+	{
+		return new TPZCompElHCurlFull<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
+	}
+
     /**
     * @brief Number of shapefunctions of the connect associated
     * @param connect connect number

@@ -26,38 +26,37 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 	//int i;
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
 	//for(i=0; i<TSHAPE::NSides; i++) this->fConnectIndexes[i]=-1;
-		this->fConnectIndexes[0]=-1;
-	gel->SetReference(this);
-    TPZIntelGen<TSHAPE>::fConnectIndexes.resize(1);
+  this->fConnectIndexes[0]=-1;
+  gel->SetReference(this);
 		
-    this->fConnectIndexes[0] = this->CreateMidSideConnect(TSHAPE::NSides-1);
+  this->fConnectIndexes[0] = this->CreateMidSideConnect(TSHAPE::NSides-1);
 #ifdef PZ_LOG
-    if (logger.isDebugEnabled())
+  if (logger.isDebugEnabled())
 		{
-				std::stringstream sout;
-				sout << "After creating boundary flux connect " << this->fConnectIndexes[0] << std::endl;
-				//	this->Print(sout);
-				LOGPZ_DEBUG(logger,sout.str())
-		}
+      std::stringstream sout;
+      sout << "After creating boundary flux connect " << this->fConnectIndexes[0] << std::endl;
+      //	this->Print(sout);
+      LOGPZ_DEBUG(logger,sout.str())
+        }
 #endif
     
-    mesh.ConnectVec()[this->fConnectIndexes[0]].IncrementElConnected();
+  mesh.ConnectVec()[this->fConnectIndexes[0]].IncrementElConnected();
     
 		
 	
 #ifdef PZ_LOG
-    if (logger.isDebugEnabled())
-	{
-		std::stringstream sout;
+  if (logger.isDebugEnabled())
+    {
+      std::stringstream sout;
 		
-		sout << std::endl<<" Criando Connects: "<< std::endl;
-		for(int j=0; j< NConnects();j++)
-		{
-			sout<<" "<< this->fConnectIndexes[j];
+      sout << std::endl<<" Criando Connects: "<< std::endl;
+      for(int j=0; j< NConnects();j++)
+        {
+          sout<<" "<< this->fConnectIndexes[j];
 			
-		}
-		LOGPZ_DEBUG(logger,sout.str())
-	}
+        }
+      LOGPZ_DEBUG(logger,sout.str())
+        }
 #endif
 	int sideorder = EffectiveSideOrder(TSHAPE::NSides-1);
 	sideorder = 2*sideorder;
@@ -68,13 +67,13 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 	this->fIntRule.SetOrder(order);
 
 #ifdef PZ_LOG
-    if (logger.isDebugEnabled())
-	 {
-         std::stringstream sout;
-         sout << "Finalizando criacao do elemento ";
-         this->Print(sout);
-         LOGPZ_DEBUG(logger,sout.str())
-	 }
+  if (logger.isDebugEnabled())
+    {
+      std::stringstream sout;
+      sout << "Finalizando criacao do elemento ";
+      this->Print(sout);
+      LOGPZ_DEBUG(logger,sout.str())
+        }
 #endif
 	 
 }
@@ -588,7 +587,8 @@ template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::Read(TPZStream &buf, void *context)
 {
 	TPZIntelGen<TSHAPE>::Read(buf,context);
-    buf.Read(&fSideOrient);
+  buf.Read(&fSideOrient);
+  buf.Read(fConnectIndexes.begin(),TSHAPE::NSides);
 }
 
 /** Save the element data to a stream */
@@ -596,7 +596,8 @@ template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZIntelGen<TSHAPE>::Write(buf,withclassid);
-    buf.Write(&fSideOrient);
+  buf.Write(&fSideOrient);
+  buf.Write(fConnectIndexes.begin(),TSHAPE::NSides);
 }
 
 /** @brief Prints the relevant data of the element to the output stream */

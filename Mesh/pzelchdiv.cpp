@@ -36,7 +36,7 @@ TPZRegisterClassId(&TPZCompElHDiv::ClassId),
 TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFacets,1) {
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
 	int nconflux= TPZCompElHDiv::NConnects();
-    this->fConnectIndexes.Resize(nconflux);
+  this->fConnectIndexes.Resize(nconflux);
 	gel->SetReference(this);
 
 //    int nfaces = TSHAPE::NumSides(TSHAPE::Dimension-1);
@@ -1540,6 +1540,7 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZInterpolatedElement::Write(buf,withclassid);
+  buf.Write(fConnectIndexes.begin(),TSHAPE::NSides);
 	TPZManVector<int,3> order(3,0);
 	this->fIntRule.GetOrder(order);
 	buf.Write(order);
@@ -1563,6 +1564,7 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
 {
 	TPZInterpolatedElement::Read(buf,context);
+  buf.Read(fConnectIndexes.begin(),TSHAPE::NSides);
 	TPZManVector<int,3> order;
 	buf.Read(order);
 	this-> fIntRule.SetOrder(order);

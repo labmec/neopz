@@ -159,15 +159,16 @@ inline void TPZCompElWithMem<TPZInterfaceElement>::PrepareIntPtIndices() {
     }
     
 }
+#include "TPZCompElH1.h"
 
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePoint> >>;
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeLinear> >>;
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >>;
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeQuad> >>;
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeCube> >>;
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTetra> >>;
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePrism> >>;
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePiram> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapePoint> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapeLinear> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapeTriang> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapeQuad> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapeCube> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapeTetra> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapePrism> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapePiram> >>;
 
 #include "pzgeopoint.h"
 #include "pzgeoquad.h"
