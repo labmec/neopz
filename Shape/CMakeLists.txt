@@ -6,6 +6,7 @@ target_include_directories(pz PUBLIC
                            )
 
 set(headers
+    TPZShapeData.h
     TPZShapeDisc.h
     pzgenericshape.h
     pzshapeextend.h
@@ -22,6 +23,7 @@ set(headers
     )
 
 set(sources
+    TPZShapeData.cpp
     TPZShapeDisc.cpp
     pzgenericshape.cpp
     pzshapecube.cpp
