@@ -1143,43 +1143,42 @@ namespace pztopology {
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZQuadrilateral::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div)
+    void TPZQuadrilateral::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
-        TPZFNMatrix<NCornerNodes> phis(NCornerNodes,1);
-        TPZFNMatrix<NSides*Dimension*Dimension> directions(3,NSides*Dimension);
-        TPZFNMatrix<Dimension*Dimension> gradx(3,3);
-        TPZFNMatrix<Dimension*NCornerNodes> dphis(Dimension,NCornerNodes);
-        gradx.Identity();
-        vecDiv.Zero();
-        div.Fill(0.);
+        REAL scale = 0.;
+        //Face functions
+        scale = (point[1] - 1.);
+        RT0function(0,0) = 0.;
+        RT0function(1,0) = (1. - point[1]) / scale;
 
-        ComputeHDivDirections(gradx,directions);
-        Shape(point,phis,dphis);
+        scale = (1. + point[0]);
+        RT0function(0,1) = (1. + point[0]) / scale;
+        RT0function(1,1) = 0.;
 
-        int first_face = NSides-1-NFacets;
-        for (size_t iface = first_face; iface < NSides-1; iface++)
-        {
-            int face_count = iface - first_face;
-            int nsubsides = NContainedSides(iface);
-            int firstVecIndex = 0;
-            int ncorner = NSideNodes(iface);
+        scale = (1. + point[1]);
+        RT0function(0,2) = 0.;
+        RT0function(1,2) = (1. + point[1]) / scale;
 
-            for (size_t ivec = 0; ivec < ncorner; ivec++)
-            {
-                TPZManVector<REAL,Dimension> vec(Dimension);
-                int vecIndex = firstVecIndex + ivec;
-                int vertex = SideNodeLocId(iface,ivec);
-                REAL divlocal = 0.;
+        scale = (point[0] - 1.);
+        RT0function(0,3) = (1. - point[0]) / scale;
+        RT0function(1,3) = 0.;
 
-                for (size_t i = 0; i < Dimension; i++)
-                {
-                    divlocal += directions(i,vecIndex) * dphis(i,vertex) / NSideNodes(iface);
-                    vecDiv(i,face_count) += directions(i,vecIndex) / NSideNodes(iface);
-                }//i
-                div[face_count] += divlocal;
-            }
-            firstVecIndex += nsubsides;
-        }
+
+    }
+
+    // template <class TVar>
+    void TPZQuadrilateral::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div)
+    {
+        //First type Nedelec functions
+        TPZFMatrix<REAL> N0function(Dimension,NFacets);
+        N0function.Zero();
+
+        //Edge functions
+        N0function(0,0) = 1. - point[1];
+        N0function(0,1) = point[1];
+        N0function(1,2) = (1. - point[0]);
+        N0function(1,3) = point[0];
+        
     }
 
     template <class TVar>

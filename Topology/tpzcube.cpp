@@ -1386,43 +1386,51 @@ namespace pztopology {
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZCube::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div)
+    void TPZCube::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
-        TPZFNMatrix<NCornerNodes> phis(NCornerNodes,1);
-        TPZFNMatrix<NSides*Dimension*Dimension> directions(Dimension,NSides*Dimension);
-        TPZFNMatrix<Dimension*Dimension> gradx(Dimension,Dimension);
-        TPZFNMatrix<Dimension*NCornerNodes> dphis(Dimension,NCornerNodes);
-        gradx.Identity();
-        vecDiv.Zero();
-        div.Fill(0.);
 
-        ComputeHDivDirections(gradx,directions);
-        Shape(point,phis,dphis);
+        REAL scale = 1.;        
+        //Face functions
+        scale = -(point[2]+1) / 2.;
+        RT0function(2,0) = 0.5 * (1. + point[2]) / scale;
+        scale = -(point[1]+1) / 2.;
+        RT0function(1,1) = 0.5 * (1. + point[1]) / scale;
+        scale = -(point[0]+1) / 2.;
+        RT0function(0,4) = 0.5 * (1. + point[0]) / scale;
 
-        int first_face = NSides-1-NFacets;
-        for (size_t iface = first_face; iface < NSides-1; iface++)
-        {
-            int face_count = iface - first_face;
-            int nsubsides = NContainedSides(iface);
-            int firstVecIndex = 0;
-            int ncorner = NSideNodes(iface);
+        scale = (1.-point[0]) / 2.;
+        RT0function(0,2) = 0.5 * (1. - point[0]) / scale;
+        scale = (1.-point[1]) / 2.;
+        RT0function(1,3) = 0.5 * (1. - point[1]) / scale;
+        scale = (1.-point[2]) / 2.;
+        RT0function(2,5) = 0.5 * (1. - point[2]) / scale;
 
-            for (size_t ivec = 0; ivec < ncorner; ivec++)
-            {
-                TPZManVector<REAL,Dimension> vec(Dimension);
-                int vecIndex = firstVecIndex + ivec;
-                int vertex = SideNodeLocId(iface,ivec);
-                REAL divlocal = 0.;
 
-                for (size_t i = 0; i < Dimension; i++)
-                {
-                    divlocal += directions(i,vecIndex) * dphis(i,vertex) / NSideNodes(iface);
-                    vecDiv(i,face_count) += directions(i,vecIndex) / NSideNodes(iface);
-                }//i
-                div[face_count] += divlocal;
-            }
-            firstVecIndex += nsubsides;
-        }
+    }
+
+    /// Compute the directions of the HDiv vectors
+    // template <class TVar>
+    void TPZCube::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div)
+    {
+        //First type Nedelec functions
+        TPZFMatrix<REAL> N0function(Dimension,NFacets);
+        N0function.Zero();
+
+        //Edge functions
+        N0function(0,0) = 1. - point[1] - point[2];
+        N0function(0,1) = (1. - point[1]) * point[2];
+        N0function(0,2) = (1. - point[2]) * point[1];
+        N0function(1,3) = (1. - point[2]) * (1. - point[0]);
+        N0function(1,4) = (1. - point[2]) * point[0];
+        N0function(1,5) = (1. - point[0]) * point[2];
+        N0function(2,6) = (1. - point[0]) * (1. - point[1]);
+        N0function(2,7) = (1. - point[0]) * point[1];
+        N0function(2,8) = (1. - point[1]) * point[0];
+        N0function(0,9) = point[1] * point[2];
+        N0function(1,10) = point[0] * point[2];
+        N0function(2,11) = point[0] * point[1];
+
+
     }
 
     void TPZCube::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
