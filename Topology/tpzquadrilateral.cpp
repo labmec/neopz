@@ -169,7 +169,6 @@ namespace pztopology {
         dphi(0,3) =-0.25*(1.+eta);
         dphi(1,3) = 0.25*(1.-qsi);
 
-
     }
 
     template<class T>
@@ -1145,39 +1144,47 @@ namespace pztopology {
     // template <class TVar>
     void TPZQuadrilateral::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
-        REAL scale = 0.;
+        REAL scale = 2.;
+        REAL qsi = point[0];
+        REAL eta = point[1];
+
         //Face functions
-        scale = (point[1] - 1.);
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
         RT0function(0,0) = 0.;
-        RT0function(1,0) = (1. - point[1]) / scale;
+        RT0function(1,0) = -0.5 * (1. - eta) / scale;
+        div[0] = 0.5 / scale; 
 
-        scale = (1. + point[0]);
-        RT0function(0,1) = (1. + point[0]) / scale;
+        RT0function(0,1) = 0.5 * (1. + qsi) / scale;
         RT0function(1,1) = 0.;
+        div[1] = 0.5 / scale; 
 
-        scale = (1. + point[1]);
         RT0function(0,2) = 0.;
-        RT0function(1,2) = (1. + point[1]) / scale;
+        RT0function(1,2) = 0.5 * (1. + eta) / scale;
+        div[2] = 0.5 / scale; 
 
-        scale = (point[0] - 1.);
-        RT0function(0,3) = (1. - point[0]) / scale;
+        RT0function(0,3) = -0.5 * (1. - qsi) / scale;
         RT0function(1,3) = 0.;
-
-
+        div[3] = 0.5 / scale; 
+        
     }
 
     // template <class TVar>
-    void TPZQuadrilateral::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div)
+    void TPZQuadrilateral::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZVec<REAL> &div)
     {
-        //First type Nedelec functions
-        TPZFMatrix<REAL> N0function(Dimension,NFacets);
-        N0function.Zero();
+        REAL scale = 1.;
 
-        //Edge functions
-        N0function(0,0) = 1. - point[1];
-        N0function(0,1) = point[1];
-        N0function(1,2) = (1. - point[0]);
-        N0function(1,3) = point[0];
+        //Nedelec functions
+        // scale = (1. - point[1]);
+        N0function(0,0) = 0.5 * (1. - point[1]) / scale;
+
+        // scale = (1. + point[0]);
+        N0function(1,1) = 0.5 * (1. + point[0]) / scale;
+
+        // scale = -(1. + point[1]);
+        N0function(0,2) = 0.5 * (1. + point[1]) / scale;
+
+        // scale = (1.-point[0]); 
+        N0function(1,3) = 0.5 * (1. - point[0]) / scale;       
         
     }
 

@@ -1725,30 +1725,95 @@ namespace pztopology {
     // template <class TVar>
     void TPZPrism::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
-        REAL scale = 1.;        
+        REAL scale;        
         
+        REAL qsi = point[0];
+        REAL eta = point[1];
+        REAL zeta = point[2];
+
         //Face functions
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
+
         // Top and bottom is the same as cube
-        scale = -(point[2]+1) / 12.;
-        RT0function(2,0) = 0.5 * (1. + point[2]) / scale;
-        scale = (1.-point[2]) / 12.;
-        RT0function(2,4) = 0.5 * (1. - point[2]) / scale;
+        scale = 0.5;
+        RT0function(2,0) = -0.5 * (1. - zeta) / scale;
+        RT0function(2,4) = 0.5 * (1. + zeta) / scale;
+        div[0] = 0.5/scale;
+        div[4] = 0.5/scale;
 
         //Faces are the same as triangles
-        scale = point[0];
-        RT0function(0,1) = (point[0]) / scale;
-        scale = (1.-point[1]) / 2.;
-        RT0function(1,1) = (point[1] - 1.) / scale;   
+        scale = 2.;
+        RT0function(0,1) = qsi / scale;
+        RT0function(1,1) = (eta - 1.) / scale;   
+        div[1] = 1./scale + 1./scale;
 
-        scale = sqrt(2.)*point[0];
-        RT0function(0,2) = (sqrt(2.) * point[0]) / scale;
-        scale = sqrt(2.)*point[1];
-        RT0function(1,2) = (sqrt(2.) * point[1]) / scale;
+        scale = M_SQRT2 * 2.;
+        RT0function(0,2) = M_SQRT2 * qsi / scale;
+        RT0function(1,2) = M_SQRT2 * eta / scale;
+        div[2] = M_SQRT2/scale + M_SQRT2/scale;
 
-        scale = (1.-point[0]) / 2.;
-        RT0function(0,3) = (point[0] - 1.) / scale;
-        scale = point[1];
-        RT0function(1,3) = (point[1]) / scale;
+        scale = 2.;
+        RT0function(0,3) = (qsi - 1.) / scale;
+        RT0function(1,3) = eta / scale;
+        div[3] = 1./scale + 1./scale;
+    }
+
+    /// Compute the directions of the HCurl vectors
+    // template <class TVar>
+    void TPZPrism::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZVec<REAL> &div)
+    {
+        REAL scale = 1.;
+        //First type Nedelec functions
+        //The three first and three last functions are the same as triangle, multiplied by z direction.
+        scale = 0.5 * (1. - point[1]) * (1. - point[2]);
+        N0function(0,0) = 0.5 * (1. - point[1]) * (1. - point[2]) / scale;
+        scale = point[0] * (1. - point[2]);
+        N0function(1,0) = 0.5 * point[0] * (1. - point[2]) / scale;
+
+        scale = point[1] * (1. - point[2]);
+        N0function(0,1) = 0.5 * (-point[1]) * (1. - point[2]) / scale;
+        scale = point[0] * (1. - point[2]);
+        N0function(1,1) = 0.5 * point[0] * (1. - point[2]) / scale;
+
+        scale = (-point[1]) * (1. - point[2]);
+        N0function(0,2) = 0.5 * (-point[1]) * (1. - point[2]) / scale;
+        scale = 0.5 * (point[0] - 1.) * (1. - point[2]);
+        N0function(1,2) = 0.5 * (point[0] - 1.) * (1. - point[2]) / scale;
+
+        scale = 0.5 * (1. - point[1]) * (1. + point[2]);
+        N0function(0,6) = 0.5 * (1. - point[1]) * (1. + point[2]) / scale;
+        scale = point[0] * (1. + point[2]);
+        N0function(1,6) = 0.5 * point[0] * (1. + point[2]) / scale;
+
+        scale = point[1] * (1. + point[2]);
+        N0function(0,7) = 0.5 * (-point[1]) * (1. + point[2]) / scale;
+        scale = point[0] * (1. + point[2]);
+        N0function(1,7) = 0.5 * point[0] * (1. + point[2]) / scale;
+
+        scale = (-point[1]) * (1. + point[2]);
+        N0function(0,8) = 0.5 * (-point[1]) * (1. + point[2]) / scale;
+        scale = 0.5 * (point[0] - 1.) * (1. + point[2]);
+        N0function(1,8) = 0.5 * (point[0] - 1.) * (1. + point[2]) / scale;
+
+        //The three vertical edges
+
+        N0function(0,3) = 0.;
+        N0function(1,3) = 0.;
+        scale = (1. - point[0] - point[1]) * 2.;
+        N0function(2,3) = (1. - point[0] - point[1]) / scale;
+
+        N0function(0,4) = 0.;
+        N0function(1,4) = 0.;
+        scale = 2. * point[0];
+        N0function(2,4) = point[0] / scale;
+
+        N0function(0,5) = 0.;
+        N0function(1,5) = 0.;
+        scale = 2. * point[1];
+        N0function(2,5) = point[1] / scale;
+
+
+
     }
 
     void TPZPrism::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)

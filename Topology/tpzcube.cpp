@@ -1389,47 +1389,78 @@ namespace pztopology {
     void TPZCube::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
 
-        REAL scale = 1.;        
-        //Face functions
-        scale = -(point[2]+1) / 2.;
-        RT0function(2,0) = 0.5 * (1. + point[2]) / scale;
-        scale = -(point[1]+1) / 2.;
-        RT0function(1,1) = 0.5 * (1. + point[1]) / scale;
-        scale = -(point[0]+1) / 2.;
-        RT0function(0,4) = 0.5 * (1. + point[0]) / scale;
+        REAL scale = 4.;    
+        REAL qsi = point[0];
+        REAL eta = point[1];
+        REAL zeta = point[2];
 
-        scale = (1.-point[0]) / 2.;
-        RT0function(0,2) = 0.5 * (1. - point[0]) / scale;
-        scale = (1.-point[1]) / 2.;
-        RT0function(1,3) = 0.5 * (1. - point[1]) / scale;
-        scale = (1.-point[2]) / 2.;
-        RT0function(2,5) = 0.5 * (1. - point[2]) / scale;
+        //Face functions
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
+        RT0function(2,5) = 0.5 * (1. + zeta) / scale;
+        div[5] = 0.5 / scale;
+        RT0function(1,3) = 0.5 * (1. + eta) / scale;
+        div[3] = 0.5 / scale;
+        RT0function(0,2) = 0.5 * (1. + qsi) / scale;
+        div[2] = 0.5 / scale;
+
+        RT0function(0,4) = -0.5 * (1. - qsi) / scale;
+        div[4] = 0.5 / scale;
+        RT0function(1,1) = -0.5 * (1. - eta) / scale;
+        div[1] = 0.5 / scale;
+        RT0function(2,0) = -0.5 * (1. - zeta) / scale;
+        div[0] = 0.5 / scale;
 
 
     }
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZCube::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div)
+    void TPZCube::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZVec<REAL> &div)
     {
+        REAL scale = 1.;
+
         //First type Nedelec functions
-        TPZFMatrix<REAL> N0function(Dimension,NFacets);
-        N0function.Zero();
+        //X direction
+        //Edge 8
+        scale = (1. - point[1]) * (1. + point[2]) / 2.;
+        N0function(0,0) = 0.25 * (1. - point[1]) * (1. + point[2]) / scale;
+        //Edge 10
+        scale = -(1. + point[1]) * (1. + point[2]) / 2.;
+        N0function(0,2) = 0.25 * (1. + point[1]) * (1. + point[2]) / scale;
+        //Edge 16
+        scale = (1. - point[1]) * (1. - point[2]) / 2.;
+        N0function(0,8) = 0.25 * (1. - point[1]) * (1. - point[2]) / scale;
+        //Edge 18
+        scale = -(1. + point[1]) * (1. - point[2]) / 2.;
+        N0function(0,10) = 0.25 * (1. + point[1]) * (1. - point[2]) / scale;
 
-        //Edge functions
-        N0function(0,0) = 1. - point[1] - point[2];
-        N0function(0,1) = (1. - point[1]) * point[2];
-        N0function(0,2) = (1. - point[2]) * point[1];
-        N0function(1,3) = (1. - point[2]) * (1. - point[0]);
-        N0function(1,4) = (1. - point[2]) * point[0];
-        N0function(1,5) = (1. - point[0]) * point[2];
-        N0function(2,6) = (1. - point[0]) * (1. - point[1]);
-        N0function(2,7) = (1. - point[0]) * point[1];
-        N0function(2,8) = (1. - point[1]) * point[0];
-        N0function(0,9) = point[1] * point[2];
-        N0function(1,10) = point[0] * point[2];
-        N0function(2,11) = point[0] * point[1];
-
+        //Y direction
+        //Edge 9
+        scale = (1. + point[0]) * (1. + point[2]) / 2.;
+        N0function(1,1) = 0.25 * (1. + point[0]) * (1. + point[2]) / scale;
+        //Edge 11
+        scale = (1. - point[0]) * (1. + point[2]) / 2.;
+        N0function(1,3) = 0.25 * (1. - point[0]) * (1. + point[2]) / scale;
+        //Edge 17
+        scale = (1. + point[0]) * (1. - point[2]) / 2.;
+        N0function(1,9) = 0.25 * (1. + point[0]) * (1. - point[2]) / scale;
+        //Edge 19
+        scale = (1. - point[0]) * (1. - point[2]) / 2.;
+        N0function(1,11) = 0.25 * (1. - point[0]) * (1. - point[2]) / scale;
+               
+        //Z direction
+        //Edge 12
+        scale = (1. - point[0]) * (1. - point[1]) / 2.;
+        N0function(2,4) = 0.25 * (1. - point[0]) * (1. - point[1]) / scale;
+        //Edge 13
+        scale = (1. + point[0]) * (1. - point[1]) / 2.;
+        N0function(2,5) = 0.25 * (1. + point[0]) * (1. - point[1]) / scale;
+        //Edge 14
+        scale = (1. + point[0]) * (1. + point[1]) / 2.;
+        N0function(2,6) = 0.25 * (1. + point[0]) * (1. + point[1]) / scale;
+        //Edge 15
+        scale = (1. - point[0]) * (1. + point[1]) / 2.;
+        N0function(2,7) = 0.25 * (1. - point[0]) * (1. + point[1]) / scale;
 
     }
 

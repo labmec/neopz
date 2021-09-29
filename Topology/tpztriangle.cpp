@@ -1073,41 +1073,45 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
     void TPZTriangle::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
         REAL scale = 1.;
+        REAL qsi = point[0];
+        REAL eta = point[1];
 
         //Face functions
-        scale = point[0];
-        RT0function(0,0) = (point[0]) / scale;
-        scale = (1.-point[1]) / 2.;
-        RT0function(1,0) = (point[1] - 1.) / scale;   
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
+        scale = 1.;
+        RT0function(0,0) = qsi / scale;
+        RT0function(1,0) = (eta - 1.) / scale;
+        div[0] = 1./scale + 1./scale;
 
-        scale = sqrt(2.)*point[0];
-        RT0function(0,1) = (sqrt(2.) * point[0]) / scale;
-        scale = sqrt(2.)*point[1];
-        RT0function(1,1) = (sqrt(2.) * point[1]) / scale;
+        scale = M_SQRT2;
+        RT0function(0,1) = (M_SQRT2 * qsi) / scale;
+        RT0function(1,1) = (M_SQRT2 * eta) / scale;
+        div[1] = M_SQRT2/scale + M_SQRT2/scale;
 
-        scale = (1.-point[0]) / 2.;
-        RT0function(0,2) = (point[0] - 1.) / scale;
-        scale = point[1];
-        RT0function(1,2) = (point[1]) / scale;
+        scale = 1.;
+        RT0function(0,2) = (qsi - 1.) / scale;
+        RT0function(1,2) = eta / scale;
+        div[2] = 1./scale + 1./scale;
 
     }
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZTriangle::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div)
+    void TPZTriangle::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZVec<REAL> &div)
     {
+        REAL scale = 1.;
         //First type Nedelec functions
-        TPZFMatrix<REAL> N0function(Dimension,NFacets);
+        scale = 1. - point[1];
+        N0function(0,0) = (1. - point[1]) / scale;
+        N0function(1,0) = point[0] / scale;
 
-        //Edge functions
-        N0function(0,0) = -point[1];
-        N0function(1,0) =  point[0];
+        scale = 2. * point[1];
+        N0function(0,1) = -point[1] / scale;
+        N0function(1,1) =  point[0] / scale;
 
-        N0function(0,1) = -point[1];
-        N0function(1,1) =  point[0] - 1.;
-
-        N0function(0,2) = 1. - point[1];
-        N0function(1,2) = point[0];
+        scale = -2. * point[1];
+        N0function(0,2) = -point[1] / scale;
+        N0function(1,2) =  (point[0] - 1.) / scale;
 
     }
 
