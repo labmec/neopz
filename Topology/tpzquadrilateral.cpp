@@ -1171,20 +1171,18 @@ namespace pztopology {
     // template <class TVar>
     void TPZQuadrilateral::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZVec<REAL> &div)
     {
-        REAL scale = 1.;
+        REAL scale = 4.;
+        REAL qsi = point[0];
+        REAL eta = point[1];
 
         //Nedelec functions
-        // scale = (1. - point[1]);
-        N0function(0,0) = 0.5 * (1. - point[1]) / scale;
+        N0function(0,0) = 0.5 * (1. - eta) / scale;
 
-        // scale = (1. + point[0]);
-        N0function(1,1) = 0.5 * (1. + point[0]) / scale;
+        N0function(1,1) = 0.5 * (1. + qsi) / scale;
 
-        // scale = -(1. + point[1]);
-        N0function(0,2) = 0.5 * (1. + point[1]) / scale;
+        N0function(0,2) = -0.5 * (1. + eta) / scale;
 
-        // scale = (1.-point[0]); 
-        N0function(1,3) = 0.5 * (1. - point[0]) / scale;       
+        N0function(1,3) = 0.5 * (1. - qsi) / scale;       
         
     }
 

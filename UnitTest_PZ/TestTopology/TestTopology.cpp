@@ -64,11 +64,11 @@ TEST_CASE("constant_divergent_test","[topology_tests]")
 
 TEST_CASE("constant_curl_test","[topology_tests]")
 {
-    // topologytests::TestingConstantCurl<TPZTriangle>();
+    topologytests::TestingConstantCurl<TPZTriangle>();
     topologytests::TestingConstantCurl<TPZQuadrilateral>();
-    // topologytests::TestingConstantCurl<TPZTetrahedron>();
-    // topologytests::TestingConstantCurl<TPZCube>();
-    // topologytests::TestingConstantCurl<TPZPrism>();
+    topologytests::TestingConstantCurl<TPZTetrahedron>();
+    topologytests::TestingConstantCurl<TPZCube>();
+    topologytests::TestingConstantCurl<TPZPrism>();
 }
 
 namespace topologytests{
@@ -302,9 +302,6 @@ namespace topologytests{
 
         for (auto ipt = 0; ipt < npts; ipt++) {
             intRule->Point(ipt, node, w);
-            // node[0] = 0.;
-            // node[1] = 0.;
-            // node[2] = 0.;
 
             TPZFNMatrix<nCorner> phis(nCorner,1);
             TPZFNMatrix<nSides*dim*dim> directionsHCurl(3,nSides*dim);
@@ -319,17 +316,25 @@ namespace topologytests{
             top::Shape(node,phis,dphis);
 
             
-            int vecIndex = 2*nEdges;
+            int firstVecIndex = 0;
 
             for (size_t iedge = first_edge; iedge < last_edge; iedge++)
             {
                 int edge_count = iedge - first_edge;
 
-                for (size_t i = 0; i < dim; i++){
-                    vecCurl(i,edge_count) += directionsHCurl(i,vecIndex);
-                }//i
-                vecIndex++;
+                for (size_t ivec = 0; ivec < top::NSideNodes(iedge); ivec++)
+                {
+                    TPZManVector<REAL,dim> vec(dim);
+                    int vecIndex = firstVecIndex + ivec;
+                    int vertex = top::SideNodeLocId(iedge,ivec);
+                    REAL divlocal = 0.;
 
+                    for (size_t i = 0; i < dim; i++)
+                    {
+                        vecCurl(i,edge_count) += directionsHCurl(i,vecIndex) * phis[vertex] / top::NSideNodes(iedge);
+                    }//i
+                }
+                firstVecIndex += top::NSideNodes(iedge);
             }//iedge
 
             //Compute the curl for each edge
@@ -338,7 +343,7 @@ namespace topologytests{
             // std::cout << "Point = " << node << std::endl;
             // std::cout << "Vecdiv = " << vecCurl << std::endl;
             // std::cout << "N0 = " << N0Function << std::endl;
-            // std::cout << "DIV = " << div << std::endl;
+            // std::cout << "DIV = " << curl << std::endl;
             
             // Checks if all edges have the same curl value.
             bool condHcurl = true;
@@ -356,6 +361,6 @@ namespace topologytests{
 
             REQUIRE(condHcurl);
         }
-    }//Testing Constant Divergent
+    }//Testing Constant Curl
 
 }//namespace

@@ -1499,44 +1499,35 @@ namespace pztopology {
     // template <class TVar>
     void TPZTetrahedron::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZVec<REAL> &div)
     {
-        REAL scale = 1.;
+        REAL scale = 2.;    
+        REAL qsi = point[0];
+        REAL eta = point[1];
+        REAL zeta = point[2];
 
         //First type Nedelec functions
-        scale = 1. - point[1] - point[2];
-        N0function(0,0) = (1. - point[1] - point[2]) / scale;
-        scale = point[0] * 2.;
-        N0function(1,0) = point[0] / scale;
-        N0function(2,0) = point[0] / scale;
+        N0function(0,0) = (1. - eta - zeta) / scale;
+        N0function(1,0) = qsi / scale;
+        N0function(2,0) = qsi / scale;
 
-        scale = 2. * point[1];
-        N0function(0,1) = -point[1] / scale;
-        scale = 2. * point[0];
-        N0function(1,1) =  point[0] / scale;
+        N0function(0,1) = -eta / scale;
+        N0function(1,1) =  qsi / scale;
         N0function(2,1) = 0.;
 
-        scale = 2. * point[1];
-        N0function(0,2) = point[1] / scale;
-        scale = 1. - point[0] - point[2];
-        N0function(1,2) = (1. - point[0] - point[2]) / scale;
-        scale = 2. * point[1];
-        N0function(2,2) = point[1] / scale;
+        N0function(0,2) = eta / scale;
+        N0function(1,2) = (1. - qsi - zeta) / scale;
+        N0function(2,2) = eta / scale;
 
-        scale = 2. * point[2];
-        N0function(0,3) = point[2] / scale;
-        N0function(1,3) = point[2] / scale;
-        scale = 1. - point[0] - point[1];
-        N0function(2,3) = (1. - point[0] - point[1]) / scale;
+        N0function(0,3) = zeta / scale;
+        N0function(1,3) = zeta / scale;
+        N0function(2,3) = (1. - qsi - eta) / scale;
 
-        scale = -2. * point[2];
-        N0function(0,4) =  point[2] / scale;
+        N0function(0,4) =  zeta / scale;
         N0function(1,4) = 0.;
-        N0function(2,4) = -point[0] / scale;       
+        N0function(2,4) = -qsi / scale;       
         
-        scale = 2. * point[2];
         N0function(0,5) = 0.;
-        N0function(1,5) = -point[2] / scale;
-        scale = 2. * point[1];
-        N0function(2,5) =  point[1] / scale;
+        N0function(1,5) = -zeta / scale;
+        N0function(2,5) =  eta / scale;
 
     }
 

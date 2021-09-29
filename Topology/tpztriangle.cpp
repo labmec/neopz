@@ -1099,19 +1099,19 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
     // template <class TVar>
     void TPZTriangle::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZVec<REAL> &div)
     {
-        REAL scale = 1.;
+        REAL scale = 2.;
+        REAL qsi = point[0];
+        REAL eta = point[1];
+
         //First type Nedelec functions
-        scale = 1. - point[1];
-        N0function(0,0) = (1. - point[1]) / scale;
-        N0function(1,0) = point[0] / scale;
+        N0function(0,0) = (1. - eta) / scale;
+        N0function(1,0) = qsi / scale;
 
-        scale = 2. * point[1];
-        N0function(0,1) = -point[1] / scale;
-        N0function(1,1) =  point[0] / scale;
+        N0function(0,1) = -eta / scale;
+        N0function(1,1) =  qsi / scale;
 
-        scale = -2. * point[1];
-        N0function(0,2) = -point[1] / scale;
-        N0function(1,2) =  (point[0] - 1.) / scale;
+        N0function(0,2) = eta / scale;
+        N0function(1,2) = (1. - qsi) / scale;
 
     }
 

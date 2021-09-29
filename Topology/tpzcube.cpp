@@ -1417,50 +1417,41 @@ namespace pztopology {
     // template <class TVar>
     void TPZCube::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZVec<REAL> &div)
     {
-        REAL scale = 1.;
+        REAL scale = 4.;    
+        REAL qsi = point[0];
+        REAL eta = point[1];
+        REAL zeta = point[2];
 
         //First type Nedelec functions
         //X direction
-        //Edge 8
-        scale = (1. - point[1]) * (1. + point[2]) / 2.;
-        N0function(0,0) = 0.25 * (1. - point[1]) * (1. + point[2]) / scale;
-        //Edge 10
-        scale = -(1. + point[1]) * (1. + point[2]) / 2.;
-        N0function(0,2) = 0.25 * (1. + point[1]) * (1. + point[2]) / scale;
         //Edge 16
-        scale = (1. - point[1]) * (1. - point[2]) / 2.;
-        N0function(0,8) = 0.25 * (1. - point[1]) * (1. - point[2]) / scale;
+        N0function(0,8) = -0.25 * (1. - eta) * (1. + zeta) / scale;
         //Edge 18
-        scale = -(1. + point[1]) * (1. - point[2]) / 2.;
-        N0function(0,10) = 0.25 * (1. + point[1]) * (1. - point[2]) / scale;
+        N0function(0,10) = -0.25 * (1. + eta) * (1. + zeta) / scale;
+        //Edge 8
+        N0function(0,0) = 0.25 * (1. - eta) * (1. - zeta) / scale;
+        //Edge 10
+        N0function(0,2) = -0.25 * (1. + eta) * (1. - zeta) / scale;
 
         //Y direction
-        //Edge 9
-        scale = (1. + point[0]) * (1. + point[2]) / 2.;
-        N0function(1,1) = 0.25 * (1. + point[0]) * (1. + point[2]) / scale;
-        //Edge 11
-        scale = (1. - point[0]) * (1. + point[2]) / 2.;
-        N0function(1,3) = 0.25 * (1. - point[0]) * (1. + point[2]) / scale;
         //Edge 17
-        scale = (1. + point[0]) * (1. - point[2]) / 2.;
-        N0function(1,9) = 0.25 * (1. + point[0]) * (1. - point[2]) / scale;
+        N0function(1,9) = 0.25 * (1. + qsi) * (1. + zeta) / scale;
         //Edge 19
-        scale = (1. - point[0]) * (1. - point[2]) / 2.;
-        N0function(1,11) = 0.25 * (1. - point[0]) * (1. - point[2]) / scale;
+        N0function(1,11) = 0.25 * (1. - qsi) * (1. + zeta) / scale;
+        //Edge 9
+        N0function(1,1) = 0.25 * (1. + qsi) * (1. - zeta) / scale;
+        //Edge 11
+        N0function(1,3) = 0.25 * (1. - qsi) * (1. - zeta) / scale;
                
         //Z direction
         //Edge 12
-        scale = (1. - point[0]) * (1. - point[1]) / 2.;
-        N0function(2,4) = 0.25 * (1. - point[0]) * (1. - point[1]) / scale;
+        N0function(2,4) = 0.25 * (1. - qsi) * (1. - eta) / scale;
         //Edge 13
-        scale = (1. + point[0]) * (1. - point[1]) / 2.;
-        N0function(2,5) = 0.25 * (1. + point[0]) * (1. - point[1]) / scale;
+        N0function(2,5) = 0.25 * (1. + qsi) * (1. - eta) / scale;
         //Edge 14
-        scale = (1. + point[0]) * (1. + point[1]) / 2.;
-        N0function(2,6) = 0.25 * (1. + point[0]) * (1. + point[1]) / scale;
+        N0function(2,6) = 0.25 * (1. + qsi) * (1. + eta) / scale;
         //Edge 15
-        scale = (1. - point[0]) * (1. + point[1]) / 2.;
-        N0function(2,7) = 0.25 * (1. - point[0]) * (1. + point[1]) / scale;
+        N0function(2,7) = 0.25 * (1. - qsi) * (1. + eta) / scale;
 
     }
 
