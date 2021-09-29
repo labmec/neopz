@@ -1508,26 +1508,44 @@ namespace pztopology {
         N0function(0,0) = (1. - eta - zeta) / scale;
         N0function(1,0) = qsi / scale;
         N0function(2,0) = qsi / scale;
+        curl(0,0) = 0.;
+        curl(1,0) = -2./scale;
+        curl(2,0) =  2./scale;
 
         N0function(0,1) = -eta / scale;
         N0function(1,1) =  qsi / scale;
         N0function(2,1) = 0.;
+        curl(0,1) = 0.;
+        curl(1,1) = 0.;
+        curl(2,1) = 2./scale;
 
         N0function(0,2) = eta / scale;
         N0function(1,2) = (1. - qsi - zeta) / scale;
         N0function(2,2) = eta / scale;
+        curl(0,2) =  2./scale;
+        curl(1,2) = 0.;
+        curl(2,2) = -2./scale;
 
         N0function(0,3) = zeta / scale;
         N0function(1,3) = zeta / scale;
         N0function(2,3) = (1. - qsi - eta) / scale;
+        curl(0,3) = -2./scale;
+        curl(1,3) = 2./scale;
+        curl(2,3) = 0.;
 
-        N0function(0,4) =  zeta / scale;
+        N0function(0,4) = -zeta / scale;
         N0function(1,4) = 0.;
-        N0function(2,4) = -qsi / scale;       
+        N0function(2,4) = qsi / scale;
+        curl(0,4) = 0.;
+        curl(1,4) = -2./scale;
+        curl(2,4) = 0.;
         
         N0function(0,5) = 0.;
         N0function(1,5) = -zeta / scale;
         N0function(2,5) =  eta / scale;
+        curl(0,5) = 2./scale;
+        curl(1,5) = 0.;
+        curl(2,5) = 0.;
 
     }
 

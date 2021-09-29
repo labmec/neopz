@@ -160,7 +160,7 @@ namespace topologytests{
     void TestingConstantDivergent() {
         
         static std::string testName = __PRETTY_FUNCTION__;
-        const  int64_t pOrderIntRule = 3;
+        const  int64_t pOrderIntRule = 5;
         const auto nSides = top::NSides;
         const auto nCorner = top::NCornerNodes;
         const auto dim = top::Dimension;
@@ -224,17 +224,11 @@ namespace topologytests{
 
             divRT0.Fill(0.);
             //Compute the divergent for each face
-            top::ComputeConstantHDiv(node,RT0Function,divRT0);
-            
-            // std::cout << "Point = " << node << std::endl;
-            // std::cout << "Vecdiv = " << vecDiv << std::endl;
-            // std::cout << "N0 = " << RT0Function << std::endl;
-            // std::cout << "DIV = " << div << std::endl;      
-            // std::cout << "DIV2 = " << divRT0 << std::endl;      
+            top::ComputeConstantHDiv(node,RT0Function,divRT0);  
             
             // Checks if all faces have the same divergent value.
             bool condHdiv = true;
-            bool condHdiv_div = true;
+            bool condHdivRT0 = true;
             for (int i = 0; i < dim; i++){
                 for (int j = 0; j < nFaces; j++){
                     if (fabs(vecDiv(i,j)-RT0Function(i,j)) > tol){
@@ -244,15 +238,15 @@ namespace topologytests{
             }
             for (int j = 0; j < nFaces; j++){
                 if (fabs(div[j]-divRT0[j]) > tol){
-                    condHdiv_div = false;
+                    condHdivRT0 = false;
                 } 
             }
-            if(!condHdiv || !condHdiv_div){
+            if(!condHdiv || !condHdivRT0){
                 std::cerr << "\n" + testName + " failed Hdiv " +
                                 "\ntopology: " + MElementType_Name(type);
             }
             REQUIRE(condHdiv);
-            REQUIRE(condHdiv_div);
+            REQUIRE(condHdivRT0);
         }
     }//Testing Constant Divergent
 
@@ -260,7 +254,7 @@ namespace topologytests{
     void TestingConstantCurl() {
         
         static std::string testName = __PRETTY_FUNCTION__;
-        const  int64_t pOrderIntRule = 3;
+        const  int64_t pOrderIntRule = 5;
         const auto nSides = top::NSides;
         const auto nCorner = top::NCornerNodes;
         const auto dim = top::Dimension;
@@ -286,7 +280,8 @@ namespace topologytests{
 
         TPZFMatrix<REAL> vecCurl(dim,nEdges);
         TPZFMatrix<REAL> N0Function(dim,nEdges);
-        TPZFMatrix<REAL> curl(dim,nEdges);
+        TPZFMatrix<REAL> curl(3,nEdges);
+        TPZFMatrix<REAL> curlN0(3,nEdges);
         TPZVec<REAL> node(dim);
         
         //For HCurl
@@ -311,6 +306,7 @@ namespace topologytests{
             vecCurl.Zero();
             N0Function.Zero();
             curl.Zero();
+            curlN0.Zero();
 
             top::ComputeHCurlDirections(gradx,directionsHCurl,transformIds);
             top::Shape(node,phis,dphis);
@@ -329,6 +325,18 @@ namespace topologytests{
                     int vertex = top::SideNodeLocId(iedge,ivec);
                     REAL divlocal = 0.;
 
+                    if (dim == 2){
+                        curl(2,edge_count) += directionsHCurl(1,vecIndex) * dphis(0,vertex) / top::NSideNodes(iedge)
+                                            - directionsHCurl(0,vecIndex) * dphis(1,vertex) / top::NSideNodes(iedge);
+                    } else {
+                        curl(0,edge_count) += directionsHCurl(2,vecIndex) * dphis(1,vertex) / top::NSideNodes(iedge)
+                                            - directionsHCurl(1,vecIndex) * dphis(2,vertex) / top::NSideNodes(iedge);
+                        curl(1,edge_count) += directionsHCurl(0,vecIndex) * dphis(2,vertex) / top::NSideNodes(iedge)
+                                            - directionsHCurl(2,vecIndex) * dphis(0,vertex) / top::NSideNodes(iedge);
+                        curl(2,edge_count) += directionsHCurl(1,vecIndex) * dphis(0,vertex) / top::NSideNodes(iedge)
+                                            - directionsHCurl(0,vecIndex) * dphis(1,vertex) / top::NSideNodes(iedge);
+                    }
+
                     for (size_t i = 0; i < dim; i++)
                     {
                         vecCurl(i,edge_count) += directionsHCurl(i,vecIndex) * phis[vertex] / top::NSideNodes(iedge);
@@ -338,28 +346,32 @@ namespace topologytests{
             }//iedge
 
             //Compute the curl for each edge
-            top::ComputeConstantHCurl(node,N0Function,curl);
-
-            // std::cout << "Point = " << node << std::endl;
-            // std::cout << "Vecdiv = " << vecCurl << std::endl;
-            // std::cout << "N0 = " << N0Function << std::endl;
-            // std::cout << "DIV = " << curl << std::endl;
+            top::ComputeConstantHCurl(node,N0Function,curlN0);
             
             // Checks if all edges have the same curl value.
             bool condHcurl = true;
+            bool condHcurlN0 = true;
             for (int i = 0; i < dim; i++){
-                for (int j = 0; j < nFaces; j++){
+                for (int j = 0; j < nEdges; j++){
                     if (fabs(vecCurl(i,j)-N0Function(i,j)) > tol){
                         condHcurl = false;
                     } 
                 }
             }
-            if(!condHcurl){
+            for (int i = 0; i < 3; i++){
+                for (int j = 0; j < nEdges; j++){
+                    if (fabs(curl(i,j)-curlN0(i,j)) > tol){
+                        condHcurlN0 = false;
+                    } 
+                }
+            }
+            if(!condHcurl || !condHcurlN0){
                 std::cerr << "\n" + testName + " failed Hcurl" +
                                 "\ntopology: " + MElementType_Name(type);
             }
 
             REQUIRE(condHcurl);
+            REQUIRE(condHcurlN0);
         }
     }//Testing Constant Curl
 
