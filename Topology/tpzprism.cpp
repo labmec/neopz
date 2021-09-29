@@ -1760,7 +1760,7 @@ namespace pztopology {
 
     /// Compute the directions of the HCurl vectors
     // template <class TVar>
-    void TPZPrism::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZVec<REAL> &div)
+    void TPZPrism::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl)
     {
         REAL scale = 2.;    
         REAL qsi = point[0];

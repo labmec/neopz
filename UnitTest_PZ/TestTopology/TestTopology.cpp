@@ -286,7 +286,7 @@ namespace topologytests{
 
         TPZFMatrix<REAL> vecCurl(dim,nEdges);
         TPZFMatrix<REAL> N0Function(dim,nEdges);
-        TPZVec<REAL> curl(nEdges);
+        TPZFMatrix<REAL> curl(dim,nEdges);
         TPZVec<REAL> node(dim);
         
         //For HCurl
@@ -310,7 +310,7 @@ namespace topologytests{
             gradx.Identity();
             vecCurl.Zero();
             N0Function.Zero();
-            curl.Fill(0.);
+            curl.Zero();
 
             top::ComputeHCurlDirections(gradx,directionsHCurl,transformIds);
             top::Shape(node,phis,dphis);
