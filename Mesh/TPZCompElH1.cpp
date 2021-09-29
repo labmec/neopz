@@ -2,6 +2,8 @@
 #include "pzlog.h"
 #include "pzconnect.h"
 #include "TPZMaterial.h"
+#include "TPZMatSingleSpace.h"
+#include "TPZMaterialData.h"
 #include "pzcmesh.h"
 
 #ifdef PZ_LOG
@@ -83,6 +85,67 @@ TPZCompElH1<TSHAPE>::~TPZCompElH1() {
         }
     }
 }
+
+#include "pzgenericshape.h"
+
+template<class TSHAPE>
+void TPZCompElH1<TSHAPE>::InitMaterialData(TPZMaterialData &data){
+  data.gelElId = this->Reference()->Id();
+    auto *mat =
+        dynamic_cast<TPZMatSingleSpace*>(this->Material());
+#ifdef PZDEBUG
+    if(!mat)
+    {
+        DebugStop();
+    }
+#endif
+    mat->FillDataRequirements(data);
+    const int dim = this->Dimension();
+    const int nshape = this->NShapeF();
+    const int nstate = this->Material()->NStateVariables();
+    data.fShapeType = TPZMaterialData::EScalarShape;
+    data.phi.Redim(nshape,1);
+    data.dphi.Redim(dim,nshape);
+    data.dphix.Redim(dim,nshape);
+    data.axes.Redim(dim,3);
+    data.jacobian.Redim(dim,dim);
+    data.jacinv.Redim(dim,dim);
+    data.x.Resize(3);
+    if (data.fNeedsSol){
+        uint64_t ulen,durow,ducol;
+        mat->GetSolDimensions(ulen,durow,ducol);
+        data.SetSolSizes(nstate, ulen, durow, ducol);
+    }
+    //Completing for three dimensional elements
+    TPZManVector<REAL,3> x_center(3,0.0);
+    TPZVec<REAL> center_qsi(dim,0.0);
+    if (dim == 2) {
+        if (this->Reference()->Type() == ETriangle) {
+            center_qsi[0] = 0.25;
+            center_qsi[1] = 0.25;
+        }
+    }
+    else if (dim == 3) {
+        if (this->Reference()->Type() == EPrisma) {
+            center_qsi[0] = 1./3.;
+            center_qsi[1] = 1./3.;
+            center_qsi[2] = 0.0;
+        }
+        else if (this->Reference()->Type() == ETetraedro) {
+            center_qsi[0] = 0.25;
+            center_qsi[1] = 0.25;
+            center_qsi[2] = 0.25;
+        }
+        else if (this->Reference()->Type() == EPiramide) {
+            center_qsi[0] = 0.0;
+            center_qsi[1] = 0.0;
+            center_qsi[2] = 1./5.;
+        }
+    }
+    this->Reference()->X(center_qsi, x_center);
+    data.XCenter = x_center;
+    
+}//void
 
 
 template<class TSHAPE>
