@@ -50,6 +50,13 @@ public:
 		return new TPZCompElH1<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
   
+    /**
+     * @brief Initialize a material data and its attributes based on element dimension, number
+     * of state variables and material definitions
+     */
+virtual void InitMaterialData(TPZMaterialData &data) override;
+    
+
   inline int NConnects() const override{
 		return TSHAPE::NSides;
 	}

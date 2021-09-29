@@ -8,13 +8,14 @@
 
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
+#include "TPZShapeData.h"
 
 /**
  * @ingroup material
  * @brief This class implements a type-agnostic interface between TPZCompEl::CalcStiff and Contribute methods of the materials. \n
  * It requests to the material which attributes must be computed by the computational element and trigger their computation.
  */
-class TPZMaterialData : virtual public TPZSavable {
+class TPZMaterialData : public TPZShapeData, virtual public TPZSavable {
 
 public:
     //! Default constructor.
