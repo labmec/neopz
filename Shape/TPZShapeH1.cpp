@@ -21,11 +21,16 @@ void TPZShapeH1<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
     ComputeTransforms<TSHAPE>(ids, data.fSideTransforms);
     data.fCornerNodeIds = ids;
     data.fNSideShape.resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
+    int64_t nshape = TSHAPE::NCornerNodes;
     for(int i = TSHAPE::NCornerNodes; i < TSHAPE::NSides; i++)
     {
-        data.fNSideShape[i-TSHAPE::NCornerNodes] = TSHAPE::NConnectShapeF(i,connectorders[i-TSHAPE::NCornerNodes]);
+        int nshapeconnect = TSHAPE::NConnectShapeF(i,connectorders[i-TSHAPE::NCornerNodes]);
+        data.fNSideShape[i-TSHAPE::NCornerNodes] = nshapeconnect;
+        nshape += nshapeconnect;
     }
     data.fSideOrient = sideorient;
+    data.fPhi.Resize(nshape,1);
+    data.fDPhi.Resize(TSHAPE::Dimension, nshape);
 //    fNodeIds = ids; Should we make it an attribute of the class?
 }
 
