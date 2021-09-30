@@ -9,7 +9,7 @@
 #include "pzshapepiram.h"
 
 template <class TSHAPE>
-TPZTransform<REAL> GetSideTransform(int side, int trans_id) {
+TPZTransform<REAL> GetSideTransform(const int side, int trans_id) {
     
     MElementType type_side = TSHAPE::Type(side);
     TPZTransform<REAL> TransElToSide = TSHAPE::TransformElementToSide(side);
@@ -55,7 +55,7 @@ TPZTransform<REAL> GetSideTransform(int side, int trans_id) {
 }
 
 template <class TSHAPE>
-void ComputeTransforms(TPZVec<int64_t> &id,  TPZVec<TPZTransform<REAL> > &transvec) {
+void ComputeTransforms(const TPZVec<int64_t> &id,  TPZVec<TPZTransform<REAL> > &transvec) {
     int NSides = TSHAPE::NSides;
     int NCorners = TSHAPE::NCornerNodes;
     transvec.resize(NSides - NCorners);
@@ -192,9 +192,9 @@ void inline Shape(TPZVec<REAL> &pt, TParDefs &par, TPZFMatrix<REAL> &phi, TPZFMa
 template \
 void Shape<TSHAPE>(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);\
 template \
-TPZTransform<REAL> GetSideTransform<TSHAPE>(int side, int trans_id);\
+TPZTransform<REAL> GetSideTransform<TSHAPE>(const int side, int trans_id);\
 template \
-void ComputeTransforms<TSHAPE>(TPZVec<int64_t> &id,  TPZVec<TPZTransform<REAL> > &transvec);
+void ComputeTransforms<TSHAPE>(const TPZVec<int64_t> &id,  TPZVec<TPZTransform<REAL> > &transvec);
 
 IMPLEMENTSHAPE(pzshape::TPZShapeLinear)
 IMPLEMENTSHAPE(pzshape::TPZShapeTriang)

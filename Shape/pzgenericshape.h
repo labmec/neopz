@@ -10,9 +10,9 @@ class TPZFMatrix;
 
 
 template <class TSHAPE>
-TPZTransform<REAL> GetSideTransform(int side, int trans_id);
+TPZTransform<REAL> GetSideTransform(const int side, int trans_id);
 template <class TSHAPE>
-void ComputeTransforms(TPZVec<int64_t> &id,  TPZVec<TPZTransform<REAL> > &transvec) ;
+void ComputeTransforms(const TPZVec<int64_t> &id,  TPZVec<TPZTransform<REAL> > &transvec) ;
 
 template <class TSHAPE>
 void Shape(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) ;
