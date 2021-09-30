@@ -7,6 +7,7 @@
 #include "pzshapecube.h"
 #include "pzshapeprism.h"
 #include "pzshapepiram.h"
+#include "pzshapepoint.h"
 
 
 template <class TSHAPE>
@@ -31,16 +32,16 @@ void TPZShapeH1<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
 
 
 template <class TSHAPE>
-void TPZShapeH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+void TPZShapeH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data) {
 
     
 //    TPZVec<REAL> &pt = par.pt;
 //    TPZFMatrix<REAL> &phi = par.phi;
 //    TPZFMatrix<REAL> &dphi = par.dphi;
     
-    TSHAPE::ShapeCorner(pt,phi,dphi);
+    TSHAPE::ShapeCorner(pt,data.fPhi,data.fDPhi);
     
-    if(phi.Rows() == TSHAPE::NCornerNodes) return;
+    if(data.fPhi.Rows() == TSHAPE::NCornerNodes) return;
     
     const int dim = TSHAPE::Dimension;
     const int NSides = TSHAPE::NSides;
@@ -49,10 +50,10 @@ void TPZShapeH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<
     TPZFNMatrix<27*3,REAL> phiblend(NSides,1),dphiblend(dim,NSides);
     for(int nod=0; nod<NCorners; nod++)
     {
-        phiblend(nod,0) = phi(nod,0);
+        phiblend(nod,0) = data.fPhi(nod,0);
         for(int d=0; d< dim; d++)
         {
-            dphiblend(d,nod) = dphi(d,nod);
+            dphiblend(d,nod) = data.fDPhi(d,nod);
         }
     }
     TSHAPE::ShapeGenerating(pt, data.fNSideShape, phiblend, dphiblend);
@@ -63,8 +64,8 @@ void TPZShapeH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<
         int numshape =nshape[side - NCorners];
         if(numshape == 0) continue;
         
-        phi(shape,0) = phiblend(side,0);
-        for(int d=0; d<TSHAPE::Dimension; d++) dphi(d,shape) = dphiblend(d,side);
+        data.fPhi(shape,0) = phiblend(side,0);
+        for(int d=0; d<TSHAPE::Dimension; d++) data.fDPhi(d,shape) = dphiblend(d,side);
         shape++;
         
         if(numshape == 1) continue;
@@ -87,18 +88,18 @@ void TPZShapeH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<
             mult.MultAdd(dphin, auxmat, dphiaux,alpha,beta,opt);
             
             for (int i = 1; i < numshape; i++) {
-                phi(shape,0) = phiblend(side,0)*phin(i,0);
+                data.fPhi(shape,0) = phiblend(side,0)*phin(i,0);
                 for(int xj=0;xj<TSHAPE::Dimension;xj++) {
-                    dphi(xj,shape) = dphiblend(xj,side)*phin(i,0)+phiblend(side,0)*dphiaux(xj,i);
+                    data.fDPhi(xj,shape) = dphiblend(xj,side)*phin(i,0)+phiblend(side,0)*dphiaux(xj,i);
                 }
                 shape++;
             }
         } else
         {
             for (int i = 1; i < numshape; i++) {
-                phi(shape,0) = phiblend(side,0)*phin(i,0);
+                data.fPhi(shape,0) = phiblend(side,0)*phin(i,0);
                 for(int xj=0;xj<TSHAPE::Dimension;xj++) {
-                    dphi(xj,shape) = dphiblend(xj,side)*phin(i,0)+phiblend(side,0)*dphin(xj,i);
+                    data.fDPhi(xj,shape) = dphiblend(xj,side)*phin(i,0)+phiblend(side,0)*dphin(xj,i);
                 }
                 shape++;
             }
@@ -107,6 +108,9 @@ void TPZShapeH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<
     }
     
 }
+
+template
+struct TPZShapeH1<pzshape::TPZShapePoint>;
 
 template
 struct TPZShapeH1<pzshape::TPZShapeLinear>;

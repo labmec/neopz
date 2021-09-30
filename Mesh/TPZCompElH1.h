@@ -56,6 +56,13 @@ public:
      */
 virtual void InitMaterialData(TPZMaterialData &data) override;
     
+    /// Compute the values of the shape functions and their derivative and other data required
+    template<class TVar>
+    void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
+                                     TPZVec<REAL> &qsi);
+
+    /// computes the shape functions in the master element AND its derivatives
+    void ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data) override;
 
   inline int NConnects() const override{
 		return TSHAPE::NSides;

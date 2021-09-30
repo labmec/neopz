@@ -286,7 +286,7 @@ void TPZShapeHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatri
 //    FillOrder(ord);
 //    int nshape= this->NShapeContinuous(ord);
 
-    TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);
+    TPZShapeH1<TSHAPE>::Shape(pt,data);
     for(int i = 0; i< data.fVecShapeIndex.size(); i++)
     {
         auto it = data.fVecShapeIndex[i];

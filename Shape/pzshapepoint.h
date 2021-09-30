@@ -45,6 +45,26 @@ namespace pzshape{
 			phi(0,0) = 1.;
 		}
 		
+        static void ShapeCorner(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
+        {
+            phi(0,0) = 1.;
+        }
+        /**
+         * @brief Computes the generating shape functions for a quadrilateral element
+         * @param pt (input) point where the shape function is computed
+         * @param phi (input/output) value of the (4) shape functions
+         * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
+         */
+        static void ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){}
+
+        static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){}
+
+        static void ShapeInternal(int side, TPZVec<REAL> &x, int order, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+        {
+            
+        }
+
+        
 		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 			if(side == 0) Shape(pt,id,order,phi,dphi);
 		}

@@ -87,6 +87,8 @@ TPZCompElH1<TSHAPE>::~TPZCompElH1() {
 }
 
 #include "pzgenericshape.h"
+#include "TPZShapeData.h"
+#include "TPZShapeH1.h"
 
 template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::InitMaterialData(TPZMaterialData &data){
@@ -99,9 +101,16 @@ void TPZCompElH1<TSHAPE>::InitMaterialData(TPZMaterialData &data){
         DebugStop();
     }
 #endif
+    TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes);
+    TPZManVector<int,TSHAPE::NSides> orders(TSHAPE::NSides-TSHAPE::NCornerNodes);
+    TPZManVector<int,TSHAPE::NFacets> sideorient(TSHAPE::NFacets,0);
+    TPZGeoEl *gel = this->Reference();
+    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
+    for(int i=0; i<TSHAPE::NSides; i++) orders[i] = this->Connect(i).Order();
+    TPZShapeH1<TSHAPE>::Initialize(ids, orders, sideorient, data);
     mat->FillDataRequirements(data);
     const int dim = this->Dimension();
-    const int nshape = this->NShapeF();
+    const int nshape = data.fPhi.Rows();
     const int nstate = this->Material()->NStateVariables();
     data.fShapeType = TPZMaterialData::EScalarShape;
     data.phi.Redim(nshape,1);
@@ -116,37 +125,52 @@ void TPZCompElH1<TSHAPE>::InitMaterialData(TPZMaterialData &data){
         mat->GetSolDimensions(ulen,durow,ducol);
         data.SetSolSizes(nstate, ulen, durow, ducol);
     }
-    //Completing for three dimensional elements
-    TPZManVector<REAL,3> x_center(3,0.0);
-    TPZVec<REAL> center_qsi(dim,0.0);
-    if (dim == 2) {
-        if (this->Reference()->Type() == ETriangle) {
-            center_qsi[0] = 0.25;
-            center_qsi[1] = 0.25;
-        }
+    if(data.fNeedsNeighborCenter)
+    {
+        TPZGeoElSide gelside(gel);
+        gelside.CenterX(data.XCenter);
     }
-    else if (dim == 3) {
-        if (this->Reference()->Type() == EPrisma) {
-            center_qsi[0] = 1./3.;
-            center_qsi[1] = 1./3.;
-            center_qsi[2] = 0.0;
-        }
-        else if (this->Reference()->Type() == ETetraedro) {
-            center_qsi[0] = 0.25;
-            center_qsi[1] = 0.25;
-            center_qsi[2] = 0.25;
-        }
-        else if (this->Reference()->Type() == EPiramide) {
-            center_qsi[0] = 0.0;
-            center_qsi[1] = 0.0;
-            center_qsi[2] = 1./5.;
-        }
-    }
-    this->Reference()->X(center_qsi, x_center);
-    data.XCenter = x_center;
     
 }//void
 
+template<class TSHAPE>
+void TPZCompElH1<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
+    
+    TPZShapeData &shapedata = data;
+    TPZShapeH1<TSHAPE>::Shape(intpoint,shapedata);
+    TPZGeoEl *gel = this->Reference();
+    gel->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+    int tranpose = 1;
+    REAL alpha = 1.;
+    REAL beta = 0.;
+    data.jacinv.MultAdd(shapedata.fDPhi, data.dphix, data.dphix,alpha,beta,tranpose);
+    data.phi = shapedata.fPhi;
+}
+
+
+template<class TSHAPE>
+template<class TVar>
+void TPZCompElH1<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
+                                                TPZVec<REAL> &qsi){
+//    data.intGlobPtIndex = -1;
+    this->ComputeShape(qsi, data);
+    
+    if (data.fNeedsSol){
+        this->ReallyComputeSolution(data);
+    }//fNeedsSol
+    
+    data.x.Resize(3, 0.0);
+    this->Reference()->X(qsi, data.x);
+    data.xParametric = qsi;
+    if (data.fNeedsHSize){
+        data.HSize = 2.*this->InnerRadius();
+    }//fNeedHSize
+    
+    if (data.fNeedsNormal){
+        this->ComputeNormal(data);
+    }//fNeedsNormal
+    
+}//void
 
 template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
@@ -335,10 +359,8 @@ template class TPZCompElH1<TPZShapeQuad>;
 template class TPZCompElH1<TPZShapeTetra>;
 template class TPZCompElH1<TPZShapePrism>;
 template class TPZCompElH1<TPZShapePiram>;
-template class TPZCompElH1<TPZShapePiramHdiv>;
 template class TPZCompElH1<TPZShapeCube>;
 
-#ifndef BORLAND
 template class TPZRestoreClass< TPZCompElH1<TPZShapePoint>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapeLinear>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapeTriang>>;
@@ -347,5 +369,3 @@ template class TPZRestoreClass< TPZCompElH1<TPZShapeCube>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapeTetra>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapePrism>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapePiram>>;
-template class TPZRestoreClass< TPZCompElH1<TPZShapePiramHdiv>>;
-#endif

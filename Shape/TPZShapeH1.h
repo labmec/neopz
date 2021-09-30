@@ -7,7 +7,7 @@
 #include "TPZShapeData.h"
 
 template <class TSHAPE>
-struct TPZShapeH1 : public TSHAPE
+struct TPZShapeH1
 {
 //    TPZManVector<int,27> fConnectOrders;
 //    TPZManVector<int,27> fNSideShape;
@@ -15,7 +15,7 @@ struct TPZShapeH1 : public TSHAPE
     
     static void Initialize(const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, const TPZVec<int> &sideorient, TPZShapeData &data);
     
-    static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+    static void Shape(TPZVec<REAL> &pt, TPZShapeData &data);
 
 //    typedef typename TSHAPE::GraphElType GraphElType;
 };
