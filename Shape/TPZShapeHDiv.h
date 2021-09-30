@@ -11,7 +11,7 @@ class TPZShapeData;
 
 /// Traditional HDiv spaces, data structures that do not depend on the geometric map
 template <class TSHAPE>
-struct TPZShapeHDiv : public TSHAPE
+struct TPZShapeHDiv
 {
     
     TPZShapeHDiv();

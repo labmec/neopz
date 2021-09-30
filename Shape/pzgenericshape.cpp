@@ -7,6 +7,7 @@
 #include "pzshapecube.h"
 #include "pzshapeprism.h"
 #include "pzshapepiram.h"
+#include "pzshapepoint.h"
 
 template <class TSHAPE>
 TPZTransform<REAL> GetSideTransform(const int side, int trans_id) {
@@ -196,6 +197,7 @@ TPZTransform<REAL> GetSideTransform<TSHAPE>(const int side, int trans_id);\
 template \
 void ComputeTransforms<TSHAPE>(const TPZVec<int64_t> &id,  TPZVec<TPZTransform<REAL> > &transvec);
 
+IMPLEMENTSHAPE(pzshape::TPZShapePoint)
 IMPLEMENTSHAPE(pzshape::TPZShapeLinear)
 IMPLEMENTSHAPE(pzshape::TPZShapeTriang)
 IMPLEMENTSHAPE(pzshape::TPZShapeQuad)
