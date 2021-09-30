@@ -67,7 +67,7 @@ public:
     //! Parametric transforms between sides
     TPZManVector<TPZTransform<REAL>, 20> fSideTransforms;
     //! Number of shape functions by connect
-    TPZManVector<int,27> fNSideShape;
+    TPZManVector<int,27> fConnectShape;
     //! Vector of shapefunctions (format is dependent on the value of shapetype) over the master element
     TPZFNMatrix<MatDataNumPhi, REAL> fPhi;
     //! Values of the derivative of the shape functions over the master element

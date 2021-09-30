@@ -26,7 +26,7 @@ struct TPZShapeHDiv
     
     static void IndexShapeToVec(TPZShapeData &data);
     
-    static void FirstShapeIndex(TPZVec<int64_t> &Index, TPZVec<int> &scalarorders);
+    static void FirstShapeIndex(TPZVec<int64_t> &Index, int &scalarorders);
     
     static void FillOrderScalarShapeFunctions(const TPZVec<int> &connectorders, TPZVec<int> &scalarOrder);
     
@@ -34,6 +34,7 @@ struct TPZShapeHDiv
     
     static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 
+    static int NConnectShapeF(int connect, TPZShapeData &data);
 };
 
 #endif

@@ -18,7 +18,7 @@
 #include "pzshapepiram.h"
 #include "tpzline.h"
 #include "tpztriangle.h"
-
+#include "TPZShapeHDiv.h"
 
 #include "pzshtmat.h"
 
@@ -1444,6 +1444,16 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
+
+    TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes);
+    TPZManVector<int,TSHAPE::NSides> orders(TSHAPE::NSides-TSHAPE::NCornerNodes);
+    TPZManVector<int,TSHAPE::NFacets> sideorient(TSHAPE::NFacets,0);
+    TPZGeoEl *gel = this->Reference();
+    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
+    for(int i=0; i<TSHAPE::NFacets+1; i++) orders[i] = this->Connect(i).Order();
+    for(int i=0; i<TSHAPE::NFacets; i++) sideorient[i] = this->SideOrient(i);
+    TPZShapeHDiv<TSHAPE>::Initialize(ids, orders, sideorient, data);
+
 	TPZIntelGen<TSHAPE>::InitMaterialData(data);
 //	if (TSHAPE::Type()==EQuadrilateral) {
 //        int maxorder = this->MaxOrder();
