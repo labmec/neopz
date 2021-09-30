@@ -20,12 +20,12 @@ void TPZShapeH1<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
     }
     ComputeTransforms<TSHAPE>(ids, data.fSideTransforms);
     data.fCornerNodeIds = ids;
-    data.fNSideShape.resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
+    data.fConnectShape.resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
     int64_t nshape = TSHAPE::NCornerNodes;
     for(int i = TSHAPE::NCornerNodes; i < TSHAPE::NSides; i++)
     {
         int nshapeconnect = TSHAPE::NConnectShapeF(i,connectorders[i-TSHAPE::NCornerNodes]);
-        data.fNSideShape[i-TSHAPE::NCornerNodes] = nshapeconnect;
+        data.fConnectShape[i-TSHAPE::NCornerNodes] = nshapeconnect;
         nshape += nshapeconnect;
     }
     data.fSideOrient = sideorient;
@@ -61,9 +61,9 @@ void TPZShapeH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data) {
             dphiblend(d,nod) = data.fDPhi(d,nod);
         }
     }
-    TSHAPE::ShapeGenerating(pt, data.fNSideShape, phiblend, dphiblend);
+    TSHAPE::ShapeGenerating(pt, data.fConnectShape, phiblend, dphiblend);
     int shape = NCorners;
-    TPZVec<int> &nshape = data.fNSideShape;
+    TPZVec<int> &nshape = data.fConnectShape;
     for (int side = NCorners; side<NSides ; side++)
     {
         int numshape =nshape[side - NCorners];
