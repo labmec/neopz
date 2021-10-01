@@ -14,18 +14,21 @@ template <class TSHAPE>
 void TPZShapeH1<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
                                            const TPZVec<int> &connectorders,
                                            const TPZVec<int> &sideorient, TPZShapeData &data) {
-    data.fConnectOrders.Resize(connectorders.size());
-    for (int i = 0; i < connectorders.size(); i++) {
-        data.fConnectOrders[i] = connectorders[i];
+    const int ncorner = TSHAPE::NCornerNodes;
+    const int nsides = TSHAPE::NSides;
+    if(ids.size() != ncorner || connectorders.size() != nsides-ncorner)
+    {
+        DebugStop();
     }
+    data.fH1ConnectOrders = connectorders;
     ComputeTransforms<TSHAPE>(ids, data.fSideTransforms);
     data.fCornerNodeIds = ids;
-    data.fConnectShape.resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
+    data.fH1NumConnectShape.resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
     int64_t nshape = TSHAPE::NCornerNodes;
     for(int i = TSHAPE::NCornerNodes; i < TSHAPE::NSides; i++)
     {
         int nshapeconnect = TSHAPE::NConnectShapeF(i,connectorders[i-TSHAPE::NCornerNodes]);
-        data.fConnectShape[i-TSHAPE::NCornerNodes] = nshapeconnect;
+        data.fH1NumConnectShape[i-TSHAPE::NCornerNodes] = nshapeconnect;
         nshape += nshapeconnect;
     }
     data.fSideOrient = sideorient;
@@ -52,7 +55,7 @@ void TPZShapeH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data) {
     const int NSides = TSHAPE::NSides;
     const int NCorners = TSHAPE::NCornerNodes;
 
-    TPZFNMatrix<27*3,REAL> phiblend(NSides,1),dphiblend(dim,NSides);
+    TPZFNMatrix<NSides*dim,REAL> phiblend(NSides,1),dphiblend(dim,NSides);
     for(int nod=0; nod<NCorners; nod++)
     {
         phiblend(nod,0) = data.fPhi(nod,0);
@@ -61,16 +64,15 @@ void TPZShapeH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data) {
             dphiblend(d,nod) = data.fDPhi(d,nod);
         }
     }
-    TSHAPE::ShapeGenerating(pt, data.fConnectShape, phiblend, dphiblend);
+    TSHAPE::ShapeGenerating(pt, phiblend, dphiblend);
     int shape = NCorners;
-    TPZVec<int> &nshape = data.fConnectShape;
     for (int side = NCorners; side<NSides ; side++)
     {
-        int numshape =nshape[side - NCorners];
+        int numshape = TSHAPE::NConnectShapeF(side, data.fH1ConnectOrders[side-NCorners]);
         if(numshape == 0) continue;
         
         data.fPhi(shape,0) = phiblend(side,0);
-        for(int d=0; d<TSHAPE::Dimension; d++) data.fDPhi(d,shape) = dphiblend(d,side);
+        for(int d=0; d<dim; d++) data.fDPhi(d,shape) = dphiblend(d,side);
         shape++;
         
         if(numshape == 1) continue;
@@ -82,7 +84,7 @@ void TPZShapeH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data) {
         TPZManVector<REAL,3> outvec(sidedim);
         transform.Apply(pt, outvec);
 //        dphin.Zero();
-        TSHAPE::ShapeInternal(side, outvec,data.fConnectOrders[side - NCorners], phin, dphin);
+        TSHAPE::ShapeInternal(side, outvec,data.fH1ConnectOrders[side - NCorners], phin, dphin);
         if(sidedim < 3)
         {
             constexpr REAL alpha = 1.;

@@ -35,14 +35,14 @@ void TPZShapeHDiv<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
 
     TPZShapeH1<TSHAPE>::Initialize(data.fCornerNodeIds, scalarOrders, data.fSideOrient, data);
     
-    data.fConnectOrders = connectorders;
+    data.fHDivConnectOrders = connectorders;
 
-    data.fConnectShape.Resize(TSHAPE::NFacets+1);
+    data.fHDivNumConnectShape.Resize(TSHAPE::NFacets+1);
     int nShape = 0;
     for (int i = 0; i < TSHAPE::NFacets+1; i++)
     {
-        data.fConnectShape[i] = NConnectShapeF(i,data);
-        nShape += data.fConnectShape[i];
+        data.fHDivNumConnectShape[i] = NConnectShapeF(i,data);
+        nShape += data.fHDivNumConnectShape[i];
     }
     
     data.fVecShapeIndex.Resize(nShape);
@@ -96,11 +96,9 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
     }
     
     //const int pressureorder = data.fHDivConnectOrders[TSHAPE::NFacets];TODOPHIL
-    const int pressureorder = data.fConnectOrders[TSHAPE::NFacets];
+    const int pressureorder = data.fHDivConnectOrders[TSHAPE::NFacets]+1;
 
-    TPZManVector<int,TSHAPE::NFacets+1> scalarorders(TSHAPE::NSides-TSHAPE::NCornerNodes,pressureorder); 
-    FillOrderScalarShapeFunctions(data.fConnectOrders, scalarorders);
-    int nshape = TSHAPE::NShapeF(scalarorders);
+    int nshape = TSHAPE::NShapeF(data.fH1ConnectOrders);
 
     int nexternalvectors = 0;
     TPZManVector<int> facevector(VectorSides.size(),TSHAPE::NSides-1);
@@ -134,12 +132,12 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
         vecpermute[count] = count;
     }
     TPZGenMatrix<int> shapeorders(nshape,3);
-    TSHAPE::ShapeOrder(data.fCornerNodeIds, scalarorders, shapeorders);
+    TSHAPE::ShapeOrder(data.fCornerNodeIds, data.fH1ConnectOrders, shapeorders);
 
 //    int nshapeflux = NFluxShapeF();
 //    IndexVecShape.Resize(nshapeflux);
 
-    int scalarorder = data.fConnectOrders[TSHAPE::NFacets]+1;
+    int scalarorder = data.fHDivConnectOrders[TSHAPE::NFacets]+1;
     // VectorSide indicates the side associated with each vector entry
     TPZManVector<int64_t,27> FirstIndex(TSHAPE::NSides+1);
     // the first index of the shape functions
@@ -148,15 +146,16 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
     int64_t nvec = VectorSides.NElements();
     count = 0;
 
+    const int firstface = TSHAPE::NSides-TSHAPE::NFacets-1;
     for (int locvec = 0; locvec<nexternalvectors; locvec++) {
         int ivec = vecpermute[locvec];
         int side = VectorSides[ivec];
         int face = facevector[locvec];
 //        int connectindex = SideConnectLocId(0, face);
-        int connectindex = face-(TSHAPE::NSides-TSHAPE::NumSides(TSHAPE::Dimension-1)-1);
+        int connectindex = face-firstface;
 //        int order = this->Connect(connectindex).Order();
         //int order = data.fHDivConnectOrders[connectindex];
-        int order = data.fConnectOrders[connectindex];//TODOPHIL
+        int order = data.fHDivConnectOrders[connectindex];//TODOPHIL
 
         int firstshape = FirstIndex[side];
         int lastshape = FirstIndex[side+1];
@@ -299,6 +298,9 @@ void TPZShapeHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatri
 //    FillOrder(ord);
 //    int nshape= this->NShapeContinuous(ord);
 
+    const int ncorner = TSHAPE::NCornerNodes;
+    const int nsides = TSHAPE::NSides;
+    const int dim = TSHAPE::Dimension;
     TPZShapeH1<TSHAPE>::Shape(pt,data);
     for(int i = 0; i< data.fVecShapeIndex.size(); i++)
     {
@@ -386,7 +388,7 @@ int TPZShapeHDiv<TSHAPE>::NConnectShapeF(int connect, TPZShapeData &data)
         DebugStop();
     }
 #endif
-    int order = data.fConnectOrders[connect];
+    int order = data.fHDivConnectOrders[connect];
     MElementType thistype = TSHAPE::Type();
 
     if(thistype == EOned)
@@ -421,176 +423,6 @@ int TPZShapeHDiv<TSHAPE>::NConnectShapeF(int connect, TPZShapeData &data)
         else return 3*order*(order+1)*(order+1);
     }
     DebugStop();
-    // @TODO put in the analytic values
-    if (connect < TSHAPE::NFacets) {
-//         int order = 0;
-//         if (connectindex >= 0) {
-//             order = this->Connect(connect).Order();
-//         }
-//         else
-//         {
-//             order = this->fPreferredOrder;
-//         }
-         const int nfaces = TSHAPE::NFacets;
-         int face = TSHAPE::NSides-nfaces+connect-1;
-         TPZStack<int> lowerdimensionsides;
-         TSHAPE::LowerDimensionSides(face,lowerdimensionsides);
-         int nshape = TSHAPE::NConnectShapeF(face,order);
-         for (int is=0; is<lowerdimensionsides.size(); is++) {
-             nshape += TSHAPE::NConnectShapeF(lowerdimensionsides[is],order);
-         }
-         return nshape;
-     }
-
-    // connect == NFacets
-
-     const int nfaces = TSHAPE::NFacets;
-     int face = TSHAPE::NSides-nfaces-1;
-    // nvecignore is the first vector index associated with the internal vectors
-     int nvecignore = 0;
-     for (int side = face; side < TSHAPE::NSides-1; side++) {
-         nvecignore += TSHAPE::NContainedSides(side);
-     }
-
-
-     TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides+1> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
-     TSHAPE::GetSideHDivDirections(vecside,directions,bilinear);
-//     if (TSHAPE::Type()==ETriangle||TSHAPE::Type()==ETetraedro) {
-////         pressureorder=this->fPreferredOrder-1;
-//     }
-//     else if (TSHAPE::Type()==ECube||TSHAPE::Type()==EQuadrilateral||TSHAPE::Type()==EPrisma) {
-//         pressureorder=this->fPreferredOrder;
-//     }
-//     else
-//     {
-//         // Tipo nao implementado
-//         DebugStop();
-//     }
-     TPZManVector<int,27> orders(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
-     orders = data.fConnectOrders;
-     int nshapeH1 = TSHAPE::NShapeF(orders);
-
-     TPZManVector<int64_t, TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes);
-     id = data.fCornerNodeIds;
-     
-     int nexternalvectors = 0;
-     nexternalvectors = nvecignore;
-
-     TPZGenMatrix<int> shapeorders(nshapeH1,3);
-     TSHAPE::ShapeOrder(id, orders, shapeorders);
-    {
-        static int first = 0;
-        if (first==0) {
-            shapeorders.Print("ShapeOrders");
-            first++;
-        }
-    }
-    int scalarorder = data.fConnectOrders[TSHAPE::NFacets]+1;
-     // VectorSide indicates the side associated with each vector entry
-     TPZManVector<int64_t,30> FirstIndex(TSHAPE::NSides+1);
-     // the first index of the shape functions
-     FirstShapeIndex(FirstIndex,scalarorder);
-     //FirstIndex.Print();
-
-#ifdef PZ_LOG2
-     if (logger.isDebugEnabled())
-     {
-         std::stringstream sout;
-         sout << "FirstIndex "<<FirstIndex << std::endl;
-         LOGPZ_DEBUG(logger,sout.str())
-     }
-#endif
-
-     int count = 0;
-
-    int internalorder = data.fConnectOrders[connect];
-
-     int64_t nvec = vecside.NElements();
-     for (int locvec = nexternalvectors; locvec<nvec; locvec++)
-     {
-         int side = vecside[locvec];
-         int bil = bilinear[locvec];
-         int dir = directions[locvec];
-
-         MElementType tipo = TSHAPE::Type(side);
-
-         int firstshape = FirstIndex[side];
-         int lastshape = FirstIndex[side+1];
-
-         for (int ish = firstshape; ish<lastshape; ish++)
-         {
-             int sidedimension = TSHAPE::SideDimension(side);
-             int maxorder[3] = {internalorder,internalorder,internalorder};
-             if (bil) {
-                 maxorder[dir]++;
-             }
-             int include=true;
-             for (int d=0; d<sidedimension; d++)
-             {
-                 if (tipo==ETriangle||tipo==ETetraedro)//
-                 {
-                     if (shapeorders(ish,d) > maxorder[d]+1) {
-                         include = false;
-                     }
-                 }
-                 else if(tipo==EQuadrilateral)
-                 {
-                     if (shapeorders(ish,d) > maxorder[d]) {
-                         include = false;
-                     }
-                 }
-                 else if(tipo==ECube)
-                 {
-                     if (shapeorders(ish,d) > maxorder[d]) {
-                         include = false;
-                     }
-                 }
-                 else if (tipo==EPrisma)
-                 {
-                     //DebugStop();
-                     if (shapeorders(ish,d) > maxorder[d]) {
-                         include = false;
-                     }
-                 }
-                 else if (tipo == EOned)
-                 {
-                     if (shapeorders(ish,0) > maxorder[d]) {
-                         include = false;
-                     }
-                 }
-                 else if (tipo == EPoint)
-                 {
-                     DebugStop();
-                 }
-                 else if (tipo == EPiramide)
-                 {
-                     if (shapeorders(ish,d) > maxorder[d]) {
-                         include = false;
-                     }
-                 }
-                 else
-                 {
-                     DebugStop();
-                 }
-             }
-             if (include)
-             {
-                 count++;
-             }
-         }
-     }
-    return count;
-
-
- #ifdef PZ_LOG2
-     {
-         std::stringstream sout;
-         sout <<__PRETTY_FUNCTION__<< "unhandled case ";
-         LOGPZ_ERROR(logger,sout.str())
-     }
- #endif
- return -1;
-
  }
 
 
