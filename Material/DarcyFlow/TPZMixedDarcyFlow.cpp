@@ -104,10 +104,8 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         TPZFNMatrix<3, REAL> axesvec(3, 1, 0.);
         datavec[0].axes.Multiply(ivec, axesvec);
 
-        REAL divwq = 0.;
-        for (int iloc = 0; iloc < fDim; iloc++) {
-            divwq += axesvec(iloc, 0) * dphiQ(iloc, ishapeind);
-        }
+        REAL divwq = datavec[0].divphi(ivecind);
+
         for (int jp = 0; jp < phrp; jp++) {
 
             REAL fact = (-1.) * weight * phip(jp, 0) * divwq;
