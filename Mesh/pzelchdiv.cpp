@@ -1123,7 +1123,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
             // portion of the gradient coming from the gradient of the scalar function
             for (int e = 0; e < dim; e++) {
                 for (int f = 0; f< dim; f++) {
-                    GradOfPhiHdiv(e,f) = Normalvec(e,ivec)*dphix(f,ishape);
+                    GradOfPhiHdiv(e,f) = 0.;//Normalvec(e,ivec)*dphix(f,ishape);
                 }
             }
 
@@ -1308,7 +1308,6 @@ void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFM
 //    phi.Redim(nshape, 1);
 //    dphi.Redim(TSHAPE::Dimension, nshape);
     TSHAPE::Shape(pt,id,ord,phi,dphi);
-
 }
 
 template<class TSHAPE>
@@ -1379,80 +1378,28 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
     TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
     data.fNeedsSol = needsol;
 
-
-
-    if(data.fNeedsDeformedDirectionsFad){
-        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirectionsFad);
-        int cont = 0;
-        int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
-        int lastface = TSHAPE::NSides - 1;
-        for(int side = firstface; side < lastface; side++)
-        {
-            int nvec = TSHAPE::NContainedSides(side);
-            for (int ivet = 0; ivet<nvec; ivet++)
-            {
-                for (int il = 0; il<3; il++)
-                {
-                    data.fDeformedDirectionsFad(il,ivet+cont) *= fSideOrient[side-firstface];
-                }
-
-            }
-            cont += nvec;
-        }
-    }else{
-        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirections);
-        int cont = 0;
-        int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
-        int lastface = TSHAPE::NSides - 1;
-
-        for(int side = firstface; side < lastface; side++)
-        {
-            int nvec = TSHAPE::NContainedSides(side);
-            for (int ivet = 0; ivet<nvec; ivet++)
-            {
-                for (int il = 0; il<3; il++)
-                {
-                    data.fDeformedDirections(il,ivet+cont) *= fSideOrient[side-firstface];
-                }
-            }
-            cont += nvec;
-        }
-    }
-
-    //Comparar o VecShape*phi nesse ponto com o gradx*Phi no ShapeHdiv. Precisam ser iguais.
-    TPZFMatrix<REAL> phiHdiv(TSHAPE::Dimension,data.fVecShapeIndex.size(),0.);  
-    for (int iq = 0; iq < data.fVecShapeIndex.NElements(); iq++){
-        int i_vec = data.fVecShapeIndex[iq].first;
-        int i_phi_s = data.fVecShapeIndex[iq].second;
-        for (int d = 0; d < TSHAPE::Dimension; d++){
-            phiHdiv(d,iq) +=  data.phi(i_phi_s) * data.fDeformedDirections(d,i_vec);
-        }
-    }
-
     TPZFMatrix<REAL> auxPhi(TSHAPE::Dimension,data.fVecShapeIndex.size(),0.);
     TPZFMatrix<REAL> auxDivPhi(data.fVecShapeIndex.size(),1,0.);
-    TPZShapeHDiv<TSHAPE>::Shape(qsi,data, auxPhi, auxDivPhi);
+    TPZShapeHDiv<TSHAPE>::Shape(qsi,data, auxPhi, data.divphi);
+
+    for (int i = 0; i < data.fVecShapeIndex.size(); i++){
+        data.fVecShapeIndex[i].first = i;
+        data.fVecShapeIndex[i].second = i;
+    }
+    
     TPZFMatrix<REAL> gradx(3,TSHAPE::Dimension,0.);
     this->Reference()->GradX(qsi, gradx);
     TPZFMatrix<REAL> phiSHdiv(TSHAPE::Dimension,data.fVecShapeIndex.size(),0.);
     gradx.Multiply(auxPhi,phiSHdiv);
     phiSHdiv *= 1./data.detjac;
+    data.divphi *= 1/data.detjac;
 
-    REAL tol = 1.e-8;
-    for (int i = 0; i < TSHAPE::Dimension; i++){
-        for (int k = 0; k < data.fVecShapeIndex.size(); k++){
-            if (fabs (phiSHdiv(i,k)-phiHdiv(i,k) > tol )){
-                std::cout << "Different Phis "<< std::endl;
-                std::cout << "phiSHdiv = " << phiSHdiv << std::endl; 
-                std::cout << "phiHdiv = " << phiHdiv << std::endl;
-                DebugStop();
-            }
-        }
-    }
-    
-    
+    data.phi.Resize(data.fVecShapeIndex.size(),1);
+    data.phi = 1.;
+    data.fDeformedDirections.Resize(TSHAPE::Dimension,data.fVecShapeIndex.size());
+    data.fDeformedDirections = phiSHdiv;
 
-    data.ComputeFunctionDivergence();
+
     if (data.fNeedsSol) {
         constexpr bool hasPhi{true};
         ReallyComputeSolution(data);
