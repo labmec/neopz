@@ -61,17 +61,23 @@ public:
     //! Corner node ids determine the parameter transformations to the sides
     TPZManVector<int64_t,8> fCornerNodeIds;
     //! Connect orders determine the number of shape functions
-    TPZManVector<int,27> fConnectOrders;
-    //! The orientation of the sides (either -1 or +1)
-    TPZManVector<int,20> fSideOrient;
+    TPZManVector<int,27> fH1ConnectOrders;
+    //! Number of shape functions by connect
+    TPZManVector<int,27> fH1NumConnectShape;
     //! Parametric transforms between sides
     TPZManVector<TPZTransform<REAL>, 20> fSideTransforms;
-    //! Number of shape functions by connect
-    TPZManVector<int,27> fConnectShape;
     //! Vector of shapefunctions (format is dependent on the value of shapetype) over the master element
     TPZFNMatrix<MatDataNumPhi, REAL> fPhi;
     //! Values of the derivative of the shape functions over the master element
     TPZFNMatrix<3*MatDataNumPhi, REAL> fDPhi;
+
+    // NEEDED BY HDIV OR HCURL
+    //! Connect orders determine the number of shape functions
+    TPZManVector<int,27> fHDivConnectOrders;
+    //! Number of shape functions by connect
+    TPZManVector<int,27> fHDivNumConnectShape;
+    //! The orientation of the sides (either -1 or +1)
+    TPZManVector<int,20> fSideOrient;
     //! Directions on the master element
     TPZFNMatrix<3*MatDataNumDir> fMasterDirections;
     //! Correspondence between direction vector index and index of the shape functions. Used for H(div) and H(curl) approximation spaces.
