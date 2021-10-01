@@ -107,7 +107,7 @@ void TPZCompElH1<TSHAPE>::InitMaterialData(TPZMaterialData &data){
     TPZGeoEl *gel = this->Reference();
     for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
     for(int i=TSHAPE::NCornerNodes; i<TSHAPE::NSides; i++) orders[i-TSHAPE::NCornerNodes] = this->Connect(i).Order();
-    TPZShapeH1<TSHAPE>::Initialize(ids, orders, sideorient, data);
+    TPZShapeH1<TSHAPE>::Initialize(ids, orders, data);
     mat->FillDataRequirements(data);
     const int dim = this->Dimension();
     const int nshape = data.fPhi.Rows();

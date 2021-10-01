@@ -13,7 +13,7 @@ struct TPZShapeH1
 //    TPZManVector<int,27> fNSideShape;
 //    TPZVec<TPZTransform<REAL> > fTransformationVector;
     
-    static void Initialize(const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, const TPZVec<int> &sideorient, TPZShapeData &data);
+    static void Initialize(const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZShapeData &data);
     
     static void Shape(TPZVec<REAL> &pt, TPZShapeData &data);
 

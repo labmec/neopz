@@ -32,7 +32,7 @@ struct TPZShapeHDiv
     
     static void HDivPermutation(int side, TPZShapeData &data, TPZVec<int> &permutegather);
     
-    static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+    static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
 
     static int NConnectShapeF(int connect, TPZShapeData &data);
 };
