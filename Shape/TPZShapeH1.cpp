@@ -13,7 +13,7 @@
 template <class TSHAPE>
 void TPZShapeH1<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
                                            const TPZVec<int> &connectorders,
-                                           const TPZVec<int> &sideorient, TPZShapeData &data) {
+                                           TPZShapeData &data) {
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
     if(ids.size() != ncorner || connectorders.size() != nsides-ncorner)
@@ -31,7 +31,6 @@ void TPZShapeH1<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
         data.fH1NumConnectShape[i-TSHAPE::NCornerNodes] = nshapeconnect;
         nshape += nshapeconnect;
     }
-    data.fSideOrient = sideorient;
     data.fPhi.Resize(nshape,1);
     data.fDPhi.Resize(TSHAPE::Dimension, nshape);
 //    fNodeIds = ids; Should we make it an attribute of the class?

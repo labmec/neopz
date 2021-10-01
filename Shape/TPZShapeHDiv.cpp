@@ -33,7 +33,7 @@ void TPZShapeHDiv<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
     TPZManVector<int,27> scalarOrders(TSHAPE::NSides-TSHAPE::NCornerNodes,scalarorder);
     
 
-    TPZShapeH1<TSHAPE>::Initialize(data.fCornerNodeIds, scalarOrders, data.fSideOrient, data);
+    TPZShapeH1<TSHAPE>::Initialize(data.fCornerNodeIds, scalarOrders, data);
     
     data.fHDivConnectOrders = connectorders;
 
@@ -49,6 +49,16 @@ void TPZShapeHDiv<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
 
     ComputeMasterDirections(data);
     ComputeVecandShape(data);
+    
+    //Checks if the last connect order is >= then the other connects
+    int size = data.fHDivConnectOrders.size();
+    int maxOrder = data.fHDivConnectOrders[size-1];
+    for (int i = 0; i < size-1; i++)
+    {
+        if (data.fHDivConnectOrders[i] > maxOrder){
+            DebugStop();
+        }
+    }    
 }
 
 template<class TSHAPE>
@@ -95,8 +105,8 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
         DebugStop();
     }
     
-    //const int pressureorder = data.fHDivConnectOrders[TSHAPE::NFacets];TODOPHIL
-    const int pressureorder = data.fHDivConnectOrders[TSHAPE::NFacets]+1;
+    // const int pressureorder = data.fHDivConnectOrders[TSHAPE::NFacets];//TODOPHIL
+    const int pressureorder = data.fHDivConnectOrders[TSHAPE::NFacets];
 
     int nshape = TSHAPE::NShapeF(data.fH1ConnectOrders);
 

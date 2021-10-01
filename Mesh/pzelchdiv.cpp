@@ -1419,6 +1419,39 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
         }
     }
 
+    //Comparar o VecShape*phi nesse ponto com o gradx*Phi no ShapeHdiv. Precisam ser iguais.
+    TPZFMatrix<REAL> phiHdiv(TSHAPE::Dimension,data.fVecShapeIndex.size(),0.);  
+    for (int iq = 0; iq < data.fVecShapeIndex.NElements(); iq++){
+        int i_vec = data.fVecShapeIndex[iq].first;
+        int i_phi_s = data.fVecShapeIndex[iq].second;
+        for (int d = 0; d < TSHAPE::Dimension; d++){
+            phiHdiv(d,iq) +=  data.phi(i_phi_s) * data.fDeformedDirections(d,i_vec);
+        }
+    }
+
+    TPZFMatrix<REAL> auxPhi(TSHAPE::Dimension,data.fVecShapeIndex.size(),0.);
+    TPZFMatrix<REAL> auxDivPhi(data.fVecShapeIndex.size(),1,0.);
+    TPZShapeHDiv<TSHAPE>::Shape(qsi,data, auxPhi, auxDivPhi);
+    TPZFMatrix<REAL> gradx(3,TSHAPE::Dimension,0.);
+    this->Reference()->GradX(qsi, gradx);
+    TPZFMatrix<REAL> phiSHdiv(TSHAPE::Dimension,data.fVecShapeIndex.size(),0.);
+    gradx.Multiply(auxPhi,phiSHdiv);
+    phiSHdiv *= 1./data.detjac;
+
+    REAL tol = 1.e-8;
+    for (int i = 0; i < TSHAPE::Dimension; i++){
+        for (int k = 0; k < data.fVecShapeIndex.size(); k++){
+            if (fabs (phiSHdiv(i,k)-phiHdiv(i,k) > tol )){
+                std::cout << "Different Phis "<< std::endl;
+                std::cout << "phiSHdiv = " << phiSHdiv << std::endl; 
+                std::cout << "phiHdiv = " << phiHdiv << std::endl;
+                DebugStop();
+            }
+        }
+    }
+    
+    
+
     data.ComputeFunctionDivergence();
     if (data.fNeedsSol) {
         constexpr bool hasPhi{true};
