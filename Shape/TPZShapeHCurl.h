@@ -9,12 +9,12 @@ class TPZFMatrix;
 
 #include "TPZShapeData.h"
 
-/// Traditional HDiv spaces, data structures that do not depend on the geometric map
+/// Traditional HCurl spaces, data structures that do not depend on the geometric map
 template <class TSHAPE>
 struct TPZShapeHCurl
 {
     
-    TPZShapeHCurl();
+    TPZShapeHCurl() = default;
     
     static void Initialize(TPZVec<int64_t> &ids,
                     TPZVec<int> &connectorders,                    
@@ -24,7 +24,7 @@ struct TPZShapeHCurl
     
     static void ComputeVecandShape(TPZShapeData &data);
     
-    static int NConnectShapeF(int connect, TPZShapeData &data);
+    static int ComputeNConnectShapeF(const int connect, const int order);
 
     static int NHCurlShapeF(TPZShapeData &data);
     
@@ -33,17 +33,19 @@ struct TPZShapeHCurl
         return data.fPhi.Rows();
     }
     
-    static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
+    static void Shape(TPZVec<REAL> &pt, TPZShapeData &data,
+                      TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &curlphi);
 
     /**
     * @brief Returns a matrix index of the shape and vector  associate to element
     * @param[out] IndexVecShape Indicates the pair vector/shape function that will construct the approximation space
     * @param[in] connectOrder Order of the connects
     */
-
-    template<class TSIDESHAPE=TSHAPE>
-    static void StaticIndexShapeToVec(                                      TPZVec<std::pair<int,int64_t>> & indexVecShape, const TPZVec<int>& connectOrder,
-                                      const TPZVec<int64_t>& firstH1ShapeFunc, const TPZVec<int> &sidesH1Ord, TPZVec<unsigned int>& shapeCountVec,
+    static void StaticIndexShapeToVec(TPZVec<std::pair<int,int64_t>> & indexVecShape,
+                                      const TPZVec<int>& connectOrder,
+                                      const TPZVec<int64_t>& firstH1ShapeFunc,
+                                      const TPZVec<int> &sidesH1Ord,
+                                      TPZVec<unsigned int>& shapeCountVec,
                                       const TPZVec<int64_t>& nodeIds);
 
     /**
@@ -56,10 +58,11 @@ struct TPZShapeHCurl
        @note since the h1 vertex functions are always needed, ord has size
        `NSides-NCornerNodes`.
      */
-    template<class TSIDESHAPE=TSHAPE>
-    static void StaticCalcH1ShapeOrders(const TPZVec<int> &ordHCurl,
-                                             TPZVec<int> &ord);
+    static void CalcH1ShapeOrders(const TPZVec<int> &ordHCurl,
+                                  TPZVec<int> &ord);
 
+    //! Max polynomial order
+    [[nodiscard]] static int MaxOrder(const int ordh1);
 };
 
 #endif

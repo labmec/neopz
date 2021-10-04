@@ -589,10 +589,10 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
         }
 
         TPZFNMatrix<4,REAL> Grad0(3,3,0.);
-	TPZGeoEl *ref = this->Reference();
-	const int gel_dim = ref->Dimension();
+        TPZGeoEl *ref = this->Reference();
+        const int gel_dim = ref->Dimension();
 
-	for (int s = 0; s < normvecCols; s++) {
+        for (int s = 0; s < normvecCols; s++) {
             for (int i = 0; i < gel_dim; i++) {
                 for (int j = 0; j < gel_dim; j++) {
                     Grad0(i,j)=data.fDeformedDirectionsFad(i,s).fastAccessDx(j);
