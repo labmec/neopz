@@ -105,10 +105,6 @@ public:
 	virtual int NCornerConnects() const override {
 		return 0;
 	}
-	/** 
-     * @brief return the number of shape for flux(just for flux)
-	 **/
-	virtual int NFluxShapeF() const;
 	
 	virtual int NSideConnects(int side) const override;
     
@@ -187,9 +183,6 @@ public:
      **/
 	int NShapeContinuous(TPZVec<int> &order);
     
-    /// Fill the polynomial order needed from the scalar shape functions
-    void FillOrder(TPZVec<int> &order) const ;
-	
     /// Return the maximum order??
     virtual int MaxOrder() override;
     
@@ -221,9 +214,9 @@ public:
     //@}
 
 	/** @brief Computes the values of the shape function of the side*/
-	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
+	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override ;
 	
-	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
+	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override{};
     
     /** @brief Compute the solution for a given variable */
 	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
