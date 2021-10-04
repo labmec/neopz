@@ -29,7 +29,6 @@ set(headers
   pzelchdiv.h
   pzgeoelrefless.h.h
   pzmultiphysicscompel.h
-  TPZCompElHCurlFull.h
   tpzgeoelmapped.h
   TPZMultiphysicsInterfaceEl.h
   pzcmesh.h
@@ -67,7 +66,6 @@ set(sources
   pzelchdivbound2.cpp
   pzgeoelside.cpp
   pzreducedspace.cpp
-  TPZCompElHCurlFull.cpp
   TPZGeoElSidePartition.cpp
   pzcheckmesh.cpp
   pzelchdiv.cpp

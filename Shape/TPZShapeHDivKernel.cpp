@@ -47,7 +47,7 @@ void TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
         int connectorder = data.fHDivConnectOrders[connect];
         if(ShapeRemove.find(orderpair(sidetype,connectorder)) == ShapeRemove.end()) DebugStop();
         auto remove = ShapeRemove[orderpair(sidetype,connectorder)];
-        data.fHDivNumConnectShape[connect] = TPZShapeHCurl<TSHAPE>::NConnectShapeF(connect, data)-remove.size();
+        data.fHDivNumConnectShape[connect] = TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(connect, connectorder)-remove.size();
         
         
     }
@@ -59,7 +59,7 @@ void TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
         MElementType sidetype = TSHAPE::Type(side);
         int connectorder = data.fHDivConnectOrders[connect];
         auto remove = ShapeRemove[orderpair(sidetype,connectorder)];
-        int nHCurlShape = TPZShapeHCurl<TSHAPE>::NConnectShapeF(connect, data);
+        int nHCurlShape = TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(connect, connectorder);
         for(int ishape = 0; ishape < nHCurlShape; ishape++)
         {
             // skip the removed shape functions
