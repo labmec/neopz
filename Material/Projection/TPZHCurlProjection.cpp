@@ -1,7 +1,6 @@
 #include "TPZHCurlProjection.h"
 #include "TPZMaterialDataT.h"
 #include "TPZBndCondT.h"
-#include "TPZCompElHCurl.h"
 #include "pzaxestools.h"
 
 template<class TVar>
@@ -25,11 +24,8 @@ void TPZHCurlProjection<TVar>::Contribute(const TPZMaterialDataT<TVar> &data,
      * from the combination of scalar functions with 
      * constant vector fields
      */
-	TPZFNMatrix<30,REAL> phiHCurl;
-    TPZHCurlAuxClass::ComputeShape(data.fVecShapeIndex,data.phi,
-                                   data.fDeformedDirections,phiHCurl);
-    
-    const TPZFMatrix<REAL> &curlPhi = data.curlphi;
+    const auto &phiHCurl = data.phi;
+    const auto &curlPhi = data.curlphi;
 
     //last position of solLoc is the curl
     TPZManVector<TVar,6> solLoc(fDim + fCurlDim);
@@ -75,8 +71,7 @@ void TPZHCurlProjection<TVar>::ContributeBC(const TPZMaterialDataT<TVar> &data,
                                          TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef,
                                          TPZBndCondT<TVar> &bc)
 {
-	TPZFNMatrix<30,REAL> phiHCurl;
-    TPZHCurlAuxClass::ComputeShape(data.fVecShapeIndex,data.phi,data.fDeformedDirections,phiHCurl);
+    const auto & phiHCurl = data.phi;
     const auto nHCurlFunctions = phiHCurl.Rows();
     const auto phiDim = phiHCurl.Cols();
     const auto &BIG = TPZMaterial::fBigNumber;

@@ -204,11 +204,7 @@ TPZWaveguideModalAnalysis::ContributeA(
     //get h1 functions for computing hcurl funcs
     const TPZFMatrix<REAL> &phiH1 = datavec[fH1MeshIndex].phi;
     
-    TPZFNMatrix<30,REAL> phiHCurl;
-    TPZHCurlAuxClass::ComputeShape(datavec[fHCurlMeshIndex].fVecShapeIndex,
-                                   datavec[fHCurlMeshIndex].phi,
-                                   datavec[fHCurlMeshIndex].fDeformedDirections,
-                                   phiHCurl);
+    const auto &phiHCurl = datavec[fHCurlMeshIndex].phi;
     
     auto & curlPhi = datavec[fHCurlMeshIndex].curlphi;
     const REAL k0 = fScaleFactor * 2*M_PI/fLambda;
@@ -254,12 +250,7 @@ TPZWaveguideModalAnalysis::ContributeB(
     TPZFNMatrix<3,REAL> gradPhiH1(3, phiH1.Rows(), 0.);
     TPZAxesTools<REAL>::Axes2XYZ(gradPhiH1axes, gradPhiH1, datavec[fH1MeshIndex].axes);
     
-    TPZFNMatrix<30,REAL> phiHCurl;
-    
-    TPZHCurlAuxClass::ComputeShape(datavec[fHCurlMeshIndex].fVecShapeIndex,
-                                   datavec[fHCurlMeshIndex].phi,
-                                   datavec[fHCurlMeshIndex].fDeformedDirections,
-                                   phiHCurl);
+    const auto &phiHCurl = datavec[fHCurlMeshIndex].phi;
     
     const REAL k0 = fScaleFactor * 2*M_PI/fLambda;
     /*****************ACTUAL COMPUTATION OF CONTRIBUTION****************/
