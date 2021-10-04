@@ -439,6 +439,7 @@ int TPZShapeHDiv<TSHAPE>::NConnectShapeF(int connect, int &order)
         else return 3*order*(order+1)*(order+1);
     }
     DebugStop();
+    unreachable();
  }
 
 
