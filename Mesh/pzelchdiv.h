@@ -220,32 +220,6 @@ public:
     }
     //@}
 
-	/** @brief Compute the correspondence between the normal vectors and the shape functions */
-	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t> &shapeindex);
-	
-	/** 
-	 * @brief Returns the vector index  of the first index shape associate to to each side 
-	 * Special implementation to Hdiv
-	 */
-	void FirstShapeIndex(TPZVec<int64_t> &Index) const;
-    
-	/**
-     * @brief Returns a matrix index of the shape and vector  associate to element
-     * @param[in] VectorSide Indicates the side associated with each vector
-     * @param[out] IndexVecShape Indicates for the vector/shape function for the approximation space
-	 * @param[in] pressureorder Order of the pressure (to select shape functions?)
-	 */
-	void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int64_t> > & IndexVecShape, int pressureorder);
-	
-	/**
-     * @brief Returns a matrix index of the shape and vector  associate to element
-     * @param[in] VectorSide Indicates the side associated with each vector
-     * @param[out] IndexVecShape Indicates for the vector/shape function for the approximation space
-	 * @param[in] pressureorder Order of the pressure (to select shape functions?)
-	 */
-	void IndexShapeToVec(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,int64_t> > & IndexVecShape, int pressureorder);
-    void IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,int64_t> > & IndexVecShape, int pressureorder);
-
 	/** @brief Computes the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 	

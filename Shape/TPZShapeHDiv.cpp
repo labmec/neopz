@@ -41,7 +41,8 @@ void TPZShapeHDiv<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
     int nShape = 0;
     for (int i = 0; i < TSHAPE::NFacets+1; i++)
     {
-        data.fHDivNumConnectShape[i] = NConnectShapeF(i,data);
+        int order = data.fHDivConnectOrders[i];
+        data.fHDivNumConnectShape[i] = NConnectShapeF(i,order);
         nShape += data.fHDivNumConnectShape[i];
     }
     
@@ -308,6 +309,11 @@ void TPZShapeHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatri
 //    FillOrder(ord);
 //    int nshape= this->NShapeContinuous(ord);
 
+    divphi.Resize(data.fVecShapeIndex.size(),1);
+    divphi.Zero();
+    phi.Resize(TSHAPE::Dimension,data.fVecShapeIndex.size());
+    phi.Zero();
+
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
     const int dim = TSHAPE::Dimension;
@@ -391,14 +397,14 @@ void TPZShapeHDiv<TSHAPE>::HDivPermutation(int side, TPZShapeData &data, TPZVec<
 }
 
 template<class TSHAPE>
-int TPZShapeHDiv<TSHAPE>::NConnectShapeF(int connect, TPZShapeData &data)
+int TPZShapeHDiv<TSHAPE>::NConnectShapeF(int connect, int &order)
 {
 #ifdef DEBUG
     if (connect < 0 || connect > TSHAPE::NFacets) {
         DebugStop();
     }
 #endif
-    int order = data.fHDivConnectOrders[connect];
+    // int order = data.fHDivConnectOrders[connect];
     MElementType thistype = TSHAPE::Type();
 
     if(thistype == EOned)

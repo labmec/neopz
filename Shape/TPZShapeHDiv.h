@@ -34,7 +34,7 @@ struct TPZShapeHDiv
     
     static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
 
-    static int NConnectShapeF(int connect, TPZShapeData &data);
+    static int NConnectShapeF(int connect, int &order);
 };
 
 #endif
