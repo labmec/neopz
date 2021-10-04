@@ -237,7 +237,9 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
             REAL rhsnorm = Norm(ef.fMat);
             REAL eknorm = Norm(ek.fMat);
             if (std::isnan(rhsnorm) || std::isnan(eknorm)) {
-                std::cout << "element " << iel << " has norm " << rhsnorm << std::endl;
+                std::cout<<__PRETTY_FUNCTION__
+                         <<"\nERROR:\n"
+                         << "\telement " << iel << " has norm " << rhsnorm << std::endl;
                 el->Print();
                 ek.fMat.Print("ek",std::cout);
                 ef.fMat.Print("ef",std::cout);
