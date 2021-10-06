@@ -35,7 +35,8 @@ protected:
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
 
 public:
-	    
+	
+    //Constructors and destructor
 	TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 	
 	TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy);
@@ -76,7 +77,6 @@ public:
 	virtual void Print(std::ostream &out = std::cout) const override;
 	
 
-	
 	virtual MElementType Type() override;
 	
 	virtual int NConnects() const override;
@@ -201,22 +201,24 @@ public:
 	 * of state variables and material definitions */
 	virtual void InitMaterialData(TPZMaterialData &data) override;
 
-    //@{
-	/** @brief Compute and fill data with requested attributes */
-	void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
-                             TPZVec<REAL> &qsi) override{
-        ComputeRequiredDataT(data,qsi);
-    }
-     void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
-                              TPZVec<REAL> &qsi) override{
-        ComputeRequiredDataT(data,qsi);
-    }
-    //@}
-
 	/** @brief Computes the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override ;
 	
-	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override{};
+    /**
+     * @brief Computes the shape functions at the point qsi corresponding to x.
+     * @param qsi point in master element coordinates
+     * @param phi vector of values of shapefunctions, dimension (numshape,1)
+     * @param dphi matrix of derivatives of shapefunctions in master element coordinates, dimension (dim,numshape)
+     */
+	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
+
+    /**
+     * @brief Computes the shape functions at the point qsi corresponding to x.
+     * The values correspond to the function in the deformed element.    *
+     * @param qsi point in master element coordinates
+     * @param data fields regarding the geometric transformation and data.phi and data.divphi will be filled
+     */
+    void ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
     
     /** @brief Compute the solution for a given variable */
 	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
@@ -251,8 +253,8 @@ protected:
     //@}
     template<class TVar>
     void ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data);
-    template<class TVar>
-    void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL>&qsi);
+    // template<class TVar>
+    // void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL>&qsi);
 };
 
 template<class TSHAPE>
