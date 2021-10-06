@@ -523,6 +523,16 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
 }
 
 template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+    //this method is not really useful right now
+    // TPZMaterialData data;
+
+    // this->InitMaterialData(data);
+    
+    // TPZShapeHDiv<TSHAPE>::Shape(pt, data, data.phi, data.dphi);
+}
+
+template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol)
 {
     //TODOCOMPLEX
@@ -746,57 +756,6 @@ TPZTransform<> TPZCompElHDiv<TSHAPE>::TransformSideToElement(int side){
 	return TSHAPE::TransformSideToElement(side);
 }
 
-template<class TSHAPE>
-template<class TVar>
-void TPZCompElHDiv<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
-                                                TPZVec<REAL> &qsi){
-
-//    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
-
-    bool needsol = data.fNeedsSol;
-    data.fNeedsSol = false;
-    TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
-    data.fNeedsSol = needsol;
-
-    TPZFMatrix<REAL> auxPhi;
-    TPZShapeHDiv<TSHAPE>::Shape(qsi, data, auxPhi, data.divphi);
-    int shapeSize = data.divphi.Rows();
-    data.fVecShapeIndex.Resize(shapeSize);
-
-    for (int i = 0; i < shapeSize; i++){
-        data.fVecShapeIndex[i] = make_pair(i,i);
-    }
-    
-    TPZFMatrix<REAL> gradx(3,TSHAPE::Dimension,0.);
-    this->Reference()->GradX(qsi, gradx);
-    TPZFMatrix<REAL> phiSHdiv(TSHAPE::Dimension,data.fVecShapeIndex.size(),0.);
-    gradx.Multiply(auxPhi,phiSHdiv);
-    phiSHdiv *= 1./data.detjac;
-    data.divphi *= 1/data.detjac;
-
-    data.phi.Resize(data.fVecShapeIndex.size(),1);
-    data.phi = 1.;
-    data.fDeformedDirections.Resize(TSHAPE::Dimension,data.fVecShapeIndex.size());
-    data.fDeformedDirections = phiSHdiv;
-
-
-    if (data.fNeedsSol) {
-        constexpr bool hasPhi{true};
-        ReallyComputeSolution(data);
-    }
-
-
-#ifdef PZ_LOG
-    if (logger.isDebugEnabled()) {
-        std::stringstream sout;
-        data.fDeformedDirections.Print("Normal Vectors " , sout,EMathematicaInput);
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
-
-
-}//void
-
 /** Initialize a material data and its attributes based on element dimension, number
  * of state variables and material definitions
  */
@@ -852,6 +811,41 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
 }
 
+
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) {
+
+    constexpr int dim = TSHAPE::Dimension;
+    const int nshape = this->NShapeF();
+
+    // TPZFNMatrix<dim*80,REAL> phiref(dim,nshape);
+    // TPZFNMatrix<curldim*80,REAL> curlphiref(curldim,nshape);
+
+    TPZShapeData &shapedata = data;
+    // TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, phiref, curlphiref);
+
+    TPZFMatrix<REAL> auxPhi;
+    TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, auxPhi, data.divphi);
+    int shapeSize = data.divphi.Rows();
+    data.fVecShapeIndex.Resize(shapeSize);
+
+    for (int i = 0; i < shapeSize; i++){
+        data.fVecShapeIndex[i] = make_pair(i,i);
+    }
+    
+    TPZFMatrix<REAL> gradx(3,TSHAPE::Dimension,0.);
+    this->Reference()->GradX(qsi, gradx);
+    TPZFMatrix<REAL> phiSHdiv(TSHAPE::Dimension,data.fVecShapeIndex.size(),0.);
+    gradx.Multiply(auxPhi,phiSHdiv);
+    phiSHdiv *= 1./data.detjac;
+    data.divphi *= 1/data.detjac;
+
+    data.phi.Resize(data.fVecShapeIndex.size(),1);
+    data.phi = 1.;
+    data.fDeformedDirections.Resize(TSHAPE::Dimension,data.fVecShapeIndex.size());
+    data.fDeformedDirections = phiSHdiv;
+
+}
 
 // Save the element data to a stream
 template<class TSHAPE>
