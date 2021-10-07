@@ -23,6 +23,7 @@ set(headers
     TPZShapeH1.h
     TPZShapeHDiv.h
     TPZShapeHDivKernel.h
+    TPZShapeHDivConstant.h
     TPZShapeHCurl.h
     )
 
@@ -41,6 +42,7 @@ set(sources
     TPZShapeH1.cpp
     TPZShapeHDiv.cpp
     TPZShapeHDivKernel.cpp
+    TPZShapeHDivConstant.cpp
     TPZShapeHCurl.cpp
     )
 
