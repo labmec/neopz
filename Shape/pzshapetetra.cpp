@@ -469,7 +469,7 @@ void TPZShapeTetra::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFM
 		return 0;
 	}
 	
-	int TPZShapeTetra::NShapeF(TPZVec<int> &order) {
+	int TPZShapeTetra::NShapeF(const TPZVec<int> &order) {
 		int in,res=NCornerNodes;
 		for(in=NCornerNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NCornerNodes]);
 		return res;

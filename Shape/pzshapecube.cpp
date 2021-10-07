@@ -583,7 +583,7 @@ void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMa
 		return 0;
 	}
 	
-	int TPZShapeCube::NShapeF(TPZVec<int> &order) {
+	int TPZShapeCube::NShapeF(const TPZVec<int> &order) {
 		int in,res = NCornerNodes;
 		for(in=NCornerNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NCornerNodes]);
 		return res;
