@@ -85,6 +85,19 @@ TPZVec<T> &operator-=(TPZVec<T> &a, const TPZVec<T> &b) {
 }
 
 /**
+ * @brief divides vector by scalar
+ */
+template <class T>
+TPZVec<T> &operator/=(TPZVec<T> &a, const T& b) {
+    
+    for (int i = 0; i < a.size(); i++) {
+        a[i] /= b;
+    }
+    return a;
+}
+
+
+/**
  * @brief Performs a sdot operation: dot <- Transpose[x] * y
  *
  * @since Mar 20, 2003
