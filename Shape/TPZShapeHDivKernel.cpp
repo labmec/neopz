@@ -55,6 +55,15 @@ void TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
                                        148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,
                                        176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,
                                        204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239};
+    ShapeRemove[orderpair(EPrisma,1)] = {};
+    ShapeRemove[orderpair(EPrisma,2)] = {7,8};
+    ShapeRemove[orderpair(EPrisma,3)] = {21,24,25,26,29,32,33,34,35};
+    ShapeRemove[orderpair(EPrisma,4)] = {5,38,39,40,41,42,44,45,46,47,48,49,50,52,53,55,56,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,
+                                         75,76,77,78,79,80,81,82,83,84,85,86,87,88,89};
+    ShapeRemove[orderpair(EPrisma,5)] = {5,6,8,9,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,
+                                         86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,
+                                         116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,
+                                         144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179};
     for (int iedge = 0; iedge < nEdges; iedge++) {
         data.fHDivNumConnectShape[iedge] = 1;
         data.fHDivConnectOrders[iedge] = 0;
@@ -122,13 +131,13 @@ void TPZShapeHDivKernel<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZ
     // AQUI TEM QUE CALCULAR AS FUNCOES HCURL CONSTANTES
     TPZFNMatrix<12,REAL> vecDiv(dim,nEdges), curl(curldim,nEdges);
     TSHAPE::ComputeConstantHCurl(pt, vecDiv, curl);
-
+    phi.Zero();
     for (int connect = 0; connect < nEdges; connect++) {
         if(dim == 3)
         {
             for(int a=0; a<3; a++)
             {
-                phi(a,connect) = curl(a,connect);
+                phi(a,connect) += curl(a,connect);
             }
         } else
         {
@@ -137,8 +146,8 @@ void TPZShapeHDivKernel<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZ
 
     }
 
-    
-    for(int i = 0; i< data.fVecShapeIndex.size(); i++)
+    int size = data.fVecShapeIndex.size();
+    for(int i = nEdges; i< size; i++)
     {
         auto it = data.fVecShapeIndex[i];
         int vecindex = it.first;
@@ -148,7 +157,7 @@ void TPZShapeHDivKernel<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZ
         {
             for(int a=0; a<3; a++)
             {
-                phi(a,i+nEdges) = data.fDPhi((a+2)%3,scalindex)*data.fMasterDirections((a+1)%3,vecindex) -
+                phi(a,i) += data.fDPhi((a+2)%3,scalindex)*data.fMasterDirections((a+1)%3,vecindex) -
                             data.fDPhi((a+1)%3,scalindex)*data.fMasterDirections((a+2)%3,vecindex);
             }
         } else
