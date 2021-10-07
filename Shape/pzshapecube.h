@@ -269,7 +269,7 @@ namespace pzshape {
 		 * @param order vector of integers indicating the interpolation order of the element
 		 * @return number of shape functions
 		 */
-		static int NShapeF(TPZVec<int> &order);
+		static int NShapeF(const TPZVec<int> &order);
         static void ShapeInternal(int side, TPZVec<REAL> &x, int order, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 
 	};

@@ -481,7 +481,7 @@ namespace pzshape {
 		return 0;
 	}
 	
-	int TPZShapeQuad::NShapeF(TPZVec<int> &order) {
+	int TPZShapeQuad::NShapeF(const TPZVec<int> &order) {
 			
 				
 		int in,res=NCornerNodes;
