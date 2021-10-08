@@ -204,6 +204,21 @@ MElementType TPZCompEl::Type() {
 void TPZCompEl::LoadSolution() {
     // an element without mesh is a free element
     if(!Mesh() || !HasDependency()) return;
+    switch(Mesh()->GetSolType()){
+    case EReal: LoadSolutionInternal<STATE>();
+        break;
+    case EComplex: LoadSolutionInternal<CSTATE>();
+        break;
+    case EUndefined:
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nMesh has not an associated solution type. Aborting..."
+               <<std::endl;
+        DebugStop();
+    }
+}
+
+template<class TVar>
+void TPZCompEl::LoadSolutionInternal() {
     TPZStack<int64_t> connectlist;
     int totalconnects;
     BuildConnectList(connectlist);
@@ -219,11 +234,14 @@ void TPZCompEl::LoadSolution() {
     //TPZBlock &block = Mesh()->Block();
     TPZBlock &block = Mesh()->Block();
     //TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
-    TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
+
+    const auto soltype = Mesh()->GetSolType();
+    
+    TPZFMatrix<TVar> &MeshSol = Mesh()->Solution();
     int maxdep = 0;
     int in;
     int64_t iv,jv,idf;
-    STATE coef;
+    TVar coef;
     for(in=0;in<totalconnects;in++)
         maxdep = (maxdep < dependenceorder[in]) ? dependenceorder[in] : maxdep;
     int current_order = maxdep-1;

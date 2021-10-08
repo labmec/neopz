@@ -562,6 +562,8 @@ public:
 	 
 private:
     template<class TVar>
+    void LoadSolutionInternal();
+    template<class TVar>
     void SolutionInternal(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
     template<class TVar>
     void CalcBlockDiagonalInternal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<TVar> & block);
