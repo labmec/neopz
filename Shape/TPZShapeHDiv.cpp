@@ -34,6 +34,7 @@ void TPZShapeHDiv<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
     
 
     TPZShapeH1<TSHAPE>::Initialize(data.fCornerNodeIds, scalarOrders, data);
+    if(connectorders.size() != TSHAPE::NFacets+1) DebugStop();
     
     data.fHDivConnectOrders = connectorders;
 
@@ -42,7 +43,7 @@ void TPZShapeHDiv<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
     for (int i = 0; i < TSHAPE::NFacets+1; i++)
     {
         int order = data.fHDivConnectOrders[i];
-        data.fHDivNumConnectShape[i] = NConnectShapeF(i,order);
+        data.fHDivNumConnectShape[i] = ComputeNConnectShapeF(i,order);
         nShape += data.fHDivNumConnectShape[i];
     }
     
@@ -397,7 +398,23 @@ void TPZShapeHDiv<TSHAPE>::HDivPermutation(int side, TPZShapeData &data, TPZVec<
 }
 
 template<class TSHAPE>
-int TPZShapeHDiv<TSHAPE>::NConnectShapeF(int connect, int &order)
+int TPZShapeHDiv<TSHAPE>::NConnectShapeF(int connect,const TPZShapeData &shapedata)
+{
+    return shapedata.fHDivNumConnectShape[connect];
+}
+
+template<class TSHAPE>
+int TPZShapeHDiv<TSHAPE>::NShapeF(const TPZShapeData &shapedata)
+{
+    int nconnect = shapedata.fHDivNumConnectShape.size();
+    int nshape = 0;
+    for(int ic = 0; ic<nconnect; ic++) nshape += shapedata.fHDivNumConnectShape[ic];
+    return nshape;
+}
+
+
+template<class TSHAPE>
+int TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
 {
 #ifdef DEBUG
     if (connect < 0 || connect > TSHAPE::NFacets) {

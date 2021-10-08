@@ -32,7 +32,7 @@ public:
     TPZMaterialData& operator=(TPZMaterialData&&) = default;
 
     /** @brief Computes the flux divergence values for HDiv approximation spaces*/
-    virtual void ComputeFunctionDivergence() = 0;
+    [[deprecated("This call is useless")]] virtual void ComputeFunctionDivergence() = 0;
     //@{
     //! Read and Write methods
     int ClassId() const override;
@@ -126,7 +126,7 @@ public:
     /// Value of the coordinate at the center of the element
     TPZManVector<REAL,3> XCenter;
     /// Directions on the master element
-    TPZFNMatrix<MatDataNumDir> fMasterDirections;
+    //TPZFNMatrix<MatDataNumDir> fMasterDirections;
     // Id of associated geometric element
     int gelElId{-1};    
     /// Correspondence between direction vector index and index of the shape functions. Used for H(div) and H(curl) approximation spaces.

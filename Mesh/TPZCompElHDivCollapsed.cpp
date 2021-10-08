@@ -417,7 +417,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
             }
         }
     }
-    data.ComputeFunctionDivergence();
+
     std::pair<TPZMaterialDataT<TVar>,TPZMaterialDataT<TVar>> *datapair = (std::pair<TPZMaterialDataT<TVar>,TPZMaterialDataT<TVar>> *) data.fUserData;
     TPZMaterialDataT<TVar> &datatop = datapair->second, &databottom = datapair->first;
 

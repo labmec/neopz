@@ -9,11 +9,11 @@ TPZMaterialDataT<TVar>::TPZMaterialDataT() :
 template<class TVar>
 void TPZMaterialDataT<TVar>::ComputeFunctionDivergence()
 {
-    
+    std::cout << __PRETTY_FUNCTION__ << " should not be called anymore\n";
     // Getting test and basis functions
-    TPZFMatrix<REAL> dphi_s       = dphi; // Derivative For H1  test functions
-    
-    int n_phi_v = fVecShapeIndex.NElements();
+    //TPZFMatrix<REAL> dphi_s       = dphi; // Derivative For H1  test functions
+    TPZShapeData *shapedata = this;
+    int n_phi_v = shapedata->fVecShapeIndex.NElements();
 #ifdef PZDEBUG
     if(divphi.Rows() < n_phi_v) DebugStop();
 #endif
@@ -24,14 +24,14 @@ void TPZMaterialDataT<TVar>::ComputeFunctionDivergence()
     
     for (int iq = 0; iq < n_phi_v; iq++)
     {
-        i_vec = fVecShapeIndex[iq].first;
-        i_phi_s = fVecShapeIndex[iq].second;
+        i_vec = shapedata->fVecShapeIndex[iq].first;
+        i_phi_s = shapedata->fVecShapeIndex[iq].second;
         divphi(iq,0) = 0.;
 
-        int n_dir = dphi_s.Rows();
+        int n_dir = shapedata->fDPhi.Rows();
         divphi(iq,0) = 0.;
         for (int k = 0; k < n_dir; k++) {
-            divphi(iq,0) +=  dphi(k,i_phi_s)*fMasterDirections(k,i_vec)/detjac;
+            divphi(iq,0) +=  shapedata->fDPhi(k,i_phi_s)*shapedata->fMasterDirections(k,i_vec)/detjac;
         }
     }
         

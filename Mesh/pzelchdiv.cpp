@@ -226,7 +226,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
         DebugStop();
     }
 #endif
-    return TPZShapeHDiv<TSHAPE>::NConnectShapeF(connect,order);
+    return TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(connect,order);
  }
 
 ////
@@ -348,7 +348,7 @@ void TPZCompElHDiv<TSHAPE>::SetSideOrder(int side, int order){
     if(mat) nvar = mat->NStateVariables();
     c.SetNState(nvar);
     // int nshape =this->NConnectShapeF(connectaux,order);
-    int nshape =TPZShapeHDiv<TSHAPE>::NConnectShapeF(connectaux,order);
+    int nshape =TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(connectaux,order);
     c.SetNShape(nshape);
 	this-> Mesh()->Block().Set(seqnum,nshape*nvar);
 }
@@ -765,17 +765,26 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
 
     TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes);
-    TPZManVector<int,TSHAPE::NSides> orders(TSHAPE::NSides-TSHAPE::NCornerNodes);
+    TPZManVector<int,TSHAPE::NSides> orders(TSHAPE::NFacets+1,0);
     TPZManVector<int,TSHAPE::NFacets> sideorient(TSHAPE::NFacets,0);
     TPZGeoEl *gel = this->Reference();
     for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
     for(int i=0; i<TSHAPE::NFacets+1; i++) orders[i] = this->Connect(i).Order();
     for(int i=0; i<TSHAPE::NFacets; i++) sideorient[i] = this->SideOrient(i);
+    TPZShapeData &shapedata = data;
     TPZShapeHDiv<TSHAPE>::Initialize(ids, orders, sideorient, data);
+    
 
-    int nshapescalar = TSHAPE::NShapeF(orders);
-    data.dphi.Resize(TSHAPE::Dimension, nshapescalar);
-    data.dphix.Resize(TSHAPE::Dimension, nshapescalar);
+//    int nshapescalar = shapedata.fPhi.Rows();
+//    data.dphi.Resize(TSHAPE::Dimension, nshapescalar);
+//    data.dphix.Resize(TSHAPE::Dimension, nshapescalar);
+    int nvec_shape = TPZShapeHDiv<TSHAPE>::NShapeF(shapedata);
+    data.phi.Resize(nvec_shape,1);
+    data.fVecShapeIndex.Resize(nvec_shape);
+    for (int ish = 0; ish<nvec_shape; ish++) {
+        data.phi(ish,0) = 1.;
+        data.fVecShapeIndex[ish] = {ish,ish};
+    }
     
 #ifdef PZ_LOG
         if(logger.isDebugEnabled())
@@ -784,7 +793,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		}
 #endif
 
-    data.fShapeType = TPZMaterialData::EVecandShape;
+    data.fShapeType = TPZMaterialData::EVecShape;
 
 //    cout << "vecShape " << endl;
 //    cout << data.fVecShapeIndex << endl;;
