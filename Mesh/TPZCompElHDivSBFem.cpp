@@ -81,7 +81,6 @@ void TPZCompElHDivSBFem<TSHAPE>::ComputeRequiredData(TPZMaterialDataT<STATE> &da
 
     HDivCollapsedDirections(data, nshape1d);
 
-    data.ComputeFunctionDivergence();
     
     int64_t nshape = (nshape2d - nshape1d) / 2;
     // Adjusting divergence values

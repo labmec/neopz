@@ -100,7 +100,7 @@ void CheckDivergenceOnInternalConnect() {
         intRule->Point(ipt, xi, w);
 
         fluxEl->ComputeRequiredData(elData, xi);
-        elData.ComputeFunctionDivergence();
+//        elData.ComputeFunctionDivergence();
 
         for (int iPhi = 0; iPhi < nInternalPhi; iPhi++) {
             integrationResult(iPhi, 0) += w * fabs(elData.detjac) * elData.divphi(iPhi + firstInternalPhi, 0);

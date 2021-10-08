@@ -47,8 +47,7 @@ void TPZMatSingleSpaceT<TVar>::ContributeBC(const TPZMaterialDataT<TVar> &data, 
 }
 
 template<class TVar>
-void TPZMatSingleSpaceT<TVar>::
-Solution(const TPZMaterialDataT<TVar> &data, int var,
+void TPZMatSingleSpaceT<TVar>::Solution(const TPZMaterialDataT<TVar> &data, int var,
          TPZVec<TVar> &sol){
     PZError<<__PRETTY_FUNCTION__;
     PZError<<"\nGetSolDimensions and Solution methods";

@@ -39,7 +39,7 @@ public:
     TPZSolVec<TVar> curlsol;
     /** @brief Computes the flux divergence values based on a Material of H(div) approx space */
     /**@}*/
-    void ComputeFunctionDivergence() override;
+    [[deprecated("This call is useless")]] void ComputeFunctionDivergence() override;
 
     void SetSolSizes(const int nSol, const int uLen,
                      const int duRow, const int duCol) override;
