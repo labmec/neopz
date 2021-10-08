@@ -487,6 +487,16 @@ void TPZMultiphysicsCompEl<TGeometry>::SolutionT(TPZVec<REAL> &qsi, int var,TPZV
     datavec.resize(nref);
     this->InitMaterialData(datavec);
     material->FillDataRequirements(datavec);
+
+    TPZGeoEl * ref = this->Reference();
+
+    
+    if (!ref){
+        PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
+        return;
+    }
+    ref->Jacobian(qsi, datavec[0].jacobian, datavec[0].axes,
+                  datavec[0].detjac , datavec[0].jacinv);
     for (int64_t iref = 0; iref<nref; iref++)
     {
         
@@ -501,6 +511,10 @@ void TPZMultiphysicsCompEl<TGeometry>::SolutionT(TPZVec<REAL> &qsi, int var,TPZV
         }
         else
         {
+            datavec[iref].jacobian = datavec[0].jacobian;
+            datavec[iref].axes = datavec[0].axes;
+            datavec[iref].detjac = datavec[0].detjac;
+            datavec[iref].jacinv = datavec[0].jacinv;
             msp->ComputeShape(myqsi,datavec[iref]);
         }
         constexpr bool hasPhi{true};
