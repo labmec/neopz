@@ -394,8 +394,10 @@ void TPZMHMeshControl::DivideSkeletonElements(const int ndivide) {
     }
 }
 
-void TPZMHMeshControl::DivideSkeletonElement(const int64_t skel_id)
+void TPZMHMeshControl::DivideSkeletonElement(const int64_t skel_id, const int n_divisions)
 {
+    if (n_divisions == 0) return;
+
     auto it = fInterfaces.find(skel_id);
     if (it == fInterfaces.end()) {
         PZError << "No interface associated with given skel_id ID was found! Aborting...\n";
@@ -421,6 +423,12 @@ void TPZMHMeshControl::DivideSkeletonElement(const int64_t skel_id)
     }
     fInterfaces.erase(skel_id);
     fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
+    if (n_divisions > 1) {
+        for (int isub = 0; isub < nsub; isub++) {
+            const auto sub_id = subels[isub]->Index();
+            DivideSkeletonElement(sub_id, n_divisions - 1);
+        }
+    }
 }
 
 /// divide the skeleton elements
