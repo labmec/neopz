@@ -46,7 +46,7 @@ public:
     /** @brief Prints the data in a format suitable for Mathematica */
     void PrintMathematica(std::ostream &out) const;    
 
-    static constexpr int MatDataNumPhi{20};
+    static constexpr int MatDataNumPhi{60};
     static constexpr int MatDataNumDir{81};
     static constexpr int MatDataDimSol{10};//TODO:Remove?
     static constexpr int MatDataNumSol{20};//TODO:Remove?
@@ -64,8 +64,10 @@ public:
     TPZManVector<int,27> fH1ConnectOrders;
     //! Number of shape functions by connect
     TPZManVector<int,27> fH1NumConnectShape;
-    //! Parametric transforms between sides
+    //! Parametric transforms from the interior to the side
     TPZManVector<TPZTransform<REAL>, 20> fSideTransforms;
+    //! Transformation ids for each side
+    TPZManVector<int, 20> fSideTransformationId;
     //! Vector of shapefunctions (format is dependent on the value of shapetype) over the master element
     TPZFNMatrix<MatDataNumPhi, REAL> fPhi;
     //! Values of the derivative of the shape functions over the master element
