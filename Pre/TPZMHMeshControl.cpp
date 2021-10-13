@@ -404,6 +404,10 @@ void TPZMHMeshControl::DivideSkeletonElement(const int64_t skel_id, const int n_
         DebugStop();
     }
     TPZGeoEl *gel = fGMesh->Element(skel_id);
+    if (gel->HasSubElement()) {
+        PZError << "Element has already been refined! Aborting...\n";
+        DebugStop();
+    }
     TPZAutoPointer<TPZRefPattern> refpat = TPZRefPatternTools::PerfectMatchRefPattern(gel);
     gel->SetRefPattern(refpat);
     TPZManVector<TPZGeoEl *, 10> subels;
