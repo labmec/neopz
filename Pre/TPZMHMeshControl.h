@@ -261,7 +261,7 @@ public:
     void DivideSkeletonElements(int ndivide);
 
     /// divide a skeleton given its gel id
-    void DivideSkeletonElement(int64_t skel_id);
+    void DivideSkeletonElement(int64_t skel_id, int n_divisions = 1);
 
     /// divide the boundary skeleton elements
     void DivideBoundarySkeletonElements();
