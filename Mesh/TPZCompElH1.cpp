@@ -107,7 +107,8 @@ void TPZCompElH1<TSHAPE>::InitMaterialData(TPZMaterialData &data){
     TPZGeoEl *gel = this->Reference();
     for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
     for(int i=TSHAPE::NCornerNodes; i<TSHAPE::NSides; i++) orders[i-TSHAPE::NCornerNodes] = this->Connect(i).Order();
-    TPZShapeH1<TSHAPE>::Initialize(ids, orders, data);
+    TPZShapeData &shapedata = data;
+    TPZShapeH1<TSHAPE>::Initialize(ids, orders, shapedata);
     mat->FillDataRequirements(data);
     const int dim = this->Dimension();
     const int nshape = data.fPhi.Rows();
@@ -138,39 +139,12 @@ void TPZCompElH1<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &
     
     TPZShapeData &shapedata = data;
     TPZShapeH1<TSHAPE>::Shape(intpoint,shapedata);
-    TPZGeoEl *gel = this->Reference();
-    gel->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
     int tranpose = 1;
     REAL alpha = 1.;
     REAL beta = 0.;
     data.jacinv.MultAdd(shapedata.fDPhi, data.dphix, data.dphix,alpha,beta,tranpose);
     data.phi = shapedata.fPhi;
 }
-
-
-template<class TSHAPE>
-template<class TVar>
-void TPZCompElH1<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
-                                                TPZVec<REAL> &qsi){
-//    data.intGlobPtIndex = -1;
-    this->ComputeShape(qsi, data);
-    
-    if (data.fNeedsSol){
-        this->ReallyComputeSolution(data);
-    }//fNeedsSol
-    
-    data.x.Resize(3, 0.0);
-    this->Reference()->X(qsi, data.x);
-    data.xParametric = qsi;
-    if (data.fNeedsHSize){
-        data.HSize = 2.*this->InnerRadius();
-    }//fNeedHSize
-    
-    if (data.fNeedsNormal){
-        this->ComputeNormal(data);
-    }//fNeedsNormal
-    
-}//void
 
 template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
