@@ -22,6 +22,7 @@ set(headers
     pzshapetetra.h
     TPZShapeH1.h
     TPZShapeHDiv.h
+    TPZShapeHDivKernel.h
     )
 
 set(sources
@@ -38,6 +39,7 @@ set(sources
     pzshapetriang.cpp
     TPZShapeH1.cpp
     TPZShapeHDiv.cpp
+    TPZShapeHDivKernel.cpp
     )
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Shape)
