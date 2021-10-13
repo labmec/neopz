@@ -186,17 +186,9 @@ void TPZInterpolationSpace::ReallyComputeSolutionT(TPZMaterialDataT<TVar>& data)
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
                                          TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
                                          REAL &detjac, TPZFMatrix<REAL> &jacinv,
-                                         TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx){
-	TPZGeoEl * ref = this->Reference();
-	if (!ref){
-		PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
-		return;
-	}//if
-
-	ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
+                                         TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx){	
 	this->Shape(intpoint,phi,dphi);
-    this->Convert2Axes(dphi, jacinv, dphidx);
-    
+  this->Convert2Axes(dphi, jacinv, dphidx);
 }
 
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
@@ -275,23 +267,32 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 template<class TVar>
 void TPZInterpolationSpace::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
                                                 TPZVec<REAL> &qsi){
-//    data.intGlobPtIndex = -1;
-    this->ComputeShape(qsi, data);
+  ///compute geometric mapping info
+  TPZGeoEl * ref = this->Reference();
+  if (!ref){
+    PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
+    return;
+  }
+  ref->Jacobian(qsi, data.jacobian, data.axes, data.detjac , data.jacinv);
+
+  Reference()->X(qsi, data.x);
+  data.xParametric = qsi;
+  
+  //compute functions on deformed element
+  this->ComputeShape(qsi, data);
+  //compute solution
+  if (data.fNeedsSol){
+    this->ReallyComputeSolution(data);
+  }//fNeedsSol
+
+  //other attributions
+  if (data.fNeedsHSize){
+    data.HSize = 2.*this->InnerRadius();
+  }//fNeedHSize
     
-    if (data.fNeedsSol){
-        this->ReallyComputeSolution(data);
-    }//fNeedsSol
-	
-    data.x.Resize(3, 0.0);
-    Reference()->X(qsi, data.x);
-    data.xParametric = qsi;
-    if (data.fNeedsHSize){
-        data.HSize = 2.*this->InnerRadius();
-    }//fNeedHSize
-    
-    if (data.fNeedsNormal){
-        this->ComputeNormal(data);
-    }//fNeedsNormal
+  if (data.fNeedsNormal){
+    this->ComputeNormal(data);
+  }//fNeedsNormal
     
 }//void
 
@@ -526,31 +527,44 @@ void TPZInterpolationSpace::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
 }//CalcResidual
 
 void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) {
-    //TODOCOMPLEX
+  //TODOCOMPLEX
 	if(var >= 100) {
 		TPZCompEl::Solution(qsi,var,sol);
 		return;
 	}
 	if(var == 99) {
 		sol[0] = GetPreferredOrder();
-        //        if (sol[0] != 2) {
-        //            std::cout << __PRETTY_FUNCTION__ << " preferred order " << sol[0] << std::endl;
-        //        }
+    //        if (sol[0] != 2) {
+    //            std::cout << __PRETTY_FUNCTION__ << " preferred order " << sol[0] << std::endl;
+    //        }
 		return;
 	}
 	
 	auto* material = 
-        dynamic_cast<TPZMatSingleSpaceT<STATE> *>(this->Material());
+    dynamic_cast<TPZMatSingleSpaceT<STATE> *>(this->Material());
 	if(!material) {
 		sol.Resize(0);
 		return;
 	}
 	//TODOCOMPLEX
-    TPZMaterialDataT<STATE> data;
-    this->InitMaterialData(data);
-    data.p = this->MaxOrder();
-    this->ComputeShape(qsi, data);
-    constexpr bool hasPhi{true};
+  TPZMaterialDataT<STATE> data;
+  this->InitMaterialData(data);
+
+  ///compute geometric mapping info
+  TPZGeoEl * ref = this->Reference();
+  if (!ref){
+    PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
+    return;
+  }
+  ref->Jacobian(qsi, data.jacobian, data.axes, data.detjac , data.jacinv);
+
+  data.x.Resize(3, 0.0);
+  Reference()->X(qsi, data.x);
+  data.xParametric = qsi;
+    
+  data.p = this->MaxOrder();
+  this->ComputeShape(qsi, data);
+  constexpr bool hasPhi{true};
 	this->ComputeSolution(qsi,data,hasPhi);
     
 	data.x.Resize(3);
