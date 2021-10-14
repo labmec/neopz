@@ -15,12 +15,7 @@ void TPZMatDeRhamH1HCurl::Contribute(
   TPZFNMatrix<3,REAL> gradPhiH1(3, gradPhiH1axes.Rows(), 0.);
   TPZAxesTools<REAL>::Axes2XYZ(gradPhiH1axes, gradPhiH1, datavec[fH1MeshIndex].axes);
   
-  TPZFNMatrix<30,REAL> phiHCurl;
-  
-  TPZHCurlAuxClass::ComputeShape(datavec[fHCurlMeshIndex].fVecShapeIndex,
-                                 datavec[fHCurlMeshIndex].phi,
-                                 datavec[fHCurlMeshIndex].fDeformedDirections,
-                                 phiHCurl);
+  const auto &phiHCurl  = datavec[fHCurlMeshIndex].phi;
 
   const int nHCurl  = phiHCurl.Rows();
   const int nH1  = gradPhiH1.Cols();

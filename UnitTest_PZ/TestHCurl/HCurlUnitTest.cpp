@@ -44,14 +44,14 @@ static TPZLogger logger("pz.mesh.testhcurl");
 
 namespace hcurltest{
     constexpr REAL tol = 1e-10;
-    /**
-     * This unit test aims to verify the vectors used to build the HCurl approximation space.
-     * It was rewritten based on TestFunctionTracesUniformMesh, therefore it could be simplified.
-     * @param type element type (triangle, quadrilateral, etc.
-     * @param dim dimension of the element
-     */
-    void TestVectorTracesUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh,
-                                     MMeshType type);
+    // /**
+    //  * This unit test aims to verify the vectors used to build the HCurl approximation space.
+    //  * It was rewritten based on TestFunctionTracesUniformMesh, therefore it could be simplified.
+    //  * @param type element type (triangle, quadrilateral, etc.
+    //  * @param dim dimension of the element
+    //  */
+    // void TestVectorTracesUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh,
+    //                                  MMeshType type);
     /**
      * This unit test aims to verify the trace compatibility of the HCurl approximation space in a UNIFORM mesh.
      * @param type element type (triangle, quadrilateral, etc.
@@ -87,14 +87,14 @@ TEST_CASE("Testing trace of HCurl functions",
     auto meshType = GENERATE(MMeshType::ETriangular,
                              MMeshType::EQuadrilateral,
                              MMeshType::ETetrahedral,
-                             MMeshType::EHexahedral
-                             // MMeshType::EPrismatic//NEEDSFIX
+                             MMeshType::EHexahedral,
+                             MMeshType::EPrismatic
                              );
     TPZAutoPointer<TPZCompMesh> cmesh =
         hcurltest::CreateCMesh(meshType,pOrder);
-    SECTION("Vector traces"+MMeshType_Name(meshType)){
-        hcurltest::TestVectorTracesUniformMesh(cmesh,meshType);
-    }
+    // SECTION("Vector traces"+MMeshType_Name(meshType)){
+    //     hcurltest::TestVectorTracesUniformMesh(cmesh,meshType);
+    // }
     for(int k = 1; k < maxK; k++){
         SECTION("Funcion traces "+MMeshType_Name(meshType)+" p"+std::to_string(k)){
             hcurltest::TestFunctionTracesUniformMesh(cmesh,meshType,k);
@@ -102,199 +102,8 @@ TEST_CASE("Testing trace of HCurl functions",
     }
 }
 
-TEST_CASE("Testing curl of HCurl functions",
-          "[hcurl_tests][mesh]") {
-    constexpr int pOrder{1};
-    constexpr int maxK{5};
-    auto meshType = GENERATE(MMeshType::ETriangular,
-                             MMeshType::EQuadrilateral,
-                             MMeshType::ETetrahedral,
-                             MMeshType::EHexahedral
-                             // MMeshType::EPrismatic//NEEDSFIX
-                             );
-    TPZAutoPointer<TPZCompMesh> cmesh =
-        hcurltest::CreateCMesh(meshType,pOrder);
-    
-    for(int k = 1; k < maxK; k++){
-        SECTION("Funcion curl "+MMeshType_Name(meshType)+" p"+std::to_string(k)){
-            hcurltest::TestFunctionCurlUniformMesh(cmesh,meshType,k);
-        }
-    }
-}
-
 
 namespace hcurltest{
-
-    void TestVectorTracesUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh, MMeshType type){
-        const int dim = MMeshType_Dimension(type);
-        MElementType elType = [&](){
-            switch(type){
-            case MMeshType::ETriangular: return ETriangle;
-            case MMeshType::EQuadrilateral: return EQuadrilateral;
-            case MMeshType::ETetrahedral: return ETetraedro;
-            case MMeshType::EHexahedral: return ECube;
-            case MMeshType::EPrismatic: return EPrisma;
-            case MMeshType::EPyramidal: return EPiramide;
-            default: return ENoType;
-            }
-        }();
-        for(auto dummyCel : cmesh->ElementVec()){
-            const auto cel = dynamic_cast<TPZInterpolatedElement *>(dummyCel);
-            const auto gel = cel->Reference();
-            //skips boundary els
-            if(!cel || cel->Reference()->Type() != elType) continue;
-
-            TPZMaterialDataT<STATE> elData;
-            cel->InitMaterialData(elData);
-            const int elNNodes = MElementType_NNodes(elType);
-            const auto *gmesh =
-                cmesh->Reference();
-            for (auto iCon = 0; iCon <cel->NConnects(); iCon++) {
-                auto &con = cel->Connect(iCon);
-
-                if(con.NElConnected() < 2) continue;
-
-                const int iSide = iCon + elNNodes;
-
-                TPZTransform<> elTransform(gel->SideToSideTransform(iSide, gel->NSides() - 1));
-                TPZGeoElSide gelSide(gel, iSide);
-                const auto sideDim = gelSide.Dimension();
-                //the following vector will be the edge tg vector if 2D, the normal vector if 3D
-                TPZManVector<REAL,3> vec(3,0);
-                switch(sideDim){
-                case 1:{
-                    TPZManVector<int, 2> edgeNodes(2, 0);
-                    for (auto i = 0; i < 2; i++) edgeNodes[i] = gel->SideNodeIndex(iSide, i);
-                    const REAL sign = edgeNodes[0] < edgeNodes[1] ? 1 : -1;
-                    REAL edgeLength = 0;
-                    TPZVec<REAL> p0(3), p1(3);
-                    gmesh->NodeVec()[edgeNodes[0]].GetCoordinates(p0);
-                    gmesh->NodeVec()[edgeNodes[1]].GetCoordinates(p1);
-                    edgeLength =
-                        std::sqrt((p0[0] - p1[0]) * (p0[0] - p1[0]) + (p0[1] - p1[1]) * (p0[1] - p1[1]) +
-                                  (p0[2] - p1[2]) * (p0[2] - p1[2]));
-                    for (auto x = 0; x < 3; x++) vec[x] = sign * (p1[x] - p0[x]) / edgeLength;
-                }
-                    break;
-                case 2:{
-                    TPZManVector<REAL,3> xCenter(2,0);
-                    switch(gelSide.NSideNodes()){
-                    case 3:
-                        pztopology::TPZTriangle::CenterPoint(pztopology::TPZTriangle::NSides-1,xCenter);
-                        break;
-                    case 4:
-                        pztopology::TPZQuadrilateral::CenterPoint(pztopology::TPZQuadrilateral::NSides-1,xCenter);
-                        break;
-                    default:
-                        DebugStop();
-                    }
-                    gelSide.Normal(xCenter,vec);
-                }
-                    break;
-                default:
-                    DebugStop();
-                }
-
-                TPZManVector<REAL,3> centerPt(sideDim,0);
-                gelSide.CenterPoint(centerPt);
-                TPZManVector<REAL,3> ptEl(gel->Dimension(),0);
-                elTransform.Apply(centerPt,ptEl);
-                cel->ComputeRequiredData(elData, ptEl);
-                TPZFNMatrix<60,REAL> elDeformedDirections(elData.fDeformedDirections);
-
-                //gather all the sides contained in the closure of iSide
-                TPZStack<int> smallSides;
-                gel->LowerDimensionSides(iSide,smallSides);
-                smallSides.Push(iSide);//include the side itself
-                const int pOrder = cmesh->GetDefaultOrder();
-                TPZGeoElSide neighGelSide = gelSide.Neighbour();
-                while(neighGelSide != gelSide) {
-                    const auto neighCel = dynamic_cast<TPZInterpolatedElement *> (neighGelSide.Element()->Reference());
-                    if (!neighCel) {
-                        neighGelSide = neighGelSide.Neighbour();
-                        continue;
-                    }
-                    const auto neighGel = neighCel->Reference();
-                    const int neighNNodes = MElementType_NNodes(neighGel->Type());
-                    const auto neighSide = neighGelSide.Side();
-                    const auto neighDim = neighGelSide.Element()->Dimension();
-                    TPZTransform<> neighTransform(neighCel->Reference()->SideToSideTransform(neighSide,
-                                                                                             neighGel->NSides() -1));
-                    TPZTransform<> localTransf(sideDim);
-                    gelSide.SideTransform3(neighGelSide,localTransf);
-                    TPZMaterialDataT<STATE> neighData;
-                    neighCel->InitMaterialData(neighData);
-
-                    TPZManVector <REAL,3> ptsN(neighGelSide.Dimension(),0),ptNeigh(neighDim);
-                    localTransf.Apply(centerPt,ptsN);
-                    neighTransform.Apply(ptsN,ptNeigh);
-                    neighCel->ComputeRequiredData(neighData, ptNeigh);
-
-                    TPZFNMatrix<60,REAL> neighDeformedDirections(neighData.fDeformedDirections);
-                    //since this test was based on the basis functions tests, the following std::set
-                    //is a lazy way to avoid multiple testing of the same vectors
-                    std::set<int64_t> testedVectors;
-                    for(auto subSide : smallSides){
-                        TPZGeoElSide gelSubSide(gel, subSide);
-                        if(gel->SideDimension(subSide) < 1) continue;
-                        const int subConnect = subSide - elNNodes;
-                        const int neighSubSide = [&](){
-                            TPZGeoElSide neighGelSubSide = gelSubSide.Neighbour();
-                            while(neighGelSubSide.Element() != neighGelSide.Element()) {
-                                neighGelSubSide = neighGelSubSide.Neighbour();
-                                if(neighGelSubSide.Element() == gel){
-                                    DebugStop();
-                                }
-                            }
-                            return neighGelSubSide.Side();
-                        }();
-                        const int nShapes = cel->NConnectShapeF(subConnect,pOrder);
-
-                        const int firstElShape = [&](){
-                            int firstElShapeTemp = 0;
-                            for(auto jCon = 0; jCon < subConnect; jCon++){
-                                firstElShapeTemp += cel->NConnectShapeF(jCon,cel->EffectiveSideOrder(jCon+elNNodes));
-                            }
-                            return firstElShapeTemp;
-                        }();
-                    
-
-                        const int firstNeighShape = [&](){
-                            int firstNeighShapeTemp = 0;
-                            const int neighCon = neighSubSide - neighGelSide.Element()->NNodes();
-                            for(auto jCon = 0; jCon < neighCon; jCon++){
-                                firstNeighShapeTemp += neighCel->NConnectShapeF(jCon,neighCel->EffectiveSideOrder(jCon+neighNNodes));
-                            }
-                            return firstNeighShapeTemp;
-                        }();
-
-                        TPZManVector<REAL,3> elVec(3,0), neighVec(3,0);
-                        for(auto iShape = 0; iShape < nShapes; iShape ++){
-                            const int elPhiIndex = firstElShape+iShape;
-                            const int neighPhiIndex = firstNeighShape+iShape;
-                            const int elVecIndex = elData.fVecShapeIndex[elPhiIndex].first;
-                            const int neighVecIndex = neighData.fVecShapeIndex[neighPhiIndex].first;
-                            if (testedVectors.find(elVecIndex) == testedVectors.end()) {
-                                testedVectors.insert(elVecIndex);
-                            }else{
-                                continue;
-                            }
-                            for (auto x = 0; x < 3; x++) elVec[x] = elDeformedDirections(x,elVecIndex);
-                            for (auto x = 0; x < 3; x++) neighVec[x] = neighDeformedDirections(x,neighVecIndex);
-                            REAL diffTrace{0};
-                            TPZManVector<REAL,3> elTrace,neighTrace;
-                            const bool checkTraces = CheckTracesFunc(diffTrace,elVec,neighVec,vec,sideDim,elTrace,neighTrace);
-                            CAPTURE(gel->Index(),neighGel->Index());
-                            CAPTURE(elVecIndex,neighVecIndex);
-                            CAPTURE(elData.jacobian,neighData.jacobian);
-                            REQUIRE(checkTraces);
-                        }
-                    }
-                    neighGelSide = neighGelSide.Neighbour();
-                }
-            }
-        }
-    }//hcurltest::TestVectorTracesUniformMesh
 
     void TestFunctionTracesUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh,
                                        MMeshType type, const int pOrder){
@@ -463,28 +272,18 @@ namespace hcurltest{
 
                             elTransform.Apply(pts,ptEl);
                             cel->ComputeRequiredData(elData, ptEl);
-                            TPZHCurlAuxClass::ComputeShape(elData.fVecShapeIndex, elData.phi,
-                                                           elData.fDeformedDirections,elShape);
+                            elShape = elData.phi;
                             localTransf.Apply(pts,ptsN);
                             neighTransform.Apply(ptsN,ptNeigh);
                             neighCel->ComputeRequiredData(neighData, ptNeigh);
-                            TPZHCurlAuxClass::ComputeShape(neighData.fVecShapeIndex, neighData.phi,
-                                                           neighData.fDeformedDirections,neighShape);
+                            neighShape = neighData.phi;
 
                             TPZManVector<REAL,3> elShapeFunc(3,0), neighShapeFunc(3,0);
                             bool anyWrongCheck = false;
                             for(auto iShape = 0; iShape < nShapes; iShape ++){
                                 const int elPhiIndex = firstElShape+iShape;
                                 const int neighPhiIndex = firstNeighShape+iShape;
-                                const int elH1phiIndex = elData.fVecShapeIndex[elPhiIndex].second;
-                                const int neighH1phiIndex = neighData.fVecShapeIndex[neighPhiIndex].second;
-                                const bool checkPhis = std::abs(elData.phi(elH1phiIndex,0) - neighData.phi(neighH1phiIndex,0)) < tol;
 
-                                REQUIRE(checkPhis);
-                                anyWrongCheck = !checkPhis || anyWrongCheck;
-                                if(anyWrongCheck) {
-                                    break;
-                                }
                                 for (auto x = 0; x < 3; x++) elShapeFunc[x] = elShape(elPhiIndex,x);
                                 for (auto x = 0; x < 3; x++) neighShapeFunc[x] = neighShape(neighPhiIndex,x);
                                 REAL diffTrace{0};
