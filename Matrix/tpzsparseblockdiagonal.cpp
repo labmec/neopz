@@ -9,8 +9,9 @@
 
 #include "pzlog.h"
 
+#ifdef PZ_LOG
 static TPZLogger logger("pz.StrMatrix");
-
+#endif
 
 using namespace std;
 
@@ -36,7 +37,9 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 template<class TVar>
 TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows, int color, TPZVec<int> &colors) : TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId)
 {
+#ifdef PZ_LOG
 	LOGPZ_DEBUG(logger, "Constructor of TPZSparseBlockDiagonal");
+#endif
 	int64_t numbl = blockgraphindex.NElements()-1;
 	this->fBlockSize.Resize(numbl);
 	int64_t ibl,iblcount,graphsize = 0;
@@ -195,7 +198,9 @@ void TPZSparseBlockDiagonal<TVar>::AddBlock(int64_t i, TPZFMatrix<TVar>& block)
 template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::BuildFromMatrix(TPZMatrix<TVar>& matrix)
 {
+#ifdef PZ_LOG
 	LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::BuildFromMatrix");
+#endif
 	TPZManVector<int64_t> indices;
 	TPZFNMatrix<10000,TVar> submat(0,0);
 	int64_t ibl,nbl = fBlockIndex.NElements()-1;
@@ -220,7 +225,9 @@ void TPZSparseBlockDiagonal<TVar>::GetBlock(int64_t i, TPZFMatrix<TVar>& block)
 template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt) const
 {
+#ifdef PZ_LOG
 	LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::MultAdd");
+#endif
 	TPZFNMatrix<1000,TVar> xsc(0,0),ysc(0,0,0.),zsc(0,0);
 	xsc.Resize(this->fBlock.NElements(),x.Cols());
 	z.Zero();
@@ -292,7 +299,9 @@ void TPZSparseBlockDiagonal<TVar>::Gather(const TPZFMatrix<TVar> &in, TPZFMatrix
 template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 {
+#ifdef PZ_LOG
 	LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::UpdateFrom");
+#endif
 	if(!mat) 
 	{
 		cout << __PRETTY_FUNCTION__ << " called with zero argument\n";

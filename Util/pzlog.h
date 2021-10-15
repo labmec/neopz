@@ -146,6 +146,23 @@ private:
 /// Define log for warnings
 #define LOGPZ_WARN(A,B) pzinternal::LogPzWarnImpl(A,B,__FILE__,__LINE__);
 
+#ifdef PZDEBUG
+/// Define log for debug
+#define LOGPZ_DEBUG(A,B) pzinternal::LogPzDebugImpl(A,B,__FILE__,__LINE__); \
+    if(!A.IsDebugEnabled()) std::cout << "LOGPZ_DEBUG Should only be called if the logger is" \
+    << " in the proper state " << __FILE__ << " " << __LINE__ << std::endl;
+
+/// Define log for info
+#define LOGPZ_INFO(A,B) pzinternal::LogPzInfoImpl(A,B,__FILE__,__LINE__);\
+    if(!A.IsInfoEnabled()) std::cout << "LOGPZ_INFO Should only be called if the logger is" \
+    << " in the proper state " << __FILE__ << " " << __LINE__ << std::endl;
+
+/// Define log for warnings
+#define LOGPZ_WARN(A,B) pzinternal::LogPzWarnImpl(A,B,__FILE__,__LINE__);\
+    if(!A.IsWarnEnabled()) std::cout << "LOGPZ_WARN Should only be called if the logger is" \
+    << " in the proper state " << __FILE__ << " " << __LINE__ << std::endl;
+#endif
+
 /// Define log for errors
 #define LOGPZ_ERROR(A,B) pzinternal::LogPzErrorImpl(A,B,__FILE__,__LINE__);
 /// Define log for fatal errors
@@ -153,6 +170,8 @@ private:
 
 
 #else
+
+/*
 #include <iostream>
 //dummy class. log is not enabled.
 class TPZLogger{
@@ -178,6 +197,7 @@ public:
 
 #define LOGPZ_WARN(A,B)
 
+ */
 #define LOGPZ_ERROR(A,B)   \
 {                          \
   std::cout<<B<<std::endl; \
