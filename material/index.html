@@ -488,7 +488,7 @@ scenarios where the domain is homogeneous by parts).</p>
 <p>At an integration point, the information available to the material is given by the following classes:</p>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv415TPZMaterialData">
-<span id="_CPPv315TPZMaterialData"></span><span id="_CPPv215TPZMaterialData"></span><span id="TPZMaterialData"></span><span class="target" id="classTPZMaterialData"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMaterialData</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><a class="headerlink" href="#_CPPv415TPZMaterialData" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv315TPZMaterialData"></span><span id="_CPPv215TPZMaterialData"></span><span id="TPZMaterialData"></span><span class="target" id="classTPZMaterialData"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMaterialData</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">TPZShapeData</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><a class="headerlink" href="#_CPPv415TPZMaterialData" title="Permalink to this definition"></a><br /></dt>
 <dd><p>This class implements a type-agnostic interface between TPZCompEl::CalcStiff<p>and Contribute methods of the materials.</p>
 <p>It requests to the material which attributes must be computed by the computational element and trigger their computation.</p>
 </p>
@@ -549,15 +549,10 @@ scenarios where the domain is homogeneous by parts).</p>
 </dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N15TPZMaterialData4dphiE">
-<span id="_CPPv3N15TPZMaterialData4dphiE"></span><span id="_CPPv2N15TPZMaterialData4dphiE"></span><span id="TPZMaterialData::dphi__TPZFNMatrix:MatDataNumDPhi.REAL:"></span><span class="target" id="classTPZMaterialData_1a68bf944fb6ed05caf5acc9ab80345c5b"></span><span class="n"><span class="pre">TPZFNMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">MatDataNumDPhi</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dphi</span></span></span><a class="headerlink" href="#_CPPv4N15TPZMaterialData4dphiE" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Values of the derivative of the shape functions over the master element. </p>
-</dd></dl>
-
-<dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N15TPZMaterialData5dphixE">
 <span id="_CPPv3N15TPZMaterialData5dphixE"></span><span id="_CPPv2N15TPZMaterialData5dphixE"></span><span id="TPZMaterialData::dphix__TPZFNMatrix:MatDataNumDPhi.REAL:"></span><span class="target" id="classTPZMaterialData_1aca725a7ba5cdd77101e979d1855f4a44"></span><span class="n"><span class="pre">TPZFNMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">MatDataNumDPhi</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dphix</span></span></span><a class="headerlink" href="#_CPPv4N15TPZMaterialData5dphixE" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Values of the derivative of the shape functions. </p>
+<dd><p>Values of the derivative of the shape functions over the master element. </p>
+<p>Values of the derivative of the shape functions </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -633,8 +628,8 @@ scenarios where the domain is homogeneous by parts).</p>
 </dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N15TPZMaterialData17fMasterDirectionsE">
-<span id="_CPPv3N15TPZMaterialData17fMasterDirectionsE"></span><span id="_CPPv2N15TPZMaterialData17fMasterDirectionsE"></span><span id="TPZMaterialData::fMasterDirections__TPZFNMatrix:MatDataNumDir:"></span><span class="target" id="classTPZMaterialData_1a06e5e738b71135e8b72e115cbf94b3f0"></span><span class="n"><span class="pre">TPZFNMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">MatDataNumDir</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fMasterDirections</span></span></span><a class="headerlink" href="#_CPPv4N15TPZMaterialData17fMasterDirectionsE" title="Permalink to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZMaterialData7gelElIdE">
+<span id="_CPPv3N15TPZMaterialData7gelElIdE"></span><span id="_CPPv2N15TPZMaterialData7gelElIdE"></span><span id="TPZMaterialData::gelElId__i"></span><span class="target" id="classTPZMaterialData_1ae8977c1f64d842313f59ab05e7778957"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gelElId</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N15TPZMaterialData7gelElIdE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Directions on the master element. </p>
 </dd></dl>
 
