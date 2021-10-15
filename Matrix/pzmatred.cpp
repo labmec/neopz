@@ -535,6 +535,7 @@ int TPZMatRed<TVar, TSideMatrix>::Zero(){
 	return 0;
 }
 
+// z = alpha A^opt x + beta y
 
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
