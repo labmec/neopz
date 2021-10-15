@@ -35,6 +35,7 @@
 
 #ifdef PZ_LOG
 #include <string>
+#include <iostream>
 
 class TPZLogger;
 
@@ -157,6 +158,19 @@ private:
       pzinternal::LogPzDebugImpl(logger, msg_stream.str(),\
                                  __PRETTY_FUNCTION__,__FILE__,__LINE__); \
    }\
+   else \
+     std::cout << "Protect LOGPZ_DEBUG with conditional" << __FILE__ << " " \
+        << __LINE__ << std::endl; \
+}
+
+/// Define log for debug
+#define LOGPZ_DEBUGS(logger, msg) { \
+    if (logger.isDebugEnabled()) {  \
+      std::stringstream msg_stream; \
+      msg_stream << msg; \
+      pzinternal::LogPzDebugImpl(logger, msg_stream.str(),\
+                                 __PRETTY_FUNCTION__,__FILE__,__LINE__); \
+   }\
 }
 
 /// Define log for info
@@ -167,6 +181,9 @@ private:
       pzinternal::LogPzInfoImpl(logger, msg_stream.str(),\
                                 __PRETTY_FUNCTION__,__FILE__,__LINE__); \
    }\
+    else \
+      std::cout << "Protect LOGPZ_INFO with conditional" << __FILE__ << " " \
+         << __LINE__ << std::endl; \
 }
 
 /// Define log for warnings
@@ -200,6 +217,7 @@ private:
 
 
 #else
+/*
 #include <iostream>
 //dummy class. log is not enabled.
 class TPZLogger{
@@ -225,18 +243,25 @@ public:
 
 #define LOGPZ_WARN(logger, msg)
 
+*/
+
+#define LOGPZ_DEBUGS(logger, msg)
+
+
+#define LOGPZ_WARN(logger, msg)   \
+{                          \
+  std::cout<<msg<<std::endl; \
+}
+
 #define LOGPZ_ERROR(logger, msg)   \
 {                          \
   std::cout<<msg<<std::endl; \
-  DebugStop();             \
 }
 
 #define LOGPZ_FATAL(logger, msg)   \
 {                          \
   std::cout<<msg<<std::endl; \
-  DebugStop();             \
 }
-
 #endif
 /**
  * \} */
