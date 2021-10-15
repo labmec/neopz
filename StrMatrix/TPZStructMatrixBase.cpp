@@ -104,7 +104,9 @@ void TPZStructMatrixBase::SetMaterialIds(const std::set<int> &materialids)
 #endif
     if(!fMesh)
     {
+#ifdef PZ_LOG
         LOGPZ_WARN(logger,"SetMaterialIds called without mesh")
+#endif
         return;
     }
     int64_t iel;
@@ -125,7 +127,9 @@ void TPZStructMatrixBase::SetMaterialIds(const std::set<int> &materialids)
         TPZStructMatrixBase *str = analysis->StructMatrix().operator->();
         if(!str)
         {
+#ifdef PZ_LOG
             LOGPZ_WARN(logger,"SetMaterialIds called for substructure without structural matrix")
+#endif
             continue;
         }
         str->SetMaterialIds(materialids);

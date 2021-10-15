@@ -1820,7 +1820,9 @@ void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
                     sout << "intface gelindex " << (*it2)->Reference()->Index() << " celindex " << (*it2)->Index() << " area " << g->SideArea(ns-1) << std::endl;
                 }
             }
+#ifdef PZ_LOG
             LOGPZ_DEBUG(logger, sout.str())
+#endif
         }
 #endif
 
@@ -1872,7 +1874,9 @@ void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
                     sout << "intface gelindex " << (*it2)->Reference()->Index() << " celindex " << (*it2)->Index() << " subdomain " << WhichSubdomain(*it2) << std::endl;
                 }
             }
+#ifdef PZ_LOG
             LOGPZ_DEBUG(logger, sout.str())
+#endif
         }
 #endif
 
@@ -1893,7 +1897,9 @@ void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
             std::stringstream sout;
             sout << "Interfaces created by hybridization interface left subdomain el index " << intfaceleft->Index() << " dom " << WhichSubdomain(intfaceleft) <<
             " el index " << intfaceright->Index() << " interface right subdomain " << WhichSubdomain(intfaceright);
+#ifdef PZ_LOG
             LOGPZ_DEBUG(logger, sout.str())
+#endif
         }
 #endif
         // adjust the lagrange level of the flux and pressure connects

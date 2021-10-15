@@ -300,7 +300,9 @@ void TPZElementMatrix::ApplyConstraints(){
 				// find the index of the node in the destination (constrained) matrix
 				while(jrnode < totalnodes && this->fConstrConnect[jrnode] != jdfn) jrnode++;
 				if(jrnode == totalnodes) {
+#ifdef PZ_LOG
 					LOGPZ_WARN(logger, "node not found in node list");
+#endif
 				}
 				// first and last columns in the original matrix
 				int64_t jfirst = this->fBlock.Position(jn);
@@ -344,7 +346,9 @@ void TPZElementMatrix::ApplyConstraints(){
 				int depindex=0;
 				while(depindex < totalnodes && this->fConstrConnect[depindex] != depnodeindex) depindex++;
 				if(depindex == totalnodes) {
+#ifdef PZ_LOG
 					LOGPZ_WARN(logger,"node not found in node list");
+#endif
 				}
 				
 				int64_t deppos = this->fConstrBlock.Position(depindex);

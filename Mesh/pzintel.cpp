@@ -119,7 +119,9 @@ void TPZInterpolatedElement::ForceSideOrder(int side, int order) {
     TPZCompElSide thisside(this, side);
     TPZCompElSide large = thisside.LowerLevelElementList(1);
     if (large.Exists()) {
+#ifdef PZ_LOG
         LOGPZ_INFO(logger, "Exiting ForceSideOrder - large exists.");
+#endif
         return;
     }
     TPZConnect &c = MidSideConnect(side);
@@ -278,7 +280,9 @@ void TPZInterpolatedElement::IdentifySideOrder(int side) {
         if (MidSideConnect(side).HasDependency()) {
             TPZConnect &c = MidSideConnect(side);
             c.Print(*Mesh());
+#ifdef PZ_LOG
             LOGPZ_WARN(logger, "TPZInterpolatedElement SetSideOrder fodeu");
+#endif
             DebugStop();
             large = thisside.LowerLevelElementList(1);
         }
@@ -865,16 +869,22 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         return;
     }
     if (myconnect.HasDependency() && largegeoside.Dimension() > 0) {
+#ifdef PZ_LOG
         LOGPZ_WARN(logger, "RestrainSide - unnecessary call to restrainside");
+#endif
         DebugStop();
     }
     if (cel->ConnectIndex(cel->MidSideConnectLocId(largecompside.Side())) == -1) {
+#ifdef PZ_LOG
         LOGPZ_ERROR(logger, "Exiting RestrainSide - Side of large element not initialized");
+#endif
         DebugStop();
         return;
     }
     if (largegeoside.Dimension() < thisgeoside.Dimension()) {
+#ifdef PZ_LOG
         LOGPZ_ERROR(logger, "Exiting RestrainSide - Trying to restrict to a side of smaller dimension");
+#endif
         DebugStop();
         return;
     }
@@ -894,7 +904,9 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     }
     TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(side, maxord * 2);
     if (!intrule) {
+#ifdef PZ_LOG
         LOGPZ_ERROR(logger, "Exiting RestrainSide - cannot create side integration rule");
+#endif
         return;
     }
     int numint = intrule->NPoints();
@@ -1097,11 +1109,15 @@ int TPZInterpolatedElement::CheckElementConsistency() {
     for (iside = 0; iside < NConnects(); iside++) {
         int nshape = Connect(iside).NShape();
         if (Connect(iside).CheckDependency(nshape, Mesh(), nstate) == -1) {
+#ifdef PZ_LOG
             LOGPZ_WARN(logger, "CheckElementConsistency detected inconsistency 1");
+#endif
             return 0;
         }
         if (Connect(iside).NDof(*Mesh()) != nshape * nstate) {
+#ifdef PZ_LOG
             LOGPZ_WARN(logger, "CheckElementConsistency detected inconsistency 2");
+#endif
             return 0;
         }
     }
@@ -1116,7 +1132,9 @@ int TPZInterpolatedElement::CheckElementConsistency() {
             sout << "TPZInterpolatedElement::CheckConstraintConsistency : dismall >= dimel: "
                     << dimsmall << " >= " << dimel << endl
                     << "press any key to continue";
+#ifdef PZ_LOG
             LOGPZ_INFO(logger, sout.str());
+#endif
             cin >> a;
             delete sirule;
             return 0;
@@ -1149,7 +1167,9 @@ int TPZInterpolatedElement::CheckElementConsistency() {
                     SideShapeFunction(sidel, ptl, phil, dphil);
                     int check = CompareShapeF(iside, sidel, phis, dphis, phil, dphil, transform);
                     if (!check) {
+#ifdef PZ_LOG
                         LOGPZ_INFO(logger, "Exiting CheckElementConsistency - don't compare shapefunctions.");
+#endif
                         delete sirule;
                         return check;
                     }
@@ -1252,13 +1272,17 @@ void TPZInterpolatedElement::RemoveSideRestraintWithRespectTo(int side,
     TPZCompElSide thisside(this, side);
     TPZCompElSide largeset = thisside.LowerLevelElementList(1);
     if (!largeset.Exists()) {
+#ifdef PZ_LOG
         LOGPZ_WARN(logger, "Exiting RemoveSideRestraintWithRespectTo inconsistent 1");
+#endif
         return;
     }
     TPZInterpolatedElement *smallfather = dynamic_cast<TPZInterpolatedElement *> (largeset.Element());
     int smallfatherside = largeset.Side();
     if (!neighbour.Reference().NeighbourExists(largeset.Reference())) {
+#ifdef PZ_LOG
         LOGPZ_WARN(logger, "Exiting RemoveSideRestraintWithRespectTo inconsistent 3");
+#endif
     }
     int js;
     int nsfather = smallfather->NSideConnects(smallfatherside);
@@ -1282,7 +1306,9 @@ void TPZInterpolatedElement::RemoveSideRestraintWithRespectTo(int side,
 
 void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
     if (mode == EInsert) {//modo insercao
+#ifdef PZ_LOG
         LOGPZ_WARN(logger, "Exiting RemoveSideRestraintsII with mode insert should not be called");
+#endif
         return;
     }
     TPZCompElSide large; //elemento grande
@@ -1468,7 +1494,9 @@ void TPZInterpolatedElement::Divide(int64_t index,TPZVec<int64_t> &sub,int inter
         for (i = 0; i < nsubelements; i++) {
             cel = dynamic_cast<TPZInterpolatedElement *> (fMesh->ElementVec()[sub[i]]);
             if (!cel) {
+#ifdef PZ_LOG
                 LOGPZ_WARN(logger, "Divide interpolate cast error");
+#endif
                 continue;
             }
             cel->CheckConstraintConsistency();

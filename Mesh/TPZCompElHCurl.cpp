@@ -520,16 +520,22 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
         return;
     }
     if (myConnect.HasDependency() && largeSideDimension > 0) {
+#ifdef PZ_LOG
         LOGPZ_WARN(logger, "RestrainSide - unnecessary call to restrainside");
+#endif
         DebugStop();
     }
     if (largeCel->ConnectIndex(largeCel->MidSideConnectLocId(largeCompSide.Side())) == -1) {
+#ifdef PZ_LOG
         LOGPZ_ERROR(logger, "Exiting RestrainSide - Side of large element not initialized");
+#endif
         DebugStop();
         return;
     }
     if (largeSideDimension == 0) {
+#ifdef PZ_LOG
         LOGPZ_ERROR(logger, "Exiting RestrainSide - dimension of large element is 0");
+#endif
         DebugStop();
         return;
     }

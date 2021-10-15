@@ -195,7 +195,9 @@ TPZCompEl::~TPZCompEl() {
 }
 
 MElementType TPZCompEl::Type() {
+#ifdef PZ_LOG
     LOGPZ_WARN(logger, "Type unknown");
+#endif
     return ENoType;
 }
 
@@ -269,7 +271,9 @@ TPZCompMesh *TPZCompEl::Mesh() const {
     {
         std::stringstream sout;
         sout << __PRETTY_FUNCTION__ << " mesh address " << (void *) fMesh << " this address " << (void *) this;
+#ifdef PZ_LOG
         LOGPZ_WARN(logger, sout.str());
+#endif
     }
     return fMesh;
 }
@@ -371,14 +375,18 @@ void TPZCompEl::PrintSolution(TPZVec<REAL> &point,const char *varname,std::ostre
     TPZGeoEl *georef = Reference();
     TPZMaterial * mat = Material();
     if(!georef || !mat) {
+#ifdef PZ_LOG
         LOGPZ_WARN(logger, "Exiting PrintSolution should not be called for an element which doesnt have a geometric reference or material");
+#endif
         Print();
         return;
     }
     int varindex = mat->VariableIndex(varname);
     int numvar = mat->NSolutionVariables(varindex);
     if(varindex == -1) {
+#ifdef PZ_LOG
         LOGPZ_WARN(logger, "Exiting PrintSolution should not be called for an element which has unknown variable index");
+#endif
         return;
     }
     TPZManVector<STATE> sol(numvar);
@@ -392,7 +400,9 @@ void TPZCompEl::PrintSolution(TPZVec<REAL> &point,const char *varname,std::ostre
 void TPZCompEl::PrintCoordinate(TPZVec<REAL> &point,int CoordinateIndex,std::ostream &s) {
     TPZGeoEl *georef = Reference();
     if(!georef) {
+#ifdef PZ_LOG
         LOGPZ_WARN(logger,"Exiting PrintCoordinate should not be called on an element which doesnt have a geometric reference");
+#endif
         return;
     }
     TPZManVector<REAL> X(3);
@@ -405,7 +415,9 @@ void TPZCompEl::PrintTitle(const char *varname,std::ostream &s) {
     TPZMaterial * mat = Material();
     TPZGeoEl *georef = Reference();
     if(!georef || !mat) {
+#ifdef PZ_LOG
         LOGPZ_WARN(logger,"Exiting PrintTitle should not be called for an element which doesnt have a material");
+#endif
         return;
     }
     int varindex = mat->VariableIndex(varname);
@@ -421,10 +433,14 @@ void TPZCompEl::PrintTitle(const char *varname,std::ostream &s) {
 
 void TPZCompEl::Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate) {
     subindex.Resize(0);
+#ifdef PZ_LOG
     LOGPZ_WARN(logger,"TPZCompEl::Divide called");
+#endif
 }
 void TPZCompEl::EvaluateError(TPZVec<REAL> &/*errors*/, bool store_error) {
+#ifdef PZ_LOG
     LOGPZ_WARN(logger, "EvaluateError is called.");
+#endif
     DebugStop();
 }
 
@@ -602,7 +618,9 @@ int TPZCompEl::NEquations() {
 
 REAL TPZCompEl::CompareElement(int var, char *matname){
     cout << "TPZCompEl::CompareElement called!\n";
+#ifdef PZ_LOG
     LOGPZ_WARN(logger, "CompareElement called!");
+#endif
     return 0.;
 }
 
@@ -653,7 +671,9 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
 #endif
     }
     int j;
+#ifdef PZ_LOG
     LOGPZ_DEBUG(logger, sout.str());
+#endif
     while(ancestors.NElements()) {
         TPZGeoEl *larger = ancestors.Pop();
         for (j=0; j<larger->NSides(); j++){
@@ -674,7 +694,9 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
     }
     //cout << " \n \n \n ==================================\n ================================\nElemento PatchReference falho\n";
     //Reference()->Print();
+#ifdef PZ_LOG
     LOGPZ_DEBUG(logger, "Exit GetRefElPatch - Element is its own patch");
+#endif
     return (Reference());
 }
 
@@ -757,7 +779,9 @@ void TPZCompEl::SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,
 
 TPZGeoElSide TPZCompElSide::Reference() const {
     if(!fEl) {
+#ifdef PZ_LOG
         LOGPZ_WARN(loggerSide, "Exiting Reference - non initialized side element reached");
+#endif
         return TPZGeoElSide();
     }
     TPZGeoElSide sideel(fEl->Reference(),fSide);
@@ -772,7 +796,9 @@ void TPZCompElSide::HigherLevelElementList(TPZStack<TPZCompElSide> &elvec,
                                            int onlyinterpolated, int removeduplicates) {
     TPZGeoElSide georef = Reference();
     if(!georef.Element()) {
+#ifdef PZ_LOG
         LOGPZ_WARN(loggerSide, "Exiting HigherLevelElementList - null reference reached");
+#endif
         return;
     }
     georef.HigherLevelCompElementList2(elvec,onlyinterpolated,removeduplicates);
@@ -782,7 +808,9 @@ void TPZCompElSide::EqualLevelElementList(TPZStack<TPZCompElSide> &elsidevec,
                                           int onlyinterpolated, int removeduplicates) {
     TPZGeoElSide georef = Reference();
     if(!georef.Exists()) {
+#ifdef PZ_LOG
         LOGPZ_WARN(loggerSide, "Exiting EqualLevelElementList - null reference reached");
+#endif
         return;
     }
     georef.EqualLevelCompElementList(elsidevec,onlyinterpolated,removeduplicates);
@@ -792,7 +820,9 @@ void TPZCompElSide::HigherDimensionElementList(TPZStack<TPZCompElSide> &elsideve
                                                int onlyinterpolated, int removeduplicates) {
     TPZGeoElSide georef = Reference();
     if(!georef.Exists()) {
+#ifdef PZ_LOG
         LOGPZ_INFO(loggerSide, "Entering HigherDimensionElementList - null reference reached");
+#endif
         return;
     }
     georef.HigherDimensionElementList(elsidevec,onlyinterpolated);
@@ -834,7 +864,9 @@ void TPZCompElSide::ConnectedElementList(TPZStack<TPZCompElSide> &ellist,
 TPZCompElSide TPZCompElSide::LowerLevelElementList(int onlyinterpolated) {
     TPZGeoElSide georef = Reference();
     if(!georef.Exists()) {
+#ifdef PZ_LOG
         LOGPZ_WARN(loggerSide, "Exiting LowerLevelElementList - null reference reached");
+#endif
         return TPZCompElSide();
     }
     return georef.LowerLevelCompElementList2(onlyinterpolated);
@@ -845,7 +877,9 @@ void TPZCompElSide::ExpandConnected(TPZStack<TPZCompElSide> &expandvec,int onlyi
     //obtidos com HigherLevelElementList(..)
     TPZGeoElSide georef = Reference();
     if(!georef.Exists()) {
+#ifdef PZ_LOG
         LOGPZ_WARN(loggerSide, "Exiting ExpandConnected - null reference reached");
+#endif
         return;
     }
     TPZStack<TPZCompElSide> highdimsidevec;
@@ -880,7 +914,9 @@ void TPZCompElSide::ExpandConnected(TPZStack<TPZCompElSide> &expandvec,int onlyi
 
 TPZCompElSide TPZCompElSide::LowerIdElementList(TPZCompElSide &expandvec,int onlyinterpolated) {
     if(!expandvec.Element()) {
+#ifdef PZ_LOG
         LOGPZ_WARN(loggerSide, "Exiting LowerIdElementList - empty list");
+#endif
         return TPZCompElSide();
     }
     TPZGeoElSide gelside = expandvec.Reference();

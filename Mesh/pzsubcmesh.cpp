@@ -1614,8 +1614,10 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
 	TPZStepSolver<STATE> solver;
     solver.SetDirect(ELU);
 	fAnalysis->SetSolver(solver);
-	
+
+#ifdef PZ_LOG
 	LOGPZ_DEBUG(logger2, __PRETTY_FUNCTION__)
+#endif
 	PermuteExternalConnects();
 }
 
@@ -2112,13 +2114,17 @@ bool TPZSubCompMesh::NeedsComputing(const std::set<int> &matids)
 			sout << *it2 << " ";
 		}
 		sout << std::endl;
+#ifdef PZ_LOG
 		LOGPZ_DEBUG(logger, sout.str())
+#endif
 	}
 	if(numtrue && numfalse)
 	{
 		std::stringstream sout;
 		sout << "A substructure should have either all elements computable or not numtrue " << numtrue << " numfalse " << numfalse;
+#ifdef PZ_LOG
 		LOGPZ_WARN(logger,sout.str())
+#endif
 	}
 	if(numtrue)
 	{

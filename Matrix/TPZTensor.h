@@ -70,7 +70,9 @@ public:
             if (fDistinctEigenvalues == 0 || fDistinctEigenvalues > 3) {
                 std::stringstream str;
                 str << "TPZTensor::Decomposed::Print Invalid number of distinct eigenvalues: " << fDistinctEigenvalues << std::endl;
+#ifdef PZ_LOG
                 LOGPZ_DEBUG(loggerr, str.str());
+#endif
             }
 #endif
             out << "TPZTensor::Decomposed Eigenvalues (" << fDistinctEigenvalues << " distinct):" << std::endl;
@@ -82,7 +84,9 @@ public:
                 if (geoMult == 0 || geoMult > 3) {
                     std::stringstream str;
                     str << "TPZTensor::Decomposed::Print Invalid geometric multiplicity (" << geoMult << ") for eigenvalue " << fEigenvalues[lambda] << std::endl;
+#ifdef PZ_LOG
                     LOGPZ_DEBUG(loggerr, str.str());
+#endif
                 }
 #endif
                 out << "Eigenvalue: " << fEigenvalues[lambda] << " (" << geoMult << " time" << (geoMult > 1 ? "s" : "") << ")" << std::endl;

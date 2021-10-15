@@ -110,49 +110,65 @@ bool TPZMaterialData::Compare(TPZSavable *copy, bool override)
     locres = phi.Compare(&comp->phi,override);
     if(!locres)
     {
+#ifdef PZ_LOG
         LOGPZ_DEBUG(loggerCheck,"phi different")
+#endif
     }
     result = result && locres;
     locres = dphi.Compare(&comp->dphi,override);
     if(!locres)
     {
+#ifdef PZ_LOG
         LOGPZ_DEBUG(loggerCheck,"dphi different")
+#endif
     }
     result = result && locres;
     locres = dphix.Compare(&comp->dphix,override);
     if(!locres)
     {
+#ifdef PZ_LOG
         LOGPZ_DEBUG(loggerCheck,"dphix different")
+#endif
     }
     result = result && locres;
     locres = divphi.Compare(&comp->divphi,override);
     if(!locres)
     {
+#ifdef PZ_LOG
         LOGPZ_DEBUG(loggerCheck,"divphi different")
+#endif
     }
     result = result && locres;
     locres = curlphi.Compare(&comp->curlphi,override);
     if(!locres)
     {
+#ifdef PZ_LOG
         LOGPZ_DEBUG(loggerCheck,"curlphi different")
+#endif
     }
     result = result && locres;
     locres = axes.Compare(&comp->axes,override);
     if(!locres)
     {
+#ifdef PZ_LOG
         LOGPZ_DEBUG(loggerCheck,"axes different")
+#endif
     }
     result = result && locres;
     locres = jacobian.Compare(&comp->jacobian,override);
     if(!locres)
     {
+#ifdef PZ_LOG
         LOGPZ_DEBUG(loggerCheck,"jacobian different")
+#endif
     }
     result = result && locres;
     locres = jacinv.Compare(&comp->jacinv,override);
     if(!locres)
     {
+#ifdef PZ_LOG
         LOGPZ_DEBUG(loggerCheck,"jacinv different")
+#endif
     }
     result = result && locres;
     return result;

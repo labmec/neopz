@@ -517,7 +517,9 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 	// #warning Not functional yet. Still need to Identify all the variables	
 	if(!fIsReduced)
 	{
+#ifdef PZ_LOG
 		LOGPZ_WARN(logger,"TPZMatRed not reduced, expect trouble")
+#endif
 		TPZMatrix<TVar>::MultAdd(x,y,z,alpha,beta,opt);
 		return;
 	}

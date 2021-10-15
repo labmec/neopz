@@ -652,7 +652,9 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 	
 	TPZGeoEl *ref = Reference();
 	if(!ref) {
+#ifdef PZ_LOG
 		LOGPZ_WARN(logger, "Exiting CreateInterface Null reference reached - NULL interface returned");
+#endif
 		return NULL;
 	}
 	
@@ -938,7 +940,9 @@ void TPZInterpolationSpace::RemoveInterfaces(){
 		//tirando os elementos de interface da lista
 		for(i=0;i<size;i++){
 			if(list[i].Element()->Type() == EInterface) {
+#ifdef PZ_LOG
 				LOGPZ_DEBUG(logger, "Removing interface element from the list of higher level elements");
+#endif
 				//This need to be done because otherwise list could be invalidated when an interface is removed.
 				list[i] = TPZCompElSide();//tirando interface
 			}
@@ -1015,7 +1019,9 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
 		return;
 	}
 	if (dynamic_cast<TPZBndCond *>(material)) {
+#ifdef PZ_LOG
 		LOGPZ_INFO(logger, "Exiting EvaluateError - null error - boundary condition material.");
+#endif
 		return;
 	}
     if (!material->HasExactSol()) {

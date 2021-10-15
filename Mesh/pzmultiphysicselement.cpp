@@ -89,7 +89,9 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 	
 	TPZGeoEl *ref = Reference();
 	if(!ref) {
+#ifdef PZ_LOG
 		LOGPZ_WARN(logger, "Exiting CreateInterface Null reference reached - NULL interface returned");
+#endif
 		return newcreatedinterface;
 	}
 	
@@ -342,7 +344,9 @@ void TPZMultiphysicsElement::RemoveInterfaces(){
 		//tirando os elementos de interface da lista
 		for(i=0;i<size;i++){
 			if(list[i].Element()->Type() == EInterface) {
+#ifdef PZ_LOG
 				LOGPZ_DEBUG(logger, "Removing interface element from the list of higher level elements");
+#endif
 				//This need to be done because otherwise list could be invalidated when an interface is removed.
 				list[i] = TPZCompElSide();//tirando interface
 			}

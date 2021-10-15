@@ -283,7 +283,9 @@ void TPZGeoMesh::GetBoundaryElements(int64_t NodFrom, int64_t NodTo,TPZStack<TPZ
 		// if no element was found, the topology may not be two dimensional
 		if(!candidate)
 		{
+#ifdef PZ_LOG
 			LOGPZ_WARN(logger,"GetBoundaryElements no adjacent element found");
+#endif
 			break;
 		}
 		int64_t index = 0;

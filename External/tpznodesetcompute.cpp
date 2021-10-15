@@ -295,7 +295,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " Original set of nodes ";
 		Print(sout,vertices,0);
+#ifdef PZ_LOG
 		LOGPZ_DEBUG(logger,sout.str())
+#endif
 	}
   for(intit = vertices.begin(); intit != vertices.end(); intit++)
   {
