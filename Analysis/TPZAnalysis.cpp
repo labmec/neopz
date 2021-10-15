@@ -575,7 +575,12 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
   
   TPZManVector<REAL,10> values;
   // Assuming the first is equal to the others
-  const int nerrors = threaddata.fvalues[0].NElements();
+  int nerrors = threaddata.fvalues[0].NElements();
+    for(int it = 0 ; it < numthreads ; it++)
+    {
+        int locmin = threaddata.fvalues[it].NElements();
+        nerrors = nerrors < locmin ? nerrors : locmin;
+    }
   values.Resize(nerrors,0);
   // Summing up all the values of all threads
   for(int it = 0 ; it < numthreads ; it++){
