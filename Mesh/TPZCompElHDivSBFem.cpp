@@ -86,7 +86,7 @@ void TPZCompElHDivSBFem<TSHAPE>::ComputeRequiredData(TPZMaterialDataT<STATE> &da
     // Adjusting divergence values
     for (int64_t i = 0; i < nshape1d; i++)
     {
-        data.divphi(i) = data.dphi(0,i);
+        data.divphi(i) = data.fDPhi(0,i);
     }
     for (int64_t i = 0; i < nshape; i++)
     {
@@ -264,14 +264,14 @@ void TPZCompElHDivSBFem<TSHAPE>::ExtendShapeFunctions(TPZMaterialDataT<STATE> &d
     {
         for (int d = 0; d < dim - 1; d++)
         {
-            data.dphi(d, ish + nshape1d) = 0.;
-            data.dphi(d, ish + nshape1d+nshape2d) = data.phi(ish);
+            data.fDPhi(d, ish + nshape1d) = 0.;
+            data.fDPhi(d, ish + nshape1d+nshape2d) = data.phi(ish);
         }
-        data.dphi(dim-1, ish+nshape1d) = - data.phi(ish) / 2.;
-        data.dphi(dim-1, ish+nshape1d+nshape2d) = 0.;
+        data.fDPhi(dim-1, ish+nshape1d) = - data.phi(ish) / 2.;
+        data.fDPhi(dim-1, ish+nshape1d+nshape2d) = 0.;
     }
    
-    TPZFNMatrix<50,REAL> philoc(data.phi.Rows(),data.phi.Cols()),dphiloc(data.dphi.Rows(),data.dphi.Cols());
+    TPZFNMatrix<50,REAL> philoc(data.phi.Rows(),data.phi.Cols()),dphiloc(data.fDPhi.Rows(),data.fDPhi.Cols());
     TPZManVector<int,TSHAPE::NSides> ord;
     TPZCompElHDivCollapsed<TSHAPE>::fBottom.GetInterpolationOrder(ord);
 
@@ -302,7 +302,7 @@ void TPZCompElHDivSBFem<TSHAPE>::ExtendShapeFunctions(TPZMaterialDataT<STATE> &d
             data.phi(nshape1d + ifirst+i,0) = philoc(kfirst+i,0);
             for (int d=0; d< TSHAPE::Dimension; d++)
             {
-                data.dphi(d,nshape1d + ifirst+i) = dphiloc(d,kfirst+i);
+                data.fDPhi(d,nshape1d + ifirst+i) = dphiloc(d,kfirst+i);
             }
         }
     }
@@ -310,7 +310,7 @@ void TPZCompElHDivSBFem<TSHAPE>::ExtendShapeFunctions(TPZMaterialDataT<STATE> &d
     data.divsol[0].Resize(1,0.);
     
 
-    TPZInterpolationSpace::Convert2Axes(data.dphi, data.jacinv, data.dphix);
+    TPZInterpolationSpace::Convert2Axes(data.fDPhi, data.jacinv, data.dphix);
 }
 
 template <class TSHAPE>

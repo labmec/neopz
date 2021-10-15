@@ -115,7 +115,7 @@ void TPZCompElH1<TSHAPE>::InitMaterialData(TPZMaterialData &data){
     const int nstate = this->Material()->NStateVariables();
     data.fShapeType = TPZMaterialData::EScalarShape;
     data.phi.Redim(nshape,1);
-    data.dphi.Redim(dim,nshape);
+//    data.dphi.Redim(dim,nshape);
     data.dphix.Redim(dim,nshape);
     data.axes.Redim(dim,3);
     data.jacobian.Redim(dim,dim);

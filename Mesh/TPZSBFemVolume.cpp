@@ -97,7 +97,7 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMa
     CSkeleton->InitMaterialData(data2d);
     int nshape = data2d.phi.Rows();
     data2d.phi.Redim(nshape * 2, 1);
-    data2d.dphi.Redim(dim2, 2 * nshape);
+    data2d.fDPhi.Redim(dim2, 2 * nshape);
     data2d.dphix.Redim(dim2, 2 * nshape);
     data2d.dsol[0].Redim(dim2, nstate);
 
@@ -243,13 +243,13 @@ void TPZSBFemVolume::ExtendShapeFunctions(TPZMaterialDataT<STATE> &data1d, TPZMa
     for (int ish = 0; ish < nshape; ish++) {
         data2d.phi(ish + nshape, 0) = data1d.phi(ish, 0);
         for (int d = 0; d < dim - 1; d++) {
-            data2d.dphi(d, ish + nshape) = data1d.dphi(d, ish);
-            data2d.dphi(d, ish) = 0.;
+            data2d.fDPhi(d, ish + nshape) = data1d.fDPhi(d, ish);
+            data2d.fDPhi(d, ish) = 0.;
         }
-        data2d.dphi(dim - 1, ish) = -data1d.phi(ish) / 2.;
-        data2d.dphi(dim - 1, ish + nshape) = 0.;
+        data2d.fDPhi(dim - 1, ish) = -data1d.phi(ish) / 2.;
+        data2d.fDPhi(dim - 1, ish + nshape) = 0.;
     }
-    TPZInterpolationSpace::Convert2Axes(data2d.dphi, data2d.jacinv, data2d.dphix);
+    TPZInterpolationSpace::Convert2Axes(data2d.fDPhi, data2d.jacinv, data2d.dphix);
 }
 
 TPZCompEl * CreateSBFemCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
@@ -410,7 +410,7 @@ void TPZSBFemVolume::ReallyComputeSolution(TPZMaterialDataT<STATE>& data)
                 sol[s][istate] += data1d.phi(ishape) * uh_xi[ishape * nstate + istate];
                 dsolxi[istate] += data1d.phi(ishape) * Duh_xi[ishape * nstate + istate];
                 for (int d = 0; d < dim - 1; d++) {
-                    dsolxieta(d, istate) += data1d.dphi(d, ishape) * uh_xi[ishape * nstate + istate];
+                    dsolxieta(d, istate) += data1d.fDPhi(d, ishape) * uh_xi[ishape * nstate + istate];
                 }
                 dsolxieta(dim - 1, istate) = -dsolxi[istate] / 2.;
             }
@@ -478,7 +478,7 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
     }
     axes = data2d.axes;
     CSkeleton->ComputeRequiredData(data1d, qsilow);
-    CSkeleton->Shape(qsilow, data1d.phi, data1d.dphi);
+    CSkeleton->Shape(qsilow, data1d.phi, data1d.fDPhi);
     
     int nshape = data1d.phi.Rows();
     int nstate = mat2d->NStateVariables();
@@ -565,7 +565,7 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
                 sol[s][istate] += data1d.phi(ishape) * uh_xi[ishape * nstate + istate].real();
                 dsolxi[istate] += data1d.phi(ishape) * Duh_xi[ishape * nstate + istate].real();
                 for (int d = 0; d < dim - 1; d++) {
-                    dsolxieta(d, istate) += data1d.dphi(d, ishape) * uh_xi[ishape * nstate + istate].real();
+                    dsolxieta(d, istate) += data1d.fDPhi(d, ishape) * uh_xi[ishape * nstate + istate].real();
                 }
                 dsolxieta(dim - 1, istate) = -dsolxi[istate] / 2.;
             }
@@ -724,7 +724,7 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
                 phi(s * nstate + istate, 0) += data1d.phi(ishape) * uh_xi[ishape * nstate + istate].real();
                 dsolxi[istate] += data1d.phi(ishape) * Duh_xi[ishape * nstate + istate].real();
                 for (int d = 0; d < dim - 1; d++) {
-                    dsollow(d, istate) += data1d.dphi(d, ishape) * uh_xi[ishape * nstate + istate].real();
+                    dsollow(d, istate) += data1d.fDPhi(d, ishape) * uh_xi[ishape * nstate + istate].real();
                 }
             }
         }
@@ -944,7 +944,7 @@ void TPZSBFemVolume::InitMaterialData(TPZMaterialData &data)
     const int nshape = this->NShapeF();
     const int nstate = this->Material()->NStateVariables();
     data.phi.Redim(nstate * nshape*dim, 1);
-    data.dphi.Redim(dim*nstate, nshape * nstate);
+    data.fDPhi.Redim(dim*nstate, nshape * nstate);
     data.dphix.Redim(dim*nstate, nshape * nstate);
     data.axes.Redim(dim, 3);
     data.jacobian.Redim(dim, dim);
@@ -1083,7 +1083,7 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
         Ref2D->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
         weight *= fabs(data.detjac);
         
-        CSkeleton->Shape(intpoint, data1d.phi, data1d.dphi);
+        CSkeleton->Shape(intpoint, data1d.phi, data1d.fDPhi);
         
         Ref2D->X(intpoint, data.x);
         if (mat2d->HasForcingFunction())

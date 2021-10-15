@@ -273,7 +273,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialDataT(TPZMaterialDataT<TVar> &d
     for(int i=0; i<nscalartop; i++) data.fVecShapeIndex[nvecshape+i] = std::pair<int,int64_t>(nvec,nscalar+i);
     for(int i=0; i<nscalarbottom; i++) data.fVecShapeIndex[nvecshape+nscalartop+i] = std::pair<int,int64_t>(nvec+1,nscalar+nscalartop+i);
     data.phi.Resize(nscalar+nscalartop+nscalarbottom, 1);
-    data.dphi.Resize(dim+1,nscalar+nscalartop+nscalarbottom);
+    data.fDPhi.Resize(dim+1,nscalar+nscalartop+nscalarbottom);
     data.divphi.Resize(nvecshape+nscalartop+nscalarbottom,1);
     if(data.fNeedsDeformedDirectionsFad) DebugStop();
 

@@ -566,7 +566,7 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
     
-    this->Shape(intpoint, data.phi, data.dphi);
+    this->Shape(intpoint, data.phi, data.fDPhi);
     
     TPZGeoEl *ref = this->Reference();
     ref->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);

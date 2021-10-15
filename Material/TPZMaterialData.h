@@ -98,7 +98,7 @@ public:
     /// Vector of shapefunctions (format is dependent on the value of shapetype)
     TPZFNMatrix<MatDataNumPhi, REAL> phi;
     /// Values of the derivative of the shape functions over the master element
-    TPZFNMatrix<MatDataNumDPhi, REAL> dphi;
+//    TPZFNMatrix<MatDataNumDPhi, REAL> dphi;
     /// Values of the derivative of the shape functions
     TPZFNMatrix<MatDataNumDPhi, REAL> dphix;
     /// Values of the divergence of the shape functions in the mapped element (only applicable to H(div) spaces)    
