@@ -291,12 +291,15 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
   if(!vertices.size()) return;
   std::set<int64_t> elem;
   std::set<int64_t>::iterator intit,diffit;
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " Original set of nodes ";
 		Print(sout,vertices,0);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
+#endif
   for(intit = vertices.begin(); intit != vertices.end(); intit++)
   {
     std::set<int64_t> locset,diffset,interset,unionset,loclocset;

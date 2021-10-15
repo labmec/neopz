@@ -19,6 +19,8 @@
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.TPZCompElHCurl");
 static TPZLogger loggercurl("pz.mesh.tpzinterpolatedelement.divide");
+#else
+static int logger;
 #endif
 /*********************************************************************************************************
                                        TPZHCurlAuxClass methods
@@ -564,7 +566,7 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
         return;
     }
     if (myConnect.HasDependency() && largeSideDimension > 0) {
-        LOGPZ_WARN(logger, "RestrainSide - unnecessary call to restrainside");
+        LOGPZ_ERROR(logger, "RestrainSide - unnecessary call to restrainside");
         DebugStop();
     }
     if (largeCel->ConnectIndex(largeCel->MidSideConnectLocId(largeCompSide.Side())) == -1) {

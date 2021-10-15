@@ -653,7 +653,9 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix<REAL> &axes, TPZVec<REAL> &no
 		int index = fabs(axes(0,0)) < fabs(axes(0,1)) ? 0 : 1;
 		index = fabs(axes(0,index)) < fabs(axes(0,2)) ? index : 2;
 		vec[index] = 1.;
+#ifdef PZ_LOG
 		LOGPZ_WARN(logger,"Left and Right element centers coincide")
+#endif
 	}
 	
 	

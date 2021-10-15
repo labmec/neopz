@@ -649,7 +649,9 @@ namespace pztopology {
 			default:
 				break;
 		}
+#ifdef PZ_LOG
 		LOGPZ_ERROR(logger,"Wrong side parameter")
+#endif
 		return -1;
 	}
     

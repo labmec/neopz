@@ -20,6 +20,8 @@ using namespace std;
 #include "pzlog.h"
 #ifdef PZ_LOG
 static TPZLogger logger("pz.matrix.tpzmatred");
+#else
+static int logger;
 #endif
 
 /*************************** Public ***************************/
@@ -543,7 +545,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 	// #warning Not functional yet. Still need to Identify all the variables	
 	if(!fIsReduced)
 	{
-		LOGPZ_WARN(logger,"TPZMatRed not reduced, expect trouble")
+		LOGPZ_ERROR(logger,"TPZMatRed not reduced, expect trouble")
 		TPZMatrix<TVar>::MultAdd(x,y,z,alpha,beta,opt);
 		return;
 	}

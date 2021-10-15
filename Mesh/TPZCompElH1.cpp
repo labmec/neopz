@@ -6,6 +6,8 @@
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.tpzintelgen");
+#else
+static int logger;
 #endif
 
 

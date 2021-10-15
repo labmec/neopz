@@ -25,6 +25,8 @@
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.tpzinterpolatedelement");
 static TPZLogger loggerdiv("pz.mesh.tpzinterpolatedelement.divide");
+#else
+static int logger;
 #endif
 
 
@@ -115,7 +117,9 @@ void TPZInterpolatedElement::ForceSideOrder(int side, int order) {
     TPZCompElSide thisside(this, side);
     TPZCompElSide large = thisside.LowerLevelElementList(1);
     if (large.Exists()) {
+#ifdef PZ_LOG
         LOGPZ_INFO(logger, "Exiting ForceSideOrder - large exists.");
+#endif
         return;
     }
     TPZConnect &c = MidSideConnect(side);
@@ -1112,8 +1116,8 @@ int TPZInterpolatedElement::CheckElementConsistency() {
             sout << "TPZInterpolatedElement::CheckConstraintConsistency : dismall >= dimel: "
                     << dimsmall << " >= " << dimel << endl
                     << "press any key to continue";
-            LOGPZ_INFO(logger, sout.str());
-            cin >> a;
+            LOGPZ_ERROR(logger, sout.str());
+            DebugStop();
             delete sirule;
             return 0;
         }
@@ -1145,7 +1149,9 @@ int TPZInterpolatedElement::CheckElementConsistency() {
                     SideShapeFunction(sidel, ptl, phil, dphil);
                     int check = CompareShapeF(iside, sidel, phis, dphis, phil, dphil, transform);
                     if (!check) {
+#ifdef PZ_LOG
                         LOGPZ_INFO(logger, "Exiting CheckElementConsistency - don't compare shapefunctions.");
+#endif
                         delete sirule;
                         return check;
                     }

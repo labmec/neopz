@@ -3,6 +3,8 @@
 #include "pzlog.h"
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.tpzelmat");
+#else
+static int logger;
 #endif
 
 
@@ -231,7 +233,7 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 				// find the index of the node in the destination (constrained) matrix
 				while(jrnode < totalnodes && this->fConstrConnect[jrnode] != jdfn) jrnode++;
 				if(jrnode == totalnodes) {
-					LOGPZ_WARN(logger, "node not found in node list");
+					LOGPZ_ERROR(logger, "node not found in node list");
 				}
 				// first and last columns in the original matrix
 				int64_t jfirst = this->fBlock.Position(jn);
@@ -275,7 +277,7 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 				int depindex=0;
 				while(depindex < totalnodes && this->fConstrConnect[depindex] != depnodeindex) depindex++;
 				if(depindex == totalnodes) {
-					LOGPZ_WARN(logger,"node not found in node list");
+					LOGPZ_ERROR(logger,"node not found in node list");
 				}
 				
 				int64_t deppos = this->fConstrBlock.Position(depindex);

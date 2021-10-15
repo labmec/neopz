@@ -40,6 +40,8 @@
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.subcmesh");
 static TPZLogger logger2("pz.mesh.tpzcompmesh");
+#else
+static int logger;
 #endif
 
 TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, int64_t &index) : TPZRegisterClassId(&TPZSubCompMesh::ClassId), TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0,index),
@@ -1518,7 +1520,9 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
     solver.SetDirect(ELU);
 	fAnalysis->SetSolver(solver);
 	
+#ifdef PZ_LOG
 	LOGPZ_DEBUG(logger2, __PRETTY_FUNCTION__)
+#endif
 	PermuteExternalConnects();
 }
 
@@ -1982,6 +1986,7 @@ bool TPZSubCompMesh::NeedsComputing(const std::set<int> &matids)
 			
 		}
 	}
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Material ids contained in the mesh ";
@@ -1999,11 +2004,12 @@ bool TPZSubCompMesh::NeedsComputing(const std::set<int> &matids)
 		sout << std::endl;
 		LOGPZ_DEBUG(logger, sout.str())
 	}
+#endif
 	if(numtrue && numfalse)
 	{
 		std::stringstream sout;
 		sout << "A substructure should have either all elements computable or not numtrue " << numtrue << " numfalse " << numfalse;
-		LOGPZ_WARN(logger,sout.str())
+		LOGPZ_ERROR(logger,sout.str())
 	}
 	if(numtrue)
 	{

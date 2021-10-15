@@ -70,10 +70,14 @@ REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix<STATE> &Wn, TPZFMatrix<ST
 			lambdak = Interval; lambdak *= 0.382; lambdak += ak;
 			//computing residual
 			this->LoadSolution(lambdak);
+#ifdef PZ_LOG
 			LOGPZ_DEBUG(logger,"After LoadSolution")
+#endif
 			//		LogWellSolution(*this->Mesh(), 6);
 			this->AssembleResidual();
+#ifdef PZ_LOG
 			LOGPZ_DEBUG(logger,"After AssembleResidual")
+#endif
 			//		LogWellSolution(*this->Mesh(), 6);
 			NormResLambda = Norm(fRhs);
 		}

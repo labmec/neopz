@@ -423,8 +423,9 @@ int TPZBlockDiagonal<TVar>::Decompose_LU(std::list<int64_t> &singular)
 template<class TVar>
 int TPZBlockDiagonal<TVar>::Decompose_LU()
 {
-	
+#ifdef PZ_LOG
 	LOGPZ_DEBUG(logger, "TPZBlockDiagonal::Decompose_LU");
+#endif
 	
 	if (  this->fDecomposed && this->fDecomposed == ELU) {
 		return ELU;

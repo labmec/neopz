@@ -663,7 +663,9 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
 #endif
     }
     int j;
+#ifdef PZ_LOG
     LOGPZ_DEBUG(logger, sout.str());
+#endif
     while(ancestors.NElements()) {
         TPZGeoEl *larger = ancestors.Pop();
         for (j=0; j<larger->NSides(); j++){
@@ -684,7 +686,9 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
     }
     //cout << " \n \n \n ==================================\n ================================\nElemento PatchReference falho\n";
     //Reference()->Print();
+#ifdef PZ_LOG
     LOGPZ_DEBUG(logger, "Exit GetRefElPatch - Element is its own patch");
+#endif
     return (Reference());
 }
 
@@ -802,7 +806,9 @@ void TPZCompElSide::HigherDimensionElementList(TPZStack<TPZCompElSide> &elsideve
                                                int onlyinterpolated, int removeduplicates) {
     TPZGeoElSide georef = Reference();
     if(!georef.Exists()) {
+#ifdef PZ_LOG
         LOGPZ_INFO(loggerSide, "Entering HigherDimensionElementList - null reference reached");
+#endif
         return;
     }
     georef.HigherDimensionElementList(elsidevec,onlyinterpolated);

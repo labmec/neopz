@@ -15,8 +15,10 @@
 
 #include "pzlog.h"
 
+#ifdef PZ_LOG
 static TPZLogger logger("pz.analysis");
 static TPZLogger loggerError("pz.analysis.error");
+#endif
 
 TPZEigenAnalysis::TPZEigenAnalysis()
   : TPZRegisterClassId(&TPZEigenAnalysis::ClassId),TPZAnalysis()

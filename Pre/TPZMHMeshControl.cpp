@@ -1804,7 +1804,8 @@ void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
         std::map<int64_t, std::list<TPZInterfaceElement *> > interfaces;
         ConnectedInterfaceElements(it->first, it->second, interfaces);
 
-#ifdef PZDEBUG
+#ifdef PZ_LOG
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "For skeleton element gelindex " << gel->Index() << " area " << gel->SideArea(gel->NSides()-1) << " we found interfaces\n";
@@ -1858,7 +1859,8 @@ void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
             }
         }
 
-#ifdef PZDEBUG
+#ifdef PZ_LOG
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "For skeleton element gelindex " << gel->Index() << " area " << gel->SideArea(gel->NSides()-1) << " we found interfaces\n";
@@ -1884,7 +1886,7 @@ void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
         TPZInterfaceElement *intfaceright = new TPZInterfaceElement(fCMesh,gbc4.CreatedElement(),index4);
         intfaceleft->SetLeftRightElements(leftflux, pressure);
         intfaceright->SetLeftRightElements(rightflux, pressure);
-#ifdef PZDEBUG
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "Interfaces created by hybridization interface left subdomain el index " << intfaceleft->Index() << " dom " << WhichSubdomain(intfaceleft) <<

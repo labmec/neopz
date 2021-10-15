@@ -14,6 +14,8 @@ static TPZLogger loggerel2("pz.strmatrix.elementinterface");
 static TPZLogger loggerelmat("pz.strmatrix.elementmat");
 static TPZLogger loggerCheck("pz.strmatrix.checkconsistency");
 static TPZLogger loggerGlobStiff("pz.strmatrix.globalstiffness");
+#else
+static int logger;
 #endif
 
 //this is not in header file to avoid including cmesh.h there
@@ -71,7 +73,7 @@ void TPZStructMatrix::SetMaterialIds(const std::set<int> &materialids)
 #endif
     if(!fMesh)
     {
-        LOGPZ_WARN(logger,"SetMaterialIds called without mesh")
+        LOGPZ_ERROR(logger,"SetMaterialIds called without mesh")
         return;
     }
     int64_t iel;
@@ -92,7 +94,7 @@ void TPZStructMatrix::SetMaterialIds(const std::set<int> &materialids)
         TPZStructMatrix *str = analysis->StructMatrix().operator->();
         if(!str)
         {
-            LOGPZ_WARN(logger,"SetMaterialIds called for substructure without structural matrix")
+            LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without structural matrix")
             continue;
         }
         str->SetMaterialIds(materialids);
