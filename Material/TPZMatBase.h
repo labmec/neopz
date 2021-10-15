@@ -42,7 +42,7 @@ class TPZMatBase : public TPZMaterialT<TVar>,
                          const TPZVec<TVar> &val2) override;
 
     template<class... AddInterfaces>
-    TPZBndCondT<TVar> *CreateBCImpl(TPZMaterial *reference,
+    static TPZBndCondT<TVar> *CreateBCImpl(TPZMaterial *reference,
                                     int id, int type,
                                     const TPZFMatrix<TVar> &val1,
                                     const TPZVec<TVar> &val2);
@@ -84,6 +84,8 @@ class TPZMatBase : public TPZMaterialT<TVar>,
  protected:
     bool IsMatImpl() final{return true;}
 };
+
+// http://labmec.github.io/neopz/material/index.html#boundary-conditions
 
 template<class TVar, class... Interfaces>
 template<class... AddInterfaces>
