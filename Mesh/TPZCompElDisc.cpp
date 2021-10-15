@@ -262,7 +262,7 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 }
 
 void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint,TPZMaterialData &data){
-    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes,data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
+    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes,data.detjac, data.jacinv, data.phi, data.fDPhi, data.dphix);
 }
 
 

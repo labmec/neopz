@@ -455,7 +455,7 @@ namespace hcurltest{
             for(auto iPt = 0; iPt < nIntPts; iPt++){
                 intRule->Point(iPt, qsi,w);
                 cel->ComputeRequiredData(elData, qsi);
-                const auto &gradPhiVec = elData.dphi;
+                const auto &gradPhiVec = elData.fDPhi;
                 const auto &jac = elData.jacobian;
                 const auto &detjac = elData.detjac;
                 

@@ -186,15 +186,18 @@ void TPZInterpolationSpace::ReallyComputeSolutionT(TPZMaterialDataT<TVar>& data)
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
                                          TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
                                          REAL &detjac, TPZFMatrix<REAL> &jacinv,
-                                         TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx){	
+                                         TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx){
+    
 	this->Shape(intpoint,phi,dphi);
+    // THIS IS WRONG!!
+    DebugStop();
   this->Convert2Axes(dphi, jacinv, dphidx);
 }
 
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
     
-	
-    this->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.dphi,data.dphix);
+    
+    this->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.fDPhi,data.dphix);
     
 }
 
@@ -222,7 +225,7 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 	const int nstate = this->Material()->NStateVariables();
     data.fShapeType = TPZMaterialData::EScalarShape;
 	data.phi.Redim(nshape,1);
-	data.dphi.Redim(dim,nshape);
+	data.fDPhi.Redim(dim,nshape);
 	data.dphix.Redim(dim,nshape);
 	data.axes.Redim(dim,3);
 	data.jacobian.Redim(dim,dim);

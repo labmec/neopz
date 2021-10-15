@@ -41,7 +41,7 @@ void TPZMaterialData::Print(std::ostream &out) const
     out << "Shape function type " << ShapeFunctionType() << std::endl;
     out << "Active Approximation Space " << fActiveApproxSpace << std::endl;
     phi.Print("phi",out);
-    dphi.Print("dphi",out);
+    fDPhi.Print("fDPhi",out);
     dphix.Print("dphix",out);
     out << "Number dual functions " << numberdualfunctions << std::endl;
     divphi.Print("div phi",out);
@@ -88,7 +88,7 @@ void TPZMaterialData::Print(std::ostream &out) const
 void TPZMaterialData::PrintMathematica(std::ostream &out) const
 {
     phi.Print("phi = ",out,EMathematicaInput);
-    dphi.Print("dphi = ",out,EMathematicaInput);
+    fDPhi.Print("fDPhi = ",out,EMathematicaInput);
     dphix.Print("dphix = ",out,EMathematicaInput);
     axes.Print("axes = ",out,EMathematicaInput);
     jacobian.Print("jacobian = ",out,EMathematicaInput);

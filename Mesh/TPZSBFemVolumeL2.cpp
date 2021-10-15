@@ -150,7 +150,7 @@ void TPZSBFemVolumeL2::ReallyComputeSolution(TPZMaterialDataT<STATE> & data)
                 sol[s][istate] += data1d.phi(ishape) * uh_xi[ishape * nstate + istate].real();
                 dsolxi[istate] += data1d.phi(ishape) * Duh_xi[ishape * nstate + istate].real();
                 for (int d = 0; d < dim - 1; d++) {
-                    dsollow(d, istate) += data1d.dphi(d, ishape) * uh_xi[ishape * nstate + istate].real();
+                    dsollow(d, istate) += data1d.fDPhi(d, ishape) * uh_xi[ishape * nstate + istate].real();
                 }
             }
         }
