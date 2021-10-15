@@ -3,6 +3,7 @@
 set(public_headers
     TPZIsotropicPermeability.h
     TPZDarcyFlow.h
+    TPZHybridDarcyFlow.h
     TPZMixedDarcyFlow.h
     TPZMixedDarcyFractureFlow.h
     )
@@ -10,12 +11,14 @@ set(public_headers
 set(headers
     TPZIsotropicPermeability.h
     TPZDarcyFlow.h
+    TPZHybridDarcyFlow.h
     TPZMixedDarcyFlow.h
     TPZMixedDarcyFractureFlow.h
     )
 set(sources
     TPZIsotropicPermeability.cpp
     TPZDarcyFlow.cpp
+    TPZHybridDarcyFlow.cpp
     TPZMixedDarcyFlow.cpp
     TPZMixedDarcyFractureFlow.cpp
     )
