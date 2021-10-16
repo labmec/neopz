@@ -69,6 +69,9 @@ int TPZMatCombinedSpacesT<TVar>::ClassId() const{
         TPZMatCombinedSpaces::ClassId() << 2;
 }
 
+// this method is your chance to verify if the material to which this
+// BC interface applies is compatible with this boundary interface
+// it is called in the method SetMaterial of class TPZBndCondBase
 template<class TVar>
 void TPZMatCombinedSpacesBC<TVar>::SetMaterialImpl(TPZMaterial *mat)
 {

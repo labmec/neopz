@@ -48,6 +48,9 @@ int TPZMatInterfaceCombinedSpaces<TVar>::GetIntegrationOrder(const TPZVec<int> &
     return maxl+maxr;
 }
 
+// this method is your chance to verify if the material to which this
+// BC interface applies is compatible with this boundary interface
+// it is called in the method SetMaterial of class TPZBndCondBase
 template<class TVar>
 void TPZMatInterfaceCombinedSpacesBC<TVar>::
 SetMaterialImpl(TPZMaterial *mat)

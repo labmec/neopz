@@ -36,6 +36,9 @@ int TPZMatInterfaceSingleSpace<TVar>::ClassId() const {
     return Hash("TPZMatInterfaceSingleSpace") ^ ClassIdOrHash<TVar>() << 1;
 }
 
+// this method is your chance to verify if the material to which this
+// BC interface applies is compatible with this boundary interface
+// it is called in the method SetMaterial of class TPZBndCondBase
 template<class TVar>
 void
 TPZMatInterfaceSingleSpaceBC<TVar>::SetMaterialImpl(TPZMaterial *mat)

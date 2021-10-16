@@ -21,6 +21,10 @@ class TPZMatInterfaceSingleSpaceBC;
 template<class TVar>
 class TPZMatInterfaceSingleSpace : public virtual TPZSavable {
 public:
+    // this is type alias
+    // https://en.cppreference.com/w/cpp/language/type_alias
+    // from now on we can use TPZMatCombinedSpacesT<TVar>::TInterfaceBC as a type
+    // this will be used in CreateBC
     using TInterfaceBC = TPZMatInterfaceSingleSpaceBC<TVar>;
     [[nodiscard]] int ClassId() const override;
     //!@name Interface
@@ -111,6 +115,9 @@ class TPZMatInterfaceSingleSpaceBC :
     public TPZMatInterfaceSingleSpace<TVar>{
 protected:
     TPZMatInterfaceSingleSpace<TVar>* fMatInterface{nullptr};
+        // this method is your chance to verify if the material to which this
+        // BC interface applies is compatible with this boundary interface
+        // it is called in the method SetMaterial of class TPZBndCondBase
     void SetMaterialImpl(TPZMaterial *mat);
 public:    
     void

@@ -69,6 +69,9 @@ void TPZBndCondBase<TVar, Interfaces...>::SetMaterial(TPZMaterial *mat){
         DebugStop();
     }
     this->fMaterial = tmp;
+    // the next statement will call the method SetMaterialImpl(mat) for all interfaces
+    // it is called a fold expression (from c++17 on)
+    // https://en.cppreference.com/w/cpp/language/fold
     (Interfaces::SetMaterialImpl(mat),...);
 }
 
