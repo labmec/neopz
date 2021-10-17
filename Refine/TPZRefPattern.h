@@ -110,7 +110,7 @@ protected:
 	};
 	/**
 	* @brief Data structure for storage of refinement information for each father's side
-	* @detail fFatherSideInfo[i] will contain a tuple made of three entities, stored in SPZFatherSideInfo.
+	*  fFatherSideInfo[i] will contain a tuple made of three entities, stored in SPZFatherSideInfo.
 	*/
 	TPZVec<SPZFatherSideInfo> fFatherSideInfo;
 
@@ -228,8 +228,8 @@ protected:
     void ComputePartition();
 
     /**
-	 * @brief Build a geometric mesh associated with the side of the refinement pattern
-	 */
+     * @brief Build a geometric mesh associated with the side of the refinement pattern
+     */
     void BuildSideMesh(int side, TPZGeoMesh &SideRefPatternMesh);
 
     void BuildName();
@@ -241,7 +241,6 @@ protected:
 
     /**
      * Reads the definition of a refinement pattern and creates it.
-     * @param pattern
      */
     void ReadAndCreateRefinementPattern(std::istream &file);
 
@@ -390,13 +389,12 @@ public:
     */
     TPZGeoEl *Element(int iel);
 
-    /*
-    * @brief Fill a vector with TPZGeoElSideIndex_s  with respect to internal
-    * subelements of zero dimension of a given side
-    * @param side - side of father element that will be searched for internal nodes (generated from subelements)
-    * @param nodeIndexes - vector of subelements index/Sides (stored as TPZGeoElSideIndex objects that have dimension = 0) that
-    * belongs to the interior of given side of father element.
-    */
+    /**
+     * @brief Fill a vector with TPZGeoElSideIndex_s  with respect to internal
+     subelements of zero dimension of a given side
+     * @param side - side of father element that will be searched for internal nodes (generated from subelements)
+     * @param nodeIndexes - vector of subelements index/Sides (stored as TPZGeoElSideIndex objects that have dimension = 0) that belongs to the interior of given side of father element.
+     */
     void InternalNodesIndexes(int side, TPZVec<TPZGeoElSideIndex> &nodeIndexes);
 
     /**
@@ -506,6 +504,5 @@ public:
     }
 };
 
-/** @} */
 
 #endif

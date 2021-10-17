@@ -126,7 +126,7 @@ public:
 	int Zero() override;
 	
 	
-	/***
+	/**
 	 * @name To solve linear systems
 	 * @{
 	 */

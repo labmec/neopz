@@ -95,7 +95,7 @@ public:
 
   /** @brief Zeroes the matrix */
   virtual int Zero() = 0;
-  /** @} */
+
 
   /** @brief Checks if the current matrix is symmetric */
   virtual int IsSymmetric() const{ return 0;}
@@ -114,7 +114,7 @@ public:
   int IsDecomposed() const {
     return fDecomposed; }
 
-  /** @} */
+
 
   /** @brief Sets current matrix to decomposed state */
   virtual void SetIsDecomposed(int val) {
@@ -220,5 +220,7 @@ protected:
   /** @brief Definite Posistiveness of current matrix */
   char fDefPositive;
 };
+
+/** @} */
 
 #endif

@@ -33,6 +33,7 @@ class TPZMatrix: public TPZBaseMatrix
 
 {
 public:
+    /// Allows to use TPZMatrix::Type as synonimous to TVar
   using Type = TVar;
 	/** @brief Default constructor */
 	TPZMatrix() = default;
