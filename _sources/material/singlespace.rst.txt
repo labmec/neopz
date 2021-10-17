@@ -12,7 +12,9 @@ The Single Space Material Group
 Single Space Materials
 ----------------------
       
-The :cpp:expr:`TPZMatSingleSpaceT` interface is dedicated for implementing weak formulations using only one approximation space (regardless of which). Any given material using only one approximation space should then inherit from :cpp:expr:`TPZMatBase<TPZMatSingleSpaceT<TVar>,AnyInterfaces>`. As an example of single space materials, check :cpp:expr:`TPZElasticity3D` or :cpp:expr:`TPZMatPoisson`.
+The :cpp:expr:`TPZMatSingleSpaceT` interface is dedicated for implementing weak formulations using only one approximation space (regardless of which). 
+Any given material using only one approximation space should then inherit from :cpp:expr:`TPZMatBase<TPZMatSingleSpaceT<TVar>,AnyInterfaces>`. 
+As an example of single space materials, check :cpp:expr:`TPZElasticity3D` or :cpp:expr:`TPZMatPoisson`.
 
 
 .. doxygenclass:: TPZMatSingleSpace
@@ -24,7 +26,9 @@ The :cpp:expr:`TPZMatSingleSpaceT` interface is dedicated for implementing weak 
 Single Space Boundary Conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-As discussed in :ref:`section-interfaces`, each interface shall also define a boundary condition counterpart. In this case, it is the :cpp:expr:`TPZMatSingleSpaceBC`. This class mostly forwards any :cpp:expr:`TPZMatSingleSpaceBC::Contribute` calls to the appropriate :cpp:expr:`TPZMatSingleSpaceT::ContributeBC`.
+As discussed in :ref:`section-interfaces`, each interface shall also define a boundary condition counterpart. 
+In this case, it is the :cpp:expr:`TPZMatSingleSpaceBC`. This class mostly forwards any :cpp:expr:`TPZMatSingleSpaceBC::Contribute` calls to 
+the appropriate :cpp:expr:`TPZMatSingleSpaceT::ContributeBC`.
 
 .. doxygenclass:: TPZMatSingleSpaceBC
    :members:

@@ -12,7 +12,9 @@ The Combined Spaces Material Group
 Combined Spaces Materials
 -------------------------
       
-The :cpp:expr:`TPZMatCombinedSpacesT` interface is dedicated for implementing weak formulations using a combination approximation spaces. Any given material using only one approximation space should then inherit from :cpp:expr:`TPZMatBase<TPZMatCombinedSpacesT<TVar>,AnyInterfaces>`. As an example of a combined spaces material, check :cpp:expr:`TPZWaveguideModalAnalysis`.
+The :cpp:expr:`TPZMatCombinedSpacesT` interface is dedicated for implementing weak formulations using a combination approximation spaces. 
+Any given material using only one approximation space should then inherit from :cpp:expr:`TPZMatBase<TPZMatCombinedSpacesT<TVar>,AnyInterfaces>`. 
+As an example of a combined spaces material, check :cpp:expr:`TPZWaveguideModalAnalysis`.
 
 
 .. doxygenclass:: TPZMatCombinedSpaces
