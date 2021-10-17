@@ -2,6 +2,10 @@
    sphinx-quickstart on Wed Mar 24 17:39:38 2021.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
+   within the documentation one will find
+   sphinx syntax  https://www.sphinx-doc.org/en/master/usage/restructuredtext/domains.html#basic-markup
+   breathe syntax https://breathe.readthedocs.io/en/latest/directives.html
+   doxygen directives https://www.doxygen.nl/index.html
 
 Welcome to NeoPZ's documentation!
 =================================

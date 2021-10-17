@@ -37,6 +37,7 @@ During a simulation, the computational element knows which approximation space (
 
 In order not to pollute the base class of the :cpp:expr:`TPZMaterial` hierarchy with every possible interface, the following inheritance scheme was devised:
 
+
 .. doxygenclass:: TPZMaterial
    :outline:
    :no-link:
@@ -53,7 +54,9 @@ This class complements the interfaces of :cpp:expr:`TPZMaterial` with some type-
    :outline:
    :no-link:
 
-The :cpp:expr:`TPZMatBase` is a variadic class template, meaning that it can be instantiated with an arbitrary number of the :cpp:expr:`Interfaces` parameters. This will be used so one can create interfaces according to their needs. You can read more about these interfaces in the section :ref:`section-interfaces`.
+The :cpp:expr:`TPZMatBase` is a variadic class template, meaning that it can be instantiated with an arbitrary number of the :cpp:expr:`Interfaces` parameters. This will be used so one can create interfaces according to their needs. 
+The class TPZMatBase is a subclass of :cpp:expr:`TPZMaterialT<TVar>` and of each :cpp:expr:`Interfaces` parameter.
+You can read more about these interfaces in the section :ref:`section-interfaces`.
 
 .. note::
    :cpp:expr:`TPZMatBase` is a variadic class template. Therefore
@@ -62,7 +65,8 @@ The :cpp:expr:`TPZMatBase` is a variadic class template, meaning that it can be 
                    
       auto *mat = dynamic_cast<TPZMatBase<STATE>*>(someMat);
 
-   is expected to fail, since :cpp:expr:`TPZMatBase<STATE>` and :cpp:expr:`TPZMatBase<STATE,Interface1,Interface2>` are different types. If needed, cast to :cpp:expr:`TPZMaterial`, :cpp:expr:`TPZMaterialT` or to any interfaces.
+   is expected to fail, since :cpp:expr:`TPZMatBase<STATE>` and :cpp:expr:`TPZMatBase<STATE,Interface1,Interface2>` are different types. Cast to :cpp:expr:`TPZMaterial` is always possible, to :cpp:expr:`TPZMaterialT<TVar>` with the correct
+:cpp:expr:`TVar` type or to any of the interface classes.
 
 There are two special interfaces that have their own detailed documentation, :cpp:expr:`TPZMatSingleSpaceT` and :cpp:expr:`TPZMatCombinedSpacesT`. These are the interfaces that define, respectively, the behaviour of materials implementing a formulation with only one approximation space and with combined approximation spaces. See :doc:`singlespace` and :doc:`combinedspaces` for further details on these interfaces.
 
@@ -113,6 +117,21 @@ Material Data
 
 At an integration point, the information available to the material is given by the following classes:
 
+:cpp:expr:`TPZShapeData` contains all information related to the master element space. The TPZShapeData is
+initialized by class associated with a specific type of approximation space. The classes which fill in data in
+TPZShapeData are
+
+.. doxygenclass:: TPZShapeH1<TSHAPE>
+- TPZShapeH1
+- :cpp:expr:`TPZShapeHDiv`
+- :cpp:expr:`TPZShapeHCurl`
+- :cpp:expr:`TPZShapeHDivConstant`
+- :cpp:expr:`TPZShapeHDivKernel`
+
+.. doxygenclass:: TPZShapeData
+   :members:
+   :membergroups: Flags Data
+
 .. doxygenclass:: TPZMaterialData
    :members:
    :membergroups: Flags Data
@@ -129,7 +148,10 @@ Boundary Conditions
 The Boundary Condition Hierarchy explained
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Usually there is a different contribution to be made by the materials associated with a boundary. For this purpose, there is a special hierarchy for boundary conditions, the :cpp:expr:`TPZBndCond` hierarchy. The boundary conditions are usually created from a given :cpp:expr:`TPZMaterial` and it will be of the type :cpp:expr:`TPZBndCondBase`, a variadic class template that ensures that the boundary condition will contain all the interfaces present in the original material.
+Usually there is a different contribution to be made by the materials associated with a boundary. For this purpose, there is a special hierarchy for boundary conditions, the :cpp:expr:`TPZBndCond` hierarchy. The boundary conditions are usually created from a given :cpp:expr:`TPZMaterial` and it will be of the type :cpp:expr:`TPZBndCondBase`, a variadic class template with as many :cpp:expr:`InterfaceBC` parameters as are present in original material. Using the CreateBC interface therefore ensures that the boundary condition will contain all the interfaces present in the original material.
+
+The programmer will note that there is a unique boundary interface associated with each interface. The interface type is
+declared by a "using InterfaceBC" statement declared in each material interface
 
 .. doxygenclass:: TPZBndCond
    :outline:
@@ -302,6 +324,9 @@ Interfaces are specific to the number of spaces of the material.
 For details on the interfaces available for each material group,
 see :doc:`singlespace` and :doc:`combinedspaces`. The common interfaces are in :doc:`commoninterfaces`.
 
+..
+	I believe the :doc: directive indicates a link to the singlespace.rst file
+	
 Creating custom material interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Material interfaces can be easily created to adapt a material to one's needs.
