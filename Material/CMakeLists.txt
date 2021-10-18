@@ -34,6 +34,7 @@ set(public_headers
     TPZNullMaterialCS.h
     TPZLagrangeMultiplier.h
     TPZLagrangeMultiplierCS.h
+    TPZMatTypes.h
     )
 
 set(headers

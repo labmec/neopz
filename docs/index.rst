@@ -3,9 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
    within the documentation one will find
+   general restructured text info : https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html
    sphinx syntax  https://www.sphinx-doc.org/en/master/usage/restructuredtext/domains.html#basic-markup
    breathe syntax https://breathe.readthedocs.io/en/latest/directives.html
    doxygen directives https://www.doxygen.nl/index.html
+   blog on installing doxygen breathe sphinx https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/
+   
 
 Welcome to NeoPZ's documentation!
 =================================
@@ -18,6 +21,7 @@ Welcome to NeoPZ's documentation!
    material/index.rst
    structmatrix/index.rst
    solver/index.rst
+   shape/index.rst
    util/index.rst
    
    
@@ -30,6 +34,7 @@ This documentation is an ongoing work. The following sections have been written:
 - :doc:`material/index` How weak formulations are implemented
 - :doc:`structmatrix/index` How different matrix storage formats can be used
 - :doc:`solver/index` Available solvers in NeoPZ
+- :doc:`shape/index` Shape functions available in NeoPZ
 - :doc:`util/index` Utility classes available in NeoPZ
 
 

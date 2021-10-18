@@ -38,21 +38,15 @@ During a simulation, the computational element knows which approximation space (
 In order not to pollute the base class of the :cpp:expr:`TPZMaterial` hierarchy with every possible interface, the following inheritance scheme was devised:
 
 
-.. doxygenclass:: TPZMaterial
-   :outline:
-   :no-link:
+.. cpp:alias:: TPZMaterial
       
 This class has all the common type-agnostic interface that is available in a given material.
 
-.. doxygenclass:: TPZMaterialT
-   :outline:
-   :no-link:
+.. cpp:alias:: TPZMaterialT
 
 This class complements the interfaces of :cpp:expr:`TPZMaterial` with some type-related interface, which depends if the material is solving a problem resulting in a real matrix :cpp:expr:`TVar=STATE` or a complex matrix :cpp:expr:`TVar=CSTATE`. It also introduces the Forcing Function (more about that later).
       
-.. doxygenclass:: TPZMatBase
-   :outline:
-   :no-link:
+.. cpp:alias:: TPZMatBase
 
 The :cpp:expr:`TPZMatBase` is a variadic class template, meaning that it can be instantiated with an arbitrary number of the :cpp:expr:`Interfaces` parameters. This will be used so one can create interfaces according to their needs. 
 The class TPZMatBase is a subclass of :cpp:expr:`TPZMaterialT<TVar>` and of each :cpp:expr:`Interfaces` parameter.
@@ -65,8 +59,7 @@ You can read more about these interfaces in the section :ref:`section-interfaces
                    
       auto *mat = dynamic_cast<TPZMatBase<STATE>*>(someMat);
 
-   is expected to fail, since :cpp:expr:`TPZMatBase<STATE>` and :cpp:expr:`TPZMatBase<STATE,Interface1,Interface2>` are different types. Cast to :cpp:expr:`TPZMaterial` is always possible, to :cpp:expr:`TPZMaterialT<TVar>` with the correct
-:cpp:expr:`TVar` type or to any of the interface classes.
+   is expected to fail, since :cpp:expr:`TPZMatBase<STATE>` and :cpp:expr:`TPZMatBase<STATE,Interface1,Interface2>` are different types. Cast to :cpp:expr:`TPZMaterial` is always possible, to :cpp:expr:`TPZMaterialT<TVar>` with the correct :cpp:expr:`TVar` type or to any of the interface classes.
 
 There are two special interfaces that have their own detailed documentation, :cpp:expr:`TPZMatSingleSpaceT` and :cpp:expr:`TPZMatCombinedSpacesT`. These are the interfaces that define, respectively, the behaviour of materials implementing a formulation with only one approximation space and with combined approximation spaces. See :doc:`singlespace` and :doc:`combinedspaces` for further details on these interfaces.
 
@@ -115,22 +108,18 @@ Further documentation on TPZMaterial Hierarchy
 Material Data
 -------------
 
-At an integration point, the information available to the material is given by the following classes:
+At an integration point, the information available to the material is given by the
+:cpp:expr:`TPZMaterialData` hierarchy.
 
-:cpp:expr:`TPZShapeData` contains all information related to the master element space. The TPZShapeData is
-initialized by class associated with a specific type of approximation space. The classes which fill in data in
-TPZShapeData are
 
-.. doxygenclass:: TPZShapeH1<TSHAPE>
-- TPZShapeH1
-- :cpp:expr:`TPZShapeHDiv`
-- :cpp:expr:`TPZShapeHCurl`
-- :cpp:expr:`TPZShapeHDivConstant`
-- :cpp:expr:`TPZShapeHDivKernel`
+.. note:: See :doc:`TPZShapeData<../shape/index>` for information regarding
+          the reference element
 
-.. doxygenclass:: TPZShapeData
-   :members:
-   :membergroups: Flags Data
+
+These classes relate to the information that is needed to compute the element matrices.
+They contain the basis functions and its derivatives in the deformed element,
+as well as informations regarding the geometric transform that relates the master
+and the deformed elements.
 
 .. doxygenclass:: TPZMaterialData
    :members:
@@ -153,17 +142,11 @@ Usually there is a different contribution to be made by the materials associated
 The programmer will note that there is a unique boundary interface associated with each interface. The interface type is
 declared by a "using InterfaceBC" statement declared in each material interface
 
-.. doxygenclass:: TPZBndCond
-   :outline:
-   :no-link:
+.. cpp:alias:: TPZBndCond
       
-.. doxygenclass:: TPZBndCondT
-   :outline:
-   :no-link:
+.. cpp:alias:: TPZBndCondT
       
-.. doxygenclass:: TPZBndCondBase
-   :outline:
-   :no-link:
+.. cpp:alias:: TPZBndCondBase
 
 Creating Boundary Conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -219,30 +202,21 @@ Examples of boundary conditions can be seen in the :doc:`availablemats`, but for
 Taking the :ref:`TPZMatSingleSpaceT<section-single-mat>` class as an example, the boundary condition contribution is performed on
 
 
-.. doxygenclass:: TPZMatSingleSpaceT
-   :members:
-   :membergroups: ContributeBC
-   :members-only:
-   :no-link:
+.. cpp:alias:: TPZMatSingleSpaceT::ContributeBC(const TPZMaterialDataT<TVar> &data, REAL weight, TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef, TPZBndCondT<TVar> &bc) 
       
-The function parameter :cpp:expr:`bc` has all the information regarding the boundary condition. We will give special attention to three methods and one variable that are specially useful for computing contributions to boundaries:
+The function parameter :cpp:expr:`bc` has all the information regarding the boundary condition. We will give special attention to four methods  that are specially useful for computing contributions to boundaries:
 
-.. doxygenfunction:: TPZBndCondT::HasForcingFunctionBC
-   :no-link:
+.. cpp:alias:: TPZBndCondT::HasForcingFunctionBC
       
-.. doxygenfunction:: TPZBndCondT::Val1
-   :no-link:
+.. cpp:alias:: TPZBndCondT::Val1
       
-.. doxygenfunction:: TPZBndCondT::Val2
-   :no-link:
+.. cpp:alias:: TPZBndCondT::Val2
       
-.. doxygenvariable:: TPZMaterial::fBigNumber
-   :no-link:
+.. cpp:alias:: TPZMaterial::BigNumber
       
 With :cpp:expr:`HasForcingFunctionBC`, one can check if the boundary condition has an associated Forcing Function, which is a position-dependent function that might be used to specify boundary conditions. Its signature is:
 
 .. doxygentypedef:: ForcingFunctionBCType
-   :no-link:
       
 When forcing functions are not being used, than :cpp:expr:`Val1` and :cpp:expr:`Val2` should be used for extracting the user-prescribed values for the boundary conditions. A simple example to illustrate their usage follows:
 
@@ -268,7 +242,7 @@ When forcing functions are not being used, than :cpp:expr:`Val1` and :cpp:expr:`
    }
 
    /*example of dirichlet BC using big number*/
-   const auto &big = TPZMaterial::fBigNumber;
+   const auto &big = TPZMaterial::BigNumber();
    switch (bc.Type()){		
    // Dirichlet condition
    case 0 : {      
@@ -285,8 +259,7 @@ When forcing functions are not being used, than :cpp:expr:`Val1` and :cpp:expr:`
 .. note::
    Homogeneous Dirichlet boundary conditions can also be implemented by making use of the method
 
-   .. doxygenfunction:: TPZStructMatrix::FilterEquations
-      :no-link:
+   .. cpp:alias:: TPZStructMatrix::FilterEquations
          
    This is a slightly more advanced usage. As soon as there is a tutorial or quick example on that, this section will be updated.
 

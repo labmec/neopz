@@ -17,10 +17,10 @@ jobs:
     steps:
     - name: Requirements
       run: brew install doxygen
-        && pip3 install sphinx==4.0.3
+        && pip3 install sphinx==4.2.0
         && pip3 install sphinx-rtd-theme
         && pip3 install sphinxcontrib-bibtex
-        && pip3 install breathe
+        && pip3 install breathe==4.31.0
         && pip3 install sphinx-sitemap
     - name: Checkout repo
       uses: actions/checkout@1.0.0
@@ -29,7 +29,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DBUILD_DOCS=ON -DBUILD_SPHINX_DOCS=ON
+      run: cmake $GITHUB_WORKSPACE -DBUILD_DOCS=ON -DBUILD_SPHINX_DOCS=ON -DDOX_PZ_LOG=1
     - name: Build docs
       working-directory: ${{github.workspace}}/build
       shell: bash

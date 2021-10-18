@@ -8,6 +8,7 @@ list(APPEND PZ_PUBLIC_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/structmatrix/doxstrmatrix.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/material/doxmaterial.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/solver/doxsolver.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shape/doxshape.h"
     )
 
 if(DOXYGEN_ADD_ALL)

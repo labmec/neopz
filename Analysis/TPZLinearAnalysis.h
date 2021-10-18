@@ -53,7 +53,14 @@ public:
                   TPZVec<std::string> &vecnames,
                   const std::string &plotfile);
   
-  using TPZAnalysis::PostProcess;
+
+  void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout) override{
+    TPZAnalysis::PostProcess(loc,out);
+  }//just to avoid hiding the parent overloaded method
+  void PostProcess(int resolution) override{
+    TPZAnalysis::PostProcess(resolution);
+  }//just to avoid hiding the parent overloaded method
+  
   void PostProcess(int resolution, int dimension) override;
 
   /** @brief Sets time used in OpenDX files */
