@@ -116,11 +116,11 @@ void TPZShapeHCurl<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
     }
     TPZVec<int> &sidesH1Ord = data.fH1ConnectOrders;
     auto &nodeIds = data.fCornerNodeIds;
-    StaticIndexShapeToVec(data.fSDVecShapeIndex, connOrder, firstH1ShapeFunc, sidesH1Ord, shapeCountVec, nodeIds);
+    StaticIndexShapeToVec(connOrder, firstH1ShapeFunc, sidesH1Ord, nodeIds, shapeCountVec, data.fSDVecShapeIndex);
 }
 
 template<class TSHAPE>
-int TPZShapeHCurl<TSHAPE>::NHCurlShapeF(TPZShapeData &data)
+int TPZShapeHCurl<TSHAPE>::NHCurlShapeF(const TPZShapeData &data)
 {
     int nshape = 0;
     int nc = data.fHDivNumConnectShape.size();
@@ -372,12 +372,13 @@ void TPZShapeHCurl<TSHAPE>::CalcH1ShapeOrders(
 }
 
 template<class TSHAPE>
-void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int64_t>> & indexVecShape,
-                                                  const TPZVec<int>& connectOrder,
+void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrder,
                                                   const TPZVec<int64_t>& firstH1ShapeFunc,
                                                   const TPZVec<int>& sidesH1Ord,
+                                                  const TPZVec<int64_t>& nodeIds,
                                                   TPZVec<unsigned int>& shapeCountVec,
-                                                  const TPZVec<int64_t>& nodeIds) {
+                                                  TPZVec<std::pair<int,int64_t>> & indexVecShape
+                                                  ) {
 
 
 

@@ -13,8 +13,9 @@ Apart from [Sphinx](https://www.sphinx-doc.org/en/master/), you also will need [
 Using `pip` (or `pip3`, depending on your Python setup) you can install the additional dependencies with:
 
 ```sh
+pip3 install sphinx=4.2.0
 pip3 install sphinx-rtd-theme
-pip3 install breathe
+pip3 install breathe==4.31.0
 pip3 install sphinx-sitemap
 pip3 install sphinxcontrib-bibtex
 ```

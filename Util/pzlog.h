@@ -64,25 +64,27 @@ void LogPzFatalImpl(TPZLogger lg, std::string msg,
                     [[maybe_unused]] const std::size_t lineN);
 }
 
-/*The TPZLogger is a wrapper for the Log4cxx library. Once the
- log is setup, the expected usage is (in .cpp file):
- static TPZLogger logger("log_name");
- //do your stuff
- if(logger.isDebugEnabled()){
+/**
+   @brief The TPZLogger is a wrapper for the Log4cxx library. 
+   Once the log is setup, the expected usage is (in .cpp file):
+   static TPZLogger logger("log_name");
+   //do your stuff
+   if(logger.isDebugEnabled()){
    //compose message
    LOGPZ_DEBUG(logger,message)
- }
- }*/
-
+   }
+   }
+*/
 class TPZLogger{
 public:
   TPZLogger() = delete;
-  //get logger name as input param
+  //! Get logger name as input param
   TPZLogger(const std::string &&);
     
-    // initialize the datastructure indicating the loglevel
+    //! Initialize the datastructure indicating the loglevel
     void InitializeLogLevels();
-  //the following functions are getters for logger lvls
+  ///@{ 
+    //Getters for logger lvls
     bool isDebugEnabled()
     {
         if(fLogNotInitialized) InitializeLogLevels();
@@ -109,9 +111,10 @@ public:
         return fIsFatalEnabled;
 
     }
-  //initializes loggger using custom config in configfile.
+  ///@} 
+  //! Initializes logger using custom config in configfile.
   static void InitializePZLOG(const std::string &configfile);
-  //initializes logger using default NeoPZ config
+  //! Initializes logger using default NeoPZ config
   static void InitializePZLOG(){
     std::string path = PZ_LOG4CXX_CONFIG_FILE;
     TPZLogger::InitializePZLOG(path);

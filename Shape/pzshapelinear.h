@@ -17,17 +17,19 @@
 /// groups all classes dedicated to the computation of shape functions
 namespace pzshape {
 	
-	/**
-	 * @brief Implements the shape functions of a linear (1D) element. \ref shape "Shape"
-	 * @ingroup shape
-	 */
-	/** 
-	 * The linear shape functions form the basis of all other shape function computations \n
-	 * The range of the master element is -1,1 \n
-	 * The orthogonal function which generates the linear shape functions can be modified
-	 * by changing the function pointer fOrthogonal \n
-	 * all static tables and functions concerning one-d elements will be grouped in this class
-	 */
+
+ 
+/**
+ * @brief Implements the shape functions of a linear (1D) element. \ref shape "Shape"
+ * @ingroup shape
+ */
+///
+///  The linear shape functions form the basis of all other shape function computations \n
+///  The range of the master element is -1,1 \n
+///  The orthogonal function which generates the linear shape functions can be modified
+///  by changing the function pointer fOrthogonal \n
+///  all static tables and functions concerning one-d elements will be grouped in this
+///
 	class TPZShapeLinear : public pztopology::TPZLine{
 		
 	public:
@@ -99,7 +101,7 @@ namespace pzshape {
 		 * @param x coordinate of the point with derivatives already setup
 		 * @param num number of shape functions to be computed
 		 * @param phi shapefunction values with derivatives
-		 * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
+		 * REMARK: The Derivative classes MUST store at least one derivative - 1d problem
 		 */
 		static void (*FADfOrthogonal)(FADREAL& x,int num,TPZVec<FADREAL> &phi);
 		/**
