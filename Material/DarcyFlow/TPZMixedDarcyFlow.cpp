@@ -10,7 +10,9 @@ TPZMixedDarcyFlow::TPZMixedDarcyFlow() : TPZRegisterClassId(&TPZMixedDarcyFlow::
                                          TBase(), fDim(-1) {}
 
 [[maybe_unused]] TPZMixedDarcyFlow::TPZMixedDarcyFlow(int id, int dim) : TPZRegisterClassId(&TPZMixedDarcyFlow::ClassId),
-                                                        TBase(id), fDim(dim) {}
+                                                        TBase(id), fDim(dim)
+{
+}
 
 void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek,
                                    TPZFMatrix<STATE> &ef) {
