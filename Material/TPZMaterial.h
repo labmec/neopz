@@ -31,7 +31,8 @@ public:
     //! Default constructor.
     TPZMaterial() = default;
     //! Constructor taking material identifier.
-    explicit TPZMaterial(int id) : fId(id){}
+    explicit TPZMaterial(int id) : fId(id){
+    }
     //! Copy constructor.
     TPZMaterial(const TPZMaterial&) = default;
     //! Move constructor.

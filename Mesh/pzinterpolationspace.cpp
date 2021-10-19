@@ -211,8 +211,9 @@ REAL TPZInterpolationSpace::InnerRadius(){
 
 void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
   data.gelElId = this->Reference()->Id();
+    TPZMaterial *locmat = this->Material();
     auto *mat =
-        dynamic_cast<TPZMatSingleSpace*>(this->Material());
+        dynamic_cast<TPZMatSingleSpace*>(locmat);
 #ifdef PZDEBUG
     if(!mat)
     {

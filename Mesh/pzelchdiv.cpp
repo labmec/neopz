@@ -574,10 +574,10 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
         data.divsol[is].Resize(nstate);
         data.divsol[is].Fill(0.);
     }
-    TPZFNMatrix<220,REAL> dphix(3,data.dphix.Cols());
-    TPZFMatrix<REAL> &dphi = data.dphix;;
+//    TPZFNMatrix<220,REAL> dphix(3,data.dphix.Cols());
+//    TPZFMatrix<REAL> &dphi = data.dphix;;
 
-    TPZAxesTools<REAL>::Axes2XYZ(dphi, dphix, data.axes);
+//    TPZAxesTools<REAL>::Axes2XYZ(dphi, dphix, data.axes);
 
     TPZFMatrix<TVar> GradOfPhiHdiv(dim,dim);
     GradOfPhiHdiv.Zero();
@@ -592,6 +592,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
     }
 
     if (data.fNeedsDeformedDirectionsFad) {
+        // Needs to be rethought
+        DebugStop();
         for (int e = 0; e < normvecRows; e++) {
             for (int s = 0; s < normvecCols; s++) {
                 Normalvec(e,s)=data.fDeformedDirectionsFad(e,s).val();
@@ -636,12 +638,12 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
 
 
             // portion of the gradient coming from the gradient of the scalar function
-            for (int e = 0; e < dim; e++) {
-                for (int f = 0; f< dim; f++) {
-                    //REMARK: dphix IS NOT COMPUTED AFTER TPZShapeData REFACTORING.
-                    //GradOfPhiHdiv(e,f) = Normalvec(e,ivec)*dphix(f,ishape);
-                }
-            }
+//            for (int e = 0; e < dim; e++) {
+//                for (int f = 0; f< dim; f++) {
+//                    //REMARK: dphix IS NOT COMPUTED AFTER TPZShapeData REFACTORING.
+//                    //GradOfPhiHdiv(e,f) = Normalvec(e,ivec)*dphix(f,ishape);
+//                }
+//            }
 
             for (int64_t is=0; is<numbersol; is++)
             {
@@ -667,7 +669,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
                         sout << "meshsol = " << meshsol << " ivec " << ivec << " ishape " << ishape << " x " << data.x << std::endl;
                         sout << " phi = " << data.phi(ishape,0) << " dphix " << dphix(0,ishape) << " " << dphix(1,ishape) << std::endl;
                         sout << "normal = " << normal << std::endl;
-                        sout << "GradOfPhiHdiv " << GradOfPhiHdiv << std::endl;
+//                        sout << "GradOfPhiHdiv " << GradOfPhiHdiv << std::endl;
                         sout << "GradNormalVec " << GradNormalvec[ivec] << std::endl;
                         LOGPZ_DEBUG(logger,sout.str())
                     }

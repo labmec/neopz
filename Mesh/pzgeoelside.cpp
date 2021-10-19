@@ -347,13 +347,13 @@ void TPZGeoElSide::RemoveConnectivity(){
 	
 	if(!Exists()) return;
 	if(fSide < 0 || fSide >= fGeoEl->NSides()) {
-		PZError << "TPZGeoElSide::SetConnectivity Index out of bound\n";
+		PZError << "TPZGeoElSide::RemoveConnectivity Index out of bound\n";
 	}
 	//it removes the connectivity of the cycle where this inserted one: 
 	//neighpre->this->neighpos => neighpre->neighpos
 	TPZGeoElSide neighpre,neigh = Neighbour();
 	if(neigh.Element() == NULL || neigh.Side() == -1){
-		PZError << "TPZGeoElSide::SetConnectivity trying to remove null or inexistent connection";
+		PZError << "TPZGeoElSide::RemoveConnectivity trying to remove null or inexistent connection";
 	}
 	TPZGeoElSide neighpos = neigh;
 	while(neigh.Exists() && neigh != *this){
@@ -364,7 +364,7 @@ void TPZGeoElSide::RemoveConnectivity(){
 		this->SetNeighbour(TPZGeoElSide());
 		if (neighpre.Exists()) neighpre.SetNeighbour(neighpos);
 	} else {
-		PZError << "TPZGeoElSide::SetConnectivity neighbourhood cycle error";
+		PZError << "TPZGeoElSide::RemoveConnectivity neighbourhood cycle error";
 	}
 }
 

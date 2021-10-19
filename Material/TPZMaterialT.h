@@ -28,7 +28,8 @@ class TPZMaterialT : public TPZMaterial{
     //! Default constructor
     TPZMaterialT() = default;
     //! Constructor taking material identifier
-    explicit TPZMaterialT(int id) : TPZMaterial(id){}
+    explicit TPZMaterialT(int id) : TPZMaterial(id){
+    }
 
     /**
        @name ForcingFunction

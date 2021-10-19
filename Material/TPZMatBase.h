@@ -25,7 +25,8 @@ class TPZMatBase : public TPZMaterialT<TVar>,
     //! Default constructor
     TPZMatBase() = default;
     //! Constructor taking material identifier
-    explicit TPZMatBase(int id) : TPZMaterialT<TVar>(id){}
+    explicit TPZMatBase(int id) : TPZMaterialT<TVar>(id){
+    }
 
     /** @brief Creates an object TPZBndCond derived of TPZMaterial.
      * The TPZBndCond is a material for calculating boundary conditions.
