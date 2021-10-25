@@ -69,34 +69,34 @@ class TPZGmshReader{
     std::string m_format_version;
     
     /// Number of volumes
-    int m_n_volumes;
+    int m_n_volumes = 0;
     
     /// Number of surfaces
-    int m_n_surfaces;
+    int m_n_surfaces = 0;
     
     /// Number of curves
-    int m_n_curves;
+    int m_n_curves = 0;
     
     /// Number of points
-    int m_n_points;
+    int m_n_points = 0;
     
     /// Number of volumes with physical tag
-    int m_n_physical_volumes;
+    int m_n_physical_volumes = 0;
     
     /// Number of surfaces with physical tag
-    int m_n_physical_surfaces;
+    int m_n_physical_surfaces = 0;
     
     /// Number of curves with physical tag
-    int m_n_physical_curves;
+    int m_n_physical_curves = 0;
     
     /// Number of points with physical tag
-    int m_n_physical_points;
+    int m_n_physical_points = 0;
     
     /// Geometry dimension
-    int m_dimension;
+    int m_dimension = -1;
     
     /// Characteristic length to apply a Scale affine transformation
-    REAL m_characteristic_lentgh;
+    REAL m_characteristic_lentgh = 1;
     
     //////////// Members related to file format with version 4 ////////////
     
@@ -141,45 +141,33 @@ class TPZGmshReader{
     /// Number of points
     int m_n_point_els = 0;
     
+    /// Convert a Gmsh *.msh file with format 4 to a TPZGeoMesh object
+    TPZGeoMesh * GeometricGmshMesh4(std::string file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
+
+    /// Convert a Gmsh *.msh file with format 3 to a TPZGeoMesh object
+    TPZGeoMesh * GeometricGmshMesh3(std::string file_name, TPZGeoMesh *gmesh = NULL);
+
+    void ReadVersion(std::string file_name);
 public:
     
     /// Default constructor
     TPZGmshReader();
     
     /// Default destructor
-    ~TPZGmshReader();
+    ~TPZGmshReader() = default;
     
-    /// Copy constructor
-    TPZGmshReader(const TPZGmshReader & other);
-    
-    /// Assignement constructor
-    const TPZGmshReader & operator=(const TPZGmshReader & other);
-    
-    /// Convert Gmsh msh files in a TPZGeoMesh object
+    /// Convert Gmsh msh files in a TPZGeoMesh object, detecting .msh version
     TPZGeoMesh * GeometricGmshMesh(std::string file_name, TPZGeoMesh *gmesh = NULL);
 
-    /// Set the Characteristic length
+    /// Set the Characteristic length (before reading the mesh)
     void SetCharacteristiclength(REAL length);
-    
-    /// Set the format version
-    void SetFormatVersion(std::string format_version);
     
     /// Print the partition summary after the reading process
     void PrintPartitionSummary(std::ostream & out);
     
-    //////////// Members related to file format with version 4 ////////////
-    
-    /// Convert a Gmsh *.msh file with format 4 to a TPZGeoMesh object
-    TPZGeoMesh * GeometricGmshMesh4(std::string file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
-    
     void InsertElement(TPZGeoMesh * gmesh, int & physical_identifier, int & el_type, int & el_identifier, std::vector<int> & node_identifiers);
     
     int GetNumberofNodes(int & el_type);
-    
-    //////////// Members related to file format with version 3 ////////////
-    
-    /// Convert a Gmsh *.msh file with format 3 to a TPZGeoMesh object
-    TPZGeoMesh * GeometricGmshMesh3(std::string file_name, TPZGeoMesh *gmesh = NULL);
     
     /// Insert elements following msh file format */
     bool InsertElement(TPZGeoMesh * gmesh, std::ifstream & line);
