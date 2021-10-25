@@ -36,18 +36,6 @@
 
 
 TPZGmshReader::TPZGmshReader() {
-    
-    m_format_version = "4.0";
-    m_n_volumes = 0;
-    m_n_surfaces = 0;
-    m_n_curves = 0;
-    m_n_points = 0;
-    m_n_physical_volumes = 0;
-    m_n_physical_surfaces = 0;
-    m_n_physical_curves = 0;
-    m_n_physical_points = 0;
-    m_dimension = 0;
-    m_characteristic_lentgh = 1.0;
     m_dim_entity_tag_and_physical_tag.Resize(4);
     m_dim_physical_tag_and_name.Resize(4);
     m_dim_name_and_physical_tag.Resize(4);
@@ -57,19 +45,40 @@ TPZGmshReader::TPZGmshReader() {
     
 }//method
 
-TPZGmshReader::~TPZGmshReader() {
-    
-}//method
+void TPZGmshReader::ReadVersion(std::string file_name){
+    // reading a general mesh information by filter
+    std::ifstream read (file_name.c_str());
+    if(!read){
+        PZError << __PRETTY_FUNCTION__
+                <<"\nCouldn't open the file " << file_name << std::endl;
+        DebugStop();
+    }
+
+    bool read_version = false;
+    while(read && !read_version){
+        char buf[1024];
+        read.getline(buf, 1024);
+        std::string str(buf);
+            
+        if(str == "$MeshFormat" || str == "$MeshFormat\r"){
+            read >> m_format_version;
+            std::cout << "Reading mesh format = " << m_format_version << std::endl;
+            read_version = true;
+        }
+    }
+    read.close();
+}
 
 TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh *gmesh_input){
+
+    ReadVersion(file_name);
     
-    if (m_format_version == "3.0" || m_format_version == "3") {
+    if (m_format_version[0] == '3'){
         return GeometricGmshMesh3(file_name,gmesh_input);
-    }else if(m_format_version == "4.1"){
+    }else if(m_format_version[0] == '4'){
         return GeometricGmshMesh4(file_name,gmesh_input);
     }
-    std::cout << "TPZGmshReader:: Lastest version supported 4.1 " << std::endl;
-    std::cout << "TPZGmshReader:: This reader supports only the lastest version " << std::endl;
+    std::cout << "TPZGmshReader:: Latest version supported 4.1 " << std::endl;
     std::cout << "TPZGmshReader:: Reader no available for the msh file version = " << m_format_version << std::endl;
     DebugStop();
     return NULL;
@@ -109,50 +118,6 @@ void TPZGmshReader::PrintPartitionSummary(std::ostream & out){
     out << std::endl;
 
 }
-/// Copy constructor
-TPZGmshReader::TPZGmshReader(const TPZGmshReader & other){
-    m_format_version                = other.m_format_version;
-    m_n_volumes                     = other.m_n_volumes;
-    m_n_surfaces                    = other.m_n_surfaces;
-    m_n_curves                      = other.m_n_curves;
-    m_n_points                      = other.m_n_points;
-    m_n_physical_volumes            = other.m_n_physical_volumes;
-    m_n_physical_surfaces           = other.m_n_physical_surfaces;
-    m_n_physical_curves             = other.m_n_physical_curves;
-    m_n_physical_points             = other.m_n_physical_points;
-    m_dimension                     = other.m_dimension;
-    m_characteristic_lentgh         = other.m_characteristic_lentgh;
-    m_dim_entity_tag_and_physical_tag   = other.m_dim_entity_tag_and_physical_tag;
-    m_dim_physical_tag_and_name         = other.m_dim_physical_tag_and_name;
-    m_dim_name_and_physical_tag         = other.m_dim_name_and_physical_tag;
-    m_dim_physical_tag_and_physical_tag = other.m_dim_physical_tag_and_physical_tag;
-    m_entity_index                      = other.m_entity_index;
-}
-
-/// Assignement constructo{
-const TPZGmshReader & TPZGmshReader::operator=(const TPZGmshReader & other){
-    /// check for self-assignment
-    if(&other == this){
-        return *this;
-    }
-    m_format_version                = other.m_format_version;
-    m_n_volumes                     = other.m_n_volumes;
-    m_n_surfaces                    = other.m_n_surfaces;
-    m_n_curves                      = other.m_n_curves;
-    m_n_points                      = other.m_n_points;
-    m_n_physical_volumes            = other.m_n_physical_volumes;
-    m_n_physical_surfaces           = other.m_n_physical_surfaces;
-    m_n_physical_curves             = other.m_n_physical_curves;
-    m_n_physical_points             = other.m_n_physical_points;
-    m_dimension                     = other.m_dimension;
-    m_characteristic_lentgh         = other.m_characteristic_lentgh;
-    m_dim_entity_tag_and_physical_tag   = other.m_dim_entity_tag_and_physical_tag;
-    m_dim_physical_tag_and_name         = other.m_dim_physical_tag_and_name;
-    m_dim_name_and_physical_tag         = other.m_dim_name_and_physical_tag;
-    m_dim_physical_tag_and_physical_tag = other.m_dim_physical_tag_and_physical_tag;
-    m_entity_index                      = other.m_entity_index;
-    return *this;
-}
 
 TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh *gmesh_input, bool addNonAssignedEls){
     
@@ -185,9 +150,8 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
             
             if(str == "$MeshFormat" || str == "$MeshFormat\r")
             {
-                read.getline(buf, 1024);
-                std::string str(buf);
-                std::cout << "Reading mesh format = " << str << std::endl;
+                //skips line
+                read.getline(buf, 1024);//read rest of line
                 
             }
             
@@ -746,10 +710,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(std::string file_name, TPZGeoMesh
             
             if(str == "$MeshFormat" || str == "$MeshFormat\r")
             {
-                read.getline(buf, 1024);
-                std::string str(buf);
-                std::cout << "Reading mesh format = " << str << std::endl;
-                
+                read.getline(buf, 1024);//read rest of line
             }
             
             if(str == "$PhysicalNames" || str == "$PhysicalNames\r" )
@@ -884,11 +845,6 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(std::string file_name, TPZGeoMesh
 void TPZGmshReader::SetCharacteristiclength(REAL length)
 {
     m_characteristic_lentgh = length;
-}
-
-void TPZGmshReader::SetFormatVersion(std::string format_version)
-{
-    m_format_version = format_version;
 }
 
 /** @brief Insert elements following msh file format */
