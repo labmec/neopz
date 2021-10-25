@@ -98,8 +98,8 @@ void TPZWaveguideModalAnalysisPML::GetPermeability(
     CSTATE sx{1}, sy{1};
     ComputeSParameters(x,sx,sy);
     
-    ur[0] *= sx / sy;
-    ur[1] *= sy / sx;
+    ur[0] *= sy / sx;
+    ur[1] *= sx / sy;
     ur[2] *= sy * sx;
 }
 

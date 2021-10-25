@@ -21,9 +21,7 @@ TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id,
     fLambda(lambda)
 {
     SetMatrixA();
-    
-    fUr = {ur,ur,ur};
-    fEr = {er,er,er};
+
     if (lambda <0){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<"Setting negative wavelength. Aborting..\n";
@@ -39,6 +37,8 @@ TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id,
         PZError<<"Setting negative permeability. Aborting..\n";
         DebugStop();
     }
+    SetPermeability(ur);
+    SetPermittivity(er);
 }
 
 TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id, 
@@ -59,6 +59,7 @@ TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id,
 
     SetPermeability(ur);
     SetPermittivity(er);
+    
 }
 
 TPZWaveguideModalAnalysis* TPZWaveguideModalAnalysis::NewMaterial() const{
@@ -197,36 +198,31 @@ TPZWaveguideModalAnalysis::ContributeA(
 {
     const CSTATE &exx = er[0];
     const CSTATE &eyy = er[1];
-    const CSTATE &ezz = er[2];
-    const CSTATE &uxx = ur[0];
-    const CSTATE &uyy = ur[1];
+
     const CSTATE &uzz = ur[2];
-    //get h1 functions for computing hcurl funcs
-    const TPZFMatrix<REAL> &phiH1 = datavec[fH1MeshIndex].phi;
     
     const auto &phiHCurl = datavec[fHCurlMeshIndex].phi;
     
-    auto & curlPhi = datavec[fHCurlMeshIndex].curlphi;
+    const auto & curlPhi = datavec[fHCurlMeshIndex].curlphi;
     const REAL k0 = fScaleFactor * 2*M_PI/fLambda;
     /*****************ACTUAL COMPUTATION OF CONTRIBUTION****************/
 
-    const int nHCurlFunctions  = phiHCurl.Rows();
-    const int nH1Functions  = phiH1.Rows();
-    const int firstH1 = fH1MeshIndex * nHCurlFunctions;
-    const int firstHCurl = fHCurlMeshIndex * nH1Functions;
+    const int nhcurl  = phiHCurl.Rows();
+    const int nh1  = datavec[fH1MeshIndex].phi.Rows();
+    const int firsthcurl = fHCurlMeshIndex * nh1;
 
-    for (int iVec = 0; iVec < nHCurlFunctions; iVec++) {
-        for (int jVec = 0; jVec < nHCurlFunctions; jVec++) {
+    for (int iv = 0; iv < nhcurl; iv++) {
+        for (int jv = 0; jv < nhcurl; jv++) {
             const STATE curlIzdotCurlJz =
-                curlPhi(0 , iVec) * curlPhi(0 , jVec);
-            STATE phiIdotPhiJx = phiHCurl(iVec , 0) * phiHCurl(jVec , 0);
-            STATE phiIdotPhiJy = phiHCurl(iVec , 1) * phiHCurl(jVec , 1);
+                curlPhi(0 , iv) * curlPhi(0 , jv);
+            const STATE phiIdotPhiJx = phiHCurl(iv , 0) * phiHCurl(jv , 0);
+            const STATE phiIdotPhiJy = phiHCurl(iv , 1) * phiHCurl(jv , 1);
 
             CSTATE stiffAtt = 0.;
-            stiffAtt = (1./uzz) * curlIzdotCurlJz;
+            stiffAtt += (1./uzz) * curlIzdotCurlJz;
             stiffAtt -= k0 * k0 * exx * phiIdotPhiJx;
             stiffAtt -= k0 * k0 * eyy * phiIdotPhiJy;
-            ek( firstHCurl + iVec , firstHCurl + jVec ) += stiffAtt * weight ;
+            ek( firsthcurl + iv , firsthcurl + jv ) += stiffAtt * weight ;
         }
     }
 }
@@ -238,68 +234,69 @@ TPZWaveguideModalAnalysis::ContributeB(
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
     const TPZVec<CSTATE> &er, const TPZVec<CSTATE> &ur)
 {
-    const CSTATE &exx = er[0];
-    const CSTATE &eyy = er[1];
+
     const CSTATE &ezz = er[2];
+    
     const CSTATE &uxx = ur[0];
     const CSTATE &uyy = ur[1];
-    const CSTATE &uzz = ur[2];
     //get h1 functions
     const TPZFMatrix<REAL> &phiH1 = datavec[fH1MeshIndex].phi;
-    const TPZFMatrix<REAL> &gradPhiH1axes = datavec[fH1MeshIndex].dphix;
     TPZFNMatrix<3,REAL> gradPhiH1(3, phiH1.Rows(), 0.);
-    TPZAxesTools<REAL>::Axes2XYZ(gradPhiH1axes, gradPhiH1, datavec[fH1MeshIndex].axes);
+    {
+        const TPZFMatrix<REAL> &gradPhiH1axes = datavec[fH1MeshIndex].dphix;
+        TPZAxesTools<REAL>::Axes2XYZ(gradPhiH1axes, gradPhiH1, datavec[fH1MeshIndex].axes);
+    }
     
     const auto &phiHCurl = datavec[fHCurlMeshIndex].phi;
     
     const REAL k0 = fScaleFactor * 2*M_PI/fLambda;
     /*****************ACTUAL COMPUTATION OF CONTRIBUTION****************/
 
-    const int nHCurlFunctions  = phiHCurl.Rows();
-    const int nH1Functions  = phiH1.Rows();
-    const int firstH1 = fH1MeshIndex * nHCurlFunctions;
-    const int firstHCurl = fHCurlMeshIndex * nH1Functions;
+    const int nhcurl  = phiHCurl.Rows();
+    const int nh1  = phiH1.Rows();
+    const int firsth1 = fH1MeshIndex * nhcurl;
+    const int firsthcurl = fHCurlMeshIndex * nh1;
 
-    for (int iVec = 0; iVec < nHCurlFunctions; iVec++) {
-        for (int jVec = 0; jVec < nHCurlFunctions; jVec++) {
-            STATE phiIdotPhiJx = phiHCurl(iVec , 0) * phiHCurl(jVec , 0);
-            STATE phiIdotPhiJy = phiHCurl(iVec , 1) * phiHCurl(jVec , 1);
+    for (int iv = 0; iv < nhcurl; iv++) {
+        for (int jv = 0; jv < nhcurl; jv++) {
+            const STATE phiIdotPhiJx = phiHCurl(iv , 0) * phiHCurl(jv , 0);
+            const STATE phiIdotPhiJy = phiHCurl(iv , 1) * phiHCurl(jv , 1);
             CSTATE stiffBtt = 0.;
             stiffBtt += (1./uyy) * phiIdotPhiJx;
             stiffBtt += (1./uxx) * phiIdotPhiJy;
-            ek( firstHCurl + iVec , firstHCurl + jVec ) += stiffBtt * weight ;
+            ek( firsthcurl + iv , firsthcurl + jv ) += stiffBtt * weight ;
 
         }
-        for (int jSca = 0; jSca < nH1Functions; jSca++) {
-            STATE phiVecDotGradPhiScax = phiHCurl(iVec , 0) * gradPhiH1(0,jSca);
-            STATE phiVecDotGradPhiScay = phiHCurl(iVec , 1) * gradPhiH1(1,jSca);
+        for (int js = 0; js < nh1; js++) {
+            const STATE phiVecDotGradPhiScax = phiHCurl(iv , 0) * gradPhiH1(0,js);
+            const STATE phiVecDotGradPhiScay = phiHCurl(iv , 1) * gradPhiH1(1,js);
 
             CSTATE stiffBzt = 0.;
             stiffBzt += (1./uyy) * phiVecDotGradPhiScax;
             stiffBzt += (1./uxx) * phiVecDotGradPhiScay;
-            ek( firstHCurl + iVec , firstH1 + jSca ) += stiffBzt * weight ;
+            ek( firsthcurl + iv , firsth1 + js ) += stiffBzt * weight ;
         }
     }
-    for (int iSca = 0; iSca < nH1Functions; iSca++) {
-        for (int jVec = 0; jVec < nHCurlFunctions; jVec++) {
-            STATE phiVecDotGradPhiScax = phiHCurl(jVec , 0) * gradPhiH1(0,iSca);
-            STATE phiVecDotGradPhiScay = phiHCurl(jVec , 1) * gradPhiH1(1,iSca);
+    for (int is = 0; is < nh1; is++) {
+        for (int jv = 0; jv < nhcurl; jv++) {
+            const STATE phiVecDotGradPhiScax = phiHCurl(jv , 0) * gradPhiH1(0,is);
+            const STATE phiVecDotGradPhiScay = phiHCurl(jv , 1) * gradPhiH1(1,is);
 
             CSTATE stiffBtz = 0.;
             stiffBtz += (1./uyy) * phiVecDotGradPhiScax;
             stiffBtz += (1./uxx) * phiVecDotGradPhiScay;
-            ek( firstH1 + iSca , firstHCurl +  jVec ) += stiffBtz * weight ;
+            ek( firsth1 + is , firsthcurl +  jv ) += stiffBtz * weight ;
         }
-        for (int jSca = 0; jSca < nH1Functions; jSca++) {
-            STATE gradPhiScaDotGradPhiScax = gradPhiH1(0,iSca) * gradPhiH1(0,jSca);
-            STATE gradPhiScaDotGradPhiScay = gradPhiH1(1,iSca) * gradPhiH1(1,jSca);
+        for (int js = 0; js < nh1; js++) {
+            const STATE gradPhiScaDotGradPhiScax = gradPhiH1(0,is) * gradPhiH1(0,js);
+            const STATE gradPhiScaDotGradPhiScay = gradPhiH1(1,is) * gradPhiH1(1,js);
 
             CSTATE stiffBzz = 0.;
             stiffBzz +=  (1./uyy) * gradPhiScaDotGradPhiScax;
             stiffBzz +=  (1./uxx) * gradPhiScaDotGradPhiScay;
-            stiffBzz -=  k0 * k0 * ezz * phiH1( iSca , 0 ) * phiH1( jSca , 0 );
+            stiffBzz -=  k0 * k0 * ezz * phiH1( is , 0 ) * phiH1( js , 0 );
 
-            ek( firstH1 + iSca , firstH1 + jSca) += stiffBzz * weight ;
+            ek( firsth1 + is , firsth1 + js) += stiffBzz * weight ;
         }
     }
 }
