@@ -574,10 +574,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
         data.divsol[is].Resize(nstate);
         data.divsol[is].Fill(0.);
     }
-//    TPZFNMatrix<220,REAL> dphix(3,data.dphix.Cols());
-//    TPZFMatrix<REAL> &dphi = data.dphix;;
 
-//    TPZAxesTools<REAL>::Axes2XYZ(dphi, dphix, data.axes);
 
     TPZFMatrix<TVar> GradOfPhiHdiv(dim,dim);
     GradOfPhiHdiv.Zero();
@@ -667,7 +664,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
                     {
                         std::stringstream sout;
                         sout << "meshsol = " << meshsol << " ivec " << ivec << " ishape " << ishape << " x " << data.x << std::endl;
-                        sout << " phi = " << data.phi(ishape,0) << " dphix " << dphix(0,ishape) << " " << dphix(1,ishape) << std::endl;
+                        sout << " phi = " << data.phi(ishape,0) << " dphix " << data.dphix(0,ishape) << " " << data.dphix(1,ishape) << std::endl;
                         sout << "normal = " << normal << std::endl;
 //                        sout << "GradOfPhiHdiv " << GradOfPhiHdiv << std::endl;
                         sout << "GradNormalVec " << GradNormalvec[ivec] << std::endl;
