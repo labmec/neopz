@@ -259,23 +259,23 @@ void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialDataT(TPZMaterialDataT<TVar> &d
     fTop.InitMaterialData(datatop);
     fBottom.InitMaterialData(databottom);
     // expand the shape vector and normal vector
-    int nvecshape = data.fVecShapeIndex.size();
-    int nscalar = data.phi.Rows();
-    int nscalartop = datatop.phi.Rows();
-    int nscalarbottom = databottom.phi.Rows();
-    int nvec = data.fVecShapeIndex.size(); // same as nvecshape
-    const int dim = TSHAPE::Dimension;
+//    int nvecshape = data.fVecShapeIndex.size();
+//    int nscalar = data.phi.Rows();
+//    int nscalartop = datatop.phi.Rows();
+//    int nscalarbottom = databottom.phi.Rows();
+//    int nvec = data.fVecShapeIndex.size(); // same as nvecshape
+//    const int dim = TSHAPE::Dimension;
 //    data.fMasterDirections.Resize(dim+1, nvec+2);
 //    data.fMasterDirections(dim,nvec) = 1.;
 //    data.fMasterDirections(dim,nvec+1) = -1.;
     // nvec is the number of vector shapes in this element. Then we need to sum the vec shapes of top and bottom
-    data.fDeformedDirections.Resize(3, nvec+nscalartop+nscalarbottom);
-    data.fVecShapeIndex.Resize(nvecshape+nscalartop+nscalarbottom, {0,0});
-    for(int i=0; i<nscalartop; i++) data.fVecShapeIndex[nvecshape+i] = std::pair<int,int64_t>(nvec,nscalar+i);
-    for(int i=0; i<nscalarbottom; i++) data.fVecShapeIndex[nvecshape+nscalartop+i] = std::pair<int,int64_t>(nvec+1,nscalar+nscalartop+i);
-    data.phi.Resize(nscalar+nscalartop+nscalarbottom, 1);
-    data.fDPhi.Resize(dim+1,nscalar+nscalartop+nscalarbottom);
-    data.divphi.Resize(nvecshape+nscalartop+nscalarbottom,1);
+//    data.fDeformedDirections.Resize(3, nvec+nscalartop+nscalarbottom);
+//    data.fVecShapeIndex.Resize(nvecshape+nscalartop+nscalarbottom, {0,0});
+//    for(int i=0; i<nscalartop; i++) data.fVecShapeIndex[nvecshape+i] = std::pair<int,int64_t>(nvec,nscalar+i);
+//    for(int i=0; i<nscalarbottom; i++) data.fVecShapeIndex[nvecshape+nscalartop+i] = std::pair<int,int64_t>(nvec+1,nscalar+nscalartop+i);
+//    data.phi.Resize(nscalar+nscalartop+nscalarbottom, 1);
+//    data.fDPhi.Resize(dim+1,nscalar+nscalartop+nscalarbottom);
+//    data.divphi.Resize(nvecshape+nscalartop+nscalarbottom,1);
     if(data.fNeedsDeformedDirectionsFad) DebugStop();
 
 #ifdef PZ_LOG
@@ -404,29 +404,20 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
     TPZFNMatrix<9,REAL> axeslocal(TSHAPE::Dimension+1,3);
     ExpandAxes(data.axes, axeslocal);
     data.axes = axeslocal;
-    int dim = TSHAPE::Dimension+1;
+    const int dim = TSHAPE::Dimension+1;
+    const int nvecshapestd = data.fDeformedDirections.Cols();
     TPZManVector<REAL> topdir(dim,0.), botdir(dim,0.); // top and bot directions in the deformed element
-    TPZManVector<REAL,3> vecup(3,0.), vecdown(3,0.);
-    vecup[2] = 1.;
-    vecdown[2] = -1.;
+    TPZManVector<REAL,3> vecup={0,0,1.}, vecdown={0,0,-1.};
     // compute the deformed directions for the two additional vectors
     {
-        int nvec = TSHAPE::NSides*TSHAPE::Dimension;
-        TPZFNMatrix<3,REAL> masterdir(TSHAPE::Dimension+1,2);
         for(int i=0; i<3; i++){
             for(int l=0; l<dim; l++){
                 topdir[i] += data.axes(l,i)*vecup[l];
                 botdir[i] += data.axes(l,i)*vecdown[l];
             }
-//            for(int k=0; k<2; k++){
-//                data.fDeformedDirections(i,nvec+k) = 0.;
-//                for(int l=0; l<dim; l++){
-//                    data.fDeformedDirections(i,nvec+k) += data.axes(l,i)*data.fMasterDirections(l,nvec+k);
-//                }
-//            }
         }
     }
-
+    
     std::pair<TPZMaterialDataT<TVar>,TPZMaterialDataT<TVar>> *datapair = (std::pair<TPZMaterialDataT<TVar>,TPZMaterialDataT<TVar>> *) data.fUserData;
     TPZMaterialDataT<TVar> &datatop = datapair->second, &databottom = datapair->first;
     
@@ -440,19 +431,43 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
         int64_t nvec_top = datatop.phi.Rows();
         int64_t nvec_bottom = databottom.phi.Rows();
         int64_t nvec_hdiv = numvec;
-        //
-        for (int64_t i= nvec_hdiv; i<numvec-nvec_top; i++) {
-            data.divphi(i) = databottom.phi(i-nvec_hdiv);
+      
+        // fDeformedDirections (for now) represents the H1 shape functions
+        // times the element vectors. So, it is already the hdiv shape function itself.
+        // Its size is, therefore, the size for a standard 2d hdiv element, plus
+        // the shape functions related to the top and bottom connect that communicate
+        // with the adjacent 3D elements
+        const int64_t nvecshapecollpased = nvecshapestd+nvec_top+nvec_bottom;
+        data.fDeformedDirections.Resize(dim,nvecshapecollpased);
+        data.fVecShapeIndex.Resize(nvecshapecollpased);
+        data.divphi.Resize(nvecshapecollpased,1);
+        for(int i=numvec; i<nvecshapecollpased; i++) data.fVecShapeIndex[i] = std::pair<int,int64_t>(i,i);
+
+        // First we append the bottom shapes and then the top shapes
+        for (int64_t i= nvec_hdiv; i<nvecshapecollpased-nvec_top; i++) {
+            for (int d = 0; d < 3; d++) {
+                data.fDeformedDirections(d,i) = databottom.phi(i-nvec_hdiv)*botdir[d];
+            }
         }
-        for (int64_t i= nvec_hdiv+nvec_bottom; i<numvec; i++) {
-            data.divphi(i) = datatop.phi(i-nvec_hdiv-nvec_bottom);
+        for (int64_t i= nvec_hdiv+nvec_bottom; i<nvecshapecollpased; i++) {
+            for (int d = 0; d < 3; d++) {
+                data.fDeformedDirections(d,i) = datatop.phi(i-nvec_hdiv-nvec_bottom)*topdir[d];
+            }
         }
-        for (int64_t i= numphi-nvec_bottom-nvec_top; i<numphi-nvec_top; i++) {
-            data.phi(i) = databottom.phi(i-(numphi-nvec_bottom-nvec_top));
+        // Same for divphi
+        for (int64_t i= nvec_hdiv; i<nvecshapecollpased-nvec_top; i++) {
+            data.divphi(i,0) = 0.;
+            for (int d = 0; d < 3; d++) {
+                data.divphi(i,0) += databottom.phi(i-nvec_hdiv)*botdir[d];
+            }
         }
-        for (int64_t i= numphi-nvec_top; i<numphi; i++) {
-            data.phi(i) = datatop.phi(i-(numphi-nvec_top));
+        for (int64_t i= nvec_hdiv+nvec_bottom; i<nvecshapecollpased; i++) {
+            data.divphi(i,0) = 0.;
+            for (int d = 0; d < 3; d++) {
+                data.divphi(i,0) += datatop.phi(i-nvec_hdiv-nvec_bottom)*topdir[d];
+            }
         }
+
     }
     
     if (data.fNeedsSol) {
