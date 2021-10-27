@@ -777,6 +777,8 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 //    int nshapescalar = shapedata.fPhi.Rows();
 //    data.dphi.Resize(TSHAPE::Dimension, nshapescalar);
 //    data.dphix.Resize(TSHAPE::Dimension, nshapescalar);
+    // Trick to make actual hdiv materials work.
+    // phi are all = 1. VecShapeIndex is 1 to 1 with its size the number of vec shapes
     int nvec_shape = TPZShapeHDiv<TSHAPE>::NShapeF(shapedata);
     data.phi.Resize(nvec_shape,1);
     data.fVecShapeIndex.Resize(nvec_shape);

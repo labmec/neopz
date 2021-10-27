@@ -95,12 +95,12 @@ void TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
                 countHCurl++;
                 continue;
             }
-            VecShapeIndex[countHDiv] = data.fVecShapeIndex[countHCurl];
+            VecShapeIndex[countHDiv] = data.fSDVecShapeIndex[countHCurl];
             countHDiv++;
             countHCurl++;
         }
     }
-    data.fVecShapeIndex = VecShapeIndex;
+    data.fSDVecShapeIndex = VecShapeIndex;
 }
 
 template<class TSHAPE>
@@ -146,10 +146,10 @@ void TPZShapeHDivKernel<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZ
 
     }
 
-    int size = data.fVecShapeIndex.size();
+    int size = data.fSDVecShapeIndex.size();
     for(int i = nEdges; i< size; i++)
     {
-        auto it = data.fVecShapeIndex[i];
+        auto it = data.fSDVecShapeIndex[i];
         int vecindex = it.first;
         int scalindex = it.second;
         

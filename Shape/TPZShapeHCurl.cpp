@@ -42,7 +42,7 @@ void TPZShapeHCurl<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
         nShape += data.fHDivNumConnectShape[i];
     }
     
-    data.fVecShapeIndex.Resize(nShape);
+    data.fSDVecShapeIndex.Resize(nShape);
     TPZFNMatrix<9,REAL> gradX(TSHAPE::Dimension, TSHAPE::Dimension, 0);
     gradX.Identity();
 
@@ -102,10 +102,10 @@ void TPZShapeHCurl<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
     }
 #endif
     int nshape = NHCurlShapeF(data);
-    data.fVecShapeIndex.Resize(nshape);
+    data.fSDVecShapeIndex.Resize(nshape);
 
     TPZVec<unsigned int> shapeCountVec(TSHAPE::NSides - nNodes, 0);
-    TPZVec<std::pair<int,int64_t>> & indexVecShape = data.fVecShapeIndex;
+    TPZVec<std::pair<int,int64_t>> & indexVecShape = data.fSDVecShapeIndex;
     TPZVec<int> &connOrder = data.fHDivConnectOrders;
     TPZManVector<int64_t, TSHAPE::NSides - nNodes> firstH1ShapeFunc(TSHAPE::NSides - nNodes,
                                                                                   0);
@@ -116,7 +116,7 @@ void TPZShapeHCurl<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
     }
     TPZVec<int> &sidesH1Ord = data.fH1ConnectOrders;
     auto &nodeIds = data.fCornerNodeIds;
-    StaticIndexShapeToVec(data.fVecShapeIndex, connOrder, firstH1ShapeFunc, sidesH1Ord, shapeCountVec, nodeIds);
+    StaticIndexShapeToVec(data.fSDVecShapeIndex, connOrder, firstH1ShapeFunc, sidesH1Ord, shapeCountVec, nodeIds);
 }
 
 template<class TSHAPE>
@@ -147,9 +147,9 @@ void TPZShapeHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatr
     }();
     
     TPZShapeH1<TSHAPE>::Shape(pt,data);
-    for(int i = 0; i< data.fVecShapeIndex.size(); i++)
+    for(int i = 0; i< data.fSDVecShapeIndex.size(); i++)
     {
-        const auto &it = data.fVecShapeIndex[i];
+        const auto &it = data.fSDVecShapeIndex[i];
         const int vecindex = it.first;
         const int scalindex = it.second;
         

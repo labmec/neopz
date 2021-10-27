@@ -47,7 +47,7 @@ void TPZShapeHDiv<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
         nShape += data.fHDivNumConnectShape[i];
     }
     
-    data.fVecShapeIndex.Resize(nShape);
+    data.fSDVecShapeIndex.Resize(nShape);
 
     ComputeMasterDirections(data);
     ComputeVecandShape(data);
@@ -103,7 +103,7 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
 
     TSHAPE::GetSideHDivDirections(VectorSides,directions,bilinear,normalsides);
 
-    if (data.fVecShapeIndex.size() == 0) {
+    if (data.fSDVecShapeIndex.size() == 0) {
         DebugStop();
     }
     
@@ -183,7 +183,7 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
             }
             if (include)
             {
-                data.fVecShapeIndex[count] = std::make_pair(ivec, ish);
+                data.fSDVecShapeIndex[count] = std::make_pair(ivec, ish);
                 count++;
             }
         }
@@ -261,13 +261,13 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
             }
             if (include)
             {
-                data.fVecShapeIndex[count] = std::make_pair(ivec, ish);
+                data.fSDVecShapeIndex[count] = std::make_pair(ivec, ish);
                 count++;
             }
         }
     }
 
-    int ivs =  data.fVecShapeIndex.size();
+    int ivs =  data.fSDVecShapeIndex.size();
     if (count != ivs) {
         std::cout<<"count "<<count
                  <<"\nivs "<<ivs<<std::endl;
@@ -310,18 +310,18 @@ void TPZShapeHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatri
 //    FillOrder(ord);
 //    int nshape= this->NShapeContinuous(ord);
 
-    divphi.Resize(data.fVecShapeIndex.size(),1);
+    divphi.Resize(data.fSDVecShapeIndex.size(),1);
     divphi.Zero();
-    phi.Resize(TSHAPE::Dimension,data.fVecShapeIndex.size());
+    phi.Resize(TSHAPE::Dimension,data.fSDVecShapeIndex.size());
     phi.Zero();
 
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
     const int dim = TSHAPE::Dimension;
     TPZShapeH1<TSHAPE>::Shape(pt,data);
-    for(int i = 0; i< data.fVecShapeIndex.size(); i++)
+    for(int i = 0; i< data.fSDVecShapeIndex.size(); i++)
     {
-        auto it = data.fVecShapeIndex[i];
+        auto it = data.fSDVecShapeIndex[i];
         int vecindex = it.first;
         int scalindex = it.second;
         divphi(i,0) = 0.;

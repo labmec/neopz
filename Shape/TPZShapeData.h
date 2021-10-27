@@ -83,7 +83,7 @@ public:
     //! Directions on the master element
     TPZFNMatrix<3*MatDataNumDir> fMasterDirections;
     //! Correspondence between direction vector index and index of the shape functions. Used for H(div) and H(curl) approximation spaces.
-    TPZManVector<std::pair<int,int64_t>, MatDataNumPhi > fVecShapeIndex;
+    TPZManVector<std::pair<int,int64_t>, MatDataNumPhi > fSDVecShapeIndex;
         
 };
 #endif

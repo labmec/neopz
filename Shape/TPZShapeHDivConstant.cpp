@@ -55,10 +55,10 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
         nEdgeF += data.fHDivNumConnectShape[i];
     }
 
-    int size = data.fVecShapeIndex.size();
+    int size = data.fSDVecShapeIndex.size();
     for(int i = 0; i < nfacets; i++){
         
-        auto it = data.fVecShapeIndex[i];
+        auto it = data.fSDVecShapeIndex[i];
         int vecindex = it.first;
         int scalindex = it.second;
 
@@ -85,7 +85,7 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
     for(int i = size-nInternal; i<size; i++)
     {
         
-        auto it = data.fVecShapeIndex[i];
+        auto it = data.fSDVecShapeIndex[i];
         int vecindex = it.first;
         int scalindex = it.second;
         

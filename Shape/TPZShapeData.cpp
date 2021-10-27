@@ -33,10 +33,10 @@ void TPZShapeData::Print(std::ostream &out) const
     fPhi.Print("phi",out);
     fDPhi.Print("dphi",out);
     out << "fMasterDirections" << fMasterDirections << std::endl;
-    if (fVecShapeIndex.size()) {
+    if (fSDVecShapeIndex.size()) {
         out << "VecShapeIndex: ";
-        for (int64_t i = 0; i < fVecShapeIndex.size(); i++) {
-            out << fVecShapeIndex[i].first << '/' << fVecShapeIndex[i].second << ' ';
+        for (int64_t i = 0; i < fSDVecShapeIndex.size(); i++) {
+            out << fSDVecShapeIndex[i].first << '/' << fSDVecShapeIndex[i].second << ' ';
         }
         out << '\n';
     }

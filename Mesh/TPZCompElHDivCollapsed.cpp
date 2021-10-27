@@ -263,12 +263,13 @@ void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialDataT(TPZMaterialDataT<TVar> &d
     int nscalar = data.phi.Rows();
     int nscalartop = datatop.phi.Rows();
     int nscalarbottom = databottom.phi.Rows();
-    int nvec = data.fDeformedDirections.Cols();
+    int nvec = data.fVecShapeIndex.size(); // same as nvecshape
     const int dim = TSHAPE::Dimension;
-    data.fMasterDirections.Resize(dim+1, nvec+2);
-    data.fMasterDirections(dim,nvec) = 1.;
-    data.fMasterDirections(dim,nvec+1) = -1.;
-    data.fDeformedDirections.Resize(3, nvec+2);
+//    data.fMasterDirections.Resize(dim+1, nvec+2);
+//    data.fMasterDirections(dim,nvec) = 1.;
+//    data.fMasterDirections(dim,nvec+1) = -1.;
+    // nvec is the number of vector shapes in this element. Then we need to sum the vec shapes of top and bottom
+    data.fDeformedDirections.Resize(3, nvec+nscalartop+nscalarbottom);
     data.fVecShapeIndex.Resize(nvecshape+nscalartop+nscalarbottom, {0,0});
     for(int i=0; i<nscalartop; i++) data.fVecShapeIndex[nvecshape+i] = std::pair<int,int64_t>(nvec,nscalar+i);
     for(int i=0; i<nscalarbottom; i++) data.fVecShapeIndex[nvecshape+nscalartop+i] = std::pair<int,int64_t>(nvec+1,nscalar+nscalartop+i);
@@ -404,17 +405,25 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
     ExpandAxes(data.axes, axeslocal);
     data.axes = axeslocal;
     int dim = TSHAPE::Dimension+1;
+    TPZManVector<REAL> topdir(dim,0.), botdir(dim,0.); // top and bot directions in the deformed element
+    TPZManVector<REAL,3> vecup(3,0.), vecdown(3,0.);
+    vecup[2] = 1.;
+    vecdown[2] = -1.;
     // compute the deformed directions for the two additional vectors
     {
         int nvec = TSHAPE::NSides*TSHAPE::Dimension;
         TPZFNMatrix<3,REAL> masterdir(TSHAPE::Dimension+1,2);
         for(int i=0; i<3; i++){
-            for(int k=0; k<2; k++){
-                data.fDeformedDirections(i,nvec+k) = 0.;
-                for(int l=0; l<dim; l++){
-                    data.fDeformedDirections(i,nvec+k) += data.axes(l,i)*data.fMasterDirections(l,nvec+k);
-                }
+            for(int l=0; l<dim; l++){
+                topdir[i] += data.axes(l,i)*vecup[l];
+                botdir[i] += data.axes(l,i)*vecdown[l];
             }
+//            for(int k=0; k<2; k++){
+//                data.fDeformedDirections(i,nvec+k) = 0.;
+//                for(int l=0; l<dim; l++){
+//                    data.fDeformedDirections(i,nvec+k) += data.axes(l,i)*data.fMasterDirections(l,nvec+k);
+//                }
+//            }
         }
     }
 
@@ -431,7 +440,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
         int64_t numphi = data.phi.Rows();
         int64_t nvec_top = datatop.phi.Rows();
         int64_t nvec_bottom = databottom.phi.Rows();
-        int64_t nvec_hdiv = numvec-nvec_top-nvec_bottom;
+        int64_t nvec_hdiv = numvec;
         //
         for (int64_t i= nvec_hdiv; i<numvec-nvec_top; i++) {
             data.divphi(i) = databottom.phi(i-nvec_hdiv);
@@ -445,7 +454,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
         for (int64_t i= numphi-nvec_top; i<numphi; i++) {
             data.phi(i) = datatop.phi(i-(numphi-nvec_top));
         }
-}
+    }
     
     if (data.fNeedsSol) {
         TPZCompElHDiv<TSHAPE>::ReallyComputeSolution(data);
