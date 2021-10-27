@@ -157,7 +157,7 @@ public:
     ~TPZGmshReader() = default;
     
     /// Convert Gmsh msh files in a TPZGeoMesh object, detecting .msh version
-    TPZGeoMesh * GeometricGmshMesh(std::string file_name, TPZGeoMesh *gmesh = NULL);
+    TPZGeoMesh * GeometricGmshMesh(std::string file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
 
     /// Set the Characteristic length (before reading the mesh)
     void SetCharacteristiclength(REAL length);

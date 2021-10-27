@@ -69,14 +69,14 @@ void TPZGmshReader::ReadVersion(std::string file_name){
     read.close();
 }
 
-TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh *gmesh_input){
+TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh *gmesh_input, bool addNonAssignedEls){
 
     ReadVersion(file_name);
     
     if (m_format_version[0] == '3'){
         return GeometricGmshMesh3(file_name,gmesh_input);
     }else if(m_format_version[0] == '4'){
-        return GeometricGmshMesh4(file_name,gmesh_input);
+        return GeometricGmshMesh4(file_name,gmesh_input,addNonAssignedEls);
     }
     std::cout << "TPZGmshReader:: Latest version supported 4.1 " << std::endl;
     std::cout << "TPZGmshReader:: Reader no available for the msh file version = " << m_format_version << std::endl;

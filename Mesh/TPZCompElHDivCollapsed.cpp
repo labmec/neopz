@@ -429,8 +429,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
 
     std::pair<TPZMaterialDataT<TVar>,TPZMaterialDataT<TVar>> *datapair = (std::pair<TPZMaterialDataT<TVar>,TPZMaterialDataT<TVar>> *) data.fUserData;
     TPZMaterialDataT<TVar> &datatop = datapair->second, &databottom = datapair->first;
-
-    int nsides = this->Reference()->NSides();
+    
     // compute the divergence of the top and bottom elements
     // the value is the value of the shape function times the sign of the vector in master direction
     {
