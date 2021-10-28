@@ -664,7 +664,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
                     {
                         std::stringstream sout;
                         sout << "meshsol = " << meshsol << " ivec " << ivec << " ishape " << ishape << " x " << data.x << std::endl;
-                        sout << " phi = " << data.phi(ishape,0) << " dphix " << data.dphix(0,ishape) << " " << data.dphix(1,ishape) << std::endl;
+                        sout << " phi = " << data.phi(ishape,0)  << std::endl;
                         sout << "normal = " << normal << std::endl;
 //                        sout << "GradOfPhiHdiv " << GradOfPhiHdiv << std::endl;
                         sout << "GradNormalVec " << GradNormalvec[ivec] << std::endl;
