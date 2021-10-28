@@ -441,7 +441,12 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
         data.fDeformedDirections.Resize(dim,nvecshapecollpased);
         data.fVecShapeIndex.Resize(nvecshapecollpased);
         data.divphi.Resize(nvecshapecollpased,1);
-        for(int i=numvec; i<nvecshapecollpased; i++) data.fVecShapeIndex[i] = std::pair<int,int64_t>(i,i);
+        data.phi.Resize(nvecshapecollpased,1);
+        for(int i=numvec; i<nvecshapecollpased; i++)
+        {
+            data.fVecShapeIndex[i] = std::pair<int,int64_t>(i,i);
+            data.phi(i) = 1.;
+        }
 
         // First we append the bottom shapes and then the top shapes
         for (int64_t i= nvec_hdiv; i<nvecshapecollpased-nvec_top; i++) {
