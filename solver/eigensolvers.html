@@ -20,7 +20,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Utilities" href="../util/index.html" />
+    <link rel="next" title="The Shape hierarchy" href="../shape/index.html" />
     <link rel="prev" title="TPZMatrixSolver" href="matrixsolvers.html" /> 
 </head>
 
@@ -39,7 +39,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../analysis/index.html">The Analysis hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../material/index.html">The Material hierarchy</a></li>
@@ -64,6 +64,7 @@
 <li class="toctree-l2"><a class="reference internal" href="index.html#tpzsolver">TPZSolver</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../shape/index.html">The Shape hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../util/index.html">Utilities</a></li>
 </ul>
 
@@ -415,7 +416,8 @@
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E20TPZKrylovEigenSolver">
 <span id="_CPPv3I0E20TPZKrylovEigenSolver"></span><span id="_CPPv2I0E20TPZKrylovEigenSolver"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZKrylovEigenSolver"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZKrylovEigenSolver</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0E14TPZEigenSolver" title="TPZEigenSolver"><span class="n"><span class="pre">TPZEigenSolver</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZKrylovEigenSolver" title="TPZKrylovEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E20TPZKrylovEigenSolver" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Solvers for eigenvalue problems using Krylov methods. The eigenvalue problem is solved in the projected Krylov subspace obtained by an Arnoldi iteration. See <a class="reference internal" href="#classTPZSpectralTransform"><span class="std std-ref">TPZSpectralTransform</span></a> for possible spectral transformations. </p>
+<dd><p>Solvers for eigenvalue problems using Krylov methods. </p>
+<p>The eigenvalue problem is solved in the projected Krylov subspace obtained by an Arnoldi iteration. See <a class="reference internal" href="#classTPZSpectralTransform"><span class="std std-ref">TPZSpectralTransform</span></a> for possible spectral transformations </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-basicusage">BasicUsage</p>
 <dl class="cpp function">
@@ -555,7 +557,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N20TPZKrylovEigenSolver16ArnoldiIterationERK9TPZMatrixI4TVarER6TPZVecI14TPZAutoPointerI10TPZFMatrixI4TVarEEER10TPZFMatrixI4TVarE">
 <span id="_CPPv3N20TPZKrylovEigenSolver16ArnoldiIterationERK9TPZMatrixI4TVarER6TPZVecI14TPZAutoPointerI10TPZFMatrixI4TVarEEER10TPZFMatrixI4TVarE"></span><span id="_CPPv2N20TPZKrylovEigenSolver16ArnoldiIterationERK9TPZMatrixI4TVarER6TPZVecI14TPZAutoPointerI10TPZFMatrixI4TVarEEER10TPZFMatrixI4TVarE"></span><span id="TPZKrylovEigenSolver::ArnoldiIteration__TPZMatrix:TVar:CR.TPZVec:TPZAutoPointer:TPZFMatrix:TVar:::R.TPZFMatrix:TVar:R"></span><span class="target" id="classTPZKrylovEigenSolver_1ab41ca884e8bf98fa4e13b6ea7d2175c2"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ArnoldiIteration</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZKrylovEigenSolver" title="TPZKrylovEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">A</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZKrylovEigenSolver" title="TPZKrylovEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">Q</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZKrylovEigenSolver" title="TPZKrylovEigenSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">H</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20TPZKrylovEigenSolver16ArnoldiIterationERK9TPZMatrixI4TVarER6TPZVecI14TPZAutoPointerI10TPZFMatrixI4TVarEEER10TPZFMatrixI4TVarE" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Performs the Arnoldi iteration on a given matrix. This iteration creates an orthonormal basis of the Krylov subspace of A. The first vector of the Krylov basis can be set through SetKrylovInitialVector method. The dimension of the Krylov subspace can be set throught SetKrylovDim. </p>
+<dd><p>Performs the Arnoldi iteration on a given matrix. </p>
+<p>This iteration creates an orthonormal basis of the Krylov subspace of A. The first vector of the Krylov basis can be set through SetKrylovInitialVector method. The dimension of the Krylov subspace can be set throught SetKrylovDim </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -758,7 +761,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="matrixsolvers.html" class="btn btn-neutral float-left" title="TPZMatrixSolver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../util/index.html" class="btn btn-neutral float-right" title="Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../shape/index.html" class="btn btn-neutral float-right" title="The Shape hierarchy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

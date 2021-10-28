@@ -38,7 +38,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../analysis/index.html">The Analysis hierarchy</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">The Material hierarchy</a><ul class="current">
@@ -60,6 +60,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../structmatrix/index.html">The StructMatrix hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../solver/index.html">The Solver hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../shape/index.html">The Shape hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../util/index.html">Utilities</a></li>
 </ul>
 
@@ -104,7 +105,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N11TPZMatError11SetExactSolE12ExactSolTypeI4TVarEi">
 <span id="_CPPv3N11TPZMatError11SetExactSolE12ExactSolTypeI4TVarEi"></span><span id="_CPPv2N11TPZMatError11SetExactSolE12ExactSolTypeI4TVarEi"></span><span id="TPZMatError::SetExactSol__ExactSolType:TVar:.i"></span><span class="target" id="classTPZMatError_1a84b4bd0fdb5057db241acba14252b25e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetExactSol</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ExactSolType</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E11TPZMatError" title="TPZMatError::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">f</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pOrder</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11TPZMatError11SetExactSolE12ExactSolTypeI4TVarEi" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Sets a exact solution to the material. This method is used for setting functions used in the weak formulation. </p>
+<dd><p>Sets a exact solution to the material. </p>
+<p>This method is used for setting functions used in the weak formulation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -142,7 +144,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N11TPZMatError11NEvalErrorsEv">
 <span id="_CPPv3N11TPZMatError11NEvalErrorsEv"></span><span id="_CPPv2N11TPZMatError11NEvalErrorsEv"></span><span id="TPZMatError::NEvalErrors"></span><span class="target" id="classTPZMatError_1aa57dea8c497fdf07853983ddd6a54048"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEvalErrors</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11TPZMatError11NEvalErrorsEv" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Returns the number of error norms. Default is 3: norm, L2 and seminorm. </p>
+<dd><p>Returns the number of error norms. </p>
+<p>Default is 3: norm, L2 and seminorm. </p>
 </dd></dl>
 
 </div>
@@ -189,7 +192,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N19TPZMatLoadCasesBase19SetPostProcessIndexEi">
 <span id="_CPPv3N19TPZMatLoadCasesBase19SetPostProcessIndexEi"></span><span id="_CPPv2N19TPZMatLoadCasesBase19SetPostProcessIndexEi"></span><span id="TPZMatLoadCasesBase::SetPostProcessIndex__i"></span><span class="target" id="classTPZMatLoadCasesBase_1a8a4672106e4ac51cc24a1042f3df370e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPostProcessIndex</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N19TPZMatLoadCasesBase19SetPostProcessIndexEi" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Indicates which variable should be post processed. The method Solution in the material should then pick the corresponding solution accordingly. </p>
+<dd><p>Indicates which variable should be post processed. </p>
+<p>The method Solution in the material should then pick the corresponding solution accordingly. </p>
 </dd></dl>
 
 </div>
@@ -286,7 +290,8 @@
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv425TPZMatGeneralisedEigenVal">
 <span id="_CPPv325TPZMatGeneralisedEigenVal"></span><span id="_CPPv225TPZMatGeneralisedEigenVal"></span><span id="TPZMatGeneralisedEigenVal"></span><span class="target" id="classTPZMatGeneralisedEigenVal"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatGeneralisedEigenVal</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><a class="headerlink" href="#_CPPv425TPZMatGeneralisedEigenVal" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Defines an interface for solving Generalised Eigenvalue problems. This interface simply adds a method to switch between the left (A) and the right (B) matrices. It is suggested that the materials using this interface use a function pointer for switching between the correct contribute method. See <a class="reference internal" href="availablemats.html#classTPZWaveguideModalAnalysis"><span class="std std-ref">TPZWaveguideModalAnalysis</span></a> for an example of usage. </p>
+<dd><p>Defines an interface for solving Generalised Eigenvalue problems. </p>
+<p>This interface simply adds a method to switch between the left (A) and the right (B) matrices. It is suggested that the materials using this interface use a function pointer for switching between the correct contribute method. See <a class="reference internal" href="availablemats.html#classTPZWaveguideModalAnalysis"><span class="std std-ref">TPZWaveguideModalAnalysis</span></a> for an example of usage. </p>
 <p>Subclassed by TPZMatGeneralisedEigenValBC</p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-generalised">Generalised</p>

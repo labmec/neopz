@@ -38,7 +38,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../analysis/index.html">The Analysis hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../material/index.html">The Material hierarchy</a></li>
@@ -54,6 +54,7 @@
 <li class="toctree-l2"><a class="reference internal" href="index.html#tpzsolver">TPZSolver</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../shape/index.html">The Shape hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../util/index.html">Utilities</a></li>
 </ul>
 
@@ -161,7 +162,8 @@
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E15TPZMatrixSolver">
 <span id="_CPPv3I0E15TPZMatrixSolver"></span><span id="_CPPv2I0E15TPZMatrixSolver"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZMatrixSolver"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatrixSolver</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="index.html#_CPPv49TPZSolver" title="TPZSolver"><span class="n"><span class="pre">TPZSolver</span></span></a><a class="headerlink" href="#_CPPv4I0E15TPZMatrixSolver" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Defines the interface for matrix solvers. Solver These are used for solving linear or non-linear systems of equations. </p>
+<dd><p>Defines the interface for matrix solvers. </p>
+<p>Solver These are used for solving linear or non-linear systems of equations. </p>
 <p>Subclassed by TPZMGSolver&lt; TVar &gt;, <a class="reference internal" href="#classTPZPardisoSolver"><span class="std std-ref">TPZPardisoSolver&lt; TVar &gt;</span></a>, TPZSequenceSolver&lt; TVar &gt;, <a class="reference internal" href="#classTPZStepSolver"><span class="std std-ref">TPZStepSolver&lt; TVar &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-types">Public Types</p>
@@ -332,7 +334,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4NK15TPZMatrixSolver5WriteER9TPZStreami">
 <span id="_CPPv3NK15TPZMatrixSolver5WriteER9TPZStreami"></span><span id="_CPPv2NK15TPZMatrixSolver5WriteER9TPZStreami"></span><span id="TPZMatrixSolver::Write__TPZStreamR.iC"></span><span class="target" id="classTPZMatrixSolver_1ada7bf89dec61b65301f874573965a3b1"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Write</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZStream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">withclassid</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK15TPZMatrixSolver5WriteER9TPZStreami" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Writes this object to the TPZStream buffer. Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
+<dd><p>Writes this object to the TPZStream buffer. </p>
+<p>Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -350,7 +353,8 @@
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E13TPZStepSolver">
 <span id="_CPPv3I0E13TPZStepSolver"></span><span id="_CPPv2I0E13TPZStepSolver"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZStepSolver"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZStepSolver</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">TPZMatrixSolver</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E13TPZStepSolver" title="TPZStepSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E13TPZStepSolver" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Defines step solvers class. Solver. </p>
+<dd><p>Defines step solvers class. </p>
+<p>Solver </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
@@ -438,7 +442,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4NK13TPZStepSolver5WriteER9TPZStreami">
 <span id="_CPPv3NK13TPZStepSolver5WriteER9TPZStreami"></span><span id="_CPPv2NK13TPZStepSolver5WriteER9TPZStreami"></span><span id="TPZStepSolver::Write__TPZStreamR.iC"></span><span class="target" id="classTPZStepSolver_1a8ae0faf06e06793e73b598685dcad859"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Write</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZStream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">withclassid</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK13TPZStepSolver5WriteER9TPZStreami" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Writes this object to the TPZStream buffer. Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
+<dd><p>Writes this object to the TPZStream buffer. </p>
+<p>Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -466,7 +471,8 @@ so it should be used with either <span class="cpp-expr sig sig-inline cpp"><a cl
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4I0E16TPZPardisoSolver">
 <span id="_CPPv3I0E16TPZPardisoSolver"></span><span id="_CPPv2I0E16TPZPardisoSolver"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZPardisoSolver"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZPardisoSolver</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">TPZMatrixSolver</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E16TPZPardisoSolver" title="TPZPardisoSolver::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E16TPZPardisoSolver" title="Permalink to this definition"></a><br /></dt>
-<dd><p>This class acts as a wrapper for calls to the PARDISO solver. It is both used internally by the sparse matrix classes or it can be used by the user instead of <a class="reference internal" href="#classTPZStepSolver"><span class="std std-ref">TPZStepSolver</span></a> to have a finer control over PARDISO parameters. Inspired by PardisoSolver by Armando Duarte. </p>
+<dd><p>This class acts as a wrapper for calls to the PARDISO solver. </p>
+<p>It is both used internally by the sparse matrix classes or it can be used by the user instead of <a class="reference internal" href="#classTPZStepSolver"><span class="std std-ref">TPZStepSolver</span></a> to have a finer control over PARDISO parameters. Inspired by PardisoSolver by Armando Duarte.</p>
 <p><div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>It is only compatible with sparse matrices. Use it with TPZFYsmpMatrix or TPZSYsmpMatrix </p>
@@ -592,7 +598,8 @@ so it should be used with either <span class="cpp-expr sig sig-inline cpp"><a cl
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N16TPZPardisoSolver9SetMatrixE14TPZAutoPointerI13TPZBaseMatrixE">
 <span id="_CPPv3N16TPZPardisoSolver9SetMatrixE14TPZAutoPointerI13TPZBaseMatrixE"></span><span id="_CPPv2N16TPZPardisoSolver9SetMatrixE14TPZAutoPointerI13TPZBaseMatrixE"></span><span id="TPZPardisoSolver::SetMatrix__TPZAutoPointer:TPZBaseMatrix:"></span><span class="target" id="classTPZPardisoSolver_1a212a656a04fb45c885a76cac786dee16"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetMatrix</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZBaseMatrix</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">Refmat</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N16TPZPardisoSolver9SetMatrixE14TPZAutoPointerI13TPZBaseMatrixE" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Sets the associated matrix of the solver. If SetMatrixType has not been called, the following defaults are assumed: Symmetric matrices: <code class="docutils literal notranslate"><span class="pre">MSystemType::ESymmetric</span></code>, <code class="docutils literal notranslate"><span class="pre">MProperty::EIndefinite</span></code> Non-symmetric matrices: <code class="docutils literal notranslate"><span class="pre">MSystemType::ENonSymmetric</span></code>, <code class="docutils literal notranslate"><span class="pre">MProperty::EIndefinite</span></code> </p>
+<dd><p>Sets the associated matrix of the solver. </p>
+<p>If SetMatrixType has not been called, the following defaults are assumed: Symmetric matrices: <code class="docutils literal notranslate"><span class="pre">MSystemType::ESymmetric</span></code>, <code class="docutils literal notranslate"><span class="pre">MProperty::EIndefinite</span></code> Non-symmetric matrices: <code class="docutils literal notranslate"><span class="pre">MSystemType::ENonSymmetric</span></code>, <code class="docutils literal notranslate"><span class="pre">MProperty::EIndefinite</span></code> </p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Only sparse matrices are compatible with this solver. </p>
@@ -624,7 +631,8 @@ so it should be used with either <span class="cpp-expr sig sig-inline cpp"><a cl
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N16TPZPardisoSolver15SetMessageLevelEi">
 <span id="_CPPv3N16TPZPardisoSolver15SetMessageLevelEi"></span><span id="_CPPv2N16TPZPardisoSolver15SetMessageLevelEi"></span><span id="TPZPardisoSolver::SetMessageLevel__i"></span><span class="target" id="classTPZPardisoSolver_1af31836bb27e454dce3b72485ed69fa60"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetMessageLevel</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">lvl</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16TPZPardisoSolver15SetMessageLevelEi" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Sets the message level of the pardiso solver. Anything different than zero results in statistical information being printed. </p>
+<dd><p>Sets the message level of the pardiso solver. </p>
+<p>Anything different than zero results in statistical information being printed. </p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -641,7 +649,7 @@ so it should be used with either <span class="cpp-expr sig sig-inline cpp"><a cl
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N16TPZPardisoSolver8GetParamEv">
-<span id="_CPPv3N16TPZPardisoSolver8GetParamEv"></span><span id="_CPPv2N16TPZPardisoSolver8GetParamEv"></span><span id="TPZPardisoSolver::GetParam"></span><span class="target" id="classTPZPardisoSolver_1a951b3a5d7d5471f5459811be52255e94"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">long</span> <span class="pre">long</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetParam</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16TPZPardisoSolver8GetParamEv" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N16TPZPardisoSolver8GetParamEv"></span><span id="_CPPv2N16TPZPardisoSolver8GetParamEv"></span><span id="TPZPardisoSolver::GetParam"></span><span class="target" id="classTPZPardisoSolver_1a951b3a5d7d5471f5459811be52255e94"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">long</span></span><span class="w"> </span><span class="kt"><span class="pre">long</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetParam</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16TPZPardisoSolver8GetParamEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Gets reference to pardiso fParam array. </p>
 </dd></dl>
 

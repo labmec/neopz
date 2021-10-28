@@ -38,7 +38,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">The Analysis hierarchy</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">FEM Analysis of Equation Systems</a><ul>
@@ -52,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../material/index.html">The Material hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../structmatrix/index.html">The StructMatrix hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../solver/index.html">The Solver hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../shape/index.html">The Shape hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../util/index.html">Utilities</a></li>
 </ul>
 
@@ -170,6 +171,18 @@
 </dd></dl>
 
 <dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE">
+<span id="_CPPv3N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE"></span><span id="_CPPv2N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE"></span><span id="TPZLinearAnalysis::PostProcess__TPZVec:REAL:R.osR"></span><span class="target" id="classTPZLinearAnalysis_1ac245dc7b4271af6c5b6937b0e895983e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">loc</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Compute the local error over all elements and global errors in several norms and print out. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis11PostProcessEi">
+<span id="_CPPv3N17TPZLinearAnalysis11PostProcessEi"></span><span id="_CPPv2N17TPZLinearAnalysis11PostProcessEi"></span><span id="TPZLinearAnalysis::PostProcess__i"></span><span class="target" id="classTPZLinearAnalysis_1abf309976520fedefdf4a2577cb030dfe"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">resolution</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis11PostProcessEi" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Draw solution over mesh for all dimensions. </p>
+</dd></dl>
+
+<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis11PostProcessEii">
 <span id="_CPPv3N17TPZLinearAnalysis11PostProcessEii"></span><span id="_CPPv2N17TPZLinearAnalysis11PostProcessEii"></span><span id="TPZLinearAnalysis::PostProcess__i.i"></span><span class="target" id="classTPZLinearAnalysis_1a79ceb338f5bcce3b0292289e8bc56cdb"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">resolution</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dimension</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis11PostProcessEii" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Draw solution over mesh by dimension </p>
@@ -185,24 +198,6 @@
 <dt class="sig sig-object cpp" id="_CPPv4NK17TPZLinearAnalysis7GetTimeEv">
 <span id="_CPPv3NK17TPZLinearAnalysis7GetTimeEv"></span><span id="_CPPv2NK17TPZLinearAnalysis7GetTimeEv"></span><span id="TPZLinearAnalysis::GetTimeC"></span><span class="target" id="classTPZLinearAnalysis_1a0a83850be04a59e1946a632c42ace317"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetTime</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK17TPZLinearAnalysis7GetTimeEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Gets time used in OpenDX files. </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE">
-<span id="_CPPv3N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE"></span><span id="_CPPv2N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE"></span><span id="TPZLinearAnalysis::PostProcess__TPZVec:REAL:R.osR"></span><span class="target" id="classTPZLinearAnalysis_1a88bf163420d82e5c9d297341237b68d0"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">loc</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis11PostProcessER6TPZVecI4REALERNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Compute the local error over all elements and global errors in several norms and print out. </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis11PostProcessEi">
-<span id="_CPPv3N17TPZLinearAnalysis11PostProcessEi"></span><span id="_CPPv2N17TPZLinearAnalysis11PostProcessEi"></span><span id="TPZLinearAnalysis::PostProcess__i"></span><span class="target" id="classTPZLinearAnalysis_1a62654378cdf39a0d41faeefdc97e3640"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">resolution</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis11PostProcessEi" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Draw solution over mesh for all dimensions. </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="classTPZLinearAnalysis_1a71e2f273bcb183056a880c6ee895827b"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">resolution</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dimension</span></span><span class="sig-paren">)</span><br /></dt>
-<dd><p>Draw solution over mesh by dimension </p>
 </dd></dl>
 
 </div>

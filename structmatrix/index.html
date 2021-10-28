@@ -38,7 +38,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../analysis/index.html">The Analysis hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../material/index.html">The Material hierarchy</a></li>
@@ -51,6 +51,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../solver/index.html">The Solver hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../shape/index.html">The Shape hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../util/index.html">Utilities</a></li>
 </ul>
 
@@ -211,8 +212,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N21TPZStrMatParInterface8AssembleER13TPZBaseMatrixR13TPZBaseMatrix14TPZAutoPointerI15TPZGuiInterfaceE">
 <span id="_CPPv3N21TPZStrMatParInterface8AssembleER13TPZBaseMatrixR13TPZBaseMatrix14TPZAutoPointerI15TPZGuiInterfaceE"></span><span id="_CPPv2N21TPZStrMatParInterface8AssembleER13TPZBaseMatrixR13TPZBaseMatrix14TPZAutoPointerI15TPZGuiInterfaceE"></span><span id="TPZStrMatParInterface::Assemble__TPZBaseMatrixR.TPZBaseMatrixR.TPZAutoPointer:TPZGuiInterface:"></span><span class="target" id="classTPZStrMatParInterface_1abb0c4bed25f3f3444202683daafa61e1"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Assemble</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZBaseMatrix</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stiffness</span></span>, <span class="n"><span class="pre">TPZBaseMatrix</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">rhs</span></span>, <span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZGuiInterface</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">guiInterface</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N21TPZStrMatParInterface8AssembleER13TPZBaseMatrixR13TPZBaseMatrix14TPZAutoPointerI15TPZGuiInterfaceE" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Assemble the global system of equations into a matrix that has already been created. </p>
-<p>Methods to be derived in parallel schemes implementations. </p>
+<dd><p>Methods to be derived in parallel schemes implementations. </p>
+<p>Assemble the global system of equations into a matrix that has already been created. </p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -278,7 +279,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4NK21TPZStrMatParInterface5WriteER9TPZStreami">
 <span id="_CPPv3NK21TPZStrMatParInterface5WriteER9TPZStreami"></span><span id="_CPPv2NK21TPZStrMatParInterface5WriteER9TPZStreami"></span><span id="TPZStrMatParInterface::Write__TPZStreamR.iC"></span><span class="target" id="classTPZStrMatParInterface_1a7256e8e691f55cbdfda9e2f44ec56e59"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Write</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZStream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">withclassid</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK21TPZStrMatParInterface5WriteER9TPZStreami" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Writes this object to the TPZStream buffer. Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
+<dd><p>Writes this object to the TPZStream buffer. </p>
+<p>Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
 </dd></dl>
 
 </div>
@@ -351,8 +353,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N15TPZStructMatrix5CloneEv">
 <span id="_CPPv3N15TPZStructMatrix5CloneEv"></span><span id="_CPPv2N15TPZStructMatrix5CloneEv"></span><span id="TPZStructMatrix::Clone"></span><span class="target" id="classTPZStructMatrix_1a7956e12f1ea25b179f4b575ef7fc02ca"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv415TPZStructMatrix" title="TPZStructMatrix"><span class="n"><span class="pre">TPZStructMatrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Clone</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N15TPZStructMatrix5CloneEv" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Clone method. </p>
-<p>Methods to be overriden in child classes </p>
+<dd><p>Methods to be overriden in child classes. </p>
+<p>Clone method </p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -399,7 +401,7 @@
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4NK15TPZStructMatrix15FilterEquationsER6TPZVecI7int64_tER6TPZVecI7int64_tE">
-<span id="_CPPv3NK15TPZStructMatrix15FilterEquationsER6TPZVecI7int64_tER6TPZVecI7int64_tE"></span><span id="_CPPv2NK15TPZStructMatrix15FilterEquationsER6TPZVecI7int64_tER6TPZVecI7int64_tE"></span><span id="TPZStructMatrix::FilterEquations__TPZVec:int64_t:R.TPZVec:int64_t:RC"></span><span class="target" id="classTPZStructMatrix_1ad48d82df4a64c505d483ab942b810460"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FilterEquations</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">origindex</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">destindex</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><br /></dt>
+<span id="_CPPv3NK15TPZStructMatrix15FilterEquationsER6TPZVecI7int64_tER6TPZVecI7int64_tE"></span><span id="_CPPv2NK15TPZStructMatrix15FilterEquationsER6TPZVecI7int64_tER6TPZVecI7int64_tE"></span><span id="TPZStructMatrix::FilterEquations__TPZVec:int64_t:R.TPZVec:int64_t:RC"></span><span class="target" id="classTPZStructMatrix_1ad48d82df4a64c505d483ab942b810460"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FilterEquations</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">origindex</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">destindex</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15TPZStructMatrix15FilterEquationsER6TPZVecI7int64_tER6TPZVecI7int64_tE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Filter out the equations which are out of the range. </p>
 </dd></dl>
 
@@ -453,7 +455,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4NK15TPZStructMatrix5WriteER9TPZStreami">
 <span id="_CPPv3NK15TPZStructMatrix5WriteER9TPZStreami"></span><span id="_CPPv2NK15TPZStructMatrix5WriteER9TPZStreami"></span><span id="TPZStructMatrix::Write__TPZStreamR.iC"></span><span class="target" id="classTPZStructMatrix_1aeb2cc76d82b06aab3931fe333bbc91f5"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Write</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZStream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">withclassid</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK15TPZStructMatrix5WriteER9TPZStreami" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Writes this object to the TPZStream buffer. Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
+<dd><p>Writes this object to the TPZStream buffer. </p>
+<p>Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
 </dd></dl>
 
 </div>

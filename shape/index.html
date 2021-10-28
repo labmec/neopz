@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Shape hierarchy &mdash; NeoPZ  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Utilities" href="../util/index.html" />
+    <link rel="prev" title="TPZEigenSolver" href="../solver/eigensolvers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> NeoPZ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../analysis/index.html">The Analysis hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../material/index.html">The Material hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structmatrix/index.html">The StructMatrix hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../solver/index.html">The Solver hierarchy</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The Shape hierarchy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#approximation-spaces">Approximation spaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tpzshapeh1">TPZShapeH1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tpzshapehdiv">TPZShapeHDiv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tpzshapehdivkernel">TPZShapeHDivKernel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tpzshapehdivconstant">TPZShapeHDivConstant</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tpzshapehcurl">TPZShapeHCurl</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tpzshapedata">TPZShapeData</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-list-of-shape-template-classes">The list of shape template classes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../util/index.html">Utilities</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">NeoPZ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>The Shape hierarchy</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/shape/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-shape-hierarchy">
+<h1>The Shape hierarchy<a class="headerlink" href="#the-shape-hierarchy" title="Permalink to this headline"></a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="contents local topic" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#approximation-spaces" id="id1">Approximation spaces</a></p>
+<ul>
+<li><p><a class="reference internal" href="#tpzshapeh1" id="id2">TPZShapeH1</a></p></li>
+<li><p><a class="reference internal" href="#tpzshapehdiv" id="id3">TPZShapeHDiv</a></p></li>
+<li><p><a class="reference internal" href="#tpzshapehdivkernel" id="id4">TPZShapeHDivKernel</a></p></li>
+<li><p><a class="reference internal" href="#tpzshapehdivconstant" id="id5">TPZShapeHDivConstant</a></p></li>
+<li><p><a class="reference internal" href="#tpzshapehcurl" id="id6">TPZShapeHCurl</a></p></li>
+<li><p><a class="reference internal" href="#tpzshapedata" id="id7">TPZShapeData</a></p></li>
+<li><p><a class="reference internal" href="#the-list-of-shape-template-classes" id="id8">The list of shape template classes</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="approximation-spaces">
+<h2><a class="toc-backref" href="#id1">Approximation spaces</a><a class="headerlink" href="#approximation-spaces" title="Permalink to this headline"></a></h2>
+<p>An essential ingredient of Galerkin finite element approximations if the definition of a finite dimensional
+subspace whose basis functions will be used to build the algebraic system of equations. The NeoPZ environment
+allows to user to define a variety of approximation spaces : <span class="math notranslate nohighlight">\(H^1, H(div), H(curl)\)</span> or discontinuous spaces</p>
+<p>In NeoPZ the different flavors of approximation spaces are based on polynomial spaces associated with
+a master element. These basic “building blocks” of the polynomial spaces are each implemented in a class dedicated
+to each element topology. The shape template classes are :</p>
+<ul class="simple">
+<li><p><span class="cpp-expr sig sig-inline cpp"><span class="n">pzshape</span><span class="p">::</span><a class="reference internal" href="#_CPPv4N7pzshape13TPZShapePointE" title="pzshape::TPZShapePoint"><span class="n">TPZShapePoint</span></a></span></p></li>
+<li><p><span class="cpp-expr sig sig-inline cpp"><span class="n">pzshape</span><span class="p">::</span><a class="reference internal" href="#_CPPv4N7pzshape14TPZShapeLinearE" title="pzshape::TPZShapeLinear"><span class="n">TPZShapeLinear</span></a></span></p></li>
+<li><p><span class="cpp-expr sig sig-inline cpp"><span class="n">pzshape</span><span class="p">::</span><a class="reference internal" href="#_CPPv4N7pzshape14TPZShapeTriangE" title="pzshape::TPZShapeTriang"><span class="n">TPZShapeTriang</span></a></span></p></li>
+<li><p><span class="cpp-expr sig sig-inline cpp"><span class="n">pzshape</span><span class="p">::</span><a class="reference internal" href="#_CPPv4N7pzshape12TPZShapeQuadE" title="pzshape::TPZShapeQuad"><span class="n">TPZShapeQuad</span></a></span></p></li>
+<li><p><span class="cpp-expr sig sig-inline cpp"><span class="n">pzshape</span><span class="p">::</span><a class="reference internal" href="#_CPPv4N7pzshape12TPZShapeCubeE" title="pzshape::TPZShapeCube"><span class="n">TPZShapeCube</span></a></span></p></li>
+<li><p><span class="cpp-expr sig sig-inline cpp"><span class="n">pzshape</span><span class="p">::</span><a class="reference internal" href="#_CPPv4N7pzshape13TPZShapeTetraE" title="pzshape::TPZShapeTetra"><span class="n">TPZShapeTetra</span></a></span></p></li>
+<li><p><span class="cpp-expr sig sig-inline cpp"><span class="n">pzshape</span><span class="p">::</span><a class="reference internal" href="#_CPPv4N7pzshape13TPZShapePrismE" title="pzshape::TPZShapePrism"><span class="n">TPZShapePrism</span></a></span></p></li>
+<li><p><span class="cpp-expr sig sig-inline cpp"><span class="n">pzshape</span><span class="p">::</span><a class="reference internal" href="#_CPPv4N7pzshape13TPZShapePiramE" title="pzshape::TPZShapePiram"><span class="n">TPZShapePiram</span></a></span></p></li>
+</ul>
+<p>The full (doxygen generated) documentation of the classes can be found at <a class="reference internal" href="#listofshapeclasses"><span class="std std-ref">TPZShapeData</span></a>.</p>
+<p>Based on these classes a generic classes define <span class="math notranslate nohighlight">\(H^1,\;H(div)\;H(curl)\)</span> functions associated with each of the shape building blocks.</p>
+<section id="tpzshapeh1">
+<h3><a class="toc-backref" href="#id2">TPZShapeH1</a><a class="headerlink" href="#tpzshapeh1" title="Permalink to this headline"></a></h3>
+<p>the <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0E10TPZShapeH1" title="TPZShapeH1"><span class="n">TPZShapeH1</span></a></span> class computes H1 compatible shape functions. The method <em>Initialize</em> takes as argument the polynomial order associated with
+each side of the element, an integer identifier associated with each node and initializes datastructures in the <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv412TPZShapeData" title="TPZShapeData"><span class="n">TPZShapeData</span></a></span> data structure.</p>
+<p>The method <code class="docutils literal notranslate"><span class="pre">Shape</span></code> fills in the data structure fPhi and fDPhi of the <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv412TPZShapeData" title="TPZShapeData"><span class="n">TPZShapeData</span></a></span> object.</p>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4I0E10TPZShapeH1">
+<span id="_CPPv3I0E10TPZShapeH1"></span><span id="_CPPv2I0E10TPZShapeH1"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TSHAPE</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structTPZShapeH1"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeH1</span></span></span><a class="headerlink" href="#_CPPv4I0E10TPZShapeH1" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Class that implements the computation of H1 shape functions with variable connect order. </p>
+</dd></dl>
+
+</section>
+<section id="tpzshapehdiv">
+<h3><a class="toc-backref" href="#id3">TPZShapeHDiv</a><a class="headerlink" href="#tpzshapehdiv" title="Permalink to this headline"></a></h3>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4I0E12TPZShapeHDiv">
+<span id="_CPPv3I0E12TPZShapeHDiv"></span><span id="_CPPv2I0E12TPZShapeHDiv"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TSHAPE</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structTPZShapeHDiv"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeHDiv</span></span></span><a class="headerlink" href="#_CPPv4I0E12TPZShapeHDiv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Traditional HDiv spaces, data structures that do not depend on the geometric map. </p>
+</dd></dl>
+
+</section>
+<section id="tpzshapehdivkernel">
+<h3><a class="toc-backref" href="#id4">TPZShapeHDivKernel</a><a class="headerlink" href="#tpzshapehdivkernel" title="Permalink to this headline"></a></h3>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4I0E18TPZShapeHDivKernel">
+<span id="_CPPv3I0E18TPZShapeHDivKernel"></span><span id="_CPPv2I0E18TPZShapeHDivKernel"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TSHAPE</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structTPZShapeHDivKernel"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeHDivKernel</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0E13TPZShapeHCurl" title="TPZShapeHCurl"><span class="n"><span class="pre">TPZShapeHCurl</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E18TPZShapeHDivKernel" title="TPZShapeHDivKernel::TSHAPE"><span class="n"><span class="pre">TSHAPE</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E18TPZShapeHDivKernel" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Traditional HDiv spaces, data structures that do not depend on the geometric map. </p>
+<p>Subclassed by <a class="reference internal" href="#structTPZShapeHDivConstant"><span class="std std-ref">TPZShapeHDivConstant&lt; TSHAPE &gt;</span></a></p>
+</dd></dl>
+
+</section>
+<section id="tpzshapehdivconstant">
+<h3><a class="toc-backref" href="#id5">TPZShapeHDivConstant</a><a class="headerlink" href="#tpzshapehdivconstant" title="Permalink to this headline"></a></h3>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4I0E20TPZShapeHDivConstant">
+<span id="_CPPv3I0E20TPZShapeHDivConstant"></span><span id="_CPPv2I0E20TPZShapeHDivConstant"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TSHAPE</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structTPZShapeHDivConstant"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeHDivConstant</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0E18TPZShapeHDivKernel" title="TPZShapeHDivKernel"><span class="n"><span class="pre">TPZShapeHDivKernel</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E20TPZShapeHDivConstant" title="TPZShapeHDivConstant::TSHAPE"><span class="n"><span class="pre">TSHAPE</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E20TPZShapeHDivConstant" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Traditional HDiv spaces, data structures that do not depend on the geometric map. </p>
+</dd></dl>
+
+</section>
+<section id="tpzshapehcurl">
+<h3><a class="toc-backref" href="#id6">TPZShapeHCurl</a><a class="headerlink" href="#tpzshapehcurl" title="Permalink to this headline"></a></h3>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4I0E13TPZShapeHCurl">
+<span id="_CPPv3I0E13TPZShapeHCurl"></span><span id="_CPPv2I0E13TPZShapeHCurl"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TSHAPE</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structTPZShapeHCurl"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeHCurl</span></span></span><a class="headerlink" href="#_CPPv4I0E13TPZShapeHCurl" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Generates HCurl spaces in the reference element using constant vector fields and H1 shape functions. </p>
+<p>Subclassed by <a class="reference internal" href="#structTPZShapeHDivKernel"><span class="std std-ref">TPZShapeHDivKernel&lt; TSHAPE &gt;</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZShapeHCurl10InitializeER6TPZVecI7int64_tER6TPZVecIiER12TPZShapeData">
+<span id="_CPPv3N13TPZShapeHCurl10InitializeER6TPZVecI7int64_tER6TPZVecIiER12TPZShapeData"></span><span id="_CPPv2N13TPZShapeHCurl10InitializeER6TPZVecI7int64_tER6TPZVecIiER12TPZShapeData"></span><span id="TPZShapeHCurl::Initialize__TPZVec:int64_t:R.TPZVec:i:R.TPZShapeDataR"></span><span class="target" id="structTPZShapeHCurl_1a1c51291fe33abff072f6f9292867c55f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Initialize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ids</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">connectorders</span></span>, <a class="reference internal" href="#_CPPv412TPZShapeData" title="TPZShapeData"><span class="n"><span class="pre">TPZShapeData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13TPZShapeHCurl10InitializeER6TPZVecI7int64_tER6TPZVecIiER12TPZShapeData" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Should be called once per element. Initializes the data structure. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZShapeHCurl18ComputeVecandShapeER12TPZShapeData">
+<span id="_CPPv3N13TPZShapeHCurl18ComputeVecandShapeER12TPZShapeData"></span><span id="_CPPv2N13TPZShapeHCurl18ComputeVecandShapeER12TPZShapeData"></span><span id="TPZShapeHCurl::ComputeVecandShape__TPZShapeDataR"></span><span class="target" id="structTPZShapeHCurl_1a215c272a6f429fd88d69a75308895911"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeVecandShape</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv412TPZShapeData" title="TPZShapeData"><span class="n"><span class="pre">TPZShapeData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13TPZShapeHCurl18ComputeVecandShapeER12TPZShapeData" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Computes the pair (vec, h1 shape) that are used for creating the HCurl shape functions. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZShapeHCurl21ComputeNConnectShapeFEKiKi">
+<span id="_CPPv3N13TPZShapeHCurl21ComputeNConnectShapeFEKiKi"></span><span id="_CPPv2N13TPZShapeHCurl21ComputeNConnectShapeFEKiKi"></span><span id="TPZShapeHCurl::ComputeNConnectShapeF__iC.iC"></span><span class="target" id="structTPZShapeHCurl_1a69fa82f48e7e79c578fe1345253f5011"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeNConnectShapeF</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">connect</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">order</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13TPZShapeHCurl21ComputeNConnectShapeFEKiKi" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Computes the number of shape functions for a given connect. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>connect</strong> – <strong>[in]</strong> which connect </p></li>
+<li><p><strong>order</strong> – <strong>[in]</strong> connect ordder </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZShapeHCurl12NHCurlShapeFERK12TPZShapeData">
+<span id="_CPPv3N13TPZShapeHCurl12NHCurlShapeFERK12TPZShapeData"></span><span id="_CPPv2N13TPZShapeHCurl12NHCurlShapeFERK12TPZShapeData"></span><span id="TPZShapeHCurl::NHCurlShapeF__TPZShapeDataCR"></span><span class="target" id="structTPZShapeHCurl_1acd80675293f7b76eeb6ddd364e399e63"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NHCurlShapeF</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv412TPZShapeData" title="TPZShapeData"><span class="n"><span class="pre">TPZShapeData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13TPZShapeHCurl12NHCurlShapeFERK12TPZShapeData" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Number of HCurl shape functions for a given (filled) <a class="reference internal" href="#classTPZShapeData"><span class="std std-ref">TPZShapeData</span></a>. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZShapeHCurl5ShapeER6TPZVecI4REALER12TPZShapeDataR10TPZFMatrixI4REALER10TPZFMatrixI4REALE">
+<span id="_CPPv3N13TPZShapeHCurl5ShapeER6TPZVecI4REALER12TPZShapeDataR10TPZFMatrixI4REALER10TPZFMatrixI4REALE"></span><span id="_CPPv2N13TPZShapeHCurl5ShapeER6TPZVecI4REALER12TPZShapeDataR10TPZFMatrixI4REALER10TPZFMatrixI4REALE"></span><span id="TPZShapeHCurl::Shape__TPZVec:REAL:R.TPZShapeDataR.TPZFMatrix:REAL:R.TPZFMatrix:REAL:R"></span><span class="target" id="structTPZShapeHCurl_1ab8b7e96a46f9a152a6c75de7abdaf065"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Shape</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">pt</span></span>, <a class="reference internal" href="#_CPPv412TPZShapeData" title="TPZShapeData"><span class="n"><span class="pre">TPZShapeData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">phi</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">curlphi</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13TPZShapeHCurl5ShapeER6TPZVecI4REALER12TPZShapeDataR10TPZFMatrixI4REALER10TPZFMatrixI4REALE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Calculates phi and curl phi at a given integration point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pt</strong> – <strong>[in]</strong> integration point in the reference element </p></li>
+<li><p><strong>shapedata</strong> – <strong>[in]</strong> </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZShapeHCurl21StaticIndexShapeToVecERK6TPZVecIiERK6TPZVecI7int64_tERK6TPZVecIiERK6TPZVecI7int64_tER6TPZVecIjER6TPZVecINSt4pairIi7int64_tEEE">
+<span id="_CPPv3N13TPZShapeHCurl21StaticIndexShapeToVecERK6TPZVecIiERK6TPZVecI7int64_tERK6TPZVecIiERK6TPZVecI7int64_tER6TPZVecIjER6TPZVecINSt4pairIi7int64_tEEE"></span><span id="_CPPv2N13TPZShapeHCurl21StaticIndexShapeToVecERK6TPZVecIiERK6TPZVecI7int64_tERK6TPZVecIiERK6TPZVecI7int64_tER6TPZVecIjER6TPZVecINSt4pairIi7int64_tEEE"></span><span id="TPZShapeHCurl::StaticIndexShapeToVec__TPZVec:i:CR.TPZVec:int64_t:CR.TPZVec:i:CR.TPZVec:int64_t:CR.TPZVec:unsigned-i:R.TPZVec:std::pair:i.int64_t::R"></span><span class="target" id="structTPZShapeHCurl_1ae3edfabc87a310e63cfb45484c907485"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StaticIndexShapeToVec</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">connectOrder</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">firstH1ShapeFunc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">sidesH1Ord</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">nodeIds</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">shapeCountVec</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">indexVecShape</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13TPZShapeHCurl21StaticIndexShapeToVecERK6TPZVecIiERK6TPZVecI7int64_tERK6TPZVecIiERK6TPZVecI7int64_tER6TPZVecIjER6TPZVecINSt4pairIi7int64_tEEE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns a matrix index of the shape and vector associate to element. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>connectOrder</strong> – <strong>[in]</strong> Order of the HCurl connects </p></li>
+<li><p><strong>sirstH1ShapeFunc</strong> – <strong>[in]</strong> Index of the first H1 shape function associated with a given side </p></li>
+<li><p><strong>sidesH1Ord</strong> – <strong>[in]</strong> H1 order of each side </p></li>
+<li><p><strong>nodeIds</strong> – <strong>[in]</strong> Ids of the nodes. Used for adjusting order of HCurl functions. </p></li>
+<li><p><strong>shapeCountVec</strong> – <strong>[out]</strong> Stores the number of shape function for each connect </p></li>
+<li><p><strong>indexVecShape</strong> – <strong>[out]</strong> Indicates the pair vector/H1 shape function that will be used for constructing the HCurl functions </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZShapeHCurl17CalcH1ShapeOrdersERK6TPZVecIiER6TPZVecIiE">
+<span id="_CPPv3N13TPZShapeHCurl17CalcH1ShapeOrdersERK6TPZVecIiER6TPZVecIiE"></span><span id="_CPPv2N13TPZShapeHCurl17CalcH1ShapeOrdersERK6TPZVecIiER6TPZVecIiE"></span><span id="TPZShapeHCurl::CalcH1ShapeOrders__TPZVec:i:CR.TPZVec:i:R"></span><span class="target" id="structTPZShapeHCurl_1a09c4a4a180e78854451eeffcfe5f6e83"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CalcH1ShapeOrders</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ordHCurl</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ord</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13TPZShapeHCurl17CalcH1ShapeOrdersERK6TPZVecIiER6TPZVecIiE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Internal method for calculating the needed order of H1 functions for each side given the HCurl connect orders listed in <code class="docutils literal notranslate"><span class="pre">ordHCurl</span></code> param. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>since the H1 vertex functions are always needed and their order does not change, <code class="docutils literal notranslate"><span class="pre">ord</span></code> has size <code class="docutils literal notranslate"><span class="pre">NSides-NCornerNodes</span></code>. </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ordHCurl</strong> – <strong>[in]</strong> The effective order of each HCurl connect associated with a the side of shape TSIDESHAPE </p></li>
+<li><p><strong>the</strong> – <strong>[out]</strong> order of the h1 connects needed for computing the hcurl functions</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZShapeHCurl8MaxOrderEKi">
+<span id="_CPPv3N13TPZShapeHCurl8MaxOrderEKi"></span><span id="_CPPv2N13TPZShapeHCurl8MaxOrderEKi"></span><span id="TPZShapeHCurl::MaxOrder__iC"></span><span class="target" id="structTPZShapeHCurl_1a47d1b20f4d00581d06c538992681ed32"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MaxOrder</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ordh1</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N13TPZShapeHCurl8MaxOrderEKi" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Maximum (actual) polynomial order. Useful for choosing integration rule. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="tpzshapedata">
+<span id="listofshapeclasses"></span><h3><a class="toc-backref" href="#id7">TPZShapeData</a><a class="headerlink" href="#tpzshapedata" title="Permalink to this headline"></a></h3>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv412TPZShapeData">
+<span id="_CPPv312TPZShapeData"></span><span id="_CPPv212TPZShapeData"></span><span id="TPZShapeData"></span><span class="target" id="classTPZShapeData"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeData</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><a class="headerlink" href="#_CPPv412TPZShapeData" title="Permalink to this definition"></a><br /></dt>
+<dd><p>This class implements a structure to store data regarding shape functions in the master element coordinate system. </p>
+<p>Subclassed by <a class="reference internal" href="../material/index.html#classTPZMaterialData"><span class="std std-ref">TPZMaterialData</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-types">Public Types</p>
+<dl class="cpp enum">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData18MShapeFunctionTypeE">
+<span id="_CPPv3N12TPZShapeData18MShapeFunctionTypeE"></span><span id="_CPPv2N12TPZShapeData18MShapeFunctionTypeE"></span><span class="target" id="classTPZShapeData_1a3fb71c690fff6f38867078e64fcad610"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MShapeFunctionType</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData18MShapeFunctionTypeE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Type of the shape function associated with an element </p>
+<p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData18MShapeFunctionType6EEmptyE">
+<span id="_CPPv3N12TPZShapeData18MShapeFunctionType6EEmptyE"></span><span id="_CPPv2N12TPZShapeData18MShapeFunctionType6EEmptyE"></span><span class="target" id="classTPZShapeData_1a3fb71c690fff6f38867078e64fcad610a0931dc5db7057455700637f31c2e15d0"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EEmpty</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData18MShapeFunctionType6EEmptyE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData18MShapeFunctionType12EScalarShapeE">
+<span id="_CPPv3N12TPZShapeData18MShapeFunctionType12EScalarShapeE"></span><span id="_CPPv2N12TPZShapeData18MShapeFunctionType12EScalarShapeE"></span><span class="target" id="classTPZShapeData_1a3fb71c690fff6f38867078e64fcad610a9db4600ae37bfeb2803846968156f735"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EScalarShape</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData18MShapeFunctionType12EScalarShapeE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Scalar shape functions (H1, L2) </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData18MShapeFunctionType12EVecandShapeE">
+<span id="_CPPv3N12TPZShapeData18MShapeFunctionType12EVecandShapeE"></span><span id="_CPPv2N12TPZShapeData18MShapeFunctionType12EVecandShapeE"></span><span class="target" id="classTPZShapeData_1a3fb71c690fff6f38867078e64fcad610a60706e3f10ee54508d61f7620a3589b0"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EVecandShape</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData18MShapeFunctionType12EVecandShapeE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Composite shape function (scalar function and vector field, HDiv and HCurl spaces) </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData18MShapeFunctionType9EVecShapeE">
+<span id="_CPPv3N12TPZShapeData18MShapeFunctionType9EVecShapeE"></span><span id="_CPPv2N12TPZShapeData18MShapeFunctionType9EVecShapeE"></span><span class="target" id="classTPZShapeData_1a3fb71c690fff6f38867078e64fcad610aa52c355f4efeb8346e42e4c6358f49d6"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EVecShape</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData18MShapeFunctionType9EVecShapeE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Vector shape function (e.g. vector H1 space) </p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData12TPZShapeDataEv">
+<span id="_CPPv3N12TPZShapeData12TPZShapeDataEv"></span><span id="_CPPv2N12TPZShapeData12TPZShapeDataEv"></span><span id="TPZShapeData::TPZShapeData"></span><span class="target" id="classTPZShapeData_1aba24fae8166f58df9cb18bc8848e9841"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeData</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N12TPZShapeData12TPZShapeDataEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Default constructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData12TPZShapeDataERK12TPZShapeData">
+<span id="_CPPv3N12TPZShapeData12TPZShapeDataERK12TPZShapeData"></span><span id="_CPPv2N12TPZShapeData12TPZShapeDataERK12TPZShapeData"></span><span id="TPZShapeData::TPZShapeData__TPZShapeDataCR"></span><span class="target" id="classTPZShapeData_1a400ab26469c9542dd3cbe7686cb0fd1b"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeData</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N12TPZShapeData12TPZShapeDataERK12TPZShapeData" title="TPZShapeData::TPZShapeData"><span class="n"><span class="pre">TPZShapeData</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData12TPZShapeDataERK12TPZShapeData" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Copy constructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData12TPZShapeDataERR12TPZShapeData">
+<span id="_CPPv3N12TPZShapeData12TPZShapeDataERR12TPZShapeData"></span><span id="_CPPv2N12TPZShapeData12TPZShapeDataERR12TPZShapeData"></span><span id="TPZShapeData::TPZShapeData__TPZShapeDataRR"></span><span class="target" id="classTPZShapeData_1a44b82795198e6fb4ce17004bc19f3581"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeData</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N12TPZShapeData12TPZShapeDataERR12TPZShapeData" title="TPZShapeData::TPZShapeData"><span class="n"><span class="pre">TPZShapeData</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData12TPZShapeDataERR12TPZShapeData" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Move constructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeDataD0Ev">
+<span id="_CPPv3N12TPZShapeDataD0Ev"></span><span id="_CPPv2N12TPZShapeDataD0Ev"></span><span id="TPZShapeData::~TPZShapeData"></span><span class="target" id="classTPZShapeData_1a3867d46eef2adfe4541d53f9d661c079"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">~TPZShapeData</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N12TPZShapeDataD0Ev" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Destructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeDataaSERK12TPZShapeData">
+<span id="_CPPv3N12TPZShapeDataaSERK12TPZShapeData"></span><span id="_CPPv2N12TPZShapeDataaSERK12TPZShapeData"></span><span id="TPZShapeData::assign-operator__TPZShapeDataCR"></span><span class="target" id="classTPZShapeData_1aa80257ec85f16f2b84c44ee097012734"></span><a class="reference internal" href="#_CPPv412TPZShapeData" title="TPZShapeData"><span class="n"><span class="pre">TPZShapeData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv412TPZShapeData" title="TPZShapeData"><span class="n"><span class="pre">TPZShapeData</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N12TPZShapeDataaSERK12TPZShapeData" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Copy assignment operator. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeDataaSERR12TPZShapeData">
+<span id="_CPPv3N12TPZShapeDataaSERR12TPZShapeData"></span><span id="_CPPv2N12TPZShapeDataaSERR12TPZShapeData"></span><span id="TPZShapeData::assign-operator__TPZShapeDataRR"></span><span class="target" id="classTPZShapeData_1a4631dc617cf02e0584f35f5aafcda164"></span><a class="reference internal" href="#_CPPv412TPZShapeData" title="TPZShapeData"><span class="n"><span class="pre">TPZShapeData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv412TPZShapeData" title="TPZShapeData"><span class="n"><span class="pre">TPZShapeData</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N12TPZShapeDataaSERR12TPZShapeData" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Move assignment operator. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZShapeData7ClassIdEv">
+<span id="_CPPv3NK12TPZShapeData7ClassIdEv"></span><span id="_CPPv2NK12TPZShapeData7ClassIdEv"></span><span id="TPZShapeData::ClassIdC"></span><span class="target" id="classTPZShapeData_1a40426f7ae60cc8619ff18302f221f296"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClassId</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK12TPZShapeData7ClassIdEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Read and Write methods. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZShapeData5WriteER9TPZStreami">
+<span id="_CPPv3NK12TPZShapeData5WriteER9TPZStreami"></span><span id="_CPPv2NK12TPZShapeData5WriteER9TPZStreami"></span><span id="TPZShapeData::Write__TPZStreamR.iC"></span><span class="target" id="classTPZShapeData_1a2650f2bb677659c2e23fd0126df3b820"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Write</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZStream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">withclassid</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK12TPZShapeData5WriteER9TPZStreami" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Writes this object to the TPZStream buffer. </p>
+<p>Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData4ReadER9TPZStreamPv">
+<span id="_CPPv3N12TPZShapeData4ReadER9TPZStreamPv"></span><span id="_CPPv2N12TPZShapeData4ReadER9TPZStreamPv"></span><span id="TPZShapeData::Read__TPZStreamR.voidP"></span><span class="target" id="classTPZShapeData_1aef9a3b5af7d8e78ee334e91b996b5533"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Read</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZStream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">context</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData4ReadER9TPZStreamPv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Reads an objects from the TPZStream buffer. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZShapeData17ShapeFunctionTypeEv">
+<span id="_CPPv3NK12TPZShapeData17ShapeFunctionTypeEv"></span><span id="_CPPv2NK12TPZShapeData17ShapeFunctionTypeEv"></span><span id="TPZShapeData::ShapeFunctionTypeC"></span><span class="target" id="classTPZShapeData_1adce452feea26847314e078c3fe378e8c"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ShapeFunctionType</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12TPZShapeData17ShapeFunctionTypeEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Shape function type as a string. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZShapeData5PrintERNSt7ostreamE">
+<span id="_CPPv3NK12TPZShapeData5PrintERNSt7ostreamE"></span><span id="_CPPv2NK12TPZShapeData5PrintERNSt7ostreamE"></span><span id="TPZShapeData::Print__osRC"></span><span class="target" id="classTPZShapeData_1a0b5085522ff1dd3a2c80bb8d2e5c99d7"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Print</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12TPZShapeData5PrintERNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Prints the data. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK12TPZShapeData16PrintMathematicaERNSt7ostreamE">
+<span id="_CPPv3NK12TPZShapeData16PrintMathematicaERNSt7ostreamE"></span><span id="_CPPv2NK12TPZShapeData16PrintMathematicaERNSt7ostreamE"></span><span id="TPZShapeData::PrintMathematica__osRC"></span><span class="target" id="classTPZShapeData_1ad4d74b5b415dc4871d3677c480b27a63"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrintMathematica</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK12TPZShapeData16PrintMathematicaERNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Prints the data in a format suitable for Mathematica. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData10fShapeTypeE">
+<span id="_CPPv3N12TPZShapeData10fShapeTypeE"></span><span id="_CPPv2N12TPZShapeData10fShapeTypeE"></span><span id="TPZShapeData::fShapeType__MShapeFunctionType"></span><span class="target" id="classTPZShapeData_1a39a0d87367b57c53070e153ecc3bd773"></span><a class="reference internal" href="#_CPPv4N12TPZShapeData18MShapeFunctionTypeE" title="TPZShapeData::MShapeFunctionType"><span class="n"><span class="pre">MShapeFunctionType</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fShapeType</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><a class="reference internal" href="#_CPPv4N12TPZShapeData18MShapeFunctionType6EEmptyE" title="TPZShapeData::EEmpty"><span class="n"><span class="pre">EEmpty</span></span></a><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData10fShapeTypeE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Type of shape function. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData14fCornerNodeIdsE">
+<span id="_CPPv3N12TPZShapeData14fCornerNodeIdsE"></span><span id="_CPPv2N12TPZShapeData14fCornerNodeIdsE"></span><span id="TPZShapeData::fCornerNodeIds__TPZManVector:int64_t.8:"></span><span class="target" id="classTPZShapeData_1ae08148c19026c1701928dc7c46c887f6"></span><span class="n"><span class="pre">TPZManVector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">8</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fCornerNodeIds</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData14fCornerNodeIdsE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Corner node ids determine the parameter transformations to the sides. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData16fH1ConnectOrdersE">
+<span id="_CPPv3N12TPZShapeData16fH1ConnectOrdersE"></span><span id="_CPPv2N12TPZShapeData16fH1ConnectOrdersE"></span><span id="TPZShapeData::fH1ConnectOrders__TPZManVector:i.27:"></span><span class="target" id="classTPZShapeData_1aa0b066c97e846c61f86cf11759e87283"></span><span class="n"><span class="pre">TPZManVector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">27</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fH1ConnectOrders</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData16fH1ConnectOrdersE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Connect orders determine the number of shape functions. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData18fH1NumConnectShapeE">
+<span id="_CPPv3N12TPZShapeData18fH1NumConnectShapeE"></span><span id="_CPPv2N12TPZShapeData18fH1NumConnectShapeE"></span><span id="TPZShapeData::fH1NumConnectShape__TPZManVector:i.27:"></span><span class="target" id="classTPZShapeData_1ab1815fec65dd6fdef0d9d3a38ceb46c9"></span><span class="n"><span class="pre">TPZManVector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">27</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fH1NumConnectShape</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData18fH1NumConnectShapeE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Number of shape functions by connect. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData15fSideTransformsE">
+<span id="_CPPv3N12TPZShapeData15fSideTransformsE"></span><span id="_CPPv2N12TPZShapeData15fSideTransformsE"></span><span id="TPZShapeData::fSideTransforms__TPZManVector:TPZTransform:REAL:.20:"></span><span class="target" id="classTPZShapeData_1ab45bcc5b1cbefcfdf42b2be8e0db818f"></span><span class="n"><span class="pre">TPZManVector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZTransform</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">20</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fSideTransforms</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData15fSideTransformsE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Parametric transforms from the interior to the side. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData21fSideTransformationIdE">
+<span id="_CPPv3N12TPZShapeData21fSideTransformationIdE"></span><span id="_CPPv2N12TPZShapeData21fSideTransformationIdE"></span><span id="TPZShapeData::fSideTransformationId__TPZManVector:i.20:"></span><span class="target" id="classTPZShapeData_1aac159914a042300c2fc658101d0f4bdf"></span><span class="n"><span class="pre">TPZManVector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">20</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fSideTransformationId</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData21fSideTransformationIdE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Transformation ids for each side. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData4fPhiE">
+<span id="_CPPv3N12TPZShapeData4fPhiE"></span><span id="_CPPv2N12TPZShapeData4fPhiE"></span><span id="TPZShapeData::fPhi__TPZFNMatrix:MatDataNumPhi.REAL:"></span><span class="target" id="classTPZShapeData_1a4d022c9fc4ceb6df76db1d346d8f5a39"></span><span class="n"><span class="pre">TPZFNMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">MatDataNumPhi</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fPhi</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData4fPhiE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Vector of shapefunctions (format is dependent on the value of shapetype) over the master element. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData5fDPhiE">
+<span id="_CPPv3N12TPZShapeData5fDPhiE"></span><span id="_CPPv2N12TPZShapeData5fDPhiE"></span><span id="TPZShapeData::fDPhi__TPZFNMatrix:3-*-MatDataNumPhi.REAL:"></span><span class="target" id="classTPZShapeData_1ab7fecc142698f0ba6b7cff536ac174ee"></span><span class="n"><span class="pre">TPZFNMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="m"><span class="pre">3</span></span><span class="w"> </span><span class="o"><span class="pre">*</span></span><span class="w"> </span><span class="n"><span class="pre">MatDataNumPhi</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fDPhi</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData5fDPhiE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Values of the derivative of the shape functions over the master element. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData18fHDivConnectOrdersE">
+<span id="_CPPv3N12TPZShapeData18fHDivConnectOrdersE"></span><span id="_CPPv2N12TPZShapeData18fHDivConnectOrdersE"></span><span id="TPZShapeData::fHDivConnectOrders__TPZManVector:i.27:"></span><span class="target" id="classTPZShapeData_1ae8d93cab75266e39d04404da7ca3a15b"></span><span class="n"><span class="pre">TPZManVector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">27</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fHDivConnectOrders</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData18fHDivConnectOrdersE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Connect orders determine the number of shape functions. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData20fHDivNumConnectShapeE">
+<span id="_CPPv3N12TPZShapeData20fHDivNumConnectShapeE"></span><span id="_CPPv2N12TPZShapeData20fHDivNumConnectShapeE"></span><span id="TPZShapeData::fHDivNumConnectShape__TPZManVector:i.27:"></span><span class="target" id="classTPZShapeData_1a08e19c9510d5a555cbe8ffc79d47e528"></span><span class="n"><span class="pre">TPZManVector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">27</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fHDivNumConnectShape</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData20fHDivNumConnectShapeE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Number of shape functions by connect. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData11fSideOrientE">
+<span id="_CPPv3N12TPZShapeData11fSideOrientE"></span><span id="_CPPv2N12TPZShapeData11fSideOrientE"></span><span id="TPZShapeData::fSideOrient__TPZManVector:i.20:"></span><span class="target" id="classTPZShapeData_1ad407125ea21df2ee034a06c914fdf2aa"></span><span class="n"><span class="pre">TPZManVector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">20</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fSideOrient</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData11fSideOrientE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>The orientation of the sides (either -1 or +1) </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData17fMasterDirectionsE">
+<span id="_CPPv3N12TPZShapeData17fMasterDirectionsE"></span><span id="_CPPv2N12TPZShapeData17fMasterDirectionsE"></span><span id="TPZShapeData::fMasterDirections__TPZFNMatrix:3-*-MatDataNumDir:"></span><span class="target" id="classTPZShapeData_1a56b386d77d911fb751f3b1ee4c8b5c63"></span><span class="n"><span class="pre">TPZFNMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="m"><span class="pre">3</span></span><span class="w"> </span><span class="o"><span class="pre">*</span></span><span class="w"> </span><span class="n"><span class="pre">MatDataNumDir</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fMasterDirections</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData17fMasterDirectionsE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Directions on the master element. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N12TPZShapeData16fSDVecShapeIndexE">
+<span id="_CPPv3N12TPZShapeData16fSDVecShapeIndexE"></span><span id="_CPPv2N12TPZShapeData16fSDVecShapeIndexE"></span><span id="TPZShapeData::fSDVecShapeIndex__TPZManVector:std::pair:i.int64_t:.MatDataNumPhi:"></span><span class="target" id="classTPZShapeData_1a7c3538a4d392a69372db6a73ddc26a38"></span><span class="n"><span class="pre">TPZManVector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">MatDataNumPhi</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fSDVecShapeIndex</span></span></span><a class="headerlink" href="#_CPPv4N12TPZShapeData16fSDVecShapeIndexE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Correspondence between direction vector index and index of the shape functions. Used for H(div) and H(curl) approximation spaces. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="the-list-of-shape-template-classes">
+<h3><a class="toc-backref" href="#id8">The list of shape template classes</a><a class="headerlink" href="#the-list-of-shape-template-classes" title="Permalink to this headline"></a></h3>
+<span class="target" id="shapepoint"></span><dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N7pzshape13TPZShapePointE">
+<span id="_CPPv3N7pzshape13TPZShapePointE"></span><span id="_CPPv2N7pzshape13TPZShapePointE"></span><span id="pzshape::TPZShapePoint"></span><span class="target" id="classpzshape_1_1TPZShapePoint"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapePoint</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">pztopology</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">TPZPoint</span></span><a class="headerlink" href="#_CPPv4N7pzshape13TPZShapePointE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Compute the single shape function associated with a point. </p>
+<p>Shape </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N7pzshape14TPZShapeLinearE">
+<span id="_CPPv3N7pzshape14TPZShapeLinearE"></span><span id="_CPPv2N7pzshape14TPZShapeLinearE"></span><span id="pzshape::TPZShapeLinear"></span><span class="target" id="classpzshape_1_1TPZShapeLinear"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeLinear</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">pztopology</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">TPZLine</span></span><a class="headerlink" href="#_CPPv4N7pzshape14TPZShapeLinearE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Implements the shape functions of a linear (1D) element. </p>
+<p>Shape<p>The linear shape functions form the basis of all other shape function computations</p>
+<p>The range of the master element is -1,1</p>
+<p>The orthogonal function which generates the linear shape functions can be modified by changing the function pointer fOrthogonal</p>
+<p>all static tables and functions concerning one-d elements will be grouped in this</p>
+</p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N7pzshape14TPZShapeTriangE">
+<span id="_CPPv3N7pzshape14TPZShapeTriangE"></span><span id="_CPPv2N7pzshape14TPZShapeTriangE"></span><span id="pzshape::TPZShapeTriang"></span><span class="target" id="classpzshape_1_1TPZShapeTriang"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeTriang</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">pztopology</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">TPZTriangle</span></span><a class="headerlink" href="#_CPPv4N7pzshape14TPZShapeTriangE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Implements the shape functions of a triangular (2D) element. </p>
+<p>Shape<p>The triangular shape functions are also used in 3D elements</p>
+<p>The range of the master element is 0,1</p>
+</p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N7pzshape12TPZShapeQuadE">
+<span id="_CPPv3N7pzshape12TPZShapeQuadE"></span><span id="_CPPv2N7pzshape12TPZShapeQuadE"></span><span id="pzshape::TPZShapeQuad"></span><span class="target" id="classpzshape_1_1TPZShapeQuad"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeQuad</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">pztopology</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">TPZQuadrilateral</span></span><a class="headerlink" href="#_CPPv4N7pzshape12TPZShapeQuadE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Implements the shape functions of a quadrilateral (2D) element. </p>
+<p>Shape<p>The quadrilateral shape functions are also used in 3D elements</p>
+<p>The range of the master element is -1,1</p>
+</p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N7pzshape12TPZShapeCubeE">
+<span id="_CPPv3N7pzshape12TPZShapeCubeE"></span><span id="_CPPv2N7pzshape12TPZShapeCubeE"></span><span id="pzshape::TPZShapeCube"></span><span class="target" id="classpzshape_1_1TPZShapeCube"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeCube</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">pztopology</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">TPZCube</span></span><a class="headerlink" href="#_CPPv4N7pzshape12TPZShapeCubeE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Implements the shape functions of a hexahedral (3D) element. </p>
+<p>Shape The range of the master element is [-1 ,1] </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N7pzshape13TPZShapeTetraE">
+<span id="_CPPv3N7pzshape13TPZShapeTetraE"></span><span id="_CPPv2N7pzshape13TPZShapeTetraE"></span><span id="pzshape::TPZShapeTetra"></span><span class="target" id="classpzshape_1_1TPZShapeTetra"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapeTetra</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">pztopology</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">TPZTetrahedron</span></span><a class="headerlink" href="#_CPPv4N7pzshape13TPZShapeTetraE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Implements the shape functions of a tetrahedral (3D) element. </p>
+<p>Shape The range of the master element is 0,1 </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N7pzshape13TPZShapePrismE">
+<span id="_CPPv3N7pzshape13TPZShapePrismE"></span><span id="_CPPv2N7pzshape13TPZShapePrismE"></span><span id="pzshape::TPZShapePrism"></span><span class="target" id="classpzshape_1_1TPZShapePrism"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapePrism</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">pztopology</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">TPZPrism</span></span><a class="headerlink" href="#_CPPv4N7pzshape13TPZShapePrismE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Implements the shape functions of a prism (3D) element. </p>
+<p>Shape The range of the master element is <span class="math notranslate nohighlight">\( [-1,1] \)</span> for the <span class="math notranslate nohighlight">\( z \)</span> direction and <span class="math notranslate nohighlight">\( [0,1] \)</span> for the triangular plane </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N7pzshape13TPZShapePiramE">
+<span id="_CPPv3N7pzshape13TPZShapePiramE"></span><span id="_CPPv2N7pzshape13TPZShapePiramE"></span><span id="pzshape::TPZShapePiram"></span><span class="target" id="classpzshape_1_1TPZShapePiram"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZShapePiram</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">pztopology</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">TPZPyramid</span></span><a class="headerlink" href="#_CPPv4N7pzshape13TPZShapePiramE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Implements the shape functions of a pyramid (3D) element. </p>
+<p>Shape The range of the master element is -1,1 for the base and [0,1] for the height </p>
+<p>Subclassed by pzshape::TPZShapePiramHdiv</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../solver/eigensolvers.html" class="btn btn-neutral float-left" title="TPZEigenSolver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../util/index.html" class="btn btn-neutral float-right" title="Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Philippe Devloo et al.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

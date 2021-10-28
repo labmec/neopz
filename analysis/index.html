@@ -38,7 +38,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">The Analysis hierarchy</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="linearanalysis.html">FEM Analysis of Equation Systems</a></li>
@@ -61,6 +61,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../material/index.html">The Material hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../structmatrix/index.html">The StructMatrix hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../solver/index.html">The Solver hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../shape/index.html">The Shape hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../util/index.html">Utilities</a></li>
 </ul>
 
@@ -190,7 +191,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N11TPZAnalysis3RunERNSt7ostreamE">
 <span id="_CPPv3N11TPZAnalysis3RunERNSt7ostreamE"></span><span id="_CPPv2N11TPZAnalysis3RunERNSt7ostreamE"></span><span id="TPZAnalysis::Run__osR"></span><span class="target" id="classTPZAnalysis_1a1f4acf6d419178e364580ace7b560b5b"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Run</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11TPZAnalysis3RunERNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Calls all the needed steps for running the simulation. By default, it will run Assemble and Solve methods. Can be overloaded in child classes for customizing behaviour (i.e., creating a time-stepping scheme). </p>
+<dd><p>Calls all the needed steps for running the simulation. </p>
+<p>By default, it will run Assemble and Solve methods. Can be overloaded in child classes for customizing behaviour (i.e., creating a time-stepping scheme). </p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -248,7 +250,8 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N11TPZAnalysis24ComputeNumberofLoadCasesEv">
 <span id="_CPPv3N11TPZAnalysis24ComputeNumberofLoadCasesEv"></span><span id="_CPPv2N11TPZAnalysis24ComputeNumberofLoadCasesEv"></span><span id="TPZAnalysis::ComputeNumberofLoadCases"></span><span class="target" id="classTPZAnalysis_1aa8e7c6bf75a52031429304017df83aed"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeNumberofLoadCases</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11TPZAnalysis24ComputeNumberofLoadCasesEv" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Determine the number of load cases from the material objects and return its value. It modifies the <a class="reference internal" href="../material/commoninterfaces.html#classTPZMatLoadCases"><span class="std std-ref">TPZMatLoadCases</span></a> instances so they have the same number of load cases. The number of load cases is the maximum value of load cases of all material objects. </p>
+<dd><p>Determine the number of load cases from the material objects and return its value. </p>
+<p>It modifies the <a class="reference internal" href="../material/commoninterfaces.html#classTPZMatLoadCases"><span class="std std-ref">TPZMatLoadCases</span></a> instances so they have the same number of load cases. The number of load cases is the maximum value of load cases of all material objects. </p>
 </dd></dl>
 
 </div>
