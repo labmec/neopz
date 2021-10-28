@@ -364,6 +364,15 @@ void TPZSubCompMesh::Print(std::ostream &out) const {
 	
 	out << "Sub Mesh" << (void *) this;
 	TPZCompEl::Print(out);
+    
+    {
+        int64_t nc = NConnects();
+        for(int ic=0; ic<nc; ic++)
+        {
+            TPZCompEl::Connect(ic).Print(*Mesh(),out);
+        }
+    }
+    
 	TPZCompMesh::Print(out);
 	out.flush();
 	int64_t i;
