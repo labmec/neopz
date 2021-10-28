@@ -1251,7 +1251,8 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
         gelside.SideTransform3(neighbour, tr);
         TPZTransform<REAL> tr2 = neighbour.Element()->SideToSideTransform(neighbour.Side(), neighbour.Element()->NSides()-1);
         tr = tr2.Multiply(tr);
-        effective = dynamic_cast<TPZInterpolationSpace *> (neighbour.Element()->Reference());
+        TPZCompEl *compneigh = neighbour.Element()->Reference();
+        effective = dynamic_cast<TPZInterpolationSpace *> (compneigh);
         material = dynamic_cast<TPZMatSingleSpaceT<STATE>*>(effective->Material());
     }
 
