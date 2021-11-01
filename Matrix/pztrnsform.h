@@ -72,7 +72,7 @@ public:
 	TPZTransform<T> Multiply(TPZTransform<T> &right);
 	
 	/** @brief Transforms the vector */
-	void Apply(TPZVec<T> &vectorin,TPZVec<T> &vectorout);
+	void Apply(const TPZVec<T> &vectorin,TPZVec<T> &vectorout);
 	
 	void PrintInputForm(std::ostream &out);
 	

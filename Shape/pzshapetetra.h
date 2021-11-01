@@ -60,7 +60,7 @@ namespace pzshape {
 		 * @param phi (output) value of the (4) shape functions
 		 * @param dphi (output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 		 */
-		static void CornerShape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+		static void CornerShape(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Computes the generating shape functions for a quadrilateral element
@@ -68,7 +68,7 @@ namespace pzshape {
 		 * @param phi (input/output) value of the (4) shape functions
 		 * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 		 */
-		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+		static void ShapeGenerating(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
         /**
          * @brief Computes the generating shape functions for a quadrilateral element
@@ -76,7 +76,7 @@ namespace pzshape {
          * @param phi (input/output) value of the (4) shape functions
          * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
          */
-        static void ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+        static void ShapeGenerating(const TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
         
 
 		/** 
@@ -186,7 +186,7 @@ namespace pzshape {
 		static int NShapeF(const TPZVec<int> &order);
         
         static void ShapeInternal(int side, TPZVec<REAL> &x, int order, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-        static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+        static void ShapeCorner(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	};
 	
 };

@@ -33,7 +33,7 @@ namespace pzshape {
 	
 	REAL TPZShapeQuad::gRibTrans2dQ1d[4][2] = { {1.,0.},{0.,1.},{-1.,0.},{0.,-1.} };
 	
-	void TPZShapeQuad::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+	void TPZShapeQuad::ShapeCorner(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 		
 		REAL x[2],dx[2],y[2],dy[2];
 		x[0]  =  (1.-pt[0])/2.;
@@ -64,7 +64,7 @@ namespace pzshape {
 	 * @param phi (input) value of the (4) shape functions
 	 * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
 	 */
-	void TPZShapeQuad::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+	void TPZShapeQuad::ShapeGenerating(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{
 		int is;
 		for(is=4; is<8; is++)
@@ -98,7 +98,7 @@ namespace pzshape {
      * @param phi (input) value of the (4) shape functions
      * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
      */
-    void TPZShapeQuad::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+    void TPZShapeQuad::ShapeGenerating(const TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
     {
         int is;
         for(is=4; is<8; is++)

@@ -33,7 +33,7 @@ namespace pzshape {
 		
 
 
-	void TPZShapeCube::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+	void TPZShapeCube::ShapeCorner(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 {
 		
 		REAL x[2],dx[2],y[2],dy[2],z[2],dz[2];
@@ -90,7 +90,7 @@ namespace pzshape {
 	 * @param phi (input) value of the (8) shape functions
 	 * @param dphi (input) value of the derivatives of the (8) shape functions holding the derivatives in a column
 	 */
-	void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+	void TPZShapeCube::ShapeGenerating(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{
 		int is;
 		// contribute the ribs
@@ -157,7 +157,7 @@ namespace pzshape {
      * @param phi (input) value of the (8) corner shape functions
      * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
      */
-void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+void TPZShapeCube::ShapeGenerating(const TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 {
     int is;
     // contribute the ribs

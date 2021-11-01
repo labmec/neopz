@@ -200,7 +200,7 @@ namespace pzshape {
 	 * @param phi (input/output) value of the  shape functions
 	 * @param dphi (input/output) value of the derivatives of the shape functions holding the derivatives in a column
 	 */
-	void TPZShapeLinear::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+	void TPZShapeLinear::ShapeGenerating(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{
 		
 		phi(2,0) = phi(0,0)*phi(1,0);
@@ -266,7 +266,7 @@ namespace pzshape {
 			phi(ord,0) = phiint(ord-2,0)*phiblend(2,0);
 		}
 	}
-    void TPZShapeLinear::ShapeCorner(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+    void TPZShapeLinear::ShapeCorner(const TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
         phi(0,0) = (1-pt[0])/2.;
         phi(1,0) = (1+pt[0])/2.;
         dphi(0,0) = -0.5;

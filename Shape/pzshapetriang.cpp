@@ -31,7 +31,7 @@ namespace pzshape {
 	REAL TPZShapeTriang::gVet1dT[3] = {-1.,0.,1.};
 	
 	
-	void TPZShapeTriang::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+	void TPZShapeTriang::ShapeCorner(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 		
 		phi(0,0) =  1.-pt[0]-pt[1];
 		phi(1,0) =  pt[0];
@@ -50,7 +50,7 @@ namespace pzshape {
 	 * @param phi (input/output) value of the (4) shape functions
 	 * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 	 */
-	void TPZShapeTriang::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+	void TPZShapeTriang::ShapeGenerating(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{
 		int is;
 		for(is=3; is<6; is++)
@@ -86,7 +86,7 @@ namespace pzshape {
      * @param phi (input/output) value of the (4) shape functions
      * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
      */
-    void TPZShapeTriang::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+    void TPZShapeTriang::ShapeGenerating(const TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
     {
         // Make the generating shape functions linear and unitary
         REAL mult[] = {1.,1.,1.,4.,4.,4.,27.};

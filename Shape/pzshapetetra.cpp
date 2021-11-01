@@ -50,7 +50,7 @@ namespace pzshape {
 		{1.,1.,2.} , {-1.,0.,1. } , {0.,-1.,1.}//{1.,1.,2.} , {-1.,0.,1. } , {0.,-1.,1.}
 	};
 	
-    void TPZShapeTetra::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+    void TPZShapeTetra::ShapeCorner(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
         phi(0,0)  = 1-pt[0]-pt[1]-pt[2];
         phi(1,0)  = pt[0];
         phi(2,0)  = pt[1];
@@ -72,7 +72,7 @@ namespace pzshape {
     
     
     //troco para ShapeCorner
-	void TPZShapeTetra::CornerShape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+	void TPZShapeTetra::CornerShape(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 		phi(0,0)  = 1-pt[0]-pt[1]-pt[2];
 		phi(1,0)  = pt[0];
 		phi(2,0)  = pt[1];
@@ -98,7 +98,7 @@ namespace pzshape {
 	 * @param phi (input/output) value of the (4) shape functions
 	 * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 	 */
-	void TPZShapeTetra::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+	void TPZShapeTetra::ShapeGenerating(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{
 		int is;
 		// 6 ribs
@@ -163,7 +163,7 @@ namespace pzshape {
  * @param phi (input/output) value of the (4) shape functions
  * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
  */
-void TPZShapeTetra::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+void TPZShapeTetra::ShapeGenerating(const TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 {
     REAL mult[] = {1.,1.,1.,1.,4.,4.,4.,4.,4.,4.,27.,27.,27.,27.,54.};
 
