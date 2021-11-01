@@ -12,6 +12,7 @@
 #include "TPZCompElDisc.h"
 #include "TPZMaterialDataT.h"
 #include "pzelchdiv.h"
+#include "TPZShapeHDivBound.h"
 
 
 #ifdef PZ_LOG
@@ -497,6 +498,18 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
         TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
         gel->Jacobian(point, jac, axes, detjac, jacinv);
     }
+    TPZShapeHDivBound<TSHAPE> shapehdiv;
+    TPZShapeData shapedata;
+    int nc = gel->NCornerNodes();
+    TPZManVector<int64_t,8> id(nc);
+    for (int ic=0; ic<nc; ic++) {
+        id[ic] = gel->Node(ic).Id();
+    }
+    int connectorder = this->Connect(0).Order();
+    shapehdiv.Initialize(id, connectorder, 1, shapedata);
+    TPZFNMatrix<25> locphi(shapehdiv.NShape(shapedata),1);
+    shapehdiv.Shape(point, shapedata, locphi);
+    locphi *= 1./detjac;
     if(gel->Type() == ETriangle)
     {
         // we multiply the shape functions by 6
@@ -507,11 +520,6 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
         phi(0) = 1./detjac/gel->NCornerNodes();
         dphi.Zero();
         return;
-    }
-    int nc = gel->NCornerNodes();
-    TPZManVector<int64_t,8> id(nc);
-    for (int ic=0; ic<nc; ic++) {
-        id[ic] = gel->Node(ic).Id();
     }
     TPZManVector<int,TSHAPE::NSides> ord;
     this->GetInterpolationOrder(ord);
@@ -540,6 +548,17 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
             }
         }
     }
+    
+    // test if the new procedure gives identical results
+    int nshape = phi.Rows();
+    for(int ish = 0; ish < nshape; ish++)
+    {
+        if(abs(phi(ish,0)-locphi(ish,0)) > 1.e-8)
+        {
+            DebugStop();
+        }
+    }
+    
     
     return;
 }
