@@ -4,6 +4,8 @@
 #include "pzreal.h"
 #include "pzvec.h"
 #include "pztrnsform.h"
+#include "pzeltype.h"
+
 template<class T>
 class TPZFMatrix;
 
@@ -16,9 +18,9 @@ struct TPZShapeHDiv
     
     TPZShapeHDiv();
     
-    static void Initialize(TPZVec<int64_t> &ids,
-                    TPZVec<int> &connectorders,                    
-                    TPZVec<int>& sideorient, TPZShapeData &data);
+    static void Initialize(const TPZVec<int64_t> &ids,
+                    const TPZVec<int> &connectorders,
+                    const TPZVec<int>& sideorient, TPZShapeData &data);
     
     static void ComputeMasterDirections(TPZShapeData &data);
     
@@ -32,7 +34,9 @@ struct TPZShapeHDiv
     
     static void HDivPermutation(int side, TPZShapeData &data, TPZVec<int> &permutegather);
     
-    static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
+    static void HDivPermutation(MElementType eltype, const TPZVec<int64_t> &ids, TPZVec<int> &permutegather);
+    
+    static void Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
 
     static int ComputeNConnectShapeF(int connect, int order);
     
