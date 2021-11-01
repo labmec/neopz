@@ -12,6 +12,7 @@
 #include "TPZCompElDisc.h"
 #include "TPZMaterialDataT.h"
 #include "pzelchdiv.h"
+#include "TPZShapeHDivCollapsed.h"
 
 
 #ifdef PZ_LOG
@@ -390,6 +391,7 @@ static void ExpandAxes(TPZFMatrix<REAL> &axinput, TPZMatrix<REAL> &axout)
     }
 }
 
+/*
 template<class TSHAPE>
 template<class TVar>
 void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
@@ -407,14 +409,14 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
     const int dim = TSHAPE::Dimension+1;
     const int nvecshapestd = data.fDeformedDirections.Cols();
     TPZManVector<REAL> topdir(dim,0.), botdir(dim,0.); // top and bot directions in the deformed element
-    TPZManVector<REAL,3> vecup={0,0,1.}, vecdown={0,0,-1.};
+    TPZManVector<REAL,3> vecup={0,0,0}, vecdown={0,0,0};
+    vecup[dim-1] = 1.;
+    vecdown[dim-1] = -1.;
     // compute the deformed directions for the two additional vectors
     {
         for(int i=0; i<3; i++){
-            for(int l=0; l<dim; l++){
-                topdir[i] += data.axes(l,i)*vecup[l];
-                botdir[i] += data.axes(l,i)*vecdown[l];
-            }
+                topdir[i] = data.axes(dim-1,i);
+                botdir[i] = -data.axes(dim-1,i);
         }
     }
     
@@ -461,18 +463,11 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
         }
         // Same for divphi
         for (int64_t i= nvec_hdiv; i<nvecshapecollpased-nvec_top; i++) {
-            data.divphi(i,0) = 0.;
-            for (int d = 0; d < 3; d++) {
-                data.divphi(i,0) += databottom.phi(i-nvec_hdiv)*botdir[d];
-            }
+            data.divphi(i,0) = -databottom.phi(i-nvec_hdiv);
         }
         for (int64_t i= nvec_hdiv+nvec_bottom; i<nvecshapecollpased; i++) {
-            data.divphi(i,0) = 0.;
-            for (int d = 0; d < 3; d++) {
-                data.divphi(i,0) += datatop.phi(i-nvec_hdiv-nvec_bottom)*topdir[d];
-            }
+            data.divphi(i,0) = datatop.phi(i-nvec_hdiv-nvec_bottom);
         }
-
     }
     
     if (data.fNeedsSol) {
@@ -490,6 +485,116 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
     
 
 }//void
+*/
+
+template<class TSHAPE>
+void TPZCompElHDivCollapsed<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) {
+
+    TPZShapeData &shapedata = data;
+
+    TPZFMatrix<REAL> auxPhi;
+    TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, auxPhi, data.divphi);
+    
+    TPZFMatrix<REAL> gradx(3,TSHAPE::Dimension,0.);
+    this->Reference()->GradX(qsi, gradx);
+//    TPZFMatrix<REAL> phiSHdiv;
+    gradx.Multiply(auxPhi,data.fDeformedDirections);
+
+    
+    TPZFNMatrix<9,REAL> axeslocal(TSHAPE::Dimension+1,3);
+    ExpandAxes(data.axes, axeslocal);
+    data.axes = axeslocal;
+    const int dim = TSHAPE::Dimension+1;
+    const int nvecshapestd = data.fDeformedDirections.Cols();
+    TPZManVector<REAL> topdir(dim,0.), botdir(dim,0.); // top and bot directions in the deformed element
+    TPZManVector<REAL,3> vecup={0,0,0}, vecdown={0,0,0};
+    vecup[dim-1] = 1.;
+    vecdown[dim-1] = -1.;
+    // compute the deformed directions for the two additional vectors
+    {
+        for(int i=0; i<3; i++){
+                topdir[i] = data.axes(dim-1,i);
+                botdir[i] = -data.axes(dim-1,i);
+        }
+    }
+    
+    std::pair<TPZMaterialDataT<STATE>,TPZMaterialDataT<STATE>> *datapair = (std::pair<TPZMaterialDataT<STATE>,TPZMaterialDataT<STATE>> *) data.fUserData;
+    TPZMaterialDataT<STATE> &datatop = datapair->second, &databottom = datapair->first;
+    
+    // compute the divergence of the top and bottom elements
+    // the value is the value of the shape function times the sign of the vector in master direction
+    fTop.ComputeRequiredData(datatop, qsi);
+    fBottom.ComputeRequiredData(databottom, qsi);
+    int64_t numvec = data.divphi.Rows();
+    int64_t numphi = data.phi.Rows();
+    int64_t nvec_top = datatop.phi.Rows();
+    int64_t nvec_bottom = databottom.phi.Rows();
+    int64_t nvec_hdiv = numvec;
+  
+    // fDeformedDirections (for now) represents the H1 shape functions
+    // times the element vectors. So, it is already the hdiv shape function itself.
+    // Its size is, therefore, the size for a standard 2d hdiv element, plus
+    // the shape functions related to the top and bottom connect that communicate
+    // with the adjacent 3D elements
+    const int64_t nvecshapecollpased = nvecshapestd+nvec_top+nvec_bottom;
+    data.fDeformedDirections.Resize(dim,nvecshapecollpased);
+    data.divphi.Resize(nvecshapecollpased,1);
+
+    // First we append the bottom shapes and then the top shapes
+    for (int64_t i= nvec_hdiv; i<nvecshapecollpased-nvec_top; i++) {
+        for (int d = 0; d < 3; d++) {
+            data.fDeformedDirections(d,i) = databottom.phi(i-nvec_hdiv)*botdir[d];
+        }
+    }
+    for (int64_t i= nvec_hdiv+nvec_bottom; i<nvecshapecollpased; i++) {
+        for (int d = 0; d < 3; d++) {
+            data.fDeformedDirections(d,i) = datatop.phi(i-nvec_hdiv-nvec_bottom)*topdir[d];
+        }
+    }
+    // Same for divphi
+    for (int64_t i= nvec_hdiv; i<nvecshapecollpased-nvec_top; i++) {
+        data.divphi(i,0) = -databottom.phi(i-nvec_hdiv);
+    }
+    for (int64_t i= nvec_hdiv+nvec_bottom; i<nvecshapecollpased; i++) {
+        data.divphi(i,0) = datatop.phi(i-nvec_hdiv-nvec_bottom);
+    }
+
+    data.fDeformedDirections *= 1./data.detjac;
+    data.divphi *= 1/data.detjac;
+    
+    // alternative formulation
+    {
+        // adding a column do gradx pointing to the normal direction
+        TPZFNMatrix<9> gradxlocal(3,dim);
+        for (int i=0; i<3; i++) {
+            for (int d=0; d<dim-1; d++) {
+                gradxlocal(i,d) = gradx(i,d);
+            }
+            gradxlocal(i,dim-1) = axeslocal(dim-1,i);
+        }
+        TPZShapeData localshapedata;
+        TPZShapeHDivCollapsed<TSHAPE> shape;
+        TPZFNMatrix<27> locphi(dim,nvecshapecollpased),locdivphi(nvecshapecollpased,1);
+        shape.Initialize(data.fCornerNodeIds, data.fHDivConnectOrders, data.fSideOrient, localshapedata);
+        shape.Shape(qsi,localshapedata,locphi,locdivphi);
+        TPZFNMatrix<50> differencephi,differencedivphi;
+        differencephi = data.fDeformedDirections - locphi;
+        differencedivphi = data.divphi = locdivphi;
+        auto normdiffphi = Norm(differencephi);
+        auto normdiffdivphi = Norm(differencedivphi);
+        std::cout << "normdiffphi " << normdiffphi << " normdiffdivphi " << normdiffdivphi << std::endl;
+    }
+
+    data.fVecShapeIndex.Resize(nvecshapecollpased);
+    data.phi.Resize(nvecshapecollpased,1);
+    for(int i=numvec; i<nvecshapecollpased; i++)
+    {
+        data.fVecShapeIndex[i] = std::pair<int,int64_t>(i,i);
+        data.phi(i) = 1.;
+    }
+}
+
+
 
 template<class TSHAPE>
 int64_t TPZCompElHDivCollapsed<TSHAPE>::ConnectIndex(int con) const

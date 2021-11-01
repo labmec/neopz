@@ -120,14 +120,18 @@ public:
 
     //@{
 	/** @brief Compute and fill data with requested attributes */
-	void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
-                             TPZVec<REAL> &qsi) override{
-        ComputeRequiredDataT(data,qsi);
-    }
-    void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
-                             TPZVec<REAL> &qsi) override{
-        ComputeRequiredDataT(data,qsi);
-    }
+//	void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
+//                             TPZVec<REAL> &qsi) override{
+//        ComputeRequiredDataT(data,qsi);
+//    }
+//    void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
+//                             TPZVec<REAL> &qsi) override{
+//        ComputeRequiredDataT(data,qsi);
+//    }
+    
+    void ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
+
+
     //@}
 
 	
