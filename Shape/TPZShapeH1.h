@@ -13,7 +13,7 @@ struct TPZShapeH1
     
     static void Initialize(const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZShapeData &data);
     
-    static void Shape(TPZVec<REAL> &pt, TPZShapeData &data);
+    static void Shape(const TPZVec<REAL> &pt, TPZShapeData &data);
 
 };
 

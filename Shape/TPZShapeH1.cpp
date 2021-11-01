@@ -39,7 +39,7 @@ void TPZShapeH1<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
 
 
 template <class TSHAPE>
-void TPZShapeH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data) {
+void TPZShapeH1<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data) {
 
     
 //    TPZVec<REAL> &pt = par.pt;
