@@ -25,6 +25,8 @@ set(headers
     TPZShapeHDivKernel.h
     TPZShapeHDivConstant.h
     TPZShapeHCurl.h
+    TPZShapeHDivBound.h
+    TPZShapeHDivCollapsed.h
     )
 
 set(sources
@@ -44,6 +46,8 @@ set(sources
     TPZShapeHDivKernel.cpp
     TPZShapeHDivConstant.cpp
     TPZShapeHCurl.cpp
+    TPZShapeHDivBound.cpp
+    TPZShapeHDivCollapsed.cpp
     )
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Shape)
