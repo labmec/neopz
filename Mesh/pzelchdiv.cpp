@@ -845,14 +845,13 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
     
     TPZFMatrix<REAL> gradx(3,TSHAPE::Dimension,0.);
     this->Reference()->GradX(qsi, gradx);
-    TPZFMatrix<REAL> phiSHdiv(TSHAPE::Dimension,data.fVecShapeIndex.size(),0.);
+    TPZFMatrix<REAL> phiSHdiv;
     gradx.Multiply(auxPhi,phiSHdiv);
     phiSHdiv *= 1./data.detjac;
     data.divphi *= 1/data.detjac;
 
     data.phi.Resize(data.fVecShapeIndex.size(),1);
     data.phi = 1.;
-    data.fDeformedDirections.Resize(TSHAPE::Dimension,data.fVecShapeIndex.size());
     data.fDeformedDirections = phiSHdiv;
 
 }
