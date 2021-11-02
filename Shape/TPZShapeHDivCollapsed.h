@@ -13,6 +13,8 @@ struct TPZShapeHDivCollapsed : public TPZShapeHDiv<TSHAPE>
                            const TPZVec<int> &sideorient,
                            TPZShapeData &data);
     
+    static int NShapeF(TPZShapeData &data);
+    
     static void Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
 
 };
