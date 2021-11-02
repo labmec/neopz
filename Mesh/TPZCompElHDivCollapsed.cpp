@@ -514,7 +514,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterial
     {
         for(int i=0; i<3; i++){
                 topdir[i] = data.axes(dim-1,i);
-                botdir[i] = -data.axes(dim-1,i);
+                botdir[i] = data.axes(dim-1,i);
         }
     }
     
@@ -525,6 +525,8 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterial
     // the value is the value of the shape function times the sign of the vector in master direction
     fTop.ComputeRequiredData(datatop, qsi);
     fBottom.ComputeRequiredData(databottom, qsi);
+    int toporder = fTop.Connect(0).Order();
+    int bottomorder = fBottom.Connect(0).Order();
     int64_t numvec = data.divphi.Rows();
     int64_t numphi = data.phi.Rows();
     int64_t nvec_top = datatop.phi.Rows();
@@ -540,6 +542,8 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterial
     data.fDeformedDirections.Resize(dim,nvecshapecollpased);
     data.divphi.Resize(nvecshapecollpased,1);
 
+    data.fDeformedDirections *= 1./data.detjac;
+    data.divphi *= 1/data.detjac;
     // First we append the bottom shapes and then the top shapes
     for (int64_t i= nvec_hdiv; i<nvecshapecollpased-nvec_top; i++) {
         for (int d = 0; d < 3; d++) {
@@ -553,14 +557,12 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterial
     }
     // Same for divphi
     for (int64_t i= nvec_hdiv; i<nvecshapecollpased-nvec_top; i++) {
-        data.divphi(i,0) = -databottom.phi(i-nvec_hdiv);
+        data.divphi(i,0) = databottom.phi(i-nvec_hdiv);
     }
     for (int64_t i= nvec_hdiv+nvec_bottom; i<nvecshapecollpased; i++) {
         data.divphi(i,0) = datatop.phi(i-nvec_hdiv-nvec_bottom);
     }
 
-    data.fDeformedDirections *= 1./data.detjac;
-    data.divphi *= 1/data.detjac;
     
     // alternative formulation
     {
@@ -575,14 +577,34 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterial
         TPZShapeData localshapedata;
         TPZShapeHDivCollapsed<TSHAPE> shape;
         TPZFNMatrix<27> locphi(dim,nvecshapecollpased),locdivphi(nvecshapecollpased,1);
-        shape.Initialize(data.fCornerNodeIds, data.fHDivConnectOrders, data.fSideOrient, localshapedata);
+        TPZFNMatrix<27> locdefphi(dim,nvecshapecollpased);
+        TPZManVector<int> connectorders(data.fHDivConnectOrders);
+        int ncon = NConnects();
+        connectorders.Resize(ncon, 0);
+        connectorders[ncon-2] = bottomorder;
+        connectorders[ncon-1] = toporder;
+        TPZManVector<int> sideorient(data.fSideOrient);
+        sideorient.Resize(TSHAPE::NFacets+2,0);
+        sideorient[TSHAPE::NFacets] = fBottom.GetSideOrient(TSHAPE::NSides-1);
+        sideorient[TSHAPE::NFacets+1] = fTop.GetSideOrient(TSHAPE::NSides-1);
+        shape.Initialize(data.fCornerNodeIds, connectorders, sideorient, localshapedata);
         shape.Shape(qsi,localshapedata,locphi,locdivphi);
+        locdivphi *= 1./data.detjac;
+        gradxlocal.Multiply(locphi,locdefphi);
+        locdefphi *= 1./data.detjac;
+        
         TPZFNMatrix<50> differencephi,differencedivphi;
-        differencephi = data.fDeformedDirections - locphi;
-        differencedivphi = data.divphi = locdivphi;
+        differencephi = data.fDeformedDirections - locdefphi;
+        differencedivphi = data.divphi - locdivphi;
         auto normdiffphi = Norm(differencephi);
         auto normdiffdivphi = Norm(differencedivphi);
         std::cout << "normdiffphi " << normdiffphi << " normdiffdivphi " << normdiffdivphi << std::endl;
+        if(normdiffphi > 1.e-10 || normdiffdivphi > 1.e-10)
+        {
+            differencephi.Print("diffphi",std::cout,EMathematicaInput);
+            differencedivphi.Print("diffdiv",std::cout,EMathematicaInput);
+            DebugStop();
+        }
     }
 
     data.fVecShapeIndex.Resize(nvecshapecollpased);
