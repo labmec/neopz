@@ -362,7 +362,18 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		LOGPZ_DEBUG(logger,"Initializing normal vectors")
 	}
 #endif
-	
+    TPZGeoEl *gel = this->Reference();
+    int nc = gel->NCornerNodes();
+    TPZManVector<int64_t,8> id(nc);
+    for (int ic=0; ic<nc; ic++) {
+        id[ic] = gel->Node(ic).Id();
+    }
+    int connectorder = this->Connect(0).Order();
+    int sideorient = fSideOrient;
+    // fill in the datastructures of shapedata
+    TPZShapeHDivBound<TSHAPE> shapehdiv;
+    shapehdiv.Initialize(id, connectorder, sideorient, data);
+
 	//data.fVecShapeIndex=true;
 	/*
 	TPZGeoElSide gelside(this->Reference(),TSHAPE::NSides-1);
@@ -498,6 +509,7 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
         TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
         gel->Jacobian(point, jac, axes, detjac, jacinv);
     }
+    /// new procedure
     TPZShapeHDivBound<TSHAPE> shapehdiv;
     TPZShapeData shapedata;
     int nc = gel->NCornerNodes();
@@ -506,10 +518,16 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
         id[ic] = gel->Node(ic).Id();
     }
     int connectorder = this->Connect(0).Order();
-    shapehdiv.Initialize(id, connectorder, 1, shapedata);
+    int sideorient = 1;
+    // fill in the datastructures of shapedata
+    shapehdiv.Initialize(id, connectorder, sideorient, shapedata);
     TPZFNMatrix<25> locphi(shapehdiv.NShape(shapedata),1);
+    // compute the shape functions at the integration point
     shapehdiv.Shape(point, shapedata, locphi);
     locphi *= 1./detjac;
+    /// till here
+    
+    
     if(gel->Type() == ETriangle)
     {
         // we multiply the shape functions by 6
@@ -580,6 +598,8 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
         phi *= -1.;
         dphi *= -1.;
     }
+    
+    
 }
 
 template<class TSHAPE>
@@ -587,8 +607,23 @@ void TPZCompElHDivBound2<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMateri
     
     this->Shape(intpoint, data.phi, data.fDPhi);
     
-    TPZGeoEl *ref = this->Reference();
-    ref->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+    /// new procedure
+    TPZShapeHDivBound<TSHAPE> shapehdiv;
+    TPZShapeData shapedata(data);
+    TPZFNMatrix<25> locphi(shapehdiv.NShape(shapedata),1);
+    // compute the shape functions at the integration point
+    shapehdiv.Shape(intpoint, shapedata, locphi);
+    locphi *= 1./data.detjac;
+
+    TPZFMatrix<REAL> diffphi = data.phi-locphi;
+    auto diffnorm = Norm(diffphi);
+    if(diffnorm > 1.e-8)
+    {
+        diffphi.Print("Difference phi ",std::cout,EMathematicaInput);
+        DebugStop();
+    } else {
+        std::cout << __PRETTY_FUNCTION__ << " diffnorm " << diffnorm << std::endl;
+    }
     
 }
 
