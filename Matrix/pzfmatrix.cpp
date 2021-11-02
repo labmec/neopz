@@ -1041,6 +1041,16 @@ int TPZFMatrix<TVar>::Resize(const int64_t newRows,const int64_t newCols) {
     if(fGiven && fElem != fGiven && newsize <= fSize)
     {
         newElem = fGiven;
+    } else if(fGiven && fElem == fGiven && newsize <= fSize && newCols == 1)
+    {
+        this->fRow = newRows;
+        this->fCol = newCols;
+        return;
+    } else if(fGiven && fElem == fGiven && newsize <= fSize && newRows == this->fRow)
+    {
+        this->fRow = newRows;
+        this->fCol = newCols;
+        return;
     } else
     {
         newElem = new TVar[ newRows * newCols ] ;
