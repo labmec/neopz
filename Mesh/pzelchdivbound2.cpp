@@ -509,7 +509,7 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
         TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
         gel->Jacobian(point, jac, axes, detjac, jacinv);
     }
-    /// new procedure
+    
     TPZShapeHDivBound<TSHAPE> shapehdiv;
     TPZShapeData shapedata;
     int nc = gel->NCornerNodes();
@@ -521,70 +521,17 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
     int sideorient = 1;
     // fill in the datastructures of shapedata
     shapehdiv.Initialize(id, connectorder, sideorient, shapedata);
-    TPZFNMatrix<25> locphi(shapehdiv.NShape(shapedata),1);
     // compute the shape functions at the integration point
-    shapehdiv.Shape(point, shapedata, locphi);
-    locphi *= 1./detjac;
-    /// till here
-    
-    
-    if(gel->Type() == ETriangle)
-    {
-        // we multiply the shape functions by 6
-        detjac /= 6.;
-    }
-    if(this->Connect(0).Order() == 0)
-    {
-        phi(0) = 1./detjac/gel->NCornerNodes();
-        dphi.Zero();
-        return;
-    }
-    TPZManVector<int,TSHAPE::NSides> ord;
-    this->GetInterpolationOrder(ord);
-
-    TPZFNMatrix<50,REAL> philoc(phi.Rows(),phi.Cols()),dphiloc(dphi.Rows(),dphi.Cols());
-    TSHAPE::Shape(point,id,ord,philoc,dphiloc);
-    
-    //int idsize = id.size();
-    TPZManVector<int,9> permutegather(TSHAPE::NSides);
-    int transformid = TSHAPE::GetTransformId(id);
-    TSHAPE::GetSideHDivPermutation(transformid, permutegather);
-    
-    TPZManVector<int64_t,27> FirstIndex(TSHAPE::NSides+1);
-    FirstShapeIndex(FirstIndex);
-   
-
-    int order = this->Connect(0).Order();
-    for (int side=0; side < TSHAPE::NSides; side++) {
-        int ifirst = FirstIndex[side];
-        int kfirst = FirstIndex[permutegather[side]];
-        int nshape = TSHAPE::NConnectShapeF(side,order);
-        for (int i=0; i<nshape; i++) {
-            phi(ifirst+i,0) = philoc(kfirst+i,0)/detjac;
-            for (int d=0; d< TSHAPE::Dimension; d++) {
-                dphi(d,ifirst+i) = dphiloc(d,kfirst+i)/detjac;
-            }
-        }
-    }
-    
-    // test if the new procedure gives identical results
-    int nshape = phi.Rows();
-    for(int ish = 0; ish < nshape; ish++)
-    {
-        if(abs(phi(ish,0)-locphi(ish,0)) > 1.e-8)
-        {
-            DebugStop();
-        }
-    }
-    
-    
-    return;
+    shapehdiv.Shape(point, shapedata, phi);
+    phi *= 1./detjac;
+        
 }
 
 /** Compute the shape function at the integration point */
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 {
+    DebugStop(); // Is this ever used (Nov 2021). If yes, just uncomment me
     TPZManVector<int,TSHAPE::NSides> ordl;
     this->GetInterpolationOrder(ordl);
     TPZConnect &c = this->Connect(0);
@@ -605,25 +552,12 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
     
-    this->Shape(intpoint, data.phi, data.fDPhi);
-    
-    /// new procedure
     TPZShapeHDivBound<TSHAPE> shapehdiv;
     TPZShapeData shapedata(data);
-    TPZFNMatrix<25> locphi(shapehdiv.NShape(shapedata),1);
-    // compute the shape functions at the integration point
-    shapehdiv.Shape(intpoint, shapedata, locphi);
-    locphi *= 1./data.detjac;
 
-    TPZFMatrix<REAL> diffphi = data.phi-locphi;
-    auto diffnorm = Norm(diffphi);
-    if(diffnorm > 1.e-8)
-    {
-        diffphi.Print("Difference phi ",std::cout,EMathematicaInput);
-        DebugStop();
-    } else {
-        std::cout << __PRETTY_FUNCTION__ << " diffnorm " << diffnorm << std::endl;
-    }
+    data.phi.Resize(shapehdiv.NShape(shapedata), 1);
+    shapehdiv.Shape(intpoint, shapedata, data.phi);
+    data.phi *= 1./data.detjac;
     
 }
 

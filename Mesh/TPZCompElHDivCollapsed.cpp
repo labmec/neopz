@@ -490,123 +490,51 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
 template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) {
 
-    TPZShapeData &shapedata = data;
 
-    TPZFMatrix<REAL> auxPhi;
-    TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, auxPhi, data.divphi);
+    // Some variable definitions
+    const int toporder = fTop.Connect(0).Order();
+    const int bottomorder = fBottom.Connect(0).Order();
+    const int64_t nvec_top = fTop.NShapeF();;
+    const int64_t nvec_bottom = fBottom.NShapeF();;
+    const int64_t nvecshapecollpased = this->NShapeF();
+    const int64_t numvec = nvecshapecollpased - nvec_top - nvec_bottom;
+    const int dim = TSHAPE::Dimension+1;
     
-    TPZFMatrix<REAL> gradx(3,TSHAPE::Dimension,0.);
-    this->Reference()->GradX(qsi, gradx);
-//    TPZFMatrix<REAL> phiSHdiv;
-    gradx.Multiply(auxPhi,data.fDeformedDirections);
-
-    
+    // Expanding element axes
     TPZFNMatrix<9,REAL> axeslocal(TSHAPE::Dimension+1,3);
     ExpandAxes(data.axes, axeslocal);
-    data.axes = axeslocal;
-    const int dim = TSHAPE::Dimension+1;
-    const int nvecshapestd = data.fDeformedDirections.Cols();
-    TPZManVector<REAL> topdir(dim,0.), botdir(dim,0.); // top and bot directions in the deformed element
-    TPZManVector<REAL,3> vecup={0,0,0}, vecdown={0,0,0};
-    vecup[dim-1] = 1.;
-    vecdown[dim-1] = -1.;
-    // compute the deformed directions for the two additional vectors
-    {
-        for(int i=0; i<3; i++){
-                topdir[i] = data.axes(dim-1,i);
-                botdir[i] = data.axes(dim-1,i);
+    
+    // adding a column do gradx pointing to the normal direction (direction that communicates with the 3d neighbor element)
+    TPZFMatrix<REAL> gradx(3,TSHAPE::Dimension,0.);
+    this->Reference()->GradX(qsi, gradx);
+    TPZFNMatrix<9> gradxlocal(3,dim);
+    for (int i=0; i<3; i++) {
+        for (int d=0; d<dim-1; d++) {
+            gradxlocal(i,d) = gradx(i,d);
         }
+        gradxlocal(i,dim-1) = axeslocal(dim-1,i);
     }
     
-    std::pair<TPZMaterialDataT<STATE>,TPZMaterialDataT<STATE>> *datapair = (std::pair<TPZMaterialDataT<STATE>,TPZMaterialDataT<STATE>> *) data.fUserData;
-    TPZMaterialDataT<STATE> &datatop = datapair->second, &databottom = datapair->first;
-    
-    // compute the divergence of the top and bottom elements
-    // the value is the value of the shape function times the sign of the vector in master direction
-    fTop.ComputeRequiredData(datatop, qsi);
-    fBottom.ComputeRequiredData(databottom, qsi);
-    int toporder = fTop.Connect(0).Order();
-    int bottomorder = fBottom.Connect(0).Order();
-    int64_t numvec = data.divphi.Rows();
-    int64_t numphi = data.phi.Rows();
-    int64_t nvec_top = datatop.phi.Rows();
-    int64_t nvec_bottom = databottom.phi.Rows();
-    int64_t nvec_hdiv = numvec;
-  
-    // fDeformedDirections (for now) represents the H1 shape functions
-    // times the element vectors. So, it is already the hdiv shape function itself.
-    // Its size is, therefore, the size for a standard 2d hdiv element, plus
-    // the shape functions related to the top and bottom connect that communicate
-    // with the adjacent 3D elements
-    const int64_t nvecshapecollpased = nvecshapestd+nvec_top+nvec_bottom;
-    data.fDeformedDirections.Resize(dim,nvecshapecollpased);
-    data.divphi.Resize(nvecshapecollpased,1);
-
+    // Computing shape functions using TPZShapeHDivCollapsed structure
+    TPZShapeData shapedata;
+    TPZShapeHDivCollapsed<TSHAPE> shape;
+    TPZFNMatrix<27> phi(dim,nvecshapecollpased);//,divphi(nvecshapecollpased,1);
+    TPZManVector<int> connectorders(data.fHDivConnectOrders);
+    int ncon = NConnects();
+    connectorders.Resize(ncon, 0);
+    connectorders[ncon-2] = bottomorder;
+    connectorders[ncon-1] = toporder;
+    TPZManVector<int> sideorient(data.fSideOrient);
+    sideorient.Resize(TSHAPE::NFacets+2,0);
+    sideorient[TSHAPE::NFacets] = fBottom.GetSideOrient(TSHAPE::NSides-1);
+    sideorient[TSHAPE::NFacets+1] = fTop.GetSideOrient(TSHAPE::NSides-1);
+    shape.Initialize(data.fCornerNodeIds, connectorders, sideorient, shapedata);
+    shape.Shape(qsi,shapedata,phi,data.divphi);
+    data.divphi *= 1./data.detjac;
+    gradxlocal.Multiply(phi,data.fDeformedDirections);
     data.fDeformedDirections *= 1./data.detjac;
-    data.divphi *= 1/data.detjac;
-    // First we append the bottom shapes and then the top shapes
-    for (int64_t i= nvec_hdiv; i<nvecshapecollpased-nvec_top; i++) {
-        for (int d = 0; d < 3; d++) {
-            data.fDeformedDirections(d,i) = databottom.phi(i-nvec_hdiv)*botdir[d];
-        }
-    }
-    for (int64_t i= nvec_hdiv+nvec_bottom; i<nvecshapecollpased; i++) {
-        for (int d = 0; d < 3; d++) {
-            data.fDeformedDirections(d,i) = datatop.phi(i-nvec_hdiv-nvec_bottom)*topdir[d];
-        }
-    }
-    // Same for divphi
-    for (int64_t i= nvec_hdiv; i<nvecshapecollpased-nvec_top; i++) {
-        data.divphi(i,0) = databottom.phi(i-nvec_hdiv);
-    }
-    for (int64_t i= nvec_hdiv+nvec_bottom; i<nvecshapecollpased; i++) {
-        data.divphi(i,0) = datatop.phi(i-nvec_hdiv-nvec_bottom);
-    }
-
     
-    // alternative formulation
-    {
-        // adding a column do gradx pointing to the normal direction
-        TPZFNMatrix<9> gradxlocal(3,dim);
-        for (int i=0; i<3; i++) {
-            for (int d=0; d<dim-1; d++) {
-                gradxlocal(i,d) = gradx(i,d);
-            }
-            gradxlocal(i,dim-1) = axeslocal(dim-1,i);
-        }
-        TPZShapeData localshapedata;
-        TPZShapeHDivCollapsed<TSHAPE> shape;
-        TPZFNMatrix<27> locphi(dim,nvecshapecollpased),locdivphi(nvecshapecollpased,1);
-        TPZFNMatrix<27> locdefphi(dim,nvecshapecollpased);
-        TPZManVector<int> connectorders(data.fHDivConnectOrders);
-        int ncon = NConnects();
-        connectorders.Resize(ncon, 0);
-        connectorders[ncon-2] = bottomorder;
-        connectorders[ncon-1] = toporder;
-        TPZManVector<int> sideorient(data.fSideOrient);
-        sideorient.Resize(TSHAPE::NFacets+2,0);
-        sideorient[TSHAPE::NFacets] = fBottom.GetSideOrient(TSHAPE::NSides-1);
-        sideorient[TSHAPE::NFacets+1] = fTop.GetSideOrient(TSHAPE::NSides-1);
-        shape.Initialize(data.fCornerNodeIds, connectorders, sideorient, localshapedata);
-        shape.Shape(qsi,localshapedata,locphi,locdivphi);
-        locdivphi *= 1./data.detjac;
-        gradxlocal.Multiply(locphi,locdefphi);
-        locdefphi *= 1./data.detjac;
-        
-        TPZFNMatrix<50> differencephi,differencedivphi;
-        differencephi = data.fDeformedDirections - locdefphi;
-        differencedivphi = data.divphi - locdivphi;
-        auto normdiffphi = Norm(differencephi);
-        auto normdiffdivphi = Norm(differencedivphi);
-        std::cout << "normdiffphi " << normdiffphi << " normdiffdivphi " << normdiffdivphi << std::endl;
-        if(normdiffphi > 1.e-10 || normdiffdivphi > 1.e-10)
-        {
-            differencephi.Print("diffphi",std::cout,EMathematicaInput);
-            differencedivphi.Print("diffdiv",std::cout,EMathematicaInput);
-            DebugStop();
-        }
-    }
-
+    // Filling phi with 1 and fVecShapeIndex with 1,1 to make actual materials work
     data.fVecShapeIndex.Resize(nvecshapecollpased);
     data.phi.Resize(nvecshapecollpased,1);
     for(int i=numvec; i<nvecshapecollpased; i++)
