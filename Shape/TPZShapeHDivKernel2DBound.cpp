@@ -1,4 +1,4 @@
-#include "TPZShapeHDivKernel2D.h"
+#include "TPZShapeHDivKernel2DBound.h"
 
 #include "TPZShapeH1.h"
 #include "pzshapelinear.h"
@@ -14,7 +14,7 @@
 
 
 template<class TSHAPE>
-int TPZShapeHDivKernel2D<TSHAPE>::NHDivShapeF(TPZShapeData &data)
+int TPZShapeHDivKernel2DBound<TSHAPE>::NHDivShapeF(TPZShapeData &data)
 {
     // int nshape = TPZShapeH1<TSHAPE>::NShape(data);
     int nshape = 0;
@@ -26,7 +26,7 @@ int TPZShapeHDivKernel2D<TSHAPE>::NHDivShapeF(TPZShapeData &data)
     
 
 template<class TSHAPE>
-void TPZShapeHDivKernel2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi)
+void TPZShapeHDivKernel2DBound<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi)
 {
 
     const int ncorner = TSHAPE::NCornerNodes;
@@ -45,7 +45,7 @@ void TPZShapeHDivKernel2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
     phi.Resize(1,nshape);
 
     for (int i = 0; i < nshape; i++){
-        phi(1,i) = -data.fDPhi(0,i);
+        phi(0,i) = -data.fDPhi(0,i);
 	}
 
     divphi.Zero();
@@ -53,7 +53,7 @@ void TPZShapeHDivKernel2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
 
 
 template<class TSHAPE>
-int TPZShapeHDivKernel2D<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
+int TPZShapeHDivKernel2DBound<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
 {
     int order = data.fH1ConnectOrders[icon];
     const int side = icon + TSHAPE::NCornerNodes;
@@ -106,8 +106,6 @@ int TPZShapeHDivKernel2D<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
 
 
 template
-struct TPZShapeHDivKernel2D<pzshape::TPZShapeTriang>;
+struct TPZShapeHDivKernel2DBound<pzshape::TPZShapeLinear>;
 
-template
-struct TPZShapeHDivKernel2D<pzshape::TPZShapeQuad>;
 
