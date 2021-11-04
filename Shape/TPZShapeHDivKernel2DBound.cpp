@@ -1,4 +1,4 @@
-#include "TPZShapeHDivConstant2D.h"
+#include "TPZShapeHDivKernel2D.h"
 
 #include "TPZShapeH1.h"
 #include "pzshapelinear.h"
@@ -14,7 +14,7 @@
 
 
 template<class TSHAPE>
-int TPZShapeHDivConstant2D<TSHAPE>::NHDivShapeF(TPZShapeData &data)
+int TPZShapeHDivKernel2D<TSHAPE>::NHDivShapeF(TPZShapeData &data)
 {
     // int nshape = TPZShapeH1<TSHAPE>::NShape(data);
     int nshape = 0;
@@ -26,42 +26,26 @@ int TPZShapeHDivConstant2D<TSHAPE>::NHDivShapeF(TPZShapeData &data)
     
 
 template<class TSHAPE>
-void TPZShapeHDivConstant2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi)
+void TPZShapeHDivKernel2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi)
 {
 
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
     const int dim = TSHAPE::Dimension;
-    const int nfacets = TSHAPE::NFacets;
-
     TPZShapeH1<TSHAPE>::Shape(pt,data);
     divphi.Zero();
     const auto nEdges = TSHAPE::NumSides(1);
 
-    if (dim != 2)
+    if (dim != 1)
     {
         DebugStop();
     }
 
-    // Compute constant Hdiv functions
-    TPZFNMatrix<12,REAL> vecDiv(dim,nfacets);
-    TPZVec<REAL> div(nfacets);
-    vecDiv.Zero();
-    div.Fill(0.);
-    TSHAPE::ComputeConstantHDiv(pt, vecDiv, div);
-
     int nshape = data.fPhi.Rows();
-    phi.Resize(2,nshape);
-    //Div free functions
-    for (int i = 0; i < nshape; i++){
-		phi(0,i) =  data.fDPhi(1,i);
-        phi(1,i) = -data.fDPhi(0,i);
-	}
+    phi.Resize(1,nshape);
 
-    //Div-Constant Functions
-    for (int i = 0; i < nEdges; i++){
-		phi(0,i+ncorner) += vecDiv(0,i);
-        phi(1,i+ncorner) += vecDiv(1,i);
+    for (int i = 0; i < nshape; i++){
+        phi(1,i) = -data.fDPhi(0,i);
 	}
 
     divphi.Zero();
@@ -69,7 +53,7 @@ void TPZShapeHDivConstant2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data,
 
 
 template<class TSHAPE>
-int TPZShapeHDivConstant2D<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
+int TPZShapeHDivKernel2D<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
 {
     int order = data.fH1ConnectOrders[icon];
     const int side = icon + TSHAPE::NCornerNodes;
@@ -122,8 +106,8 @@ int TPZShapeHDivConstant2D<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
 
 
 template
-struct TPZShapeHDivConstant2D<pzshape::TPZShapeTriang>;
+struct TPZShapeHDivKernel2D<pzshape::TPZShapeTriang>;
 
 template
-struct TPZShapeHDivConstant2D<pzshape::TPZShapeQuad>;
+struct TPZShapeHDivKernel2D<pzshape::TPZShapeQuad>;
 
