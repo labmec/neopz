@@ -1177,16 +1177,16 @@ namespace pztopology {
 
         //Nedelec functions
         N0function(0,0) = 0.5 * (1. - eta) / scale;
-        curl(2,0) = 0.5/scale;
+        curl(0,0) = 0.5/scale;
 
         N0function(1,1) = 0.5 * (1. + qsi) / scale;
-        curl(2,1) = 0.5/scale;
+        curl(0,1) = 0.5/scale;
 
         N0function(0,2) = -0.5 * (1. + eta) / scale;
-        curl(2,2) = 0.5/scale;
+        curl(0,2) = 0.5/scale;
 
         N0function(1,3) = 0.5 * (1. - qsi) / scale;
-        curl(2,3) = -0.5/scale;
+        curl(0,3) = -0.5/scale;
         
     }
 

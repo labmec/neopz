@@ -175,7 +175,11 @@ int TPZShapeHDivKernel<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
     return data.fHDivNumConnectShape[icon];
 }
 
+template
+struct TPZShapeHDivKernel<pzshape::TPZShapeTriang>;
 
+template
+struct TPZShapeHDivKernel<pzshape::TPZShapeQuad>;
 
 template
 struct TPZShapeHDivKernel<pzshape::TPZShapeTetra>;

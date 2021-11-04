@@ -53,15 +53,15 @@ void TPZShapeHDivConstant2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data,
     int nshape = data.fPhi.Rows();
     phi.Resize(2,nshape);
     //Div free functions
-    for (int i = 0; i < nshape; i++){
+    for (int i = ncorner; i < nshape; i++){
 		phi(0,i) =  data.fDPhi(1,i);
         phi(1,i) = -data.fDPhi(0,i);
 	}
 
     //Div-Constant Functions
-    for (int i = 0; i < nEdges; i++){
-		phi(0,i+ncorner) += vecDiv(0,i);
-        phi(1,i+ncorner) += vecDiv(1,i);
+    for (int i = 0; i < ncorner; i++){
+		phi(0,i) = vecDiv(0,i);
+        phi(1,i) = vecDiv(1,i);
 	}
 
     divphi.Zero();
