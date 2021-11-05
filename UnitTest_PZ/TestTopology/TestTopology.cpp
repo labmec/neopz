@@ -42,7 +42,7 @@ namespace topologytests{
     void TestingSideProjections();
     template <class top>
     void TestingSideNodeProjections();
-    template <class top>
+    template <class top,class TSHAPE>
     void TestingConstantDivergent();
     template <class top,class TSHAPE>
     void TestingConstantCurl();
@@ -71,14 +71,15 @@ TEST_CASE("projection_tests_2","[topology_tests]")
 
 TEST_CASE("constant_divergent_test","[topology_tests]")
 {
-    topologytests::TestingConstantDivergent<TPZTriangle>();
-    topologytests::TestingConstantDivergent<TPZQuadrilateral>();
-    topologytests::TestingConstantDivergent<TPZTetrahedron>();
-    topologytests::TestingConstantDivergent<TPZCube>();
-    topologytests::TestingConstantDivergent<TPZPrism>();
+    topologytests::TestingConstantDivergent<TPZTriangle,TPZShapeTriang>();
+    topologytests::TestingConstantDivergent<TPZQuadrilateral,TPZShapeQuad>();
+    topologytests::TestingConstantDivergent<TPZTetrahedron,TPZShapeTetra>();
+    topologytests::TestingConstantDivergent<TPZCube,TPZShapeCube>();
+    topologytests::TestingConstantDivergent<TPZPrism,TPZShapePrism>();
 }
 
-TEST_CASE("constant_curl_test_new","[topology_tests]")
+
+TEST_CASE("constant_curl_test","[topology_tests]")
 {
     topologytests::TestingConstantCurl<TPZTriangle,TPZShapeTriang>();
     topologytests::TestingConstantCurl<TPZQuadrilateral,TPZShapeQuad>();
@@ -171,8 +172,7 @@ namespace topologytests{
         }
     }//TestingSideNodeProjections
 
-
-    template <class top>
+    template <class top,class TSHAPE>
     void TestingConstantDivergent() {
         
         static std::string testName = __PRETTY_FUNCTION__;
@@ -183,89 +183,122 @@ namespace topologytests{
         const auto nFaces = top::NFacets;
         auto type = top::Type();
         const REAL tol = 1.e-6;
-
         auto gel = pzgeom::TPZNodeRep<nCorner,top>();
 
         TPZIntPoints* intRule = gel.CreateSideIntegrationRule(nSides-1, pOrderIntRule);     
-
-        TPZFMatrix<REAL> vecDiv(dim,nFaces);
-        TPZFMatrix<REAL> RT0Function(dim,nFaces);
-        TPZVec<REAL> div(nFaces);
-        TPZVec<REAL> divRT0(nFaces);
+        int nEdges = 0;
+        if (dim == 2){
+            nEdges = nFaces;
+        } else if (dim == 3){
+            nEdges = nSides - 1 - nCorner - nFaces;
+        }
+        
         TPZVec<REAL> node(dim);
+                
+        TPZShapeData shapedata;
+        TPZManVector<int64_t,nCorner> ids(nCorner,0);
+        for(auto i=0; i<nCorner; i++) ids[i] = i;        
+        auto &conOrders = shapedata.fHDivConnectOrders;
+        constexpr auto nConnects = nFaces + 1;
+        conOrders.Resize(nConnects,-1);
+        for(auto i = 0; i < nConnects; i++) conOrders[i] = 1;
+        TPZManVector<int,TSHAPE::NFacets> sideorient(TSHAPE::NFacets,0);
+        for(int i=0; i<TSHAPE::NFacets; i++) sideorient[i] = 1;
+
+        TPZShapeHDiv<TSHAPE>::Initialize(ids, conOrders, sideorient, shapedata);
 
         const int npts = intRule->NPoints();
-        REAL w;
+        auto nshape = shapedata.fSDVecShapeIndex.size();
 
         for (auto ipt = 0; ipt < npts; ipt++) {
+            REAL w;
             intRule->Point(ipt, node, w);
 
-            TPZFNMatrix<nCorner> phis(nCorner,1);
-            TPZFNMatrix<nSides*dim*dim> directionsHDiv(3,nSides*dim);            
-            TPZFNMatrix<dim*dim> gradx(3,3);
-            TPZFNMatrix<dim*nCorner> dphis(dim,nCorner);
-            gradx.Identity();
-            vecDiv.Zero();
+            TPZFMatrix<REAL> phiHDiv(3,nshape);
+            TPZFMatrix<REAL> divHDiv(3,nshape);
+            TPZFMatrix<REAL> RT0Function(dim,nFaces);
+            TPZVec<REAL> divRT0(nFaces);
             RT0Function.Zero();
-            div.Fill(0.);
+            divRT0.Fill(0.);
+            phiHDiv.Zero();
+            divHDiv.Zero();
 
-            top::ComputeHDivDirections(gradx,directionsHDiv);
-            top::Shape(node,phis,dphis);
+            TPZShapeHDiv<TSHAPE>::Shape(node,shapedata,phiHDiv,divHDiv);
 
-            int first_face = nSides-1-nFaces;
-            int firstVecIndex = 0;
+            // std::cout << "phiHDiv = " << phiHDiv << std::endl;
+            // std::cout << "divHDiv =  " << divHDiv << std::endl;
+            
+            //Compute the curl for each edge
+            top::ComputeConstantHDiv(node,RT0Function,divRT0);
 
-            for (size_t iface = first_face; iface < nSides-1; iface++)
-            {
-                int face_count = iface - first_face;
-                int nsubsides = top::NContainedSides(iface);
-                int ncorner = top::NSideNodes(iface);
+            // std::cout << "Constant phi = " << RT0Function << std::endl;
+            // std::cout << "Constant div = " << divRT0 << std::endl;
 
-                for (size_t ivec = 0; ivec < ncorner; ivec++)
-                {
-                    TPZManVector<REAL,dim> vec(dim);
-                    int vecIndex = firstVecIndex + ivec;
-                    int vertex = top::SideNodeLocId(iface,ivec);
-                    REAL divlocal = 0.;
-
-                    for (size_t i = 0; i < dim; i++)
-                    {
-                        divlocal += directionsHDiv(i,vecIndex) * dphis(i,vertex) / top::NSideNodes(iface);
-                        vecDiv(i,face_count) += directionsHDiv(i,vecIndex) * phis(vertex) / top::NSideNodes(iface);
-                    }//i
-                    div[face_count] += divlocal;
-                }
-                firstVecIndex += nsubsides;
+            int nEdgesPerFace = 0;
+            if ((top::Type() == ETriangle) || (top::Type() == EQuadrilateral)){
+                nEdgesPerFace = 2;
+            } else if (top::Type() == ETetraedro) {
+                nEdgesPerFace = 3;
+            } else if (top::Type() == ECube) {
+                nEdgesPerFace = 4;
             }
 
-            divRT0.Fill(0.);
-            //Compute the divergent for each face
-            top::ComputeConstantHDiv(node,RT0Function,divRT0);  
-            
-            // Checks if all faces have the same divergent value.
+            // Checks if all edges have the same curl value.
             bool condHdiv = true;
             bool condHdivRT0 = true;
+             
             for (int i = 0; i < dim; i++){
+                int aux = 0;
                 for (int j = 0; j < nFaces; j++){
-                    if (fabs(vecDiv(i,j)-RT0Function(i,j)) > tol){
+                    if (top::Type() == EPrisma){
+                        if ( j==0 || j == nFaces-1){
+                            nEdgesPerFace = 3;
+                        } else {
+                            nEdgesPerFace = 4;
+                        }
+                    }
+                    REAL funVal = 0.;
+                    for (int k = 0; k < (nEdgesPerFace); k++)
+                    {
+                        funVal += phiHDiv(i,aux+k) / (nEdgesPerFace);
+                    }
+                    if (fabs(funVal-RT0Function(i,j)) > tol){
                         condHdiv = false;
                     } 
+                    aux += nEdgesPerFace;
                 }
+                
             }
+            
+            int aux = 0;
             for (int j = 0; j < nFaces; j++){
-                if (fabs(div[j]-divRT0[j]) > tol){
+                if (top::Type() == EPrisma){
+                    if ( j==0 || j == nFaces-1){
+                        nEdgesPerFace = 3;
+                    } else {
+                        nEdgesPerFace = 4;
+                    }
+                }
+                REAL divVal = 0.;
+                for (int k = 0; k < (nEdgesPerFace); k++)
+                {
+                    divVal += divHDiv(aux+k) / (nEdgesPerFace);
+                }
+                if (fabs(divVal-divRT0[j]) > tol){
                     condHdivRT0 = false;
                 } 
+                aux += nEdgesPerFace;
             }
+        
             if(!condHdiv || !condHdivRT0){
-                std::cerr << "\n" + testName + " failed Hdiv " +
+                std::cerr << "\n" + testName + " failed Hdiv" +
                                 "\ntopology: " + MElementType_Name(type);
             }
+
             REQUIRE(condHdiv);
             REQUIRE(condHdivRT0);
         }
     }//Testing Constant Divergent
-
 
 
     template <class top,class TSHAPE>
