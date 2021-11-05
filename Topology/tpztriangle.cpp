@@ -1108,15 +1108,15 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         //First type Nedelec functions
         N0function(0,0) = (1. - eta) / scale;
         N0function(1,0) = qsi / scale;
-        curl(0,0) = 2./scale;
+        curl(0,0) = 2.;
 
         N0function(0,1) = -eta / scale;
         N0function(1,1) =  qsi / scale;
-        curl(0,1) = 2./scale;
+        curl(0,1) = 2.;
 
-        N0function(0,2) = eta / scale;
-        N0function(1,2) = (1. - qsi) / scale;
-        curl(0,2) = -2./scale;
+        N0function(0,2) = -eta / scale;
+        N0function(1,2) = -(1. - qsi) / scale;
+        curl(0,2) = 2.;
     }
 
     template <class TVar>

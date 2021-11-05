@@ -33,10 +33,13 @@ void TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
     
     typedef std::pair<MElementType,int> orderpair;
     std::map<orderpair ,std::set<int>> ShapeRemove;
-    ShapeRemove[orderpair(ETriangle,2)] = {0};
+    ShapeRemove[orderpair(ETriangle,1)] = {};
+    ShapeRemove[orderpair(ETriangle,2)] = {2};
     ShapeRemove[orderpair(ETriangle,3)] = {0,1,7};
     ShapeRemove[orderpair(ETriangle,4)] = {6,9,10,11,13,14};
     ShapeRemove[orderpair(ETriangle,5)] = {8,12,13,14,16,17,20,21,22,23};
+    ShapeRemove[orderpair(ETetraedro,1)] = {};
+    ShapeRemove[orderpair(ETetraedro,2)] = {};
     ShapeRemove[orderpair(ETetraedro,3)] = {0};
     ShapeRemove[orderpair(ETetraedro,4)] = {9,12,13,14};
     ShapeRemove[orderpair(ETetraedro,5)] = {18,24,25,26,29,31,32,33,34,35};
@@ -117,9 +120,6 @@ int TPZShapeHDivKernel<TSHAPE>::NHDivShapeF(TPZShapeData &data)
 template<class TSHAPE>
 void TPZShapeHDivKernel<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi)
 {
-    
-
-
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
     const int dim = TSHAPE::Dimension;
@@ -132,22 +132,28 @@ void TPZShapeHDivKernel<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZ
     TPZFNMatrix<12,REAL> vecDiv(dim,nEdges), curl(curldim,nEdges);
     TSHAPE::ComputeConstantHCurl(pt, vecDiv, curl);
     phi.Zero();
+
     for (int connect = 0; connect < nEdges; connect++) {
         if(dim == 3)
         {
+            REAL transform = 1.;
+            if (data.fSideTransformationId[connect] > 0) transform *= -1;
             for(int a=0; a<3; a++)
             {
-                phi(a,connect) += curl(a,connect);
+                phi(a,connect) += curl(a,connect)*transform;
             }
-        } else
+        } else if (dim == 2)
         {
+            REAL transform = 1.;
+            if (data.fSideTransformationId[connect] > 0) transform *= -1;
+            phi(0,connect) += curl(0,connect) * transform;           
+        } else {
             DebugStop();
         }
-
     }
 
     int size = data.fSDVecShapeIndex.size();
-    for(int i = nEdges; i< size; i++)
+    for(int i = 0; i< size; i++)
     {
         auto it = data.fSDVecShapeIndex[i];
         int vecindex = it.first;
@@ -155,13 +161,17 @@ void TPZShapeHDivKernel<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZ
         
         if(dim == 3)
         {
-            for(int a=0; a<3; a++)
-            {
-                phi(a,i) += data.fDPhi((a+2)%3,scalindex)*data.fMasterDirections((a+1)%3,vecindex) -
-                            data.fDPhi((a+1)%3,scalindex)*data.fMasterDirections((a+2)%3,vecindex);
+            for(auto d = 0; d < dim; d++) {
+                const auto di = (d+1)%dim;
+                const auto dj = (d+2)%dim;
+                phi(d,i+nEdges) = data.fDPhi.GetVal(di,scalindex) * data.fMasterDirections.GetVal(dj,vecindex)-
+                                  data.fDPhi.GetVal(dj,scalindex) * data.fMasterDirections.GetVal(di,vecindex);
             }
-        } else
+        } else if (dim == 2)
         {
+            phi(0,i+nEdges) = data.fDPhi.GetVal(0,scalindex) * data.fMasterDirections.GetVal(1,vecindex) -
+                              data.fDPhi.GetVal(1,scalindex) * data.fMasterDirections.GetVal(0,vecindex);
+        } else {
             DebugStop();
         }
     }
