@@ -21,8 +21,10 @@ template<class TSHAPE>
 class TPZCompElHDivCollapsed : public TPZCompElHDiv<TSHAPE> {
 	
 protected:
-    /// vector which defines whether the normal is outward or not
-    TPZCompElHDivBound2<TSHAPE> fBottom,fTop;
+    /// index of the bottom and top connect
+    int64_t fbottom_c_index = -1, ftop_c_index = -1;
+    /// sideorient of bottom and top shape functions. By default -1 for bot and +1 for top
+    int fbottom_side_orient = -1, ftop_side_orient = 1;
     
     /** @brief To append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);

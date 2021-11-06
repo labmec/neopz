@@ -273,7 +273,11 @@ void TPZCompElHDivSBFem<TSHAPE>::ExtendShapeFunctions(TPZMaterialDataT<STATE> &d
    
     TPZFNMatrix<50,REAL> philoc(data.phi.Rows(),data.phi.Cols()),dphiloc(data.fDPhi.Rows(),data.fDPhi.Cols());
     TPZManVector<int,TSHAPE::NSides> ord;
-    TPZCompElHDivCollapsed<TSHAPE>::fBottom.GetInterpolationOrder(ord);
+    ord.Resize(TSHAPE::NSides-TSHAPE::NCornerNodes, 0);
+    TPZShapeData &shapedata = data;
+    const int nconnects = shapedata.fHDivConnectOrders.size();
+    ord = shapedata.fHDivConnectOrders[nconnects-2];
+//    TPZCompElHDivCollapsed<TSHAPE>::fBottom.GetInterpolationOrder(ord);
 
     int nc = this->Reference()->NCornerNodes();
     TPZManVector<int64_t,8> id(nc);
@@ -289,9 +293,24 @@ void TPZCompElHDivSBFem<TSHAPE>::ExtendShapeFunctions(TPZMaterialDataT<STATE> &d
     TSHAPE::GetSideHDivPermutation(transformid, permutegather);
     
     TPZManVector<int64_t,27> FirstIndex(TSHAPE::NSides+1);
-    TPZCompElHDivCollapsed<TSHAPE>::fBottom.FirstShapeIndex(FirstIndex);
-
-    int order = TPZCompElHDivCollapsed<TSHAPE>::fBottom.Connect(0).Order();
+//    TPZCompElHDivCollapsed<TSHAPE>::fBottom.FirstShapeIndex(FirstIndex);
+    FirstIndex.Resize(TSHAPE::NSides+1);
+    FirstIndex[0]=0;
+    int order = shapedata.fHDivConnectOrders[nconnects-2];
+    for(int iside=0;iside<TSHAPE::NSides;iside++)
+    {
+        
+        if(TSHAPE::Type()==EQuadrilateral){
+            FirstIndex[iside+1] = FirstIndex[iside] + TSHAPE::NConnectShapeF(iside,order);
+        }
+        else{
+            FirstIndex[iside+1] = FirstIndex[iside] + TSHAPE::NConnectShapeF(iside,order);
+        }
+    }
+    
+    
+    
+//    int order = TPZCompElHDivCollapsed<TSHAPE>::fBottom.Connect(0).Order();
     for (int side=0; side < TSHAPE::NSides; side++)
     {
         int ifirst = FirstIndex[side];
