@@ -1072,28 +1072,34 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZTriangle::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
+    void TPZTriangle::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div, const TPZVec<int> &transformationIds)
     {
         REAL scale = 1.;
         REAL qsi = point[0];
         REAL eta = point[1];
+        
+        constexpr auto nEdges{3};
+        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+        }
 
         //Face functions
         //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
         scale = 1.;
-        RT0function(0,0) = qsi / scale;
-        RT0function(1,0) = (eta - 1.) / scale;
-        div[0] = 1./scale + 1./scale;
+        RT0function(0,0) = qsi / scale * edgeSign[0];
+        RT0function(1,0) = (eta - 1.) / scale * edgeSign[0];
+        div[0] = 2./scale * edgeSign[0];
 
         scale = M_SQRT2;
-        RT0function(0,1) = (M_SQRT2 * qsi) / scale;
-        RT0function(1,1) = (M_SQRT2 * eta) / scale;
-        div[1] = M_SQRT2/scale + M_SQRT2/scale;
+        RT0function(0,1) = (M_SQRT2 * qsi) / scale * edgeSign[1];
+        RT0function(1,1) = (M_SQRT2 * eta) / scale * edgeSign[1];
+        div[1] = M_SQRT2/scale + M_SQRT2/scale * edgeSign[1];
 
         scale = 1.;
-        RT0function(0,2) = (qsi - 1.) / scale;
-        RT0function(1,2) = eta / scale;
-        div[2] = 1./scale + 1./scale;
+        RT0function(0,2) = -(qsi - 1.) / scale * edgeSign[2];
+        RT0function(1,2) = -eta / scale * edgeSign[2];
+        div[2] = -2./scale * edgeSign[2];
 
     }
 

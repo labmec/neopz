@@ -48,7 +48,7 @@ void TPZShapeHDivConstant2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data,
     TPZVec<REAL> div(nfacets);
     vecDiv.Zero();
     div.Fill(0.);
-    TSHAPE::ComputeConstantHDiv(pt, vecDiv, div);
+    TSHAPE::ComputeConstantHDiv(pt, vecDiv, div, data.fSideTransformationId);
 
     int nshape = data.fPhi.Rows();
     phi.Resize(2,nshape);

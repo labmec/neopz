@@ -207,6 +207,13 @@ namespace topologytests{
 
         TPZShapeHDiv<TSHAPE>::Initialize(ids, conOrders, sideorient, shapedata);
 
+        shapedata.fSideTransformationId.Resize(nSides-nCorner, 0);
+        for (int iside = nCorner; iside< nSides ; iside++) {
+            int pos = iside - nCorner;
+            int trans_id = TSHAPE::GetTransformId(iside, ids); // Foi criado
+            shapedata.fSideTransformationId[iside-nCorner] = trans_id;
+        }
+
         const int npts = intRule->NPoints();
         auto nshape = shapedata.fSDVecShapeIndex.size();
 
@@ -229,7 +236,7 @@ namespace topologytests{
             // std::cout << "divHDiv =  " << divHDiv << std::endl;
             
             //Compute the curl for each edge
-            top::ComputeConstantHDiv(node,RT0Function,divRT0);
+            top::ComputeConstantHDiv(node,RT0Function,divRT0,shapedata.fSideTransformationId);
 
             // std::cout << "Constant phi = " << RT0Function << std::endl;
             // std::cout << "Constant div = " << divRT0 << std::endl;

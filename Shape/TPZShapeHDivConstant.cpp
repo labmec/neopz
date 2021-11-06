@@ -42,7 +42,7 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
     TPZVec<REAL> div(nfacets);
     vecDiv.Zero();
     div.Fill(0.);
-    TSHAPE::ComputeConstantHDiv(pt, vecDiv, div);
+    TSHAPE::ComputeConstantHDiv(pt, vecDiv, div, data.fSideTransformationId);
 
     int countHDiv = 0;
     int countHCurl = 0;
