@@ -1415,78 +1415,84 @@ namespace pztopology {
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZCube::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl)
+    void TPZCube::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
     {
-        REAL scale = 4.;    
+        REAL scale = 2.;    
         REAL qsi = point[0];
         REAL eta = point[1];
         REAL zeta = point[2];
 
+        constexpr auto nEdges{12};
+        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+        }
+
         //First type Nedelec functions
         //X direction
         //Edge 16
-        N0function(0,8) = 0.25 * (1. - eta) * (1. + zeta) / scale;
+        N0function(0,8) = 0.25 * (1. - eta) * (1. + zeta) / scale * edgeSign[8];
         curl(0,8) = 0.;
-        curl(1,8) = 0.25 * (1. - eta) / scale;
-        curl(2,8) = 0.25 * (1. + zeta) / scale;
+        curl(1,8) = 0.25 * (1. - eta) / scale * edgeSign[8];
+        curl(2,8) = 0.25 * (1. + zeta) / scale * edgeSign[8];
         //Edge 18
-        N0function(0,10) = -0.25 * (1. + eta) * (1. + zeta) / scale;
+        N0function(0,10) = -0.25 * (1. + eta) * (1. + zeta) / scale * edgeSign[10];
         curl(0,10) = 0.;
-        curl(1,10) = -0.25 * (1. + eta) / scale;
-        curl(2,10) =  0.25 * (1. + zeta) / scale;
+        curl(1,10) = -0.25 * (1. + eta) / scale * edgeSign[10];
+        curl(2,10) =  0.25 * (1. + zeta) / scale * edgeSign[10];
         //Edge 8
-        N0function(0,0) = 0.25 * (1. - eta) * (1. - zeta) / scale;
+        N0function(0,0) = 0.25 * (1. - eta) * (1. - zeta) / scale * edgeSign[0];
         curl(0,0) = 0.;
-        curl(1,0) = -0.25 * (1. - eta) / scale;
-        curl(2,0) =  0.25 * (1. - zeta) / scale;
+        curl(1,0) = -0.25 * (1. - eta) / scale * edgeSign[0];
+        curl(2,0) =  0.25 * (1. - zeta) / scale * edgeSign[0];
         //Edge 10
-        N0function(0,2) = -0.25 * (1. + eta) * (1. - zeta) / scale;
+        N0function(0,2) = -0.25 * (1. + eta) * (1. - zeta) / scale * edgeSign[2];
         curl(0,2) = 0.;
-        curl(1,2) = 0.25 * (1. + eta) / scale;
-        curl(2,2) = 0.25 * (1. - zeta) / scale;
+        curl(1,2) = 0.25 * (1. + eta) / scale * edgeSign[2];
+        curl(2,2) = 0.25 * (1. - zeta) / scale * edgeSign[2];
 
         //Y direction
         //Edge 17
-        N0function(1,9) = 0.25 * (1. + qsi) * (1. + zeta) / scale;
-        curl(0,9) = -0.25 * (1. + qsi) / scale;
+        N0function(1,9) = 0.25 * (1. + qsi) * (1. + zeta) / scale * edgeSign[9];
+        curl(0,9) = -0.25 * (1. + qsi) / scale * edgeSign[9];
         curl(1,9) = 0.;
-        curl(2,9) =  0.25 * (1. + zeta) / scale;
+        curl(2,9) =  0.25 * (1. + zeta) / scale * edgeSign[9];
         //Edge 19
-        N0function(1,11) = 0.25 * (1. - qsi) * (1. + zeta) / scale;
-        curl(0,11) = -0.25 * (1. - qsi) / scale;
+        N0function(1,11) = -0.25 * (1. - qsi) * (1. + zeta) / scale * edgeSign[11];
+        curl(0,11) = 0.25 * (1. - qsi) / scale * edgeSign[11];
         curl(1,11) = 0.;
-        curl(2,11) = -0.25 * (1. + zeta) / scale;
+        curl(2,11) = 0.25 * (1. + zeta) / scale * edgeSign[11];
         //Edge 9
-        N0function(1,1) = 0.25 * (1. + qsi) * (1. - zeta) / scale;
-        curl(0,1) = 0.25 * (1. + qsi) / scale;
+        N0function(1,1) = 0.25 * (1. + qsi) * (1. - zeta) / scale * edgeSign[1];
+        curl(0,1) = 0.25 * (1. + qsi) / scale * edgeSign[1];
         curl(1,1) = 0.;
-        curl(2,1) = 0.25 * (1. - zeta) / scale;
+        curl(2,1) = 0.25 * (1. - zeta) / scale * edgeSign[1];
         //Edge 11
-        N0function(1,3) = 0.25 * (1. - qsi) * (1. - zeta) / scale;
-        curl(0,3) =  0.25 * (1. - qsi) / scale;
+        N0function(1,3) = -0.25 * (1. - qsi) * (1. - zeta) / scale * edgeSign[3];
+        curl(0,3) = -0.25 * (1. - qsi) / scale * edgeSign[3];
         curl(1,3) = 0.;
-        curl(2,3) = -0.25 * (1. - zeta) / scale;
+        curl(2,3) = 0.25 * (1. - zeta) / scale * edgeSign[3];
                
         //Z direction
         //Edge 12
-        N0function(2,4) = 0.25 * (1. - qsi) * (1. - eta) / scale;
-        curl(0,4) = -0.25 * (1. - qsi) / scale;
-        curl(1,4) =  0.25 * (1. - eta) / scale;
+        N0function(2,4) = 0.25 * (1. - qsi) * (1. - eta) / scale * edgeSign[4];
+        curl(0,4) = -0.25 * (1. - qsi) / scale * edgeSign[4];
+        curl(1,4) =  0.25 * (1. - eta) / scale * edgeSign[4];
         curl(2,4) = 0.;
         //Edge 13
-        N0function(2,5) = 0.25 * (1. + qsi) * (1. - eta) / scale;
-        curl(0,5) = -0.25 * (1. + qsi) / scale;
-        curl(1,5) = -0.25 * (1. - eta) / scale;
+        N0function(2,5) = 0.25 * (1. + qsi) * (1. - eta) / scale * edgeSign[5];
+        curl(0,5) = -0.25 * (1. + qsi) / scale * edgeSign[5];
+        curl(1,5) = -0.25 * (1. - eta) / scale * edgeSign[5];
         curl(2,5) = 0.;
         //Edge 14
-        N0function(2,6) = 0.25 * (1. + qsi) * (1. + eta) / scale;
-        curl(0,6) =  0.25 * (1. + qsi) / scale;
-        curl(1,6) = -0.25 * (1. + eta) / scale;
+        N0function(2,6) = 0.25 * (1. + qsi) * (1. + eta) / scale * edgeSign[6];
+        curl(0,6) =  0.25 * (1. + qsi) / scale * edgeSign[6];
+        curl(1,6) = -0.25 * (1. + eta) / scale * edgeSign[6];
         curl(2,6) = 0.;
         //Edge 15
-        N0function(2,7) = 0.25 * (1. - qsi) * (1. + eta) / scale;
-        curl(0,7) = 0.25 * (1. - qsi) / scale;
-        curl(1,7) = 0.25 * (1. + eta) / scale;
+        N0function(2,7) = 0.25 * (1. - qsi) * (1. + eta) / scale * edgeSign[7];
+        curl(0,7) = 0.25 * (1. - qsi) / scale * edgeSign[7];
+        curl(1,7) = 0.25 * (1. + eta) / scale * edgeSign[7];
         curl(2,7) = 0.;
 
     }

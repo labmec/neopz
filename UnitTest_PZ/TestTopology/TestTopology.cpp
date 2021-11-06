@@ -356,16 +356,17 @@ namespace topologytests{
             // std::cout << "curlHCurl =  " << curlHCurl << std::endl;
             
             //Compute the curl for each edge
-            top::ComputeConstantHCurl(node,N0Function,curlN0);
+            top::ComputeConstantHCurl(node,N0Function,curlN0,shapedata.fSideTransformationId);
 
             // std::cout << "Constant phi = " << N0Function << std::endl;
             // std::cout << "Constant Curl = " << curlN0 << std::endl;
+
             // Checks if all edges have the same curl value.
             bool condHcurl = true;
             bool condHcurlN0 = true;
             for (int i = 0; i < dim; i++){
                 for (int j = 0; j < nEdges; j++){
-                    REAL funVal = (phiHCurl(i,2*j  )+phiHCurl(i,2*j+1)) / 2.;
+                    REAL funVal = (phiHCurl(i,2*j  )+phiHCurl(i,2*j+1));
                     if (fabs(funVal-N0Function(i,j)) > tol){
                         condHcurl = false;
                     } 
@@ -373,7 +374,7 @@ namespace topologytests{
             }
             for (int i = 0; i < 3; i++){
                 for (int j = 0; j < nEdges; j++){
-                    REAL curlVal = (curlHCurl(i,2*j  )+curlHCurl(i,2*j+1))/2.;
+                    REAL curlVal = (curlHCurl(i,2*j  )+curlHCurl(i,2*j+1));
                     if (fabs(curlVal-curlN0(i,j)) > tol){
                         condHcurlN0 = false;
                     } 

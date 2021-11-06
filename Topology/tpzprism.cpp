@@ -1760,65 +1760,71 @@ namespace pztopology {
 
     /// Compute the directions of the HCurl vectors
     // template <class TVar>
-    void TPZPrism::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl)
+    void TPZPrism::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
     {
-        REAL scale = 2.;    
+        REAL scale = 1.;    
         REAL qsi = point[0];
         REAL eta = point[1];
         REAL zeta = point[2];
 
+        constexpr auto nEdges{9};
+        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+        }
+
         //First type Nedelec functions
         //The three first and three last functions are the same as triangle, multiplied by z direction.
-        N0function(0,0) = 0.5 * (1. - eta) * (1. - zeta) / scale;
-        N0function(1,0) = 0.5 * qsi * (1. - zeta) / scale;
-        curl(0,0) = 0.5 * qsi / scale;
-        curl(1,0) = -0.5 * (1. - eta) / scale;
-        curl(2,0) = (1. - zeta) / scale;
+        N0function(0,0) = 0.5 * (1. - eta) * (1. - zeta) / scale * edgeSign[0];
+        N0function(1,0) = 0.5 * qsi * (1. - zeta) / scale * edgeSign[0];
+        curl(0,0) = 0.5 * qsi / scale * edgeSign[0];
+        curl(1,0) = -0.5 * (1. - eta) / scale * edgeSign[0];
+        curl(2,0) = (1. - zeta) / scale * edgeSign[0];
 
-        N0function(0,1) = 0.5 * (-eta) * (1. - zeta) / scale;
-        N0function(1,1) = 0.5 * qsi * (1. - zeta) / scale;
-        curl(0,1) = 0.5 * qsi / scale;
-        curl(1,1) = 0.5 * eta / scale;
-        curl(2,1) = (1. - zeta) / scale;
+        N0function(0,1) = 0.5 * (-eta) * (1. - zeta) / scale * edgeSign[1];
+        N0function(1,1) = 0.5 * qsi * (1. - zeta) / scale * edgeSign[1];
+        curl(0,1) = 0.5 * qsi / scale * edgeSign[1];
+        curl(1,1) = 0.5 * eta / scale * edgeSign[1];
+        curl(2,1) = (1. - zeta) / scale * edgeSign[1];
 
-        N0function(0,2) = 0.5 * eta * (1. - zeta) / scale;
-        N0function(1,2) = -0.5 * (qsi - 1.) * (1. - zeta) / scale;
-        curl(0,2) = -0.5 * (qsi - 1.) / scale;
-        curl(1,2) = -0.5 * eta / scale;
-        curl(2,2) = (zeta - 1.) / scale;
+        N0function(0,2) = -0.5 * eta * (1. - zeta) / scale * edgeSign[2];
+        N0function(1,2) = 0.5 * (qsi - 1.) * (1. - zeta) / scale * edgeSign[2];
+        curl(0,2) = 0.5 * (qsi - 1.) / scale * edgeSign[2];
+        curl(1,2) = 0.5 * eta / scale * edgeSign[2];
+        curl(2,2) = -(zeta - 1.) / scale * edgeSign[2];
 
-        N0function(0,6) = 0.5 * (1. - eta) * (1. + zeta) / scale;
-        N0function(1,6) = 0.5 * qsi * (1. + zeta) / scale;
-        curl(0,6) = -0.5 * qsi / scale;
-        curl(1,6) = 0.5 * (1. - eta) / scale;
-        curl(2,6) = (1. + zeta) / scale;
+        N0function(0,6) = 0.5 * (1. - eta) * (1. + zeta) / scale * edgeSign[6];
+        N0function(1,6) = 0.5 * qsi * (1. + zeta) / scale * edgeSign[6];
+        curl(0,6) = -0.5 * qsi / scale * edgeSign[6];
+        curl(1,6) = 0.5 * (1. - eta) / scale * edgeSign[6];
+        curl(2,6) = (1. + zeta) / scale * edgeSign[6];
 
-        N0function(0,7) = 0.5 * (-eta) * (1. + zeta) / scale;
-        N0function(1,7) = 0.5 * qsi * (1. + zeta) / scale;
-        curl(0,7) = -0.5 * qsi / scale;
-        curl(1,7) = -0.5 * eta / scale;
-        curl(2,7) = (1. + zeta) / scale;
+        N0function(0,7) = 0.5 * (-eta) * (1. + zeta) / scale * edgeSign[7];
+        N0function(1,7) = 0.5 * qsi * (1. + zeta) / scale * edgeSign[7];
+        curl(0,7) = -0.5 * qsi / scale * edgeSign[7];
+        curl(1,7) = -0.5 * eta / scale * edgeSign[7];
+        curl(2,7) = (1. + zeta) / scale * edgeSign[7];
 
-        N0function(0,8) = 0.5 * eta * (1. + zeta) / scale;
-        N0function(1,8) = -0.5 * (qsi - 1.) * (1. + zeta) / scale;
-        curl(0,8) = 0.5 * (qsi - 1.) / scale;
-        curl(1,8) = 0.5 * eta / scale;
-        curl(2,8) = (-zeta - 1.) / scale;
+        N0function(0,8) = -0.5 * eta * (1. + zeta) / scale * edgeSign[8];
+        N0function(1,8) = 0.5 * (qsi - 1.) * (1. + zeta) / scale * edgeSign[8];
+        curl(0,8) = -0.5 * (qsi - 1.) / scale * edgeSign[8];
+        curl(1,8) = -0.5 * eta / scale * edgeSign[8];
+        curl(2,8) = -(-zeta - 1.) / scale * edgeSign[8];
 
         //The three vertical edges (only the z component is != 0)
-        scale = 4.;
-        N0function(2,3) = (1. - qsi - eta) / scale;
-        curl(0,3) = -1. / scale;
-        curl(1,3) =  1. / scale;
+        scale = 2.;
+        N0function(2,3) = (1. - qsi - eta) / scale * edgeSign[3];
+        curl(0,3) = -1. / scale * edgeSign[3];
+        curl(1,3) =  1. / scale * edgeSign[3];
         curl(2,3) = 0.;
 
-        N0function(2,4) = qsi / scale;
+        N0function(2,4) = qsi / scale * edgeSign[4];
         curl(0,4) = 0.;
-        curl(1,4) = -1. / scale;
+        curl(1,4) = -1. / scale * edgeSign[4];
         curl(2,4) = 0.;
 
-        N0function(2,5) = eta / scale;
-        curl(0,5) = 1. / scale;
+        N0function(2,5) = eta / scale * edgeSign[5];
+        curl(0,5) = 1. / scale * edgeSign[5];
         curl(1,5) = 0.;
         curl(2,5) = 0.;
 

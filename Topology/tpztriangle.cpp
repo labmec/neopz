@@ -1099,24 +1099,30 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZTriangle::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl)
+    void TPZTriangle::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
     {
-        REAL scale = 2.;
+
         REAL qsi = point[0];
         REAL eta = point[1];
 
+        constexpr auto nEdges{3};
+        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+        }
+
         //First type Nedelec functions
-        N0function(0,0) = (1. - eta) / scale;
-        N0function(1,0) = qsi / scale;
-        curl(0,0) = 2.;
+        N0function(0,0) = (1. - eta) * edgeSign[0];
+        N0function(1,0) = qsi * edgeSign[0];
+        curl(0,0) = 2. * edgeSign[0];
 
-        N0function(0,1) = -eta / scale;
-        N0function(1,1) =  qsi / scale;
-        curl(0,1) = 2.;
+        N0function(0,1) = -eta * edgeSign[1];
+        N0function(1,1) =  qsi * edgeSign[1];
+        curl(0,1) = 2. * edgeSign[1];
 
-        N0function(0,2) = -eta / scale;
-        N0function(1,2) = -(1. - qsi) / scale;
-        curl(0,2) = 2.;
+        N0function(0,2) = -eta * edgeSign[2];
+        N0function(1,2) = -(1. - qsi) * edgeSign[2];
+        curl(0,2) = 2. * edgeSign[2];
     }
 
     template <class TVar>

@@ -1169,24 +1169,30 @@ namespace pztopology {
     }
 
     // template <class TVar>
-    void TPZQuadrilateral::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl)
+    void TPZQuadrilateral::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
     {
-        REAL scale = 4.;
+        REAL scale = 2.;
         REAL qsi = point[0];
         REAL eta = point[1];
 
+        constexpr auto nEdges{4};
+        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+        }
+
         //Nedelec functions
-        N0function(0,0) = 0.5 * (1. - eta) / scale;
-        curl(0,0) = 0.5/scale;
+        N0function(0,0) = 0.5 * (1. - eta) * edgeSign[0] / scale;
+        curl(0,0) = 0.5 * edgeSign[0] / scale;
 
-        N0function(1,1) = 0.5 * (1. + qsi) / scale;
-        curl(0,1) = 0.5/scale;
+        N0function(1,1) = 0.5 * (1. + qsi) * edgeSign[1] / scale;
+        curl(0,1) = 0.5 * edgeSign[1] / scale;
 
-        N0function(0,2) = -0.5 * (1. + eta) / scale;
-        curl(0,2) = 0.5/scale;
+        N0function(0,2) = -0.5 * (1. + eta) * edgeSign[2] / scale;
+        curl(0,2) = 0.5 * edgeSign[2] / scale;
 
-        N0function(1,3) = 0.5 * (1. - qsi) / scale;
-        curl(0,3) = -0.5/scale;
+        N0function(1,3) = -0.5 * (1. - qsi) * edgeSign[3] / scale;
+        curl(0,3) = 0.5 * edgeSign[3] / scale;
         
     }
 
