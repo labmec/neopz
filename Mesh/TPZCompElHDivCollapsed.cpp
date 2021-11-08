@@ -256,12 +256,38 @@ template<class TSHAPE>
 template<class TVar>
 void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialDataT(TPZMaterialDataT<TVar> &data)
 {
-	TPZCompElHDiv<TSHAPE>::InitMaterialData(data);
-    if(data.fUserData) DebugStop();
-    auto datapair = new std::pair<TPZMaterialDataT<TVar>,TPZMaterialDataT<TVar>>;
-    data.fUserData = datapair;
-    TPZMaterialData &datatop = datapair->second, &databottom = datapair->first;
-    if(data.fNeedsDeformedDirectionsFad) DebugStop();
+    TPZShapeData& shapedata = data;
+    
+    // Order of top and bot connect
+    TPZConnect& connbot = this->Mesh()->ConnectVec()[fbottom_c_index];
+    TPZConnect& conntop = this->Mesh()->ConnectVec()[ftop_c_index];
+    const int toporder = conntop.Order();
+    const int bottomorder = connbot.Order();
+    
+    // Number of shape and dim
+    const int64_t nvecshapecollpased = this->NShapeF();
+    const int dim = TSHAPE::Dimension+1;
+    
+    // Order of connects
+    int ncon = NConnects();
+    TPZManVector<int> connectorders(ncon,0);
+    for(int i=0; i<TSHAPE::NFacets+1; i++) connectorders[i] = this->Connect(i).Order();
+    connectorders[ncon-2] = bottomorder;
+    connectorders[ncon-1] = toporder;
+    
+    // Side orient
+    TPZManVector<int> sideorient(TSHAPE::NFacets+2,0);
+    for(int i=0; i<TSHAPE::NFacets; i++) sideorient[i] = this->SideOrient(i);
+    sideorient[TSHAPE::NFacets] = GetSideOrient(TSHAPE::NSides-1);
+    sideorient[TSHAPE::NFacets+1] = GetSideOrient(TSHAPE::NSides);
+    
+    // Node ids of geoel
+    TPZGeoEl *gel = this->Reference();
+    TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes);
+    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
+    
+    // Init shape data
+    TPZShapeHDivCollapsed<TSHAPE>::Initialize(ids, connectorders, sideorient, shapedata);
 
 #ifdef PZ_LOG
     if (logger.isDebugEnabled())
@@ -508,28 +534,16 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterial
     }
     
     // Computing shape functions using TPZShapeHDivCollapsed structure
-    TPZShapeData shapedata;
-    TPZShapeHDivCollapsed<TSHAPE> shape;
-    TPZFNMatrix<27> phi(dim,nvecshapecollpased);//,divphi(nvecshapecollpased,1);
-    TPZManVector<int> connectorders(data.fHDivConnectOrders);
-    int ncon = NConnects();
-    connectorders.Resize(ncon, 0);
-    connectorders[ncon-2] = bottomorder;
-    connectorders[ncon-1] = toporder;
-    TPZManVector<int> sideorient(data.fSideOrient);
-    sideorient.Resize(TSHAPE::NFacets+2,0);
-    sideorient[TSHAPE::NFacets] = GetSideOrient(TSHAPE::NSides-1);
-    sideorient[TSHAPE::NFacets+1] = GetSideOrient(TSHAPE::NSides);
-    shape.Initialize(data.fCornerNodeIds, connectorders, sideorient, shapedata);
-    shape.Shape(qsi,shapedata,phi,data.divphi);
+    TPZShapeData& shapedata = data;
+    TPZShapeHDivCollapsed<TSHAPE>::Shape(qsi,shapedata,data.phi,data.divphi);
     data.divphi *= 1./data.detjac;
-    gradxlocal.Multiply(phi,data.fDeformedDirections);
+    gradxlocal.Multiply(data.phi,data.fDeformedDirections);
     data.fDeformedDirections *= 1./data.detjac;
     
     // Filling phi with 1 and fVecShapeIndex with 1,1 to make actual materials work
     data.fVecShapeIndex.Resize(nvecshapecollpased);
     data.phi.Resize(nvecshapecollpased,1);
-    for(int i=numvec; i<nvecshapecollpased; i++)
+    for(int i=0; i<nvecshapecollpased; i++)
     {
         data.fVecShapeIndex[i] = std::pair<int,int64_t>(i,i);
         data.phi(i) = 1.;
