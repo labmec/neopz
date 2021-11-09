@@ -37,6 +37,7 @@ namespace pztopology {
 	
 	static constexpr int nhighdimsides[9] = {3,3,3,3,1,1,1,1,0};
 	
+    static constexpr int fSideOrient[4] = {1,1,1,1};
 	
 	static constexpr int sidedimension[9] = {0,0,0,0,1,1,1,1,2};
 	
@@ -1197,6 +1198,11 @@ namespace pztopology {
         N0function(1,3) = -0.5 * (1. - qsi) * edgeSign[3] / scale;
         curl(0,3) = 0.5 * edgeSign[3] / scale;
         
+    }
+
+    // Get face orientation
+    int TPZQuadrilateral::GetSideOrient(const int &face){
+        return fSideOrient[face];
     }
 
     template <class TVar>

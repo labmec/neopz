@@ -36,6 +36,8 @@ namespace pztopology {
 	/** @brief Vector of the dimension for each side */
 	static constexpr int sidedimension[27] = {0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,3};
 	
+    static constexpr int fSideOrient[6] = {-1,1,1,-1,-1,1};
+
 	/** @brief Vector with the number of vertices contained in the closure of the side */
 	static constexpr int nsidenodes[27] = {1,1,1,1,1,1,1,1,
 		2,2,2,2,2,2,2,2,2,2,2,2,
@@ -1501,6 +1503,11 @@ namespace pztopology {
         curl(1,7) = 0.25 * (1. + eta) / scale * edgeSign[7];
         curl(2,7) = 0.;
 
+    }
+
+    // Get face orientation
+    int TPZCube::GetSideOrient(const int &face){
+        return fSideOrient[face];
     }
 
     void TPZCube::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)

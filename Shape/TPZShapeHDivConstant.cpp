@@ -57,23 +57,12 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
 
     int size = data.fSDVecShapeIndex.size();
     for(int i = 0; i < nfacets; i++){
-        
-        auto it = data.fSDVecShapeIndex[i];
-        int vecindex = it.first;
-        int scalindex = it.second;
 
         if(dim == 3){
             //Function HDiv
-            for(int a=0; a<3; a++){
-                phi(a,nEdgeF + i + 2*countHDiv) = vecDiv(a,countHDiv);
-            }
-            countHDiv++;
-            //Function HCurl
-            for(int a=0; a<3; a++){
-                phi(a,nEdgeF + i + 2*countHCurl+1) = data.fDPhi((a+2)%3,scalindex)*data.fMasterDirections((a+1)%3,vecindex) -
-                                                     data.fDPhi((a+1)%3,scalindex)*data.fMasterDirections((a+2)%3,vecindex);
-            }
-            countHCurl++;
+            phi(0,i) = div[i];
+        } else if (dim == 2){
+            phi(0,i) = div[i];
         } else {
             DebugStop();
         }   
@@ -91,13 +80,17 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
         
         if(dim == 3)
         {
-            for(int a=0; a<3; a++) 
-            {
-                phi(a,i) = data.fDPhi((a+2)%3,scalindex)*data.fMasterDirections((a+1)%3,vecindex) -
-                           data.fDPhi((a+1)%3,scalindex)*data.fMasterDirections((a+2)%3,vecindex);
+            for(auto d = 0; d < dim; d++) {
+                const auto di = (d+1)%dim;
+                const auto dj = (d+2)%dim;
+                phi(d,i+nfacets) = data.fDPhi.GetVal(di,scalindex) * data.fMasterDirections.GetVal(dj,vecindex)-
+                                   data.fDPhi.GetVal(dj,scalindex) * data.fMasterDirections.GetVal(di,vecindex);
             }
-        } else
+        }  else if (dim == 2)
         {
+            phi(0,i+nfacets) = data.fDPhi.GetVal(0,scalindex) * data.fMasterDirections.GetVal(1,vecindex) -
+                               data.fDPhi.GetVal(1,scalindex) * data.fMasterDirections.GetVal(0,vecindex);
+        } else {
             DebugStop();
         }
     }
@@ -116,7 +109,11 @@ int TPZShapeHDivConstant<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
     return nshape;
 }
 
+template
+struct TPZShapeHDivConstant<pzshape::TPZShapeTriang>;
 
+template
+struct TPZShapeHDivConstant<pzshape::TPZShapeQuad>;
 
 template
 struct TPZShapeHDivConstant<pzshape::TPZShapeTetra>;

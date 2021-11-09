@@ -30,6 +30,8 @@ namespace pztopology {
 		{1,2,5,4,7,11,13,10,17},{0,2,5,3,8,11,14,9,18},{3,4,5,12,13,14,19,-1,-1} };
 
 	static constexpr int sidedimension[21] = {0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3};
+
+    static constexpr int fSideOrient[5] = {-1,1,1,-1,1};
 	
 	static constexpr int nhighdimsides[21] = {7,7,7,7,7,7,3,3,3,3,3,3,3,3,3,1,1,1,1,1,0};
 	
@@ -1834,8 +1836,11 @@ namespace pztopology {
         curl(1,5) = 0.;
         curl(2,5) = 0.;
 
+    }
 
-
+    // Get face orientation
+    int TPZPrism::GetSideOrient(const int &face){
+        return fSideOrient[face];
     }
 
     void TPZPrism::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)

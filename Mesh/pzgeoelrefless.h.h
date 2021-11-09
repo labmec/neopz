@@ -239,12 +239,59 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
     // the side orientation will be +1 if the side is oriented counterclockwise
     // -1 if the side is clockwise
     
+    
+    int faceSide = 0;
+    if (fGeo.Dimension == 2){
+        faceSide = side - TGeo::NCornerNodes;
+    } else if (fGeo.Dimension == 3){
+        faceSide = side - TGeo::NCornerNodes - TGeo::NumSides(1);
+    }
+
     int sideorient = 1;
+    switch (TGeo::Type())
+    {
+    case ETriangle:
+        sideorient = pztopology::TPZTriangle::GetSideOrient(faceSide);
+        break;
+    case EQuadrilateral:
+        sideorient = pztopology::TPZQuadrilateral::GetSideOrient(faceSide);
+        break;
+    case ETetraedro:
+        sideorient = pztopology::TPZTetrahedron::GetSideOrient(faceSide);
+        break;
+    case ECube:
+        sideorient = pztopology::TPZCube::GetSideOrient(faceSide);
+        break;
+    case EPrisma:
+        sideorient = pztopology::TPZPrism::GetSideOrient(faceSide);
+        break;
+    
+    default:
+        break;
+    }
+    
+    
     // Build vector with node indices of element to be created
-    int sidennodes = TGeo::NSideNodes(side);
-    TPZManVector<int,27> mapside(sidennodes,0);
-    for(int i=0; i<sidennodes; i++) mapside[i] = i;
     MElementType sidetype = TGeo::Type(side);
+    int sidennodes = TGeo::NSideNodes(side);
+    int sizeMap = 0;
+    switch (sidetype){
+    case EOned:
+        sizeMap = 3;
+        break;
+    case ETriangle:
+        sizeMap = 7;
+        break;
+    case EQuadrilateral:
+        sizeMap = 9;
+        break;
+    default:
+        DebugStop();
+    }
+
+    TPZManVector<int,27> mapside(sizeMap,0);
+    for(int i=0; i<sizeMap; i++) mapside[i] = i;
+    
     if(sideorient == -1)
     {
         switch(sidetype){
@@ -252,7 +299,7 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
                 mapside = {1,0,2};
                 break;
             case ETriangle:
-                mapside = {0,2,1,5,4,3};
+                mapside = {0,2,1,5,4,3,6};
                 break;
             case EQuadrilateral:
                 mapside = {0,3,2,1,7,6,5,4,8};
@@ -260,7 +307,6 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
                 break;
         }
     }
-
 
 	// Is side straight?
 	TPZStack<int> LowAllSides;

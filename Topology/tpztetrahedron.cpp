@@ -28,7 +28,8 @@ namespace pztopology {
 
 	static constexpr int sidedimension[15] = {0,0,0,0,1,1,1,1,1,1,2,2,2,2,3};
 	
-	
+    static constexpr int fSideOrient[4] = {-1,1,1,-1};
+    
 	static constexpr int FaceConnectLocId[4][7] = { {0,1,2,4,5,6,10},{0,1,3,4,8,7,11},
 		{1,2,3,5,9,8,12},{0,2,3,6,9,7,13} };
 	
@@ -1470,7 +1471,7 @@ namespace pztopology {
         constexpr auto nEdges{4};
         TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
         for(auto iEdge = 0; iEdge < nEdges; iEdge++){
-            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+            edgeSign[iEdge] = 1.;//transformationIds[iEdge] == 0 ? 1 : -1;
         }
 
         //Face functions
@@ -1558,6 +1559,11 @@ namespace pztopology {
         curl(1,5) = 0.;
         curl(2,5) = 0.;
 
+    }
+
+    // Get face orientation
+    int TPZTetrahedron::GetSideOrient(const int &face){
+        return fSideOrient[face];
     }
 
     
