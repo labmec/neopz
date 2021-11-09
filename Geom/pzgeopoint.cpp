@@ -17,28 +17,6 @@ using namespace std;
 
 namespace pzgeom {
 	
-	// TPZGeoEl *TPZGeoPoint::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
-	// 	if(side==0) {
-	// 		TPZManVector<int64_t> nodeindexes(1);
-	// 		nodeindexes[0] = orig->NodeIndex(0);
-	// 		int64_t index;
-	// 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
-			
-	// 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,0));
-	// 		return gel;
-	// 	}
-	// 	else PZError << "TPZGeoPoint::CreateBCGeoEl. Side = " << side << endl;
-	// 	return 0;
-	// }
-	
-	// /** Creates a geometric element according to the type of the father element */
-	// TPZGeoEl *TPZGeoPoint::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-	// 										TPZVec<int64_t>& nodeindexes,
-	// 										int matid,
-	// 										int64_t& index)
-	// {
-	// 	return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
-	// }
     
     /// create an example element based on the topology
     /* @param gmesh mesh in which the element should be inserted
