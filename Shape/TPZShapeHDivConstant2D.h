@@ -14,7 +14,9 @@ class TPZFMatrix;
 template <class TSHAPE>
 struct TPZShapeHDivConstant2D : public TPZShapeH1<TSHAPE>
 {
-    
+    static void Initialize(const TPZVec<int64_t> &ids,
+                    const TPZVec<int> &connectorders,
+                    const TPZVec<int>& sideorient, TPZShapeData &data);
     
     static void ComputeVecandShape(TPZShapeData &data);
     
@@ -23,7 +25,8 @@ struct TPZShapeHDivConstant2D : public TPZShapeH1<TSHAPE>
     static int NHDivShapeF(TPZShapeData &data);
 
     static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
-
+    
+    static int ComputeNConnectShapeF(int connect, int order);
 };
 
 #endif

@@ -24,6 +24,7 @@ struct TPZShapeHDivKernel2D : public TPZShapeH1<TSHAPE>
 
     static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
 
+    
 };
 
 #endif

@@ -1083,7 +1083,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         constexpr auto nEdges{3};
         TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
         for(auto iEdge = 0; iEdge < nEdges; iEdge++){
-            edgeSign[iEdge] = 1.;//transformationIds[iEdge] == 0 ? 1 : -1;
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
         }
 
         //Face functions

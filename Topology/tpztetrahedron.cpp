@@ -1471,7 +1471,7 @@ namespace pztopology {
         constexpr auto nEdges{4};
         TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
         for(auto iEdge = 0; iEdge < nEdges; iEdge++){
-            edgeSign[iEdge] = 1.;//transformationIds[iEdge] == 0 ? 1 : -1;
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
         }
 
         //Face functions

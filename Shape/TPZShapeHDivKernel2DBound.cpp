@@ -42,7 +42,7 @@ void TPZShapeHDivKernel2DBound<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &da
     }
 
     int nshape = data.fPhi.Rows();
-    phi.Resize(1,nshape);
+    // phi.Resize(1,nshape);
 
     for (int i = 0; i < nshape; i++){
         phi(0,i) = -data.fDPhi(0,i);

@@ -13,6 +13,8 @@
 #include "TPZShapeData.h"
 
 
+
+
 template<class TSHAPE>
 int TPZShapeHDivConstant2D<TSHAPE>::NHDivShapeF(TPZShapeData &data)
 {
@@ -34,6 +36,8 @@ void TPZShapeHDivConstant2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data,
     const int dim = TSHAPE::Dimension;
     const int nfacets = TSHAPE::NFacets;
 
+    
+
     TPZShapeH1<TSHAPE>::Shape(pt,data);
     divphi.Zero();
     const auto nEdges = TSHAPE::NumSides(1);
@@ -51,74 +55,80 @@ void TPZShapeHDivConstant2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data,
     TSHAPE::ComputeConstantHDiv(pt, vecDiv, div, data.fSideTransformationId);
 
     int nshape = data.fPhi.Rows();
-    phi.Resize(2,nshape);
-    //Div free functions
-    for (int i = ncorner; i < nshape; i++){
+    // phi.Resize(2,nshape);
+
+    for (int i = 0; i < nshape; i++){
 		phi(0,i) =  data.fDPhi(1,i);
         phi(1,i) = -data.fDPhi(0,i);
+        divphi(i,0) = div[i];
 	}
+    
+
+    
 
     //Div-Constant Functions
-    for (int i = 0; i < ncorner; i++){
-		phi(0,i) = vecDiv(0,i);
-        phi(1,i) = vecDiv(1,i);
-	}
+    // for (int i = 0; i < ncorner; i++){
+	// 	phi(0,i) = vecDiv(0,i);
+    //     phi(1,i) = vecDiv(1,i);
+	// }
 
-    divphi.Zero();
+    // divphi.Zero();
 }
 
 
 template<class TSHAPE>
 int TPZShapeHDivConstant2D<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
 {
-    int order = data.fH1ConnectOrders[icon];
-    const int side = icon + TSHAPE::NCornerNodes;
-    #ifdef PZDEBUG
-    if (side < TSHAPE::NCornerNodes || side >= TSHAPE::NSides) {
-        DebugStop();
-    }
-    #endif
-    if(order == 0) {
-        PZError<<__PRETTY_FUNCTION__
-            <<"\nERROR: polynomial order not compatible.\nAborting..."
-            <<std::endl;
-        DebugStop();
-        return 0;
-    }
-    const auto nFaces = TSHAPE::Dimension < 2 ? 0 : TSHAPE::NumSides(2);
-    const auto nEdges = TSHAPE::NumSides(1);
-    const int nShapeF = [&](){
-        if (side < TSHAPE::NCornerNodes + nEdges) {//edge connect
-        return 1;
-        }
-        else if(side < TSHAPE::NCornerNodes + nEdges + nFaces){//face connect
-        switch(TSHAPE::Type(side)){
-            case ETriangle://triangular face
-                /**
-                 we remove one internal function for each h1 face function of order k+1
-                since there are (k-1)(k-2)/2 functions per face in a face with order k,
-                we remove k(k-1)/2.
-                so:
-                (k-1)*(k+1)-k*(k-1)/2
-                */
-                return (order - 1) * (order+2) / 2;
-            default:
-                PZError<<__PRETTY_FUNCTION__<<" error. Not yet implemented"<<std::endl;
-                DebugStop();
-                return 0;
-            }
-        }
-        else{//internal connect (3D element only)
-        if constexpr (TSHAPE::Type() == ETetraedro){
-            DebugStop();
-        }
-        return 0;
-        }
-    }();
-    return nShapeF;
-    // return data.fHDivNumConnectShape[icon];
+    int nshape = data.fHDivNumConnectShape[icon] + 1;
+    return nshape;
 }
 
+template<class TSHAPE>
+int TPZShapeHDivConstant2D<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
+{
+#ifdef DEBUG
+    if (connect < 0 || connect > TSHAPE::NFacets) {
+        DebugStop();
+    }
+#endif
+    // int order = data.fHDivConnectOrders[connect];
+    MElementType thistype = TSHAPE::Type();
+
+    if(thistype == EOned)
+    {
+        if(connect < 2) return 0;
+        else return order;
+        // DebugStop();
+    }
+    else if(thistype == ETriangle)
+    {
+        if(connect < TSHAPE::NFacets) return (order+1);
+        else return (order+1)*(order+1)-1;
+    }
+    else if(thistype == EQuadrilateral)
+    {
+        if(connect < TSHAPE::NFacets) return (order);
+        else return (order-1)*(order-1);// 2*order*(order+1);
+    }
+    else if(thistype == ETetraedro)
+    {
+        if(connect < TSHAPE::NFacets) return (order+1)*(order+2)/2;
+        else return order*(order+2)*(order+3)/2;
+    }
+    else if(thistype == EPrisma)
+    {
+        if(connect == 0 || connect == 4) return (order+1)*(order+2)/2;
+        else if(connect < TSHAPE::NFacets) return (order+1)*(order+1);
+        else return order*order*(3*order+5)/2+7*order-2;
+    }
+    else if(thistype == ECube)
+    {
+        if(connect < TSHAPE::NFacets) return (order+1)*(order+1);
+        else return 3*order*(order+1)*(order+1);
+    }
+    DebugStop();
+    unreachable();
+ }
 
 
 template
