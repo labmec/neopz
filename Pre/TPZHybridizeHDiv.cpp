@@ -1070,7 +1070,16 @@ void TPZHybridizeHDiv::GetAllConnectedCompElSides(TPZInterpolatedElement *intel,
         for (auto& cel : celstack) {
             TPZGeoEl *neigh = cel.Element()->Reference();
             if (neigh->Dimension() == gel->Dimension()) {
-                celsidestack.push_back(cel);
+                const int celmatid = cel.Element()->Reference()->MaterialId();
+                if (fIdToHybridize != -1) {
+                    if (celmatid == fIdToHybridize) {
+                        celsidestack.push_back(cel);
+                    }
+                }
+                else {
+                    celsidestack.push_back(cel);
+                }
+                
             }
         } // cel
     } // else

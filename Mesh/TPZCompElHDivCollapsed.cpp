@@ -197,7 +197,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::SetConnectIndex(int i, int64_t connectindex
 {
 	if(i <= TSHAPE::NFacets)
 	{
-        SetConnectIndex(i, connectindex);
+        TPZCompElHDiv<TSHAPE>::SetConnectIndex(i, connectindex);
 	}
     else if(i == TSHAPE::NFacets+1)
     {

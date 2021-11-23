@@ -37,6 +37,7 @@ struct TPZHybridizeHDiv {
     std::pair<int,int> fInterfaceMatid = {-8,-8};
     // number of state variables
     int fNState = 1;
+    int fIdToHybridize = -1;
     
     TPZHybridizeHDiv() = default;
     
@@ -46,6 +47,9 @@ struct TPZHybridizeHDiv {
 
     /// compute material ids for the periferal material objects
     void ComputePeriferalMaterialIds(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
+    
+    int& IdToHybridize() {return fIdToHybridize;}
+    const int& IdToHybridize() const {return fIdToHybridize;}
     
     /// set the periferal material ids
     void SetPeriferalMaterialIds(int HDivWrapMatid, int LagrangeInterface, int InterfaceMatid)
@@ -134,8 +138,7 @@ public:
     static TPZCompElSide RightElement(TPZInterpolatedElement *intel, int side);
     
 
-
-    static void GetAllConnectedCompElSides(TPZInterpolatedElement *intel, int side, TPZStack<TPZCompElSide> &celsidestack);
+    void GetAllConnectedCompElSides(TPZInterpolatedElement *intel, int side, TPZStack<TPZCompElSide> &celsidestack);
 
 };
 
