@@ -384,22 +384,15 @@ void SetExactSolution(TLaplaceExample1 &config, TPZCompMesh *cmesh)
             dynamic_cast<TPZMaterialT<STATE> *>(cmesh->FindMaterial(1));
         if(!mat) DebugStop();
         
-        auto forcingFunction = [&config](const TPZVec<REAL>&x, TPZVec<STATE>&u){
-            config.ForcingFunction()->Execute(x, u);
-        };
-        const auto pOrderForcingFunction = config.ForcingFunction()->PolynomialOrder();
-        mat->SetForcingFunction(forcingFunction,pOrderForcingFunction);
+        const int pOrderForcingFunction = 5;
+        mat->SetForcingFunction(config.ForcingFunction(),pOrderForcingFunction);
     }
     for(int i=1; i<4; i++)
     {
         auto *mat =
             dynamic_cast<TPZBndCondT<STATE> *>(cmesh->FindMaterial(matids[i]));
         if(!mat) DebugStop();
-        auto exact = [&config](const TPZVec<REAL>&x, TPZVec<STATE>&u,
-                               TPZFMatrix<STATE>&du){
-            config.Exact()->Execute(x, u, du);
-        };
-        mat->SetForcingFunctionBC(exact);
+        mat->SetForcingFunctionBC(config.ExactSolution());
     }
 }
 
