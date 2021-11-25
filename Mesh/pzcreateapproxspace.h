@@ -120,8 +120,13 @@ public:
     
     /** @brief Set custom function pointers */
     void SetCreateFunctions(TPZVec<TCreateFunction> &createfuncs);
-    
-    MApproximationStyle Style()
+
+    MApproximationStyle& Style()
+    {
+        return fStyle;
+    }
+
+    const MApproximationStyle& Style() const
     {
         return fStyle;
     }

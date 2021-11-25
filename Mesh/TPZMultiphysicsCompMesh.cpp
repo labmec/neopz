@@ -90,6 +90,9 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx
     {
         SetAllCreateFunctionsSBFemMultiphysics();
     }
+    else {
+        DebugStop(); // Please set one of the above available spaces
+    }
     // delete all elements and connects in the mesh
     CleanElementsConnects();
     TPZCompMesh::AutoBuild();

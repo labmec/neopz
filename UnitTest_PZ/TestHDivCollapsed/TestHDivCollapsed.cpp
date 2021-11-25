@@ -55,14 +55,14 @@ TEST_CASE("1_frac_element","[hdivcollapsed]"){
 TEST_CASE("uniformly_refined_mesh","[hdivcollapsed]"){
     TestHdivCollapsed(true);
 }
-/* Left in case needs some serious debugging. Catch2 does not stop in debugstops
-int main(int argc, char* argv[]){
-    const bool isRefMesh = true;
-    TestHdivCollapsed(isRefMesh);
-    
-    return 0;
-}
- */
+// Left in case needs some serious debugging. Catch2 does not stop in debugstops in xcode
+//int main(int argc, char* argv[]){
+//    const bool isRefMesh = false;
+//    TestHdivCollapsed(isRefMesh);
+//
+//    return 0;
+//}
+ 
 
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
@@ -435,6 +435,7 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     
     // ===> Build space
     TPZManVector<int> active(2,1);
+    cmesh->ApproxSpace().Style() = TPZCreateApproximationSpace::EMultiphysics;
     cmesh->BuildMultiphysicsSpace(active, meshvector);
 
 //    Prints Multiphysics mesh
