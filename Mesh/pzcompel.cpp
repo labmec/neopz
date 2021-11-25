@@ -979,7 +979,6 @@ void TPZCompElSide::SplitConnect(TPZCompElSide& right) {
     TPZConnect &cright = intelright->SideConnect(0, right.Side());
     if (&cleft != &cright) {
         DebugStop(); // CompElSides do not share the same connect!
-        // TODO: Is there a better to check if they are the same connect?
     }
     
     TPZCompMesh* cmesh = intelleft->Mesh();
