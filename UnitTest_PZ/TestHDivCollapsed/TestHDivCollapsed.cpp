@@ -26,7 +26,7 @@
 #include <catch2/catch.hpp>
 
 // ----- Functions -----
-int TestHdivCollapsed(const bool& isRefMesh);
+void TestHdivCollapsed(const bool& isRefMesh);
 TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh);
 void CreateFractureHDivCollapsedEl(TPZCompMesh* cmesh);
 void SplitConnectsAtInterface(TPZCompElSide& compside);
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]){
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
 
-int TestHdivCollapsed(const bool& isRefMesh){
+void TestHdivCollapsed(const bool& isRefMesh){
     
     // ----- dimension of the problem -----
     constexpr int dim{3};
