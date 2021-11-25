@@ -397,7 +397,7 @@ void TPZSBFemVolume::ReallyComputeSolution(TPZMaterialDataT<STATE>& data)
             std::stringstream sout;
             sout << "uh_xi " << uh_xi << std::endl;
             sout << "Duh_xi " << Duh_xi << std::endl;
-            data1d.phi.Print(sout);
+            data1d.fPhi.Print(sout);
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif

@@ -573,6 +573,11 @@ public:
         fCreate.SetAllCreateFunctionsMultiphysicElem();
     }
 
+	void SetAllCreateFunctionsSBFemMultiphysics()
+    {
+        fCreate.SetAllCreateFunctionsSBFemMultiphysics(this->Dimension());
+    }
+
     void SetAllCreateFunctionsMultiphysicElemWithMem()
     {
         fCreate.SetAllCreateFunctionsMultiphysicElemWithMem();
