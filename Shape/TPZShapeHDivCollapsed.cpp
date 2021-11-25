@@ -18,15 +18,16 @@ void TPZShapeHDivCollapsed<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
     const int dim = TSHAPE::Dimension;
-    if(ids.size() != ncorner || connectorders.size() != nsides-ncorner+2)
+    if(ids.size() != ncorner || connectorders.size() != TSHAPE::NFacets+3)
     {
         DebugStop();
     }
     TPZManVector<int,20> hdivconnectorders(connectorders);
-    hdivconnectorders.Resize(nsides-ncorner, 0);
+    hdivconnectorders.Resize(TSHAPE::NFacets+1, 0);
     TPZManVector<int,20> hdivsideorient(sideorient);
-    hdivsideorient.Resize(nsides-ncorner, 0);
+    hdivsideorient.Resize(TSHAPE::NFacets+1, 0);
     TPZShapeHDiv<TSHAPE>::Initialize(ids, hdivconnectorders, hdivsideorient, data);
+    int nphi = data.fPhi.Rows();
     // extend the dimension of the master element directions
     const int ndirections = data.fMasterDirections.Cols();
     data.fMasterDirections.Resize(TSHAPE::Dimension+1, ndirections+2);
@@ -42,21 +43,29 @@ void TPZShapeHDivCollapsed<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
     // extend the dimensions of the connect orders
     data.fHDivConnectOrders = connectorders;
     data.fSideOrient = sideorient;
-    data.fHDivNumConnectShape.Resize(nsides-ncorner+2);
+    data.fHDivNumConnectShape.Resize(TSHAPE::NFacets+3);
     // compute the number of shape functions of the top and bottom fluxes
     {
         TPZShapeData locdata;
-        const int connect = nsides-ncorner;
+        const int connect = TSHAPE::NFacets+1;
         TPZShapeHDivBound<TSHAPE> bound;
         bound.Initialize(ids,connectorders[connect],sideorient[TSHAPE::NFacets],locdata);
-        data.fHDivNumConnectShape[connect] = bound.NShape(locdata);
+        const int nphibound = bound.NShape(locdata);
+        data.fHDivNumConnectShape[connect] = nphibound;
+        nphi += nphibound;
+        data.fPhi.Resize(nphi,data.fPhi.Cols());
+        data.fDPhi.Resize(data.fDPhi.Rows(),nphi);
     }
     {
         TPZShapeData locdata;
-        const int connect = nsides-ncorner+1;
+        const int connect = TSHAPE::NFacets+2;
         TPZShapeHDivBound<TSHAPE> bound;
         bound.Initialize(ids,connectorders[connect],sideorient[TSHAPE::NFacets+1],locdata);
-        data.fHDivNumConnectShape[connect] = bound.NShape(locdata);
+        const int nphibound = bound.NShape(locdata);
+        data.fHDivNumConnectShape[connect] = nphibound;
+        nphi += nphibound;
+        data.fPhi.Resize(nphi,data.fPhi.Cols());
+        data.fDPhi.Resize(data.fDPhi.Rows(),nphi);
     }
 }
 
@@ -103,11 +112,10 @@ void TPZShapeHDivCollapsed<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &
     int firstshape = data.fSDVecShapeIndex.size();
     {
         TPZShapeData locdata;
-        const int connect = nsides-ncorner;
-        TPZShapeHDivBound<TSHAPE> bound;
-        bound.Initialize(data.fCornerNodeIds,data.fHDivConnectOrders[connect],data.fSideOrient[TSHAPE::NFacets],locdata);
+        const int connect = TSHAPE::NFacets+1;
+        TPZShapeHDivBound<TSHAPE>::Initialize(data.fCornerNodeIds,data.fHDivConnectOrders[connect],data.fSideOrient[TSHAPE::NFacets],locdata);
         TPZFNMatrix<25> locphi(data.fHDivNumConnectShape[connect],1);
-        bound.Shape(pt, locdata, locphi);
+        TPZShapeHDivBound<TSHAPE>::Shape(pt, locdata, locphi);
         for (int ish = 0; ish < locphi.Rows(); ish++) {
             phi(dim,firstshape+ish) = locphi(ish,0);
             divphi(firstshape+ish) = locphi(ish,0);
@@ -116,11 +124,10 @@ void TPZShapeHDivCollapsed<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &
     }
     {
         TPZShapeData locdata;
-        const int connect = nsides-ncorner+1;
-        TPZShapeHDivBound<TSHAPE> bound;
-        bound.Initialize(data.fCornerNodeIds,data.fHDivConnectOrders[connect],data.fSideOrient[TSHAPE::NFacets+1],locdata);
+        const int connect = TSHAPE::NFacets+2;
+        TPZShapeHDivBound<TSHAPE>::Initialize(data.fCornerNodeIds,data.fHDivConnectOrders[connect],data.fSideOrient[TSHAPE::NFacets+1],locdata);
         TPZFNMatrix<25> locphi(data.fHDivNumConnectShape[connect],1);
-        bound.Shape(pt, locdata, locphi);
+        TPZShapeHDivBound<TSHAPE>::Shape(pt, locdata, locphi);
         for (int ish = 0; ish < locphi.Rows(); ish++) {
             phi(dim,firstshape+ish) = locphi(ish,0);
             divphi(firstshape+ish) = locphi(ish,0);
