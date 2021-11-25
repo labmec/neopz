@@ -757,6 +757,12 @@ public:
 	 * @param onlyinterpolated if == 1, only elements derived from TPZInterpolatedElement will be checked
 	 */
 	TPZCompElSide LowerIdElementList(TPZCompElSide &expandvec,int onlyinterpolated);
+    
+    /**
+     * @brief Split the connect shared between this and right compelsides
+     * @param right compelside that shares the same connects as in this
+     */
+    void SplitConnect(TPZCompElSide& right);
 
 	/** @brief Returns the index of the middle side connect alon fSide */
     int64_t ConnectIndex() const;
