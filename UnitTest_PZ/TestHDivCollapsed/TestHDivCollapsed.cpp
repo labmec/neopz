@@ -28,71 +28,99 @@
 #include <catch2/catch.hpp>
 
 // ----- Functions -----
-void TestHdivCollapsed(const bool& isRefMesh, const bool& is3D);
+void TestHdivCollapsed(const bool& isRefMesh, const bool& is3D, const bool& isLinPVar);
 TPZGeoMesh *Create3DGeoMesh(const bool& isRefMesh);
 TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh);
 TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh);
 void CreateFractureHDivCollapsedEl(TPZCompMesh* cmesh);
 void SplitConnectsAtInterface(TPZCompElSide& compside);
 TPZCompMesh *PressureCMesh(int dim, int pOrder, TPZGeoMesh *gmesh);
-TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMesh *> meshvector,TPZGeoMesh * gmesh);
+TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMesh *> meshvector,TPZGeoMesh * gmesh, const bool& isLinPVar);
 void SolveProblemDirect(TPZLinearAnalysis &an, TPZCompMesh *cmesh);
 void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *> meshvector, TPZLinearAnalysis &an, TPZCompMesh *cmesh);
 const STATE ComputePressureIntegralOverDomain(TPZCompMesh* cmesh);
 
 using namespace std;
 
-enum EMatid {ENone, EDomainNotUSE, EInlet, EOutlet, ENoflux, EPressure, EIntersection, EIntersectionEnd, EVolume, EFaceBCPressure};
-int globFracID = 10;
+enum EMatid {ENone, EPressure, EVolume, EFaceBCPressure, EFracture};
 
-//-------------------------------------------------------------------------------------------------
-//   __  __      _      _   _   _     
-//  |  \/  |    / \    | | | \ | |
-//  | |\/| |   / _ \   | | |  \| |
-//  | |  | |  / ___ \  | | | |\  |
-//  |_|  |_| /_/   \_\ |_| |_| \_|
-//-------------------------------------------------------------------------------------------------
 // ----- Test cases -----
 // ---- Test 0 ----
 TEST_CASE("3D_1_frac_element","[hdivcollapsed]"){
     const bool is3D = false;
     const bool isRefMesh = false;
-    TestHdivCollapsed(is3D,isRefMesh);
+    const bool isLinP = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP);
 }
 // ---- Test 1 ----
 TEST_CASE("3D_uniformly_refined_mesh","[hdivcollapsed]"){
     const bool is3D = false;
     const bool isRefMesh = true;
-    TestHdivCollapsed(is3D,isRefMesh);
+    const bool isLinP = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP);
 }
 // ---- Test 2 ----
 TEST_CASE("2D_1_frac_element","[hdivcollapsed]"){
     const bool is3D = true;
     const bool isRefMesh = false;
-    TestHdivCollapsed(is3D,isRefMesh);
+    const bool isLinP = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP);
 }
 // ---- Test 3 ----
 TEST_CASE("2D_uniformly_refined_mesh","[hdivcollapsed]"){
     const bool is3D = true;
     const bool isRefMesh = true;
-    TestHdivCollapsed(is3D,isRefMesh);
+    const bool isLinP = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP);
 }
-
+// ---- Test 4 ----
+TEST_CASE("3D_1_frac_element_linP","[hdivcollapsed]"){
+    const bool is3D = false;
+    const bool isRefMesh = false;
+    const bool isLinP = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP);
+}
+// ---- Test 5 ----
+TEST_CASE("3D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
+    const bool is3D = false;
+    const bool isRefMesh = true;
+    const bool isLinP = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP);
+}
+// ---- Test 6 ----
+TEST_CASE("2D_1_frac_element_linP","[hdivcollapsed]"){
+    const bool is3D = true;
+    const bool isRefMesh = false;
+    const bool isLinP = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP);
+}
+// ---- Test 7 ----
+TEST_CASE("2D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
+    const bool is3D = true;
+    const bool isRefMesh = true;
+    const bool isLinP = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP);
+}
 
 // Left in case needs some serious debugging. Catch2 does not stop in debugstops in xcode
 //int main(int argc, char* argv[]){
-//    const bool isRefMesh = true;
-//    const bool is3D = false;
-//    TestHdivCollapsed(isRefMesh,is3D);
+//    const bool isRefMesh = false;
+//    const bool is3D = true;
+//    const bool isLinPVar = true;
+//    TestHdivCollapsed(isRefMesh,is3D,isLinPVar);
 //
 //    return 0;
 //}
  
 
-// ---------------------------------------------------------------------
-// ---------------------------------------------------------------------
-
-void TestHdivCollapsed(const bool& isRefMesh, const bool& is3D){
+//-------------------------------------------------------------------------------------------------
+//   __  __      _      _   _   _
+//  |  \/  |    / \    | | | \ | |
+//  | |\/| |   / _ \   | | |  \| |
+//  | |  | |  / ___ \  | | | |\  |
+//  |_|  |_| /_/   \_\ |_| |_| \_|
+//-------------------------------------------------------------------------------------------------
+void TestHdivCollapsed(const bool& isRefMesh, const bool& is3D, const bool& isLinPVar){
     
     // ----- porder -----
     constexpr int pOrder{1};
@@ -121,7 +149,7 @@ void TestHdivCollapsed(const bool& isRefMesh, const bool& is3D){
     TPZManVector< TPZCompMesh *, 2> meshvector(2);
     meshvector[0] = cmeshflux;
     meshvector[1] = cmeshpressure;
-    TPZCompMesh * cmesh = MultiphysicCMesh(dim,pOrder,meshvector,gmesh);
+    TPZCompMesh * cmesh = MultiphysicCMesh(dim,pOrder,meshvector,gmesh,isLinPVar);
     std::cout << "Number of equations = " << cmesh->NEquations() << std::endl;
 
     // ----- Solve system -----
@@ -137,11 +165,9 @@ void TestHdivCollapsed(const bool& isRefMesh, const bool& is3D){
         
     // ----- Comparing with analytical solution -----
     // For 3d:
-    // Since pressure is unit constant and the domain volume is 2*2*2=8, the integral of pressure
-    // should be 1*8 = 8.
+    // Domain volume is 2*2*2=8, the integral of pressure. If p cte: 1*8 = 8. If p varies linearly from 2 to 0: ((2-0)/2) * 8 = 8
     // For 2d:
-    // Since pressure is unit constant and the domain volume is 2*2=4, the integral of pressure
-    // should be 1*4 = 4.
+    // Domain volume is 2*2=4, the integral of pressure. If p cte: 1*4 = 4. If p varies linearly from 2 to 0: ((2-0)/2) * 4 = 8
     if (is3D) {
         REQUIRE( integratedpressure == Approx( 8.0 ) ); // Approx is from catch2 lib
     }
@@ -171,7 +197,7 @@ TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
     cmesh->InsertMaterialObject(matbc);
     
     // ===> Fracture material
-    TPZNullMaterial<> *matfrac = new TPZNullMaterial<>(globFracID,dim-1,nstate);
+    TPZNullMaterial<> *matfrac = new TPZNullMaterial<>(EFracture,dim-1,nstate);
     cmesh->InsertMaterialObject(matfrac);
     
     // ===> Fracture boundary conditions
@@ -204,7 +230,7 @@ TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
         if (!cel) {
             continue;
         }
-        if (cel->Reference()->MaterialId() == globFracID) {
+        if (cel->Reference()->MaterialId() == EFracture) {
             cel->LoadElementReference();
         }
     }
@@ -257,7 +283,7 @@ void CreateFractureHDivCollapsedEl(TPZCompMesh* cmesh) {
     cmesh->SetDimModel(gmeshdim-1);
     for(auto gel : gmesh->ElementVec()) {
         const int matid = gel->MaterialId();
-        if (matid != globFracID) continue;
+        if (matid != EFracture) continue;
         const int hassubel = gel->HasSubElement();
         if (hassubel) { // the mesh can be uniformly refined
             continue;
@@ -281,7 +307,7 @@ void CreateFractureHDivCollapsedEl(TPZCompMesh* cmesh) {
         if (!cel) continue;
         TPZGeoEl* gel = cel->Reference();
         const int matid = gel->MaterialId();
-        if (matid != globFracID) continue;
+        if (matid != EFracture) continue;
         int64_t index;
         TPZInterpolationSpace* hdivcollapsed = nullptr;
         if (gmeshdim == 2) {
@@ -385,7 +411,7 @@ TPZCompMesh *PressureCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
     cmesh->InsertMaterialObject(mat);
 
     // ===> Fracture material
-    TPZNullMaterial<> *matfrac = new TPZNullMaterial<>(globFracID,dim-1,nstate);
+    TPZNullMaterial<> *matfrac = new TPZNullMaterial<>(EFracture,dim-1,nstate);
     cmesh->InsertMaterialObject(matfrac);
     
     // ===> P order distinction
@@ -402,7 +428,7 @@ TPZCompMesh *PressureCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
     // ===> Creating space for 3D elements
     std::set<int> buildmatids;
     buildmatids.insert(EVolume);
-    buildmatids.insert(globFracID);
+    buildmatids.insert(EFracture);
     cmesh->AutoBuild(buildmatids);
         
     // ===> Set lagrange multiplier for order of assembly
@@ -421,8 +447,18 @@ TPZCompMesh *PressureCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
 
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
+auto exactSol = [](const TPZVec<REAL>& loc, TPZVec<STATE>& u, TPZFMatrix<STATE>& gradU){
+    const auto& x = loc[0];
+    const auto& y = loc[1];
+    const auto& z = loc[2];
+    u[0] = 1.-y;
+    // Not using derivatives
+};
 
-TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMesh *> meshvector,TPZGeoMesh * gmesh)
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+
+TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMesh *> meshvector,TPZGeoMesh * gmesh, const bool& isLinPVar)
 {
     // ===> Creating mp cmesh
     gmesh->ResetReference();
@@ -436,8 +472,8 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     cmesh->InsertMaterialObject(mat);
     
     // ===> Fracture mat
-    auto matfrac = new TPZMixedDarcyFractureFlow(globFracID, dim-1);
-    matfrac->SetConstantPermeability(1.);
+    auto matfrac = new TPZMixedDarcyFractureFlow(EFracture, dim-1);
+    matfrac->SetConstantPermeability(1.e6);
     cmesh->InsertMaterialObject(matfrac);
         
     // ===> Boundary Conditions
@@ -445,9 +481,13 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     TPZManVector<STATE> val2(1,1.);
     // domain bcs
     auto * BCond0 = mat->CreateBC(mat, EFaceBCPressure, 0, val1, val2);
+    if (isLinPVar)
+        BCond0->SetForcingFunctionBC(exactSol);
     cmesh->InsertMaterialObject(BCond0);
     // frac bcs
     auto * BCond1 = mat->CreateBC(mat, EPressure, 0, val1, val2);
+    if (isLinPVar)
+        BCond1->SetForcingFunctionBC(exactSol);
     cmesh->InsertMaterialObject(BCond1);
     
     // ===> Build space
@@ -523,23 +563,23 @@ TPZGeoMesh *Create3DGeoMesh(const bool& isRefMesh) {
     // ----- Create Geo Mesh -----
     const TPZVec<REAL> minX = {-1.,-1.,-1.};
     const TPZVec<REAL> maxX = {1.,1.,1.};
-    const TPZVec<int> nelDiv = {1,1,2};
+    const TPZVec<int> nelDiv = {1,2,1};
     const MMeshType elType = MMeshType::EHexahedral;
     TPZGenGrid3D gen3d(minX,maxX,nelDiv,elType);
     TPZGeoMesh *gmesh = gen3d.BuildVolumetricElements(EVolume);
     
     // ----- Fracture element and bcs -----
     int64_t index;
-    TPZManVector<int64_t,2> nodesId = {4,5};
+    TPZManVector<int64_t,2> nodesId = {2,3};
     new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
-    nodesId = {5,7};
+    nodesId = {3,9};
     new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
-    nodesId = {7,6};
+    nodesId = {9,8};
     new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
-    nodesId = {6,4};
+    nodesId = {8,2};
     new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
-    TPZManVector<int64_t,4> nodesIdVec = {4,6,7,5};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(nodesIdVec,globFracID,*gmesh,index);
+    TPZManVector<int64_t,4> nodesIdVec = {2,3,9,8};
+    new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(nodesIdVec,EFracture,*gmesh,index);
     gmesh = gen3d.BuildBoundaryElements(EFaceBCPressure, EFaceBCPressure, EFaceBCPressure, EFaceBCPressure, EFaceBCPressure, EFaceBCPressure);
     gmesh->BuildConnectivity();
     
@@ -580,7 +620,7 @@ TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh) {
     new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
     // ===> Fracture el
     TPZManVector<int64_t,2> nodesIdVec = {2,3};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesIdVec,globFracID,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesIdVec,EFracture,*gmesh,index);
     
     for (int iside = 4; iside < 8; iside++) {
         gen2d.SetBC(gmesh, iside, EFaceBCPressure);
