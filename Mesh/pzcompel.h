@@ -762,7 +762,7 @@ public:
      * @brief Split the connect shared between this and right compelsides
      * @param right compelside that shares the same connects as in this
      */
-    void SplitConnect(TPZCompElSide& right);
+    void SplitConnect(const TPZCompElSide& right) const;
 
 	/** @brief Returns the index of the middle side connect alon fSide */
     int64_t ConnectIndex() const;

@@ -116,15 +116,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     }
     else
     {
-        int64_t index = fluxmesh->AllocateNewConnect(cleft);
-        TPZConnect &newcon = fluxmesh->ConnectVec()[index];
-        cleft.DecrementElConnected();
-        newcon.ResetElConnected();
-        newcon.IncrementElConnected();
-        newcon.SetSequenceNumber(fluxmesh->NConnects() - 1);
-
-        int rightlocindex = intelright->SideConnectLocId(0, right.Side());
-        intelright->SetConnectIndex(rightlocindex, index);
+        left.SplitConnect(right);
     }
     int sideorder = cleft.Order();
     fluxmesh->SetDefaultOrder(sideorder);
@@ -251,22 +243,13 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     }
     else {
         for (auto& celside : cellsidestack){
-            int64_t newmeshindex = fluxmesh->AllocateNewConnect(cleft);
-            TPZConnect &newcon = fluxmesh->ConnectVec()[newmeshindex];
-            cleft.DecrementElConnected();
-            newcon.IncrementElConnected();
-            newcon.SetSequenceNumber(fluxmesh->NConnects() - 1);
-            
+            left.SplitConnect(celside);
             
             TPZInterpolatedElement *inteltochange = dynamic_cast<TPZInterpolatedElement *> (celside.Element());
             if (!inteltochange)
                 DebugStop();
-            
             inteltochange->SetSideOrient(celside.Side(), 1);
-            
             intelvec[count++] = inteltochange;
-            int oldelindex = inteltochange->SideConnectLocId(0, celside.Side());
-            inteltochange->SetConnectIndex(oldelindex, newmeshindex);
         }
     }
     int sideorder = cleft.Order();
@@ -341,7 +324,8 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     return std::make_tuple(pressureindex,pressureorder);
 }
 
-bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid, const bool isIntersectEnd) {
+bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid,
+                                          const bool isIntersectEnd, const int matidtohybridize) {
     
     // ==> Getting meshes
     TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
@@ -351,7 +335,18 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     
     // ==> Splitting flux mesh connect
     gmesh->ResetReference();
-    fluxmesh->LoadReferences();
+    if (matidtohybridize != -1000){
+        for (auto cel : fluxmesh->ElementVec()) {
+            if(!cel) continue;
+            const int celmatid = cel->Reference()->MaterialId();
+            if (celmatid == matidtohybridize) {
+                cel->LoadElementReference();
+            }
+        }
+    }
+    else {
+        fluxmesh->LoadReferences();
+    }    
     
     const bool isFractureIntersectionMesh = true;
     std::tuple<int64_t, int> pindexporder;

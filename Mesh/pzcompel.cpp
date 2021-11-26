@@ -971,7 +971,7 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
         if(locexpand[i].Element()) expandvec.Push(locexpand[i]);
 }
 
-void TPZCompElSide::SplitConnect(TPZCompElSide& right) {
+void TPZCompElSide::SplitConnect(const TPZCompElSide& right) const{
     TPZInterpolatedElement *intelleft = dynamic_cast<TPZInterpolatedElement *> (Element());
     TPZInterpolatedElement *intelright = dynamic_cast<TPZInterpolatedElement *> (right.Element());
     if (!intelleft || !intelright) DebugStop();
