@@ -40,7 +40,8 @@ TPZCompMesh *PressureCMesh(int dim, int pOrder, TPZGeoMesh *gmesh);
 TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMesh *>& meshvector,
                                           TPZGeoMesh * gmesh, const bool& isLinPVar, TPZHybridizeHDiv* hybridizer);
 void SolveProblemDirect(TPZLinearAnalysis &an, TPZCompMesh *cmesh);
-void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *> meshvector, TPZLinearAnalysis &an, TPZCompMesh *cmesh);
+void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *> meshvector, TPZLinearAnalysis &an, TPZCompMesh *cmesh,
+                             const std::string &plotfile);
 const STATE ComputePressureIntegralOverDomain(TPZCompMesh* cmesh);
 void HybridizeIntersections(TPZVec<TPZCompMesh *>& meshvec_Hybrid, TPZHybridizeHDiv *hybridizer);
 void CreateIntersectionInterfaceElements(TPZMultiphysicsCompMesh* cmesh, TPZHybridizeHDiv *hybridizer);
@@ -51,7 +52,7 @@ enum EMatid {ENone, EPressure, EVolume, EFaceBCPressure, EFracture, EIntersectio
 
 // ----- Test cases -----
 // ---- Test 0 ----
-TEST_CASE("3D_1_frac_element","[hdivcollapsed]"){
+TEST_CASE("2D_1_frac_element","[hdivcollapsed]"){
     const bool is3D = false;
     const bool isRefMesh = false;
     const bool isLinP = false;
@@ -59,7 +60,7 @@ TEST_CASE("3D_1_frac_element","[hdivcollapsed]"){
     TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
 }
 // ---- Test 1 ----
-TEST_CASE("3D_uniformly_refined_mesh","[hdivcollapsed]"){
+TEST_CASE("2D_uniformly_refined_mesh","[hdivcollapsed]"){
     const bool is3D = false;
     const bool isRefMesh = true;
     const bool isLinP = false;
@@ -67,7 +68,7 @@ TEST_CASE("3D_uniformly_refined_mesh","[hdivcollapsed]"){
     TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
 }
 // ---- Test 2 ----
-TEST_CASE("2D_1_frac_element","[hdivcollapsed]"){
+TEST_CASE("3D_1_frac_element","[hdivcollapsed]"){
     const bool is3D = true;
     const bool isRefMesh = false;
     const bool isLinP = false;
@@ -75,7 +76,7 @@ TEST_CASE("2D_1_frac_element","[hdivcollapsed]"){
     TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
 }
 // ---- Test 3 ----
-TEST_CASE("2D_uniformly_refined_mesh","[hdivcollapsed]"){
+TEST_CASE("3D_uniformly_refined_mesh","[hdivcollapsed]"){
     const bool is3D = true;
     const bool isRefMesh = true;
     const bool isLinP = false;
@@ -83,7 +84,7 @@ TEST_CASE("2D_uniformly_refined_mesh","[hdivcollapsed]"){
     TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
 }
 // ---- Test 4 ----
-TEST_CASE("3D_1_frac_element_linP","[hdivcollapsed]"){
+TEST_CASE("2D_1_frac_element_linP","[hdivcollapsed]"){
     const bool is3D = false;
     const bool isRefMesh = false;
     const bool isLinP = true;
@@ -91,7 +92,7 @@ TEST_CASE("3D_1_frac_element_linP","[hdivcollapsed]"){
     TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
 }
 // ---- Test 5 ----
-TEST_CASE("3D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
+TEST_CASE("2D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
     const bool is3D = false;
     const bool isRefMesh = true;
     const bool isLinP = true;
@@ -99,7 +100,7 @@ TEST_CASE("3D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
     TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
 }
 // ---- Test 6 ----
-TEST_CASE("2D_1_frac_element_linP","[hdivcollapsed]"){
+TEST_CASE("3D_1_frac_element_linP","[hdivcollapsed]"){
     const bool is3D = true;
     const bool isRefMesh = false;
     const bool isLinP = true;
@@ -107,7 +108,7 @@ TEST_CASE("2D_1_frac_element_linP","[hdivcollapsed]"){
     TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
 }
 // ---- Test 7 ----
-TEST_CASE("2D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
+TEST_CASE("3D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
     const bool is3D = true;
     const bool isRefMesh = true;
     const bool isLinP = true;
@@ -174,14 +175,23 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
         
     
     const int dim = gmesh->Dimension();
-    
+    std::stringstream gfileroot,gfilename;
+    gfileroot << "GeoMesh" << gmesh->Dimension();
+    if(isRefMesh) gfileroot << "Ref";
+    if(isFracIntersect) gfileroot << "Intersect";
+    gfilename << gfileroot.str() <<  ".vtk";
     // ----- Print gmesh -----
-    std::ofstream outgmesh("GeoMesh.vtk");
+    std::ofstream outgmesh(gfilename.str());
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outgmesh);
     
     // ----- Create Flux mesh -----
     TPZCompMesh * cmeshflux = FluxCMesh(dim,pOrder,gmesh);
-    
+    {
+        std::stringstream fluxmeshname;
+        fluxmeshname << "Flux" << gfileroot.str() << "txt";
+        std::ofstream out(fluxmeshname.str());
+        cmeshflux->Print(out);
+    }
     // ----- Pressure mesh -----
     TPZCompMesh * cmeshpressure = PressureCMesh(dim,pOrder,gmesh);
 
@@ -205,7 +215,14 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     SolveProblemDirect(an,cmesh);
 
     // ----- Print results -----
-    PrintResultsMultiphysic(dim,meshvector,an,cmesh);
+    std::stringstream pfilename;
+    pfilename << "Result" << gmesh->Dimension();
+    if(isRefMesh) pfilename << "Ref";
+    if(isFracIntersect) pfilename << "Intersect";
+    if(isLinPVar) pfilename << "LinP";
+    pfilename << ".vtk";
+
+    PrintResultsMultiphysic(dim,meshvector,an,cmesh,pfilename.str());
 
     // ----- Compute integral of pressure over domain and compare with analytical solution -----
     const STATE integratedpressure = ComputePressureIntegralOverDomain(cmesh);
@@ -267,6 +284,7 @@ TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
 //    cmesh->Print(myfile);
     
     // ===> Creating fracture element
+    // split the volumetric elements in the flux mesh
     CreateFractureHDivCollapsedEl(cmesh);
     cmesh->CleanUpUnconnectedNodes();
     
@@ -286,6 +304,31 @@ TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
     cmesh->SetAllCreateFunctionsHDiv();
     cmesh->ApproxSpace().CreateDisconnectedElements(false);
     cmesh->AutoBuild(buildmatids);
+    // adjust the side orientation of the boundary sides
+    for (auto cel : cmesh->ElementVec()) {
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        int matid = gel->MaterialId();
+        if(buildmatids.find(matid) == buildmatids.end()) continue;
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        intel->SetSideOrient(gel->NSides()-1, 1);
+        TPZGeoElSide gelside(gel);
+        TPZGeoElSide neighbour(gelside.Neighbour());
+        while(neighbour != gelside)
+        {
+            TPZGeoEl *neighgel = neighbour.Element();
+            TPZCompEl *neighcel = neighgel->Reference();
+            if(neighcel && neighgel->Dimension() == gel->Dimension()+1)
+            {
+                TPZInterpolationSpace *neighintel = dynamic_cast<TPZInterpolationSpace *>(neighcel);
+                neighintel->SetSideOrient(neighbour.Side(), 1);
+            }
+            neighbour = neighbour.Neighbour();
+        }
+    }
+
     
     
     // ===> Create BCs for 3D domain
@@ -337,11 +380,12 @@ void CreateFractureHDivCollapsedEl(TPZCompMesh* cmesh) {
             continue;
         }
         int64_t index;
+        TPZInterpolationSpace* hdivcollapsed = nullptr;
         if (gmeshdim == 2){
-            TPZCompElHDivCollapsed<pzshape::TPZShapeLinear>* hdivcollapsed = new TPZCompElHDivCollapsed<pzshape::TPZShapeLinear>(*cmesh,gel,index);
+            hdivcollapsed = new TPZCompElHDivCollapsed<pzshape::TPZShapeLinear>(*cmesh,gel,index);
         }
         else {
-            TPZCompElHDivCollapsed<pzshape::TPZShapeQuad>* hdivcollapsed = new TPZCompElHDivCollapsed<pzshape::TPZShapeQuad>(*cmesh,gel,index);
+            hdivcollapsed = new TPZCompElHDivCollapsed<pzshape::TPZShapeQuad>(*cmesh,gel,index);
         }
         
     }
@@ -351,6 +395,10 @@ void CreateFractureHDivCollapsedEl(TPZCompMesh* cmesh) {
     // Since bottom connect's default sideorient is negative one (-1),
     // we should connect it with the 3D element side that has sideorient positive one (+1)
     cmesh->LoadReferences(); // So the hdivcollapsed element can see the 3D the flux mesh adjacent elements to it
+    
+    // if there are superposed fracture elements then first connects need to be created to link the superposed
+    // fracture elements
+    // then the extremes need to link to the 3D elements
     for(auto cel : cmesh->ElementVec()) {
         if (!cel) continue;
         TPZGeoEl* gel = cel->Reference();
@@ -363,6 +411,8 @@ void CreateFractureHDivCollapsedEl(TPZCompMesh* cmesh) {
         }
         else{
 //            TPZCompElHDivCollapsed<pzshape::TPZShapeQuad>* hdivcollapsed = dynamic_cast<TPZCompElHDivCollapsed<pzshape::TPZShapeQuad>* >(cel);
+            
+            // this code needs to be generalised to consider triangular fracture elements
             hdivcollapsed = dynamic_cast<TPZCompElHDivCollapsed<pzshape::TPZShapeQuad>* >(cel);
         }
         
@@ -374,12 +424,14 @@ void CreateFractureHDivCollapsedEl(TPZCompMesh* cmesh) {
         TPZGeoElSide gelside(gel,gel->NSides()-1);
         TPZGeoElSide neigh = gelside.Neighbour();
         int icon = 0;
+        // loop over all neighbours of the fracture element
         while(neigh != gelside){
             TPZGeoEl* gelnei = neigh.Element();
             if (!gelnei || gelnei->Dimension() != gmeshdim || gelnei->MaterialId() != EVolume) {
                 neigh++;
                 continue;
             }
+            // we found a volumetric element
             TPZCompElSide compside = TPZCompElSide(gelnei->Reference(), neigh.Side());
             if (icon == 0){
                 // split the connect shared by two adjacent 3d elements if it is the first time
@@ -522,7 +574,7 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     
     // ===> Fracture mat
     auto matfrac = new TPZMixedDarcyFractureFlow(EFracture, dim-1);
-    matfrac->SetConstantPermeability(1.e6); // high so it does affect perpendicular flow
+    matfrac->SetConstantPermeability(1.); // high so it does affect perpendicular flow
     cmesh->InsertMaterialObject(matfrac);
         
     // ===> Boundary Conditions
@@ -579,13 +631,13 @@ void SolveProblemDirect(TPZLinearAnalysis &an, TPZCompMesh *cmesh)
     //assembles the system
     an.Assemble();
     
-//  {
-//    std::ofstream outmat("mat.txt");
-//    TPZMatrixSolver<STATE>* matsol = dynamic_cast<TPZMatrixSolver<STATE>*>(an.Solver());
-//    matsol->Matrix()->Print("singmat=",outmat,EMathematicaInput);
-//    std::ofstream outrhs("rhs.txt");
-//    an.Rhs().Print("rhs=",outrhs,EMathematicaInput);
-//  }
+  {
+    std::ofstream outmat("mat.nb");
+    TPZMatrixSolver<STATE>* matsol = dynamic_cast<TPZMatrixSolver<STATE>*>(an.Solver());
+    matsol->Matrix()->Print("singmat=",outmat,EMathematicaInput);
+    std::ofstream outrhs("rhs.nb");
+    an.Rhs().Print("rhs=",outrhs,EMathematicaInput);
+  }
     
     ///solves the system
     an.Solve();
@@ -596,7 +648,8 @@ void SolveProblemDirect(TPZLinearAnalysis &an, TPZCompMesh *cmesh)
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
 
-void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *> meshvector, TPZLinearAnalysis &an, TPZCompMesh *cmesh)
+void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *> meshvector, TPZLinearAnalysis &an, TPZCompMesh *cmesh,
+                             const std::string &plotfile)
 {
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvector, cmesh);
@@ -606,7 +659,7 @@ void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *> meshvector, TPZLinea
     vecnames[0]= "Flux";
     
     int div = 0;
-    std::string plotfile = "PostProcess1Frac.vtk";
+//    std::string plotfile = "PostProcess1Frac.vtk";
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     
@@ -736,27 +789,29 @@ TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh) {
     // ----- Create Geo Mesh -----
     const TPZManVector<REAL,2> minX = {-1.,-1.};
     const TPZManVector<REAL,2> maxX = {1.,1.};
-    const TPZManVector<int,2> nelDiv = {1,2};
+    const TPZManVector<int,2> nelDiv = {2,2};
     TPZGenGrid2D gen2d(nelDiv,minX,maxX);
     const MMeshType elType = MMeshType::EQuadrilateral;
     gen2d.SetElementType(elType);
     TPZGeoMesh* gmesh = new TPZGeoMesh;
     gen2d.Read(gmesh,EVolume);
-    
-    // ----- Fracture element and bcs -----
-    int64_t index;
-    // ===> BCs
-    TPZManVector<int64_t,1> nodesId = {2};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
-    nodesId = {3};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
-    // ===> Fracture el
-    TPZManVector<int64_t,2> nodesIdVec = {2,3};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesIdVec,EFracture,*gmesh,index);
-    
     for (int iside = 4; iside < 8; iside++) {
         gen2d.SetBC(gmesh, iside, EFaceBCPressure);
     }
+
+    // ----- Fracture element and bcs -----
+    int64_t index;
+    // ===> BCs
+    TPZManVector<int64_t,1> nodesId = {3};
+    new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
+    nodesId = {5};
+    new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
+    // ===> Fracture el
+    TPZManVector<int64_t,2> nodesIdVec = {3,4};
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesIdVec,EFracture,*gmesh,index);
+    nodesIdVec = {4,5};
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesIdVec,EFracture,*gmesh,index);
+
     
     gmesh->BuildConnectivity();
     
@@ -769,6 +824,11 @@ TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh) {
         }
         gmesh->BuildConnectivity();
     }
+    {
+        std::ofstream out("gmesh2d.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+    }
+    
     return gmesh;
 }
 
