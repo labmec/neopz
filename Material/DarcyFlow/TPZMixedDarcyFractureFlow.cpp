@@ -121,11 +121,16 @@ void TPZMixedDarcyFractureFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>>
     int first_transverse_q = 0;
     // first index in fVecShapeIndex corresponding to the second transverse flux
     int second_transverse_q = 0;
+    int nconnects = datavec[qb].fHDivNumConnectShape.size();
+    second_transverse_q = nvecs-datavec[qb].fHDivNumConnectShape[nconnects-1];
+    first_transverse_q = second_transverse_q-datavec[qb].fHDivNumConnectShape[nconnects-2];
+    /*
     for(int i=0; i< nphi_q; i++)
     {
         if(first_transverse_q == 0 && datavec[qb].fVecShapeIndex[i].first == nvecs-2) first_transverse_q = i;
         if(second_transverse_q == 0 && datavec[qb].fVecShapeIndex[i].first == nvecs-1) second_transverse_q = i;
     }
+     */
     if(first_transverse_q == 0 || second_transverse_q == 0 || first_transverse_q == second_transverse_q)
     {
         DebugStop();
@@ -223,7 +228,7 @@ void TPZMixedDarcyFractureFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>>
 
             v_j = datavec[qb].fVecShapeIndex[jq].first;
             s_j = datavec[qb].fVecShapeIndex[jq].second;
-            if(v_j != v_i) DebugStop();
+//            if(v_j != v_i) DebugStop();
             kappa_inv_phi_q_j.Zero();
 
             // kappanormal is the orthogonal permeability
@@ -275,7 +280,7 @@ void TPZMixedDarcyFractureFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>>
         {
             v_j = datavec[qb].fVecShapeIndex[jq].first;
             s_j = datavec[qb].fVecShapeIndex[jq].second;
-            if(v_j != v_i) DebugStop();
+//            if(v_j != v_i) DebugStop();
             kappa_inv_phi_q_j.Zero();
 
             // kappanormal is the orthogonal permeability
