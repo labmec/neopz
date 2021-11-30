@@ -134,6 +134,9 @@ enum EMatid {ENone, EPressure, EVolume, EFaceBCPressure, ENoFlux, EFracture, EIn
 
 // Left in case needs some serious debugging. Catch2 does not stop in debugstops in xcode
 int main(int argc, char* argv[]){
+#ifdef PZ_LOG
+    TPZLogger::InitializePZLOG();
+#endif
     const bool isRefMesh = false;
     const bool is3D = false;
     const bool isLinPVar = true;
@@ -194,6 +197,12 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     }
     // ----- Pressure mesh -----
     TPZCompMesh * cmeshpressure = PressureCMesh(dim,pOrder,gmesh);
+    {
+        std::stringstream fluxmeshname;
+        fluxmeshname << "Pressure" << gfileroot.str() << "txt";
+        std::ofstream out(fluxmeshname.str());
+        cmeshpressure->Print(out);
+    }
 
     // ----- Multiphysics mesh -----
     TPZManVector< TPZCompMesh *, 2> meshvector(2);
@@ -657,12 +666,17 @@ void SolveProblemDirect(TPZLinearAnalysis &an, TPZCompMesh *cmesh)
     TPZMatrixSolver<STATE>* matsol = dynamic_cast<TPZMatrixSolver<STATE>*>(an.Solver());
     matsol->Matrix()->Print("singmat=",outmat,EMathematicaInput);
     std::ofstream outrhs("rhs.nb");
-    an.Rhs().Print("rhs=",outrhs,EMathematicaInput);
+      TPZFMatrix<STATE> rhs = an.Rhs();
+    rhs.Print("rhs=",outrhs,EMathematicaInput);
   }
     
     ///solves the system
     an.Solve();
-    
+    {
+        std::ofstream outsol("sol.nb");
+        TPZFMatrix<STATE> sol = an.Solution();
+        sol.Print("sol = ",outsol,EMathematicaInput);
+    }
     return;
 }
 
