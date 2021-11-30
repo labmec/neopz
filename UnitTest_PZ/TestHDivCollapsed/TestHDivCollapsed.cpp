@@ -48,100 +48,100 @@ void CreateIntersectionInterfaceElements(TPZMultiphysicsCompMesh* cmesh, TPZHybr
 
 using namespace std;
 
-enum EMatid {ENone, EPressure, EVolume, EFaceBCPressure, EFracture, EIntersection};
+enum EMatid {ENone, EPressure, EVolume, EFaceBCPressure, ENoFlux, EFracture, EIntersection};
 
 // ----- Test cases -----
-// ---- Test 0 ----
-TEST_CASE("2D_1_frac_element","[hdivcollapsed]"){
-    const bool is3D = false;
-    const bool isRefMesh = false;
-    const bool isLinP = false;
-    const bool isFracIntersect = false;
-    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-}
-// ---- Test 1 ----
-TEST_CASE("2D_uniformly_refined_mesh","[hdivcollapsed]"){
-    const bool is3D = false;
-    const bool isRefMesh = true;
-    const bool isLinP = false;
-    const bool isFracIntersect = false;
-    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-}
-// ---- Test 2 ----
-TEST_CASE("3D_1_frac_element","[hdivcollapsed]"){
-    const bool is3D = true;
-    const bool isRefMesh = false;
-    const bool isLinP = false;
-    const bool isFracIntersect = false;
-    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-}
-// ---- Test 3 ----
-TEST_CASE("3D_uniformly_refined_mesh","[hdivcollapsed]"){
-    const bool is3D = true;
-    const bool isRefMesh = true;
-    const bool isLinP = false;
-    const bool isFracIntersect = false;
-    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-}
-// ---- Test 4 ----
-TEST_CASE("2D_1_frac_element_linP","[hdivcollapsed]"){
-    const bool is3D = false;
-    const bool isRefMesh = false;
-    const bool isLinP = true;
-    const bool isFracIntersect = false;
-    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-}
-// ---- Test 5 ----
-TEST_CASE("2D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
-    const bool is3D = false;
-    const bool isRefMesh = true;
-    const bool isLinP = true;
-    const bool isFracIntersect = false;
-    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-}
-// ---- Test 6 ----
-TEST_CASE("3D_1_frac_element_linP","[hdivcollapsed]"){
-    const bool is3D = true;
-    const bool isRefMesh = false;
-    const bool isLinP = true;
-    const bool isFracIntersect = false;
-    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-}
-// ---- Test 7 ----
-TEST_CASE("3D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
-    const bool is3D = true;
-    const bool isRefMesh = true;
-    const bool isLinP = true;
-    const bool isFracIntersect = false;
-    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-}
-// ---- Test 8 ----
-TEST_CASE("3D_2_frac_intersect","[hdivcollapsed]"){
-    const bool is3D = true;
-    const bool isRefMesh = false;
-    const bool isLinP = false;
-    const bool isFracIntersect = true;
-    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-}
-// ---- Test 9 ----
-TEST_CASE("3D_2_frac_intersect_uniformly_refined","[hdivcollapsed]"){
-    const bool is3D = true;
-    const bool isRefMesh = true;
-    const bool isLinP = false;
-    const bool isFracIntersect = true;
-    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-}
+//// ---- Test 0 ----
+//TEST_CASE("2D_1_frac_element","[hdivcollapsed]"){
+//    const bool is3D = false;
+//    const bool isRefMesh = false;
+//    const bool isLinP = false;
+//    const bool isFracIntersect = false;
+//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+//}
+//// ---- Test 1 ----
+//TEST_CASE("2D_uniformly_refined_mesh","[hdivcollapsed]"){
+//    const bool is3D = false;
+//    const bool isRefMesh = true;
+//    const bool isLinP = false;
+//    const bool isFracIntersect = false;
+//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+//}
+//// ---- Test 2 ----
+//TEST_CASE("3D_1_frac_element","[hdivcollapsed]"){
+//    const bool is3D = true;
+//    const bool isRefMesh = false;
+//    const bool isLinP = false;
+//    const bool isFracIntersect = false;
+//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+//}
+//// ---- Test 3 ----
+//TEST_CASE("3D_uniformly_refined_mesh","[hdivcollapsed]"){
+//    const bool is3D = true;
+//    const bool isRefMesh = true;
+//    const bool isLinP = false;
+//    const bool isFracIntersect = false;
+//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+//}
+//// ---- Test 4 ----
+//TEST_CASE("2D_1_frac_element_linP","[hdivcollapsed]"){
+//    const bool is3D = false;
+//    const bool isRefMesh = false;
+//    const bool isLinP = true;
+//    const bool isFracIntersect = false;
+//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+//}
+//// ---- Test 5 ----
+//TEST_CASE("2D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
+//    const bool is3D = false;
+//    const bool isRefMesh = true;
+//    const bool isLinP = true;
+//    const bool isFracIntersect = false;
+//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+//}
+//// ---- Test 6 ----
+//TEST_CASE("3D_1_frac_element_linP","[hdivcollapsed]"){
+//    const bool is3D = true;
+//    const bool isRefMesh = false;
+//    const bool isLinP = true;
+//    const bool isFracIntersect = false;
+//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+//}
+//// ---- Test 7 ----
+//TEST_CASE("3D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
+//    const bool is3D = true;
+//    const bool isRefMesh = true;
+//    const bool isLinP = true;
+//    const bool isFracIntersect = false;
+//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+//}
+//// ---- Test 8 ----
+//TEST_CASE("3D_2_frac_intersect","[hdivcollapsed]"){
+//    const bool is3D = true;
+//    const bool isRefMesh = false;
+//    const bool isLinP = false;
+//    const bool isFracIntersect = true;
+//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+//}
+//// ---- Test 9 ----
+//TEST_CASE("3D_2_frac_intersect_uniformly_refined","[hdivcollapsed]"){
+//    const bool is3D = true;
+//    const bool isRefMesh = true;
+//    const bool isLinP = false;
+//    const bool isFracIntersect = true;
+//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+//}
 
 // Left in case needs some serious debugging. Catch2 does not stop in debugstops in xcode
-//int main(int argc, char* argv[]){
-//    const bool isRefMesh = false;
-//    const bool is3D = true;
-//    const bool isLinPVar = true;
-//    const bool isFracIntersect = true;
-//    TestHdivCollapsed(isRefMesh,is3D,isLinPVar,isFracIntersect);
-//
-//    return 0;
-//}
+int main(int argc, char* argv[]){
+    const bool isRefMesh = false;
+    const bool is3D = false;
+    const bool isLinPVar = true;
+    const bool isFracIntersect = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinPVar,isFracIntersect);
+
+    return 0;
+}
  
 
 //-------------------------------------------------------------------------------------------------
@@ -230,14 +230,14 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
         
     // ----- Comparing with analytical solution -----
     // For 3d:
-    // Domain volume is 2*2*2=8, the integral of pressure. If p cte: 1*8 = 8. If p varies linearly from 2 to 0: ((2-0)/2) * 8 = 8
+    // Domain volume is 2*2*2=8. If p cte: 1*8 = 8. If p varies linearly from 2 to 0: ((2-0)/2) * 8 = 8
     // For 2d:
-    // Domain volume is 2*2=4, the integral of pressure. If p cte: 1*4 = 4. If p varies linearly from 2 to 0: ((2-0)/2) * 4 = 8
+    // Domain volume is 2*2=4. If p cte: 1*4 = 4. If p varies linearly from 2 to 0: ((2-0)/2) * 4 = 8
     if (is3D) {
-        REQUIRE( integratedpressure == Approx( 8.0 ) ); // Approx is from catch2 lib
+//        REQUIRE( integratedpressure == Approx( 8.0 ) ); // Approx is from catch2 lib
     }
     else{
-        REQUIRE( integratedpressure == Approx( 4.0 ) ); // Approx is from catch2 lib
+//        REQUIRE( integratedpressure == Approx( 4.0 ) ); // Approx is from catch2 lib
     }
     
     delete gmesh;
@@ -260,6 +260,8 @@ TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
     // ===> Boundary conditions
     TPZNullMaterial<> *matbc = new TPZNullMaterial<>(EFaceBCPressure,dim-1,nstate);
     cmesh->InsertMaterialObject(matbc);
+    TPZNullMaterial<> *matbcnf = new TPZNullMaterial<>(ENoFlux,dim-1,nstate);
+    cmesh->InsertMaterialObject(matbcnf);
     
     // ===> Fracture material
     TPZNullMaterial<> *matfrac = new TPZNullMaterial<>(EFracture,dim-1,nstate);
@@ -334,6 +336,7 @@ TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
     // ===> Create BCs for 3D domain
     buildmatids.clear();
     buildmatids.insert(EFaceBCPressure);
+    buildmatids.insert(ENoFlux);
     gmesh->ResetReference();
     for (auto cel : cmesh->ElementVec()) {
         if (!cel) {
@@ -554,7 +557,19 @@ auto exactSol = [](const TPZVec<REAL>& loc, TPZVec<STATE>& u, TPZFMatrix<STATE>&
     u[0] = 1.-y;
     // Not using derivatives
 };
-
+auto exactSolLinP = [](const TPZVec<REAL>& loc, TPZVec<STATE>& u, TPZFMatrix<STATE>& gradU){
+    const auto& x = loc[0];
+    const auto& y = loc[1];
+    const auto& z = loc[2];
+    const REAL gap = 1.0;
+    if(y < 0){
+        u[0] = 3.0 - (y+1)*gap;
+    }
+    else{
+        u[0] = gap - y*gap;
+    }
+    // Not using derivatives
+};
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
 
@@ -574,7 +589,7 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     
     // ===> Fracture mat
     auto matfrac = new TPZMixedDarcyFractureFlow(EFracture, dim-1);
-    matfrac->SetConstantPermeability(1.); // high so it does affect perpendicular flow
+    matfrac->SetConstantPermeability(1.);
     cmesh->InsertMaterialObject(matfrac);
         
     // ===> Boundary Conditions
@@ -585,10 +600,16 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     if (isLinPVar)
         BCond0->SetForcingFunctionBC(exactSol);
     cmesh->InsertMaterialObject(BCond0);
+    
+    TPZManVector<STATE> val2n(1,0.);
+    auto * BCondNoFlux = mat->CreateBC(mat,ENoFlux, 1, val1, val2n);
+    cmesh->InsertMaterialObject(BCondNoFlux);
+    
     // frac bcs
-    auto * BCond1 = mat->CreateBC(mat, EPressure, 0, val1, val2);
-    if (isLinPVar)
-        BCond1->SetForcingFunctionBC(exactSol);
+//    auto * BCond1 = mat->CreateBC(mat, EPressure, 0, val1, val2n);
+    auto * BCond1 = mat->CreateBC(mat, EPressure, 1, val1, val2n);
+//    if (isLinPVar)
+//        BCond1->SetForcingFunctionBC(exactSolLinP);
     cmesh->InsertMaterialObject(BCond1);
     
     // ===> Materials for hybridizing intersection between fractures
@@ -658,7 +679,7 @@ void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *> meshvector, TPZLinea
     scalnames[0] = "Pressure";
     vecnames[0]= "Flux";
     
-    int div = 0;
+    int div = 2;
 //    std::string plotfile = "PostProcess1Frac.vtk";
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
@@ -795,9 +816,13 @@ TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh) {
     gen2d.SetElementType(elType);
     TPZGeoMesh* gmesh = new TPZGeoMesh;
     gen2d.Read(gmesh,EVolume);
-    for (int iside = 4; iside < 8; iside++) {
-        gen2d.SetBC(gmesh, iside, EFaceBCPressure);
-    }
+//    for (int iside = 4; iside < 8; iside++) {
+//        gen2d.SetBC(gmesh, iside, EFaceBCPressure);
+//    }
+    gen2d.SetBC(gmesh, 4, EFaceBCPressure);
+    gen2d.SetBC(gmesh, 5, ENoFlux);
+    gen2d.SetBC(gmesh, 6, EFaceBCPressure);
+    gen2d.SetBC(gmesh, 7, ENoFlux);
 
     // ----- Fracture element and bcs -----
     int64_t index;
