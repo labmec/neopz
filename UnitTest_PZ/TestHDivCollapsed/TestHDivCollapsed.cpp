@@ -42,7 +42,7 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
 void SolveProblemDirect(TPZLinearAnalysis &an, TPZCompMesh *cmesh);
 void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *> meshvector, TPZLinearAnalysis &an, TPZCompMesh *cmesh,
                              const std::string &plotfile);
-const STATE ComputePressureIntegralOverDomain(TPZCompMesh* cmesh);
+const STATE ComputeIntegralOverDomain(TPZCompMesh* cmesh, const std::string& varname);
 void HybridizeIntersections(TPZVec<TPZCompMesh *>& meshvec_Hybrid, TPZHybridizeHDiv *hybridizer);
 void CreateIntersectionInterfaceElements(TPZMultiphysicsCompMesh* cmesh, TPZHybridizeHDiv *hybridizer);
 
@@ -51,100 +51,100 @@ using namespace std;
 enum EMatid {ENone, EPressure, EVolume, EFaceBCPressure, ENoFlux, EFracture, EIntersection};
 
 // ----- Test cases -----
-//// ---- Test 0 ----
-//TEST_CASE("2D_1_frac_element","[hdivcollapsed]"){
-//    const bool is3D = false;
-//    const bool isRefMesh = false;
-//    const bool isLinP = false;
-//    const bool isFracIntersect = false;
-//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-//}
-//// ---- Test 1 ----
-//TEST_CASE("2D_uniformly_refined_mesh","[hdivcollapsed]"){
-//    const bool is3D = false;
-//    const bool isRefMesh = true;
-//    const bool isLinP = false;
-//    const bool isFracIntersect = false;
-//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-//}
-//// ---- Test 2 ----
-//TEST_CASE("3D_1_frac_element","[hdivcollapsed]"){
-//    const bool is3D = true;
-//    const bool isRefMesh = false;
-//    const bool isLinP = false;
-//    const bool isFracIntersect = false;
-//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-//}
-//// ---- Test 3 ----
-//TEST_CASE("3D_uniformly_refined_mesh","[hdivcollapsed]"){
-//    const bool is3D = true;
-//    const bool isRefMesh = true;
-//    const bool isLinP = false;
-//    const bool isFracIntersect = false;
-//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-//}
-//// ---- Test 4 ----
-//TEST_CASE("2D_1_frac_element_linP","[hdivcollapsed]"){
-//    const bool is3D = false;
-//    const bool isRefMesh = false;
-//    const bool isLinP = true;
-//    const bool isFracIntersect = false;
-//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-//}
-//// ---- Test 5 ----
-//TEST_CASE("2D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
-//    const bool is3D = false;
-//    const bool isRefMesh = true;
-//    const bool isLinP = true;
-//    const bool isFracIntersect = false;
-//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-//}
-//// ---- Test 6 ----
-//TEST_CASE("3D_1_frac_element_linP","[hdivcollapsed]"){
-//    const bool is3D = true;
-//    const bool isRefMesh = false;
-//    const bool isLinP = true;
-//    const bool isFracIntersect = false;
-//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-//}
-//// ---- Test 7 ----
-//TEST_CASE("3D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
-//    const bool is3D = true;
-//    const bool isRefMesh = true;
-//    const bool isLinP = true;
-//    const bool isFracIntersect = false;
-//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-//}
-//// ---- Test 8 ----
-//TEST_CASE("3D_2_frac_intersect","[hdivcollapsed]"){
-//    const bool is3D = true;
-//    const bool isRefMesh = false;
-//    const bool isLinP = false;
-//    const bool isFracIntersect = true;
-//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-//}
-//// ---- Test 9 ----
-//TEST_CASE("3D_2_frac_intersect_uniformly_refined","[hdivcollapsed]"){
-//    const bool is3D = true;
-//    const bool isRefMesh = true;
-//    const bool isLinP = false;
-//    const bool isFracIntersect = true;
-//    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
-//}
+// ---- Test 0 ----
+TEST_CASE("2D_1_frac_element","[hdivcollapsed]"){
+    const bool is3D = false;
+    const bool isRefMesh = false;
+    const bool isLinP = false;
+    const bool isFracIntersect = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 1 ----
+TEST_CASE("2D_uniformly_refined_mesh","[hdivcollapsed]"){
+    const bool is3D = false;
+    const bool isRefMesh = true;
+    const bool isLinP = false;
+    const bool isFracIntersect = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 2 ----
+TEST_CASE("3D_1_frac_element","[hdivcollapsed]"){
+    const bool is3D = true;
+    const bool isRefMesh = false;
+    const bool isLinP = false;
+    const bool isFracIntersect = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 3 ----
+TEST_CASE("3D_uniformly_refined_mesh","[hdivcollapsed]"){
+    const bool is3D = true;
+    const bool isRefMesh = true;
+    const bool isLinP = false;
+    const bool isFracIntersect = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 4 ----
+TEST_CASE("2D_1_frac_element_linP","[hdivcollapsed]"){
+    const bool is3D = false;
+    const bool isRefMesh = false;
+    const bool isLinP = true;
+    const bool isFracIntersect = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 5 ----
+TEST_CASE("2D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
+    const bool is3D = false;
+    const bool isRefMesh = true;
+    const bool isLinP = true;
+    const bool isFracIntersect = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 6 ----
+TEST_CASE("3D_1_frac_element_linP","[hdivcollapsed]"){
+    const bool is3D = true;
+    const bool isRefMesh = false;
+    const bool isLinP = true;
+    const bool isFracIntersect = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 7 ----
+TEST_CASE("3D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
+    const bool is3D = true;
+    const bool isRefMesh = true;
+    const bool isLinP = true;
+    const bool isFracIntersect = false;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 8 ----
+TEST_CASE("3D_2_frac_intersect","[hdivcollapsed]"){
+    const bool is3D = true;
+    const bool isRefMesh = false;
+    const bool isLinP = false;
+    const bool isFracIntersect = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 9 ----
+TEST_CASE("3D_2_frac_intersect_uniformly_refined","[hdivcollapsed]"){
+    const bool is3D = true;
+    const bool isRefMesh = true;
+    const bool isLinP = false;
+    const bool isFracIntersect = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
 
 // Left in case needs some serious debugging. Catch2 does not stop in debugstops in xcode
-int main(int argc, char* argv[]){
-#ifdef PZ_LOG
-    TPZLogger::InitializePZLOG();
-#endif
-    const bool isRefMesh = false;
-    const bool is3D = false;
-    const bool isLinPVar = true;
-    const bool isFracIntersect = false;
-    TestHdivCollapsed(is3D,isRefMesh,isLinPVar,isFracIntersect);
-
-    return 0;
-}
+//int main(int argc, char* argv[]){
+//#ifdef PZ_LOG
+//    TPZLogger::InitializePZLOG();
+//#endif
+//    const bool isRefMesh = false;
+//    const bool is3D = false;
+//    const bool isLinPVar = true;
+//    const bool isFracIntersect = false;
+//    TestHdivCollapsed(is3D,isRefMesh,isLinPVar,isFracIntersect);
+//
+//    return 0;
+//}
  
 
 //-------------------------------------------------------------------------------------------------
@@ -156,9 +156,16 @@ int main(int argc, char* argv[]){
 //-------------------------------------------------------------------------------------------------
 void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLinPVar, const bool& isFracIntersect){
     
-    // ----- porder -----
+    // ----- porder and header -----
     constexpr int pOrder{1};
-
+    std::stringstream header;
+    const int dim = is3D ? 3 : 2;
+    header << "Dim: " << dim;
+    if(isRefMesh) header << "  Ref";
+    if(isFracIntersect) header << "  Intersect";
+    if(isLinPVar) header << "  LinP";
+    std::cout << "\n ============ " << header.str() << " ============\n" << std::endl;
+    
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
@@ -177,9 +184,8 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     }
         
     
-    const int dim = gmesh->Dimension();
     std::stringstream gfileroot,gfilename;
-    gfileroot << "GeoMesh" << gmesh->Dimension();
+    gfileroot << "GeoMesh" << gmesh->Dimension() << "D_";
     if(isRefMesh) gfileroot << "Ref";
     if(isFracIntersect) gfileroot << "Intersect";
     gfilename << gfileroot.str() <<  ".vtk";
@@ -191,7 +197,7 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     TPZCompMesh * cmeshflux = FluxCMesh(dim,pOrder,gmesh);
     {
         std::stringstream fluxmeshname;
-        fluxmeshname << "Flux" << gfileroot.str() << "txt";
+        fluxmeshname << "Flux" << gfileroot.str() << ".txt";
         std::ofstream out(fluxmeshname.str());
         cmeshflux->Print(out);
     }
@@ -199,7 +205,7 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     TPZCompMesh * cmeshpressure = PressureCMesh(dim,pOrder,gmesh);
     {
         std::stringstream fluxmeshname;
-        fluxmeshname << "Pressure" << gfileroot.str() << "txt";
+        fluxmeshname << "Pressure" << gfileroot.str() << ".txt";
         std::ofstream out(fluxmeshname.str());
         cmeshpressure->Print(out);
     }
@@ -233,20 +239,34 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
 
     PrintResultsMultiphysic(dim,meshvector,an,cmesh,pfilename.str());
 
-    // ----- Compute integral of pressure over domain and compare with analytical solution -----
-    const STATE integratedpressure = ComputePressureIntegralOverDomain(cmesh);
+    // ----- Compute integral of pressure and flux over domain and compare with analytical solution -----
+    const std::string pvarname = "Pressure";
+    const STATE integratedpressure = ComputeIntegralOverDomain(cmesh,pvarname);
     std::cout << "\nintegral of pressure  = " << integratedpressure << std::endl;
-        
+    
+    const std::string qvarname = "Flux";
+    STATE integratedflux = ComputeIntegralOverDomain(cmesh,qvarname);
+    if (fabs(integratedflux) < 1.e-14 ) integratedflux = 0.; // to make Approx(0.) work
+    std::cout << "\nintegral of flux  = " << integratedflux << std::endl;
+    
     // ----- Comparing with analytical solution -----
     // For 3d:
     // Domain volume is 2*2*2=8. If p cte: 1*8 = 8. If p varies linearly from 2 to 0: ((2-0)/2) * 8 = 8
     // For 2d:
     // Domain volume is 2*2=4. If p cte: 1*4 = 4. If p varies linearly from 2 to 0: ((2-0)/2) * 4 = 8
     if (is3D) {
-//        REQUIRE( integratedpressure == Approx( 8.0 ) ); // Approx is from catch2 lib
+        REQUIRE( integratedpressure == Approx( 8.0 ) ); // Approx is from catch2 lib
+        if (isLinPVar)
+            REQUIRE( integratedflux == Approx( 8./3. ) ); // Approx is from catch2 lib
+        else
+            REQUIRE( integratedflux == Approx( 0.) ); // Approx is from catch2 lib
     }
     else{
-//        REQUIRE( integratedpressure == Approx( 4.0 ) ); // Approx is from catch2 lib
+        REQUIRE( integratedpressure == Approx( 4.0 ) ); // Approx is from catch2 lib
+        if (isLinPVar)
+            REQUIRE( integratedflux == Approx( 4./3. ) ); // Approx is from catch2 lib
+        else
+            REQUIRE( integratedflux == Approx( 0.) ); // Approx is from catch2 lib
     }
     
     delete gmesh;
@@ -570,9 +590,9 @@ auto exactSolLinP = [](const TPZVec<REAL>& loc, TPZVec<STATE>& u, TPZFMatrix<STA
     const auto& x = loc[0];
     const auto& y = loc[1];
     const auto& z = loc[2];
-    const REAL gap = 1.0;
+    const REAL gap = 1./3.;
     if(y < 0){
-        u[0] = 3.0 - (y+1)*gap;
+        u[0] = 2.0 - (y+1)*gap;
     }
     else{
         u[0] = gap - y*gap;
@@ -607,7 +627,7 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     // domain bcs
     auto * BCond0 = mat->CreateBC(mat, EFaceBCPressure, 0, val1, val2);
     if (isLinPVar)
-        BCond0->SetForcingFunctionBC(exactSol);
+        BCond0->SetForcingFunctionBC(exactSolLinP);
     cmesh->InsertMaterialObject(BCond0);
     
     TPZManVector<STATE> val2n(1,0.);
@@ -615,8 +635,8 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     cmesh->InsertMaterialObject(BCondNoFlux);
     
     // frac bcs
-//    auto * BCond1 = mat->CreateBC(mat, EPressure, 0, val1, val2n);
-    auto * BCond1 = mat->CreateBC(mat, EPressure, 1, val1, val2n);
+    auto * BCond1 = mat->CreateBC(mat, EPressure, 0, val1, val2); // pressure is always 1 at the fracture
+//    auto * BCond1 = mat->CreateBC(mat, EPressure, 1, val1, val2n);
 //    if (isLinPVar)
 //        BCond1->SetForcingFunctionBC(exactSolLinP);
     cmesh->InsertMaterialObject(BCond1);
@@ -661,22 +681,22 @@ void SolveProblemDirect(TPZLinearAnalysis &an, TPZCompMesh *cmesh)
     //assembles the system
     an.Assemble();
     
-  {
-    std::ofstream outmat("mat.nb");
-    TPZMatrixSolver<STATE>* matsol = dynamic_cast<TPZMatrixSolver<STATE>*>(an.Solver());
-    matsol->Matrix()->Print("singmat=",outmat,EMathematicaInput);
-    std::ofstream outrhs("rhs.nb");
-      TPZFMatrix<STATE> rhs = an.Rhs();
-    rhs.Print("rhs=",outrhs,EMathematicaInput);
-  }
+//  {
+//    std::ofstream outmat("mat.nb");
+//    TPZMatrixSolver<STATE>* matsol = dynamic_cast<TPZMatrixSolver<STATE>*>(an.Solver());
+//    matsol->Matrix()->Print("singmat=",outmat,EMathematicaInput);
+//    std::ofstream outrhs("rhs.nb");
+//      TPZFMatrix<STATE> rhs = an.Rhs();
+//    rhs.Print("rhs=",outrhs,EMathematicaInput);
+//  }
     
     ///solves the system
     an.Solve();
-    {
-        std::ofstream outsol("sol.nb");
-        TPZFMatrix<STATE> sol = an.Solution();
-        sol.Print("sol = ",outsol,EMathematicaInput);
-    }
+//    {
+//        std::ofstream outsol("sol.nb");
+//        TPZFMatrix<STATE> sol = an.Solution();
+//        sol.Print("sol = ",outsol,EMathematicaInput);
+//    }
     return;
 }
 
@@ -693,7 +713,7 @@ void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *> meshvector, TPZLinea
     scalnames[0] = "Pressure";
     vecnames[0]= "Flux";
     
-    int div = 2;
+    int div = 0;
 //    std::string plotfile = "PostProcess1Frac.vtk";
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
@@ -830,13 +850,13 @@ TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh) {
     gen2d.SetElementType(elType);
     TPZGeoMesh* gmesh = new TPZGeoMesh;
     gen2d.Read(gmesh,EVolume);
-//    for (int iside = 4; iside < 8; iside++) {
-//        gen2d.SetBC(gmesh, iside, EFaceBCPressure);
-//    }
-    gen2d.SetBC(gmesh, 4, EFaceBCPressure);
-    gen2d.SetBC(gmesh, 5, ENoFlux);
-    gen2d.SetBC(gmesh, 6, EFaceBCPressure);
-    gen2d.SetBC(gmesh, 7, ENoFlux);
+    for (int iside = 4; iside < 8; iside++) {
+        gen2d.SetBC(gmesh, iside, EFaceBCPressure);
+    }
+//    gen2d.SetBC(gmesh, 4, EFaceBCPressure);
+//    gen2d.SetBC(gmesh, 5, ENoFlux);
+//    gen2d.SetBC(gmesh, 6, EFaceBCPressure);
+//    gen2d.SetBC(gmesh, 7, ENoFlux);
 
     // ----- Fracture element and bcs -----
     int64_t index;
@@ -863,10 +883,10 @@ TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh) {
         }
         gmesh->BuildConnectivity();
     }
-    {
-        std::ofstream out("gmesh2d.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
-    }
+//    {
+//        std::ofstream out("gmesh2d.vtk");
+//        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+//    }
     
     return gmesh;
 }
@@ -874,17 +894,20 @@ TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh) {
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
 
-const STATE ComputePressureIntegralOverDomain(TPZCompMesh* cmesh) {
-    const std::string varname = "Pressure";
+const STATE ComputeIntegralOverDomain(TPZCompMesh* cmesh, const std::string& varname) {
     std::set<int> matids;
     matids.insert(EVolume);
     cmesh->Reference()->ResetReference();
     cmesh->LoadReferences(); // compute integral in the multiphysics mesh
     TPZVec<STATE> vecint = cmesh->Integrate(varname, matids);
-    if (vecint.size() != 1){
+    if ((varname == "Pressure" && vecint.size() != 1) ||
+        (varname == "Flux" && vecint.size() != 3)){
         DebugStop();
     }
-    return vecint[0];
+    if (varname == "Pressure")
+        return vecint[0];
+    else if (varname == "Flux")
+        return vecint[1];
 }
 
 // ---------------------------------------------------------------------
