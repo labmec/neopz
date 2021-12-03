@@ -32,7 +32,7 @@
 void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLinPVar, const bool& isFracIntersect);
 TPZGeoMesh *Create3DGeoMesh(const bool& isRefMesh);
 TPZGeoMesh *Create3DGeoMeshIntersectFrac(const bool& isRefMesh);
-TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh);
+TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh, const bool& isFracIntersect);
 TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh);
 void CreateFractureHDivCollapsedEl(TPZCompMesh* cmesh);
 void SplitConnectsAtInterface(TPZCompElSide& compside);
@@ -116,6 +116,22 @@ TEST_CASE("3D_uniformly_refined_mesh_linP","[hdivcollapsed]"){
     TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
 }
 // ---- Test 8 ----
+TEST_CASE("2D_2_frac_intersect","[hdivcollapsed]"){
+    const bool is3D = false;
+    const bool isRefMesh = false;
+    const bool isLinP = false;
+    const bool isFracIntersect = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 9 ----
+TEST_CASE("2D_2_frac_intersect_uniformly_refined","[hdivcollapsed]"){
+    const bool is3D = false;
+    const bool isRefMesh = true;
+    const bool isLinP = false;
+    const bool isFracIntersect = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 10 ----
 TEST_CASE("3D_2_frac_intersect","[hdivcollapsed]"){
     const bool is3D = true;
     const bool isRefMesh = false;
@@ -123,7 +139,7 @@ TEST_CASE("3D_2_frac_intersect","[hdivcollapsed]"){
     const bool isFracIntersect = true;
     TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
 }
-// ---- Test 9 ----
+// ---- Test 11 ----
 TEST_CASE("3D_2_frac_intersect_uniformly_refined","[hdivcollapsed]"){
     const bool is3D = true;
     const bool isRefMesh = true;
@@ -139,8 +155,8 @@ TEST_CASE("3D_2_frac_intersect_uniformly_refined","[hdivcollapsed]"){
 //#endif
 //    const bool isRefMesh = false;
 //    const bool is3D = false;
-//    const bool isLinPVar = true;
-//    const bool isFracIntersect = false;
+//    const bool isLinPVar = false;
+//    const bool isFracIntersect = true;
 //    TestHdivCollapsed(is3D,isRefMesh,isLinPVar,isFracIntersect);
 //
 //    return 0;
@@ -179,8 +195,7 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
         }
     }
     else{
-        if (isFracIntersect) DebugStop(); // case not implemented!
-        gmesh = Create2DGeoMesh(isRefMesh);
+        gmesh = Create2DGeoMesh(isRefMesh,isFracIntersect);
     }
         
     
@@ -839,7 +854,7 @@ TPZGeoMesh *Create3DGeoMeshIntersectFrac(const bool& isRefMesh) {
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
 
-TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh) {
+TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh, const bool& isFracIntersect) {
     
     // ----- Create Geo Mesh -----
     const TPZManVector<REAL,2> minX = {-1.,-1.};
@@ -865,13 +880,28 @@ TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh) {
     new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
     nodesId = {5};
     new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
+    if (isFracIntersect) {
+        nodesId = {1};
+        new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
+        nodesId = {7};
+        new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
+    }
     // ===> Fracture el
     TPZManVector<int64_t,2> nodesIdVec = {3,4};
     new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesIdVec,EFracture,*gmesh,index);
     nodesIdVec = {4,5};
     new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesIdVec,EFracture,*gmesh,index);
+    if (isFracIntersect) {
+        nodesIdVec = {1,4};
+        new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesIdVec,EFracture,*gmesh,index);
+        nodesIdVec = {4,7};
+        new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesIdVec,EFracture,*gmesh,index);
 
-    
+        // ===> Intersection el
+        nodesId = {4};
+        new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EIntersection,*gmesh,index);
+    }
+
     gmesh->BuildConnectivity();
     
     if (isRefMesh) {
@@ -948,6 +978,10 @@ void HybridizeIntersections(TPZVec<TPZCompMesh *>& meshvec_Hybrid, TPZHybridizeH
         
         while(neigh != gelside){
             TPZGeoEl* gelneigh = neigh.Element();
+            if (gelneigh->HasSubElement()) {
+                neigh++;
+                continue;
+            }
             int neighmatid = gelneigh->MaterialId();
             int neighdim = gelneigh->Dimension();
             
