@@ -191,19 +191,22 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         calcstiff.start();
         ek.Reset();
         ef.Reset();
-        
+/*
 #ifdef PZ_LOG
         TPZTimer timer;
         if(loggerCS.isDebugEnabled()){
             timer.start();}
 #endif
-        el->CalcStiff(ek, ef);
+*/
+        el->CalcStiff(ek,ef);
+/*
 #ifdef PZ_LOG
         if(loggerCS.isDebugEnabled()){
         timer.stop();
         calcstiffTime += timer.seconds();
         }
 #endif
+*/
         if (guiInterface) if (guiInterface->AmIKilled()) {
                 return;
             }
@@ -497,7 +500,7 @@ void TPZStructMatrixOR::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
       allthreads.push_back(std::thread(ThreadData::ThreadWork, &threaddata));
     }
 
-    ThreadData::ThreadAssembly(&threaddata);
+    //ThreadData::ThreadAssembly(&threaddata);
 
     for (itr = 0; itr < numthreads; itr++) {
       allthreads[itr].join();
@@ -667,12 +670,12 @@ void *TPZStructMatrixOR::ThreadData::ThreadWork(void *datavoid) {
 
 
         // put the elementmatrices on the stack to be assembled (threadsafe)
-        data->ComputedElementMatrix(iel, ek, ef);
+        //data->ComputedElementMatrix(iel, ek, ef);
         // compute the next element (this method is threadsafe)
         iel = data->NextElement();
     }
 
-    {
+   {
       std::scoped_lock lock(data->fMutexAccessElement);
       data->fAssembly.Post();
     }
