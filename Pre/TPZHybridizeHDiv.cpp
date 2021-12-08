@@ -848,21 +848,21 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
     int dim = cmesh_Hybrid->Dimension();
     
     if (!cmesh_Hybrid->FindMaterial(fLagrangeInterface)) {
-        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterface<<std::endl;
+//        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterface<<std::endl;
         auto matPerif = new TPZNullMaterialCS<STATE>(fLagrangeInterface);
         matPerif->SetNStateVariables(fNState);
         matPerif->SetDimension(dim-1);
         cmesh_Hybrid->InsertMaterialObject(matPerif);
     }
     if (!cmesh_Hybrid->FindMaterial(fLagrangeInterfaceEnd)) {
-        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterfaceEnd<<std::endl;
+//        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterfaceEnd<<std::endl;
         auto matPerif = new TPZNullMaterialCS<STATE>(fLagrangeInterfaceEnd);
         matPerif->SetNStateVariables(fNState);
         matPerif->SetDimension(dim-1);
         cmesh_Hybrid->InsertMaterialObject(matPerif);
     }
     if (!cmesh_Hybrid->FindMaterial(fHDivWrapMatid)) {
-        std::cout<<"HDivWrapMatid MatId "<<fHDivWrapMatid<<std::endl;
+//        std::cout<<"HDivWrapMatid MatId "<<fHDivWrapMatid<<std::endl;
         auto matPerif = new TPZNullMaterialCS<STATE>(fHDivWrapMatid);
         matPerif->SetNStateVariables(fNState);
         matPerif->SetDimension(dim-1);
@@ -870,14 +870,14 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
     }
     if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid.first)) {
         
-        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
+//        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
         auto *matleft = new TPZLagrangeMultiplierCS<STATE>(fInterfaceMatid.first, dim - 1, fNState);
         matleft->SetMultiplier(Lagrange_term_multiplier);
         cmesh_Hybrid->InsertMaterialObject(matleft);
     }
     if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid.second)) {
         
-        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
+//        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
         auto *matleft = new TPZLagrangeMultiplierCS<STATE>(fInterfaceMatid.second, dim - 1, fNState);
         matleft->SetMultiplier(Lagrange_term_multiplier);
         cmesh_Hybrid->InsertMaterialObject(matleft);

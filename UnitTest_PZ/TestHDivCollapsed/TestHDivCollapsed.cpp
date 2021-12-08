@@ -28,6 +28,9 @@
 // ----- Unit test includes -----
 #include <catch2/catch.hpp>
 
+// ----- Run tests with or without main -----
+//#define RUNWITHMAIN
+
 // ----- Functions -----
 void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLinPVar, const bool& isFracIntersect);
 TPZGeoMesh *Create3DGeoMesh(const bool& isRefMesh);
@@ -48,7 +51,20 @@ void CreateIntersectionInterfaceElements(TPZMultiphysicsCompMesh* cmesh, TPZHybr
 
 using namespace std;
 
-enum EMatid {ENone, EPressure, EVolume, EFaceBCPressure, ENoFlux, EFracture, EIntersection};
+// Materials
+
+enum EMatid {ENone,
+    EPressureFracBnd,
+    EDomain,
+    EFaceBCPressure, /*Pressure at domain boundary*/
+    ENoFlux, /*No flux in domain boundary*/
+    ENoFluxFracBorder, /*No flux at fracture boundary*/
+    EFracture,
+    EIntersection, /*Used mostly for finding where hybridization should occur*/
+    EKd2 /*Pressure loss at intersection*/
+};
+
+#ifndef RUNWITHMAIN
 
 // ----- Test cases -----
 // ---- Test 0 ----
@@ -147,21 +163,40 @@ TEST_CASE("3D_2_frac_intersect_uniformly_refined","[hdivcollapsed]"){
     const bool isFracIntersect = true;
     TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
 }
+// ---- Test 12 ----
+TEST_CASE("2D_2_frac_intersect_linP","[hdivcollapsed]"){
+    const bool is3D = false;
+    const bool isRefMesh = false;
+    const bool isLinP = true;
+    const bool isFracIntersect = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 13 ----
+TEST_CASE("2D_2_frac_intersect_uniformly_refined_linP","[hdivcollapsed]"){
+    const bool is3D = false;
+    const bool isRefMesh = true;
+    const bool isLinP = true;
+    const bool isFracIntersect = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+
+#else
 
 // Left in case needs some serious debugging. Catch2 does not stop in debugstops in xcode
-//int main(int argc, char* argv[]){
-//#ifdef PZ_LOG
-//    TPZLogger::InitializePZLOG();
-//#endif
-//    const bool isRefMesh = false;
-//    const bool is3D = false;
-//    const bool isLinPVar = false;
-//    const bool isFracIntersect = true;
-//    TestHdivCollapsed(is3D,isRefMesh,isLinPVar,isFracIntersect);
-//
-//    return 0;
-//}
- 
+int main(int argc, char* argv[]){
+#ifdef PZ_LOG
+    TPZLogger::InitializePZLOG();
+#endif
+    const bool isRefMesh = false;
+    const bool is3D = true;
+    const bool isLinPVar = true;
+    const bool isFracIntersect = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinPVar,isFracIntersect);
+
+    return 0;
+}
+
+#endif
 
 //-------------------------------------------------------------------------------------------------
 //   __  __      _      _   _   _
@@ -180,7 +215,7 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     if(isRefMesh) header << "  Ref";
     if(isFracIntersect) header << "  Intersect";
     if(isLinPVar) header << "  LinP";
-    std::cout << "\n ============ " << header.str() << " ============\n" << std::endl;
+    std::cout << "\n ============ Running Problem " << header.str() << " ============\n" << std::endl;
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
@@ -235,6 +270,11 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     if (isFracIntersect) {
         hybridizer = new TPZHybridizeHDiv(meshvector);
         HybridizeIntersections(meshvector,hybridizer);
+        
+        std::stringstream fluxmeshname;
+        fluxmeshname << "FluxHybridized" << gfileroot.str() << ".txt";
+        std::ofstream out(fluxmeshname.str());
+        cmeshflux->Print(out);
     }
     
     TPZCompMesh * cmesh = MultiphysicCMesh(dim,pOrder,meshvector,gmesh,isLinPVar,hybridizer);
@@ -250,9 +290,13 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     if(isRefMesh) pfilename << "Ref";
     if(isFracIntersect) pfilename << "Intersect";
     if(isLinPVar) pfilename << "LinP";
+    std::stringstream pfilenamefrac;
+    pfilenamefrac << pfilename.str();
     pfilename << ".vtk";
+    pfilenamefrac << "frac.vtk";
 
     PrintResultsMultiphysic(dim,meshvector,an,cmesh,pfilename.str());
+    PrintResultsMultiphysic(dim-1,meshvector,an,cmesh,pfilenamefrac.str());
 
     // ----- Compute integral of pressure and flux over domain and compare with analytical solution -----
     const std::string pvarname = "Pressure";
@@ -269,6 +313,7 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     // Domain volume is 2*2*2=8. If p cte: 1*8 = 8. If p varies linearly from 2 to 0: ((2-0)/2) * 8 = 8
     // For 2d:
     // Domain volume is 2*2=4. If p cte: 1*4 = 4. If p varies linearly from 2 to 0: ((2-0)/2) * 4 = 8
+#ifndef RUNWITHMAIN
     if (is3D) {
         REQUIRE( integratedpressure == Approx( 8.0 ) ); // Approx is from catch2 lib
         if (isLinPVar)
@@ -283,6 +328,7 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
         else
             REQUIRE( integratedflux == Approx( 0.) ); // Approx is from catch2 lib
     }
+#endif
     
     delete gmesh;
 }
@@ -298,7 +344,7 @@ TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
 
     // ===> Domain material
     const int nstate = 1;
-    TPZNullMaterial<> *mat = new TPZNullMaterial<>(EVolume,dim,nstate);
+    TPZNullMaterial<> *mat = new TPZNullMaterial<>(EDomain,dim,nstate);
     cmesh->InsertMaterialObject(mat);
 
     // ===> Boundary conditions
@@ -307,14 +353,24 @@ TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
     TPZNullMaterial<> *matbcnf = new TPZNullMaterial<>(ENoFlux,dim-1,nstate);
     cmesh->InsertMaterialObject(matbcnf);
     
+    TPZNullMaterial<> *matbcnfpt = new TPZNullMaterial<>(ENoFluxFracBorder,dim-2,nstate);
+    cmesh->InsertMaterialObject(matbcnfpt);
+
+    
+    
+    
     // ===> Fracture material
     TPZNullMaterial<> *matfrac = new TPZNullMaterial<>(EFracture,dim-1,nstate);
     cmesh->InsertMaterialObject(matfrac);
     
+    // ===> Intersection material for transverse flux
+    TPZNullMaterial<> *matintersect = new TPZNullMaterial<>(EKd2,dim-2,nstate);
+    cmesh->InsertMaterialObject(matintersect);
+    
     // ===> Fracture boundary conditions
     TPZFMatrix<STATE> val1(1,1,0.);
     TPZManVector<STATE> val2(1,1.);
-    TPZNullMaterial<> *matbcfrac = new TPZNullMaterial<>(EPressure,dim-2,nstate);
+    TPZNullMaterial<> *matbcfrac = new TPZNullMaterial<>(EPressureFracBnd,dim-2,nstate);
     cmesh->InsertMaterialObject(matbcfrac);
     
     // ===> Creating space for 3D elements
@@ -322,12 +378,12 @@ TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
     cmesh->ApproxSpace().CreateDisconnectedElements(false); // we need to disconnect by hand at the fracture location later
     cmesh->SetDefaultOrder(pOrder);
     std::set<int> buildmatids;
-    buildmatids.insert(EVolume);
+    buildmatids.insert(EDomain);
     cmesh->AutoBuild(buildmatids);
     
     // Print flux mesh
-//    std::ofstream myfile("FluxMeshOnlyVol.txt");
-//    cmesh->Print(myfile);
+    std::ofstream myfile("FluxMeshOnlyVol.txt");
+    cmesh->Print(myfile);
     
     // ===> Creating fracture element
     // split the volumetric elements in the flux mesh
@@ -336,7 +392,8 @@ TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
     
     // ===> Create BCs for fracture
     buildmatids.clear();
-    buildmatids.insert(EPressure);
+    buildmatids.insert(EPressureFracBnd);
+    buildmatids.insert(ENoFluxFracBorder);
     gmesh->ResetReference();
     for (auto cel : cmesh->ElementVec()) {
         if (!cel) {
@@ -386,7 +443,7 @@ TPZCompMesh *FluxCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
         if (!cel) {
             continue;
         }
-        if (cel->Reference()->MaterialId() == EVolume) {
+        if (cel->Reference()->MaterialId() == EDomain) {
             cel->LoadElementReference();
         }
     }
@@ -474,7 +531,7 @@ void CreateFractureHDivCollapsedEl(TPZCompMesh* cmesh) {
         // loop over all neighbours of the fracture element
         while(neigh != gelside){
             TPZGeoEl* gelnei = neigh.Element();
-            if (!gelnei || gelnei->Dimension() != gmeshdim || gelnei->MaterialId() != EVolume) {
+            if (!gelnei || gelnei->Dimension() != gmeshdim || gelnei->MaterialId() != EDomain) {
                 neigh++;
                 continue;
             }
@@ -528,7 +585,7 @@ void SplitConnectsAtInterface(TPZCompElSide& compside) {
     int icon = 0;
     while(neigh != gleft){
         TPZGeoEl* gelnei = neigh.Element();
-        if (!gelnei || gelnei->Dimension() != gmeshdim || gelnei->MaterialId() != EVolume) {
+        if (!gelnei || gelnei->Dimension() != gmeshdim || gelnei->MaterialId() != EDomain) {
             neigh++;
             continue;
         }
@@ -554,7 +611,7 @@ TPZCompMesh *PressureCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
 
     // ===> Domain material
     const int nstate = 1;
-    TPZNullMaterial<> *mat = new TPZNullMaterial<>(EVolume,dim,nstate);
+    TPZNullMaterial<> *mat = new TPZNullMaterial<>(EDomain,dim,nstate);
     cmesh->InsertMaterialObject(mat);
 
     // ===> Fracture material
@@ -574,7 +631,7 @@ TPZCompMesh *PressureCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
     
     // ===> Creating space for 3D elements
     std::set<int> buildmatids;
-    buildmatids.insert(EVolume);
+    buildmatids.insert(EDomain);
     buildmatids.insert(EFracture);
     cmesh->AutoBuild(buildmatids);
         
@@ -594,11 +651,20 @@ TPZCompMesh *PressureCMesh(int dim, int pOrder, TPZGeoMesh *gmesh)
 
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
-auto exactSol = [](const TPZVec<REAL>& loc, TPZVec<STATE>& u, TPZFMatrix<STATE>& gradU){
+auto exactSolFrac = [](const TPZVec<REAL>& loc, TPZVec<STATE>& u, TPZFMatrix<STATE>& gradU){
     const auto& x = loc[0];
     const auto& y = loc[1];
     const auto& z = loc[2];
-    u[0] = 1.-y;
+    const REAL gap = 1./3.;
+    if(y < -1.e-2){
+        u[0] = 2.0 - (y+1)*gap;
+    }
+    else if(y > 1.e-2){
+        u[0] = gap - y*gap;
+    }
+    else{
+        u[0] = 1. - y;
+    }
     // Not using derivatives
 };
 auto exactSolLinP = [](const TPZVec<REAL>& loc, TPZVec<STATE>& u, TPZFMatrix<STATE>& gradU){
@@ -627,15 +693,15 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     cmesh->SetDimModel(dim);
     
     // ===> Domain mat
-    auto mat = new TPZMixedDarcyFlow(EVolume, dim);
+    auto mat = new TPZMixedDarcyFlow(EDomain, dim);
     mat->SetConstantPermeability(1.);
     cmesh->InsertMaterialObject(mat);
     
     // ===> Fracture mat
     auto matfrac = new TPZMixedDarcyFractureFlow(EFracture, dim-1);
-    matfrac->SetConstantPermeability(1.);
+    matfrac->SetConstantPermeability(1.0);
     cmesh->InsertMaterialObject(matfrac);
-        
+            
     // ===> Boundary Conditions
     TPZFMatrix<STATE> val1(1,1,0.);
     TPZManVector<STATE> val2(1,1.);
@@ -648,12 +714,20 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     TPZManVector<STATE> val2n(1,0.);
     auto * BCondNoFlux = mat->CreateBC(mat,ENoFlux, 1, val1, val2n);
     cmesh->InsertMaterialObject(BCondNoFlux);
+    auto * BCondNoFluxPt = mat->CreateBC(mat,ENoFluxFracBorder, 1, val1, val2n);
+    cmesh->InsertMaterialObject(BCondNoFluxPt);
+    
+    // ===> Intersection material for transverse flux
+    TPZFMatrix<STATE> val1inter(1,1,0.5);
+    TPZManVector<STATE> val2inter(1,0.);
+    auto * BCondintersect = mat->CreateBC(mat, EKd2, 2, val1inter, val2inter);
+    cmesh->InsertMaterialObject(BCondintersect);
     
     // frac bcs
-    auto * BCond1 = mat->CreateBC(mat, EPressure, 0, val1, val2); // pressure is always 1 at the fracture
-//    auto * BCond1 = mat->CreateBC(mat, EPressure, 1, val1, val2n);
-//    if (isLinPVar)
-//        BCond1->SetForcingFunctionBC(exactSolLinP);
+    auto * BCond1 = mat->CreateBC(mat, EPressureFracBnd, 0, val1, val2);
+//    auto * BCond1 = mat->CreateBC(mat, EPressureFracBnd, 1, val1, val2n);
+    if (isLinPVar)
+        BCond1->SetForcingFunctionBC(exactSolFrac);
     cmesh->InsertMaterialObject(BCond1);
     
     // ===> Materials for hybridizing intersection between fractures
@@ -747,18 +821,18 @@ TPZGeoMesh *Create3DGeoMesh(const bool& isRefMesh) {
     const TPZVec<int> nelDiv = {1,2,1};
     const MMeshType elType = MMeshType::EHexahedral;
     TPZGenGrid3D gen3d(minX,maxX,nelDiv,elType);
-    TPZGeoMesh *gmesh = gen3d.BuildVolumetricElements(EVolume);
+    TPZGeoMesh *gmesh = gen3d.BuildVolumetricElements(EDomain);
     
     // ----- Fracture element and bcs -----
     int64_t index;
     TPZManVector<int64_t,2> nodesId = {2,3};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressureFracBnd,*gmesh,index);
     nodesId = {3,9};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressureFracBnd,*gmesh,index);
     nodesId = {9,8};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressureFracBnd,*gmesh,index);
     nodesId = {8,2};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressureFracBnd,*gmesh,index);
     TPZManVector<int64_t,4> nodesIdVec = {2,3,9,8};
     new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(nodesIdVec,EFracture,*gmesh,index);
     gmesh = gen3d.BuildBoundaryElements(EFaceBCPressure, EFaceBCPressure, EFaceBCPressure, EFaceBCPressure, EFaceBCPressure, EFaceBCPressure);
@@ -791,35 +865,35 @@ TPZGeoMesh *Create3DGeoMeshIntersectFrac(const bool& isRefMesh) {
     const MMeshType elType = MMeshType::EHexahedral;
 
     TPZGenGrid3D gen3d(minX,maxX,nelDiv,elType);
-    gmesh = gen3d.BuildVolumetricElements(EVolume);
+    gmesh = gen3d.BuildVolumetricElements(EDomain);
 
     // ----- Fracture element -----
     int64_t index;
     TPZManVector<int64_t,2> nodesId = {6,7};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressureFracBnd,*gmesh,index);
     nodesId = {7,9};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,ENoFluxFracBorder,*gmesh,index);
     nodesId = {9,11};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,ENoFluxFracBorder,*gmesh,index);
     nodesId = {11,10};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressureFracBnd,*gmesh,index);
     nodesId = {10,8};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,ENoFluxFracBorder,*gmesh,index);
     nodesId = {8,6};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,ENoFluxFracBorder,*gmesh,index);
 
     nodesId = {9,15};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,ENoFluxFracBorder,*gmesh,index);
     nodesId = {15,14};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,ENoFluxFracBorder,*gmesh,index);
     nodesId = {14,8};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,ENoFluxFracBorder,*gmesh,index);
     nodesId = {8,2};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,ENoFluxFracBorder,*gmesh,index);
     nodesId = {2,3};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,ENoFluxFracBorder,*gmesh,index);
     nodesId = {3,9};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,ENoFluxFracBorder,*gmesh,index);
 
     nodesId = {8,9};
     new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodesId,EIntersection,*gmesh,index);
@@ -834,7 +908,8 @@ TPZGeoMesh *Create3DGeoMeshIntersectFrac(const bool& isRefMesh) {
     new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(nodesIdVec,EFracture,*gmesh,index);
     
     // OBS: For some reason, the code leads to wrong results if these bcs are created before the fracture
-    gmesh = gen3d.BuildBoundaryElements(EFaceBCPressure, EFaceBCPressure, EFaceBCPressure, EFaceBCPressure, EFaceBCPressure, EFaceBCPressure);
+//    gmesh = gen3d.BuildBoundaryElements(EFaceBCPressure, EFaceBCPressure, EFaceBCPressure, EFaceBCPressure, EFaceBCPressure, EFaceBCPressure);
+    gmesh = gen3d.BuildBoundaryElements(ENoFlux, ENoFlux, EFaceBCPressure, ENoFlux, EFaceBCPressure, ENoFlux);
     
     gmesh->BuildConnectivity();
     
@@ -864,27 +939,27 @@ TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh, const bool& isFracIntersect) 
     const MMeshType elType = MMeshType::EQuadrilateral;
     gen2d.SetElementType(elType);
     TPZGeoMesh* gmesh = new TPZGeoMesh;
-    gen2d.Read(gmesh,EVolume);
-    for (int iside = 4; iside < 8; iside++) {
-        gen2d.SetBC(gmesh, iside, EFaceBCPressure);
-    }
-//    gen2d.SetBC(gmesh, 4, EFaceBCPressure);
-//    gen2d.SetBC(gmesh, 5, ENoFlux);
-//    gen2d.SetBC(gmesh, 6, EFaceBCPressure);
-//    gen2d.SetBC(gmesh, 7, ENoFlux);
+    gen2d.Read(gmesh,EDomain);
+//    for (int iside = 4; iside < 8; iside++) {
+//        gen2d.SetBC(gmesh, iside, EFaceBCPressure);
+//    }
+    gen2d.SetBC(gmesh, 4, EFaceBCPressure);
+    gen2d.SetBC(gmesh, 5, ENoFlux);
+    gen2d.SetBC(gmesh, 6, EFaceBCPressure);
+    gen2d.SetBC(gmesh, 7, ENoFlux);
 
     // ----- Fracture element and bcs -----
     int64_t index;
     // ===> BCs
     TPZManVector<int64_t,1> nodesId = {3};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,ENoFluxFracBorder,*gmesh,index);
     nodesId = {5};
-    new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
+    new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,ENoFluxFracBorder,*gmesh,index);
     if (isFracIntersect) {
         nodesId = {1};
-        new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
+        new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressureFracBnd,*gmesh,index);
         nodesId = {7};
-        new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressure,*gmesh,index);
+        new TPZGeoElRefPattern<pzgeom::TPZGeoPoint>(nodesId,EPressureFracBnd,*gmesh,index);
     }
     // ===> Fracture el
     TPZManVector<int64_t,2> nodesIdVec = {3,4};
@@ -926,7 +1001,7 @@ TPZGeoMesh *Create2DGeoMesh(const bool& isRefMesh, const bool& isFracIntersect) 
 
 const STATE ComputeIntegralOverDomain(TPZCompMesh* cmesh, const std::string& varname) {
     std::set<int> matids;
-    matids.insert(EVolume);
+    matids.insert(EDomain);
     cmesh->Reference()->ResetReference();
     cmesh->LoadReferences(); // compute integral in the multiphysics mesh
     TPZVec<STATE> vecint = cmesh->Integrate(varname, matids);
@@ -949,6 +1024,7 @@ void HybridizeIntersections(TPZVec<TPZCompMesh *>& meshvec_Hybrid, TPZHybridizeH
         DebugStop();
     }
     
+    hybridizer->fHDivWrapMatid = EKd2;
     
     // ===> Initializing variables
     TPZCompMesh* fluxmesh = meshvec_Hybrid[0];
