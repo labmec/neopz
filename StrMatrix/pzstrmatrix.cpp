@@ -500,7 +500,7 @@ void TPZStructMatrixOR::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
       allthreads.push_back(std::thread(ThreadData::ThreadWork, &threaddata));
     }
 
-    //ThreadData::ThreadAssembly(&threaddata);
+    ThreadData::ThreadAssembly(&threaddata);
 
     for (itr = 0; itr < numthreads; itr++) {
       allthreads[itr].join();
@@ -670,7 +670,7 @@ void *TPZStructMatrixOR::ThreadData::ThreadWork(void *datavoid) {
 
 
         // put the elementmatrices on the stack to be assembled (threadsafe)
-        //data->ComputedElementMatrix(iel, ek, ef);
+        data->ComputedElementMatrix(iel, ek, ef);
         // compute the next element (this method is threadsafe)
         iel = data->NextElement();
     }
