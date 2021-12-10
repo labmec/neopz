@@ -160,8 +160,7 @@ void TPZMixedDarcyFractureFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>>
     }
    
     
-    for (int iq = 0; iq < first_transverse_q; iq++)
-    {
+    for (int iq = 0; iq < first_transverse_q; iq++) {
         //        datavec[qb].Print(std::cou        t);
         v_i = datavec[qb].fVecShapeIndex[iq].first;
         s_i = datavec[qb].fVecShapeIndex[iq].second;
@@ -173,36 +172,31 @@ void TPZMixedDarcyFractureFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>>
         
         ef(iq + first_q) += weight * ( kappa_inv_q_dot_phi_q_i - p * div_phi(iq,0));
         
-        for (int jq = 0; jq < first_transverse_q; jq++)
-        {
+        for (int jq = 0; jq < first_transverse_q; jq++) {
             
             v_j = datavec[qb].fVecShapeIndex[jq].first;
             s_j = datavec[qb].fVecShapeIndex[jq].second;
-//            if(v_j < nvecs-2){
-                kappa_inv_phi_q_j.Zero();
-                for (int i = 0; i < 3; i++) {
-                    for (int j = 0; j < 3; j++) {
-                        kappa_inv_phi_q_j(i,0) += (1.0/eps)* inv_perm * phi_qs(s_j,0) * datavec[qb].fDeformedDirections(j,v_j);
-                    }
-                }
-                
-                STATE kappa_inv_phi_q_j_dot_phi_q_i = 0.0;
-                for (int j = 0; j < 3; j++) {
-                    kappa_inv_phi_q_j_dot_phi_q_i +=  kappa_inv_phi_q_j(j,0)*phi_q_i(j,0);
-                }
-                
-                ek(iq + first_q,jq + first_q) += weight * kappa_inv_phi_q_j_dot_phi_q_i;
+            //            if(v_j < nvecs-2){
+            kappa_inv_phi_q_j.Zero();
+            
+            for (int j = 0; j < 3; j++) {
+                kappa_inv_phi_q_j(j,0) += (1.0/eps)* inv_perm * phi_qs(s_j,0) * datavec[qb].fDeformedDirections(j,v_j);
             }
-            if(v_j >=  nvecs-2){
-                DebugStop();
+            
+            STATE kappa_inv_phi_q_j_dot_phi_q_i = 0.0;
+            for (int j = 0; j < 3; j++) {
+                kappa_inv_phi_q_j_dot_phi_q_i +=  kappa_inv_phi_q_j(j,0)*phi_q_i(j,0);
             }
-            for (int jp = 0; jp < nphi_p; jp++)
-            {
-                ek(iq + first_q, jp + first_p) += weight * ( - div_phi(iq,0) ) * phi_ps(jp,0);
-                ek(jp + first_p, iq + first_q) += weight * ( - div_phi(iq,0) ) * phi_ps(jp,0);
-               
-            }
-        
+            
+            ek(iq + first_q,jq + first_q) += weight * kappa_inv_phi_q_j_dot_phi_q_i;
+        }
+        if(v_j >=  nvecs-2){
+            DebugStop();
+        }
+        for (int jp = 0; jp < nphi_p; jp++) {
+            ek(iq + first_q, jp + first_p) += weight * ( - div_phi(iq,0) ) * phi_ps(jp,0);
+            ek(jp + first_p, iq + first_q) += weight * ( - div_phi(iq,0) ) * phi_ps(jp,0);
+        }
     }
 //    
     // compute the contribution of the hdivbound

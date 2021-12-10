@@ -179,6 +179,22 @@ TEST_CASE("2D_2_frac_intersect_uniformly_refined_linP","[hdivcollapsed]"){
     const bool isFracIntersect = true;
     TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
 }
+// ---- Test 14 ----
+TEST_CASE("3D_2_frac_intersect_linP","[hdivcollapsed]"){
+    const bool is3D = true;
+    const bool isRefMesh = false;
+    const bool isLinP = true;
+    const bool isFracIntersect = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
+// ---- Test 15 ----
+TEST_CASE("3D_2_frac_intersect_uniformly_refined_linP","[hdivcollapsed]"){
+    const bool is3D = true;
+    const bool isRefMesh = true;
+    const bool isLinP = true;
+    const bool isFracIntersect = true;
+    TestHdivCollapsed(is3D,isRefMesh,isLinP,isFracIntersect);
+}
 
 #else
 
