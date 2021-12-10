@@ -45,42 +45,28 @@ void TPZShapeHDivConstantBound<class pzshape::TPZShapePoint>::Shape(const TPZVec
 template <class TSHAPE>
 void TPZShapeHDivConstantBound<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi) {
 
-    
-//    TPZVec<REAL> &pt = par.pt;
-//    TPZFMatrix<REAL> &phi = par.phi;
-//    TPZFMatrix<REAL> &dphi = par.dphi;
+    phi(0,0) = -0.5;
+
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
-    const REAL volume = TSHAPE::RefElVolume();
-    if(data.fH1ConnectOrders[0] == 0)
-    {
-        phi(0,0) = 1./volume;
-        return;
-    }
-    const REAL scale = data.fSideOrient[0]*ncorner/volume;
+    const int dim = TSHAPE::Dimension;
     TPZShapeH1<TSHAPE>::Shape(pt,data);
-    TPZManVector<int, 9> permutegather(nsides);
-    TPZShapeHDiv<TSHAPE>::HDivPermutation(TSHAPE::Type(), data.fCornerNodeIds, permutegather);
-    // for(int c=0; c < ncorner; c++) phi(c,0) = data.fPhi(permutegather[c],0)*scale;
-    int count = 0;
-    TPZManVector<int,9> firstshape(nsides-ncorner+1,ncorner);
-    // phi(0,0) = data.fDPhi*data.axes;
-    for(int side = ncorner; side < nsides; side++)
+
+    const auto nEdges = TSHAPE::NumSides(1);
+
+    if (dim != 1)
     {
-        int nshape = data.fH1NumConnectShape[side-ncorner];
-        firstshape[side+1-ncorner] = firstshape[side-ncorner]+ nshape;
+        DebugStop();
     }
-    for(int side = ncorner; side < nsides; side++)
-    {
-        int sidebound = permutegather[side];
-        int nshape = data.fH1NumConnectShape[sidebound-ncorner];
-        int fsh = firstshape[sidebound-ncorner];
-        for(int sh = 0; sh<nshape; sh++)
-        {
-            phi(count,0) = data.fPhi(fsh+sh,0)*scale;
-            count++;
-        }
-    }
+
+    int nshape = data.fPhi.Rows();
+    // phi.Resize(1,nshape);
+
+    for (int i = 0; i < nshape-ncorner; i++){
+        phi(i+1,0) = -data.fDPhi(0,i+ncorner);
+	}
+
+
 }
 
 template<class TSHAPE>
@@ -96,8 +82,9 @@ int TPZShapeHDivConstantBound<TSHAPE>::ComputeNConnectShapeF(int connect, int or
 
     if(thistype == EOned)
     {
-        if(connect < 2) return order;
-        else return order;
+        return order;
+        // if(connect < 2) return 0;
+        // else return order;
         // DebugStop();
     }
     else if(thistype == ETriangle)
@@ -107,7 +94,7 @@ int TPZShapeHDivConstantBound<TSHAPE>::ComputeNConnectShapeF(int connect, int or
     }
     else if(thistype == EQuadrilateral)
     {
-        if(connect < TSHAPE::NFacets) return 0;//(order+1);
+        if(connect < TSHAPE::NFacets) return order+1;//(order+1);
         else return 2*order*(order+1);
     }
 

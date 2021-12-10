@@ -57,14 +57,36 @@ void TPZShapeHDivConstant2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data,
     int nshape = data.fPhi.Rows();
     // phi.Resize(2,nshape);
 
-    for (int i = 0; i < nshape; i++){
-		phi(0,i) =  data.fDPhi(1,i);
-        phi(1,i) = -data.fDPhi(0,i);
-        divphi(i,0) = div[i];
-	}
-    
+    int count = 0;
+    int countKernel=ncorner;
+    //Edge functions
+    for (int i = 0; i < nEdges; i++)
+    {
+        //RT0 Function
+        phi(0,count) = vecDiv(0,i) * data.fSideOrient[i];
+        phi(1,count) = vecDiv(1,i) * data.fSideOrient[i];
+        divphi(count,0) = div[i] * data.fSideOrient[i];
+        count++;
 
+        //Kernel Hdiv
+        for (int j = 1; j < data.fHDivConnectOrders[0]; j++)
+        {
+            phi(0,count) =  data.fDPhi(1,countKernel);
+            phi(1,count) = -data.fDPhi(0,countKernel);
+            count++;
+            countKernel++;
+        }
+        
+
+    }
     
+    //Internal functions
+    for (int i = countKernel; i < nshape; i++){
+        phi(0,count) =  data.fDPhi(1,countKernel);
+        phi(1,count) = -data.fDPhi(0,countKernel);
+        count++;
+        countKernel++;
+    }
 
     //Div-Constant Functions
     // for (int i = 0; i < ncorner; i++){
@@ -102,8 +124,8 @@ int TPZShapeHDivConstant2D<TSHAPE>::ComputeNConnectShapeF(int connect, int order
     }
     else if(thistype == ETriangle)
     {
-        if(connect < TSHAPE::NFacets) return (order+1);
-        else return (order+1)*(order+1)-1;
+        if(connect < TSHAPE::NFacets) return (order);
+        else return (order-1)*(order-2)/2;
     }
     else if(thistype == EQuadrilateral)
     {

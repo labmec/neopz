@@ -48,7 +48,6 @@ void TPZShapeHDivKernel2DBound<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &da
         phi(0,i) = -data.fDPhi(0,i);
 	}
 
-    divphi.Zero();
 }
 
 
