@@ -19,12 +19,12 @@ void TPZDarcyFlow::SetDimension(int dim) {
 void TPZDarcyFlow::Contribute(const TPZMaterialDataT<STATE> &data, STATE weight, TPZFMatrix<STATE> &ek,
                               TPZFMatrix<STATE> &ef) {
 
-    const TPZFMatrix<REAL> &phi = data.phi;
+    const TPZFMatrix<REAL> &phi = data.fPhi;
     const TPZFMatrix<REAL> &dphi = data.dphix;
     const TPZVec<REAL> &x = data.x;
     const TPZFMatrix<REAL> &axes = data.axes;
     const TPZFMatrix<REAL> &jacinv = data.jacinv;
-    int phr = phi.Rows();
+    auto phr = dphi.Cols();
 
     const STATE perm = GetPermeability(data.x);
 
