@@ -68,7 +68,7 @@ public:
      */
     virtual void Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
                             REAL weight,TPZFMatrix<STATE> &ek,
-                            TPZFMatrix<STATE> &ef) override {}
+                            TPZFMatrix<STATE> &ef) override;
     /**@}*/
 
     /** @name ContributeBC
