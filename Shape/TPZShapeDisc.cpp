@@ -4,6 +4,7 @@
  */
 #include "TPZShapeDisc.h"
 #include "pzshapelinear.h"
+#include "TPZShapeData.h"
 #include "pzreal.h"
 #include <math.h>
 #include <stdio.h>
@@ -494,6 +495,22 @@ void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degr
   phi(nshape-1) = phi0;
   for(i=0; i<8; i++) dphi(i,nshape-1) = dphi0[i];
 }
+
+/// initialize the TPZShapeData datastructure
+void TPZShapeDisc::Initialize(int order, int dimension, MShapeType shapetype, TPZShapeData &data)
+{
+    data.fH1ConnectOrders.resize(1);
+    data.fH1ConnectOrders[0] = order;
+    data.fCornerNodeIds.resize(0);
+    data.fH1NumConnectShape.resize(1);
+    int64_t nshape = NShapeF(order, dimension, shapetype);
+    data.fH1NumConnectShape[0] = nshape;
+    data.fPhi.Resize(nshape,1);
+    data.fDPhi.Resize(dimension, nshape);
+
+}
+
+
 
 int  TPZShapeDisc::NShapeF(int degree, int dimension, MShapeType type) {
   int sum =0,i;
