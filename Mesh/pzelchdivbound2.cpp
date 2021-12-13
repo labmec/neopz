@@ -82,8 +82,11 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCompElHDivBound2<TSHAPE> &copy) :
 TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
-TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
+TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient), fConnectIndexes(copy.fConnectIndexes)
 {
+#ifdef PZDEBUG
+    if(fConnectIndexes[0] != copy.fConnectIndexes[0]) DebugStop();
+#endif
 }
 
 // NAO TESTADO

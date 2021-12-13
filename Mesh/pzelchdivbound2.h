@@ -51,7 +51,11 @@ public:
 	virtual ~TPZCompElHDivBound2();
 	
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override {
-		return new TPZCompElHDivBound2<TSHAPE> (mesh, *this);
+		auto cop = new TPZCompElHDivBound2<TSHAPE> (mesh, *this);
+#ifdef PZDEBUG
+        if(cop->ConnectIndex(0) != this->ConnectIndex(0)) DebugStop();
+#endif
+        return cop;
 	}
 	
 	/**
