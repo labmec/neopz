@@ -43,6 +43,14 @@ public:
     [[maybe_unused]] TPZMixedDarcyFlow(int id, int dim);
 
     /**
+             copy constructor
+     */
+    TPZMixedDarcyFlow(const TPZMixedDarcyFlow &copy);
+    /**
+             copy constructor
+     */
+    TPZMixedDarcyFlow &operator=(const TPZMixedDarcyFlow &copy);
+    /**
 	 * @brief Returns a 'std::string' with the name of the material
 	 */
     [[nodiscard]] std::string Name() const override { return "TPZMixedDarcyFlow"; }
@@ -63,7 +71,7 @@ public:
      * Returns the number of errors to be evaluated, that is, the number of error norms associated
      * with the problem.
      */
-    int NEvalErrors() override { return 5; }
+    int NEvalErrors() const override { return 5; }
 
     /**
      * @brief Sets problem dimension

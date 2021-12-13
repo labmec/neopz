@@ -14,6 +14,24 @@ TPZMixedDarcyFlow::TPZMixedDarcyFlow() : TPZRegisterClassId(&TPZMixedDarcyFlow::
 {
 }
 
+/**
+         copy constructor
+ */
+TPZMixedDarcyFlow::TPZMixedDarcyFlow(const TPZMixedDarcyFlow &copy) : TBase(copy), fDim(copy.fDim)
+{
+    
+}
+/**
+         copy constructor
+ */
+TPZMixedDarcyFlow &TPZMixedDarcyFlow::operator=(const TPZMixedDarcyFlow &copy)
+{
+    TBase::operator=(copy);
+    fDim = copy.fDim;
+    return *this;
+}
+
+
 void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek,
                                    TPZFMatrix<STATE> &ef) {
 
