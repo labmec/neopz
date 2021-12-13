@@ -14,7 +14,7 @@
 #include "TPZLagrangeMultiplier.h"
 
 /// Material which implements a Lagrange Multiplier for combined spaces
-template<class TVar>
+template<class TVar = STATE>
 class TPZLagrangeMultiplierCS :
     public TPZMatBase<TVar,
                       TPZMatCombinedSpacesT<TVar>,
