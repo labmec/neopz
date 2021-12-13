@@ -1041,6 +1041,7 @@ void HybridizeIntersections(TPZVec<TPZCompMesh *>& meshvec_Hybrid, TPZHybridizeH
     }
     
     hybridizer->fHDivWrapMatid = EKd2;
+    hybridizer->fIdToHybridize = EFracture;
     
     // ===> Initializing variables
     TPZCompMesh* fluxmesh = meshvec_Hybrid[0];
@@ -1087,7 +1088,7 @@ void HybridizeIntersections(TPZVec<TPZCompMesh *>& meshvec_Hybrid, TPZHybridizeH
                 
                 const int side = neigh.Side();
                 TPZCompElSide celsideleft(intel, side);
-                bool isNewInterface = hybridizer->HybridizeInterface(celsideleft,intel,side,meshvec_Hybrid,false/*isIntersectEnd*/,EFracture);
+                bool isNewInterface = hybridizer->HybridizeInterface(celsideleft,intel,side,meshvec_Hybrid,false/*isIntersectEnd*/);
                 if (isNewInterface) {
                     cout << "=====> Connects splitted succesfuly!" << endl << endl;;
                     break;

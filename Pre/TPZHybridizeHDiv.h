@@ -37,7 +37,7 @@ struct TPZHybridizeHDiv {
     std::pair<int,int> fInterfaceMatid = {-8,-8};
     // number of state variables
     int fNState = 1;
-    int fIdToHybridize = -1;
+    int fIdToHybridize = -1000;
     
     TPZHybridizeHDiv() = default;
     
@@ -89,7 +89,7 @@ struct TPZHybridizeHDiv {
     
     /// Hybridize a single interface based on the fluxmesh side connect
     bool HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intel, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid,
-                            const bool isIntersectEnd = false, const int matidtohybridize = -1000);
+                            const bool isIntersectEnd = false);
     
     /// create a multiphysics mesh for the hybrid formulation using the materials of another mesh and the given atomic meshes
     TPZCompMesh * CreateMultiphysicsMesh(TPZCompMesh *cmesh_HDiv, TPZVec<TPZCompMesh *> &meshvec_Hybrid, double Lagrange_term_multiplier = 1.);

@@ -325,7 +325,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
 }
 
 bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid,
-                                          const bool isIntersectEnd, const int matidtohybridize) {
+                                          const bool isIntersectEnd) {
     
     // ==> Getting meshes
     TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
@@ -335,11 +335,11 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     
     // ==> Splitting flux mesh connect
     gmesh->ResetReference();
-    if (matidtohybridize != -1000){
+    if (fIdToHybridize != -1000){
         for (auto cel : fluxmesh->ElementVec()) {
             if(!cel) continue;
             const int celmatid = cel->Reference()->MaterialId();
-            if (celmatid == matidtohybridize) {
+            if (celmatid == fIdToHybridize) {
                 cel->LoadElementReference();
             }
         }
@@ -1066,7 +1066,7 @@ void TPZHybridizeHDiv::GetAllConnectedCompElSides(TPZInterpolatedElement *intel,
             TPZGeoEl *neigh = cel.Element()->Reference();
             if (neigh->Dimension() == gel->Dimension()) {
                 const int celmatid = cel.Element()->Reference()->MaterialId();
-                if (fIdToHybridize != -1) {
+                if (fIdToHybridize != -1000) {
                     if (celmatid == fIdToHybridize) {
                         celsidestack.push_back(cel);
                     }
