@@ -59,7 +59,7 @@ public:
 
     int NStateVariables() const override{ return 1;}
     //H1 norm L2 norm H1 seminorm
-    int NEvalErrors() override { return 3;}
+    int NEvalErrors() const override { return 3;}
     /** @brief Sets problem dimension */
     virtual void SetDimension(int dim) { this->fDim = dim; }
 

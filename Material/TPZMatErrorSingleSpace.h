@@ -37,7 +37,7 @@ class TPZMatErrorSingleSpace : public TPZMatError<TVar>{
                 TPZVec<REAL> &errors) = 0;
     /** @brief Returns the number of error norms.
         Default is 3: norm, L2 and seminorm. */
-    int NEvalErrors() override{return TPZMatError<TVar>::NEvalErrors();}
+    int NEvalErrors() const override{return TPZMatError<TVar>::NEvalErrors();}
     /** @}*/
 };
 

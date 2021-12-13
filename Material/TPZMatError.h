@@ -52,7 +52,7 @@ public:
 
     /** @brief Returns the number of error norms.
         Default is 3: norm, L2 and seminorm. */
-    virtual int NEvalErrors() {return 3;}
+    virtual int NEvalErrors() const {return 3;}
     /** @}*/
 
     [[nodiscard]] int ClassId() const override;

@@ -150,7 +150,7 @@ protected:
                 TPZVec<REAL> &values) override;
 public:
 	/** @brief Returns the number of norm errors: 3 (Semi H1, L2 and H1) */
-	virtual int NEvalErrors() override {return 3;}
+	virtual int NEvalErrors() const override {return 3;}
 	
 	/** @brief Fill material data parameter with necessary requirements for the Contribute method. */
 	void FillDataRequirements(TPZMaterialData &data) const override;
