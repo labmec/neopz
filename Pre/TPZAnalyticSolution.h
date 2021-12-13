@@ -154,6 +154,14 @@ struct TPZAnalyticSolution
         };
     }
     
+    std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result)> ForceFunc() const
+    {
+        return [this](const TPZVec<REAL> &loc, TPZVec<STATE> &result)
+        {
+            this->Force(loc, result);
+            for(auto &it:result) it *= this->fSignConvention;
+        };
+    }
     TPZAutoPointer<TPZFunction<STATE> > TensorFunction()
     {
         return new Tensor(this);
