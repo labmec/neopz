@@ -804,6 +804,14 @@ void TPZCompMesh::ComputeNodElCon() {
 		numnod = nodelist.NElements();
 		for (int64_t in=0; in<numnod; ++in) {
 			int64_t dfnindex = nodelist[in];
+#ifdef PZDEBUG
+            if(dfnindex < 0)
+            {
+                std::cout << "element index i " << i << " node in " << in <<
+                " has negative node index " << dfnindex;
+                DebugStop();
+            }
+#endif
 			TPZConnect *dfn = &fConnectVec[dfnindex];
 			dfn->IncrementElConnected();
 		}
@@ -1790,7 +1798,7 @@ fSolType(copy.fSolType)
 		TPZCompEl *cel = copy.fElementVec[iel];
 		if(cel && !dynamic_cast<TPZInterfaceElement* >(cel) )
 		{
-			/*TPZCompEl *clone  = */ cel->Clone(*this);
+			TPZCompEl *clone  =  cel->Clone(*this);
 			/*#ifdef PZ_LOG
 			 {
 			 std::stringstream sout;
