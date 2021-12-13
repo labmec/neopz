@@ -625,11 +625,12 @@ void TPZBuildSBFemMultiphysics::CreateCompElFlux(TPZCompMesh &cmeshflux, set<int
         int64_t index;
 
         auto hdivboundleft = new TPZCompElHDivBound2<pzshape::TPZShapeLinear>(cmeshflux,gelsideleft.Element(),index);
-        hdivboundleft->SetConnectIndex(0,celhdivc->ConnectIndex(3));
+        celhdivc->SetConnectIndex(3,hdivboundleft->ConnectIndex(0));
+        celhdivc->SetCompElFlux(hdivboundleft);
         gelsideleft.Element()->ResetReference();
 
         auto hdivboundright = new TPZCompElHDivBound2<pzshape::TPZShapeLinear>(cmeshflux,gelsideright.Element(),index);
-        hdivboundright->SetConnectIndex(0,celhdivc->ConnectIndex(4));
+        celhdivc->SetConnectIndex(4,hdivboundright->ConnectIndex(0));
         gelsideright.Element()->ResetReference();
     }
 

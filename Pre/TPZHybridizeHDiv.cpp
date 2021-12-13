@@ -116,15 +116,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     }
     else
     {
-        int64_t index = fluxmesh->AllocateNewConnect(cleft);
-        TPZConnect &newcon = fluxmesh->ConnectVec()[index];
-        cleft.DecrementElConnected();
-        newcon.ResetElConnected();
-        newcon.IncrementElConnected();
-        newcon.SetSequenceNumber(fluxmesh->NConnects() - 1);
-
-        int rightlocindex = intelright->SideConnectLocId(0, right.Side());
-        intelright->SetConnectIndex(rightlocindex, index);
+        left.SplitConnect(right);
     }
     int sideorder = cleft.Order();
     fluxmesh->SetDefaultOrder(sideorder);
@@ -251,22 +243,13 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     }
     else {
         for (auto& celside : cellsidestack){
-            int64_t newmeshindex = fluxmesh->AllocateNewConnect(cleft);
-            TPZConnect &newcon = fluxmesh->ConnectVec()[newmeshindex];
-            cleft.DecrementElConnected();
-            newcon.IncrementElConnected();
-            newcon.SetSequenceNumber(fluxmesh->NConnects() - 1);
-            
+            left.SplitConnect(celside);
             
             TPZInterpolatedElement *inteltochange = dynamic_cast<TPZInterpolatedElement *> (celside.Element());
             if (!inteltochange)
                 DebugStop();
-            
             inteltochange->SetSideOrient(celside.Side(), 1);
-            
             intelvec[count++] = inteltochange;
-            int oldelindex = inteltochange->SideConnectLocId(0, celside.Side());
-            inteltochange->SetConnectIndex(oldelindex, newmeshindex);
         }
     }
     int sideorder = cleft.Order();
@@ -341,7 +324,8 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     return std::make_tuple(pressureindex,pressureorder);
 }
 
-bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid, const bool isIntersectEnd) {
+bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid,
+                                          const bool isIntersectEnd, const int matidtohybridize) {
     
     // ==> Getting meshes
     TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
@@ -351,7 +335,18 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     
     // ==> Splitting flux mesh connect
     gmesh->ResetReference();
-    fluxmesh->LoadReferences();
+    if (matidtohybridize != -1000){
+        for (auto cel : fluxmesh->ElementVec()) {
+            if(!cel) continue;
+            const int celmatid = cel->Reference()->MaterialId();
+            if (celmatid == matidtohybridize) {
+                cel->LoadElementReference();
+            }
+        }
+    }
+    else {
+        fluxmesh->LoadReferences();
+    }    
     
     const bool isFractureIntersectionMesh = true;
     std::tuple<int64_t, int> pindexporder;
@@ -853,21 +848,21 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
     int dim = cmesh_Hybrid->Dimension();
     
     if (!cmesh_Hybrid->FindMaterial(fLagrangeInterface)) {
-        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterface<<std::endl;
+//        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterface<<std::endl;
         auto matPerif = new TPZNullMaterialCS<STATE>(fLagrangeInterface);
         matPerif->SetNStateVariables(fNState);
         matPerif->SetDimension(dim-1);
         cmesh_Hybrid->InsertMaterialObject(matPerif);
     }
     if (!cmesh_Hybrid->FindMaterial(fLagrangeInterfaceEnd)) {
-        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterfaceEnd<<std::endl;
+//        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterfaceEnd<<std::endl;
         auto matPerif = new TPZNullMaterialCS<STATE>(fLagrangeInterfaceEnd);
         matPerif->SetNStateVariables(fNState);
         matPerif->SetDimension(dim-1);
         cmesh_Hybrid->InsertMaterialObject(matPerif);
     }
     if (!cmesh_Hybrid->FindMaterial(fHDivWrapMatid)) {
-        std::cout<<"HDivWrapMatid MatId "<<fHDivWrapMatid<<std::endl;
+//        std::cout<<"HDivWrapMatid MatId "<<fHDivWrapMatid<<std::endl;
         auto matPerif = new TPZNullMaterialCS<STATE>(fHDivWrapMatid);
         matPerif->SetNStateVariables(fNState);
         matPerif->SetDimension(dim-1);
@@ -875,14 +870,14 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
     }
     if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid.first)) {
         
-        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
+//        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
         auto *matleft = new TPZLagrangeMultiplierCS<STATE>(fInterfaceMatid.first, dim - 1, fNState);
         matleft->SetMultiplier(Lagrange_term_multiplier);
         cmesh_Hybrid->InsertMaterialObject(matleft);
     }
     if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid.second)) {
         
-        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
+//        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
         auto *matleft = new TPZLagrangeMultiplierCS<STATE>(fInterfaceMatid.second, dim - 1, fNState);
         matleft->SetMultiplier(Lagrange_term_multiplier);
         cmesh_Hybrid->InsertMaterialObject(matleft);
@@ -1070,7 +1065,16 @@ void TPZHybridizeHDiv::GetAllConnectedCompElSides(TPZInterpolatedElement *intel,
         for (auto& cel : celstack) {
             TPZGeoEl *neigh = cel.Element()->Reference();
             if (neigh->Dimension() == gel->Dimension()) {
-                celsidestack.push_back(cel);
+                const int celmatid = cel.Element()->Reference()->MaterialId();
+                if (fIdToHybridize != -1) {
+                    if (celmatid == fIdToHybridize) {
+                        celsidestack.push_back(cel);
+                    }
+                }
+                else {
+                    celsidestack.push_back(cel);
+                }
+                
             }
         } // cel
     } // else

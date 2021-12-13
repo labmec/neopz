@@ -21,7 +21,11 @@ void TPZShapeHDivBound<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
 #endif
     data.fSideOrient.Resize(1);
     data.fSideOrient[0] = sideorient;
-    data.fH1ConnectOrders.Resize(nsides-ncorner, connectorder);
+    int connectOrdersSize = nsides-ncorner;
+    if (TSHAPE::Type() == EPoint){
+        connectOrdersSize = 1;
+    }
+    data.fH1ConnectOrders.Resize(connectOrdersSize, connectorder);
     data.fH1ConnectOrders.Fill(connectorder);
     if(connectorder > 0)
     {

@@ -339,6 +339,7 @@ void TPZSBFemVolumeMultiphysics<TGeometry>::Solution(TPZVec<REAL> &qsi,int var,T
         TPZMaterialData::MShapeFunctionType shapetype = datavec[iref].fShapeType;
         msp->ComputeRequiredData(datavec[iref], myqsi);
         constexpr bool hasPhi{true};
+        datavec[iref].xParametric = myqsi;
         msp->ComputeSolution(myqsi, datavec[iref],hasPhi);
         
         datavec[iref].x.Resize(3);

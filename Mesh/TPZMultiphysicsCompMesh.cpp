@@ -82,7 +82,17 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx
   
     SetNMeshes(n_approx_spaces);
     Reference()->ResetReference();
-    SetAllCreateFunctionsMultiphysicElem();
+    if (ApproxSpace().Style() == TPZCreateApproximationSpace::EMultiphysics)
+    {
+        SetAllCreateFunctionsMultiphysicElem();
+    }
+    else if (ApproxSpace().Style() == TPZCreateApproximationSpace::EMultiphysicsSBFem)
+    {
+        SetAllCreateFunctionsSBFemMultiphysics();
+    }
+    else {
+        DebugStop(); // Please set one of the above available spaces
+    }
     // delete all elements and connects in the mesh
     CleanElementsConnects();
     TPZCompMesh::AutoBuild();
@@ -132,12 +142,12 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & me
     int n_approx_spaces = m_mesh_vector.size();
     SetNMeshes(n_approx_spaces);
     Reference()->ResetReference();
-    if(ApproxSpace().Style() != TPZCreateApproximationSpace::EMultiphysics)
-    {
-        std::cout << __PRETTY_FUNCTION__ << " Modifying the style of approximation space "
-        " to multiphysics\n";
-        SetAllCreateFunctionsMultiphysicElem();
-    }
+    // if(ApproxSpace().Style() != TPZCreateApproximationSpace::EMultiphysics)
+    // {
+    //     std::cout << __PRETTY_FUNCTION__ << " Modifying the style of approximation space "
+    //     " to multiphysics\n";
+    //     SetAllCreateFunctionsMultiphysicElem();
+    // }
     // delete all elements and connects in the mesh
     CleanElementsConnects();
     TPZCompMesh::AutoBuild(gelindexes);

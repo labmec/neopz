@@ -331,6 +331,15 @@ public:
 	}	
     virtual int ClassId() const override;
 
+    void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override
+    {
+        int ncorner = TGeometry::NNodes;
+        for (int ic = 0; ic < ncorner; ic++)
+        {
+            connectindexes.insert(ConnectIndex(ic));
+        }
+    }
+
 };
 
 

@@ -16,7 +16,7 @@ void TPZShapeH1<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
                                            TPZShapeData &data) {
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
-    if(ids.size() != ncorner || connectorders.size() != nsides-ncorner)
+    if((ids.size() != ncorner || connectorders.size() != nsides-ncorner) && TSHAPE::Type() != EPoint)
     {
         DebugStop();
     }

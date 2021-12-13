@@ -971,6 +971,28 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
         if(locexpand[i].Element()) expandvec.Push(locexpand[i]);
 }
 
+void TPZCompElSide::SplitConnect(const TPZCompElSide& right) const{
+    TPZInterpolatedElement *intelleft = dynamic_cast<TPZInterpolatedElement *> (Element());
+    TPZInterpolatedElement *intelright = dynamic_cast<TPZInterpolatedElement *> (right.Element());
+    if (!intelleft || !intelright) DebugStop();
+    TPZConnect &cleft = intelleft->SideConnect(0, Side());
+    TPZConnect &cright = intelright->SideConnect(0, right.Side());
+    if (&cleft != &cright) {
+        DebugStop(); // CompElSides do not share the same connect!
+    }
+    
+    TPZCompMesh* cmesh = intelleft->Mesh();
+    int64_t index = cmesh->AllocateNewConnect(cleft);
+    TPZConnect &newcon = cmesh->ConnectVec()[index];
+    cleft.DecrementElConnected();
+    newcon.ResetElConnected();
+    newcon.IncrementElConnected();
+    newcon.SetSequenceNumber(cmesh->NConnects() - 1);
+    
+    int rightlocindex = intelright->SideConnectLocId(0, right.Side());
+    intelright->SetConnectIndex(rightlocindex, index);
+}
+
 /// Return the index of the middle side connect alon fSide
 int64_t TPZCompElSide::ConnectIndex() const
 {

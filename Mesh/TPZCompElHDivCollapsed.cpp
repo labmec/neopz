@@ -197,7 +197,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::SetConnectIndex(int i, int64_t connectindex
 {
 	if(i <= TSHAPE::NFacets)
 	{
-        SetConnectIndex(i, connectindex);
+        TPZCompElHDiv<TSHAPE>::SetConnectIndex(i, connectindex);
 	}
     else if(i == TSHAPE::NFacets+1)
     {
@@ -223,11 +223,13 @@ int TPZCompElHDivCollapsed<TSHAPE>::NConnectShapeF(int connect, int connectorder
     }
     else if(connect == TSHAPE::NFacets+1)
     {
-        return TPZShapeHDivCollapsed<TSHAPE>::ComputeNConnectShapeF(connect,connectorder);
+        TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,connectorder);
+        return TSHAPE::NShapeF(order);
     }
     else if(connect == TSHAPE::NFacets+2)
     {
-        return TPZShapeHDivCollapsed<TSHAPE>::ComputeNConnectShapeF(connect,connectorder);
+        TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,connectorder);
+        return TSHAPE::NShapeF(order);
     }
     else DebugStop();
     return -1;
@@ -424,7 +426,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
     data.axes = axeslocal;
     const int dim = TSHAPE::Dimension+1;
     const int nvecshapestd = data.fDeformedDirections.Cols();
-    TPZManVector<REAL> topdir(dim,0.), botdir(dim,0.); // top and bot directions in the deformed element
+    TPZManVector<REAL> topdir(3,0.), botdir(3,0.); // top and bot directions in the deformed element
     TPZManVector<REAL,3> vecup={0,0,0}, vecdown={0,0,0};
     vecup[dim-1] = 1.;
     vecdown[dim-1] = -1.;
@@ -456,7 +458,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
         // the shape functions related to the top and bottom connect that communicate
         // with the adjacent 3D elements
         const int64_t nvecshapecollpased = nvecshapestd+nvec_top+nvec_bottom;
-        data.fDeformedDirections.Resize(dim,nvecshapecollpased);
+        data.fDeformedDirections.Resize(3,nvecshapecollpased);
         data.fVecShapeIndex.Resize(nvecshapecollpased);
         data.divphi.Resize(nvecshapecollpased,1);
         data.phi.Resize(nvecshapecollpased,1);
@@ -585,8 +587,23 @@ void TPZCompElHDivCollapsed<TSHAPE>::CleanupMaterialData(TPZMaterialData &data)
     data.fUserData = nullptr;
 }
 
+template<class TSHAPE>
+int TPZCompElHDivCollapsed<TSHAPE>::ConnectOrder(int connect) const {
+	if (connect < 0 || connect >= NConnects()){
+#ifdef PZ_LOG
+		{
+			std::stringstream sout;
+			sout << "Connect index out of range connect " << connect <<
+			" nconnects " << NConnects();
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		return -1;
+	}
 
-
+    TPZConnect &c = this->Connect(connect);
+    return c.Order();
+}
 
 template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::SetCreateFunctions(TPZCompMesh* mesh) {

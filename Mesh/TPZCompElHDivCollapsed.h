@@ -150,6 +150,8 @@ public:
 	void Read(TPZStream &buf, void *context) override;
     /** @brief Refinement along the element */
 //    virtual void PRefine(int order) override;
+
+	virtual int ConnectOrder(int connect) const override;
 	
 };
 
