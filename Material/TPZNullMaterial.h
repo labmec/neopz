@@ -24,7 +24,7 @@ public:
         fNState = 1;
     }
 
-    TPZNullMaterial(int matid, int dimension, int nstate) : TPZRegisterClassId(&TPZNullMaterial::ClassId),
+    TPZNullMaterial(int matid, int dimension, int nstate = 1) : TPZRegisterClassId(&TPZNullMaterial::ClassId),
                                                             TBase(matid) {
 #ifdef PZDEBUG
         if (dimension < 0 || dimension > 3) {
