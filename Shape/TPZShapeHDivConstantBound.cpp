@@ -61,10 +61,8 @@ void TPZShapeHDivConstantBound<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeDa
         }
     } else if (dim == 2) {
         
-        REAL sign = 1.;
         
         if (TSHAPE::Type() == EQuadrilateral){
-            sign = -1.;
             phi(0,0) = -0.25;
         } else if (TSHAPE::Type() == ETriangle){
             phi(0,0) = -2.;
@@ -81,8 +79,8 @@ void TPZShapeHDivConstantBound<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeDa
        
         for (int i = nEdges; i < nshape; i++)
         {
-            phi(i-nEdges+1,0) = phiAux(0,i) * sign;
-            phi(i-nEdges+1,1) = phiAux(1,i) * sign;
+            phi(i-nEdges+1,0) = -phiAux(0,i);
+            phi(i-nEdges+1,1) = -phiAux(1,i);
         }
         
     } else {
