@@ -5,7 +5,7 @@
 #include "pzshapetriang.h"
 #include "pzshapequad.h"
 #include "pzshapepoint.h"
-
+#include "TPZShapeHDivKernel.h"
 
 template <class TSHAPE>
 void TPZShapeHDivConstantBound<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
@@ -45,26 +45,49 @@ void TPZShapeHDivConstantBound<class pzshape::TPZShapePoint>::Shape(const TPZVec
 template <class TSHAPE>
 void TPZShapeHDivConstantBound<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi) {
 
-    phi(0,0) = -0.5;
-
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
     const int dim = TSHAPE::Dimension;
+    const auto nEdges = TSHAPE::NumSides(1);
     TPZShapeH1<TSHAPE>::Shape(pt,data);
 
-    const auto nEdges = TSHAPE::NumSides(1);
+    if (dim == 1){
+        phi(0,0) = -0.5;
 
-    if (dim != 1)
-    {
+        int nshape = data.fPhi.Rows();
+
+        for (int i = 0; i < nshape-ncorner; i++){
+            phi(i+1,0) = -data.fDPhi(0,i+ncorner);
+        }
+    } else if (dim == 2) {
+        
+        REAL sign = 1.;
+        
+        if (TSHAPE::Type() == EQuadrilateral){
+            sign = -1.;
+            phi(0,0) = -0.25;
+        } else if (TSHAPE::Type() == ETriangle){
+            phi(0,0) = -2.;
+        }
+
+        auto nshape = TPZShapeHDivKernel<TSHAPE>::NHCurlShapeF(data);
+        
+        TPZFMatrix<REAL> phiAux(2,nshape),divphiAux(nshape,1);
+        auto qsi = pt;
+        TPZShapeHDivKernel<TSHAPE>::Shape(qsi,data,phiAux,divphiAux);
+
+        auto nEdges = TSHAPE::NumSides(1); 
+        // std::cout << "phiaux = " << phiAux << std::endl;
+       
+        for (int i = nEdges; i < nshape; i++)
+        {
+            phi(i-nEdges+1,0) = phiAux(0,i) * sign;
+            phi(i-nEdges+1,1) = phiAux(1,i) * sign;
+        }
+        
+    } else {
         DebugStop();
     }
-
-    int nshape = data.fPhi.Rows();
-    // phi.Resize(1,nshape);
-
-    for (int i = 0; i < nshape-ncorner; i++){
-        phi(i+1,0) = -data.fDPhi(0,i+ncorner);
-	}
 
 
 }
@@ -83,19 +106,16 @@ int TPZShapeHDivConstantBound<TSHAPE>::ComputeNConnectShapeF(int connect, int or
     if(thistype == EOned)
     {
         return order;
-        // if(connect < 2) return 0;
-        // else return order;
-        // DebugStop();
     }
     else if(thistype == ETriangle)
     {
-        if(connect < TSHAPE::NFacets) return 1;//(order+1);
-        else return 1;//(order+1)*(order+1)-1;
+        if(connect < TSHAPE::NFacets) return 1 + (order-1)*(2*order+4)/4;
+        else return 0;
     }
     else if(thistype == EQuadrilateral)
     {
-        if(connect < TSHAPE::NFacets) return order+1;//(order+1);
-        else return 2*order*(order+1);
+        if(connect < TSHAPE::NFacets) return 1 + order*(order+2);
+        else return 0;
     }
 
     DebugStop();

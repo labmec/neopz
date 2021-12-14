@@ -1471,7 +1471,7 @@ namespace pztopology {
         constexpr auto nEdges{4};
         TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
         for(auto iEdge = 0; iEdge < nEdges; iEdge++){
-            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+            edgeSign[iEdge] = 1.;//transformationIds[iEdge] == 0 ? 1 : -1;
         }
 
         //Face functions
@@ -1489,10 +1489,10 @@ namespace pztopology {
         div[1] = 3./scale;
 
         scale = M_SQRT3 / 2. * edgeSign[2];
-        RT0function(0,2) = -M_SQRT3 * qsi / scale;
-        RT0function(1,2) = -M_SQRT3 * eta / scale;
-        RT0function(2,2) = -M_SQRT3 * zeta / scale;
-        div[2] = -3.* M_SQRT3/scale;
+        RT0function(0,2) = M_SQRT3 * qsi / scale;
+        RT0function(1,2) = M_SQRT3 * eta / scale;
+        RT0function(2,2) = M_SQRT3 * zeta / scale;
+        div[2] = 3.* M_SQRT3/scale;
 
         scale = 0.5 * edgeSign[3];
         RT0function(0,3) = (qsi - 1.) / scale;
