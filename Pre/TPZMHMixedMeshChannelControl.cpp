@@ -41,20 +41,38 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
     CreateHDivMHMMesh();
     
     if(OpenChannel==true){
-    for(auto it:oppen_channel){
-        TPZCompEl *cel_from = it.second.first.Element()->Reference();
-        int side_from = it.second.first.Side();
-        TPZCompEl *cel_to = it.second.second.Element()->Reference();
-        int side_to = it.second.second.Side();
-        int c_from_index = cel_from->Index();
-        int c_to_index = cel_to->Index();
-        int connec_from_index = side_from - 4;
-        int connec_to_index = side_to - 4;
-        FluxMesh()->Element(c_from_index)->Connect(connec_from_index).RemoveDepend();
-        FluxMesh()->Element(c_to_index)->Connect(connec_to_index).RemoveDepend();
-        int conenec_from_to = FluxMesh()->Element(c_from_index)->ConnectIndex(connec_from_index);
-        FluxMesh()->Element(c_to_index)->SetConnectIndex(connec_to_index, conenec_from_to);
-    }
+        for(auto it:oppen_channel){
+            fGMesh->ResetReference();
+            FluxMesh()->LoadReferences();
+            TPZGeoEl *gel_from_orig = it.second.first.Element();
+            int side_from = it.second.first.Side();
+            TPZGeoEl *gel_to_orig = it.second.second.Element();
+            int64_t gel_from_index = gel_from_orig->Index();
+            int64_t gel_to_index = gel_to_orig->Index();
+            int mhm1 = fGeoToMHMDomain[gel_from_index];
+            int mhm2 = fGeoToMHMDomain[gel_to_index];
+            if(mhm1 == mhm2) DebugStop();
+            TPZGeoEl *gel_from = fGMesh->Element(gel_from_index);
+            TPZGeoEl *gel_to = fGMesh->Element(gel_to_index);
+            TPZCompEl *cel_from = gel_from->Reference();
+            TPZCompEl *cel_to = gel_to->Reference();
+            int side_to = it.second.second.Side();
+            int c_from_index = cel_from->Index();
+            int c_to_index = cel_to->Index();
+            int connec_from_index = side_from - 4;
+            int connec_to_index = side_to - 4;
+            int64_t cfrom_index = cel_from->ConnectIndex(connec_from_index);
+            int64_t cto_index = cel_to->ConnectIndex(connec_to_index);
+            if(cfrom_index == cto_index) DebugStop();
+            TPZConnect &cfrom = cel_from->Connect(connec_from_index);
+            TPZConnect &cto = cel_to->Connect(connec_to_index);
+            cfrom.RemoveDepend();
+            cto.RemoveDepend();
+    //        FluxMesh()->Element(c_from_index)->Connect(connec_from_index).RemoveDepend();
+    //        FluxMesh()->Element(c_to_index)->Connect(connec_to_index).RemoveDepend();
+            auto conenec_from_to = cel_from->ConnectIndex(connec_from_index);
+            cel_to->SetConnectIndex(connec_to_index, conenec_from_to);
+        }
     }
     
 
