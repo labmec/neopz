@@ -83,12 +83,12 @@ int TPZBndCondBase<TVar, Interfaces...>::ClassId() const{
         TPZMaterialT<TVar>::ClassId() << 1 ^
         TPZBndCondT<TVar>::ClassId() << 2;
     
-    if constexpr (nInterfaces>0){
-        TPZVec<int> classIds = {Interfaces::ClassId()...};
-        for(auto count =0;count< nInterfaces;count++){
-            id = id ^ (classIds[count] << (count+3));
-        }
-    }
+//    if constexpr (nInterfaces>0){
+//        TPZVec<int> classIds = {Interfaces::ClassId()...};
+//        for(auto count =0;count< nInterfaces;count++){
+//            id = id ^ (classIds[count] << (count+3));
+//        }
+//    }
     return id;
 }
 
@@ -102,7 +102,7 @@ void TPZBndCondBase<TVar, Interfaces...>::Read(
     TPZBndCondT<TVar>::Read(buf,context);
     /* The following will perform calls to all the Read methods of the interfaces. 
        This is a c++17 addition called fold expressions.*/
-    (Interfaces::Read(buf,context),...);
+//    (Interfaces::Read(buf,context),...);
 }
 
 template<class TVar, class...Interfaces>
@@ -113,6 +113,6 @@ void TPZBndCondBase<TVar, Interfaces...>::Write(
     TPZBndCondT<TVar>::Write(buf,withclassid);
     /* The following will perform calls to all the Read methods of the interfaces. 
        This is a c++17 addition called fold expressions.*/
-    (Interfaces::Write(buf,withclassid),...);
+//    (Interfaces::Write(buf,withclassid),...);
 }
 #endif

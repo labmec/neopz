@@ -18,7 +18,7 @@ class TPZMatErrorSingleSpaceBC;
  * This material allows the computation of error measures of the FEM approximation based on an exact solution. 
  */
 template<class TVar>
-class TPZMatErrorSingleSpace : public TPZMatError<TVar>{
+class TPZMatErrorSingleSpace : public virtual TPZMatError<TVar>{
  public:
     // this is type alias
     // https://en.cppreference.com/w/cpp/language/type_alias
@@ -28,7 +28,7 @@ class TPZMatErrorSingleSpace : public TPZMatError<TVar>{
     //! Default constructor
     TPZMatErrorSingleSpace() = default;
 
-    [[nodiscard]] int ClassId() const override;
+//    [[nodiscard]] int ClassId() const override;
     //!@name Error
     /** @{*/
     /** @brief Public interface for calculating errors
@@ -37,7 +37,7 @@ class TPZMatErrorSingleSpace : public TPZMatError<TVar>{
                 TPZVec<REAL> &errors) = 0;
     /** @brief Returns the number of error norms.
         Default is 3: norm, L2 and seminorm. */
-    int NEvalErrors() const override{return TPZMatError<TVar>::NEvalErrors();}
+//    int NEvalErrors() const override{return TPZMatError<TVar>::NEvalErrors();}
     /** @}*/
 };
 
