@@ -189,7 +189,7 @@ void TPZMHMixedMeshChannelControl::HideTheElements()
             TPZConnect &c = fCMesh->ConnectVec()[ic];
             if(c.NElConnected() == 0 && c.HasDependency())
             {
-                std::cout << "Removing depend for connect " << ic << std::endl;
+//                std::cout << "Removing depend for connect " << ic << std::endl;
                 c.RemoveDepend();
             }
         }
