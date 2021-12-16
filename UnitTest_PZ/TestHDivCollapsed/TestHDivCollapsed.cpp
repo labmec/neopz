@@ -206,7 +206,7 @@ int main(int argc, char* argv[]){
     const bool isRefMesh = false;
     const bool is3D = true;
     const bool isLinPVar = true;
-    const bool isFracIntersect = true;
+    const bool isFracIntersect = false;
     TestHdivCollapsed(is3D,isRefMesh,isLinPVar,isFracIntersect);
 
     return 0;
