@@ -259,10 +259,7 @@ int TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(const int icon, const int order
                             //for quad faces ordvec[0] = xord and ordvec[1] = zord
                             count++;
                         }
-                        else if((TSHAPE::Type(faceSide) == ETriangle) &&
-                                (ordvec[0] <= order+1) &&
-                                (ordvec[1] <= order+1)){
-                            //for triang faces ordvec[0] = xord and ordvec[1] = yord
+                        else if(TSHAPE::Type(faceSide) == ETriangle){
                             count++;
                         }
                     }
@@ -645,10 +642,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
                     skip = false;
                     
                 }
-                else if((TSHAPE::Type(faceSide) == ETriangle) &&
-                        (ordvec[0] <= sideOrder+1) &&
-                        (ordvec[1] <= sideOrder+1)){
-                    //for triang faces ordvec[0] = xord and ordvec[1] = yord
+                else if(TSHAPE::Type(faceSide) == ETriangle){
                     skip = false;
                 }
             }
