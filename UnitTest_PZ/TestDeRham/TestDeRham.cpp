@@ -261,12 +261,6 @@ void CheckExactSequence(int kRight) {
   const auto elName = MMeshType_Name(elType);
   const auto elDim = MMeshType_Dimension(elType);
 
-  // TODOFIX
-  if constexpr (leftSpace == ESpace::HCurl || rightSpace == ESpace::HCurl) {
-    if (elType==MMeshType::EPrismatic) {
-      return;
-    }
-  }
   if (elDim == dim) {
 
     const int kLeft = [kRight,elType]() {
