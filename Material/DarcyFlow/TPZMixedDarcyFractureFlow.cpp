@@ -5,6 +5,10 @@
 #include "TPZMixedDarcyFractureFlow.h"
 #include "TPZMaterialDataT.h"
 #include "pzaxestools.h"
+#ifdef USING_MKL
+#include "mkl.h"
+#endif
+#define USEBLAS
 
 TPZMixedDarcyFractureFlow::TPZMixedDarcyFractureFlow() : TBase() {
 }
@@ -159,7 +163,75 @@ void TPZMixedDarcyFractureFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>>
         }
     }
    
-    
+#if defined(USEBLAS) && defined(USING_MKL)
+    TPZFNMatrix<3, REAL> ivec(3, first_transverse_q, 0.);
+    for (int iq = 0; iq < first_transverse_q; iq++){
+        int ivecind = datavec[0].fVecShapeIndex[iq].first;
+        int ishapeind = datavec[0].fVecShapeIndex[iq].second;
+        for (int id = 0; id < 3; id++) {
+            ivec(id, iq) = datavec[0].fDeformedDirections(id, ivecind);
+        }
+    }
+    {
+        double *A, *B, *C;
+        double alpha, beta;
+        int m,n,k;
+        m = first_transverse_q;
+        n = first_transverse_q;
+        k = 3;
+        alpha = weight*(1.0/eps)*inv_perm;
+        beta = 1.0;
+        int LDA,LDB,LDC;
+        LDA = 3;
+        LDB = 3;
+        LDC = ek.Rows();
+        A = &ivec(0,0);
+        B = &ivec(0,0);
+        C = &ek(0,0);
+        cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
+                    m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
+    }
+    //contribucion matrix B
+    {
+        double *A, *B, *C;
+        double alpha, beta;
+        int m,n,k;
+        m = first_transverse_q;
+        n = nphi_p;
+        k = 1;
+        alpha = -weight;
+        beta = 1.0;
+        int LDA,LDB,LDC;
+        LDA = first_transverse_q;
+        LDB = nphi_p;
+        LDC = ek.Rows();
+        A = &div_phi(0,0);
+        B = &phi_ps(0,0);
+        C = &ek(0,first_p);
+        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
+                    m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
+    }
+    //contribucion matrix B^t
+    {
+        double *A, *B, *C;
+        double alpha, beta;
+        int m,n,k;
+        m = nphi_p;
+        n = first_transverse_q;
+        k = 1;
+        alpha = -weight;
+        beta = 1.0;
+        int LDA,LDB,LDC;
+        LDA = nphi_p;
+        LDB = first_transverse_q;
+        LDC = ek.Rows();
+        A = &phi_ps(0,0);
+        B = &div_phi(0,0);
+        C = &ek(first_p,0);
+        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
+                    m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
+    }
+#else
     for (int iq = 0; iq < first_transverse_q; iq++) {
         //        datavec[qb].Print(std::cou        t);
         v_i = datavec[qb].fVecShapeIndex[iq].first;
@@ -198,6 +270,9 @@ void TPZMixedDarcyFractureFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>>
             ek(jp + first_p, iq + first_q) += weight * ( - div_phi(iq,0) ) * phi_ps(jp,0);
         }
     }
+#endif
+    
+    
 //    
     // compute the contribution of the hdivbound
     for (int iq = first_transverse_q; iq < second_transverse_q; iq++)
