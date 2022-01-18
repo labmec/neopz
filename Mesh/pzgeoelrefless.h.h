@@ -276,6 +276,9 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
     int sidennodes = TGeo::NSideNodes(side);
     int sizeMap = 0;
     switch (sidetype){
+    case EPoint:
+        sizeMap = 1;
+        break;
     case EOned:
         sizeMap = 3;
         break;

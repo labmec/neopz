@@ -4,17 +4,20 @@ set(public_headers
     TPZL2Projection.h
     TPZHDivProjection.h
     TPZHCurlProjection.h
+    TPZL2ProjectionCS.h
     )
 
 set(headers
     TPZL2Projection.h
     TPZHDivProjection.h
     TPZHCurlProjection.h
+    TPZL2ProjectionCS.h
    )
 set(sources
     TPZL2Projection.cpp
     TPZHDivProjection.cpp
     TPZHCurlProjection.cpp
+    TPZL2ProjectionCS.cpp
    )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/Projection)
