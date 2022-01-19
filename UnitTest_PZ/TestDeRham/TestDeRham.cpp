@@ -28,21 +28,30 @@ static const std::map<ESpace, const char *> names({{ESpace::H1, "H1"},
                                                    {ESpace::L2, "L2"}});
 
 
+/** @brief Compares the dimensions of the span of the differential operator associated
+    with the left space against the kernel of the right space.
+    Let us call the operator op (h1-> grad, hcurl -> curl, hdiv -> div, l2 -> id).
+    This function creates the matrix op(phi_i,phi_j) and compares if
+    rank(M_left) = ker(M_right).
+    @note For L2, the comparison is rank(M_left) = rank(M_right), and the operator
+    associated with the L2 approximation space is the identity (op(phi_i) = phi_i).
+    @param [in] kRight polynomial order of the rightmost approximation space*/
+template <ESpace leftSpace, ESpace rightSpace, int dim>
+void CheckRankKerDim(int kRight);
+/** @brief Checks if the range of the differential operator of the left approximation space is contained in the functions of the approximation space on the right.
+    Let us call the operator op (h1-> grad, hcurl -> curl, hdiv -> div, l2 -> id).
+    Denoting by
+    - phi_i : basis functions of the left space
+    - op: operator of the left space
+    - varphi_i : basis functions of the right space
+    This function creates the matrix
+    M = [ A B ] = [ op(phi_i).op(phi_j)  op(phi_i). varphi_j ]
+        [ C D ]   [ varphi_i .op(phi_j)  varphi_i . varphi_j ]
 
-/** @brief Creates appropriate meshes to compare approximation spaces*/
+    And then compare if rank(M) = rank(D).
+    @param [in] kRight polynomial order of the rightmost approximation space*/
 template <ESpace leftSpace, ESpace rightSpace, int dim>
-void CreateMeshes(int kRight, MMeshType elType,
-                  int &kLeft, TPZAutoPointer<TPZGeoMesh> &gmesh,
-                  TPZAutoPointer<TPZCompMesh> &cmeshL,
-                  TPZAutoPointer<TPZCompMesh> &cmeshR);
-/** @brief Compares the dimensions of the span of the operator associated
-    with the left space against the kernel of the right space*/
-template <ESpace leftSpace, ESpace rightSpace, int dim>
-void CheckCompatibilityUniformMesh(int k);
-/** @brief Checks if the functions of the right space span the range of the
-    operator of the left space*/
-template <ESpace leftSpace, ESpace rightSpace, int dim>
-void CheckExactSequence(int kRight);
+void CheckInclusion(int kRight);
 
 TEMPLATE_TEST_CASE("Dimension Compatibility", "[derham_tests]",
                    (typename std::integral_constant<int,2>),
@@ -61,23 +70,23 @@ TEMPLATE_TEST_CASE("Dimension Compatibility", "[derham_tests]",
   SECTION(names.at(leftSpace)) {
     switch (leftSpace) {
     case ESpace::H1:
-      CheckCompatibilityUniformMesh<ESpace::H1,ESpace::HCurl,dim>(k);
+      CheckRankKerDim<ESpace::H1,ESpace::HCurl,dim>(k);
       //TODOFIX
       // if constexpr (dim == 2){
-      //   CheckCompatibilityUniformMesh<ESpace::H1, ESpace::HDiv, dim>(k);
+      //   CheckRankKerDim<ESpace::H1, ESpace::HDiv, dim>(k);
       // }
       break;
     case ESpace::HCurl:
       if constexpr (dim == 2){
-        CheckCompatibilityUniformMesh<ESpace::HCurl, ESpace::L2, dim>(k);
+        CheckRankKerDim<ESpace::HCurl, ESpace::L2, dim>(k);
       }
       //TODOFIX
       // else{
-      //   CheckCompatibilityUniformMesh<ESpace::HCurl, ESpace::HDiv, dim>(k);
+      //   CheckRankKerDim<ESpace::HCurl, ESpace::HDiv, dim>(k);
       // }
       break;
     case ESpace::HDiv:
-      CheckCompatibilityUniformMesh<ESpace::HDiv,ESpace::L2,dim>(k);
+      CheckRankKerDim<ESpace::HDiv,ESpace::L2,dim>(k);
       break;
     case ESpace::L2:
       break;
@@ -102,10 +111,10 @@ TEMPLATE_TEST_CASE("Inclusion", "[derham_tests]",
   SECTION(names.at(leftSpace)) {
     switch (leftSpace) {
     case ESpace::H1:
-      CheckExactSequence<ESpace::H1,ESpace::HCurl,dim>(k);
+      CheckInclusion<ESpace::H1,ESpace::HCurl,dim>(k);
       //TODOFIX
       // if constexpr (dim == 2){
-      //   CheckExactSequence<ESpace::H1, ESpace::HDiv, dim>(k);
+      //   CheckInclusion<ESpace::H1, ESpace::HDiv, dim>(k);
       // }
       break;
       //TODOFIX
@@ -118,13 +127,46 @@ TEMPLATE_TEST_CASE("Inclusion", "[derham_tests]",
 /*******************************************************************************
  ***********************************AUX FUNCS***********************************
 *******************************************************************************/
+
+/** @brief Creates appropriate computational meshes to study De Rham compatibility of FEM approximation spaces.
+    The mesh will consist of elements of type elType (inside the function,
+    the option singleElement decides whether to create a mesh with only one
+    element or not).
+    @param [in] kRight polynomial order of the rightmost approximation space
+    @param [in] elType element type to be created
+    @param [out] kLeft polynomial order of the leftmost approximation space
+    @param [out] gmesh created geometric mesh
+    @param [out] cmeshL computational mesh of leftmost approximaton space
+    @param [out] cmeshR computational mesh of rightmost approximaton space*/
+template <ESpace leftSpace, ESpace rightSpace, int dim>
+void CreateMeshes(int kRight, MMeshType elType,
+                  int &kLeft, TPZAutoPointer<TPZGeoMesh> &gmesh,
+                  TPZAutoPointer<TPZCompMesh> &cmeshL,
+                  TPZAutoPointer<TPZCompMesh> &cmeshR);
+
+/** @brief Creates a simple geometric mesh for testing purposes
+    @param [in] dim dimension of the domain
+    @param [in] elType element type
+    @param [in] matId material identifier of all elements
+*/
 TPZAutoPointer<TPZGeoMesh> CreateGMesh(const int dim, const MMeshType elType,
                                        const int matId);
-
+/** @brief Creates a simple computational mesh for testing purposes
+    @param [in] gMesh geometric mesh
+    @param [in] mat material to be inserted in the mesh
+    @param [in] matId material identifier
+    @param [in] k default polynomial order
+    @param [in] space approximation space to be created
+*/
 TPZAutoPointer<TPZCompMesh> CreateCMesh(TPZAutoPointer<TPZGeoMesh> gMesh,
                                         TPZMaterial *mat, const int matId,
                                         const int k, ESpace space);
 
+/*
+  @brief Calculates the rank of an S matrix obtained by SVD
+  @param [in] S matrix
+  @param[in] tol arithmetic tolerance
+*/
 int CalcRank(const TPZFMatrix<STATE> & S, const STATE tol);
 
 /*******************************************************************************
@@ -142,6 +184,7 @@ void CreateMeshes(int kRight, MMeshType elType,
   
   const auto elDim = MMeshType_Dimension(elType);
 
+  // for CheckInclusion test, the following materials will be ignored
   auto *matLeft = [&kLeft,kRight,elType]()
     -> TPZMaterial* {
     if constexpr (leftSpace == ESpace::H1) {
@@ -176,7 +219,7 @@ void CreateMeshes(int kRight, MMeshType elType,
   }();
 
   REQUIRE((matLeft != nullptr && matRight != nullptr));
-  //for debugging
+  //generates mesh with a single element
   constexpr bool singleElement{true};
 
   if constexpr(singleElement){
@@ -191,27 +234,37 @@ void CreateMeshes(int kRight, MMeshType elType,
 }
 
 template <ESpace leftSpace, ESpace rightSpace, int dim>
-void CheckCompatibilityUniformMesh(int kRight) {
+void CheckRankKerDim(int kRight) {
 
+  /******************************************
+  CHECK FUNCTION DECLARATION FOR MORE DETAILS
+  *******************************************/
+  //select element type
   auto elType = GENERATE(MMeshType::ETriangular,
                          MMeshType::EQuadrilateral,
                          MMeshType::ETetrahedral,
                          MMeshType::EHexahedral,
                          MMeshType::EPrismatic);
-
+  
   const auto elDim = MMeshType_Dimension(elType);
+  //if dimension does not correspond, skip
   if(elDim != dim) return;
 
   
   int kLeft;
   TPZAutoPointer<TPZGeoMesh> gmesh{nullptr};
   TPZAutoPointer<TPZCompMesh> cmeshL{nullptr}, cmeshR{nullptr};
+  //creates computational meshes
   CreateMeshes<leftSpace, rightSpace, dim>(kRight, elType,
                                            kLeft, gmesh, cmeshL, cmeshR);
+
+  //for debuggin
   const auto nameLeft = names.at(leftSpace);
   const auto nameRight = names.at(rightSpace);
   const auto elName = MMeshType_Name(elType);
   CAPTURE(nameLeft,nameRight,elName);
+
+  //stores the matrices
   TPZAutoPointer<TPZMatrix<STATE>> matPtrL = nullptr;
   TPZAutoPointer<TPZMatrix<STATE>> matPtrR = nullptr;
 
@@ -258,42 +311,60 @@ void CheckCompatibilityUniformMesh(int kRight) {
     matR.SVD(Udummy, SR, VTdummy, 'N', 'N');
   }
   static constexpr auto tol = std::numeric_limits<STATE>::epsilon()*100000;
+
+  //rank of op(phi_i,phi_j) of left space
   const int rankL = CalcRank(SL,tol);
   const int rankR = CalcRank(SR,tol);
+  //dimension of the nullspace of op(phi_i,phi_j) of right space
   const int kerR = dimR-rankR;
       
   CAPTURE(kLeft,kRight,dimL,rankL,dimR,kerR,rankR);
   CAPTURE(SL,SR);
-  if constexpr (rightSpace==ESpace::L2)//for L2 the operator is -> 0
-                 REQUIRE(rankL == rankR);
-  else
+  if constexpr (rightSpace==ESpace::L2){//for L2 the operator is -> 0
+    REQUIRE(rankL == rankR);
+  }
+  else{
     REQUIRE(rankL == kerR);
+  }
 }
 
 template <ESpace leftSpace, ESpace rightSpace, int dim>
-void CheckExactSequence(int kRight) {
+void CheckInclusion(int kRight) {
+  /******************************************
+  CHECK FUNCTION DECLARATION FOR MORE DETAILS
+  *******************************************/
+  
   constexpr int matId = 1;
+  //select element type
   auto elType = GENERATE(MMeshType::ETriangular, MMeshType::EQuadrilateral,
                          MMeshType::ETetrahedral, MMeshType::EHexahedral,
                          MMeshType::EPrismatic);
   const auto elDim = MMeshType_Dimension(elType);
-
+  //skips if dimension is not compatible
   if (elDim != dim) return;
   
   int kLeft;
   TPZAutoPointer<TPZGeoMesh> gmesh{nullptr};
   TPZAutoPointer<TPZCompMesh> cmeshL{nullptr}, cmeshR{nullptr};
-
+  //for debugging
   const auto nameLeft = names.at(leftSpace);
   const auto nameRight = names.at(rightSpace);
   const auto elName = MMeshType_Name(elType);
   CAPTURE(nameLeft,nameRight,elName);
+
+  //creates computational meshes
   CreateMeshes<leftSpace, rightSpace, dim>(kRight, elType, kLeft,
                                            gmesh, cmeshL, cmeshR);
   
-
+  //creates multiphysics mesh
   TPZAutoPointer<TPZCompMesh> cmeshMF = new TPZCompMesh(gmesh);
 
+
+  /*
+    Now, the appropriate material will be selected given their
+    combination of left and right approximation spaces.
+    This material will be responsible for creating the matrix M
+   */
   auto *matMF = []() -> TPZMaterial * {
     if constexpr (rightSpace == ESpace::H1) {
       return nullptr;
@@ -344,6 +415,8 @@ void CheckExactSequence(int kRight) {
   const int rLeftEqs = cmeshR->NEquations();
   const int lLeftEqs = cmeshL->NEquations();
   TPZFMatrix<STATE> rightMatrix(rLeftEqs,rLeftEqs);
+
+  //rightMatrix is the matrix phi_i phi_j for the approx. space on the right
   mfMatrix.GetSub(lLeftEqs, lLeftEqs, rLeftEqs, rLeftEqs, rightMatrix);
 
 
@@ -354,50 +427,18 @@ void CheckExactSequence(int kRight) {
     mfMatrix.SVD(Udummy, Sfull, VTdummy, 'N', 'N');
     rightMatrix.SVD(Udummy, Sright, VTdummy, 'N', 'N');
   }
-    
+
+
+  /**
+     We want to compare if rank(rightMatrix) == rank(mfMatrix).
+     This will ensure us that op(phi_i).op(phi_j) of the left space
+     are contained in the functions of the approximation space on the right.
+   */
   static constexpr auto tol = std::numeric_limits<STATE>::epsilon()*100;
   auto fullDim = Sfull.Rows();
   auto fullRank = CalcRank(Sfull,tol);
   auto rightDim = Sright.Rows();
   auto rightRank = CalcRank(Sright,tol);
-
-
-  // if(elType == MMeshType::ETriangular){
-  //   const int postProcessResolution = 3;
-  //   const std::string executionInfo = [&]() {
-  //     std::string name("");
-  //     name.append(elName);
-  //     name.append(std::to_string(kRight));
-  //     return name;
-  //   }();
-
-  //   const std::string plotfile =
-  //       "solution" + executionInfo + ".vtk"; // where to print the vtk files
-  //   TPZStack<std::string> scalnames, vecnames;
-  //   if constexpr (leftSpace == ESpace::HDiv || leftSpace == ESpace::HCurl) {
-  //     vecnames.Push("SolutionLeft"); // print the state variable
-  //   } else {
-  //     scalnames.Push("SolutionLeft"); // print the state variable
-  //   }
-
-  //   if constexpr (rightSpace == ESpace::HDiv || rightSpace == ESpace::HCurl) {
-  //     vecnames.Push("SolutionRight"); // print the state variable
-  //   } else {
-  //     scalnames.Push("SolutionRight"); // print the state variable
-  //   }
-
-  //   analysis.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-  //   TPZFMatrix<STATE> sol(cmeshMF->NEquations(), 1);
-  //   sol.Zero();
-  //   for (int i = 0; i < sol.Rows(); i++) {
-  //     sol(i - 1 < 0 ? 0 : i - 1, 0) = 0;
-  //     sol(i, 0) = 1;
-  //     analysis.LoadSolution(sol);
-  //     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(
-  //         meshVecIn, cmeshMF.operator->());
-  //     analysis.PostProcess(postProcessResolution);
-  //   }
-  // }
 
   CAPTURE(kLeft,kRight,fullDim, fullRank,rightDim, rightRank);
   REQUIRE(fullRank == rightRank);
