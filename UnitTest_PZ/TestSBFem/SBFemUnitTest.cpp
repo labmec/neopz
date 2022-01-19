@@ -50,7 +50,7 @@ namespace SBFemTest {
 TEST_CASE("SBFEM convergence test","[sbfem][analysis]")
 {
   std::cout << "#######################\nTesting SBFEM-Elasticity 3D approximation\n";
-  SBFemTest::SBFemElasticity3D(4);
+// SBFemTest::SBFemElasticity3D(4);
   std::cout << "\n\n#######################\nTesting SBFEM-Bubbles approximation\n";
   SBFemTest::SBFemBubblesDarcy(32);
 }

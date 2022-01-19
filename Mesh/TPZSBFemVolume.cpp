@@ -95,8 +95,8 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMa
     TPZMaterialDataT<STATE> data2d;
     CSkeleton->InitMaterialData(data1d);
     CSkeleton->InitMaterialData(data2d);
-    int nshape = data2d.phi.Rows();
-    data2d.phi.Redim(nshape * 2, 1);
+    int nshape = data2d.fPhi.Rows();
+    data2d.fPhi.Redim(nshape * 2, 1);
     data2d.fDPhi.Redim(dim2, 2 * nshape);
     data2d.dphix.Redim(dim2, 2 * nshape);
     data2d.dsol[0].Redim(dim2, nstate);
@@ -160,7 +160,7 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMa
         for (int i = 0; i < nshape; i++) {
             for (int j = 0; j < nshape; j++) {
                 for (int st = 0; st < nstate; st++) {
-                    M0.fMat(i * nstate + st, j * nstate + st) += weight * data1d.phi(i, 0) * data1d.phi(j, 0) * fDensity;
+                    M0.fMat(i * nstate + st, j * nstate + st) += weight * data1d.fPhi(i, 0) * data1d.fPhi(j, 0) * fDensity;
                 }
             }
         }
@@ -239,14 +239,14 @@ void TPZSBFemVolume::AdjustAxes3D(const TPZFMatrix<REAL> &axes2D, TPZFMatrix<REA
 void TPZSBFemVolume::ExtendShapeFunctions(TPZMaterialDataT<STATE> &data1d, TPZMaterialDataT<STATE> &data2d)
 {
     int dim = Reference()->Dimension();
-    int64_t nshape = data2d.phi.Rows() / 2;
+    int64_t nshape = data2d.fPhi.Rows() / 2;
     for (int ish = 0; ish < nshape; ish++) {
-        data2d.phi(ish + nshape, 0) = data1d.phi(ish, 0);
+        data2d.fPhi(ish + nshape, 0) = data1d.fPhi(ish, 0);
         for (int d = 0; d < dim - 1; d++) {
             data2d.fDPhi(d, ish + nshape) = data1d.fDPhi(d, ish);
             data2d.fDPhi(d, ish) = 0.;
         }
-        data2d.fDPhi(dim - 1, ish) = -data1d.phi(ish) / 2.;
+        data2d.fDPhi(dim - 1, ish) = -data1d.fPhi(ish) / 2.;
         data2d.fDPhi(dim - 1, ish + nshape) = 0.;
     }
     TPZInterpolationSpace::Convert2Axes(data2d.fDPhi, data2d.jacinv, data2d.dphix);
@@ -351,7 +351,7 @@ void TPZSBFemVolume::ReallyComputeSolution(TPZMaterialDataT<STATE>& data)
     axes = data2d.axes;
     CSkeleton->ComputeRequiredData(data1d, qsilow);
 
-    int nshape = data1d.phi.Rows();
+    int nshape = data1d.fPhi.Rows();
     int nstate = mat2d->NStateVariables();
 #ifdef PZDEBUG
     if (fPhi.Cols() != fCoeficients.Rows()) {
@@ -407,8 +407,8 @@ void TPZSBFemVolume::ReallyComputeSolution(TPZMaterialDataT<STATE>& data)
         TPZManVector<STATE, 3> dsolxi(nstate, 0.);
         for (int ishape = 0; ishape < nshape; ishape++) {
             for (int istate = 0; istate < nstate; istate++) {
-                sol[s][istate] += data1d.phi(ishape) * uh_xi[ishape * nstate + istate];
-                dsolxi[istate] += data1d.phi(ishape) * Duh_xi[ishape * nstate + istate];
+                sol[s][istate] += data1d.fPhi(ishape) * uh_xi[ishape * nstate + istate];
+                dsolxi[istate] += data1d.fPhi(ishape) * Duh_xi[ishape * nstate + istate];
                 for (int d = 0; d < dim - 1; d++) {
                     dsolxieta(d, istate) += data1d.fDPhi(d, ishape) * uh_xi[ishape * nstate + istate];
                 }
@@ -478,9 +478,9 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
     }
     axes = data2d.axes;
     CSkeleton->ComputeRequiredData(data1d, qsilow);
-    CSkeleton->Shape(qsilow, data1d.phi, data1d.fDPhi);
+    CSkeleton->Shape(qsilow, data1d.fPhi, data1d.fDPhi);
     
-    int nshape = data1d.phi.Rows();
+    int nshape = data1d.fPhi.Rows();
     int nstate = mat2d->NStateVariables();
     int numeig = fEigenvalues.size();
 #ifdef PZDEBUG
@@ -552,7 +552,7 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
             std::stringstream sout;
             sout << "uh_xi " << uh_xi << std::endl;
             sout << "Duh_xi " << Duh_xi << std::endl;
-            data1d.phi.Print(sout);
+            data1d.fPhi.Print(sout);
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
@@ -562,8 +562,8 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
         TPZManVector<STATE, 3> dsolxi(nstate, 0.);
         for (int ishape = 0; ishape < nshape; ishape++) {
             for (int istate = 0; istate < nstate; istate++) {
-                sol[s][istate] += data1d.phi(ishape) * uh_xi[ishape * nstate + istate].real();
-                dsolxi[istate] += data1d.phi(ishape) * Duh_xi[ishape * nstate + istate].real();
+                sol[s][istate] += data1d.fPhi(ishape) * uh_xi[ishape * nstate + istate].real();
+                dsolxi[istate] += data1d.fPhi(ishape) * Duh_xi[ishape * nstate + istate].real();
                 for (int d = 0; d < dim - 1; d++) {
                     dsolxieta(d, istate) += data1d.fDPhi(d, ishape) * uh_xi[ishape * nstate + istate].real();
                 }
@@ -666,7 +666,7 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
     }
     CSkeleton->ComputeRequiredData(data1d, qsilow);
 
-    int nshape = data1d.phi.Rows();
+    int nshape = data1d.fPhi.Rows();
 #ifdef PZDEBUG
     if (fPhi.Cols() != fCoeficients.Rows()) {
         DebugStop();
@@ -713,7 +713,7 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
             std::stringstream sout;
             sout << "uh_xi " << uh_xi << std::endl;
             sout << "Duh_xi " << Duh_xi << std::endl;
-            data1d.phi.Print(sout);
+            data1d.fPhi.Print(sout);
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
@@ -721,8 +721,8 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
         TPZManVector<STATE, 3> dsolxi(nstate, 0.);
         for (int ishape = 0; ishape < nshape; ishape++) {
             for (int istate = 0; istate < nstate; istate++) {
-                phi(s * nstate + istate, 0) += data1d.phi(ishape) * uh_xi[ishape * nstate + istate].real();
-                dsolxi[istate] += data1d.phi(ishape) * Duh_xi[ishape * nstate + istate].real();
+                phi(s * nstate + istate, 0) += data1d.fPhi(ishape) * uh_xi[ishape * nstate + istate].real();
+                dsolxi[istate] += data1d.fPhi(ishape) * Duh_xi[ishape * nstate + istate].real();
                 for (int d = 0; d < dim - 1; d++) {
                     dsollow(d, istate) += data1d.fDPhi(d, ishape) * uh_xi[ishape * nstate + istate].real();
                 }
@@ -943,7 +943,7 @@ void TPZSBFemVolume::InitMaterialData(TPZMaterialData &data)
     const int dim = this->Dimension();
     const int nshape = this->NShapeF();
     const int nstate = this->Material()->NStateVariables();
-    data.phi.Redim(nstate * nshape*dim, 1);
+    data.fPhi.Redim(nstate * nshape*dim, 1);
     data.fDPhi.Redim(dim*nstate, nshape * nstate);
     data.dphix.Redim(dim*nstate, nshape * nstate);
     data.axes.Redim(dim, 3);
@@ -1083,7 +1083,7 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
         Ref2D->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
         weight *= fabs(data.detjac);
         
-        CSkeleton->Shape(intpoint, data1d.phi, data1d.fDPhi);
+        CSkeleton->Shape(intpoint, data1d.fPhi, data1d.fDPhi);
         
         Ref2D->X(intpoint, data.x);
         if (mat2d->HasForcingFunction())
@@ -1100,9 +1100,9 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
             } else {
                 xiexp = pow(sbfemparam, -eigval[c] - 0.5*(dim2-2) );
             }
-            for (int i = 0; i < data1d.phi.Rows(); i++) {
+            for (int i = 0; i < data1d.fPhi.Rows(); i++) {
                 for (int istate = 0; istate < nstate; istate++) {
-                    eflocal(i*nstate + istate, c) += xiexp * data1d.phi(i,0) * bodyforce[istate] * weight;
+                    eflocal(i*nstate + istate, c) += xiexp * data1d.fPhi(i,0) * bodyforce[istate] * weight;
                 }
             }
         }
@@ -1113,9 +1113,9 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
             } else {
                 xiexp = pow(sbfemparam, -eigvalbubbles[c]);
             }
-            for (int i = 0; i < data1d.phi.Rows(); i++) {
+            for (int i = 0; i < data1d.fPhi.Rows(); i++) {
                 for (int istate = 0; istate < nstate; istate++) {
-                    eflocalbubble(i*nstate + istate, c) += xiexp * data1d.phi(i,0) * bodyforce[istate] * weight;
+                    eflocalbubble(i*nstate + istate, c) += xiexp * data1d.fPhi(i,0) * bodyforce[istate] * weight;
                 }
             }
         }

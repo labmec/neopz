@@ -94,7 +94,7 @@ void TPZElasticity2D::Contribute(const TPZMaterialDataT<STATE> &data,
     }
     
 	const TPZFMatrix<REAL> &dphi = data.dphix;
-	const TPZFMatrix<REAL> &phi = data.phi;
+	const TPZFMatrix<REAL> &phi = data.fPhi;
 	const TPZFMatrix<REAL> &axes=data.axes;
 	
 	int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
@@ -214,7 +214,7 @@ void TPZElasticity2D::ContributeBC(const TPZMaterialDataT<STATE> &data,
         return;
     }
     
-	const TPZFMatrix<REAL> &phi = data.phi;
+	const TPZFMatrix<REAL> &phi = data.fPhi;
      int dim = Dimension();
 
 	const auto &BIGNUMBER  = TPZMaterial::fBigNumber;
@@ -793,7 +793,7 @@ void TPZElasticity2D::ContributeVecShape(const TPZMaterialDataT<STATE> &data,
                                          TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
     const TPZFMatrix<REAL> &dphi = data.dphix;
-	const TPZFMatrix<REAL> &phi = data.phi;
+	const TPZFMatrix<REAL> &phi = data.fPhi;
 	const TPZFMatrix<REAL> &axes=data.axes;
 	
 	int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
@@ -887,7 +887,7 @@ void TPZElasticity2D::ContributeVecShapeBC(const TPZMaterialDataT<STATE> &data,
                                            TPZFMatrix<STATE> &ef,
                                            TPZBndCondT<STATE> &bc) {
     
-    const TPZFMatrix<REAL> &phi = data.phi;
+    const TPZFMatrix<REAL> &phi = data.fPhi;
     
 	const REAL &BIGNUMBER  = TPZMaterial::fBigNumber;
     
