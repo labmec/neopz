@@ -7,7 +7,6 @@ cmake-build-release
 build
 build-*
 NeoPZ_CMake
-.vscode
 *.icloud
 compile_commands.json
 .cquery_cached_index

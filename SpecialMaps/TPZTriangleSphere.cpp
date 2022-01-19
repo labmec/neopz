@@ -20,31 +20,6 @@ static TPZLogger logger("pz.geom.pzgeotriangle");
 
 namespace pzgeom {
 
-    // template< class GeomTriang>
-    // TPZGeoEl *TPZTriangleSphere<GeomTriang>::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
-    // {
-        
-    //         int ns = orig->NSideNodes(side);
-    //         TPZManVector<int64_t> nodeindices(ns);
-    //         int in;
-    //         for(in=0; in<ns; in++)
-    //         {
-    //             nodeindices[in] = orig->SideNodeIndex(side,in);
-    //         }
-    //         int64_t index;
-            
-    //         TPZGeoMesh *mesh = orig->Mesh();
-    //         MElementType type = orig->Type(side);
-            
-    //         TPZGeoEl *newel = mesh->CreateGeoBlendElement(type, nodeindices, bc, index);
-    //         TPZGeoElSide me(orig,side);
-    //         TPZGeoElSide newelside(newel,newel->NSides()-1);
-            
-    //         newelside.InsertConnectivity(me);
-    //         newel->Initialize();
-            
-    //         return newel;
-    // }
     
     template<class GeomTriang>
     void TPZTriangleSphere<GeomTriang>::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &sz)

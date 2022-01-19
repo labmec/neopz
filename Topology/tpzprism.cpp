@@ -30,6 +30,8 @@ namespace pztopology {
 		{1,2,5,4,7,11,13,10,17},{0,2,5,3,8,11,14,9,18},{3,4,5,12,13,14,19,-1,-1} };
 
 	static constexpr int sidedimension[21] = {0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3};
+
+    static constexpr int fSideOrient[5] = {-1,1,1,-1,1};
 	
 	static constexpr int nhighdimsides[21] = {7,7,7,7,7,7,3,3,3,3,3,3,3,3,3,1,1,1,1,1,0};
 	
@@ -1734,7 +1736,7 @@ namespace pztopology {
         constexpr auto nEdges{5};
         TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
         for(auto iEdge = 0; iEdge < nEdges; iEdge++){
-            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+            edgeSign[iEdge] = 1.;//transformationIds[iEdge] == 0 ? 1 : -1;
         }
 
         //Face functions
@@ -1754,9 +1756,9 @@ namespace pztopology {
         div[1] = 2./scale * edgeSign[1];
 
         scale = M_SQRT2 * 2.;
-        RT0function(0,2) = -M_SQRT2 * qsi / scale * edgeSign[2];
-        RT0function(1,2) = -M_SQRT2 * eta / scale * edgeSign[2];
-        div[2] = -2.* M_SQRT2 / scale * edgeSign[2];
+        RT0function(0,2) = M_SQRT2 * qsi / scale * edgeSign[2];
+        RT0function(1,2) = M_SQRT2 * eta / scale * edgeSign[2];
+        div[2] = 2.* M_SQRT2 / scale * edgeSign[2];
 
         scale = 2.;
         RT0function(0,3) = (qsi - 1.) / scale * edgeSign[3];
@@ -1834,8 +1836,11 @@ namespace pztopology {
         curl(1,5) = 0.;
         curl(2,5) = 0.;
 
+    }
 
-
+    // Get face orientation
+    int TPZPrism::GetSideOrient(const int &face){
+        return fSideOrient[face];
     }
 
     void TPZPrism::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)

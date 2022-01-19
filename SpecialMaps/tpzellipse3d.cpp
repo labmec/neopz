@@ -264,46 +264,11 @@ void TPZEllipse3D::AdjustNodesCoordinates(TPZGeoMesh &mesh)
     SetNodesCoords(mesh, nodes);
 }//void
 
-// TPZGeoEl *TPZEllipse3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
-// {
-// 	if(side==2)
-// 	{
-// 		TPZManVector<int64_t> nodes(3);
-// 		nodes[0] = orig->SideNodeIndex(side,0); nodes[1] = orig->SideNodeIndex(side,1); nodes[2] = orig->SideNodeIndex(side,2); 
-// 		int64_t index;
-//         TPZGeoEl *gel = gel->Clone(*gel->Mesh());
-// 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
-// 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
-// 		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
-// 		return gel;
-// 	}
-	
-// 	else if(side==0 || side==1)
-// 	{
-// 		TPZManVector<int64_t> nodeindexes(1);
-// 		nodeindexes[0] = orig->SideNodeIndex(side,0); 
-// 		int64_t index;
-// 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
-// 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
-// 		return gel;
-// 	}
-	
-// 	else PZError << "\nTPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
-// 	return 0;
-// }
 
 
 #include "tpzgeoelmapped.h"
 #include "tpzgeomid.h"
 
-/** Creates a geometric element according to the type of the father element */
-// TPZGeoEl *TPZEllipse3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-// 										 TPZVec<int64_t>& nodeindexes,
-// 										 int matid,
-// 										 int64_t& index)
-// {
-// 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-// }
 
 void TPZEllipse3D::ParametricDomainNodeCoord(int64_t node, TPZVec<REAL> &nodeCoord)
 {

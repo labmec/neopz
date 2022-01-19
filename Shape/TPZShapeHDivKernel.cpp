@@ -35,9 +35,9 @@ void TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
     std::map<orderpair ,std::set<int>> ShapeRemove;
     ShapeRemove[orderpair(ETriangle,1)] = {};
     ShapeRemove[orderpair(ETriangle,2)] = {2};
-    ShapeRemove[orderpair(ETriangle,3)] = {0,1,7};//3functions
-    ShapeRemove[orderpair(ETriangle,4)] = {6,9,10,11,13,14};//6 functions
-    ShapeRemove[orderpair(ETriangle,5)] = {8,12,13,14,16,17,20,21,22,23};//10 functions
+    ShapeRemove[orderpair(ETriangle,3)] = {0,1,7};
+    ShapeRemove[orderpair(ETriangle,4)] = {6,9,10,11,13,14};
+    ShapeRemove[orderpair(ETriangle,5)] = {8,12,13,14,16,17,20,21,22,23};
     ShapeRemove[orderpair(ETetraedro,1)] = {};
     ShapeRemove[orderpair(ETetraedro,2)] = {};
     ShapeRemove[orderpair(ETetraedro,3)] = {0};

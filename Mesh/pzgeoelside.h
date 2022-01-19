@@ -263,6 +263,12 @@ public:
 	/** @brief This method inserts the element/side and all lowerdimension sides into the connectivity loop */
 	void InsertConnectivity(TPZGeoElSide &neighbour);
 	
+    /** @brief This method inserts the element/side and all lowerdimension sides into the connectivity loop
+                neighbour : permuted element neighbour
+                mapsides : indicates the permutation of sides between neighbours
+     */
+    void InsertConnectivity(TPZGeoElSide &neighbour, const TPZVec<int> &mapsides);
+
     /// Remove the element from the connectivity loop
 	void RemoveConnectivity();
 	

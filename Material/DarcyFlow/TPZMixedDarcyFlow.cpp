@@ -130,8 +130,10 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         LDB = phrp;
         LDC = ek.Rows();
         A = &divQ(0,0);
-        B = &phip(0,0);
-        C = &ek(0,phrq);
+        if (phrp > 0){
+            B = &phip(0,0);
+            C = &ek(0,phrq);
+        }
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
                     m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
     }
@@ -149,9 +151,11 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         LDA = phrp;
         LDB = phrq;
         LDC = ek.Rows();
-        A = &phip(0,0);
+        if (phrp > 0){
+            A = &phip(0,0);
+            C = &ek(phrq,0);
+        }
         B = &divQ(0,0);
-        C = &ek(phrq,0);
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
                     m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
     }

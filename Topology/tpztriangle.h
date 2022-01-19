@@ -251,7 +251,8 @@ namespace pztopology {
         // template <class TVar>
         static void ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div, const TPZVec<int> &transformationIds);
         static void ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds);
-        
+        static int GetSideOrient(const int &face);
+
         /** Compute the directions of the HCurl vectors.
          * These vectors are combined with H1 shape functions to create the HCurl shape functions.
          * They *must be* computed in the following order:

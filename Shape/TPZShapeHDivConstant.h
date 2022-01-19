@@ -7,21 +7,21 @@
 template<class T>
 class TPZFMatrix;
 
-#include "TPZShapeHDivKernel.h"
-#include "TPZShapeHCurl.h"
-#include "TPZShapeHDiv.h"
+#include "TPZShapeData.h"
+#include "TPZShapeH1.h"
 
 /// Traditional HDiv spaces, data structures that do not depend on the geometric map
 template <class TSHAPE>
-struct TPZShapeHDivConstant : public TPZShapeHDivKernel<TSHAPE>
+struct TPZShapeHDivConstant : public TPZShapeH1<TSHAPE>
 {
-        
+    
     static int NConnectShapeF(int connect, TPZShapeData &data);
     
     static int NHDivShapeF(TPZShapeData &data);
 
     static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
-
+    
+    static int ComputeNConnectShapeF(int connect, int order);
 };
 
 #endif

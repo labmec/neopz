@@ -189,41 +189,6 @@ void TPZQuadraticCube::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFM
     
 }
 
-/**
- * Creates a geometric element according to the type of the father element
- */
-
-// TPZGeoEl *TPZQuadraticCube::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-//                                              TPZVec<int64_t>& nodeindexes,
-//                                              int matid,
-//                                              int64_t& index)
-// {
-// 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-// }
-
-// TPZGeoEl *TPZQuadraticCube::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) 
-// {
-// 	int ns = orig->NSideNodes(side);
-// 	TPZManVector<int64_t> nodeindices(ns);
-// 	int in;
-// 	for(in=0; in<ns; in++)
-// 	{
-// 		nodeindices[in] = orig->SideNodeIndex(side,in);
-// 	}
-// 	int64_t index;
-	
-// 	TPZGeoMesh *mesh = orig->Mesh();
-// 	MElementType type = orig->Type(side);
-	
-// 	TPZGeoEl *newel = mesh->CreateGeoBlendElement(type, nodeindices, bc, index);
-// 	TPZGeoElSide me(orig,side);
-// 	TPZGeoElSide newelside(newel,newel->NSides()-1);
-	
-// 	newelside.InsertConnectivity(me);
-// 	newel->Initialize();
-	
-// 	return newel;
-// }
 
 /// create an example element based on the topology
 /* @param gmesh mesh in which the element should be inserted

@@ -93,53 +93,6 @@ namespace pzgeom {
 		VectorialProduct(v1,normal,result);	
 	}
 	
-	// TPZGeoEl *TPZGeoTriangle::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
-    //     if(side==6) {
-	// 		TPZManVector<int64_t> nodes(3);
-	// 		int i;
-	// 		for (i=0;i<3;i++){
-	// 			nodes[i] = orig->SideNodeIndex(side,i);
-	// 		}
-	// 		int64_t index;
-	// 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
-	// 		int iside;
-	// 		for (iside = 0; iside <6; iside++){
-	// 			TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,iside)));
-	// 		}
-	// 		TPZGeoElSide(gel,6).SetConnectivity(TPZGeoElSide(orig,side));
-	// 		return gel;
-	// 	}
-	// 	else if(side>-1 && side<3) {
-	// 		TPZManVector<int64_t> nodeindexes(1);
-	// 		nodeindexes[0] = orig->SideNodeIndex(side,0);
-	// 		int64_t index;
-	// 		TPZGeoEl *gel = orig->CreateGeoElement(EPoint,nodeindexes,bc,index);
-	// 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
-	// 		return gel;
-	// 	}
-	// 	else if(side > 2 && side < 6) {
-	// 		TPZManVector<int64_t> nodes(2);
-	// 		nodes[0] = orig->SideNodeIndex(side,0);
-	// 		nodes[1] = orig->SideNodeIndex(side,1);
-	// 		int64_t index;
-	// 		TPZGeoEl *gel = orig->CreateGeoElement(EOned,nodes,bc,index);
-	// 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,0)));
-	// 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,1)));
-	// 		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
-	// 		return gel;
-	// 	}
-	// 	else PZError << "TPZGeoTriangle::CreateBCGeoEl has no bc.\n";
-	// 	return 0;
-	// }
-	
-	/** Creates a geometric element according to the type of the father element */
-	// TPZGeoEl *TPZGeoTriangle::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-	// 										   TPZVec<int64_t>& nodeindexes,
-	// 										   int matid,
-	// 										   int64_t& index)
-	// {
-	// 	return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
-	// }
     
     /// create an example element based on the topology
     /* @param gmesh mesh in which the element should be inserted

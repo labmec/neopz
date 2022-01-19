@@ -103,6 +103,8 @@ namespace pztopology {
 	static constexpr int sidedimension[7] = {0,0,0,1,1,1,2};
 	
 	static constexpr int nhighdimsides[7] = {3,3,3,1,1,1,0};
+
+    static constexpr int fSideOrient[3] = {1,1,1};
 	
 	static constexpr int highsides[7][3] = {
 		{3,5,6},
@@ -1094,7 +1096,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         scale = M_SQRT2;
         RT0function(0,1) = (M_SQRT2 * qsi) / scale * edgeSign[1];
         RT0function(1,1) = (M_SQRT2 * eta) / scale * edgeSign[1];
-        div[1] = M_SQRT2/scale + M_SQRT2/scale * edgeSign[1];
+        div[1] = 2. * M_SQRT2/scale * edgeSign[1];
 
         scale = 1.;
         RT0function(0,2) = -(qsi - 1.) / scale * edgeSign[2];
@@ -1129,6 +1131,11 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         N0function(0,2) = -eta * edgeSign[2];
         N0function(1,2) = -(1. - qsi) * edgeSign[2];
         curl(0,2) = 2. * edgeSign[2];
+    }
+
+    // Get face orientation
+    int TPZTriangle::GetSideOrient(const int &face){
+        return fSideOrient[face];
     }
 
     template <class TVar>
