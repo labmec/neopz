@@ -504,12 +504,11 @@ TPZMultiphysicsCompMesh * CreateMultiphysicsCMesh(TPZGeoMesh *fGeoMesh, int fDim
     TPZManVector<int> active(2,1);
     active[0]=1;
     active[1]=1;
+    cmesh->SetAllCreateFunctionsMultiphysicElem();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
     cmesh->BuildMultiphysicsSpace(active, meshvector);
     if (fShapeType == EHDivConstant) {
-        cmesh->SetAllCreateFunctionsMultiphysicElem();
-        cmesh->AdjustBoundaryElements();
-        cmesh->CleanUpUnconnectedNodes();
-
         TPZBuildMultiphysicsMesh::AddElements(meshvector, cmesh);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, cmesh);
     }
