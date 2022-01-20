@@ -62,14 +62,6 @@ public:
     static constexpr int MatDataNumDir{81};
     static constexpr int MatDataDimSol{10};
     static constexpr int MatDataNumSol{20};
-    /*! Type of the shape function associated with an element*/
-    enum MShapeFunctionType {EEmpty,
-        EScalarShape,///< Scalar shape functions (H1, L2)
-        EVecandShape,///< Composite shape function (scalar function and vector field, HDiv and HCurl spaces)
-        EVecShape///< Vector shape function (e.g. vector H1 space)
-    };
-    //! Type of shape function
-    MShapeFunctionType fShapeType{EEmpty};
     //! Auxiliary attribute for collapsed HDiv elements
     void* fUserData;
     /** @name Flags
