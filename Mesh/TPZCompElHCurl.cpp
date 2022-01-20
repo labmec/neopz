@@ -937,9 +937,13 @@ int TPZCompElHCurl<TSHAPE>::MaxOrder() {
 
 
 
-#define IMPLEMENTHCURL(TSHAPE) \
-\
-template class TPZCompElHCurl<TSHAPE>;
+#define IMPLEMENTHCURL(TSHAPE)                                          \
+    template class TPZCompElHCurl<TSHAPE>;                              \
+    template void                                                       \
+    TPZCompElHCurl<TSHAPE>::TransformCurl<TSHAPE::Dimension>(const TPZFMatrix<REAL> &curlphiref, \
+                                                             const REAL detjac, \
+                                                             const TPZFMatrix<REAL> &jacobian, \
+                                                             TPZFMatrix<REAL> &curlphi);
 
 IMPLEMENTHCURL(pzshape::TPZShapeLinear)
 IMPLEMENTHCURL(pzshape::TPZShapeTriang)

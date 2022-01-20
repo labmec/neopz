@@ -683,18 +683,22 @@ void TPZCompElHCurlNoGrads<TSHAPE>::HighOrderFunctionsFilter(
 #include <pzshapeprism.h>
 
 
-#define IMPLEMENTHCURLNOGRADS(TSHAPE)                           \
-                                                                \
-    template class                                                \
-    TPZRestoreClass< TPZCompElHCurlNoGrads<TSHAPE> >;             \
-    template class TPZCompElHCurlNoGrads<TSHAPE>;                 \
-                                                                    \
-    template void                                                 \
-    TPZCompElHCurlNoGrads<TSHAPE>::ComputeRequiredDataT<STATE>(   \
-        TPZMaterialDataT<STATE> &data,TPZVec<REAL> &qsi);           \
-    template void                                                 \
-    TPZCompElHCurlNoGrads<TSHAPE>::ComputeRequiredDataT<CSTATE>(  \
-        TPZMaterialDataT<CSTATE> &data, TPZVec<REAL> &qsi);
+#define IMPLEMENTHCURLNOGRADS(TSHAPE)                                   \
+                                                                        \
+    template class                                                      \
+    TPZRestoreClass< TPZCompElHCurlNoGrads<TSHAPE> >;                   \
+    template class TPZCompElHCurlNoGrads<TSHAPE>;                       \
+                                                                        \
+    template void                                                       \
+    TPZCompElHCurlNoGrads<TSHAPE>::ComputeRequiredDataT<STATE>(         \
+      TPZMaterialDataT<STATE> &data,TPZVec<REAL> &qsi);                 \
+    template void                                                       \
+    TPZCompElHCurlNoGrads<TSHAPE>::ComputeRequiredDataT<CSTATE>(        \
+      TPZMaterialDataT<CSTATE> &data, TPZVec<REAL> &qsi);               \
+    template void                                                       \
+    TPZCompElHCurlNoGrads<TSHAPE>::ReallyComputeSolutionT(TPZMaterialDataT<STATE> &data); \
+    template void                                                       \
+    TPZCompElHCurlNoGrads<TSHAPE>::ReallyComputeSolutionT(TPZMaterialDataT<CSTATE> &data);
 
 IMPLEMENTHCURLNOGRADS(pzshape::TPZShapeTriang)
 IMPLEMENTHCURLNOGRADS(pzshape::TPZShapeTetra)
