@@ -1,4 +1,5 @@
 *.msh
+.vscode
 .DS_Store
 CMakeLists.txt.user
 cmake-build-debug
