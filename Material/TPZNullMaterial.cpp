@@ -68,11 +68,9 @@ void TPZNullMaterial<TVar>::Solution(const TPZMaterialDataT<TVar> &data, int var
     if (var == 0) {
         sol = data.sol[0];
     } else if (var == 1) {
-        TVar val = 0.;
         for (int i = 0; i < 3; i++) {
-            val += data.dsol[0](i, i);
+            sol[i] += data.dsol[0].GetVal(i, 0);
         }
-        sol[0] = val;
     } else {
         DebugStop();
     }
