@@ -9,6 +9,7 @@
 #include "TPZMatDeRhamHDiv.h"
 #include "TPZMatDeRhamL2.h"
 #include "TPZMatDeRhamH1HCurl.h"
+#include "TPZMatDeRhamHCurlHDiv.h"
 #include "TPZMatDeRhamHDivL2.h"
 #include "TPZNullMaterial.h"
 #include "TPZGeoMeshTools.h"
@@ -20,6 +21,8 @@
 #include "TPZMatrixSolver.h"
 #include "TPZElementMatrixT.h"
 #include "MMeshType.h"
+#include "pzintel.h"
+
 
 enum class ESpace{H1,HCurl,HDiv,L2};
 
@@ -81,10 +84,9 @@ TEMPLATE_TEST_CASE("Dimension Compatibility", "[derham_tests]",
       if constexpr (dim == 2){
         CheckRankKerDim<ESpace::HCurl, ESpace::L2, dim>(k);
       }
-      //TODOFIX
-      // else{
-      //   CheckRankKerDim<ESpace::HCurl, ESpace::HDiv, dim>(k);
-      // }
+      else{
+        CheckRankKerDim<ESpace::HCurl, ESpace::HDiv, dim>(k);
+      }
       break;
     case ESpace::HDiv:
       CheckRankKerDim<ESpace::HDiv,ESpace::L2,dim>(k);
@@ -118,9 +120,12 @@ TEMPLATE_TEST_CASE("Inclusion", "[derham_tests]",
       //   CheckInclusion<ESpace::H1, ESpace::HDiv, dim>(k);
       // }
       break;
+    case ESpace::HCurl:
+      CheckInclusion<ESpace::HCurl, ESpace::HDiv,dim>(k);
+      break;
     case ESpace::HDiv:
       CheckInclusion<ESpace::HDiv,ESpace::L2,dim>(k);
-      //TODOFIX
+      break;
     default:
       break;
     }
@@ -191,6 +196,9 @@ void CheckRankKerDim(int kRight) {
                          MMeshType::EPrismatic);
   
   const auto elDim = MMeshType_Dimension(elType);
+  if(elType == MMeshType::EPrismatic && leftSpace == ESpace::HCurl){
+    return;//TODOFIX
+  }
   //if dimension does not correspond, skip
   if(elDim != dim) return;
 
@@ -284,6 +292,11 @@ void CheckInclusion(int kRight) {
                          MMeshType::ETetrahedral, MMeshType::EHexahedral,
                          MMeshType::EPrismatic);
   const auto elDim = MMeshType_Dimension(elType);
+
+
+  if(elType == MMeshType::EPrismatic && leftSpace == ESpace::HCurl){
+    return;//TODOFIX
+  }
   //skips if dimension is not compatible
   if (elDim != dim) return;
   
@@ -315,7 +328,9 @@ void CheckInclusion(int kRight) {
     } else if constexpr (rightSpace == ESpace::HCurl) {
       return new TPZMatDeRhamH1HCurl(matId, dim);
     } else if constexpr (rightSpace == ESpace::HDiv) {
-      
+      if constexpr (dim == 3){
+        return new TPZMatDeRhamHCurlHDiv(matId,dim);
+      }
       return nullptr;
     } else if constexpr (rightSpace == ESpace::L2) {
       return new TPZMatDeRhamHDivL2(matId, dim);
@@ -410,7 +425,7 @@ void CreateMeshes(int kRight, MMeshType elType,
       kLeft = kRight + 1;
       return new TPZMatDeRhamH1(matId, dim);
     } else if constexpr (leftSpace == ESpace::HCurl) {
-      if(elType == MMeshType::EQuadrilateral){
+      if(elType == MMeshType::EQuadrilateral || elType == MMeshType::EHexahedral){
         kLeft = kRight;
       }else{
         kLeft = kRight + 1;
@@ -450,6 +465,32 @@ void CreateMeshes(int kRight, MMeshType elType,
   cmeshL = CreateCMesh(gmesh, matLeft, matId, kLeft, leftSpace);
   cmeshR = CreateCMesh(gmesh, matRight, matId, kRight, rightSpace);
 
+
+  auto EnrichMesh = [](TPZAutoPointer<TPZCompMesh> cmesh, const int k){
+
+    for (auto cel : cmesh->ElementVec()){
+      if(cel->Dimension() != dim) continue;
+      auto intel =
+        dynamic_cast<TPZInterpolatedElement*>(cel);
+      const auto nsides = intel->Reference()->NSides();
+      intel->SetSideOrder(nsides-1, k+1);
+    }
+    cmesh->ExpandSolution();
+  };
+
+  if(elType == MMeshType::ETetrahedral){
+    if constexpr (leftSpace == ESpace::HCurl){
+      EnrichMesh(cmeshL, kLeft);
+    }
+    else if constexpr (rightSpace == ESpace::HCurl){
+      EnrichMesh(cmeshR, kRight);
+    }
+      
+    if constexpr (leftSpace == ESpace::H1){
+      EnrichMesh(cmeshL, kLeft);
+    }
+  }
+  
 }
 
 
