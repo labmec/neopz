@@ -8,4 +8,5 @@ add_unit_test(TestDeRham
     #materials for testing inclusion
     TPZMatDeRhamH1HCurl.cpp
     TPZMatDeRhamHDivL2.cpp
+    TPZMatDeRhamHCurlHDiv.cpp
     )
