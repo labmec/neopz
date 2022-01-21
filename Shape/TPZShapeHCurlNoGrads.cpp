@@ -65,7 +65,7 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
     }
     
     //computes  unfiltered hcurl funcs
-    TPZFMatrix<REAL> phi_unfilt(n_unfilt,dim), curlphi_unfilt(curldim,n_unfilt);
+    TPZFMatrix<REAL> phi_unfilt(dim,n_unfilt), curlphi_unfilt(curldim,n_unfilt);
     TPZShapeHCurl<TSHAPE>::Shape(pt, data, phi_unfilt, curlphi_unfilt);
 
     //now we filter the functions
@@ -75,10 +75,10 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
       //fss = first side shape
       const auto fss = first_hcurl_side[ie];
       for(auto x = 0; x < dim; x++){
-        phi(fcount,x) += phi_unfilt(fss,x) + phi_unfilt(fss+1,x);
+        phi(x,fcount) = phi_unfilt(x,fss) + phi_unfilt(x,fss+1);
       }
       for(auto x = 0; x < curldim; x++){
-        curlphi(x,fcount) += curlphi_unfilt(x,fss) + curlphi_unfilt(x,fss+1);
+        curlphi(x,fcount) = curlphi_unfilt(x,fss) + curlphi_unfilt(x,fss+1);
       }
       fcount++;
     }
@@ -86,15 +86,16 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
 
     TPZVec<int> filtVecShape;
     HighOrderFunctionsFilter(first_hcurl_side, connectorders,filtVecShape);
-    
+
     const auto newfuncs = filtVecShape.size();
+    
     for(int ifunc = 0; ifunc < newfuncs; ifunc++){
       const auto fi = filtVecShape[ifunc];
       for(auto x = 0; x < curldim; x++){
-        curlphi(x,fcount) += curlphi_unfilt(x,fi);
+        curlphi(x,fcount) = curlphi_unfilt(x,fi);
       }
       for(auto x = 0; x < dim; x++){
-        phi(fcount,x) += phi(fi,x);
+        phi(x,fcount) = phi_unfilt(x,fi);
       }
       fcount++;
     } 
@@ -153,146 +154,150 @@ int TPZShapeHCurlNoGrads<TSHAPE>::MaxOrder(const int ordh1){
 
 template<class TSHAPE>
 void TPZShapeHCurlNoGrads<TSHAPE>::HighOrderFunctionsFilter(
-    const TPZVec<int> &firstHCurlFunc,
-    const TPZVec<int> &conOrders,
-    TPZVec<int> &filteredFuncs)
-{
-    constexpr auto dim = TSHAPE::Dimension;
-    constexpr auto nNodes = TSHAPE::NCornerNodes;
-    constexpr auto nConnects = TSHAPE::NSides - nNodes;
-    const auto nFaces = TSHAPE::NumSides(2);
-    const auto nEdges = TSHAPE::NumSides(1);
+  const TPZVec<int> &firstHCurlFunc,
+  const TPZVec<int> &conOrders,
+  TPZVec<int> &filteredFuncs){
+  
+  constexpr auto dim = TSHAPE::Dimension;
+  constexpr auto nNodes = TSHAPE::NCornerNodes;
+  constexpr auto nConnects = TSHAPE::NSides - nNodes;
+  const auto nFaces = TSHAPE::NumSides(2);
+  const auto nEdges = TSHAPE::NumSides(1);
 
-    filteredFuncs.Resize(0);
-    /*
-        face connects: 
-    */
-    for(auto iface = 0; iface < nFaces; iface++){
-        const auto icon = nEdges + iface;
-        const auto side = icon + nNodes;
-        const auto firstSideShape = firstHCurlFunc[icon];
-        const auto order = conOrders[icon];
+  filteredFuncs.Resize(0);
+  /*
+    face connects: 
+  */
+  auto fcount = 0;
+  for(auto iface = 0; iface < nFaces; iface++){
+    const auto icon = nEdges + iface;
+    const auto side = icon + nNodes;
+    const auto firstSideShape = firstHCurlFunc[icon];
+    const auto order = conOrders[icon];
 
-        switch(TSHAPE::Type(side)){
-        case ETriangle:{
-        //there are no face functions for k < 2
-        if(order < 2) break;
-        /**
-             we remove one internal function for each h1 face function of order k+1
-            since there are (k-1)(k-2)/2 functions per face in a face with order k,
-            we remove k(k-1)/2.
-            so:
-            (k-1)*(k+1)-k*(k-1)/2 = (k-1)(k+2)/2.
-        */
-        const auto nfacefuncs =  (order - 1) * (order+2) / 2;
-
-        auto fcount = filteredFuncs.size();
-        filteredFuncs.Resize(fcount+nfacefuncs);
-
-        /**
-             we will iterate over the phi_fe hcurl functions. there are 3(k-1) vfe funcs.
-            that means that, at each k, there are 3 new vfe functions. we can remove 
-            one of them for each polynomial order.
-        */
-        auto firstVfeK = firstSideShape;
-        for(auto ik = 2; ik <= order; ik++){
-            for(auto ifunc = 0; ifunc < 2; ifunc++){
-            filteredFuncs[fcount] = firstVfeK+ifunc;
-            fcount++;
-            }
-            //we skip to the higher order ones
-            firstVfeK += 3;
-        }
-        /**
-             there are already 2(k-1) filtered functions. we discarded (k-1).
-            so that means we need more (k-1)(k-2)/2 functions, because
-            2(k-1) + (k-1)(k-2)/2 = (k-1)(k+2)/2. 
-            That means we can take exactly half of the phi_fi functions. 
-            for each k, there are 2(k-2) phi_fi func. so...
-        **/
-        auto firstVfiK = firstSideShape + 3*(order-1);
-        for(auto ik = 3; ik < order; ik++){
-            const auto nPhiFi = 2*(ik-1);
-            for(auto ifunc = 0; ifunc < nPhiFi; ifunc+=2){
-            //we always skip one of them
-            filteredFuncs[fcount] = firstVfiK+ifunc;
-            fcount++;
-            }
-            //we skip to the higher order ones
-            firstVfeK += nPhiFi;
-        }
-        break;
-        }
-        default:
-        PZError<<__PRETTY_FUNCTION__<<" error. Not yet implemented"<<std::endl;
+    switch(TSHAPE::Type(side)){
+    case ETriangle:{
+      //there are no face functions for k < 2
+      if(order < 2) break;
+      /**
+         we remove one internal function for each h1 face function of order k+1
+         since there are (k-1)(k-2)/2 functions per face in a face with order k,
+         we remove k(k-1)/2.
+         so:
+         (k-1)*(k+1)-k*(k-1)/2 = (k-1)(k+2)/2.
+      */
+      const auto nfacefuncs =  (order - 1) * (order+2) / 2;
+#ifdef PZDEBUG
+      if(fcount != filteredFuncs.size()){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nERROR: wrong function count.\n"
+               <<"fcount = "<<fcount<<" filtfuncsize = "<<filteredFuncs.size()<<'\n'
+               <<"Aborting..."<<std::endl;
         DebugStop();
+      }
+#endif
+      filteredFuncs.Resize(fcount+nfacefuncs);
+
+      /**
+         we will iterate over the phi_fe hcurl functions. there are 3(k-1) vfe funcs.
+         that means that, at each k, there are 3 new vfe functions. we can remove 
+         one of them for each polynomial order.
+         they are sorted per edge, so we can just skip the last edge
+      */
+      auto firstVfeK = firstSideShape;
+      constexpr int nedges{3};
+      for (auto ie = 0; ie < nedges - 1; ie++){
+        const int nfuncs = order-1;
+        for(auto ifunc = 0; ifunc < nfuncs; ifunc++){
+          filteredFuncs[fcount] = firstVfeK+ifunc;
+          fcount++;
         }
+        firstVfeK += nfuncs;//next edge
+      }
+      /**
+         there are already 2(k-1) filtered functions. we discarded (k-1).
+         so that means we need more (k-1)(k-2)/2 functions, because
+         2(k-1) + (k-1)(k-2)/2 = (k-1)(k+2)/2. 
+         That means we can take exactly half of the phi_fi functions. 
+         for each k, there are 2(k-2) phi_fi func. so...
+      **/
+      auto firstVfiK = firstSideShape + 3*(order-1);
+      const auto nPhiFi = (order-1)*(order-2);
+      for(auto ifunc = 0; ifunc < nPhiFi; ifunc++){
+        if(ifunc%2 == 0) continue;//we always skip one of them
+        filteredFuncs[fcount] = firstVfiK+ifunc;
+        fcount++;
+      }
+      break;
+    }
+    default:
+      PZError<<__PRETTY_FUNCTION__<<" error. Not yet implemented"<<std::endl;
+      DebugStop();
+    }
+  }
+    
+  if constexpr (dim < 3) return;
+
+  if constexpr (TSHAPE::Type() == ETetraedro){
+    const auto icon = nEdges + nFaces;
+    const auto order = conOrders[icon];
+    const auto firstSideShape = firstHCurlFunc[icon];
+    /**
+       we remove one internal function for each h1 internal function of order k+1
+       since there are (k-1)(k-2)(k-3)/6 functions in a h1 element with order k,
+       we remove k(k-1)(k-2)/6.
+       so:
+       (k-1)(k-2)(k+1)/2 - k(k-1)(k-2)/6 = (k-1)(k-2)(2k+3)/6.
+
+       since we will remove k(k-1)(k-2)/6, for each  k   we remove (k-1)(k-2)/2 funcs.
+
+       we have two kinds of internal functions. phi_kf and phi_ki.
+       func        k                   k-1                 new funcs
+       phi_kf      2(k-1)(k-2)         2(k-2)(k-3)         4(k-2)
+       phi_ki      (k-1)(k-2)(k-3)/2   (k-2)(k-3)(k-4)/2   3(k-2)(k-3)/2
+            
+       that means that if we remove, for each k, (k-2) phi_kf 
+       (for instance, all phi_kf associated with a given face),
+       we need to remove (k-1)(k-2)/2 - (k-2) = (k-2)(k-3)/2
+       which is exactly one third of the phi_ki.
+            
+    */
+
+    const auto nintfuncs =  (order - 1) * (order-2) * (2*order+ 3) / 6;
+
+    filteredFuncs.Resize(fcount+nintfuncs);
+
+    /**
+       we will iterate over the phi_kf hcurl functions.
+       we chose to remove all the functions for a given face
+       since they are sorted by face, we can simply skip (k-1)(k-2)/2 functions...
+    */
+    const auto firstvkf = firstSideShape;
+    const auto offset = (order-1)*(order-2)/2;
+    const auto nvkf = 2*(order-1)*(order-2);
+    for(auto ifunc = offset; ifunc < nvkf; ifunc++){
+      filteredFuncs[fcount] = firstvkf + ifunc;
+      fcount++;
     }
     
-    if constexpr (dim < 3) return;
 
-    if constexpr (TSHAPE::Type() == ETetraedro){
-        const auto icon = nEdges + nFaces;
-        const auto order = conOrders[icon];
-        const auto firstSideShape = firstHCurlFunc[icon];
-        /**
-             we remove one internal function for each h1 internal function of order k+1
-            since there are (k-1)(k-2)(k-3)/6 functions in a h1 element with order k,
-            we remove k(k-1)(k-2)/6.
-            so:
-            (k-1)(k-2)(k+1)/2 - k(k-1)(k-2)/6 = (k-1)(k-2)(2k+3)/6.
+    /**
+       we now iterate over the phi_ki hcurl functions
+    */
 
-            since we will remove k(k-1)(k-2)/6, for each     we remove (k-1)(k-2)/2 funcs.
-
-            we have two kinds of internal functions. phi_kf and phi_ki.
-            func        k                   k-1                 new funcs
-            phi_kf      2(k-1)(k-2)         2(k-2)(k-3)         4(k-2)
-            phi_ki      (k-1)(k-2)(k-3)/2   (k-2)(k-3)(k-4)/2   3(k-2)(k-3)/2
-            
-            that means that if we remove, for each k, (k-2) phi_kf 
-            (for instance, all phi_kf associated with a given face),
-            we need to remove (k-1)(k-2)/2 - (k-2) = (k-2)(k-3)/2
-            which is exactly one third of the phi_ki.
-            
-        */
-
-        const auto nintfuncs =  (order - 1) * (order-2) * (2*order+ 3) / 6;
-
-        auto fcount = filteredFuncs.size();
-        filteredFuncs.Resize(fcount+nintfuncs);
-
-        /**
-         we will iterate over the phi_kf hcurl functions.
-        */
-        auto firstVkf = firstSideShape;
-        for(auto ik = 3; ik <= order; ik++){
-        //we chose to remove all the functions for a given face
-        const auto newvkf = 4*(ik-2);
-        for(auto ifunc = ik-2; ifunc < newvkf; ifunc++){
-            filteredFuncs[fcount] = firstVkf+ifunc;
-            fcount++;
-        }
-        //we skip to the higher order ones
-        firstVkf += newvkf;
-        }
-
-        /**
-         we now iterate over the phi_ki hcurl functions
-        */
-        const auto nvkf = 2*(order-1)*(order-2);
-        auto firstVki = firstSideShape + nvkf;
-        for(auto ik = 4; ik <= order; ik++){
-        //we chose to remove all the functions for a given direction
-        const auto newvki = 3*(ik-2)*(ik-3)/2;
-        for(auto ifunc = 0; ifunc < newvki; ifunc++){
-            if(ifunc%3 == 0) continue;
-            filteredFuncs[fcount] = firstVki+ifunc;
-            fcount++;
-        }
-        //we skip to the higher order ones
-        firstVkf += newvki;
-        }
+    auto firstVki = firstSideShape + nvkf;
+    for(auto ik = 4; ik <= order; ik++){
+      //we chose to remove all the functions for a given direction
+      const auto newvki = 3*(ik-2)*(ik-3)/2;
+      for(auto ifunc = 0; ifunc < newvki; ifunc++){
+        if(ifunc%3 == 0) continue;
+        filteredFuncs[fcount] = firstVki+ifunc;
+        fcount++;
+      }
+      //we skip to the higher order ones
+      firstVki += newvki;
     }
+  }
 }
 
 
