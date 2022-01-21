@@ -89,21 +89,26 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
     for (int iq = 0; iq < phrq; iq++){
         //ef(iq, 0) += 0.;
         int ivecind = datavec[0].fVecShapeIndex[iq].first;
-        int ishapeind = datavec[0].fVecShapeIndex[iq].second;
         for (int id = 0; id < 3; id++) {
             ivec(id, iq) = datavec[0].fDeformedDirections(id, ivecind);
         }
     }
-    
+
+
+    /**
+       We cannot make the BLAS calls directly since
+       the dimensions dont match:
+       we are filling ek "blockwise".
+       any ideas on how to use TPZFMatrix::MultAdd?
+     **/
     {
+        const double alpha = weight*inv_perm;
+        constexpr double beta = 1.0;
         double *A, *B, *C;
-        double alpha, beta;
         int m,n,k;
         m = phrq;
         n = phrq;
         k = 3;
-        alpha = weight*inv_perm;
-        beta = 1.0;
         int LDA,LDB,LDC;
         LDA = 3;
         LDB = 3;
@@ -111,51 +116,48 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         A = &ivec(0,0);
         B = &ivec(0,0);
         C = &ek(0,0);
+        
         cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
                     m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
+        // ek = (weight/K) * (ivec^T ivec) + ek
     }
     
-    //contribucion matrix B
-    {
+    //contribution matrix B
+    if(phrp>0){
         double *A, *B, *C;
-        double alpha, beta;
+        const double alpha = - weight;
+        constexpr double beta = 1.0;
         int m,n,k;
         m = phrq;
         n = phrp;
         k = 1;
-        alpha = -weight;
-        beta = 1.0;
         int LDA,LDB,LDC;
         LDA = phrq;
         LDB = phrp;
         LDC = ek.Rows();
         A = &divQ(0,0);
-        if (phrp > 0){
-            B = &phip(0,0);
-            C = &ek(0,phrq);
-        }
+        B = &phip(0,0);
+        C = &ek(0,phrq);
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
                     m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
+        //ek = -weight* divQ phip^T + ek
     }
-    //contribucion matrix B^t
-    {
+    //contribution matrix B^t
+    if(phrp>0){
         double *A, *B, *C;
-        double alpha, beta;
+        const double alpha = - weight;
+        constexpr double beta = 1.0;
         int m,n,k;
         m = phrp;
         n = phrq;
         k = 1;
-        alpha = -weight;
-        beta = 1.0;
         int LDA,LDB,LDC;
         LDA = phrp;
         LDB = phrq;
         LDC = ek.Rows();
-        if (phrp > 0){
-            A = &phip(0,0);
-            C = &ek(phrq,0);
-        }
+        A = &phip(0,0);
         B = &divQ(0,0);
+        C = &ek(phrq,0);
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
                     m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
     }
@@ -643,3 +645,4 @@ TPZMixedDarcyFlow::FillBoundaryConditionDataRequirements(int type, TPZVec<TPZMat
         }
     }
 }
+#undef USEBLAS
