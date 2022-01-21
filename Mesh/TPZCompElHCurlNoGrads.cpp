@@ -15,7 +15,7 @@ static TPZLogger logger("pz.strmatrix");
 template<class TSHAPE>
 TPZCompElHCurlNoGrads<TSHAPE>::TPZCompElHCurlNoGrads() : TPZCompElHCurl<TSHAPE>()
 {
-    this->AdjustConnects();
+    // this->AdjustConnects();
 }
 
 template<class TSHAPE>

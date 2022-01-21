@@ -151,14 +151,14 @@ TEST_CASE("HDiv Kernel Dimension", "[hdivkernel_mesh_tests]") {
     std::cout << "Testing dimension of HDiv kernel\n";
   // colocar as variaveis que fazem generate aqui.
   const int xdiv = GENERATE(1);
-  const int pOrder = GENERATE(1,2,3,4);
+  const int pOrder = GENERATE(1,2,3,4,5);
   MShapeType shape = GENERATE(EHDivKernel);
 
-  // TestKernelHDiv<pzshape::TPZShapeTriang>(xdiv,pOrder,shape);
-  // TestKernelHDiv<pzshape::TPZShapeQuad>(xdiv,pOrder,shape);
-  // TestKernelHDiv<pzshape::TPZShapeTetra>(xdiv,pOrder,shape);
-  TestKernelHDivDim<pzshape::TPZShapeCube>(xdiv, pOrder, shape);
-  // TestKernelHDiv<pzshape::TPZShapePrism>(xdiv,pOrder,shape);
+  // TestKernelHDivDim<pzshape::TPZShapeTriang>(xdiv,pOrder,shape);
+  // TestKernelHDivDim<pzshape::TPZShapeQuad>(xdiv,pOrder,shape);
+  TestKernelHDivDim<pzshape::TPZShapeTetra>(xdiv,pOrder,shape);
+//   TestKernelHDivDim<pzshape::TPZShapeCube>(xdiv, pOrder, shape);
+  // TestKernelHDivDim<pzshape::TPZShapePrism>(xdiv,pOrder,shape);
   std::cout << "Finish test dimension of HDiv Kernel \n";
 }
 
@@ -173,7 +173,7 @@ TEST_CASE("HDiv Kernel", "[hdivkernel_mesh_tests]") {
   // TestKernelHDiv<pzshape::TPZShapeTriang>(xdiv,pOrder,shape);
   // TestKernelHDiv<pzshape::TPZShapeQuad>(xdiv,pOrder,shape);
   // TestKernelHDiv<pzshape::TPZShapeTetra>(xdiv,pOrder,shape);
-  TestKernelHDiv<pzshape::TPZShapeCube>(xdiv, pOrder, shape);
+//   TestKernelHDiv<pzshape::TPZShapeCube>(xdiv, pOrder, shape);
   // TestKernelHDiv<pzshape::TPZShapePrism>(xdiv,pOrder,shape);
   std::cout << "Finish test HDiv Kernel \n";
 }
@@ -617,16 +617,16 @@ void TestKernelHDivDim(const int &xdiv, const int &pOrder, MShapeType fShapeType
                                                             filtVecShape);
 
 
-    TPZFMatrix<REAL> curlcurl_filt, curlcurl_unfilt;
+    TPZFMatrix<REAL> curlcurl_filt(nfiltfuncs,nfiltfuncs,0.), curlcurl_unfilt(nunfiltfuncs,nunfiltfuncs,0.);
     
     REAL weight;
-    TPZVec<REAL> pt;
+    TPZVec<REAL> pt(dim,0.);
     for(int ipt = 0; ipt < npts; ipt++){
         intrule.Point(ipt,pt,weight);
-        TPZFMatrix<REAL> phi_unfilt(nunfiltfuncs, dim);
+        TPZFMatrix<REAL> phi_unfilt(dim,nunfiltfuncs);
         TPZFMatrix<REAL> curlphi_unfilt(curlDim, nunfiltfuncs);
         TPZShapeHCurl<TSHAPE>::Shape(pt,data,phi_unfilt,curlphi_unfilt);
-        TPZFMatrix<REAL> curlphi_filt(curlDim, nfiltfuncs);
+        TPZFMatrix<REAL> curlphi_filt(curlDim, nfiltfuncs,0.);
         //compute filtered functions
         int fcount = 0;
         //edges
@@ -639,7 +639,6 @@ void TestKernelHDivDim(const int &xdiv, const int &pOrder, MShapeType fShapeType
             fcount++;
         }
         const auto newfuncs = filtVecShape.size();
-
         for(int ifunc = 0; ifunc < newfuncs; ifunc++){
             const auto fi = filtVecShape[ifunc];
             for(auto x = 0; x < curlDim; x++){
@@ -647,10 +646,25 @@ void TestKernelHDivDim(const int &xdiv, const int &pOrder, MShapeType fShapeType
             }
             fcount++;
         }
-
         //calc matrix curlphi_i curlphi_j
         //check if rank filt = rank unfilt
         //compare rank filt and dim filt
+        for (int ish = 0; ish < nunfiltfuncs; ish++){
+            for (int jsh = 0; jsh < nunfiltfuncs; jsh++){
+                for (int d = 0; d < curlDim; d++){
+                    curlcurl_unfilt(ish,jsh) += curlphi_unfilt(d,ish)*curlphi_unfilt(d,jsh) * weight;
+                }
+            }
+        }
+        for (int ish = 0; ish < nfiltfuncs; ish++){
+            for (int jsh = 0; jsh < nfiltfuncs; jsh++){
+                for (int d = 0; d < curlDim; d++){
+                    curlcurl_filt(ish,jsh) += curlphi_filt(d,ish)*curlphi_filt(d,jsh) * weight;
+                }
+            }
+        }
+                
+        
     }
 
 
@@ -667,11 +681,18 @@ void TestKernelHDivDim(const int &xdiv, const int &pOrder, MShapeType fShapeType
         }
         return rank;
     };
+    
+
 
     static constexpr auto tol = std::numeric_limits<STATE>::epsilon()*10000;
 
     const auto rank_filt = CalcRank(curlcurl_filt,tol);
     const auto rank_unfilt = CalcRank(curlcurl_unfilt,tol);
+
+    REQUIRE(rank_filt==rank_unfilt);
+    REQUIRE(nfiltfuncs == rank_filt+dim);
+    int a= 1;
+
 }
 
 
