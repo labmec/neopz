@@ -138,8 +138,8 @@ CreateGeoMesh(const MMeshType meshType, const TPZVec<int> &nDivs, const int dim,
 /*
     Test the dimension of KernelHdiv approximation spaces
 */
-template<class tshape>
-void TestKernelHDivDim(const int &xdiv, const int &pOrder, MShapeType fShapeType);
+template<class TSHAPE>
+void TestKernelHDivDim(const int &pOrder);
 /*
     Test KernelHdiv problem
 */
@@ -149,16 +149,13 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType fShapeType);
 
 TEST_CASE("HDiv Kernel Dimension", "[hdivkernel_mesh_tests]") {
     std::cout << "Testing dimension of HDiv kernel\n";
-  // colocar as variaveis que fazem generate aqui.
-  const int xdiv = GENERATE(1);
-  const int pOrder = GENERATE(1,2,3,4,5);
-  MShapeType shape = GENERATE(EHDivKernel);
+    const int pOrder = GENERATE(1,2,3,4,5,6,7);
 
-  // TestKernelHDivDim<pzshape::TPZShapeTriang>(xdiv,pOrder,shape);
-  // TestKernelHDivDim<pzshape::TPZShapeQuad>(xdiv,pOrder,shape);
-  TestKernelHDivDim<pzshape::TPZShapeTetra>(xdiv,pOrder,shape);
-//   TestKernelHDivDim<pzshape::TPZShapeCube>(xdiv, pOrder, shape);
-  // TestKernelHDivDim<pzshape::TPZShapePrism>(xdiv,pOrder,shape);
+  // TestKernelHDivDim<pzshape::TPZShapeTriang>(pOrder);
+  // TestKernelHDivDim<pzshape::TPZShapeQuad>(pOrder);
+  TestKernelHDivDim<pzshape::TPZShapeTetra>(pOrder);
+  // TestKernelHDivDim<pzshape::TPZShapeCube>( pOrder);
+  // TestKernelHDivDim<pzshape::TPZShapePrism>(pOrder);
   std::cout << "Finish test dimension of HDiv Kernel \n";
 }
 
@@ -570,8 +567,9 @@ TPZGeoMesh *CreateGeoMeshTetra(const MMeshType meshType, const TPZVec<int> &nDiv
 
 
 #include "TPZShapeHCurl.h"
+#include "TPZShapeHCurlNoGrads.h"
 template<class TSHAPE>
-void TestKernelHDivDim(const int &xdiv, const int &pOrder, MShapeType fShapeType){
+void TestKernelHDivDim(const int &pOrder){
 
     constexpr int nNodes = TSHAPE::NCornerNodes;
     constexpr int nSides = TSHAPE::NSides;
@@ -580,72 +578,47 @@ void TestKernelHDivDim(const int &xdiv, const int &pOrder, MShapeType fShapeType
     constexpr int curlDim = dim*2 - 3;
     
     TPZVec<int> connectorders(nConnects, pOrder);
-    
-    TPZCompElHCurlNoGrads<TSHAPE> el;//TODOFIX
 
-    int nunfiltfuncs{0}, nfiltfuncs{0};//number of filtered hcurl functions
-    
-    //first UNFILTERED hcurl funcs for each connect
-    TPZManVector<int,nConnects> firstHCurlFunc(nConnects,0);
+    //let us count the shape functions
+    int nunfiltfuncs{0}, nfiltfuncs{0};
     for(int ic = 0 ; ic < nConnects; ic++){
         const int conorder = connectorders[ic];
-        nfiltfuncs += el.NConnectShapeF(ic, conorder);
-
-        const int nshape = TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(ic,conorder);
-        nunfiltfuncs += nshape;
-        if(ic!=0){
-            firstHCurlFunc[ic] = firstHCurlFunc[ic-1] +
-                TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(ic-1,conorder);
-        }
+        nunfiltfuncs +=
+            TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(ic,conorder);
+        nfiltfuncs +=
+            TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(ic,conorder);
     }
     
     TPZVec<int64_t> ids(nNodes,0);
     for(int i = 0; i < nNodes; i++){ids[i] = i;}
     
     
-    TPZShapeData data;
-    TPZShapeHCurl<TSHAPE>::Initialize(ids, connectorders, data);
-
+    TPZShapeData data_unfilt, data_filt;
+    TPZShapeHCurl<TSHAPE>::Initialize(ids, connectorders, data_unfilt);
+    TPZShapeHCurlNoGrads<TSHAPE>::Initialize(ids, connectorders, data_filt);
+    
     typename TSHAPE::IntruleType intrule(2*pOrder);
     const int npts = intrule.NPoints();
 
     const int nEdges = TSHAPE::NumSides(1);
 
-    TPZVec<int> filtVecShape;
-    TPZCompElHCurlNoGrads<TSHAPE>::HighOrderFunctionsFilter(firstHCurlFunc,
-                                                            connectorders,
-                                                            filtVecShape);
 
-
-    TPZFMatrix<REAL> curlcurl_filt(nfiltfuncs,nfiltfuncs,0.), curlcurl_unfilt(nunfiltfuncs,nunfiltfuncs,0.);
+    TPZFMatrix<REAL> curlcurl_filt(nfiltfuncs,nfiltfuncs,0.);
+    TPZFMatrix<REAL> curlcurl_unfilt(nunfiltfuncs,nunfiltfuncs,0.);
     
     REAL weight;
     TPZVec<REAL> pt(dim,0.);
+
+    
     for(int ipt = 0; ipt < npts; ipt++){
         intrule.Point(ipt,pt,weight);
         TPZFMatrix<REAL> phi_unfilt(dim,nunfiltfuncs);
         TPZFMatrix<REAL> curlphi_unfilt(curlDim, nunfiltfuncs);
-        TPZShapeHCurl<TSHAPE>::Shape(pt,data,phi_unfilt,curlphi_unfilt);
-        TPZFMatrix<REAL> curlphi_filt(curlDim, nfiltfuncs,0.);
-        //compute filtered functions
-        int fcount = 0;
-        //edges
-        for(auto ie = 0; ie < nEdges; ie++){
-            const auto fss = firstHCurlFunc[ie];
-            for(auto x = 0; x < curlDim; x++){
-                curlphi_filt(x,fcount) +=
-                    curlphi_unfilt(x,fss) + curlphi_unfilt(x,fss+1);
-            }
-            fcount++;
-        }
-        const auto newfuncs = filtVecShape.size();
-        for(int ifunc = 0; ifunc < newfuncs; ifunc++){
-            const auto fi = filtVecShape[ifunc];
-            for(auto x = 0; x < curlDim; x++){
-                curlphi_filt(x,fcount) += curlphi_unfilt(x,fi);
-            }
-            fcount++;
-        }
+        TPZShapeHCurl<TSHAPE>::Shape(pt,data_filt,phi_unfilt,curlphi_unfilt);
+        TPZFMatrix<REAL> phi_filt (dim,nfiltfuncs);
+        TPZFMatrix<REAL> curlphi_filt(curlDim, nfiltfuncs);
+        TPZShapeHCurlNoGrads<TSHAPE>::Shape(pt,data_filt,phi_filt,curlphi_filt);
+        
         //calc matrix curlphi_i curlphi_j
         //check if rank filt = rank unfilt
         //compare rank filt and dim filt
@@ -679,20 +652,22 @@ void TestKernelHDivDim(const int &xdiv, const int &pOrder, MShapeType fShapeType
         for (int i = 0; i < dimMat; i++) {
             rank += S.GetVal(i, 0) > tol ? 1 : 0;
         }
-        return rank;
+        return std::make_tuple(S,rank);
     };
     
 
 
     static constexpr auto tol = std::numeric_limits<STATE>::epsilon()*10000;
 
-    const auto rank_filt = CalcRank(curlcurl_filt,tol);
-    const auto rank_unfilt = CalcRank(curlcurl_unfilt,tol);
-
+    int rank_filt, rank_unfilt;
+    TPZFMatrix<STATE> S_filt, S_unfilt;
+    std::tie(S_filt, rank_filt) = CalcRank(curlcurl_filt,tol);
+    std::tie(S_unfilt, rank_unfilt) = CalcRank(curlcurl_unfilt,tol);
+    
+    CAPTURE(pOrder);
+    CAPTURE(S_filt, S_unfilt);
     REQUIRE(rank_filt==rank_unfilt);
     REQUIRE(nfiltfuncs == rank_filt+dim);
-    int a= 1;
-
 }
 
 
