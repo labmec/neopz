@@ -238,6 +238,19 @@ namespace pztopology {
         template <class TVar>
         static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
         
+        /// Compute the directions of the HDiv vectors for constant divergent
+        // template <class TVar>
+        static void ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div, const TPZVec<int> &transformationIds){
+            DebugStop();
+        };
+        static void ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds){
+            DebugStop();
+        };
+        template <class TVar>
+        static void ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions, const TPZVec<int> &transformationIds){
+            DebugStop();
+        }
+
         /// Adjust the directions associated with the tip of the pyramid, considering that one of the faces is constrained
         template <class TVar>
         static void AdjustTopDirections(int ConstrainedFace,TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);

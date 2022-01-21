@@ -13,16 +13,16 @@
 #include "TPZMaterialDataT.h"
 #include "pzelchdiv.h"
 #include "TPZShapeHDivBound.h"
-
+#include "TPZShapeHDivConstantBound.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.TPZCompElHDivBound2");
 #endif
 
 template<class TSHAPE>
-TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
+TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int sType) :
 TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
+TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1),fSpaceType(sType){
 		
 	//int i;
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
@@ -76,6 +76,8 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
       LOGPZ_DEBUG(logger,sout.str())
         }
 #endif
+
+    if (fSpaceType == EHDivConstant) this->AdjustConnects();
 	 
 }
 
@@ -229,13 +231,37 @@ void TPZCompElHDivBound2<TSHAPE>::SetConnectIndex(int i, int64_t connectindex)
 template<class TSHAPE>
 int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect, int connectorder) const
 {
-	if(connect == 0)
-	{
-        if(connectorder == 0) return 1;
-		TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,connectorder);
-        return TSHAPE::NShapeF(order);
+#ifdef DEBUG
+    if (connect < 0 || connect > TSHAPE::NFacets) {
+        DebugStop();
     }
+#endif
+
+	switch (fSpaceType)
+    {
+    case EHDivFull:
+        if(connect == 0)
+        {
+            if(connectorder == 0) return 1;
+            TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,connectorder);
+            return TSHAPE::NShapeF(order);
+        }    
+        break;
+    case EHDivConstant:
+        return TPZShapeHDivConstantBound<TSHAPE>::ComputeNConnectShapeF(connect,connectorder);
+        break;
+    case EHDivKernel:
+        DebugStop();    
+        break;
+    
+    default:
+        DebugStop();//You shoud choose an approximation space
+        break;
+    }
+    
     return -1;
+
+
 }
 
 template<class TSHAPE>
@@ -663,6 +689,30 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 #endif
 	
 	
+}
+
+
+
+template<class TSHAPE>
+void TPZCompElHDivBound2<TSHAPE>::AdjustConnects()
+{
+    constexpr auto nNodes = TSHAPE::NCornerNodes;
+    auto ncon = 1;//this->NConnects();
+    for(int icon = 0; icon < ncon; icon++){
+        const int connect = icon;//this->MidSideConnectLocId(icon+1);
+        TPZConnect &c = this->Connect(connect);
+        const int nshape =this->NConnectShapeF(connect,c.Order());
+        c.SetNShape(nshape);
+        const auto seqnum = c.SequenceNumber();
+        const int nStateVars = [&](){
+            TPZMaterial * mat =this-> Material();
+            if(mat) return mat->NStateVariables();
+            else {
+                return 1;
+            }
+        }();
+        this-> Mesh()->Block().Set(seqnum,nshape*nStateVars);
+    }
 }
 
 template<class TSHAPE>

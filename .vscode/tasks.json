@@ -1,0 +1,31 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "make",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "-j12","install"
+                // "-j12","dFreeBubbles1el","3d"
+            ], 
+            "options": {
+                "cwd": "/home/jeferson/Codes/NeoPZ/neopz-build-log"
+                // "cwd": "/home/jeferson/Codes/NeoPZ/divfreebubbles/build_ShapeData"
+            }
+        },
+        {
+            "label": "build",
+            "type": "shell",
+            "options": {
+                // "cwd": "/home/jeferson/Codes/NeoPZ/divfreebubbles/build_ShapeData"
+                "cwd": "/home/jeferson/Codes/NeoPZ/neopz-build-log"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": ["make"]
+        }
+    ]
+}

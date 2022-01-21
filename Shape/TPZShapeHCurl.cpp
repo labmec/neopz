@@ -678,6 +678,9 @@ struct TPZShapeHCurl<pzshape::TPZShapeCube>;
 template
 struct TPZShapeHCurl<pzshape::TPZShapePrism>;
 
+template
+struct TPZShapeHCurl<pzshape::TPZShapePiram>;
+
 //#define IMPLEMENTHCURLFULL(TSHAPE) \
 //\
 //template void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec<pzshape::TPZShapeLinear>(TPZVec<std::pair<int,int64_t>> & indexVecShape,\

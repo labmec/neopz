@@ -189,6 +189,8 @@ int TPZShapeHDivConstant<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
     unreachable();
  }
 
+template
+struct TPZShapeHDivConstant<pzshape::TPZShapeLinear>;
 
 template
 struct TPZShapeHDivConstant<pzshape::TPZShapeTriang>;
@@ -204,3 +206,6 @@ struct TPZShapeHDivConstant<pzshape::TPZShapeCube>;
 
 template
 struct TPZShapeHDivConstant<pzshape::TPZShapePrism>;
+
+template
+struct TPZShapeHDivConstant<pzshape::TPZShapePiram>;

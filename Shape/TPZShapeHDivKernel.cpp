@@ -182,6 +182,9 @@ int TPZShapeHDivKernel<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
 }
 
 template
+struct TPZShapeHDivKernel<pzshape::TPZShapeLinear>;
+
+template
 struct TPZShapeHDivKernel<pzshape::TPZShapeTriang>;
 
 template
@@ -195,4 +198,7 @@ struct TPZShapeHDivKernel<pzshape::TPZShapeCube>;
 
 template
 struct TPZShapeHDivKernel<pzshape::TPZShapePrism>;
+
+template
+struct TPZShapeHDivKernel<pzshape::TPZShapePiram>;
 

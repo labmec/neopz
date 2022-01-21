@@ -27,6 +27,12 @@ class TPZCompElHDiv : public TPZIntelGen<TSHAPE> {
     /// Data structure which defines the restraints
     std::list<TPZOneShapeRestraint> fRestraints;
 
+    // Type of HDiv Space
+    enum MSpaceType {EHDivFull, EHDivKernel, EHDivConstant};
+
+    /// the type of space this element will generate
+    int fSpaceType;
+
 protected:
   ///! Indexes of the connects associated with the elements
   TPZManVector<int64_t,TSHAPE::NFacets+1> fConnectIndexes =
@@ -37,7 +43,7 @@ protected:
 public:
 	
     //Constructors and destructor
-	TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int stype = EHDivFull);
 	
 	TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy);
 	
@@ -241,6 +247,10 @@ public:
 	void Read(TPZStream &buf, void *context) override;
     /** @brief Refinement along the element */
     virtual void PRefine(int order) override;
+
+    /** @brief Adjust the number of shape functions for each element connect */
+    void AdjustConnects();
+
 protected:
     //@{
     /** @brief Compute the solution using Hdiv structure */

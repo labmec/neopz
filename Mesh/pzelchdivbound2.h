@@ -21,10 +21,16 @@
  */
 template<class TSHAPE>
 class TPZCompElHDivBound2 : public TPZIntelGen<TSHAPE> {
-  int fSideOrient;
+    int fSideOrient;
 	
 	/** @brief Method to append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
+
+    // Type of HDiv Space
+    enum MSpaceType {EHDivFull, EHDivKernel, EHDivConstant};
+
+    /// the type of space this element will generate
+    int fSpaceType;
 
 protected:
   ///! Indexes of the connects associated with the elements
@@ -32,7 +38,7 @@ protected:
     TPZManVector<int64_t,1>(1,-1);
 public:
 	
-	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int sType = EHDivFull);
 	
 	TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCompElHDivBound2<TSHAPE> &copy);
 
@@ -177,6 +183,10 @@ int ClassId() const override;
     
     /** @brief Prints the relevant data of the element to the output stream */
     virtual void Print(std::ostream &out) const override;
+
+private:
+    /** @brief Adjust the number of shape functions for each element connect */
+    void AdjustConnects();
 
 };
 
