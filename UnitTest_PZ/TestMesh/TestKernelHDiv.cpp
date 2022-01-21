@@ -50,6 +50,9 @@
 #include "pznoderep.h"
 #include "pzlog.h"
 
+#undef PZ_KERNELHDIV_DEBUG
+
+
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.testhdivkernel");
 #endif
@@ -608,12 +611,12 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType shapeType){
     std::string txt =  "cmesh.txt";
     std::ofstream myfile(txt);
     cmesh->Print(myfile);
-
+#ifdef PZ_KERNELHDIV_DEBUG
     //Prints computational mesh properties
     std::string vtk_name = "cmesh.vtk";
     std::ofstream vtkfile(vtk_name.c_str());
     TPZVTKGeoMesh::PrintCMeshVTK(cmesh, vtkfile, true);
-
+#endif
     // Solve the problem
     TPZLinearAnalysis an(cmesh,false);
     //sets number of threads to be used by the solver
@@ -673,7 +676,7 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType shapeType){
     if (DIM == 3 && shapeType == EHDivConstant) an.SetExact(exactSolConstant3D,pOrder);
     
     an.PostProcessError(error);
-
+#ifdef PZ_KERNELHDIV_DEBUG
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvector, cmesh);
     TPZManVector<std::string,10> scalnames(0), vecnames(2);
     // scalnames[0] = "Pressure";
@@ -685,7 +688,7 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType shapeType){
     std::string plotfile = "solutionMDFB.vtk";
     an.DefineGraphMesh(cmesh->Dimension(),scalnames,vecnames,plotfile);
     an.PostProcess(div,cmesh->Dimension());
-
+#endif
     REAL tol = 1.e-6;
     REQUIRE(error[1] < tol);
 
