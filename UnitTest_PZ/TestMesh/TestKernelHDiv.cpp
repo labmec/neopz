@@ -136,10 +136,11 @@ CreateGeoMesh(const MMeshType meshType, const TPZVec<int> &nDivs, const int dim,
               const int volId, const int bcId, MShapeType fShapeType);
 
 /*
-    Test the dimension of KernelHdiv approximation spaces
+    Test the dimension of TPZHCurl approximation spaces with no high order
+    gradient fields.
 */
 template<class TSHAPE>
-void TestKernelHDivDim(const int &pOrder);
+void TestHCurlNoGradsDim(const int &pOrder);
 /*
     Test KernelHdiv problem
 */
@@ -147,16 +148,16 @@ template<class tshape>
 void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType fShapeType);
 
 
-TEST_CASE("HDiv Kernel Dimension", "[hdivkernel_mesh_tests]") {
-    std::cout << "Testing dimension of HDiv kernel\n";
+TEST_CASE("HCurl no grads dimension", "[hdivkernel_mesh_tests]") {
+    std::cout << "Testing dimension of Hcurl with no high order grads\n";
     const int pOrder = GENERATE(1,2,3,4,5,6,7);
 
-  // TestKernelHDivDim<pzshape::TPZShapeTriang>(pOrder);
+  // TestHCurlNoGradsDim<pzshape::TPZShapeTriang>(pOrder);
   // TestKernelHDivDim<pzshape::TPZShapeQuad>(pOrder);
-  TestKernelHDivDim<pzshape::TPZShapeTetra>(pOrder);
+  TestHCurlNoGradsDim<pzshape::TPZShapeTetra>(pOrder);
   // TestKernelHDivDim<pzshape::TPZShapeCube>( pOrder);
   // TestKernelHDivDim<pzshape::TPZShapePrism>(pOrder);
-  std::cout << "Finish test dimension of HDiv Kernel \n";
+  std::cout << "Finish test dimension of HCurlNoGrads \n";
 }
 
 // Test 2D Kernel Hdiv
@@ -569,7 +570,7 @@ TPZGeoMesh *CreateGeoMeshTetra(const MMeshType meshType, const TPZVec<int> &nDiv
 #include "TPZShapeHCurl.h"
 #include "TPZShapeHCurlNoGrads.h"
 template<class TSHAPE>
-void TestKernelHDivDim(const int &pOrder){
+void TestHCurlNoGradsDim(const int &pOrder){
 
     constexpr int nNodes = TSHAPE::NCornerNodes;
     constexpr int nSides = TSHAPE::NSides;
