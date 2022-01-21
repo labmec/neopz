@@ -152,7 +152,7 @@ TEST_CASE("HCurl no grads dimension", "[hdivkernel_mesh_tests]") {
     std::cout << "Testing dimension of Hcurl with no high order grads\n";
     const int pOrder = GENERATE(1,2,3,4,5,6,7);
 
-  // TestHCurlNoGradsDim<pzshape::TPZShapeTriang>(pOrder);
+  TestHCurlNoGradsDim<pzshape::TPZShapeTriang>(pOrder);
   // TestKernelHDivDim<pzshape::TPZShapeQuad>(pOrder);
   TestHCurlNoGradsDim<pzshape::TPZShapeTetra>(pOrder);
   // TestKernelHDivDim<pzshape::TPZShapeCube>( pOrder);
