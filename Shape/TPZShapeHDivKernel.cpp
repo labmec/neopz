@@ -1,6 +1,7 @@
 #include "TPZShapeHDivKernel.h"
 
 #include "TPZShapeH1.h"
+#include "pzshapepoint.h"
 #include "pzshapelinear.h"
 #include "pzshapetriang.h"
 #include "pzshapequad.h"
@@ -180,6 +181,9 @@ int TPZShapeHDivKernel<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
 {
     return data.fHDivNumConnectShape[icon];
 }
+
+// template
+// struct TPZShapeHDivKernel<pzshape::TPZShapePoint>;
 
 template
 struct TPZShapeHDivKernel<pzshape::TPZShapeLinear>;

@@ -14,6 +14,9 @@
 #include "pzelchdiv.h"
 #include "TPZShapeHDivBound.h"
 #include "TPZShapeHDivConstantBound.h"
+#include "TPZShapeHCurl.h"
+#include "TPZShapeHDivKernel.h"
+#include "TPZCompElHCurl.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.TPZCompElHDivBound2");
@@ -251,7 +254,8 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect, int connectorder) c
         return TPZShapeHDivConstantBound<TSHAPE>::ComputeNConnectShapeF(connect,connectorder);
         break;
     case EHDivKernel:
-        DebugStop();    
+        DebugStop();
+        // return TPZShapeHDivKernel<TSHAPE>::ComputeNConnectShapeF(connect,connectorder);
         break;
     
     default:
@@ -402,6 +406,72 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     // fill in the datastructures of shapedata
     TPZShapeHDivBound<TSHAPE> shapehdiv;
     shapehdiv.Initialize(id, connectorder, sideorient, data);
+
+    if (fSpaceType == EHDivConstant){
+        int nshape = this->NShapeF();
+        data.fVecShapeIndex.Resize(nshape);
+        for (int i=0; i<nshape; i++) {
+            data.fVecShapeIndex[i] = std::make_pair(i,1);
+        }
+    }
+
+    if (fSpaceType == EHDivKernel){
+        DebugStop();
+//         TPZIntelGen<TSHAPE>::InitMaterialData(data);
+// #ifdef PZ_LOG
+//     if(logger.isDebugEnabled()){
+//         LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHCurl")
+//     }
+// #endif
+//         data.fShapeType = TPZMaterialData::MShapeFunctionType::EVecShape;
+//         TPZShapeData & shapedata = data;
+
+//         TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes,0);
+//         TPZGeoEl *ref = this->Reference();
+//         for(auto i=0; i<TSHAPE::NCornerNodes; i++) {
+//             ids[i] = ref->NodePtr(i)->Id();
+//         }
+        
+//         auto &conOrders = shapedata.fHDivConnectOrders;
+//         constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
+//         conOrders.Resize(nConnects,-1);
+//         for(auto i = 0; i < nConnects; i++){
+//             conOrders[i] = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes);
+//         }
+
+//         TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, shapedata);
+
+//         //resizing of TPZMaterialData structures
+
+//         constexpr int dim = TSHAPE::Dimension;
+//         constexpr int curldim = [dim](){
+//             if constexpr (dim == 1) return 1;
+//             else{
+//                 return 2*dim - 3;//1 for 2D 3 for 3D
+//             }
+//         }();
+//         const int nshape = this->NShapeF();
+        
+//         auto &phi = data.phi;
+//         auto &curlphi = data.curlphi;
+        
+//         phi.Redim(nshape,3);
+//         curlphi.Redim(curldim,nshape);
+        
+//         data.axes.Redim(dim,3);
+//         data.jacobian.Redim(dim,dim);
+//         data.jacinv.Redim(dim,dim);
+//         data.x.Resize(3);
+        
+//         TPZShapeData dataaux = data;
+//         data.fVecShapeIndex=dataaux.fSDVecShapeIndex;
+//         data.divphi.Resize(data.fVecShapeIndex.size(),1);
+//         TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(data);
+        
+//         //setting the type of shape functions as vector shape functions
+//         data.fShapeType = TPZMaterialData::EVecShape;
+    }
+
 
 	//data.fVecShapeIndex=true;
 	/*
@@ -581,12 +651,82 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
     
-    TPZShapeHDivBound<TSHAPE> shapehdiv;
-    TPZShapeData shapedata(data);
+    switch (fSpaceType)
+    {
+    case EHDivFull:
+        {
+            TPZShapeHDivBound<TSHAPE> shapehdiv;
+            TPZShapeData shapedata(data);
 
-    data.phi.Resize(shapehdiv.NShape(shapedata), 1);
-    shapehdiv.Shape(intpoint, shapedata, data.phi);
-    data.phi *= 1./data.detjac;
+            data.phi.Resize(shapehdiv.NShape(shapedata), 1);
+            shapehdiv.Shape(intpoint, shapedata, data.phi);
+            data.phi *= 1./data.detjac;
+        }
+        break;
+    case EHDivConstant:
+        {
+            bool needsol = data.fNeedsSol;
+            data.fNeedsSol = true;
+            data.fNeedsSol = needsol;
+
+            TPZShapeData &shapedata = data;
+            int nshape = this->NShapeF();
+            data.phi.Resize(nshape,1);
+
+            TPZFMatrix<REAL> auxPhi(nshape,TSHAPE::Dimension);
+            auxPhi.Zero();
+
+            auto &dataKernel = data;
+            if (TSHAPE::Dimension == 2){
+                TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes,0);
+                TPZGeoEl *ref = this->Reference();
+                for(auto i=0; i<TSHAPE::NCornerNodes; i++) {
+                    ids[i] = ref->NodePtr(i)->Id();
+                }
+                
+                auto &conOrders = dataKernel.fHDivConnectOrders;
+                constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
+                conOrders.Resize(nConnects,-1);
+                for(auto i = 0; i < nConnects; i++){
+                    conOrders[i] = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes);
+                }
+                for (int i = 0; i < TSHAPE::NumSides(1); i++)
+                {
+                    conOrders[i] = conOrders[TSHAPE::NumSides(1)];
+                }
+                
+                TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, dataKernel);
+                dataKernel.divphi.Resize(dataKernel.fVecShapeIndex.size(),1);
+                TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(dataKernel);
+            }
+
+            if (TSHAPE::Dimension == 1){
+                TPZShapeHDivConstantBound<TSHAPE>::Shape(intpoint, shapedata, auxPhi);
+            } else if (TSHAPE::Dimension == 2){
+                TPZShapeHDivConstantBound<TSHAPE>::Shape(intpoint, dataKernel, auxPhi);
+            } else {
+                DebugStop();
+            }
+
+            // if (this->GetSideOrient() != 1) DebugStop();
+            if (data.fSideOrient[0] != 1) DebugStop();
+
+            for (int i = 0; i < data.phi.Rows(); i++){
+                data.phi(i,0) = auxPhi(i,0) / data.detjac;
+            }
+        }
+        break;
+    case EHDivKernel:
+        {
+        DebugStop();
+        }
+        break;
+
+    default:
+        DebugStop();
+        break;
+    }
+    
     
 }
 

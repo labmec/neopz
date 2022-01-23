@@ -22,7 +22,7 @@
 #include "TPZShapeHDivKernel.h"
 #include "TPZShapeHDivConstant.h"
 #include "TPZShapeHCurl.h"
-
+#include "TPZCompElHCurl.h"
 #include "pzshtmat.h"
 
 #ifdef PZ_LOG
@@ -34,7 +34,7 @@ using namespace std;
 
 
 template<class TSHAPE>
-TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int sType) :
+TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, MSpaceType sType) :
 TPZRegisterClassId(&TPZCompElHDiv::ClassId),
 TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFacets,1), fSpaceType(sType) {
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
@@ -91,7 +91,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFacets,1), fSpaceTyp
         this->fIntRule.SetOrder(ord);
     }
 
-    if (fSpaceType == EHDivConstant) this->AdjustConnects();
+    if (fSpaceType == EHDivConstant || fSpaceType == EHDivKernel) this->AdjustConnects();
 }
 
 template<class TSHAPE>
@@ -238,7 +238,116 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
         return TPZShapeHDivConstant<TSHAPE>::ComputeNConnectShapeF(connect,order);
         break;
     case EHDivKernel:
-        DebugStop();
+        {
+            //TODO put it on TPZShapeHDivKernel
+            const int side = connect + TSHAPE::NCornerNodes;
+            #ifdef PZDEBUG
+            if (side < TSHAPE::NCornerNodes || side >= TSHAPE::NSides) {
+                DebugStop();
+            }
+            #endif
+            if(order == 0) {
+                PZError<<__PRETTY_FUNCTION__
+                    <<"\nERROR: polynomial order not compatible.\nAborting..."
+                    <<std::endl;
+                DebugStop();
+                return 0;
+            }
+            const auto nFaces = TSHAPE::Dimension < 2 ? 0 : TSHAPE::NumSides(2);
+            const auto nEdges = TSHAPE::NumSides(1);
+            const int nShapeF = [&](){
+                if (side < TSHAPE::NCornerNodes + nEdges) {//edge connect
+                return 1;
+                }
+                else if(side < TSHAPE::NCornerNodes + nEdges + nFaces){//face connect
+                switch(TSHAPE::Type(side)){
+                case ETriangle://triangular face
+                    /**
+                     we remove one internal function for each h1 face function of order k+1
+                    since there are (k-1)(k-2)/2 functions per face in a face with order k,
+                    we remove k(k-1)/2.
+                    so:
+                    (k-1)*(k+1)-k*(k-1)/2
+                    */
+                    return (order - 1) * (order+2) / 2;
+                case EQuadrilateral://quadrilateral face
+                    //Following the same logic:
+                    /**
+                     we remove one internal function for each h1 face function of order k+1
+                    since there are (k-1)^2 functions per face in a face with order k,
+                    we remove k^2.
+                    so:
+                    2k(k+1) - k^2 = k(k+2)
+                    
+                    */
+
+                    return order * (order + 2);
+                default:
+                    PZError<<__PRETTY_FUNCTION__<<" error. Not yet implemented"<<std::endl;
+                    DebugStop();
+                    return 0;
+                }
+                }
+                else{//internal connect (3D element only)
+                if constexpr (TSHAPE::Type() == ETetraedro){
+                /**
+                     we remove one internal function for each h1 internal function of order k+1
+                    since there are (k-1)(k-2)(k-3)/6 functions in a h1 element with order k,
+                    we remove k(k-1)(k-2)/6.
+                    so:
+                    (k-1)(k-2)(k+1)/2 - k(k-1)(k-2)/6 = (k-1)(k-2)(2k+3)/6.
+
+                    since we will remove k(k-1)(k-2)/6, for each     we remove (k-1)(k-2)/2 funcs.
+
+                    we have two kinds of internal functions. phi_kf and phi_ki.
+                    func        k                   k-1                 new funcs
+                    phi_kf      2(k-1)(k-2)         2(k-2)(k-3)         4(k-2)
+                    phi_ki      (k-1)(k-2)(k-3)/2   (k-2)(k-3)(k-4)/2   3(k-2)(k-3)/2
+                    
+                    that means that if we remove, for each k, (k-2) phi_kf 
+                    (for instance, all phi_kf associated with a given face),
+                    we need to remove (k-1)(k-2)/2 - (k-2) = (k-2)(k-3)/2
+                    which is exactly one third of the phi_ki.
+                    
+                */
+                    return (order-1)*(order-2)*(2*order+3)/6;
+                } else 
+                if constexpr (TSHAPE::Type() == ECube){
+                /**
+                     we remove one internal function for each h1 internal function of order k+1
+                    since there are (k-1)^3 functions in a h1 element with order k,
+                    we remove k^3.
+                    so:
+                    3k^2(k+1) - k^3 = k^2 (3 + 2 k).
+
+                    we have two kinds of internal functions. phi_kf and phi_ki.
+                    func        k                   k-1                 new funcs
+                    phi_kf      6k^2                6(k-1)^2            k(8k-k^2-1)
+                    phi_ki      3k^2*(k-1)          3(k-1)(k-1)(k-2)/2  3(2-5k+2k^2+k^3)/2
+                
+                */
+                    switch (order)
+                    {
+                    case 1:
+                        return 5;
+                    case 2:
+                        return 19;
+                    case 3: 
+                        return 37;
+                    case 4:
+                        return 56;
+                    default:
+                        break;
+                    }
+                    return order*order*(3+2*order);
+                }
+                return 0;
+                }
+            }();
+            return nShapeF;
+        }
+
+
         break;   
     default:
         return -1;
@@ -869,6 +978,62 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         data.fDeformedDirections.Resize(3,nshape);
     }
 
+    if (fSpaceType == EHDivKernel){
+        //Init the material data of Hcurl
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled()){
+        LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHCurl")
+    }
+#endif
+        data.fShapeType = TPZMaterialData::MShapeFunctionType::EVecShape;
+        TPZShapeData & shapedata = data;
+
+        TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes,0);
+        TPZGeoEl *ref = this->Reference();
+        for(auto i=0; i<TSHAPE::NCornerNodes; i++) {
+            ids[i] = ref->NodePtr(i)->Id();
+        }
+        
+        auto &conOrders = shapedata.fHDivConnectOrders;
+        constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
+        conOrders.Resize(nConnects,-1);
+        for(auto i = 0; i < nConnects; i++){
+            conOrders[i] = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes);
+        }
+
+        TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, shapedata);
+
+        //resizing of TPZMaterialData structures
+
+        constexpr int dim = TSHAPE::Dimension;
+        constexpr int curldim = [dim](){
+            if constexpr (dim == 1) return 1;
+            else{
+                return 2*dim - 3;//1 for 2D 3 for 3D
+            }
+        }();
+        const int nshape = this->NShapeF();
+        
+        auto &phi = data.phi;
+        auto &curlphi = data.curlphi;
+        
+        phi.Redim(nshape,3);
+        curlphi.Redim(curldim,nshape);
+        
+        data.axes.Redim(dim,3);
+        data.jacobian.Redim(dim,dim);
+        data.jacinv.Redim(dim,dim);
+        data.x.Resize(3);
+        
+        TPZShapeData dataaux = data;
+        data.fVecShapeIndex=dataaux.fSDVecShapeIndex;
+        data.divphi.Resize(data.fVecShapeIndex.size(),1);
+        TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(data);
+            
+        //setting the type of shape functions as vector shape functions
+        data.fShapeType = TPZMaterialData::EVecShape;
+    }
+
 
 }
 
@@ -934,8 +1099,57 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
         break;
 
     case EHDivKernel:
-        DebugStop();
+        {
+            constexpr auto dim{TSHAPE::Dimension};
+            int nshape = 0;
+            nshape = TPZShapeHDivKernel<TSHAPE>::NHDivShapeF(data);
+            
+            TPZFMatrix<REAL> phiAux(dim,nshape),divphiAux(nshape,1);
+            phiAux.Zero(); divphiAux.Zero();
+
+            TPZShapeHDivKernel<TSHAPE>::Shape(qsi,data,phiAux,divphiAux);
+
+            // TPZCompElHCurl<TSHAPE>::TransformCurl(phiAux, data.detjac, data.jacobian, data.curlphi);
+            //This is TPZCompElHCurl<TSHAPE>::TransformCurl
+            if constexpr(dim==3){
+                data.curlphi = data.jacobian * phiAux;
+                data.curlphi *= 1./data.detjac;
+            }else {
+                data.curlphi = phiAux;
+                data.curlphi *= 1./data.detjac;
+            }
+        
+
+            // const int ncorner = TSHAPE::NCornerNodes;
+            int nEdges = TSHAPE::NumSides(1);
+            const int nsides = TSHAPE::NSides;
+
+            data.divphi = divphiAux;
+        
+            // if (data.fNeedsSol) {
+            //     this->ReallyComputeSolution(data);
+            // }
+        
+        
+            // data.fNeedsSol = needsol;
+
+            nshape = this->NShapeF();
+            data.fDeformedDirections.Resize(3,nshape);
+            data.fVecShapeIndex.Resize(nshape);
+            TPZShapeData &shapedata = data;
+            int size = data.curlphi.Cols();
+
+            if (size != nshape) DebugStop();
+            int ncorner = TSHAPE::NCornerNodes;
+            for (int j = 0; j < nshape; j++){
+                data.fVecShapeIndex[j].first = j;
+                data.fVecShapeIndex[j].second = j;
+                for (int i = 0; i < 3; i++){
+                    data.fDeformedDirections(i,j)=data.curlphi(i,j);
+                }
+            }
         break;
+    }
 
     default:
         DebugStop();
@@ -1249,46 +1463,81 @@ template class TPZCompElHDiv<TPZShapeCube>;
 
 
 TPZCompEl * CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDivBound2<TPZShapePoint>(mesh,gel,index);
-}
+	return new TPZCompElHDivBound2<TPZShapePoint>(mesh,gel,index);}
+TPZCompEl * CreateHDivConstantBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDivBound2<TPZShapePoint>(mesh,gel,index,TPZCompElHDiv<TPZShapePoint>::EHDivConstant);}
+TPZCompEl * CreateHDivKernelBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDivBound2<TPZShapePoint>(mesh,gel,index,TPZCompElHDiv<TPZShapePoint>::EHDivKernel);}
 
 TPZCompEl * CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,index);
-}
+	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,index);}
+TPZCompEl * CreateHDivConstantBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,index,TPZCompElHDiv<TPZShapeLinear>::EHDivConstant);}
+TPZCompEl * CreateHDivKernelBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,index,TPZCompElHDiv<TPZShapeLinear>::EHDivKernel);}
 
 TPZCompEl * CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZCompElHDivBound2< TPZShapeQuad>(mesh,gel,index);
-}
+    return new TPZCompElHDivBound2< TPZShapeQuad>(mesh,gel,index);}
+TPZCompEl * CreateHDivConstantBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    return new TPZCompElHDivBound2< TPZShapeQuad>(mesh,gel,index,TPZCompElHDiv<TPZShapeQuad>::EHDivConstant);}
+TPZCompEl * CreateHDivKernelBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    return new TPZCompElHDivBound2< TPZShapeQuad>(mesh,gel,index,TPZCompElHDiv<TPZShapeQuad>::EHDivKernel);}
 
 TPZCompEl * CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZCompElHDivBound2< TPZShapeTriang >(mesh,gel,index);
-}
+    return new TPZCompElHDivBound2< TPZShapeTriang >(mesh,gel,index);}
+TPZCompEl * CreateHDivConstantBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    return new TPZCompElHDivBound2< TPZShapeTriang >(mesh,gel,index,TPZCompElHDiv<TPZShapeTriang>::EHDivConstant);}
+TPZCompEl * CreateHDivKernelBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    return new TPZCompElHDivBound2< TPZShapeTriang >(mesh,gel,index,TPZCompElHDiv<TPZShapeTriang>::EHDivKernel);}
 
 TPZCompEl * CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZCompElHDiv< TPZShapeLinear>(mesh,gel,index);
-}
+    return new TPZCompElHDiv< TPZShapeLinear>(mesh,gel,index);}
+TPZCompEl * CreateHDivConstantLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    return new TPZCompElHDiv< TPZShapeLinear>(mesh,gel,index,TPZCompElHDiv<TPZShapeLinear>::EHDivConstant);}
+TPZCompEl * CreateHDivKernelLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    return new TPZCompElHDiv< TPZShapeLinear>(mesh,gel,index,TPZCompElHDiv<TPZShapeLinear>::EHDivKernel);}
+
 
 TPZCompEl * CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapeQuad>(mesh,gel,index);
-}
+	return new TPZCompElHDiv< TPZShapeQuad>(mesh,gel,index);}
+TPZCompEl * CreateHDivConstantQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDiv< TPZShapeQuad>(mesh,gel,index,TPZCompElHDiv<TPZShapeQuad>::EHDivConstant);}
+TPZCompEl * CreateHDivKernelQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDiv< TPZShapeQuad>(mesh,gel,index,TPZCompElHDiv<TPZShapeQuad>::EHDivKernel);}
 
 TPZCompEl * CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapeTriang >(mesh,gel,index);
-}
+	return new TPZCompElHDiv< TPZShapeTriang >(mesh,gel,index);}
+TPZCompEl * CreateHDivConstantTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDiv< TPZShapeTriang >(mesh,gel,index,TPZCompElHDiv<TPZShapeTriang>::EHDivConstant);}
+TPZCompEl * CreateHDivKernelTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDiv< TPZShapeTriang >(mesh,gel,index,TPZCompElHDiv<TPZShapeTriang>::EHDivKernel);}
 
 TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapeCube >(mesh,gel,index);
-}
+	return new TPZCompElHDiv< TPZShapeCube >(mesh,gel,index);}
+TPZCompEl * CreateHDivConstantCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDiv< TPZShapeCube >(mesh,gel,index,TPZCompElHDiv<TPZShapeCube>::EHDivConstant);}
+TPZCompEl * CreateHDivKernelCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDiv< TPZShapeCube >(mesh,gel,index,TPZCompElHDiv<TPZShapeCube>::EHDivKernel);}
 
 TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel,index);
-}
+	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel,index);}
+TPZCompEl * CreateHDivConstantPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel,index,TPZCompElHDiv<TPZShapePrism>::EHDivConstant);}
+TPZCompEl * CreateHDivKernelPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel,index,TPZCompElHDiv<TPZShapePrism>::EHDivKernel);}
 
 TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,index);
-}
+	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,index);}
+TPZCompEl * CreateHDivConstantPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,index,TPZCompElHDiv<TPZShapePiram>::EHDivConstant);}
+TPZCompEl * CreateHDivKernelPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,index,TPZCompElHDiv<TPZShapePiram>::EHDivKernel);}
 
 TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel,index);
-}
+	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel,index);}
+TPZCompEl * CreateHDivConstantTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel,index,TPZCompElHDiv<TPZShapeTetra>::EHDivConstant);}
+TPZCompEl * CreateHDivKernelTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel,index,TPZCompElHDiv<TPZShapeTetra>::EHDivKernel);}
+
 
