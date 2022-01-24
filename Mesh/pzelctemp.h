@@ -26,9 +26,9 @@ protected:
 	
 public:
 	
-	TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
-	TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int nocreate);
+	TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int nocreate);
 	
 	TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy);
 	

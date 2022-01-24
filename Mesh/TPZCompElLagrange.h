@@ -53,8 +53,8 @@ public:
         
     }
     
-    TPZCompElLagrange(TPZCompMesh &mesh, int64_t connect1, int idf1, int64_t connect2, int idf2, int64_t &index) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
-    TPZCompEl(mesh,0,index), fDef(1)
+    TPZCompElLagrange(TPZCompMesh &mesh, int64_t connect1, int idf1, int64_t connect2, int idf2) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,0), fDef(1)
     {
         fDef[0].fConnect[0] = connect1;
         fDef[0].fConnect[1] = connect2;
@@ -74,21 +74,11 @@ public:
 #endif
     }
     
-    TPZCompElLagrange(TPZCompMesh &mesh, const TPZVec<TLagrange> &Dependencies, int64_t &index) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
-    TPZCompEl(mesh,0,index), fDef(Dependencies)
+    TPZCompElLagrange(TPZCompMesh &mesh, const TPZVec<TLagrange> &Dependencies) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,0), fDef(Dependencies)
     {
     }
     
-	/** @brief Put a copy of the element in the referred mesh */
-	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
-    TPZCompEl(mesh,copy)
-    {
-        const TPZCompElLagrange *lcop = dynamic_cast<const TPZCompElLagrange *>(&copy);
-        if (!lcop) {
-            DebugStop();
-        }
-        fDef = lcop->fDef;
-    }
 	
 	/** @brief Put a copy of the element in the patch mesh */
 	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int64_t,int64_t> &gl2lcElMap) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
@@ -102,9 +92,9 @@ public:
         
     }
 	
-	/** @brief Copy of the element in the new mesh with alocated index */
-	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy, int64_t &index) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
-    TPZCompEl(mesh,copy,index)
+	/** @brief Copy of the element in the new mesh */
+	TPZCompElLagrange(TPZCompMesh &mesh, const TPZCompEl &copy) : TPZRegisterClassId(&TPZCompElLagrange::ClassId),
+    TPZCompEl(mesh,copy)
     {
         const TPZCompElLagrange *lcop = dynamic_cast<const TPZCompElLagrange *>(&copy);
         if (!lcop) {

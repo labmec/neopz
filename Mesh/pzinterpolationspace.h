@@ -37,9 +37,6 @@ virtual int ClassId() const override;
 	/** @brief Puts a copy of the element in the patch mesh */
 	TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, std::map<int64_t,int64_t> &gl2lcElMap);
 	
-	/** @brief Copy of the element in the new mesh whit alocated index */
-	TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, int64_t &index);
-	
 	/**
 	 * @brief Create a computational element within mesh
 	 * @param mesh mesh wher will be created the element
@@ -47,7 +44,7 @@ virtual int ClassId() const override;
 	 * @param index new elemen index
 	 */
 	/** Inserts the element within the data structure of the mesh */
-	TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
     /**
 	 * @name data access methods

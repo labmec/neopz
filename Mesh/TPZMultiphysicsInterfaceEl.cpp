@@ -39,8 +39,8 @@ TPZCompEl(),fLeftElSide(0), fRightElSide(0)
 {
 }
 
-TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index) :
-TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, ref, index),fLeftElSide(0), fRightElSide(0)
+TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref) :
+TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, ref),fLeftElSide(0), fRightElSide(0)
 {
     
     ref->SetReference(this);
@@ -53,9 +53,9 @@ TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, re
     ref->IncrementNumInterfaces();
 }
 
-TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index,
+TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref,
                                                                     TPZCompElSide leftside, TPZCompElSide rightside) : 
-TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, ref, index)
+TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, ref)
 {
 	
 	ref->SetReference(this);

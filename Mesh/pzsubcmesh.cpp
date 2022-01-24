@@ -44,7 +44,7 @@ static TPZLogger logger2("pz.mesh.tpzcompmesh");
 static int logger;
 #endif
 
-TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, int64_t &index) : TPZRegisterClassId(&TPZSubCompMesh::ClassId), TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0,index),
+TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh) : TPZRegisterClassId(&TPZSubCompMesh::ClassId), TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0),
 fSingularConnect(-1) {
     SetDimModel(mesh.Dimension());
 	fAnalysis = NULL;

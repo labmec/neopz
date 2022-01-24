@@ -163,7 +163,7 @@ public:
 	enum CalcStiffOptions{ENone = -1, EStandard /*Deprecated*/ = 0, EPenalty, EContDisc,EReferred};
 	
 	/** @brief Constuctor to continuous and/or discontinuous neighbours. */
-	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int64_t &index,TPZCompElSide & left, TPZCompElSide &right);
+	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,TPZCompElSide & left, TPZCompElSide &right);
 	
 	/** @brief Simple copy constructor. */
 	TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy);
@@ -180,14 +180,12 @@ public:
 						std::map<int64_t,int64_t> &gl2lcConIdx,
 						std::map<int64_t,int64_t> &gl2lcElIdx);
 
-	/** @brief Copy constructor with specified index */
-	TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, int64_t &index);
 	
 	/** @brief Empty constructor. */
 	TPZInterfaceElement();
 	
 	/** @brief Default TPZCompEl constructor. SetLeftRightElements must be called before any computation. */
-	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int64_t &index);
+	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo);
 	
 	/** @brief Destructor */
 	~TPZInterfaceElement();
@@ -210,7 +208,7 @@ public:
 	}
 	
 	/** @brief Method used in TPZAgglomerateElement::CreateAgglomerateMesh */
-	TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,int64_t &index, /*TPZCompElDisc **/TPZCompElSide & left, /*TPZCompElDisc **/ TPZCompElSide &right) const;
+	TPZCompEl * CloneInterface(TPZCompMesh &aggmesh, /*TPZCompElDisc **/TPZCompElSide & left, /*TPZCompElDisc **/ TPZCompElSide &right) const;
 	
 	/** @brief Identifies the elements of left and right volume of the interface */
 	void VolumeEls(TPZCompEl &thirdel);

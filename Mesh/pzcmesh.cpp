@@ -421,7 +421,6 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 	int64_t nelem = elvec.NElements();
 	
 	int64_t neltocreate = 0;
-	int64_t index;
 	for(int64_t i=0; i<nelem; i++) {
 		TPZGeoEl *gel = elvec[i];
 		if(!gel) continue;
@@ -447,7 +446,7 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 			}
 			
 			if(gel->NumInterfaces() == 0){
-				CreateCompEl(gel,index);
+				CreateCompEl(gel);
 			}
 		}
 	}
@@ -465,7 +464,7 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 			}
 			
 			if(gel->NumInterfaces() == 0){
-				CreateCompEl(gel,index);
+				CreateCompEl(gel);
 			}
 		}
 	}
@@ -1346,7 +1345,8 @@ void TPZCompMesh::Coarsen(TPZVec<int64_t> &elements, int64_t &index, bool Create
 	if (CreateDiscontinuous) fCreate.SetAllCreateFunctionsDiscontinuous();
 	else fCreate.SetAllCreateFunctionsContinuous();
 	
-	TPZCompEl * newcel = CreateCompEl(father,index);
+	TPZCompEl * newcel = CreateCompEl(father);
+    index = newcel->Index();
 	
 	TPZCompElDisc * newdisc = dynamic_cast<TPZCompElDisc*>(newcel);
 	if (newdisc){

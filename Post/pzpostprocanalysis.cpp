@@ -173,7 +173,6 @@ void TPZPostProcAnalysis::AutoBuildDisc()
 	TPZAdmChunkVector<TPZGeoEl *> &elvec = Mesh()->Reference()->ElementVec();
 	int64_t i, nelem = elvec.NElements();
 	int neltocreate = 0;
-	int64_t index;
     
     // build a data structure indicating which geometric elements will be post processed
     fpMainMesh->LoadReferences();
@@ -220,8 +219,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
             matnotfound.insert(matid);
             continue;
         }
-        Mesh()->CreateCompEl(gel,index);
-        TPZCompEl *cel = Mesh()->ElementVec()[index];
+        TPZCompEl *cel = Mesh()->CreateCompEl(gel);
         TPZCompElPostProcBase *celpost = dynamic_cast<TPZCompElPostProcBase *>(cel);
         if(!celpost) DebugStop();
         TPZCompEl *celref = it->second;
@@ -399,51 +397,51 @@ template class TPZRestoreClass<TPZCompElPostProc< TPZCompElH1<TPZShapePiram> >>;
 template class TPZRestoreClass<TPZCompElPostProc< TPZCompElH1<TPZShapeTetra> >>;
 template class TPZRestoreClass<TPZCompElPostProc< TPZCompElDisc >>;
 
-TPZCompEl *TPZPostProcAnalysis::CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *TPZPostProcAnalysis::CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc< TPZCompElH1<TPZShapePoint> >(mesh,gel,index);
+		return new TPZCompElPostProc< TPZCompElH1<TPZShapePoint> >(mesh,gel);
 	return NULL;
 }
-TPZCompEl *TPZPostProcAnalysis::CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *TPZPostProcAnalysis::CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc<TPZCompElH1<TPZShapeLinear> >(mesh,gel,index);
+		return new TPZCompElPostProc<TPZCompElH1<TPZShapeLinear> >(mesh,gel);
 	return NULL;
 }
-TPZCompEl *TPZPostProcAnalysis::CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *TPZPostProcAnalysis::CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc<TPZCompElH1<TPZShapeQuad> >(mesh,gel,index);
+		return new TPZCompElPostProc<TPZCompElH1<TPZShapeQuad> >(mesh,gel);
 	return NULL;
 }
-TPZCompEl *TPZPostProcAnalysis::CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *TPZPostProcAnalysis::CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc<TPZCompElH1<TPZShapeTriang> >(mesh,gel,index);
+		return new TPZCompElPostProc<TPZCompElH1<TPZShapeTriang> >(mesh,gel);
 	return NULL;
 }
-TPZCompEl *TPZPostProcAnalysis::CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *TPZPostProcAnalysis::CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc<TPZCompElH1<TPZShapeCube> >(mesh,gel,index);
+		return new TPZCompElPostProc<TPZCompElH1<TPZShapeCube> >(mesh,gel);
 	return NULL;
 }
-TPZCompEl *TPZPostProcAnalysis::CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *TPZPostProcAnalysis::CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc< TPZCompElH1<TPZShapePrism> >(mesh,gel,index);
+		return new TPZCompElPostProc< TPZCompElH1<TPZShapePrism> >(mesh,gel);
 	return NULL;
 }
-TPZCompEl *TPZPostProcAnalysis::CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *TPZPostProcAnalysis::CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc<TPZCompElH1<TPZShapePiram> >(mesh,gel,index);
+		return new TPZCompElPostProc<TPZCompElH1<TPZShapePiram> >(mesh,gel);
 	return NULL;
 }
-TPZCompEl *TPZPostProcAnalysis::CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *TPZPostProcAnalysis::CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElPostProc<TPZCompElH1<TPZShapeTetra> >(mesh,gel,index);
+		return new TPZCompElPostProc<TPZCompElH1<TPZShapeTetra> >(mesh,gel);
 	return NULL;
 }
 
 
-TPZCompEl * TPZPostProcAnalysis::CreatePostProcDisc(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * TPZPostProcAnalysis::CreatePostProcDisc(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-	return new TPZCompElPostProc< TPZCompElDisc > (mesh,gel,index);
+	return new TPZCompElPostProc< TPZCompElDisc > (mesh,gel);
 }
 
 /** @brief Returns the unique identifier for reading/writing objects to streams */

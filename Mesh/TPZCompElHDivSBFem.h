@@ -28,9 +28,9 @@ class TPZCompElHDivSBFem : public TPZCompElHDivCollapsed<TSHAPE> {
     
 public:
 	    
-	TPZCompElHDivSBFem(TPZCompMesh &mesh, TPZGeoEl *gel, TPZGeoElSide &gelside, int64_t &index);
+	TPZCompElHDivSBFem(TPZCompMesh &mesh, TPZGeoEl *gel, TPZGeoElSide &gelside);
 
-	TPZCompElHDivSBFem(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZCompElHDivSBFem(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
 	TPZCompElHDivSBFem(TPZCompMesh &mesh, const TPZCompElHDivSBFem<TSHAPE> &copy);
 	
@@ -77,8 +77,8 @@ int TPZCompElHDivSBFem<TSHAPE>::ClassId() const{
 
 
 /** @brief Creates computational linear element for HDiv approximate space */
-TPZCompEl *CreateHDivColapsedLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivColapsedLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational quadrilateral element for HDiv approximate space */
-TPZCompEl *CreateHDivColapsedQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivColapsedQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational triangular element for HDiv approximate space */
-TPZCompEl *CreateHDivColapsedTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivColapsedTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh);

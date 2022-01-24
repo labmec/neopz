@@ -31,9 +31,9 @@ using namespace std;
 
 
 template<class TSHAPE>
-TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
+TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel) :
 TPZRegisterClassId(&TPZCompElHDiv::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFacets,1) {
+TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(TSHAPE::NFacets,1) {
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
 	int nconflux= TPZCompElHDiv::NConnects();
     this->fConnectIndexes.Resize(nconflux);
@@ -1116,47 +1116,47 @@ template class TPZCompElHDiv<TPZShapePiram>;
 template class TPZCompElHDiv<TPZShapeCube>;
 
 
-TPZCompEl * CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDivBound2<TPZShapePoint>(mesh,gel,index);
+TPZCompEl * CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+	return new TPZCompElHDivBound2<TPZShapePoint>(mesh,gel);
 }
 
-TPZCompEl * CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,index);
+TPZCompEl * CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel);
 }
 
-TPZCompEl * CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZCompElHDivBound2< TPZShapeQuad>(mesh,gel,index);
+TPZCompEl * CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+    return new TPZCompElHDivBound2< TPZShapeQuad>(mesh,gel);
 }
 
-TPZCompEl * CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZCompElHDivBound2< TPZShapeTriang >(mesh,gel,index);
+TPZCompEl * CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+    return new TPZCompElHDivBound2< TPZShapeTriang >(mesh,gel);
 }
 
-TPZCompEl * CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZCompElHDiv< TPZShapeLinear>(mesh,gel,index);
+TPZCompEl * CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+    return new TPZCompElHDiv< TPZShapeLinear>(mesh,gel);
 }
 
-TPZCompEl * CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapeQuad>(mesh,gel,index);
+TPZCompEl * CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+	return new TPZCompElHDiv< TPZShapeQuad>(mesh,gel);
 }
 
-TPZCompEl * CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapeTriang >(mesh,gel,index);
+TPZCompEl * CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+	return new TPZCompElHDiv< TPZShapeTriang >(mesh,gel);
 }
 
-TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapeCube >(mesh,gel,index);
+TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+	return new TPZCompElHDiv< TPZShapeCube >(mesh,gel);
 }
 
-TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel,index);
+TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel);
 }
 
-TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,index);
+TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel);
 }
 
-TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel,index);
+TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel);
 }
 

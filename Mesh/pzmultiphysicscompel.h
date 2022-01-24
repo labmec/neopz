@@ -53,7 +53,7 @@ public:
 	 * @param gel geometric element for which the computational element will be created
 	 * @param index new elemen index
 	 */
-	TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *gel);
 	/** @brief Default constructor */
 	TPZMultiphysicsCompEl();
   
@@ -344,54 +344,54 @@ public:
 
 
 /** @brief Creates computational point element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsPointEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational linear element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational quadrilateral element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational triangular element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational cube element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational prismal element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational pyramidal element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational tetrahedral element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 //--------------------- WITH MEMORY ----------------------
 
 /** @brief Creates computational point element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsPointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsPointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational linear element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational quadrilateral element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational triangular element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational cube element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational prismal element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsPrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsPrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational pyramidal element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsPyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsPyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @brief Creates computational tetrahedral element for Multiphysics approximate space */
-TPZCompEl *CreateMultiphysicsTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateMultiphysicsTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 #include "pzcmesh.h"
 

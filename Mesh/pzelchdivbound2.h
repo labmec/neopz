@@ -32,7 +32,7 @@ protected:
     TPZManVector<int64_t,1>(1,-1);
 public:
 	
-	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
 	TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCompElHDivBound2<TSHAPE> &copy);
 
@@ -186,13 +186,13 @@ int TPZCompElHDivBound2<TSHAPE>::ClassId() const{
 }
 
 /** @brief Creates computational point element for HDiv approximate space */
-TPZCompEl *CreateRefHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateRefHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational linear element for HDiv approximate space */
-TPZCompEl *CreateRefHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateRefHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational quadrilateral element for HDiv approximate space */
-TPZCompEl *CreateRefHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateRefHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational triangular element for HDiv approximate space */
-TPZCompEl *CreateRefHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateRefHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 /** @} */
 

@@ -25,7 +25,7 @@
 // static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemvolume"));
 // #endif
 
-TPZSBFemVolumeL2::TPZSBFemVolumeL2(TPZCompMesh & mesh, TPZGeoEl * gel, int64_t & index) : TPZSBFemVolume(mesh, gel, index)
+TPZSBFemVolumeL2::TPZSBFemVolumeL2(TPZCompMesh & mesh, TPZGeoEl * gel) : TPZSBFemVolume(mesh, gel)
 {
     fElementVec1D.Resize(3);
 }
@@ -174,7 +174,7 @@ void TPZSBFemVolumeL2::ReallyComputeSolution(TPZMaterialDataT<STATE> & data)
 
 #include "pzaxestools.h"
 
-TPZCompEl * CreateSBFemPressureCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index)
+TPZCompEl * CreateSBFemPressureCompEl(TPZCompMesh &mesh, TPZGeoEl *gel)
 {
-    return new TPZSBFemVolumeL2(mesh, gel, index);    
+    return new TPZSBFemVolumeL2(mesh, gel);
 }

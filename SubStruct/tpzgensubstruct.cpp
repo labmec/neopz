@@ -210,9 +210,8 @@ void TPZGenSubStruct::SubStructure()
 					nelstack = 1;
 				}
 			}
-			int64_t index;
 			TPZCompMesh *cmesh = fCMesh.operator->();
-			TPZSubCompMesh *submesh = new TPZSubCompMesh(*cmesh,index);
+			TPZSubCompMesh *submesh = new TPZSubCompMesh(*cmesh);
 			std::cout << '*';
 			std::cout.flush();
 			int sub;

@@ -31,7 +31,7 @@ static LoggerPtr loggerLBF(Logger::getLogger("pz.mesh.sbfemvolume.bodyloads"));
 static LoggerPtr loggerEvaluateError(Logger::getLogger("pz.mesh.sbfemvolume.error"));
 #endif
 
-TPZSBFemVolume::TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) : TPZInterpolationSpace(mesh, gel, index), fElementGroupIndex(-1), fSkeleton(-1), fDensity(1.) {
+TPZSBFemVolume::TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel) : TPZInterpolationSpace(mesh, gel), fElementGroupIndex(-1), fSkeleton(-1), fDensity(1.) {
 
 }
 
@@ -252,9 +252,9 @@ void TPZSBFemVolume::ExtendShapeFunctions(TPZMaterialDataT<STATE> &data1d, TPZMa
     TPZInterpolationSpace::Convert2Axes(data2d.fDPhi, data2d.jacinv, data2d.dphix);
 }
 
-TPZCompEl * CreateSBFemCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * CreateSBFemCompEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZSBFemVolume(mesh, gel, index);
+    return new TPZSBFemVolume(mesh, gel);
 }
 
 /// initialize the data structures of the eigenvectors and eigenvalues associated with this volume element

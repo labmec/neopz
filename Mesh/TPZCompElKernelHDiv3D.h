@@ -36,7 +36,7 @@ class TPZCompElKernelHDiv3D : public TPZCompElHCurlNoGrads<TSHAPE> {
 
 public:
 	    
-	TPZCompElKernelHDiv3D(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int shapetype = EHDivKernel);
+	TPZCompElKernelHDiv3D(TPZCompMesh &mesh, TPZGeoEl *gel, int shapetype = EHDivKernel);
 	
 	TPZCompElKernelHDiv3D(){};
 	

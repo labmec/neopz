@@ -29,8 +29,8 @@ static TPZLogger logger("pz.strmatrix");
 using namespace std;
 
 template<class TSHAPE>
-TPZCompElKernelHDiv3D<TSHAPE>::TPZCompElKernelHDiv3D(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int shapetype) :
-TPZRegisterClassId(&TPZCompElKernelHDiv3D::ClassId), TPZCompElHCurlNoGrads<TSHAPE>(mesh,gel,index), fSideOrient(TSHAPE::NFacets,1), fShapeType(shapetype) {
+TPZCompElKernelHDiv3D<TSHAPE>::TPZCompElKernelHDiv3D(TPZCompMesh &mesh, TPZGeoEl *gel, int shapetype) :
+TPZRegisterClassId(&TPZCompElKernelHDiv3D::ClassId), TPZCompElHCurlNoGrads<TSHAPE>(mesh,gel), fSideOrient(TSHAPE::NFacets,1), fShapeType(shapetype) {
     int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
     for(int side = firstside ; side < TSHAPE::NSides-1; side++ )
     {

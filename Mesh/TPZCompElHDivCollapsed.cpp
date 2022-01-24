@@ -22,9 +22,9 @@ static int logger;
 #endif
 
 template<class TSHAPE>
-TPZCompElHDivCollapsed<TSHAPE>::TPZCompElHDivCollapsed(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
+TPZCompElHDivCollapsed<TSHAPE>::TPZCompElHDivCollapsed(TPZCompMesh &mesh, TPZGeoEl *gel) :
 TPZRegisterClassId(&TPZCompElHDivCollapsed::ClassId),
-TPZCompElHDiv<TSHAPE>(mesh,gel,index)
+TPZCompElHDiv<TSHAPE>(mesh,gel)
 {
 //    fbottom_c_index = -1; set at constructor in .h
 //    ftop_c_index = -1; set at constructor in .h

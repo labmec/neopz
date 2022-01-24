@@ -1229,7 +1229,8 @@ void  TPZDohrStructMatrix<TVar,TPar>::SubStructure(int nsub )
 #ifdef PZDEBUG
         std::cout << '^'; std::cout.flush();
 #endif
-        submeshes[isub] = new TPZSubCompMesh(*(this->fMesh),index);
+        submeshes[isub] = new TPZSubCompMesh(*(this->fMesh));
+        index = submeshes[isub]->Index();
         if (index < domain_index.NElements()) {
             domain_index[index] = -1;
         }

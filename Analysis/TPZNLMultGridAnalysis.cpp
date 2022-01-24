@@ -159,10 +159,10 @@ TPZCompMesh  *TPZNonLinMultGridAnalysis::UniformlyRefineMesh(TPZCompMesh *coarcm
 			lev++;
 		}
 		int nsub = sub.NElements(),isub;
-		int64_t index;
+
 		//o construtor adequado ja deveria ter sido definido
 		for(isub=0; isub<nsub; isub++) {
-			disc = dynamic_cast<TPZCompElDisc *>(finemesh->CreateCompEl(sub[isub],index));
+			disc = dynamic_cast<TPZCompElDisc *>(finemesh->CreateCompEl(sub[isub]));
 			if(setdegree > 0 && setdegree != degree) disc->SetDegree(degree);
 			//caso setdegree < 0 preserva-se o grau da malha inicial
 		}

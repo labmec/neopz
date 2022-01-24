@@ -52,7 +52,7 @@ public:
     
     virtual ~TPZCompElPostProc();
     
-    TPZCompElPostProc(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+    TPZCompElPostProc(TPZCompMesh &mesh, TPZGeoEl *gel);
     
     TPZCompElPostProc(TPZCompMesh &mesh, const TPZCompElPostProc<TCOMPEL> &copy);
     
@@ -162,8 +162,8 @@ inline TPZCompElPostProc<TCOMPEL>::~TPZCompElPostProc() {
 }
 
 template<class TCOMPEL>
-inline TPZCompElPostProc<TCOMPEL>::TPZCompElPostProc(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
-TCOMPEL(mesh, gel, index){
+inline TPZCompElPostProc<TCOMPEL>::TPZCompElPostProc(TPZCompMesh &mesh, TPZGeoEl *gel) :
+TCOMPEL(mesh, gel){
     TPZCompElPostProc<TCOMPEL>::InitializeShapeFunctions();
 }
 

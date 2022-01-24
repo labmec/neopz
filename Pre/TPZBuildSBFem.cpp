@@ -620,9 +620,8 @@ void TPZBuildSBFem::CreateElementGroups(TPZCompMesh &cmesh)
     TPZVec<int64_t> elementgroupindices(numgroups);
     
     for (int64_t el=0; el<numgroups; el++) {
-        int64_t index;
-        new TPZSBFemElementGroup(cmesh,index);
-        elementgroupindices[el] = index;
+        TPZCompEl* cel = new TPZSBFemElementGroup(cmesh);
+        elementgroupindices[el] = cel->Index();
     }
     
     

@@ -121,9 +121,9 @@ int TPZCompEl::gOrder = 2;
 TPZCompEl::TPZCompEl() : fMesh(0), fIndex(-1), fReferenceIndex(-1), fIntegrationRule(0) {
 }
 
-TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index) : fIntegrationRule(0) {
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref) : fIntegrationRule(0) {
     fMesh = &mesh;
-    index = mesh.ElementVec().AllocateNewElement();
+    const int64_t index = mesh.ElementVec().AllocateNewElement();
     mesh.ElementVec()[index] = this;
     fIndex = index;
     fReferenceIndex = (ref == 0) ? -1 : ref->Index();
@@ -132,17 +132,6 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index) : fIntegr
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy): fIntegrationRule(0) {
     fMesh = &mesh;
     int64_t index = copy.fIndex;
-    if(index >= 0) mesh.ElementVec()[index] = this;
-    fIndex = index;
-    fReferenceIndex = copy.fReferenceIndex;
-    if (copy.fIntegrationRule) {
-        fIntegrationRule = copy.fIntegrationRule->Clone();
-    }
-}
-
-TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int64_t &index) : fIntegrationRule(0) {
-    fMesh = &mesh;
-    index = mesh.ElementVec().AllocateNewElement();
     if(index >= 0) mesh.ElementVec()[index] = this;
     fIndex = index;
     fReferenceIndex = copy.fReferenceIndex;

@@ -108,7 +108,7 @@ public:
 	int GetMaterial( const TPZGeoElSide& gside );
 	
 	/** @brief Creates discontinuous computational element */
-	static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int64_t &index);
+	static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh);
 	
 	/**
 	 * @brief Sets the orthogonal function which will be used throughout the program.
@@ -132,9 +132,9 @@ public:
 	/** @brief Default constructor */
 	TPZCompElDisc();
 	/** @brief Constructor of the discontinuous element associated with geometric element */
-	TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int64_t &index);//original
+	TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref);//original
 	/** @brief Constructor */
-	TPZCompElDisc(TPZCompMesh &mesh,int64_t &index);//construtor do aglomerado
+	TPZCompElDisc(TPZCompMesh &mesh);//construtor do aglomerado
 	/** @brief Copy constructor */
 	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy);
 
@@ -150,17 +150,12 @@ public:
 				  std::map<int64_t,int64_t> &gl2lcConMap,
 				  std::map<int64_t,int64_t> &gl2lcElMap);
 	
-	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int64_t &index);
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions(TPZCompMesh *mesh) override;
 	
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override {
 		return new TPZCompElDisc(mesh,*this);
-	}
-	
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh,int64_t &index) const {
-		return new TPZCompElDisc(mesh,*this,index);
 	}
 	
 	/**
@@ -379,9 +374,9 @@ int ClassId() const override;
 	virtual void PRefine ( int order ) override { SetDegree( order ); }
 };
 
-inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int64_t &index) {
+inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh) {
 	if(!geo->Reference() && geo->NumInterfaces() == 0)
-		return new TPZCompElDisc(mesh,geo,index);
+		return new TPZCompElDisc(mesh,geo);
 	return NULL;
 }
 //Exemplo do quadrilatero:

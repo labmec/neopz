@@ -9,8 +9,8 @@
 #include "TPZShapeHDivKernel2DBound.h"
 
 template<class TSHAPE>
-TPZCompElKernelHDivBC<TSHAPE>::TPZCompElKernelHDivBC(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
-TPZRegisterClassId(&TPZCompElKernelHDivBC::ClassId), TPZCompElH1<TSHAPE>(mesh,gel,index) {
+TPZCompElKernelHDivBC<TSHAPE>::TPZCompElKernelHDivBC(TPZCompMesh &mesh, TPZGeoEl *gel) :
+TPZRegisterClassId(&TPZCompElKernelHDivBC::ClassId), TPZCompElH1<TSHAPE>(mesh,gel) {
 
 }
 

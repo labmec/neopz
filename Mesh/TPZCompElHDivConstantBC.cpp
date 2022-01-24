@@ -36,8 +36,8 @@ void TPZCompElHDivConstantBC<TSHAPE>::AdjustConnects()
 }
 
 template<class TSHAPE>
-TPZCompElHDivConstantBC<TSHAPE>::TPZCompElHDivConstantBC(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int shapetype) :
-TPZRegisterClassId(&TPZCompElHDivConstantBC::ClassId), TPZCompElHDivBound2<TSHAPE>(mesh,gel,index), fShapeType(shapetype)  {
+TPZCompElHDivConstantBC<TSHAPE>::TPZCompElHDivConstantBC(TPZCompMesh &mesh, TPZGeoEl *gel, int shapetype) :
+TPZRegisterClassId(&TPZCompElHDivConstantBC::ClassId), TPZCompElHDivBound2<TSHAPE>(mesh,gel), fShapeType(shapetype)  {
     AdjustConnects();
 }
 

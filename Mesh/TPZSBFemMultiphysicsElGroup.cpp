@@ -110,8 +110,9 @@ void TPZSBFemMultiphysicsElGroup::GroupandCondense(set<int> & condensedmatid)
 #ifdef PZDEBUG
     if (fElGroup.size() == 0 || condensedmatid.size() == 0) DebugStop();
 #endif
-    int64_t index;
-    fCondensedEls = new TPZElementGroup(*Mesh(), index);
+
+    fCondensedEls = new TPZElementGroup(*Mesh());
+    const int64_t index = fCondensedEls->Index();
 
     for (auto celvol : fElGroup)
     {

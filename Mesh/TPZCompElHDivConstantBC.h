@@ -34,7 +34,7 @@ public:
 	    
 	TPZCompElHDivConstantBC();
     
-    TPZCompElHDivConstantBC(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int shapetype = EHDivKernel);
+    TPZCompElHDivConstantBC(TPZCompMesh &mesh, TPZGeoEl *gel, int shapetype = EHDivKernel);
 	
 	virtual ~TPZCompElHDivConstantBC();
 

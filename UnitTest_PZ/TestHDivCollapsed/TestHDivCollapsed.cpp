@@ -499,13 +499,12 @@ void CreateFractureHDivCollapsedEl(TPZCompMesh* cmesh) {
         if (hassubel) { // the mesh can be uniformly refined
             continue;
         }
-        int64_t index;
         TPZInterpolationSpace* hdivcollapsed = nullptr;
         if (gmeshdim == 2){
-            hdivcollapsed = new TPZCompElHDivCollapsed<pzshape::TPZShapeLinear>(*cmesh,gel,index);
+            hdivcollapsed = new TPZCompElHDivCollapsed<pzshape::TPZShapeLinear>(*cmesh,gel);
         }
         else {
-            hdivcollapsed = new TPZCompElHDivCollapsed<pzshape::TPZShapeQuad>(*cmesh,gel,index);
+            hdivcollapsed = new TPZCompElHDivCollapsed<pzshape::TPZShapeQuad>(*cmesh,gel);
         }
         
     }

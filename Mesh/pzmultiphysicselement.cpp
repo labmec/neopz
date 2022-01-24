@@ -147,8 +147,6 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
             }
         }
 		
-		int64_t index;
-		
 		
 		TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
 		if(!gel){
@@ -169,22 +167,22 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide neighcompelside(list[is]);
             if (!withmem) {
-                newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,thiscompelside,neighcompelside);
+                newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,thiscompelside,neighcompelside);
             }
             else
             {
-                newcreatedinterface = new TPZCompElWithMem<TPZMultiphysicsInterfaceElement>(*fMesh,gel,index,thiscompelside,neighcompelside);
+                newcreatedinterface = new TPZCompElWithMem<TPZMultiphysicsInterfaceElement>(*fMesh,gel,thiscompelside,neighcompelside);
             }
 		} else {
 			//caso contrario ou caso ambos sejam de volume
 			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide neighcompelside(list[is]);
             if (!withmem) {
-                newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,neighcompelside,thiscompelside);
+                newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,neighcompelside,thiscompelside);
             }
             else
             {
-                newcreatedinterface = new TPZCompElWithMem<TPZMultiphysicsInterfaceElement>(*fMesh,gel,index,neighcompelside,thiscompelside);
+                newcreatedinterface = new TPZCompElWithMem<TPZMultiphysicsInterfaceElement>(*fMesh,gel,neighcompelside,thiscompelside);
             }
 		}
 		
@@ -246,7 +244,6 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 		//int lowside = lower.Side();
 		//existem esquerdo e direito: this e lower
 		TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
-		int64_t index;
 		
         bool withmem = fMesh->ApproxSpace().NeedsMemory();
         
@@ -255,11 +252,11 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide lowcelcompelside(lower);
             if (!withmem) {
-                newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,thiscompelside,lowcelcompelside);
+                newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,thiscompelside,lowcelcompelside);
             }
             else
             {
-                newcreatedinterface = new TPZCompElWithMem<TPZMultiphysicsInterfaceElement>(*fMesh,gel,index,thiscompelside,lowcelcompelside);
+                newcreatedinterface = new TPZCompElWithMem<TPZMultiphysicsInterfaceElement>(*fMesh,gel,thiscompelside,lowcelcompelside);
             }
 		} else {
 			TPZCompElSide thiscompelside(this, thisside.Side());
@@ -279,11 +276,11 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 #endif
             if (!withmem)
             {
-                newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
+                newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,lowcelcompelside,thiscompelside);
             }
             else
             {
-                newcreatedinterface = new TPZCompElWithMem<TPZMultiphysicsInterfaceElement>(*fMesh,gel,index,lowcelcompelside,thiscompelside);
+                newcreatedinterface = new TPZCompElWithMem<TPZMultiphysicsInterfaceElement>(*fMesh,gel,lowcelcompelside,thiscompelside);
             }
 		}
 		

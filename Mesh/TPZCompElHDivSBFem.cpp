@@ -22,14 +22,14 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivSBFem"));
 
 // Initialize with the geometry of the SBFemVolume
 template<class TSHAPE>
-TPZCompElHDivSBFem<TSHAPE>::TPZCompElHDivSBFem(TPZCompMesh &mesh, TPZGeoEl *gel, TPZGeoElSide &gelside, int64_t &index) :
-TPZCompElHDivCollapsed<TSHAPE>(mesh, gel, index), fGeoElVolSide(gelside)
+TPZCompElHDivSBFem<TSHAPE>::TPZCompElHDivSBFem(TPZCompMesh &mesh, TPZGeoEl *gel, TPZGeoElSide &gelside) :
+TPZCompElHDivCollapsed<TSHAPE>(mesh, gel), fGeoElVolSide(gelside)
 {
 }
 
 template<class TSHAPE>
-TPZCompElHDivSBFem<TSHAPE>::TPZCompElHDivSBFem(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
-TPZCompElHDivCollapsed<TSHAPE>(mesh, gel, index), fGeoElVolSide(0)
+TPZCompElHDivSBFem<TSHAPE>::TPZCompElHDivSBFem(TPZCompMesh &mesh, TPZGeoEl *gel) :
+TPZCompElHDivCollapsed<TSHAPE>(mesh, gel), fGeoElVolSide(0)
 {
 }
 

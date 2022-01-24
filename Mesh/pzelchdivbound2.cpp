@@ -20,9 +20,9 @@ static TPZLogger logger("pz.mesh.TPZCompElHDivBound2");
 #endif
 
 template<class TSHAPE>
-TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
+TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel) :
 TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
+TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(1){
 		
 	//int i;
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();

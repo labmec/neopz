@@ -114,10 +114,10 @@ TPZInterfaceElement::~TPZInterfaceElement() {
     }
 }
 
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int64_t &index,
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,
                                          TPZCompElSide& left, TPZCompElSide& right)
 : TPZRegisterClassId(&TPZInterfaceElement::ClassId),
-TPZCompEl(mesh,geo,index)
+TPZCompEl(mesh,geo)
 {
 	
 	geo->SetReference(this);
@@ -136,53 +136,13 @@ TPZCompEl(mesh,geo,index)
 	this->IncrementElConnected();
 }
 
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int64_t &index)
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo)
 : TPZRegisterClassId(&TPZInterfaceElement::ClassId),
-TPZCompEl(mesh,geo,index), fLeftElSide(), fRightElSide(){
-	geo->SetReference(this);
-	geo->IncrementNumInterfaces();
-	this->IncrementElConnected();
+TPZCompEl(mesh,geo), fLeftElSide(), fRightElSide(){
+    geo->SetReference(this);
+    geo->IncrementNumInterfaces();
+    this->IncrementElConnected();
 }
-
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy)
-: TPZRegisterClassId(&TPZInterfaceElement::ClassId),
-TPZCompEl(mesh,copy) {
-	
-	this->fLeftElSide.SetElement( mesh.ElementVec()[copy.fLeftElSide.Element()->Index()] );
-	this->fLeftElSide.SetSide( copy.fLeftElSide.Side() );
-	
-	this->fRightElSide.SetElement( mesh.ElementVec()[copy.fRightElSide.Element()->Index()] );
-	this->fRightElSide.SetSide( copy.fRightElSide.Side() );
-	
-#ifdef PZDEBUG
-	if( !fLeftElSide.Element() || ! fRightElSide.Element() ) {
-		cout << "Something wrong with clone of interface element\n";
-		DebugStop();
-	}
-	if(fLeftElSide.Element()->Mesh() != &mesh || fRightElSide.Element()->Mesh() != &mesh) {
-		cout << "The discontinuous elements should be cloned before the interface elements\n";
-		DebugStop();
-	}
-#endif
-	
-    if (copy.fIntegrationRule) {
-        fIntegrationRule = copy.fIntegrationRule->Clone();
-    }
-	fCenterNormal = copy.fCenterNormal;
-	
-	//TPZMaterial * mat = copy.Material();
-	
-	this->IncrementElConnected();
-	
-	if (this->Reference()){
-		this->Reference()->IncrementNumInterfaces();
-	}
-	else{
-		PZError << "ERROR at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " - this->Reference() is NULL\n";
-		DebugStop();
-	}
-}
-
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
                                          const TPZInterfaceElement &copy,
@@ -239,9 +199,9 @@ TPZRegisterClassId(&TPZInterfaceElement::ClassId),TPZCompEl(mesh,copy)
 
 
 
-TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int64_t &index)
+TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy)
 : TPZRegisterClassId(&TPZInterfaceElement::ClassId),
-TPZCompEl(mesh,copy,index) {
+TPZCompEl(mesh,copy) {
 	
 	//ambos elementos esquerdo e direito j�foram clonados e moram na malha aglomerada
 	//o geometrico da malha fina aponta para o computacional da malha aglomerada
@@ -286,8 +246,8 @@ fCenterNormal(3,0.)
 	//NOTHING TO BE DONE HERE
 }
 
-TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int64_t &index, /*TPZCompElDisc **/TPZCompElSide &left, /*TPZCompElDisc **/TPZCompElSide &right) const {
-	return  new TPZInterfaceElement(aggmesh, this->Reference(), index, left, right);
+TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh, /*TPZCompElDisc **/TPZCompElSide &left, /*TPZCompElDisc **/TPZCompElSide &right) const {
+	return  new TPZInterfaceElement(aggmesh, this->Reference(), left, right);
 }
 
 template<class TVar>

@@ -165,9 +165,8 @@ void TPZElementGroup::ReorderConnects(TPZManVector<int64_t> &connects)
 TPZCompEl *TPZElementGroup::ClonePatchEl(TPZCompMesh &mesh,
                                 std::map<int64_t,int64_t> & gl2lcConMap,
                                 std::map<int64_t,int64_t> & gl2lcElMap) const
-{
-    int64_t index;
-    TPZElementGroup *result = new TPZElementGroup(mesh,index);
+{    
+    TPZElementGroup *result = new TPZElementGroup(mesh);
     int nel = fElGroup.size();
     for (int el=0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el]->ClonePatchEl(mesh,gl2lcConMap,gl2lcElMap);

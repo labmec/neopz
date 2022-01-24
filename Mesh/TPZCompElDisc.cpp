@@ -115,8 +115,8 @@ TPZInterpolationSpace(), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
 
 }
 
-TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int64_t &index) :
-TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
+TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh) :
+TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,0), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	this->fIntRule = this->CreateIntegrationRule();
@@ -124,17 +124,23 @@ TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,0,index),
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
-TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(copy.fConstC), fCenterPoint(copy.fCenterPoint) {
-	fShapefunctionType = copy.fShapefunctionType;
-	//TPZMaterial * mat = copy.Material();
-	if (copy.fIntRule){
-		this->fIntRule = copy.GetIntegrationRule().Clone();
-	}
-	else{
-		this->fIntRule = NULL;
-	}
-	
-	this->SetExternalShapeFunction(copy.fExternalShape);
+TPZRegisterClassId(&TPZCompElDisc::ClassId),
+TPZInterpolationSpace(mesh,copy), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint) {
+    fShapefunctionType = copy.fShapefunctionType;
+    //criando nova malha computacional
+    Reference()->SetReference(this);
+    //TPZMaterial * mat = copy.Material();
+    fConstC = copy.fConstC;
+    CreateMidSideConnect();
+    this->SetDegree( copy.Degree() );
+    //as interfaces foram clonadas
+    if (copy.fIntRule){
+        this->fIntRule = copy.GetIntegrationRule().Clone();
+    }
+    else{
+        this->fIntRule = NULL;
+    }
+    this->SetExternalShapeFunction(copy.fExternalShape);
     fUseQsiEta = copy.fUseQsiEta;
 }
 
@@ -159,29 +165,8 @@ TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,copy), fC
     fUseQsiEta = copy.fUseQsiEta;
 }
 
-TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int64_t &index) :
-TPZRegisterClassId(&TPZCompElDisc::ClassId),
-TPZInterpolationSpace(mesh,copy,index), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint) {
-	fShapefunctionType = copy.fShapefunctionType;
-	//criando nova malha computacional
-	Reference()->SetReference(this);
-	//TPZMaterial * mat = copy.Material();
-	fConstC = copy.fConstC;
-	CreateMidSideConnect();
-	this->SetDegree( copy.Degree() );
-	//as interfaces foram clonadas
-	if (copy.fIntRule){
-		this->fIntRule = copy.GetIntegrationRule().Clone();
-	}
-	else{
-		this->fIntRule = NULL;
-	}
-	this->SetExternalShapeFunction(copy.fExternalShape);
-    fUseQsiEta = copy.fUseQsiEta;
-}
-
-TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int64_t &index) :
-TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(this->Dimension(),0.)
+TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref) :
+TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,ref), fConnectIndex(-1), fExternalShape(), fCenterPoint(this->Dimension(),0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	ref->SetReference(this);
@@ -569,7 +554,8 @@ void TPZCompElDisc::Divide(int64_t index,TPZVec<int64_t> &subindex,int interpola
 	deg = this->Degree();
 	
 	for (i=0;i<nsubs;i++){
-		Mesh()->CreateCompEl(geosubs[i],subindex[i]);//aqui
+		TPZCompEl* cel = Mesh()->CreateCompEl(geosubs[i]);//aqui
+        subindex[i] = cel->Index();
 		//new TPZCompElDisc(*Mesh(),geosubs[i],subindex[i]);
 		discel = dynamic_cast<TPZCompElDisc *> (Mesh()->ElementVec()[subindex[i]]);
 		if (!discel){

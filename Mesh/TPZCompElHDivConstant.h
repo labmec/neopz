@@ -37,7 +37,7 @@ public:
 	    
 	TPZCompElHDivConstant();
     
-    TPZCompElHDivConstant(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+    TPZCompElHDivConstant(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
     virtual void InitMaterialData(TPZMaterialData &data) override;
 

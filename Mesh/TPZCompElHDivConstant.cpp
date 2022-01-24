@@ -19,8 +19,8 @@ static TPZLogger logger("pz.strmatrix");
 #endif
 
 template<class TSHAPE>
-TPZCompElHDivConstant<TSHAPE>::TPZCompElHDivConstant(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
-TPZRegisterClassId(&TPZCompElHDivConstant::ClassId), TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
+TPZCompElHDivConstant<TSHAPE>::TPZCompElHDivConstant(TPZCompMesh &mesh, TPZGeoEl *gel) :
+TPZRegisterClassId(&TPZCompElHDivConstant::ClassId), TPZCompElHDiv<TSHAPE>(mesh,gel) {
     this->AdjustConnects();
 }
 

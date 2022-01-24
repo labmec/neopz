@@ -20,8 +20,8 @@ TPZCompElHCurlNoGrads<TSHAPE>::TPZCompElHCurlNoGrads() : TPZCompElHCurl<TSHAPE>(
 
 template<class TSHAPE>
 TPZCompElHCurlNoGrads<TSHAPE>::TPZCompElHCurlNoGrads(
-  TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
-  TPZCompElHCurl<TSHAPE>(mesh,gel,index)
+  TPZCompMesh &mesh, TPZGeoEl *gel) :
+  TPZCompElHCurl<TSHAPE>(mesh,gel)
 {
     this->AdjustConnects();
 }

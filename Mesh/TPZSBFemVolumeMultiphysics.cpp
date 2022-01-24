@@ -38,7 +38,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemvolume"));
 #endif
 
 template<class TGeometry>
-TPZSBFemVolumeMultiphysics<TGeometry>::TPZSBFemVolumeMultiphysics(TPZCompMesh & mesh, TPZGeoEl * gel, int64_t & index) : TPZMultiphysicsCompEl<TGeometry>(mesh, gel, index)
+TPZSBFemVolumeMultiphysics<TGeometry>::TPZSBFemVolumeMultiphysics(TPZCompMesh & mesh, TPZGeoEl * gel) : TPZMultiphysicsCompEl<TGeometry>(mesh, gel)
 {
     fElementVec1D.Resize(7);
 }
@@ -565,24 +565,24 @@ int TPZSBFemVolumeMultiphysics<TGeometry>::NShapeF() const
     return nshape;
 }
 
-TPZCompEl * CreateSBFemMultiphysicsLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * CreateSBFemMultiphysicsLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZSBFemVolumeMultiphysics<pzgeom::TPZGeoLinear>(mesh, gel, index);    
+    return new TPZSBFemVolumeMultiphysics<pzgeom::TPZGeoLinear>(mesh, gel);
 }
 
-TPZCompEl * CreateSBFemMultiphysicsQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * CreateSBFemMultiphysicsQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZSBFemVolumeMultiphysics<pzgeom::TPZGeoQuad>(mesh, gel, index);    
+    return new TPZSBFemVolumeMultiphysics<pzgeom::TPZGeoQuad>(mesh, gel);
 }
 
-TPZCompEl * CreateSBFemMultiphysicsCubeEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * CreateSBFemMultiphysicsCubeEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZSBFemVolumeMultiphysics<pzgeom::TPZGeoCube>(mesh, gel, index);    
+    return new TPZSBFemVolumeMultiphysics<pzgeom::TPZGeoCube>(mesh, gel);
 }
 
-TPZCompEl * CreateSBFemMultiphysicsPrismaEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * CreateSBFemMultiphysicsPrismaEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZSBFemVolumeMultiphysics<pzgeom::TPZGeoPrism>(mesh, gel, index);    
+    return new TPZSBFemVolumeMultiphysics<pzgeom::TPZGeoPrism>(mesh, gel);    
 }
 
 template class TPZSBFemVolumeMultiphysics<pzgeom::TPZGeoPoint>;

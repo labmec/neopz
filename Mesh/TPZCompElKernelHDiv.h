@@ -39,7 +39,7 @@ public:
 	    
 	TPZCompElKernelHDiv();
     
-    TPZCompElKernelHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+    TPZCompElKernelHDiv(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
     virtual void InitMaterialData(TPZMaterialData &data) override;
 

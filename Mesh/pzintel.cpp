@@ -35,8 +35,8 @@ static int logger;
 #include <sstream>
 using namespace std;
 
-TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int64_t &index) :
-TPZInterpolationSpace(mesh, reference, index) {
+TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference) :
+TPZInterpolationSpace(mesh, reference) {
 }
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy) :
@@ -1462,7 +1462,8 @@ void TPZInterpolatedElement::Divide(int64_t index,TPZVec<int64_t> &sub,int inter
     fMesh->SetDefaultOrder(PreferredSideOrder(ncon - 1));
     for (i = 0; i < nsubelements; i++) {
         cref = pv[i]; //ponteiro para subelemento i
-        fMesh->CreateCompEl(cref, sub[i]);
+        TPZCompEl* cel = fMesh->CreateCompEl(cref);
+        sub[i] = cel->Index();
         // e' assumido que CreateCompEl inseri o elemento comp no vetor de elementos da malha
     }
     if (interpolatesolution) {

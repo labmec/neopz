@@ -63,7 +63,7 @@ class TPZSBFemVolumeMultiphysics : public TPZMultiphysicsCompEl<TGeometry>
 
 public:
     
-    TPZSBFemVolumeMultiphysics(TPZCompMesh & mesh, TPZGeoEl * gel, int64_t & index);
+    TPZSBFemVolumeMultiphysics(TPZCompMesh & mesh, TPZGeoEl * gel);
     
     virtual ~TPZSBFemVolumeMultiphysics()
     {
@@ -169,10 +169,10 @@ public:
     }
 };
 
-TPZCompEl * CreateSBFemMultiphysicsLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+TPZCompEl * CreateSBFemMultiphysicsLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh);
 
-TPZCompEl * CreateSBFemMultiphysicsQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+TPZCompEl * CreateSBFemMultiphysicsQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh);
 
-TPZCompEl * CreateSBFemMultiphysicsCubeEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+TPZCompEl * CreateSBFemMultiphysicsCubeEl(TPZGeoEl *gel, TPZCompMesh &mesh);
 
-TPZCompEl * CreateSBFemMultiphysicsPrismaEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index);
+TPZCompEl * CreateSBFemMultiphysicsPrismaEl(TPZGeoEl *gel, TPZCompMesh &mesh);
