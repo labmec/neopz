@@ -95,3 +95,11 @@ using namespace pzshape;
 template class TPZCompElKernelHDivBC<TPZShapeLinear>;
 // template class TPZCompElKernelHDivBC<TPZShapeTriang>;
 // template class TPZCompElKernelHDivBC<TPZShapeQuad>;
+
+#include "pzshapepoint.h"
+#include "pzshapelinear.h"
+
+TPZCompEl * CreateHDivKernelBoundLinearEl2D(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElKernelHDivBC< TPZShapeLinear >(mesh,gel,index);}
+TPZCompEl * CreateHDivKernelBoundPointEl2D(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElH1< TPZShapePoint >(mesh,gel,index);}

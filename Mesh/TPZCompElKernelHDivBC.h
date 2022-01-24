@@ -39,5 +39,7 @@ public:
 
 };
 
+TPZCompEl *CreateHDivKernelBoundLinearEl2D(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivKernelBoundPointEl2D(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 #endif

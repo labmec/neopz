@@ -70,5 +70,7 @@ protected:
 	
 };
 
+TPZCompEl *CreateHDivKernelTriangleEl2D(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivKernelQuadEl2D(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 #endif

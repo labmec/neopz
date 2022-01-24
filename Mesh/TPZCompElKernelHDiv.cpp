@@ -233,6 +233,8 @@ using namespace pztopology;
 // #include "tpzline.h"
 #include "tpzquadrilateral.h"
 #include "tpztriangle.h"
+#include "pzshapetriang.h"
+#include "pzshapequad.h"
 
 // #include "TPZCompElHCurl.h"
 
@@ -241,3 +243,10 @@ using namespace pzshape;
 
 template class TPZCompElKernelHDiv<TPZShapeTriang>;
 template class TPZCompElKernelHDiv<TPZShapeQuad>;
+
+TPZCompEl * CreateHDivKernelTriangleEl2D(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElKernelHDiv< TPZShapeTriang >(mesh,gel,index);
+}
+TPZCompEl * CreateHDivKernelQuadEl2D(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	return new TPZCompElKernelHDiv< TPZShapeQuad >(mesh,gel,index);
+}
