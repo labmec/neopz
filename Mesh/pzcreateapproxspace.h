@@ -12,10 +12,11 @@ class TPZGeoEl;
 class TPZCompEl;
 class TPZCompMesh;
 #include <set>
+#include <functional>
 #include "pzvec.h"
 #include "TPZSavable.h"
 
-typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh);
+typedef std::function<TPZCompEl* (TPZGeoEl* el, TPZCompMesh &mesh)> TCreateFunction;
 /*
  * @brief Administer the creation of approximation spaces
  * @author Philippe Devloo
@@ -24,7 +25,7 @@ typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh);
  */
 class TPZCreateApproximationSpace : public TPZSavable {
     /** @brief Function pointer which determines what type of computational element will be created */
-    TPZCompEl *(*fp[8])(TPZGeoEl *el,TPZCompMesh &mesh);
+    TCreateFunction fp[8];
     
     /// @brief boolean indicating if each element should be created disconnected from the others
     /**
