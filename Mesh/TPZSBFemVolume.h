@@ -64,7 +64,7 @@ protected:
     void AdjustAxes3D(const TPZFMatrix<REAL> &axes2D, TPZFMatrix<REAL> &axes3D, TPZFMatrix<REAL> &jac3D, TPZFMatrix<REAL> &jacinv3D, REAL detjac);
 public:
     
-    TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+    TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel);
     
     virtual ~TPZSBFemVolume()
     {
@@ -394,7 +394,7 @@ public:
 };
 
 
-TPZCompEl * CreateSBFemCompEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl * CreateSBFemCompEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 
 

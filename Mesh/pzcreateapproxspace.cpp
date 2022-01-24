@@ -37,26 +37,26 @@ static TPZLogger logger("pz.mesh.tpzcreateapproximationspace");
 #endif
 
 /** @brief Creates computational point element */
-TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational linear element */
-TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational quadrilateral element */
-TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational triangular element */
-TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational cube element */
-TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational prismal element */
-TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational pyramidal element */
-TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational tetrahedral element */
-TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 
 
 using namespace pzshape;
 
-TPZCompEl *CreateNoElement(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreateNoElement(TPZGeoEl *gel,TPZCompMesh &mesh) {
 #ifdef PZ_LOG
     if (logger.isWarnEnabled()) {
         std::stringstream sout;
@@ -64,116 +64,116 @@ TPZCompEl *CreateNoElement(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
         LOGPZ_WARN(logger, sout.str())
     }
 #endif
-    index = -1;
+    
 	return NULL;
 }
 
 
-TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
     {
-		return new TPZCompElH1<TPZShapePoint>(mesh,gel,index);
+		return new TPZCompElH1<TPZShapePoint>(mesh,gel);
     }
-    index = -1;
+    
 	return NULL;
 }
-TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
     {
-		TPZCompEl *result = new TPZCompElH1<TPZShapeLinear>(mesh,gel,index);
+		TPZCompEl *result = new TPZCompElH1<TPZShapeLinear>(mesh,gel);
         return result;//new TPZCondensedCompel(result);
     }
-    index = -1;
+    
 	return NULL;
 }
-TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
     {
-		return new TPZCompElH1<TPZShapeQuad>(mesh,gel,index);
+		return new TPZCompElH1<TPZShapeQuad>(mesh,gel);
     }
-    index = -1;
+    
 	return NULL;
 }
 
-TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElH1<TPZShapeTriang>(mesh,gel,index);
-    index = -1;
+		return new TPZCompElH1<TPZShapeTriang>(mesh,gel);
+    
 	return NULL;
 }
-TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElH1<TPZShapeCube>(mesh,gel,index);
-    index = -1;
+		return new TPZCompElH1<TPZShapeCube>(mesh,gel);
+    
 	return NULL;
 }
-TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElH1<TPZShapePrism>(mesh,gel,index);
-    index = -1;
+		return new TPZCompElH1<TPZShapePrism>(mesh,gel);
+    
 	return NULL;
 }
-TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElH1<TPZShapePiram>(mesh,gel,index);
-    index = -1;
+		return new TPZCompElH1<TPZShapePiram>(mesh,gel);
+    
 	return NULL;
 }
-TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElH1<TPZShapeTetra>(mesh,gel,index);
-    index = -1;
+		return new TPZCompElH1<TPZShapeTetra>(mesh,gel);
+    
 	return NULL;
 }
 
 
 // with mem
-TPZCompEl *CreatePointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreatePointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZCompElH1<TPZShapePoint> >(mesh,gel,index) ;
-    index = -1;
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapePoint> >(mesh,gel) ;
+    
 	return NULL;
 }
-TPZCompEl *CreateLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreateLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZCompElH1<TPZShapeLinear> >(mesh,gel,index);
-    index = -1;
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapeLinear> >(mesh,gel);
+    
 	return NULL;
 }
-TPZCompEl *CreateQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreateQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZCompElH1<TPZShapeQuad> >(mesh,gel,index);
-    index = -1;
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapeQuad> >(mesh,gel);
+    
 	return NULL;
 }
-TPZCompEl *CreateTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreateTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem < TPZCompElH1<TPZShapeTriang> >(mesh,gel,index);
-    index = -1;
+		return new TPZCompElWithMem < TPZCompElH1<TPZShapeTriang> >(mesh,gel);
+    
 	return NULL;
 }
-TPZCompEl *CreateCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreateCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZCompElH1<TPZShapeCube> >(mesh,gel,index);
-    index = -1;
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapeCube> >(mesh,gel);
+    
 	return NULL;
 }
-TPZCompEl *CreatePrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreatePrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZCompElH1<TPZShapePrism> >(mesh,gel,index);
-    index = -1;
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapePrism> >(mesh,gel);
+    
 	return NULL;
 }
-TPZCompEl *CreatePyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreatePyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZCompElH1<TPZShapePiram> >(mesh,gel,index);
-    index = -1;
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapePiram> >(mesh,gel);
+    
 	return NULL;
 }
-TPZCompEl *CreateTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+TPZCompEl *CreateTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem <TPZCompElH1<TPZShapeTetra> >(mesh,gel,index);
-    index = -1;
+		return new TPZCompElWithMem <TPZCompElH1<TPZShapeTetra> >(mesh,gel);
+    
 	return NULL;
 }
 
@@ -219,7 +219,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const TPZVec<int
         
         if(!gel->Reference() && gel->NumInterfaces() == 0)
         {
-            CreateCompEl(gel,cmesh,index);
+            CreateCompEl(gel,cmesh);
             if (fCreateHybridMesh) {
                 cmesh.ElementVec()[index]->Reference()->ResetReference();
             }
@@ -297,7 +297,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
             
             if(!gel->Reference() && gel->NumInterfaces() == 0)
             {
-                CreateCompEl(gel,cmesh,index);
+                index = CreateCompEl(gel,cmesh)->Index();
                 if (fCreateHybridMesh) {
                     cmesh.ElementVec()[index]->Reference()->ResetReference();
                 }
@@ -750,32 +750,32 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElemWithMem()
 /*
  * @brief Create a computational element using the function pointer for the topology
  */
-TPZCompEl *TPZCreateApproximationSpace::CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index) const
+TPZCompEl *TPZCreateApproximationSpace::CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh) const
 {
     switch (gel->Type()) {
         case EPoint:
-            return fp[EPoint](gel,mesh,index);
+            return fp[EPoint](gel,mesh);
             break;
         case EOned:
-            return fp[EOned](gel,mesh,index);
+            return fp[EOned](gel,mesh);
             break;
         case EQuadrilateral:
-            return fp[EQuadrilateral](gel,mesh,index);
+            return fp[EQuadrilateral](gel,mesh);
             break;
         case ETriangle:
-            return fp[ETriangle](gel,mesh,index);
+            return fp[ETriangle](gel,mesh);
             break;
         case EPiramide:
-            return fp[EPiramide](gel,mesh,index);
+            return fp[EPiramide](gel,mesh);
             break;
         case EPrisma:
-            return fp[EPrisma](gel,mesh,index);
+            return fp[EPrisma](gel,mesh);
             break;
         case ETetraedro:
-            return fp[ETetraedro](gel,mesh,index);
+            return fp[ETetraedro](gel,mesh);
             break;
         case ECube:
-            return fp[ECube](gel,mesh,index);
+            return fp[ECube](gel,mesh);
             break;
         default:
             DebugStop();
@@ -982,7 +982,6 @@ void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<in
         TPZGeoEl *gelface = face->Reference();
         gelface = gelface->CreateBCGeoEl(gelface->NSides()-1, matid);
         delete face;
-        int64_t index;
         
         //hp mesh
         TPZInterpolationSpace *leftint = dynamic_cast<TPZInterpolationSpace *>(left.Element());
@@ -996,8 +995,8 @@ void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<in
 //        cmesh.SetDefaultOrder(neworder);
        
         
-        cmesh.ApproxSpace().CreateCompEl(gelface, cmesh, index);
-        TPZCompEl *newcel = cmesh.ElementVec()[index];
+        TPZCompEl *newcel = cmesh.ApproxSpace().CreateCompEl(gelface, cmesh);
+//        TPZCompEl *newcel = cmesh.ElementVec()[index];
         if(!isconnectedElem){
             gelface->ResetReference();
         }
@@ -1006,8 +1005,8 @@ void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<in
         TPZGeoEl *leftgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, leftmatid);
         TPZGeoEl *rightgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, rightmatid);
 
-        new TPZInterfaceElement(cmesh,leftgelface,index,left,center);
-        new TPZInterfaceElement(cmesh,rightgelface,index,right,center);
+        new TPZInterfaceElement(cmesh,leftgelface,left,center);
+        new TPZInterfaceElement(cmesh,rightgelface,right,center);
         
 //        TPZInterfaceElement *faceleft = new TPZInterfaceElement(cmesh,leftgelface,index,left,center);
 //        TPZInterfaceElement *faceright = new TPZInterfaceElement(cmesh,rightgelface,index,right,center);

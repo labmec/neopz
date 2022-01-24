@@ -552,8 +552,7 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
         if (gel->Dimension() != dim || fMHMtoSubCMesh.find(el) == fMHMtoSubCMesh.end()) {
             continue;
         }
-        int64_t index;
-        create.CreateCompEl(gel, *cmesh, index);
+        create.CreateCompEl(gel, *cmesh);
         int ns = gel->NSides();
         for (int is=0; is<ns; is++) {
             if (gel->SideDimension(is) != dim-1) {
@@ -565,7 +564,7 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
                 if (neighbour.Element()->Dimension() == dim-1) {
                     int matid = neighbour.Element()->MaterialId();
                     if (bcids.find(matid) != bcids.end()) {
-                        create.CreateCompEl(neighbour.Element(), *cmesh, index);
+                        create.CreateCompEl(neighbour.Element(), *cmesh);
                     }
                 }
                 neighbour = neighbour.Neighbour();
@@ -647,10 +646,11 @@ void TPZMHMeshControl::CreateInternalElements()
             if (!gel || gel->HasSubElement() || fGeoToMHMDomain[el] != itMHM->first) {
                 continue;
             }
-            int64_t index;
+            
             // create the flux element
-            fCMesh->CreateCompEl(gel, index);
-            TPZCompEl *cel = fCMesh->Element(index);
+            TPZCompEl *cel = fCMesh->CreateCompEl(gel);
+            const int64_t index = cel->Index();
+        
             /// associate the connects with the subdomain
             SetSubdomain(cel, itMHM->first);
             // we need to create a lagrange multiplier element in order to delay decomposition of an equation
@@ -705,10 +705,8 @@ void TPZMHMeshControl::CreateSkeleton()
 //            continue;
 //        }
         TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
-        int64_t index;
         // create a discontinuous element to model the flux
-        fCMesh->CreateCompEl(gel, index);
-        TPZCompEl *cel = fCMesh->ElementVec()[index];
+        TPZCompEl *cel = fCMesh->CreateCompEl(gel);         
         int Side = gel->NSides()-1;
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
         int nc = cel->NConnects();
@@ -831,9 +829,8 @@ void TPZMHMeshControl::CreateInterfaceElements()
                         DebugStop();
                     }
                     // create an interface between the finer element and the MHM flux
-                    int64_t index;
                     TPZGeoEl *gelnew = smallGeoElSide.Element()->CreateBCGeoEl(smallGeoElSide.Side(), matid);
-                    new TPZInterfaceElement(fCMesh, gelnew , index, csmall, celskeleton);
+                    new TPZInterfaceElement(fCMesh, gelnew, csmall, celskeleton);
 #ifdef PZ_LOG
                     if (logger.isDebugEnabled()) {
                         std::stringstream sout;
@@ -998,8 +995,7 @@ void TPZMHMeshControl::AddBoundaryElements()
         if (notincluded.find(matid) != notincluded.end()) {
             continue;
         }
-        int64_t index;
-        fCMesh->CreateCompEl(gel, index);
+        fCMesh->CreateCompEl(gel);
         gel->ResetReference();
     }
 }
@@ -1041,9 +1037,8 @@ void TPZMHMeshControl::AddBoundaryInterfaceElements()
             if (gs == gelside) {
                 continue;
             }
-            int64_t index;
             TPZGeoEl *gelnew = gs.Element()->CreateBCGeoEl(gs.Side(), matid);
-            new TPZInterfaceElement(fCMesh, gelnew , index, cs, celside);
+            new TPZInterfaceElement(fCMesh, gelnew, cs, celside);
 
         }
     }
@@ -1204,8 +1199,8 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
         if (gel->Dimension() != dim || fMHMtoSubCMesh.find(el) == fMHMtoSubCMesh.end()) {
             continue;
         }
-        int64_t index;
-        TPZCompElDisc *disc = new TPZCompElDisc(fCMeshLagrange,gel,index);
+
+        TPZCompElDisc *disc = new TPZCompElDisc(fCMeshLagrange,gel);
         disc->SetTotalOrderShape();
         disc->SetFalseUseQsiEta();
         int64_t cindex = disc->ConnectIndex(0);
@@ -1273,17 +1268,15 @@ void TPZMHMeshControl::TransferToMultiphysics()
         }
         TPZCompElLagrange *lagr = dynamic_cast<TPZCompElLagrange *>(cel);
         if (lagr) {
-            int64_t index;
-            new TPZCompElLagrange(fCMesh,*cel,index);
+            new TPZCompElLagrange(fCMesh,*cel);
             continue;
         }
         TPZGeoEl *gel = cel->Reference();
         if (!gel) {
             DebugStop();
         }
-        int64_t index;
-        fCMesh->CreateCompEl(gel, index);
-        TPZCompEl *celnew = fCMesh->ElementVec()[index];
+
+        TPZCompEl *celnew = fCMesh->CreateCompEl(gel);
         TPZMultiphysicsElement *mult = dynamic_cast<TPZMultiphysicsElement *>(celnew);
         if (!mult) {
             DebugStop();
@@ -1371,8 +1364,7 @@ void TPZMHMeshControl::TransferToMultiphysics()
         TPZGeoElSide gright = pressright.Reference();
         TPZCompElSide multleft = gleft.Reference();
         TPZCompElSide multright = gright.Reference();
-        int64_t index;
-        new TPZMultiphysicsInterfaceElement(fCMesh,intface->Reference(),index,multleft,multright);
+        new TPZMultiphysicsInterfaceElement(fCMesh,intface->Reference(),multleft,multright);
 
     }
 
@@ -1411,8 +1403,7 @@ void TPZMHMeshControl::SubStructure()
 
     // create the submeshes
     while (it != fMHMtoSubCMesh.end()) {
-        int64_t index;
-        TPZSubCompMesh *submesh = new TPZSubCompMesh(fCMesh,index);
+        TPZSubCompMesh *submesh = new TPZSubCompMesh(fCMesh);
         submeshes[it->first] = submesh;
         it++;
     }
@@ -1739,12 +1730,12 @@ void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
         fCMesh->ApproxSpace().CreateDisconnectedElements(true);
         // create a discontinuous element to model the flux
         // index1 is the new flux element
-        fCMesh->CreateCompEl(GelVec[1], index1);
+        index1 = fCMesh->CreateCompEl(GelVec[1])->Index();
         GelVec[1]->ResetReference();
         // index 2 is the new pressure element
         fCMesh->ApproxSpace().SetAllCreateFunctionsContinuous();
         fCMesh->ApproxSpace().CreateDisconnectedElements(true);
-        fCMesh->CreateCompEl(GelVec[2], index2);
+        index2 = fCMesh->CreateCompEl(GelVec[2])->Index();
         GelVec[2]->ResetReference();
 
         SetSubdomain(fCMesh->Element(index1), -1);
@@ -1881,9 +1872,8 @@ void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
         TPZCompElSide pressure(celpressure,gel->NSides()-1);
         TPZGeoElBC gbc3(gelside,fLagrangeMatIdRight);
         TPZGeoElBC gbc4(gelside,fLagrangeMatIdLeft);
-        int64_t index3, index4;
-        TPZInterfaceElement *intfaceleft = new TPZInterfaceElement(fCMesh,gbc3.CreatedElement(),index3);
-        TPZInterfaceElement *intfaceright = new TPZInterfaceElement(fCMesh,gbc4.CreatedElement(),index4);
+        TPZInterfaceElement *intfaceleft = new TPZInterfaceElement(fCMesh,gbc3.CreatedElement());
+        TPZInterfaceElement *intfaceright = new TPZInterfaceElement(fCMesh,gbc4.CreatedElement());
         intfaceleft->SetLeftRightElements(leftflux, pressure);
         intfaceright->SetLeftRightElements(rightflux, pressure);
 #ifdef PZ_LOG

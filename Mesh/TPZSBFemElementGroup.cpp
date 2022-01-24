@@ -60,7 +60,7 @@ static LoggerPtr loggerstiffnessbubble(Logger::getLogger("pz.mesh.sbfemstiffness
 static LoggerPtr loggersbfemstifnessdata(Logger::getLogger("pz.mesh.sbfemstifnessdata"));
 #endif
 
-TPZSBFemElementGroup::TPZSBFemElementGroup(TPZCompMesh &mesh, int64_t &index) : TPZElementGroup(mesh,index)
+TPZSBFemElementGroup::TPZSBFemElementGroup(TPZCompMesh &mesh) : TPZElementGroup(mesh)
 {
     fInternalPolynomialOrder = TPZSBFemElementGroup::gDefaultPolynomialOrder;
     fPolynomialShapeFunctions = TPZSBFemElementGroup::gPolynomialShapeFunctions;

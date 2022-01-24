@@ -35,12 +35,6 @@ TPZReducedSpace::~TPZReducedSpace()
     
 }
 
-/** @brief Puts a copy of the element in the referred mesh */
-TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
-TPZInterpolationSpace(mesh,copy)
-{
-    
-}
 
 /** @brief Puts a copy of the element in the patch mesh */
 TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, std::map<int64_t,int64_t> &gl2lcElMap) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
@@ -53,8 +47,8 @@ TPZInterpolationSpace(mesh,copy,gl2lcElMap)
 }
 
 /** @brief Copy of the element in the new mesh whit alocated index */
-TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, int64_t &index) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
-TPZInterpolationSpace(mesh,copy,index)
+TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
+TPZInterpolationSpace(mesh,copy)
 {
     PZError<<__PRETTY_FUNCTION__;
     PZError<<" should be reimplemented without TPZCompMeshReferred\n";
@@ -69,8 +63,8 @@ TPZInterpolationSpace(mesh,copy,index)
  * @param index new elemen index
  */
 /** Inserts the element within the data structure of the mesh */
-TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
-TPZInterpolationSpace(mesh,gel,index)
+TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
+TPZInterpolationSpace(mesh,gel)
 {
     std::cout << "Creating reduced with dim " << gel->Dimension() << '\n';
 }
@@ -441,9 +435,9 @@ void TPZReducedSpace::ReallyComputeSolution(TPZMaterialDataT<STATE>& data)
     
 }
 
-static TPZCompEl * CreateReducedElement(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index)
+static TPZCompEl * CreateReducedElement(TPZGeoEl *gel,TPZCompMesh &mesh)
 {
-    return new TPZReducedSpace(mesh,gel,index);
+    return new TPZReducedSpace(mesh,gel);
 }
 
 void TPZReducedSpace::SetAllCreateFunctionsReducedSpace(TPZCompMesh *cmesh)

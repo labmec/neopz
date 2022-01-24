@@ -54,7 +54,7 @@ public:
     }
     
     /// constructor
-    TPZSBFemMultiphysicsElGroup(TPZCompMesh &mesh, int64_t &index) : TPZSBFemElementGroup(mesh,index)
+    TPZSBFemMultiphysicsElGroup(TPZCompMesh &mesh) : TPZSBFemElementGroup(mesh)
     { 
     }
 

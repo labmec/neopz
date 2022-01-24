@@ -39,7 +39,7 @@ public:
 	    
 	TPZCompElKernelHDivBC3D();
     
-    TPZCompElKernelHDivBC3D(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int shapetype = EHDivKernel);
+    TPZCompElKernelHDivBC3D(TPZCompMesh &mesh, TPZGeoEl *gel, int shapetype = EHDivKernel);
 	
     virtual void InitMaterialData(TPZMaterialData &data) override;
 

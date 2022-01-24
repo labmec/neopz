@@ -354,8 +354,8 @@ void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh, std::set<int64_t> elbas
         }
         if (elgroup.size()) {
             elgroup.insert(el);
-            int64_t grindex;
-            TPZElementGroup *elgr = new TPZElementGroup(*cmesh,grindex);
+            TPZElementGroup *elgr = new TPZElementGroup(*cmesh);
+            const int64_t grindex = elgr->Index();
             for (std::set<int64_t>::iterator it = elgroup.begin(); it != elgroup.end(); it++) {
                 elgr->AddElement(cmesh->Element(*it));
             }
@@ -414,8 +414,8 @@ void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh)
         }
         if (elgroup.size()) {
             elgroup.insert(el);
-            int64_t grindex;
-            TPZElementGroup *elgr = new TPZElementGroup(*cmesh,grindex);
+            TPZElementGroup *elgr = new TPZElementGroup(*cmesh);
+            const int64_t grindex = elgr->Index();
             for (std::set<int64_t>::iterator it = elgroup.begin(); it != elgroup.end(); it++) {
                 elgr->AddElement(cmesh->Element(*it));
                 grouped.insert(*it);
@@ -462,8 +462,8 @@ void TPZCompMeshTools::UnCondensedElements(TPZCompMesh *cmesh){
 void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::set<int64_t> >&elindices, std::map<int64_t,int64_t> &indices, int KeepOneLagrangian)
 {
     for (std::map<int64_t,std::set<int64_t> >::iterator it = elindices.begin(); it != elindices.end(); it++) {
-        int64_t index;
-        TPZSubCompMesh *subcmesh = new TPZSubCompMesh(*cmesh,index);
+        TPZSubCompMesh *subcmesh = new TPZSubCompMesh(*cmesh);
+        const int64_t index = subcmesh->Index();
         indices[it->first] = index;
         for (std::set<int64_t>::iterator itloc = it->second.begin(); itloc != it->second.end(); itloc++) {
             subcmesh->TransferElement(cmesh, *itloc);
@@ -520,7 +520,8 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::
 /// Put the element set into a subcompmesh and make the connects internal
 void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::set<int64_t> &elindices, int64_t &index, int KeepOneLagrangian)
 {
-    TPZSubCompMesh *subcmesh = new TPZSubCompMesh(*cmesh,index);
+    TPZSubCompMesh *subcmesh = new TPZSubCompMesh(*cmesh);
+    index = subcmesh->Index();
     for (std::set<int64_t>::iterator it = elindices.begin(); it != elindices.end(); it++) {
         subcmesh->TransferElement(cmesh, *it);
     }
@@ -1069,8 +1070,8 @@ void TPZCompMeshTools::GroupNeighbourElements(TPZCompMesh *cmesh, const std::set
     for(auto el : seed_elements)
     {
         elhandled[el] = 1;
-        int64_t index;
-        TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
+        TPZElementGroup *elgr = new TPZElementGroup(*cmesh);
+        const int64_t index = elgr->Index();
         if(index < nel) elhandled[index] = 1;
         groupindexes.insert(index);
         TPZCompEl *cel = cmesh->Element(el);

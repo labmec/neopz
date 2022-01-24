@@ -29,9 +29,9 @@ static int logger;
  *********************************************************************************************************/
 
 template<class TSHAPE>
-TPZCompElHCurl<TSHAPE>::TPZCompElHCurl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
+TPZCompElHCurl<TSHAPE>::TPZCompElHCurl(TPZCompMesh &mesh, TPZGeoEl *gel) :
 TPZRegisterClassId(&TPZCompElHCurl::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,index,1)
+TPZIntelGen<TSHAPE>(mesh,gel,1)
 {
     gel->SetReference(this);
     this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
@@ -962,62 +962,54 @@ IMPLEMENTHCURL(pzshape::TPZShapePrism)
     DebugStop();\
     return nullptr;
 
-TPZCompEl *CreateHCurlBoundPointEl(TPZGeoEl *gel, TPZCompMesh &mesh,
-                                   int64_t &index){HCURL_EL_NOT_AVAILABLE}
+TPZCompEl *CreateHCurlBoundPointEl(TPZGeoEl *gel, TPZCompMesh &mesh){HCURL_EL_NOT_AVAILABLE}
 
-TPZCompEl *CreateHCurlBoundLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh,
-                                    int64_t &index)
+TPZCompEl *CreateHCurlBoundLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZCompElHCurl<pzshape::TPZShapeLinear>(mesh, gel, index);
+    return new TPZCompElHCurl<pzshape::TPZShapeLinear>(mesh, gel);
 }
 
-TPZCompEl *CreateHCurlBoundTriangleEl(TPZGeoEl *gel, TPZCompMesh &mesh,
-                                      int64_t &index)
+TPZCompEl *CreateHCurlBoundTriangleEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZCompElHCurl<pzshape::TPZShapeTriang>(mesh, gel, index);
+    return new TPZCompElHCurl<pzshape::TPZShapeTriang>(mesh, gel);
 }
 
-TPZCompEl *CreateHCurlBoundQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh,
-                                  int64_t &index)
+TPZCompEl *CreateHCurlBoundQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZCompElHCurl<pzshape::TPZShapeQuad>(mesh, gel, index);
+    return new TPZCompElHCurl<pzshape::TPZShapeQuad>(mesh, gel);
 }
 
-TPZCompEl *CreateHCurlLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh,
-                               int64_t &index)
+TPZCompEl *CreateHCurlLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZCompElHCurl<pzshape::TPZShapeLinear>(mesh, gel, index);
+    return new TPZCompElHCurl<pzshape::TPZShapeLinear>(mesh, gel);
 }
 
-TPZCompEl *CreateHCurlTriangleEl(TPZGeoEl *gel, TPZCompMesh &mesh,
-                                 int64_t &index)
+TPZCompEl *CreateHCurlTriangleEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZCompElHCurl<pzshape::TPZShapeTriang>(mesh, gel, index);
+    return new TPZCompElHCurl<pzshape::TPZShapeTriang>(mesh, gel);
 }
 
-TPZCompEl *CreateHCurlQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl *CreateHCurlQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZCompElHCurl<pzshape::TPZShapeQuad>(mesh, gel, index);
+    return new TPZCompElHCurl<pzshape::TPZShapeQuad>(mesh, gel);
 }
 
-TPZCompEl *CreateHCurlTetraEl(TPZGeoEl *gel, TPZCompMesh &mesh,int64_t &index)
+TPZCompEl *CreateHCurlTetraEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZCompElHCurl<pzshape::TPZShapeTetra>(mesh, gel, index);
+    return new TPZCompElHCurl<pzshape::TPZShapeTetra>(mesh, gel);
 }
 
-TPZCompEl *CreateHCurlCubeEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl *CreateHCurlCubeEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZCompElHCurl<pzshape::TPZShapeCube>(mesh, gel, index);
+    return new TPZCompElHCurl<pzshape::TPZShapeCube>(mesh, gel);
 }
 
-TPZCompEl *CreateHCurlPrismEl(TPZGeoEl *gel, TPZCompMesh &mesh,
-                              int64_t &index)
+TPZCompEl *CreateHCurlPrismEl(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-    return new TPZCompElHCurl<pzshape::TPZShapePrism>(mesh, gel, index);
+    return new TPZCompElHCurl<pzshape::TPZShapePrism>(mesh, gel);
 }
 
-TPZCompEl *CreateHCurlPyramEl(TPZGeoEl *gel, TPZCompMesh &mesh,
-                              int64_t &index) {
+TPZCompEl *CreateHCurlPyramEl(TPZGeoEl *gel, TPZCompMesh &mesh) {
   HCURL_EL_NOT_AVAILABLE
 }
 

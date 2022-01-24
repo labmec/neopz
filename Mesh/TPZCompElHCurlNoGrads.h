@@ -18,7 +18,7 @@ public:
   //!Default constructor.
   TPZCompElHCurlNoGrads();
   //! Ctor taking mesh, geoel and returning index
-  TPZCompElHCurlNoGrads(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+  TPZCompElHCurlNoGrads(TPZCompMesh &mesh, TPZGeoEl *gel);
   /**
    * @brief Number of shapefunctions of the connect associated
    * @param connect connect number

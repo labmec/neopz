@@ -44,9 +44,9 @@ public:
     
     virtual ~TPZCompElWithMem();
     
-    TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+    TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *gel);
     
-    TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index, TPZCompElSide left, TPZCompElSide right);
+    TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *ref, TPZCompElSide left, TPZCompElSide right);
     
     TPZCompElWithMem(TPZCompMesh &mesh, const TPZCompElWithMem<TBASE> &copy);
     
@@ -157,16 +157,16 @@ TBASE() {
 }
 
 template<class TBASE>
-TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
+TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *gel) :
 TPZRegisterClassId(&TPZCompElWithMem::ClassId),
-TBASE(mesh, gel, index){
+TBASE(mesh, gel){
     PrepareIntPtIndices();
 }
 
 template<class TBASE>
-TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index, TPZCompElSide left, TPZCompElSide right) :
+TPZCompElWithMem<TBASE>::TPZCompElWithMem(TPZCompMesh &mesh, TPZGeoEl *ref, TPZCompElSide left, TPZCompElSide right) :
 TPZRegisterClassId(&TPZCompElWithMem::ClassId),
-TBASE(mesh, ref, index, left, right){
+TBASE(mesh, ref, left, right){
     PrepareIntPtIndices();
 }
 

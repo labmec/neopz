@@ -35,7 +35,7 @@ protected:
     void InitMaterialDataT(TPZMaterialDataT<TVar> &data);
 public:
 	    
-	TPZCompElHDivCollapsed(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZCompElHDivCollapsed(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
 	TPZCompElHDivCollapsed(TPZCompMesh &mesh, const TPZCompElHDivCollapsed<TSHAPE> &copy);
 	

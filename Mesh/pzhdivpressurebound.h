@@ -37,7 +37,7 @@ class TPZCompElHDivPressureBound : public TPZCompElHDivBound2<TSHAPE> {
     
 public:
     
-    TPZCompElHDivPressureBound(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+    TPZCompElHDivPressureBound(TPZCompMesh &mesh, TPZGeoEl *gel);
     
     
     /** @brief Default constructor */

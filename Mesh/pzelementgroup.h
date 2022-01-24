@@ -29,8 +29,8 @@ public:
     
     TPZElementGroup();
     
-    TPZElementGroup(TPZCompMesh &mesh, int64_t &index) : TPZRegisterClassId(&TPZElementGroup::ClassId),
-    TPZCompEl(mesh,0,index), fElGroup(), fConnectIndexes()
+    TPZElementGroup(TPZCompMesh &mesh) : TPZRegisterClassId(&TPZElementGroup::ClassId),
+    TPZCompEl(mesh,0), fElGroup(), fConnectIndexes()
     {
         
     }

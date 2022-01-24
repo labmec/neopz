@@ -14,8 +14,8 @@ static int logger;
 
 
 template<class TSHAPE>
-TPZCompElH1<TSHAPE>::TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) : TPZRegisterClassId(&TPZCompElH1::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,index){
+TPZCompElH1<TSHAPE>::TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel) : TPZRegisterClassId(&TPZCompElH1::ClassId),
+TPZIntelGen<TSHAPE>(mesh,gel){
 
 	for(int i=0;i<TSHAPE::NSides;i++) {
 		fConnectIndexes[i] = this->CreateMidSideConnect(i);
@@ -24,8 +24,8 @@ TPZIntelGen<TSHAPE>(mesh,gel,index){
 }
 
 template<class TSHAPE>
-TPZCompElH1<TSHAPE>::TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int nocreate) : TPZRegisterClassId(&TPZCompElH1::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,index)
+TPZCompElH1<TSHAPE>::TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, int nocreate) : TPZRegisterClassId(&TPZCompElH1::ClassId),
+TPZIntelGen<TSHAPE>(mesh,gel)
 {
 	
 }

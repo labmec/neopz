@@ -44,7 +44,7 @@ public:
 	 * @param ref geometric element reference
 	 * @param index Index of the element created
 	 */
-	TPZMultiphysicsElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index) : TPZCompEl(mesh, ref, index)
+	TPZMultiphysicsElement(TPZCompMesh &mesh, TPZGeoEl *ref) : TPZCompEl(mesh, ref)
 	{
 	}
   

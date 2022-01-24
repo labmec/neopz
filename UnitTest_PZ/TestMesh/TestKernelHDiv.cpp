@@ -268,7 +268,6 @@ TPZCompMesh * CreateFluxCMesh(TPZGeoMesh *fGeoMesh, int fDimension, int fDefault
 
         if(!gel) DebugStop();
         auto type = gel -> Type();
-        int64_t index;
         auto matid = gel->MaterialId();
 
         using namespace pzgeom;
@@ -276,7 +275,7 @@ TPZCompMesh * CreateFluxCMesh(TPZGeoMesh *fGeoMesh, int fDimension, int fDefault
 
         if (type == EPoint){
             if (fDimension == 3) continue;
-            new TPZCompElH1<TPZShapePoint>(*cmesh,gel,index);
+            new TPZCompElH1<TPZShapePoint>(*cmesh,gel);
             TPZMaterial *mat = cmesh->FindMaterial(matid);
             TPZNullMaterial<> *nullmat = dynamic_cast<TPZNullMaterial<> *>(mat);
             // nullmat->SetDimension(0);
@@ -285,9 +284,9 @@ TPZCompMesh * CreateFluxCMesh(TPZGeoMesh *fGeoMesh, int fDimension, int fDefault
             if (allMat.find(matid) == allMat.end()) continue;
             
             if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                new TPZCompElKernelHDivBC<TPZShapeLinear>(*cmesh,gel,index);
+                new TPZCompElKernelHDivBC<TPZShapeLinear>(*cmesh,gel);
             } else if (fShapeType == EHDivConstant) {
-                new TPZCompElHDivConstantBC<TPZShapeLinear>(*cmesh,gel,index);
+                new TPZCompElHDivConstantBC<TPZShapeLinear>(*cmesh,gel);
             } else {
                 DebugStop();
             }
@@ -298,9 +297,9 @@ TPZCompMesh * CreateFluxCMesh(TPZGeoMesh *fGeoMesh, int fDimension, int fDefault
         } else if (type == EQuadrilateral){
             if (fDimension == 2){
                 if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                    new TPZCompElKernelHDiv<TPZShapeQuad>(*cmesh,gel,index);
+                    new TPZCompElKernelHDiv<TPZShapeQuad>(*cmesh,gel);
                 } else if (fShapeType == EHDivConstant) {
-                    new TPZCompElHDivConstant<TPZShapeQuad>(*cmesh,gel,index);
+                    new TPZCompElHDivConstant<TPZShapeQuad>(*cmesh,gel);
                 } else {
                     DebugStop();
                 }
@@ -310,9 +309,9 @@ TPZCompMesh * CreateFluxCMesh(TPZGeoMesh *fGeoMesh, int fDimension, int fDefault
             } else if (fDimension == 3){
                 if (allMat.find(matid) == allMat.end()) continue;
                 if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                    new TPZCompElKernelHDivBC3D<TPZShapeQuad>(*cmesh,gel,index,fShapeType);
+                    new TPZCompElKernelHDivBC3D<TPZShapeQuad>(*cmesh,gel,fShapeType);
                 } else if (fShapeType == EHDivConstant) {
-                    new TPZCompElHDivConstantBC<TPZShapeQuad>(*cmesh,gel,index);
+                    new TPZCompElHDivConstantBC<TPZShapeQuad>(*cmesh,gel);
                 } else {
                     DebugStop();
                 }
@@ -324,9 +323,9 @@ TPZCompMesh * CreateFluxCMesh(TPZGeoMesh *fGeoMesh, int fDimension, int fDefault
         } else if(type == ETriangle) {
             if (fDimension == 2){
                 if (fShapeType == EHDivKernel){
-                    new TPZCompElKernelHDiv<TPZShapeTriang>(*cmesh,gel,index);
+                    new TPZCompElKernelHDiv<TPZShapeTriang>(*cmesh,gel);
                 } else if (fShapeType == EHDivConstant){
-                    new TPZCompElHDivConstant<TPZShapeTriang>(*cmesh,gel,index);
+                    new TPZCompElHDivConstant<TPZShapeTriang>(*cmesh,gel);
                 } else {
                     DebugStop();
                 }
@@ -336,9 +335,9 @@ TPZCompMesh * CreateFluxCMesh(TPZGeoMesh *fGeoMesh, int fDimension, int fDefault
             } else if (fDimension == 3){
                 if (allMat.find(matid) == allMat.end()) continue;
                 if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                    new TPZCompElKernelHDivBC3D<TPZShapeTriang>(*cmesh,gel,index,fShapeType);
+                    new TPZCompElKernelHDivBC3D<TPZShapeTriang>(*cmesh,gel,fShapeType);
                 } else if (fShapeType == EHDivConstant) {
-                    new TPZCompElHDivConstantBC<TPZShapeTriang>(*cmesh,gel,index);
+                    new TPZCompElHDivConstantBC<TPZShapeTriang>(*cmesh,gel);
                 } else {
                     DebugStop();
                 }
@@ -349,9 +348,9 @@ TPZCompMesh * CreateFluxCMesh(TPZGeoMesh *fGeoMesh, int fDimension, int fDefault
             }
         } else if(type == ETetraedro) {
             if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                new TPZCompElKernelHDiv3D<TPZShapeTetra>(*cmesh,gel,index,fShapeType);
+                new TPZCompElKernelHDiv3D<TPZShapeTetra>(*cmesh,gel,fShapeType);
             } else if (fShapeType == EHDivConstant){
-                new TPZCompElHDivConstant<TPZShapeTetra>(*cmesh,gel,index);
+                new TPZCompElHDivConstant<TPZShapeTetra>(*cmesh,gel);
             } else {
                 DebugStop();
             }
@@ -360,9 +359,9 @@ TPZCompMesh * CreateFluxCMesh(TPZGeoMesh *fGeoMesh, int fDimension, int fDefault
             nullmat->SetDimension(3);
         } else if(type == ECube) {
             if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                new TPZCompElKernelHDiv3D<TPZShapeCube>(*cmesh,gel,index,fShapeType);
+                new TPZCompElKernelHDiv3D<TPZShapeCube>(*cmesh,gel,fShapeType);
             } else if (fShapeType == EHDivConstant){
-                new TPZCompElHDivConstant<TPZShapeCube>(*cmesh,gel,index);
+                new TPZCompElHDivConstant<TPZShapeCube>(*cmesh,gel);
             } else {
                 DebugStop();
             }
@@ -371,9 +370,9 @@ TPZCompMesh * CreateFluxCMesh(TPZGeoMesh *fGeoMesh, int fDimension, int fDefault
             nullmat->SetDimension(3);
         } else if(type == EPrisma) {
             if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                new TPZCompElKernelHDiv3D<TPZShapePrism>(*cmesh,gel,index,fShapeType);
+                new TPZCompElKernelHDiv3D<TPZShapePrism>(*cmesh,gel,fShapeType);
             } else if (fShapeType == EHDivConstant){
-                new TPZCompElHDivConstant<TPZShapePrism>(*cmesh,gel,index);
+                new TPZCompElHDivConstant<TPZShapePrism>(*cmesh,gel);
             } else {
                 DebugStop();
             }

@@ -29,7 +29,7 @@ class TPZCompElKernelHDivBC : public TPZCompElH1<TSHAPE>  {
 public:	    
 	TPZCompElKernelHDivBC();
     
-    TPZCompElKernelHDivBC(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+    TPZCompElKernelHDivBC(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
 	virtual ~TPZCompElKernelHDivBC();
 

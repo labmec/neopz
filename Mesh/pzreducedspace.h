@@ -29,18 +29,14 @@ public:
 	
 	/** @brief Puts a copy of the element in the patch mesh */
 	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, std::map<int64_t,int64_t> &gl2lcElMap);
-	
-	/** @brief Copy of the element in the new mesh returning the alocated index */
-	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, int64_t &index);
-	
+		
 	/**
 	 * @brief Create a computational element within mesh
 	 * @param mesh mesh where will be created the element
 	 * @param gel geometrical element to insert
-	 * @param index new elemen index
 	 */
 	/** Inserts the element within the data structure of the mesh */
-	TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
     static void SetAllCreateFunctionsReducedSpace(TPZCompMesh *cmesh);
 

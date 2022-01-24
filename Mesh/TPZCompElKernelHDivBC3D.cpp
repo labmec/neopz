@@ -14,8 +14,8 @@ static TPZLogger logger("pz.strmatrix");
 #endif
 
 template<class TSHAPE>
-TPZCompElKernelHDivBC3D<TSHAPE>::TPZCompElKernelHDivBC3D(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int shapetype) :
-TPZRegisterClassId(&TPZCompElKernelHDivBC3D::ClassId), TPZCompElHCurlNoGrads<TSHAPE>(mesh,gel,index), fShapeType(shapetype)  {
+TPZCompElKernelHDivBC3D<TSHAPE>::TPZCompElKernelHDivBC3D(TPZCompMesh &mesh, TPZGeoEl *gel, int shapetype) :
+TPZRegisterClassId(&TPZCompElKernelHDivBC3D::ClassId), TPZCompElHCurlNoGrads<TSHAPE>(mesh,gel), fShapeType(shapetype)  {
 
 }
 

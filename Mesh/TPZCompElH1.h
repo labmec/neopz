@@ -17,9 +17,9 @@ public:
 
   TPZCompElH1() = default;
 
-  TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+  TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
-	TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int nocreate);
+	TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, int nocreate);
 	
 	TPZCompElH1(TPZCompMesh &mesh, const TPZCompElH1<TSHAPE> &copy);
 

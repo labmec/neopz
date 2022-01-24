@@ -71,7 +71,7 @@ class TPZSBFemVolumeHdiv : public TPZInterpolationSpace
 
 public:
     
-    TPZSBFemVolumeHdiv(TPZCompMesh & mesh, TPZGeoEl * gel, int64_t & index);
+    TPZSBFemVolumeHdiv(TPZCompMesh & mesh, TPZGeoEl * gel);
     
     virtual ~TPZSBFemVolumeHdiv()
     {
@@ -177,4 +177,4 @@ public:
     };
 };
 
-TPZCompEl * CreateSBFemFluxCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+TPZCompEl * CreateSBFemFluxCompEl(TPZCompMesh &mesh, TPZGeoEl *gel);

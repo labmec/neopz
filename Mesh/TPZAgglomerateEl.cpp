@@ -30,8 +30,8 @@
 
 using namespace std;
 
-TPZAgglomerateElement::TPZAgglomerateElement(int nummat,int64_t &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh) :
-TPZRegisterClassId(&TPZAgglomerateElement::ClassId),TPZCompElDisc(aggcmesh,index) {
+TPZAgglomerateElement::TPZAgglomerateElement(int nummat,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh) :
+TPZRegisterClassId(&TPZAgglomerateElement::ClassId),TPZCompElDisc(aggcmesh) {
 	
 	/**
 	 * o algomerado aponta para nulo mas o elemento computacional
@@ -739,7 +739,8 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 		
 		nummat = finemesh->ElementVec()[k]->Material()->Id();
 		//criando elemento de index/id i e inserindo na malha aggmesh
-		new TPZAgglomerateElement(nummat,index,*aggmesh,finemesh);
+		TPZCompEl* cel = new TPZAgglomerateElement(nummat,*aggmesh,finemesh);
+        index = cel->Index();
 		IdElNewMesh[k] = index;
 	}
 	
@@ -766,7 +767,7 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 				IdElNewMesh[i] = father;
 			} else if(eldim == surfacedim){
 				//clonando o elemento descont�uo BC, o clone existira na malha aglomerada
-				TPZCompEl * AggCell = dynamic_cast<TPZCompElDisc *>(cel)->Clone(*aggmesh,index);
+				TPZCompEl * AggCell = dynamic_cast<TPZCompElDisc *>(cel)->Clone(*aggmesh);
 				IdElNewMesh[i] = AggCell->Index();
 			}
 		}
@@ -788,7 +789,6 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 				if(aggmesh) delete aggmesh;
 				return 0;
 			}
-			int64_t index;
 			//interfaces com esquerdo e direito iguais n� s� clonadas
 			if(accumlist[indleft] == accumlist[indright]) continue;
 			
@@ -815,7 +815,7 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 			TPZCompElDisc * rightagg = dynamic_cast<TPZCompElDisc*> (aggmesh->ElementVec()[rightid]) ;
 			
 			TPZCompElSide leftcompelside(leftagg, leftside), rightcompelside(rightagg, rightside);
-			interf->CloneInterface(*aggmesh,index, /*leftagg*/leftcompelside, /*rightagg*/rightcompelside);
+			interf->CloneInterface(*aggmesh, /*leftagg*/leftcompelside, /*rightagg*/rightcompelside);
 			
 		}
 	}

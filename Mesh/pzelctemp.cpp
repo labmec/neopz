@@ -17,8 +17,8 @@ static TPZLogger logger("pz.mesh.tpzintelgen");
 #endif
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) : TPZRegisterClassId(&TPZIntelGen::ClassId),
-TPZInterpolatedElement(mesh,gel,index){
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel) : TPZRegisterClassId(&TPZIntelGen::ClassId),
+TPZInterpolatedElement(mesh,gel){
 
 	//  RemoveSideRestraintsII(EInsert);
 	gel->SetReference(this);
@@ -48,8 +48,8 @@ TPZInterpolatedElement(mesh,gel,index){
 }
 
 template<class TSHAPE>
-TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int nocreate) : TPZRegisterClassId(&TPZIntelGen::ClassId),
-TPZInterpolatedElement(mesh,gel,index)
+TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int nocreate) : TPZRegisterClassId(&TPZIntelGen::ClassId),
+TPZInterpolatedElement(mesh,gel)
 {
 	fPreferredOrder = -1;
 }
