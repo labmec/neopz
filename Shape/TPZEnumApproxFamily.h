@@ -4,4 +4,7 @@
 /// Enum stating which flavor of HDiv spaces is being used
 enum class HDivFamily {EDefault};
 
+/// Enum stating which flavor of H1 spaces is being used
+enum class H1Family {EDefault};
+
 #endif

@@ -125,7 +125,7 @@ TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,0), fConn
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
 TPZRegisterClassId(&TPZCompElDisc::ClassId),
-TPZInterpolationSpace(mesh,copy), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint) {
+TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fIndex), fCenterPoint(copy.fCenterPoint) {
     fShapefunctionType = copy.fShapefunctionType;
     //criando nova malha computacional
     Reference()->SetReference(this);
@@ -152,7 +152,7 @@ TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,copy), fC
 {
 	fShapefunctionType = copy.fShapefunctionType;
 	//TPZMaterial * mat = copy.Material();
-	gl2lcElMap[copy.fIndex] = this->fIndex;
+	gl2lcElMap[this->fIndex] = copy.fIndex;
 	
 	if (copy.fIntRule){
 		this->fIntRule = copy.GetIntegrationRule().Clone();
