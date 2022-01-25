@@ -18,7 +18,7 @@ function(enable_mkl target)
   message(STATUS "Setting MKL threading model: ${MKL_THREAD_MODEL}")
   
   #do NOT change this lib unless you know what you are doing
-  target_link_libraries(${target} PUBLIC mkl::mkl_intel_32bit_${MKL_THREAD_MODEL}_dyn)
+  target_link_libraries(${target} PRIVATE mkl::mkl_intel_32bit_${MKL_THREAD_MODEL}_dyn)
 
   if(MKL_THREAD_MODEL STREQUAL "tbb")
     include(cmake/EnableTBB.cmake)
@@ -29,8 +29,8 @@ function(enable_mkl target)
   #if(APPLE)
  #     target_link_libraries(${target} PRIVATE ${_mkl_core_lib})
   #endif()
-  target_include_directories(${target} PUBLIC ${MKL_INCLUDE_DIR})
-  target_compile_definitions(${target} PUBLIC USING_MKL)
+  target_include_directories(${target} PRIVATE ${MKL_INCLUDE_DIR})
+  target_compile_definitions(${target} PRIVATE USING_MKL)
   target_compile_definitions(${target} INTERFACE PZ_USING_MKL)
 
   set(USING_LAPACK ON CACHE PATH "Whether the LAPACK library will be linked in" FORCE)
