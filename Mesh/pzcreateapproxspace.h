@@ -92,7 +92,7 @@ public:
     /** @brief Create discontinuous approximation spaces */
     void SetAllCreateFunctionsDiscontinuous();
     /** @brief Create continuous approximation spaces */
-	void SetAllCreateFunctionsContinuous();
+	void SetAllCreateFunctionsContinuous(const H1Family h1fam = H1Family::EDefault);
     /** @brief Create an approximation space with HDiv elements */
 	void SetAllCreateFunctionsHDiv(int meshdim, const HDivFamily hdivfam = HDivFamily::EDefault);
     /** @brief Create an approximation space with HCurl elements */
