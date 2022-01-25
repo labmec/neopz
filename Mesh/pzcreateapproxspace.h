@@ -15,6 +15,7 @@ class TPZCompMesh;
 #include <functional>
 #include "pzvec.h"
 #include "TPZSavable.h"
+#include "TPZEnumApproxFamily.h"
 
 typedef std::function<TPZCompEl* (TPZGeoEl* el, TPZCompMesh &mesh)> TCreateFunction;
 /*
@@ -93,7 +94,7 @@ public:
     /** @brief Create continuous approximation spaces */
 	void SetAllCreateFunctionsContinuous();
     /** @brief Create an approximation space with HDiv elements */
-	void SetAllCreateFunctionsHDiv(int meshdim);
+	void SetAllCreateFunctionsHDiv(int meshdim, const HDivFamily hdivfam = HDivFamily::EDefault);
     /** @brief Create an approximation space with HCurl elements */
     void SetAllCreateFunctionsHCurl(int meshdim);
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
@@ -106,7 +107,7 @@ public:
 
 #ifndef STATE_COMPLEX
     /** @brief Create an approximation space with HDivxL2 elements */
-	void SetAllCreateFunctionsHDivPressure(int meshdim);
+	void SetAllCreateFunctionsHDivPressure(int meshdim, const HDivFamily hdivfam = HDivFamily::EDefault);
 #endif
     /** @brief Create approximation spaces corresponding to the space defined by cel */
 	void SetAllCreateFunctions(TPZCompEl &cel, TPZCompMesh *mesh);
