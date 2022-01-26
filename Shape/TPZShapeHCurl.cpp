@@ -471,10 +471,13 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
         const auto quadFace = TSHAPE::Type(iSide) == EQuadrilateral;
         
         if(quadFace){
-
-
-            std::set<std::pair<int,int>> funcXY, funcX, funcY;
             const auto hCurlFaceOrder = h1FaceOrder-1;
+            const auto nfuncsk = 2 * (hCurlFaceOrder - 1) * (hCurlFaceOrder - 1);
+            const auto nfuncsk1 = hCurlFaceOrder - 1;
+            TPZVec<std::pair<int,int>> funcXY(nfuncsk);
+            TPZVec<std::pair<int,int>> funcX(nfuncsk1);
+            TPZVec<std::pair<int,int>> funcY(nfuncsk1);
+            int countxy{0}, countx{0},county{0};
             /**now we assume that the first vft vec is in the x direction
                and that the next one is in the y direction.*/
             const int vecindex[] = {firstVftVec + 2*iFace,firstVftVec + 2*iFace+1};
@@ -484,26 +487,26 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
                 //functions of degree k
                 if((shapeorders(shapeIndex,0) <= hCurlFaceOrder) &&
                    (shapeorders(shapeIndex,1) <= hCurlFaceOrder)){
-                    funcXY.insert({vecindex[0],shapeIndex});
-                    funcXY.insert({vecindex[1],shapeIndex});
+                    funcXY[countxy++] = {vecindex[0],shapeIndex};
+                    funcXY[countxy++] = {vecindex[1],shapeIndex};
                 }else if(shapeorders(shapeIndex,0) <= hCurlFaceOrder){
-                    funcX.insert({vecindex[0],shapeIndex});
+                    funcX[countx++] = {vecindex[0],shapeIndex};
                 }else if(shapeorders(shapeIndex,1) <= hCurlFaceOrder){
-                    funcY.insert({vecindex[1],shapeIndex});
+                    funcY[county++] = {vecindex[1],shapeIndex};
                 }
             }
 
-            auto AddFromSet = [&indexVecShape,&shapeCountVec, &shapeCount,iCon]
-                (std::set<std::pair<int,int>> myset){
-                for(auto [vi,si] : myset){
+            auto AddFromVec = [&indexVecShape,&shapeCountVec, &shapeCount,iCon]
+                (TPZVec<std::pair<int,int>> myvec){
+                for(auto [vi,si] : myvec){
                     indexVecShape[shapeCount] = std::make_pair(vi,si);
                     shapeCount++;
                     shapeCountVec[iCon]++;
                 }
             };
-            AddFromSet(funcXY);
-            AddFromSet(funcX);
-            AddFromSet(funcY);
+            AddFromVec(funcXY);
+            AddFromVec(funcX);
+            AddFromVec(funcY);
             
         }
         else{
