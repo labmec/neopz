@@ -153,7 +153,7 @@ TEST_CASE("HCurl no grads dimension", "[hdivkernel_mesh_tests]") {
     const int pOrder = GENERATE(1,2,3,4,5,6,7);
 
   TestHCurlNoGradsDim<pzshape::TPZShapeTriang>(pOrder);
-  // TestKernelHDivDim<pzshape::TPZShapeQuad>(pOrder);
+  TestHCurlNoGradsDim<pzshape::TPZShapeQuad>(pOrder);
   TestHCurlNoGradsDim<pzshape::TPZShapeTetra>(pOrder);
   // TestKernelHDivDim<pzshape::TPZShapeCube>( pOrder);
   // TestKernelHDivDim<pzshape::TPZShapePrism>(pOrder);
@@ -597,11 +597,10 @@ void TestHCurlNoGradsDim(const int &pOrder){
     TPZShapeData data_unfilt, data_filt;
     TPZShapeHCurl<TSHAPE>::Initialize(ids, connectorders, data_unfilt);
     TPZShapeHCurlNoGrads<TSHAPE>::Initialize(ids, connectorders, data_filt);
-    
-    typename TSHAPE::IntruleType intrule(2*pOrder);
-    const int npts = intrule.NPoints();
 
-    const int nEdges = TSHAPE::NumSides(1);
+    const int pord_int = TPZShapeHCurlNoGrads<TSHAPE>::MaxOrder(pOrder);
+    typename TSHAPE::IntruleType intrule(2*pord_int);
+    const int npts = intrule.NPoints();
 
 
     TPZFMatrix<REAL> curlcurl_filt(nfiltfuncs,nfiltfuncs,0.);
@@ -615,7 +614,7 @@ void TestHCurlNoGradsDim(const int &pOrder){
         intrule.Point(ipt,pt,weight);
         TPZFMatrix<REAL> phi_unfilt(dim,nunfiltfuncs);
         TPZFMatrix<REAL> curlphi_unfilt(curlDim, nunfiltfuncs);
-        TPZShapeHCurl<TSHAPE>::Shape(pt,data_filt,phi_unfilt,curlphi_unfilt);
+        TPZShapeHCurl<TSHAPE>::Shape(pt,data_unfilt,phi_unfilt,curlphi_unfilt);
         TPZFMatrix<REAL> phi_filt (dim,nfiltfuncs);
         TPZFMatrix<REAL> curlphi_filt(curlDim, nfiltfuncs);
         TPZShapeHCurlNoGrads<TSHAPE>::Shape(pt,data_filt,phi_filt,curlphi_filt);
@@ -664,11 +663,23 @@ void TestHCurlNoGradsDim(const int &pOrder){
     TPZFMatrix<STATE> S_filt, S_unfilt;
     std::tie(S_filt, rank_filt) = CalcRank(curlcurl_filt,tol);
     std::tie(S_unfilt, rank_unfilt) = CalcRank(curlcurl_unfilt,tol);
-    
+
+    std::string elname{"noname"};
+    //dimension of lowest order gradients
+    constexpr int lo_grad_dim = nNodes - 1;
+    if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeTriang>){
+        elname = "triang";
+    }else if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeQuad>){
+        elname = "quad";
+    }else if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeTetra>){
+        elname = "tetra";
+    }
+
+    CAPTURE(elname);
     CAPTURE(pOrder);
     CAPTURE(S_filt, S_unfilt);
     REQUIRE(rank_filt==rank_unfilt);
-    REQUIRE(nfiltfuncs == rank_filt+dim);
+    REQUIRE(nfiltfuncs == rank_filt+lo_grad_dim);
 }
 
 
