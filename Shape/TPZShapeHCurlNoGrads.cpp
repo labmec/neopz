@@ -127,6 +127,9 @@ int TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(const int icon, const in
             switch(TSHAPE::Type(side)){
             case ETriangle://triangular face
               return (order - 1) * (order+2)/2;
+            case EQuadrilateral://quadrilateral face
+              // 2k(k+1)- k^2
+              return order*(order+2);
             default:
               PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
               DebugStop();
@@ -230,12 +233,82 @@ void TPZShapeHCurlNoGrads<TSHAPE>::HighOrderFunctionsFilter(
       }
       break;
     }
+    case EQuadrilateral:{
+      /*
+        from the 2k(k+1) functions, we filter out k^2 gradients of h1, thus
+        there are k(k+2) remaining functions.
+        from the 2k(k-1) phi_Fi functions, we can remove half of them,
+        that sums k(k-1). so, we remove aditionally k phi_Fe functions of a given edge.
+        k(k-1) + 3k = k(k+2) as we wanted.
+
+        we need to take into account x- and y -dirs
+      */
+      const auto nfacefuncs =  order * (order+2);
+#ifdef PZDEBUG
+      if(fcount != filteredFuncs.size()){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nERROR: wrong function count.\n"
+               <<"fcount = "<<fcount<<" filtfuncsize = "<<filteredFuncs.size()<<'\n'
+               <<"Aborting..."<<std::endl;
+        DebugStop();
+      }
+#endif
+      filteredFuncs.Resize(fcount+nfacefuncs);
+
+      /**
+         we will iterate over the phi_fe hcurl functions. there are 4k vfe funcs.
+         that means that, at each k, there are 4 new vfe functions. we can remove 
+         one of them for each polynomial order.
+         they are sorted per edge, so we can just skip the last edge, which
+         is associated with the x direction
+      */
+      auto firstVfeK = firstSideShape;
+      constexpr int nedges{4};
+      for (auto ie = 0; ie < nedges-1; ie++){
+        const int nfuncs = order;
+        for(auto ifunc = 0; ifunc < nfuncs; ifunc++){
+          filteredFuncs[fcount] = firstVfeK+ifunc;
+          fcount++;
+        }
+        firstVfeK += nfuncs;//next edge
+      }
+      /*now we take half of the phi_fi functions.
+        there are 2(k-1)(k-1) scalar functions that will be multiplied by
+        vectors in both the x and y directions. we will skip all in the x dir.
+        and then, 2*(k-1) functions that will be half in x dir and half in y dir.
+        we also skip all in the x dir
+       */
+      auto firstVfiK = firstSideShape + 4*order;
+      const auto nPhiFiK = 2*(order-1)*(order-1);
+      const auto nPhiFiK1 = (order-1); // we will have nPhiFiK1 in x and nPhiFiK1 in y
+      for(auto ifunc = 0; ifunc < nPhiFiK; ifunc++){
+        if(ifunc%2==0) continue;//we always skip the one in x dir
+        filteredFuncs[fcount] = firstVfiK+ifunc;
+        fcount++;
+      }
+      //taking only the ones in the y-dir
+      for(auto ifunc = 0; ifunc < nPhiFiK1; ifunc++){
+        filteredFuncs[fcount] = firstVfiK+nPhiFiK+nPhiFiK1+ifunc;
+        fcount++;
+      }
+#ifdef PZDEBUG
+      if(fcount != filteredFuncs.size()){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nERROR: wrong function count.\n"
+               <<"fcount = "<<fcount<<" filtfuncsize = "<<filteredFuncs.size()<<'\n'
+               <<"Aborting..."<<std::endl;
+        DebugStop();
+      }
+#endif
+      break;
+    }
     default:
       PZError<<__PRETTY_FUNCTION__<<" error. Not yet implemented"<<std::endl;
       DebugStop();
     }
+
   }
-    
+  
   if constexpr (dim < 3) return;
 
   if constexpr (TSHAPE::Type() == ETetraedro){
