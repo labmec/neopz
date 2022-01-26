@@ -471,6 +471,9 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
         const auto quadFace = TSHAPE::Type(iSide) == EQuadrilateral;
         
         if(quadFace){
+
+
+            std::set<std::pair<int,int>> funcXY, funcX, funcY;
             const auto hCurlFaceOrder = h1FaceOrder-1;
             /**now we assume that the first vft vec is in the x direction
                and that the next one is in the y direction.*/
@@ -478,15 +481,30 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
             for(auto iFunc = 0; iFunc < nH1FaceFuncs; iFunc++ ){
                 const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc;
 
-                for(auto ix = 0; ix < 2; ix++){
-                    if(shapeorders(shapeIndex,ix) <= hCurlFaceOrder){
-                        indexVecShape[shapeCount] =
-                            std::make_pair(vecindex[ix],shapeIndex);
-                        shapeCount++;
-                        shapeCountVec[iCon]++;
-                    }
+                //functions of degree k
+                if((shapeorders(shapeIndex,0) <= hCurlFaceOrder) &&
+                   (shapeorders(shapeIndex,1) <= hCurlFaceOrder)){
+                    funcXY.insert({vecindex[0],shapeIndex});
+                    funcXY.insert({vecindex[1],shapeIndex});
+                }else if(shapeorders(shapeIndex,0) <= hCurlFaceOrder){
+                    funcX.insert({vecindex[0],shapeIndex});
+                }else if(shapeorders(shapeIndex,1) <= hCurlFaceOrder){
+                    funcY.insert({vecindex[1],shapeIndex});
                 }
             }
+
+            auto AddFromSet = [&indexVecShape,&shapeCountVec, &shapeCount,iCon]
+                (std::set<std::pair<int,int>> myset){
+                for(auto [vi,si] : myset){
+                    indexVecShape[shapeCount] = std::make_pair(vi,si);
+                    shapeCount++;
+                    shapeCountVec[iCon]++;
+                }
+            };
+            AddFromSet(funcXY);
+            AddFromSet(funcX);
+            AddFromSet(funcY);
+            
         }
         else{
             //ok that one is easy to guess
