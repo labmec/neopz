@@ -616,21 +616,38 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
         shapeCount++;
         shapeCountVec[iCon]++;
     };
-        
+    /**in order to filter the gradients of hcurl functions,
+       we need to sort the shape functions for the hexahedral el*/
+    auto AddToVec = [](TPZVec<std::pair<int,int>> &v,std::pair<int,int> vs){
+        const auto vi = v.size();
+        v.Resize(vi+1);
+        v[vi] = vs;
+    };
+
+    TPZVec<std::pair<int,int>> funcXYZ, funcX, funcY, funcZ;
+    
+    
     for(auto iFunc = 0; iFunc < nH1Internal; iFunc++ ){
         const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc;
         const int xord = shapeorders(shapeIndex,0);
         const int yord = shapeorders(shapeIndex,1);
         const int zord = shapeorders(shapeIndex,2);
         if constexpr(TSHAPE::Type() == ECube){
-            if(xord <= sideOrder){
-                addFunc(xVecIndex,shapeIndex);
+            if(xord <= sideOrder && yord <= sideOrder && zord <= sideOrder){
+                AddToVec(funcXYZ, std::make_pair(xVecIndex,shapeIndex));
+                AddToVec(funcXYZ, std::make_pair(yVecIndex,shapeIndex));
+                AddToVec(funcXYZ, std::make_pair(zVecIndex,shapeIndex));
             }
-            if(yord <= sideOrder){
-                addFunc(yVecIndex,shapeIndex);
-            }
-            if(zord <= sideOrder){
-                addFunc(zVecIndex,shapeIndex);
+            else{
+                if(xord <= sideOrder){
+                    AddToVec(funcX, std::make_pair(xVecIndex,shapeIndex));
+                }
+                if(yord <= sideOrder){
+                    AddToVec(funcY, std::make_pair(yVecIndex,shapeIndex));
+                }
+                if(zord <= sideOrder){
+                    AddToVec(funcZ, std::make_pair(zVecIndex,shapeIndex));
+                }
             }
         }
         else if constexpr(TSHAPE::Type() == EPrisma){
@@ -652,6 +669,22 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
             addFunc(zVecIndex,shapeIndex);
         }
     }
+    //now we actually add the functions
+    if constexpr(TSHAPE::Type() == ECube){
+        for(auto [v,s] : funcXYZ){
+            addFunc(v,s);
+        }
+        for(auto [v,s] : funcX){
+            addFunc(v,s);
+        }
+        for(auto [v,s] : funcY){
+            addFunc(v,s);
+        }
+        for(auto [v,s] : funcZ){
+            addFunc(v,s);
+        }
+    }
+    
     if(shapeCount != indexVecShape.size()){
         DebugStop();
     }
