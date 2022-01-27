@@ -17,6 +17,20 @@ int TPZMaterial::VariableIndex(const std::string &name) const{
 	return -1;
 }
 
+int TPZMaterial::VariableIndexBC(const std::string &name) const{
+	std::cout << __PRETTY_FUNCTION__ << " Variable " << name << " not found\n";
+	
+#ifdef PZ_LOG2
+	{
+		std::stringstream sout;
+		sout << "Variable " << name << " not found";
+		LOGPZ_ERROR(logger,sout.str())
+	}
+#endif
+	return -1;
+}
+
+
 int TPZMaterial::NSolutionVariables(int index) const{
 	PZError<<__PRETTY_FUNCTION__;
 	PZError<<" Implement me in your material for post processing solutions.\n";

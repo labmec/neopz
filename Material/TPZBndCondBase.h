@@ -45,7 +45,7 @@ class TPZBndCondBase :
     { return this->fMaterial->NSolutionVariablesBC(var);}
     /** @brief Returns the variable index associated with a given name */
     [[nodiscard]] int VariableIndex(const std::string &name) const final
-    { return this->fMaterial->VariableIndex(name);}
+    { return this->fMaterial->VariableIndexBC(name);}
     
     [[nodiscard]] int Id() const override {
         return TPZMaterial::Id();

@@ -74,6 +74,9 @@ public:
 	
 	/** @brief It returns the variable index associated with the name */
 	int VariableIndex(const std::string &name) const override;
+
+  int VariableIndexBC(const std::string &name) const override
+  {return VariableIndex(name);}
 	
 	int NSolutionVariables(int var) const override;
   

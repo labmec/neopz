@@ -84,6 +84,9 @@ public:
     
     /** @brief Returns the variable index associated with a given name */
     [[nodiscard]] virtual int VariableIndex(const std::string &name) const;
+
+    /** @brief Returns the variable index associated with a given name (for boundary)*/
+    [[nodiscard]] virtual int VariableIndexBC(const std::string &name) const;
     
     /** 
 	 * @brief Returns the number of variables associated with the variable indexed by var. 
