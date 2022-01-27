@@ -76,13 +76,16 @@ public:
 	int VariableIndex(const std::string &name) const override;
 	
 	int NSolutionVariables(int var) const override;
+  
+  int NSolutionVariablesBC(int var) const override;
 
-    void Solution(const TPZMaterialDataT<TVar> &data,
-                  int var, TPZVec<TVar> &solOut) override;
-    
-    void GetSolDimensions(uint64_t &u_len,
-                          uint64_t &du_row,
-                          uint64_t &du_col) const override;
+  void Solution(const TPZMaterialDataT<TVar> &data,
+                int var, TPZVec<TVar> &solOut) override;
+  void SolutionBC(const TPZMaterialDataT<TVar> &data,
+                int var, TPZVec<TVar> &solOut) override;
+  void GetSolDimensions(uint64_t &u_len,
+                        uint64_t &du_row,
+                        uint64_t &du_col) const override;
 
     void Errors(const TPZMaterialDataT<TVar> &data,
                 TPZVec<REAL> &errors) override;
