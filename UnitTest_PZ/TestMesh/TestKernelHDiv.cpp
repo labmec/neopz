@@ -155,26 +155,26 @@ TEST_CASE("HCurl no grads dimension", "[hdivkernel_mesh_tests]") {
   TestHCurlNoGradsDim<pzshape::TPZShapeTriang>(pOrder);
   TestHCurlNoGradsDim<pzshape::TPZShapeQuad>(pOrder);
   TestHCurlNoGradsDim<pzshape::TPZShapeTetra>(pOrder);
-  // TestKernelHDivDim<pzshape::TPZShapeCube>( pOrder);
+  TestHCurlNoGradsDim<pzshape::TPZShapeCube>( pOrder);
   // TestKernelHDivDim<pzshape::TPZShapePrism>(pOrder);
   std::cout << "Finish test dimension of HCurlNoGrads \n";
 }
 
-// Test 2D Kernel Hdiv
-TEST_CASE("HDiv Kernel", "[hdivkernel_mesh_tests]") {
-  std::cout << "Testing HDiv Kernel \n";
-  // colocar as variaveis que fazem generate aqui.
-  const int xdiv = GENERATE(1, 2);
-  const int pOrder = GENERATE(2);
-  MShapeType shape = GENERATE(EHDivKernel);
+// // Test 2D Kernel Hdiv
+// TEST_CASE("HDiv Kernel", "[hdivkernel_mesh_tests]") {
+//   std::cout << "Testing HDiv Kernel \n";
+//   // colocar as variaveis que fazem generate aqui.
+//   const int xdiv = GENERATE(1, 2);
+//   const int pOrder = GENERATE(2);
+//   MShapeType shape = GENERATE(EHDivKernel);
 
-  // TestKernelHDiv<pzshape::TPZShapeTriang>(xdiv,pOrder,shape);
-  // TestKernelHDiv<pzshape::TPZShapeQuad>(xdiv,pOrder,shape);
-  // TestKernelHDiv<pzshape::TPZShapeTetra>(xdiv,pOrder,shape);
-//   TestKernelHDiv<pzshape::TPZShapeCube>(xdiv, pOrder, shape);
-  // TestKernelHDiv<pzshape::TPZShapePrism>(xdiv,pOrder,shape);
-  std::cout << "Finish test HDiv Kernel \n";
-}
+//   // TestKernelHDiv<pzshape::TPZShapeTriang>(xdiv,pOrder,shape);
+//   // TestKernelHDiv<pzshape::TPZShapeQuad>(xdiv,pOrder,shape);
+//   // TestKernelHDiv<pzshape::TPZShapeTetra>(xdiv,pOrder,shape);
+// //   TestKernelHDiv<pzshape::TPZShapeCube>(xdiv, pOrder, shape);
+//   // TestKernelHDiv<pzshape::TPZShapePrism>(xdiv,pOrder,shape);
+//   std::cout << "Finish test HDiv Kernel \n";
+// }
 
 TPZGeoMesh*
 ReadMeshFromGmsh(std::string file_name)
@@ -673,6 +673,8 @@ void TestHCurlNoGradsDim(const int &pOrder){
         elname = "quad";
     }else if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeTetra>){
         elname = "tetra";
+    }else if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeCube>){
+        elname = "cube";
     }
 
     CAPTURE(elname);

@@ -140,6 +140,9 @@ int TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(const int icon, const in
             if constexpr (TSHAPE::Type() == ETetraedro){
                 return (order-1)*(order-2)*(2*order+3)/6;
             }
+            else if constexpr (TSHAPE::Type() == ECube){
+              return order*order*(2*order+3);
+            }
             else{
                 PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
                 DebugStop();
@@ -369,6 +372,69 @@ void TPZShapeHCurlNoGrads<TSHAPE>::HighOrderFunctionsFilter(
       }
       //we skip to the higher order ones
       firstVki += newvki;
+    }
+  }
+  else if constexpr (TSHAPE::Type() == ECube){
+    const auto icon = nEdges + nFaces;
+    const auto order = conOrders[icon];
+    const auto firstSideShape = firstHCurlFunc[icon];
+    /**
+       we remove one internal function for each h1 internal function of order k+1
+       since there are (k-1)^3 functions in a h1 element with order k,
+       we remove k^3
+       so:
+       3k^2(k+1) - k^3 = k^2(2k+3)
+
+       we have two kinds of internal functions. phi_kf and phi_ki.
+       func        k                   
+       phi_kf      6k^2
+       phi_ki      3k^2(k-1)
+
+       if we remove all phi_kf associated with a given face (k^2 funcs)
+       and all phi_ki associated with a given direction (k^2(k-1)),
+       we have removed all k^3 functions that we needed to.
+    */
+
+    const auto nintfuncs =  order*order*(2*order+3);
+
+    filteredFuncs.Resize(fcount+nintfuncs);
+
+
+    const auto firstvkf = firstSideShape;
+    
+    const auto offset = order*order;//we skip the first face, z direction
+    const auto nvkf = 6*order*order;
+    for(auto ifunc = offset; ifunc < nvkf; ifunc++){
+      filteredFuncs[fcount] = firstvkf + ifunc;
+      fcount++;
+    }
+    
+
+    /**
+       we now iterate over the phi_ki hcurl functions. we have them separated:
+       3(k-1)^3 functions of order k and 3(k-1)(2k-1) ( (k-1)(2k-1) in each direction).
+       we will filter all funcs in z direction
+    */
+
+    const auto firstVki = firstSideShape + nvkf;
+    const auto nvkik = 3*(order-1)*(order-1)*(order-1);
+    const auto nvkik1 = (order-1)*(2*order-1);//for each direction
+    
+    for(auto ifunc = 0; ifunc < nvkik; ifunc++){
+      if(ifunc%3 == 2) continue;//skip z direction
+      filteredFuncs[fcount] = firstVki+ifunc;
+      fcount++;
+    }
+
+    const auto firstxfunc = firstVki+nvkik;
+    for(auto ifunc = 0; ifunc < nvkik1; ifunc++){//x dir
+      filteredFuncs[fcount] = firstxfunc+ifunc;
+      fcount++;
+    }
+    const auto firstyfunc = firstxfunc+nvkik1;
+    for(auto ifunc = 0; ifunc < nvkik1; ifunc++){//y dir
+      filteredFuncs[fcount] = firstyfunc+ifunc;
+      fcount++;
     }
   }
 }
