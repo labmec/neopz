@@ -58,6 +58,17 @@ void TPZMatSingleSpaceT<TVar>::Solution(const TPZMaterialDataT<TVar> &data, int 
 }
 
 template<class TVar>
+void TPZMatSingleSpaceT<TVar>::SolutionBC(const TPZMaterialDataT<TVar> &data, int var,
+         TPZVec<TVar> &sol){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" should be implemented in your material\n"
+           <<" for any sort of post processing of the FEM solution\n"
+           <<" over the boundaries\n"
+           <<"Aborting..."<<std::endl;
+    DebugStop();
+}
+
+template<class TVar>
 int TPZMatSingleSpaceT<TVar>::IntegrationRuleOrder(const int elPMaxOrder) const
 {
     auto *tmp = dynamic_cast<const TPZMaterialT<TVar>*>(this);
@@ -114,9 +125,7 @@ void TPZMatSingleSpaceBC<TVar>::Solution(const TPZMaterialDataT<TVar> &data,
                                          int var,
                                          TPZVec<TVar> &sol)
 {
-    PZError<<__PRETTY_FUNCTION__;
-    PZError<< "should not be called! Aborting...\n";
-    DebugStop();
+    fMatSingleSpace->SolutionBC(data,var,sol);
 }
 
 template<class TVar>

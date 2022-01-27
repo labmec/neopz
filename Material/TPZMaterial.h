@@ -91,6 +91,12 @@ public:
 	 */
     [[nodiscard]] virtual int NSolutionVariables(int var) const;
 
+    /** 
+	 * @brief Returns the number of variables associated with the variable indexed by var for a boundary material. 
+	 * @param var Index variable into the solution, is obtained by calling VariableIndex
+	 */
+    [[nodiscard]] virtual int NSolutionVariablesBC(int var) const;
+
 
     /**
      * @}

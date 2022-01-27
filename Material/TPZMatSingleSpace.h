@@ -160,7 +160,17 @@ public:
     */
     virtual void Solution(const TPZMaterialDataT<TVar> &data, int var,
                           TPZVec<TVar> &sol);
-    
+
+    /** @brief Returns the solution associated with a given index
+        on boundary elements.
+        This method should be implemented if any computations 
+        on the solution are to be done.
+        @param[in] data Stores all the input data.
+        @param[in] var Index of the queried solution
+        @param[out] sol FEM Solution at the integration point
+    */
+    virtual void SolutionBC(const TPZMaterialDataT<TVar> &data, int var,
+                          TPZVec<TVar> &sol);    
     [[nodiscard]] int IntegrationRuleOrder(const int elPMaxOrder) const override;
     
     [[nodiscard]] int ClassId() const override;
