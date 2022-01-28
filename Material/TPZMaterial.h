@@ -85,8 +85,6 @@ public:
     /** @brief Returns the variable index associated with a given name */
     [[nodiscard]] virtual int VariableIndex(const std::string &name) const;
 
-    /** @brief Returns the variable index associated with a given name (for boundary)*/
-    [[nodiscard]] virtual int VariableIndexBC(const std::string &name) const;
     
     /** 
 	 * @brief Returns the number of variables associated with the variable indexed by var. 
@@ -94,11 +92,6 @@ public:
 	 */
     [[nodiscard]] virtual int NSolutionVariables(int var) const;
 
-    /** 
-	 * @brief Returns the number of variables associated with the variable indexed by var for a boundary material. 
-	 * @param var Index variable into the solution, is obtained by calling VariableIndex
-	 */
-    [[nodiscard]] virtual int NSolutionVariablesBC(int var) const;
 
 
     /**
