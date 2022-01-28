@@ -43,7 +43,7 @@ TPZCompMesh *PressureCMesh(int dim, int pOrder, TPZGeoMesh *gmesh);
 TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMesh *>& meshvector,
                                           TPZGeoMesh * gmesh, const bool& isLinPVar, TPZHybridizeHDiv* hybridizer);
 void SolveProblemDirect(TPZLinearAnalysis &an, TPZCompMesh *cmesh);
-void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *> meshvector, TPZLinearAnalysis &an, TPZCompMesh *cmesh,
+void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *>& meshvector, TPZLinearAnalysis &an, TPZCompMesh *cmesh,
                              const std::string &plotfile);
 const STATE ComputeIntegralOverDomain(TPZCompMesh* cmesh, const std::string& varname);
 void HybridizeIntersections(TPZVec<TPZCompMesh *>& meshvec_Hybrid, TPZHybridizeHDiv *hybridizer);
@@ -807,7 +807,7 @@ void SolveProblemDirect(TPZLinearAnalysis &an, TPZCompMesh *cmesh)
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
 
-void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *> meshvector, TPZLinearAnalysis &an, TPZCompMesh *cmesh,
+void PrintResultsMultiphysic(int dim, TPZVec<TPZCompMesh *>& meshvector, TPZLinearAnalysis &an, TPZCompMesh *cmesh,
                              const std::string &plotfile)
 {
     
