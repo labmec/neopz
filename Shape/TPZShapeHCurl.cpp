@@ -471,6 +471,27 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
         const auto quadFace = TSHAPE::Type(iSide) == EQuadrilateral;
         
         if(quadFace){
+            const auto transid = transformationIds[iCon];
+            /*
+              transformation id is 0 or 1 if starting at node 0
+              transformation id is 2 or 3 if starting at node 1
+              transformation id is 4 or 5 if starting at node 2
+              transformation id is 6 or 7 if starting at node 3
+              even numbers are counterclockwise dir,
+              odd numbers are clockwise direction
+              so ids 0, 3, 4, 7 have x as first dir
+              and 1, 2, 5, 6 have y as first dir.
+
+              we know that the vft vectors are created
+              such that the first one is in x and the second one
+              is in y (local face coordinates).
+              therefore, we need the variables in the h1 functions
+              to match.
+              warning: sketchy integer arithmetic will follow:
+             */
+            const auto xdir = ((transid+1)/2)%2;//i told you so
+            const auto ydir = 1-xdir;
+
             const auto hCurlFaceOrder = h1FaceOrder-1;
             const auto nfuncsk = 2 * (hCurlFaceOrder - 1) * (hCurlFaceOrder - 1);
             const auto nfuncsk1 = hCurlFaceOrder - 1;
@@ -485,13 +506,13 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
                 const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc;
 
                 //functions of degree k
-                if((shapeorders(shapeIndex,0) <= hCurlFaceOrder) &&
-                   (shapeorders(shapeIndex,1) <= hCurlFaceOrder)){
+                if((shapeorders(shapeIndex,xdir) <= hCurlFaceOrder) &&
+                   (shapeorders(shapeIndex,ydir) <= hCurlFaceOrder)){
                     funcXY[countxy++] = {vecindex[0],shapeIndex};
                     funcXY[countxy++] = {vecindex[1],shapeIndex};
-                }else if(shapeorders(shapeIndex,0) <= hCurlFaceOrder){
+                }else if(shapeorders(shapeIndex,xdir) <= hCurlFaceOrder){
                     funcX[countx++] = {vecindex[0],shapeIndex};
-                }else if(shapeorders(shapeIndex,1) <= hCurlFaceOrder){
+                }else if(shapeorders(shapeIndex,ydir) <= hCurlFaceOrder){
                     funcY[county++] = {vecindex[1],shapeIndex};
                 }
             }
