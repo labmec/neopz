@@ -57,16 +57,43 @@ void TPZMatSingleSpaceT<TVar>::Solution(const TPZMaterialDataT<TVar> &data, int 
     DebugStop();
 }
 
-template<class TVar>
-void TPZMatSingleSpaceT<TVar>::SolutionBC(const TPZMaterialDataT<TVar> &data, int var,
-         TPZVec<TVar> &sol){
+   
+/** @brief Returns the variable index associated with a given name */
+
+int TPZMatSingleSpace::VariableIndex(const std::string &name) const
+{
     PZError<<__PRETTY_FUNCTION__;
-    PZError<<" should be implemented in your material\n"
-           <<" for any sort of post processing of the FEM solution\n"
-           <<" over the boundaries\n"
-           <<"Aborting..."<<std::endl;
+    PZError<<" should be implemented in your material";
+    PZError<<" for any sort of post processing of the FEM solution\n";
+    PZError<<"Aborting...\n";
     DebugStop();
 }
+    
+    /** 
+	 * @brief Returns the number of variables associated with the variable indexed by var. 
+	 * @param var Index variable into the solution, is obtained by calling VariableIndex
+	 */
+
+int TPZMatSingleSpace::NSolutionVariables(int var) const
+{
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" should be implemented in your material";
+    PZError<<" for any sort of post processing of the FEM solution\n";
+    PZError<<"Aborting...\n";
+    DebugStop();
+}
+
+
+// template<class TVar>
+// void TPZMatSingleSpaceT<TVar>::SolutionBC(const TPZMaterialDataT<TVar> &data, int var,
+//          TPZVec<TVar> &sol){
+//     PZError<<__PRETTY_FUNCTION__;
+//     PZError<<" should be implemented in your material\n"
+//            <<" for any sort of post processing of the FEM solution\n"
+//            <<" over the boundaries\n"
+//            <<"Aborting..."<<std::endl;
+//     DebugStop();
+// }
 
 template<class TVar>
 int TPZMatSingleSpaceT<TVar>::IntegrationRuleOrder(const int elPMaxOrder) const
@@ -120,13 +147,7 @@ void TPZMatSingleSpaceBC<TVar>::ContributeBC(const TPZMaterialDataT<TVar> &data,
     DebugStop();
 }
 
-template<class TVar>
-void TPZMatSingleSpaceBC<TVar>::Solution(const TPZMaterialDataT<TVar> &data,
-                                         int var,
-                                         TPZVec<TVar> &sol)
-{
-    fMatSingleSpace->SolutionBC(data,var,sol);
-}
+
 
 template<class TVar>
 void TPZMatSingleSpaceBC<TVar>::FillDataRequirements(TPZMaterialData &data) const{

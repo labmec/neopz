@@ -4,7 +4,6 @@
 #include "TPZBndCondT.h"
 
 
-
 /**
  * @brief This class ensures that the boundary condition material is compatible
  * with any given interfaces.
@@ -41,11 +40,8 @@ class TPZBndCondBase :
     [[nodiscard]] int NStateVariables() const final
     {return this->fMaterial->NStateVariables();}
 
-    [[nodiscard]] int NSolutionVariables(int var) const final
-    { return this->fMaterial->NSolutionVariablesBC(var);}
-    /** @brief Returns the variable index associated with a given name */
-    [[nodiscard]] int VariableIndex(const std::string &name) const final
-    { return this->fMaterial->VariableIndexBC(name);}
+
+
     
     [[nodiscard]] int Id() const override {
         return TPZMaterial::Id();
