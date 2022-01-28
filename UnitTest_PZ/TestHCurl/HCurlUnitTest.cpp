@@ -148,7 +148,7 @@ namespace hcurltest{
                 if(pos == n) DebugStop(); //entry not found in orig vec
 
                 bool valid = true;
-                //check clockwise
+                //anticlockwise
                 for(int ip = 0; ip < n; ip++){
                     const int ipo = (pos + ip) % n;
                     if(perm[ip] != orig[ipo]){
@@ -156,17 +156,17 @@ namespace hcurltest{
                         break;
                     }
                 }
-                if(!valid){
-                    valid = true;
-                    //check anticlockwise
-                    for(int ip = 0; ip < n; ip++){
-                        const int ipo = ((pos-ip)%n+n)%n;
-                        if(perm[ip] != orig[ipo]){
-                            valid = false;
-                            break;
-                        }
-                    }
-                }
+                // if(!valid){
+                //     valid = true;
+                //     //anticlockwise
+                //     for(int ip = 0; ip < n; ip++){
+                //         const int ipo = ((pos-ip)%n+n)%n;
+                //         if(perm[ip] != orig[ipo]){
+                //             valid = false;
+                //             break;
+                //         }
+                //     }
+                // }
                 return valid;
             };
         /********************
@@ -185,7 +185,7 @@ namespace hcurltest{
 
 
         TPZGeoMesh gmesh;
-        
+        gmesh.SetDimension(dim);
         TPZManVector<int, ncons> conorders(ncons,k);
         TPZManVector<int64_t,nnodes> elids(nnodes,-1),permids(nnodes,-1);
          
@@ -199,7 +199,6 @@ namespace hcurltest{
         }
 
         TPZGeoEl* gel = InsertEl(gmesh, elids);
-        TPZShapeData eldata;
 
         //number of internal shape functions
         const int nshapeint = TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(ncons-1, k);
@@ -208,8 +207,6 @@ namespace hcurltest{
             firstshape += TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(ic, k);
         }
         const int nshape = firstshape + nshapeint;
-        //initialize shape function data
-        TPZShapeHCurl<TSHAPE>::Initialize(elids,conorders,eldata);
 
         TPZPermutation perm(nnodes);
         do{
@@ -219,10 +216,23 @@ namespace hcurltest{
 
             TPZGeoEl* permgel = InsertEl(gmesh,permids);
             gmesh.BuildConnectivity();
+
+            TPZCompMesh cmesh(&gmesh);
+            cmesh.SetAllCreateFunctionsHCurl();
+            auto *mat = new TPZHCurlProjection<STATE> (1, dim);
+            cmesh.InsertMaterialObject(mat);
+            cmesh.SetDefaultOrder(k);
+            cmesh.AutoBuild();
+
+            TPZMaterialDataT<STATE> eldata, permdata;
+
+            auto cel = dynamic_cast<TPZInterpolatedElement*> (gel->Reference());
+            cel->InitMaterialData(eldata);
+
+            auto permcel = dynamic_cast<TPZInterpolatedElement*>(permgel->Reference());
+            permcel->InitMaterialData(permdata);
             
-            TPZShapeData permdata;
             //initialize shape function data
-            TPZShapeHCurl<TSHAPE>::Initialize(permids,conorders,permdata);
             const int pord_int = TPZShapeHCurl<TSHAPE>::MaxOrder(k);
             typename TSHAPE::IntruleType intrule(2*pord_int);
             const int npts = intrule.NPoints();
@@ -240,21 +250,41 @@ namespace hcurltest{
 
             for(int ipt = 0; ipt < npts; ipt++){
                 intrule.Point(ipt,pt,weight);
-                TPZShapeHCurl<TSHAPE>::Shape(pt,eldata,phi,curlphi);
+
+                cel->ComputeRequiredData(eldata, pt);
+
                 //convert to permuted pt
                 sidetransf.Apply(pt, permpt);
-                TPZShapeHCurl<TSHAPE>::Shape(permpt,permdata,phiperm,curlphiperm);
+
+                permcel->ComputeRequiredData(permdata, permpt);
+
+                REAL diffx = 0;
+                for(int ix = 0; ix < dim; ix++){
+                    diffx += std::abs(eldata.x[ix] - permdata.x[ix]);
+                }
+                REQUIRE(diffx < tol);
 
                 for(int ix = 0; ix < dim; ix++){
                     for(int ip = 0; ip < nshapeint; ip++){
                         const int iphi = firstshape + ip;
-                        REQUIRE(std::abs(phi(ix,iphi) - phiperm(ix,iphi))< tol);
+                        REQUIRE(std::abs(eldata.phi(iphi,ix) - permdata.phi(iphi,ix))< tol);
+                    }
+                }
+                for(int ix = 0; ix < curldim; ix++){
+                    for(int ip = 0; ip < nshapeint; ip++){
+                        const int iphi = firstshape + ip;
+
+                        CAPTURE(permids);
+                        CAPTURE(k);
+                        CAPTURE(nshapeint);
+                        CAPTURE(eldata.curlphi);
+                        CAPTURE(permdata.curlphi);
+                        REQUIRE(std::abs(eldata.curlphi(ix,iphi) - permdata.curlphi(ix,iphi))< tol);
                     }
                 }
             }
             gmesh.DeleteElement(permgel);
             gmesh.ResetConnectivities();
-            
         }while (perm.IsFirst() == 0);
         
         
