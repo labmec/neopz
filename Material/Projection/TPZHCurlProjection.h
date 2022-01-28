@@ -8,7 +8,7 @@
 #define TPZHCURLPROJECTION_H
 
 #include "TPZMatBase.h"
-#include "TPZMatSingleSpace.h"
+#include "TPZMatSingleSpaceBCSol.h"
 #include "TPZMatErrorSingleSpace.h"
 
 /**
@@ -25,10 +25,10 @@
  */
 template<class TVar=STATE>
 class  TPZHCurlProjection :
-    public TPZMatBase<TVar,TPZMatSingleSpaceT<TVar>,
-                      TPZMatErrorSingleSpace<TVar>>
+    public TPZMatBase<TVar,TPZMatSingleSpaceBCSol<TVar>,
+                      TPZMatErrorSingleSpace<TVar>  >
 {
-	using TBase = TPZMatBase<TVar,TPZMatSingleSpaceT<TVar>,TPZMatErrorSingleSpace<TVar>>;
+	using TBase = TPZMatBase<TVar,TPZMatSingleSpaceBCSol<TVar>,TPZMatErrorSingleSpace<TVar>>;
 public:
     //! Default constructor
     TPZHCurlProjection();
