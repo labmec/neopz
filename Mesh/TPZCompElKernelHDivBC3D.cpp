@@ -43,7 +43,7 @@ void TPZCompElKernelHDivBC3D<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 }
 
 template<class TSHAPE>
-void TPZCompElKernelHDivBC3D<TSHAPE>::ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi){
+void TPZCompElKernelHDivBC3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi){
 
     if (fShapeType == ECurlNoGrads){
         bool needsol = data.fNeedsSol;
@@ -91,7 +91,7 @@ void TPZCompElKernelHDivBC3D<TSHAPE>::ComputeRequiredData(TPZMaterialDataT<STATE
         }
     }
     
-
+    data.phi.Resize(data.curlphi.Cols(),3);
     data.phi.Zero();
     if (data.phi.Rows()>1){
       for (int i = 0; i < data.phi.Rows(); i++){

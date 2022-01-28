@@ -4,6 +4,7 @@
 #include <pzconnect.h>
 #include <pzcmesh.h>
 #include "TPZShapeHCurl.h"
+#include "TPZShapeHCurlNoGrads.h"
 #include "TPZShapeHDivKernel.h"
 #include "pzlog.h"
 
@@ -202,7 +203,7 @@ void TPZCompElHCurlNoGrads<TSHAPE>::ComputeRequiredDataT(
     if constexpr (dim < 2) return;
 
     TPZVec<int> filtVecShape;
-    this->HighOrderFunctionsFilter(firstHCurlFunc, conOrders,
+    TPZShapeHCurlNoGrads<TSHAPE>::HighOrderFunctionsFilter(firstHCurlFunc, conOrders,
                                     filtVecShape);
     
     const auto newfuncs = filtVecShape.size();
@@ -277,8 +278,11 @@ int TPZCompElHCurlNoGrads<TSHAPE>::NConnectShapeF(int icon, int order) const
             2k(k+1) - k^2 = k(k+2)
             
             */
+            // if (order == 2) return 0;
+            
 
             return order * (order + 2);
+            // return 2*order * (order + 1);
         default:
             PZError<<__PRETTY_FUNCTION__<<" error. Not yet implemented"<<std::endl;
             DebugStop();
@@ -323,19 +327,6 @@ int TPZCompElHCurlNoGrads<TSHAPE>::NConnectShapeF(int icon, int order) const
             phi_ki      3k^2*(k-1)          3(k-1)(k-1)(k-2)/2  3(2-5k+2k^2+k^3)/2
            
         */
-            switch (order)
-            {
-            case 1:
-                return 5;
-            case 2:
-                return 19;
-            case 3: 
-                return 37;
-            case 4:
-                return 56;
-            default:
-                break;
-            }
             return order*order*(3+2*order);
         }
         return 0;
@@ -453,7 +444,7 @@ void TPZCompElHCurlNoGrads<TSHAPE>::ComputeShape(TPZMaterialData &data,
     // TPZCompElHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &curlphi);
 
     TPZVec<int> filtVecShape;
-    this->HighOrderFunctionsFilter(firstHCurlFunc, conOrders,
+    TPZShapeHCurlNoGrads<TSHAPE>::HighOrderFunctionsFilter(firstHCurlFunc, conOrders,
                                     filtVecShape);
     
     const auto newfuncs = filtVecShape.size();
@@ -518,7 +509,7 @@ void TPZCompElHCurlNoGrads<TSHAPE>::ComputeCurl(TPZMaterialData &data)
     if constexpr (dim < 2) return;
 
     TPZVec<int> filtVecShape;
-    this->HighOrderFunctionsFilter(firstHCurlFunc, conOrders,
+    TPZShapeHCurlNoGrads<TSHAPE>::HighOrderFunctionsFilter(firstHCurlFunc, conOrders,
                                     filtVecShape);
     
     const auto newfuncs = filtVecShape.size();

@@ -139,6 +139,8 @@ int TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(const int icon, const in
         else{//internal connect (3D element only)
             if constexpr (TSHAPE::Type() == ETetraedro){
                 return (order-1)*(order-2)*(2*order+3)/6;
+            } else if constexpr (TSHAPE::Type() == ECube){
+                return order*order*(2*order+3);
             }
             else if constexpr (TSHAPE::Type() == ECube){
               return order*order*(2*order+3);
