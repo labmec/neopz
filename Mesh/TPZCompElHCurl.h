@@ -23,8 +23,10 @@ protected:
     ///! Indexes of the connects associated with the elements
     TPZManVector<int64_t,TSHAPE::NSides - TSHAPE::NCornerNodes> fConnectIndexes =
         TPZManVector<int64_t,TSHAPE::NSides - TSHAPE::NCornerNodes>(TSHAPE::NSides-TSHAPE::NCornerNodes,-1);
+    
+    HCurlFamily fhcurlfam = HCurlFamily::EDefault;
 public:
-    TPZCompElHCurl(TPZCompMesh &mesh, TPZGeoEl *gel);
+    TPZCompElHCurl(TPZCompMesh &mesh, TPZGeoEl *gel, const HCurlFamily hcurlfam = HCurlFamily::EDefault);
 	
     TPZCompElHCurl(TPZCompMesh &mesh, const TPZCompElHCurl<TSHAPE> &copy);
 	
@@ -190,35 +192,27 @@ protected:
 
 
 /** @brief Creates computational linear element for HCurl-conforming approximation space */
-TPZCompEl *CreateHCurlLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateHCurlLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HCurlFamily hcurlfam);
 /** @brief Creates computational quadrilateral element for HCurl-conforming approximation space */
-TPZCompEl *CreateHCurlQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateHCurlQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HCurlFamily hcurlfam);
 /** @brief Creates computational triangular element for HCurl-conforming approximation space */
-TPZCompEl *CreateHCurlTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateHCurlTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HCurlFamily hcurlfam);
 /** @brief Creates computational cube element for HCurl-conforming approximation space */
-TPZCompEl *CreateHCurlCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateHCurlCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HCurlFamily hcurlfam);
 /** @brief Creates computational prismal element for HCurl-conforming approximation space */
-TPZCompEl *CreateHCurlPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateHCurlPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HCurlFamily hcurlfam);
 /** @brief Creates computational pyramidal element for HCurl-conforming approximation space */
 TPZCompEl *CreateHCurlPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational tetrahedral element for HCurl-conforming approximation space */
-TPZCompEl *CreateHCurlTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateHCurlTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HCurlFamily hcurlfam);
 /** @brief Creates computational point element for HCurl-conforming approximation space */
 TPZCompEl *CreateHCurlBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational linear element for HCurl-conforming approximation space */
-TPZCompEl *CreateHCurlBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateHCurlBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HCurlFamily hcurlfam);
 /** @brief Creates computational quadrilateral element for HCurl-conforming approximation space */
-TPZCompEl *CreateHCurlBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateHCurlBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HCurlFamily hcurlfam);
 /** @brief Creates computational triangular element for HCurl-conforming approximation space */
-TPZCompEl *CreateHCurlBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh);
-
-TPZCompEl * CreateRefHCurlLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh);
-TPZCompEl * CreateRefHCurlQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh);
-TPZCompEl * CreateRefHCurlTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh);
-TPZCompEl * CreateRefHCurlCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh);
-TPZCompEl * CreateRefHCurlPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh);
-TPZCompEl * CreateRefHCurlPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh);
-TPZCompEl * CreateRefHCurlTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateHCurlBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HCurlFamily hcurlfam);
 
 
 /** @} */

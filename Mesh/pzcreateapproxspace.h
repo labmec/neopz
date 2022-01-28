@@ -96,7 +96,7 @@ public:
     /** @brief Create an approximation space with HDiv elements */
 	void SetAllCreateFunctionsHDiv(int meshdim, const HDivFamily hdivfam = HDivFamily::EDefault);
     /** @brief Create an approximation space with HCurl elements */
-    void SetAllCreateFunctionsHCurl(int meshdim);
+    void SetAllCreateFunctionsHCurl(int meshdim, const HCurlFamily hcurlfam = HCurlFamily::EDefault);
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
 //    void SetAllCreateFunctionsHDivFull(int meshdim);
     
