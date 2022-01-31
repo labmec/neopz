@@ -666,10 +666,11 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFemMultiphysics(int dim
 
 
 #ifndef STATE_COMPLEX
-#include "pzhdivpressure.h"
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(int dimension, const HDivFamily hdivfam){
-    
+    // This function has been deprecated since TPZCompElHDivPressure has been deprecated (Jan 31/2022)
+    // TODO: Delete me in the future?
+    /*
     fStyle = EHDiv;
     switch (dimension) {
         case 1:
@@ -706,6 +707,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(int dimensio
             DebugStop();
             break;
     }
+     */
     
 }
 #endif

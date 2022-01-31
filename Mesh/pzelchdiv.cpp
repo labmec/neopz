@@ -14,7 +14,6 @@
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
 #include "TPZMaterialDataT.h"
-#include "pzhdivpressure.h"
 #include "pzshapepiram.h"
 #include "tpzline.h"
 #include "tpztriangle.h"
@@ -915,6 +914,9 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::PRefine(int order)
 {
+    // This function has been deprecated since TPZCompElHDivPressure has been deprecated
+    // TODO: Delete or update?
+    /*
     this->SetPreferredOrder(order);
     int side;
     int icon;
@@ -976,7 +978,7 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
 		this->Mesh()->Block().Set(seqnum,nshape);
     }
 
-
+     */
 }
 
 /** @brief Prints the relevant data of the element to the output stream */
