@@ -524,7 +524,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
         case 3:
             fp[EPoint] = CreateNoElement;
             fp[EOned] = CreateNoElement;
-            fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlBoundTriangleEl(gel,mesh,hcurlfam);};
+            fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTriangleEl(gel,mesh,hcurlfam);};
             fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlBoundQuadEl(gel,mesh,hcurlfam);};
             fp[ETetraedro] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTetraEl(gel,mesh,hcurlfam);};
             fp[EPiramide] = CreateHCurlPyramEl;

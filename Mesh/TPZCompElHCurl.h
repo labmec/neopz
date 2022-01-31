@@ -211,8 +211,6 @@ TPZCompEl *CreateHCurlBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 TPZCompEl *CreateHCurlBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HCurlFamily hcurlfam);
 /** @brief Creates computational quadrilateral element for HCurl-conforming approximation space */
 TPZCompEl *CreateHCurlBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HCurlFamily hcurlfam);
-/** @brief Creates computational triangular element for HCurl-conforming approximation space */
-TPZCompEl *CreateHCurlBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HCurlFamily hcurlfam);
 
 
 /** @} */

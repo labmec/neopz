@@ -970,11 +970,6 @@ TPZCompEl *CreateHCurlBoundLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh, const HCur
     return new TPZCompElHCurl<pzshape::TPZShapeLinear>(mesh, gel, hcurlfam);
 }
 
-TPZCompEl *CreateHCurlBoundTriangleEl(TPZGeoEl *gel, TPZCompMesh &mesh, const HCurlFamily hcurlfam)
-{
-    return new TPZCompElHCurl<pzshape::TPZShapeTriang>(mesh, gel, hcurlfam);
-}
-
 TPZCompEl *CreateHCurlBoundQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh, const HCurlFamily hcurlfam)
 {
     return new TPZCompElHCurl<pzshape::TPZShapeQuad>(mesh, gel, hcurlfam);
