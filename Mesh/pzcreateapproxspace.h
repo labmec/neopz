@@ -40,6 +40,11 @@ class TPZCreateApproximationSpace : public TPZSavable {
     /// flag indicating that the elements need to be created with memory
     bool fCreateWithMemory;
     
+    /// flags indicating "flavor" ofthe approximation space
+    HDivFamily fhdivfam = DefaultFamily::fHDivDefaultValue;
+    H1Family fh1fam = DefaultFamily::fH1DefaultValue;
+    HCurlFamily fhcurlfam = DefaultFamily::fHCurlDefaultValue;
+    
 public:
     
     enum MApproximationStyle {ENone,EContinuous,EDiscontinuous,EHDiv,EHCurl, EMultiphysics, EMultiphysicsSBFem, ESBFem, ECustom};
@@ -88,15 +93,26 @@ public:
     {
         fCreateWithMemory = flag;
     }
+
+    // Get set methods for space families
+    const HDivFamily &HDivFam() const {return fhdivfam;}
+    const HDivFamily &HDivFam() {return fhdivfam;}
+
+    const H1Family &H1Fam() const {return fh1fam;}
+    const H1Family &H1Fam() {return fh1fam;}
+
+    const HCurlFamily &HCurlFam() const {return fhcurlfam;}
+    const HCurlFamily &HCurlFam() {return fhcurlfam;}
+
     
     /** @brief Create discontinuous approximation spaces */
     void SetAllCreateFunctionsDiscontinuous();
     /** @brief Create continuous approximation spaces */
-	void SetAllCreateFunctionsContinuous(const H1Family h1fam = H1Family::EDefault);
+	void SetAllCreateFunctionsContinuous();
     /** @brief Create an approximation space with HDiv elements */
-	void SetAllCreateFunctionsHDiv(int meshdim, const HDivFamily hdivfam = HDivFamily::EDefault);
+	void SetAllCreateFunctionsHDiv(int meshdim);
     /** @brief Create an approximation space with HCurl elements */
-    void SetAllCreateFunctionsHCurl(int meshdim, const HCurlFamily hcurlfam = HCurlFamily::EDefault);
+    void SetAllCreateFunctionsHCurl(int meshdim);
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
 //    void SetAllCreateFunctionsHDivFull(int meshdim);
     
@@ -107,7 +123,7 @@ public:
 
 #ifndef STATE_COMPLEX
     /** @brief Create an approximation space with HDivxL2 elements */
-	void SetAllCreateFunctionsHDivPressure(int meshdim, const HDivFamily hdivfam = HDivFamily::EDefault);
+	void SetAllCreateFunctionsHDivPressure(int meshdim);
 #endif
     /** @brief Create approximation spaces corresponding to the space defined by cel */
 	void SetAllCreateFunctions(TPZCompEl &cel, TPZCompMesh *mesh);

@@ -16,14 +16,14 @@ protected:
     TPZManVector<int64_t,TSHAPE::NSides>(TSHAPE::NSides,-1);
     
   /// Family of the HDiv space being used. Changing this will change the shape generating class
-  H1Family fh1fam = H1Family::EDefault;
+  H1Family fh1fam = DefaultFamily::fH1DefaultValue;
 public:
 
   TPZCompElH1() = default;
 
-  TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, const H1Family h1fam = H1Family::EDefault);
+  TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, const H1Family h1fam = DefaultFamily::fH1DefaultValue);
 	
-  TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, int nocreate, const H1Family h1fam = H1Family::EDefault);
+  TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, int nocreate, const H1Family h1fam = DefaultFamily::fH1DefaultValue);
 	
   TPZCompElH1(TPZCompMesh &mesh, const TPZCompElH1<TSHAPE> &copy);
 

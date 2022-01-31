@@ -24,9 +24,9 @@ protected:
     TPZManVector<int64_t,TSHAPE::NSides - TSHAPE::NCornerNodes> fConnectIndexes =
         TPZManVector<int64_t,TSHAPE::NSides - TSHAPE::NCornerNodes>(TSHAPE::NSides-TSHAPE::NCornerNodes,-1);
     
-    HCurlFamily fhcurlfam = HCurlFamily::EDefault;
+    HCurlFamily fhcurlfam = DefaultFamily::fHCurlDefaultValue;
 public:
-    TPZCompElHCurl(TPZCompMesh &mesh, TPZGeoEl *gel, const HCurlFamily hcurlfam = HCurlFamily::EDefault);
+    TPZCompElHCurl(TPZCompMesh &mesh, TPZGeoEl *gel, const HCurlFamily hcurlfam = DefaultFamily::fHCurlDefaultValue);
 	
     TPZCompElHCurl(TPZCompMesh &mesh, const TPZCompElHCurl<TSHAPE> &copy);
 	

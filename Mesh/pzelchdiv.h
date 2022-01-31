@@ -36,12 +36,12 @@ protected:
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
     
     /// Family of the HDiv space being used. Changing this will change the shape generating class
-    HDivFamily fhdivfam = HDivFamily::EDefault;
+    HDivFamily fhdivfam = DefaultFamily::fHDivDefaultValue;
 
 public:
 	
     //Constructors and destructor
-	TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam = HDivFamily::EDefault);
+	TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam = DefaultFamily::fHDivDefaultValue);
 	
 	TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy);
 	

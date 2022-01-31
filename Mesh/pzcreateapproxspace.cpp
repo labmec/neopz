@@ -398,8 +398,9 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuous(){
 }
 
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuous(const H1Family h1fam){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuous(){
     fStyle = EContinuous;
+    const H1Family &h1fam = this->fh1fam;
     fp[EPoint] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreatePointEl(gel,mesh,h1fam);};
     fp[EOned] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateLinearEl(gel,mesh,h1fam);};
     fp[EQuadrilateral] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateQuadEl(gel,mesh,h1fam);};
@@ -441,9 +442,10 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
 #include "pzelchdiv.h"
 #include "pzelchdivbound2.h"
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension, const HDivFamily hdivfam){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
 
     fStyle = EHDiv;
+    const HDivFamily &hdivfam = this->fhdivfam;
     switch (dimension) {
         case 1:
             fp[EPoint] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundPointEl(gel,mesh,hdivfam);};
@@ -494,9 +496,10 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension, const
 
 #include <TPZCompElHCurl.h>
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension, const HCurlFamily hcurlfam){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
 
     fStyle = EHCurl;
+    const HCurlFamily &hcurlfam = this->fhcurlfam;
     switch (dimension) {
         case 1:
             fp[EPoint] = CreateHCurlBoundPointEl;
@@ -544,7 +547,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
     fStyle = ESBFem;
     
     // NOTE: I dont think we support multiple h1 family spaces for SBFEM. Please pass as argument to function in case it is needed.
-    const H1Family h1fam = H1Family::EDefault;
+    const H1Family &h1fam = this->fh1fam;
     switch (dimension) {
         case 1:
             DebugStop();
@@ -667,7 +670,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFemMultiphysics(int dim
 
 #ifndef STATE_COMPLEX
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(int dimension, const HDivFamily hdivfam){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(int dimension){
     // This function has been deprecated since TPZCompElHDivPressure has been deprecated (Jan 31/2022)
     // TODO: Delete me in the future?
     /*

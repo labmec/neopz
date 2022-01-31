@@ -32,10 +32,10 @@ protected:
     TPZManVector<int64_t,1> fConnectIndexes = TPZManVector<int64_t,1>(1,-1);
     
     /// Family of the HDiv space being used. Changing this will change the shape generating class
-    HDivFamily fhdivfam = HDivFamily::EDefault;
+    HDivFamily fhdivfam = DefaultFamily::fHDivDefaultValue;
 public:
 	
-	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam = HDivFamily::EDefault);
+	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam = DefaultFamily::fHDivDefaultValue);
 	
 	TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCompElHDivBound2<TSHAPE> &copy);
 

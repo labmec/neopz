@@ -2,12 +2,19 @@
 #define TPZENUMAPPROXFAMILY_H
 
 /// Enum stating which flavor of HDiv spaces is being used
-enum class HDivFamily {EDefault};
+enum class HDivFamily {EHDivStandard};
 
 /// Enum stating which flavor of H1 spaces is being used
-enum class H1Family {EDefault};
+enum class H1Family {EH1Standard};
 
 /// Enum stating which flavor of HCurl spaces is being used
-enum class HCurlFamily {EDefault};
+enum class HCurlFamily {EHCurlStandard};
+
+struct DefaultFamily {
+    static const HDivFamily fHDivDefaultValue = HDivFamily::EHDivStandard;
+    static const H1Family fH1DefaultValue = H1Family::EH1Standard;
+    static const HCurlFamily fHCurlDefaultValue = HCurlFamily::EHCurlStandard;
+};
+
 
 #endif
