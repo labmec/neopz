@@ -154,43 +154,43 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType fShapeType);
 
 TEST_CASE("HCurl no grads dimension", "[hdivkernel_mesh_tests]") {
     std::cout << "Testing dimension of Hcurl with no high order grads\n";
-    const int pOrder = GENERATE(1,2,3,4);
+    const int pOrder = GENERATE(1,2,3);
 
   TestHCurlNoGradsDim<pzshape::TPZShapeTriang>(pOrder);
   TestHCurlNoGradsDim<pzshape::TPZShapeQuad>(pOrder);
   TestHCurlNoGradsDim<pzshape::TPZShapeTetra>(pOrder);
   TestHCurlNoGradsDim<pzshape::TPZShapeCube>( pOrder);
-  // TestKernelHDivDim<pzshape::TPZShapePrism>(pOrder);
+  // TestHCurlNoGradsDim<pzshape::TPZShapePrism>(pOrder);
   std::cout << "Finish test dimension of HCurlNoGrads \n";
 }
 
 TEST_CASE("HDiv Kernel dimension", "[hdivkernel_mesh_tests]") {
-    std::cout << "Testing dimension of Hcurl with no high order grads\n";
-    const int pOrder = GENERATE(1,2 ,3,4,5);
+    std::cout << "Testing dimension of HDivKernel\n";
+    const int pOrder = GENERATE(1,2,3);
 
   TestShapeHDivKernel<pzshape::TPZShapeTriang>(pOrder);
   TestShapeHDivKernel<pzshape::TPZShapeQuad>(pOrder);
   TestShapeHDivKernel<pzshape::TPZShapeTetra>(pOrder);
   TestShapeHDivKernel<pzshape::TPZShapeCube>( pOrder);
   // TestShapeHDivKernel<pzshape::TPZShapePrism>(pOrder);
-  std::cout << "Finish test dimension of HCurlNoGrads \n";
+  std::cout << "Finish test dimension of HDivKernel \n";
 }
 
-// Test 2D Kernel Hdiv
-TEST_CASE("HDiv Kernel", "[hdivkernel_mesh_tests]") {
-  std::cout << "Testing HDiv Kernel \n";
-  // colocar as variaveis que fazem generate aqui.
-  const int xdiv = GENERATE(1,2);
-  const int pOrder = GENERATE(1,2,3,4,5);
-  MShapeType shape = GENERATE(EHDivKernel,EHDivConstant);
+// // Test 2D Kernel Hdiv: FOR DEBUGGING PURPOSES
+// TEST_CASE("HDiv Kernel", "[hdivkernel_mesh_tests]") {
+//   std::cout << "Testing HDiv Kernel \n";
+//   // colocar as variaveis que fazem generate aqui.
+//   const int xdiv = GENERATE(1,2);
+//   const int pOrder = GENERATE(1,2,3);
+//   MShapeType shape = GENERATE(EHDivKernel,EHDivConstant);
 
-  TestKernelHDiv<pzshape::TPZShapeTriang>(xdiv,pOrder,shape);
-  TestKernelHDiv<pzshape::TPZShapeQuad>(xdiv,pOrder,shape);
-  TestKernelHDiv<pzshape::TPZShapeTetra>(xdiv,pOrder,shape);
-  TestKernelHDiv<pzshape::TPZShapeCube>(xdiv, pOrder, shape);
-//   TestKernelHDiv<pzshape::TPZShapePrism>(xdiv,pOrder,shape);
-  std::cout << "Finish test HDiv Kernel \n";
-}
+//   TestKernelHDiv<pzshape::TPZShapeTriang>(xdiv,pOrder,shape);
+//   TestKernelHDiv<pzshape::TPZShapeQuad>(xdiv,pOrder,shape);
+//   TestKernelHDiv<pzshape::TPZShapeTetra>(xdiv,pOrder,shape);
+//   TestKernelHDiv<pzshape::TPZShapeCube>(xdiv, pOrder, shape);
+// //   TestKernelHDiv<pzshape::TPZShapePrism>(xdiv,pOrder,shape);
+//   std::cout << "Finish test HDiv Kernel \n";
+// }
 
 TPZGeoMesh*
 ReadMeshFromGmsh(std::string file_name)
