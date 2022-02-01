@@ -107,7 +107,7 @@ void TPZCompElKernelHDivBC3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<STAT
         // sout << "\nVecshape = " << data.fVecShapeIndex << std::endl;
         // sout << "MASTER = " << data.fMasterDirections << std::endl;
         // sout << "TransformIDs = " << data.fSideTransformationId << std::endl;
-        sout << "Phi = " << data.phi << std::endl;
+        // sout << "Phi = " << data.phi << std::endl;
         LOGPZ_DEBUG(logger,sout.str())
         
     }

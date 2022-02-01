@@ -43,28 +43,11 @@ public:
   void ReallyComputeSolution(TPZMaterialDataT<CSTATE>& data) override{
     ReallyComputeSolutionT(data);
   }
-  /**
-     @brief Given the original indices of functions of a a HCurl element,
-     calculates the subset corresponding to
-     the filtered higher-order (face, interior) functions.
-     @param[in] firstHCurlFunc index of first Hurl function corresponding to a given connect.
-     @param[in] conOrders connect orders.
-     @param[in] filteredFuncs indices of desired of Hcurl functions.
-   */
-  static void HighOrderFunctionsFilter(
-    const TPZVec<int> &firstHCurlFunc,
-    const TPZVec<int> &conOrders,
-    TPZVec<int> &filteredHCurlFuncs);
+  
 protected:
   //! Adjusts the number of shape functions and block size of the connects.
   void AdjustConnects();
-  //! Combines/filters the HCurl functions from TPZCompElHCurlFull<TSHAPE>.
-  void ComputeShape(TPZMaterialData &data, TPZFMatrix<REAL> &phiHCurl);
-  template<int DIM>
-  /** 
-   * @brief Combines/filters the HCurl functions from TPZCompElHCurlFull<TSHAPE>
-   and compute their curl, filling data.curlphi.*/
-  void ComputeCurl(TPZMaterialData &data);
+ 
   //! Computes data.phi and data.curlphi to be used in the integration points.
   template<class TVar>
   void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL> &qsi);
