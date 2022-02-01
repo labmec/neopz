@@ -14,7 +14,6 @@
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
 #include "TPZMaterialDataT.h"
-#include "pzhdivpressure.h"
 #include "pzshapepiram.h"
 #include "tpzline.h"
 #include "tpztriangle.h"
@@ -31,9 +30,9 @@ using namespace std;
 
 
 template<class TSHAPE>
-TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel) :
+TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam) :
 TPZRegisterClassId(&TPZCompElHDiv::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(TSHAPE::NFacets,1) {
+TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(TSHAPE::NFacets,1), fhdivfam(hdivfam) {
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
 	int nconflux= TPZCompElHDiv::NConnects();
     this->fConnectIndexes.Resize(nconflux);
@@ -94,11 +93,10 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(TSHAPE::NFacets,1) {
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy) :
 TPZRegisterClassId(&TPZCompElHDiv::ClassId),
-TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
+TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient), fhdivfam(copy.fhdivfam)
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
     this->fConnectIndexes = copy.fConnectIndexes;
-
 }
 
 template<class TSHAPE>
@@ -107,7 +105,7 @@ TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh,
 									 std::map<int64_t,int64_t> & gl2lcConMap,
 									 std::map<int64_t,int64_t> & gl2lcElMap) :
 TPZRegisterClassId(&TPZCompElHDiv::ClassId),
-TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient)
+TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient), fhdivfam(copy.fhdivfam)
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
 	int i;
@@ -916,6 +914,9 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::PRefine(int order)
 {
+    // This function has been deprecated since TPZCompElHDivPressure has been deprecated
+    // TODO: Delete or update?
+    /*
     this->SetPreferredOrder(order);
     int side;
     int icon;
@@ -977,7 +978,7 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
 		this->Mesh()->Block().Set(seqnum,nshape);
     }
 
-
+     */
 }
 
 /** @brief Prints the relevant data of the element to the output stream */
@@ -1116,47 +1117,47 @@ template class TPZCompElHDiv<TPZShapePiram>;
 template class TPZCompElHDiv<TPZShapeCube>;
 
 
-TPZCompEl * CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
-	return new TPZCompElHDivBound2<TPZShapePoint>(mesh,gel);
+TPZCompEl * CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDivBound2<TPZShapePoint>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
-	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel);
+TPZCompEl * CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
-    return new TPZCompElHDivBound2< TPZShapeQuad>(mesh,gel);
+TPZCompEl * CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+    return new TPZCompElHDivBound2< TPZShapeQuad>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
-    return new TPZCompElHDivBound2< TPZShapeTriang >(mesh,gel);
+TPZCompEl * CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+    return new TPZCompElHDivBound2< TPZShapeTriang >(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
-    return new TPZCompElHDiv< TPZShapeLinear>(mesh,gel);
+TPZCompEl * CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+    return new TPZCompElHDiv< TPZShapeLinear>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
-	return new TPZCompElHDiv< TPZShapeQuad>(mesh,gel);
+TPZCompEl * CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDiv< TPZShapeQuad>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
-	return new TPZCompElHDiv< TPZShapeTriang >(mesh,gel);
+TPZCompEl * CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDiv< TPZShapeTriang >(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
-	return new TPZCompElHDiv< TPZShapeCube >(mesh,gel);
+TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDiv< TPZShapeCube >(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
-	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel);
+TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
-	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel);
+TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
-	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel);
+TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel,hdivfam);
 }
 

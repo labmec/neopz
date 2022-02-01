@@ -20,9 +20,9 @@ static TPZLogger logger("pz.mesh.TPZCompElHDivBound2");
 #endif
 
 template<class TSHAPE>
-TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel) :
+TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam) :
 TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(1){
+TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(1), fhdivfam(hdivfam){
 		
 	//int i;
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
@@ -82,7 +82,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(1){
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCompElHDivBound2<TSHAPE> &copy) :
 TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
-TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient), fConnectIndexes(copy.fConnectIndexes)
+TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient), fConnectIndexes(copy.fConnectIndexes), fhdivfam(copy.fhdivfam)
 {
 #ifdef PZDEBUG
     if(fConnectIndexes[0] != copy.fConnectIndexes[0]) DebugStop();
@@ -96,7 +96,7 @@ TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh,
 												 std::map<int64_t,int64_t> & gl2lcConMap,
 												 std::map<int64_t,int64_t> & gl2lcElMap) :
 TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
-TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient)
+TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient), fhdivfam(copy.fhdivfam)
 {
 	
 	this-> fPreferredOrder = copy.fPreferredOrder;

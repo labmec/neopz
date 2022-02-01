@@ -54,8 +54,6 @@ set(headers
   pzsubcmesh.h
   TPZGeoElSidePartition.h
   pzflowcmesh.h
-  pzhdivpressure.h 
-  pzhdivpressurebound.h
   tpzagglomeratemesh.h
   TPZAgglomerateEl.h
   TPZCompElH1.h
@@ -114,8 +112,6 @@ set(sources
   TPZCompElHCurl.cpp
   TPZGeoElSideAncestors.cpp
   pzflowcmesh.cpp
-  pzhdivpressure.cpp
-  pzhdivpressurebound.cpp
   TPZAgglomerateEl.cpp
   TPZCompElH1.cpp
   TPZCompElHDivConstant.cpp

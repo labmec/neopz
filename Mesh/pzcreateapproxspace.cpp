@@ -37,21 +37,21 @@ static TPZLogger logger("pz.mesh.tpzcreateapproximationspace");
 #endif
 
 /** @brief Creates computational point element */
-TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam);
 /** @brief Creates computational linear element */
-TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam);
 /** @brief Creates computational quadrilateral element */
-TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam);
 /** @brief Creates computational triangular element */
-TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam);
 /** @brief Creates computational cube element */
-TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam);
 /** @brief Creates computational prismal element */
-TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam);
 /** @brief Creates computational pyramidal element */
-TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam);
 /** @brief Creates computational tetrahedral element */
-TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh);
+TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam);
 
 
 using namespace pzshape;
@@ -69,59 +69,59 @@ TPZCompEl *CreateNoElement(TPZGeoEl *gel,TPZCompMesh &mesh) {
 }
 
 
-TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
     {
-		return new TPZCompElH1<TPZShapePoint>(mesh,gel);
+		return new TPZCompElH1<TPZShapePoint>(mesh,gel,h1fam);
     }
     
 	return NULL;
 }
-TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
     {
-		TPZCompEl *result = new TPZCompElH1<TPZShapeLinear>(mesh,gel);
+		TPZCompEl *result = new TPZCompElH1<TPZShapeLinear>(mesh,gel,h1fam);
         return result;//new TPZCondensedCompel(result);
     }
     
 	return NULL;
 }
-TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
     {
-		return new TPZCompElH1<TPZShapeQuad>(mesh,gel);
+		return new TPZCompElH1<TPZShapeQuad>(mesh,gel,h1fam);
     }
     
 	return NULL;
 }
 
-TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElH1<TPZShapeTriang>(mesh,gel);
+		return new TPZCompElH1<TPZShapeTriang>(mesh,gel,h1fam);
     
 	return NULL;
 }
-TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElH1<TPZShapeCube>(mesh,gel);
+		return new TPZCompElH1<TPZShapeCube>(mesh,gel,h1fam);
     
 	return NULL;
 }
-TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElH1<TPZShapePrism>(mesh,gel);
+		return new TPZCompElH1<TPZShapePrism>(mesh,gel,h1fam);
     
 	return NULL;
 }
-TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElH1<TPZShapePiram>(mesh,gel);
+		return new TPZCompElH1<TPZShapePiram>(mesh,gel,h1fam);
     
 	return NULL;
 }
-TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElH1<TPZShapeTetra>(mesh,gel);
+		return new TPZCompElH1<TPZShapeTetra>(mesh,gel,h1fam);
     
 	return NULL;
 }
@@ -400,14 +400,15 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuous(){
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuous(){
     fStyle = EContinuous;
-    fp[EPoint] = CreatePointEl;
-    fp[EOned] = CreateLinearEl;
-    fp[EQuadrilateral] = CreateQuadEl;
-    fp[ETriangle] = CreateTriangleEl;
-    fp[ETetraedro] = CreateTetraEl;
-    fp[EPiramide] = CreatePyramEl;
-    fp[EPrisma] = CreatePrismEl;
-    fp[ECube] = CreateCubeEl;
+    const H1Family &h1fam = this->fh1fam;
+    fp[EPoint] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreatePointEl(gel,mesh,h1fam);};
+    fp[EOned] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateLinearEl(gel,mesh,h1fam);};
+    fp[EQuadrilateral] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateQuadEl(gel,mesh,h1fam);};
+    fp[ETriangle] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateTriangleEl(gel,mesh,h1fam);};
+    fp[ETetraedro] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateTetraEl(gel,mesh,h1fam);};
+    fp[EPiramide] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreatePyramEl(gel,mesh,h1fam);};
+    fp[EPrisma] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreatePrismEl(gel,mesh,h1fam);};
+    fp[ECube] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateCubeEl(gel,mesh,h1fam);};
     
     /*
      pzgeom::TPZGeoPoint::fp =  CreatePointEl;
@@ -442,13 +443,14 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
 #include "pzelchdivbound2.h"
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
-	
+
     fStyle = EHDiv;
+    const HDivFamily &hdivfam = this->fhdivfam;
     switch (dimension) {
         case 1:
-            fp[EPoint] = CreateHDivBoundPointEl;
-            fp[EOned] = CreateHDivLinearEl;
-            fp[ETriangle] = CreateHDivTriangleEl;
+            fp[EPoint] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundPointEl(gel,mesh,hdivfam);};
+            fp[EOned] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivLinearEl(gel,mesh,hdivfam);};
+            fp[ETriangle] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivTriangleEl(gel,mesh,hdivfam);};
             fp[EQuadrilateral] = CreateNoElement;
             fp[ETetraedro] = CreateNoElement;
             fp[EPiramide] = CreateNoElement;
@@ -457,9 +459,9 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
             break;
         case 2:
             fp[EPoint] = CreateNoElement;
-            fp[EOned] = CreateHDivBoundLinearEl;
-            fp[ETriangle] = CreateHDivTriangleEl;
-            fp[EQuadrilateral] = CreateHDivQuadEl;
+            fp[EOned] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundLinearEl(gel,mesh,hdivfam);};
+            fp[ETriangle] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivTriangleEl(gel,mesh,hdivfam);};
+            fp[EQuadrilateral] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivQuadEl(gel,mesh,hdivfam);};
             fp[ETetraedro] = CreateNoElement;
             fp[EPiramide] = CreateNoElement;
             fp[EPrisma] = CreateNoElement;
@@ -468,12 +470,12 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
         case 3:
             fp[EPoint] = CreateNoElement;
             fp[EOned] = CreateNoElement;
-            fp[ETriangle] = CreateHDivBoundTriangleEl;
-            fp[EQuadrilateral] = CreateHDivBoundQuadEl;
-            fp[ETetraedro] = CreateHDivTetraEl;
-            fp[EPiramide] = CreateHDivPyramEl;
-            fp[EPrisma] = CreateHDivPrismEl;
-            fp[ECube] = CreateHDivCubeEl;
+            fp[ETriangle] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundTriangleEl(gel,mesh,hdivfam);};
+            fp[EQuadrilateral] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundQuadEl(gel,mesh,hdivfam);};
+            fp[ETetraedro] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivTetraEl(gel,mesh,hdivfam);};
+            fp[EPiramide] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivPyramEl(gel,mesh,hdivfam);};
+            fp[EPrisma] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivPrismEl(gel,mesh,hdivfam);};
+            fp[ECube] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivCubeEl(gel,mesh,hdivfam);};
             break;
         default:
             DebugStop();
@@ -497,10 +499,11 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
 
     fStyle = EHCurl;
+    const HCurlFamily &hcurlfam = this->fhcurlfam;
     switch (dimension) {
         case 1:
             fp[EPoint] = CreateHCurlBoundPointEl;
-            fp[EOned] = CreateHCurlLinearEl;
+            fp[EOned] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlLinearEl(gel,mesh,hcurlfam);};
             fp[ETriangle] = CreateNoElement;
             fp[EQuadrilateral] = CreateNoElement;
             fp[ETetraedro] = CreateNoElement;
@@ -510,9 +513,9 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
             break;
         case 2:
             fp[EPoint] = CreateNoElement;
-            fp[EOned] = CreateHCurlBoundLinearEl;
-            fp[ETriangle] = CreateHCurlTriangleEl;
-            fp[EQuadrilateral] = CreateHCurlQuadEl;
+            fp[EOned] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlBoundLinearEl(gel,mesh,hcurlfam);};
+            fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTriangleEl(gel,mesh,hcurlfam);};
+            fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlQuadEl(gel,mesh,hcurlfam);};
             fp[ETetraedro] = CreateNoElement;
             fp[EPiramide] = CreateNoElement;
             fp[EPrisma] = CreateNoElement;
@@ -521,12 +524,12 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
         case 3:
             fp[EPoint] = CreateNoElement;
             fp[EOned] = CreateNoElement;
-            fp[ETriangle] = CreateHCurlBoundTriangleEl;
-            fp[EQuadrilateral] = CreateHCurlBoundQuadEl;
-            fp[ETetraedro] = CreateHCurlTetraEl;
+            fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTriangleEl(gel,mesh,hcurlfam);};
+            fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlBoundQuadEl(gel,mesh,hcurlfam);};
+            fp[ETetraedro] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTetraEl(gel,mesh,hcurlfam);};
             fp[EPiramide] = CreateHCurlPyramEl;
-            fp[EPrisma] = CreateHCurlPrismEl;
-            fp[ECube] = CreateHCurlCubeEl;
+            fp[EPrisma] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlPrismEl(gel,mesh,hcurlfam);};
+            fp[ECube] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlCubeEl(gel,mesh,hcurlfam);};
             break;
         default:
             DebugStop();
@@ -542,12 +545,15 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
 void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
     
     fStyle = ESBFem;
+    
+    // NOTE: I dont think we support multiple h1 family spaces for SBFEM. Please pass as argument to function in case it is needed.
+    const H1Family &h1fam = this->fh1fam;
     switch (dimension) {
         case 1:
             DebugStop();
             break;
         case 2:
-            fp[EPoint] = CreatePointEl;
+            fp[EPoint] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreatePointEl(gel,mesh,h1fam);};
             fp[EOned] = CreateSBFemCompEl;
             fp[ETriangle] = CreateNoElement;
             fp[EQuadrilateral] = CreateSBFemCompEl;
@@ -557,10 +563,10 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
             fp[ECube] = CreateNoElement;
             break;
         case 3:
-            fp[EPoint] = CreatePointEl;
+            fp[EPoint] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreatePointEl(gel,mesh,h1fam);};
             fp[EOned] = CreateSBFemCompEl;
-            fp[ETriangle] = CreateTriangleEl;
-            fp[EQuadrilateral] = CreateQuadEl;
+            fp[ETriangle] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateTriangleEl(gel,mesh,h1fam);};
+            fp[EQuadrilateral] = [h1fam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateQuadEl(gel,mesh,h1fam);};
             fp[ETetraedro] = CreateNoElement;
             fp[EPiramide] = CreateNoElement;
             fp[EPrisma] = CreateSBFemCompEl;
@@ -663,15 +669,16 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFemMultiphysics(int dim
 
 
 #ifndef STATE_COMPLEX
-#include "pzhdivpressure.h"
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(int dimension){
-    
+    // This function has been deprecated since TPZCompElHDivPressure has been deprecated (Jan 31/2022)
+    // TODO: Delete me in the future?
+    /*
     fStyle = EHDiv;
     switch (dimension) {
         case 1:
-            fp[EPoint] = CreateHDivBoundPointEl;
-            fp[EOned] = CreateHDivPressureLinearEl;
+            fp[EPoint] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundPointEl(gel,mesh,hdivfam);};
+            fp[EOned] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivPressureLinearEl(gel,mesh,hdivfam);};
             fp[ETriangle] = CreateNoElement;
             fp[EQuadrilateral] = CreateNoElement;
             fp[ETetraedro] = CreateNoElement;
@@ -681,9 +688,9 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(int dimensio
             break;
         case 2:
             fp[EPoint] = CreateNoElement;
-            fp[EOned] = CreateHDivBoundLinearEl;
-            fp[ETriangle] = CreateHDivPressureTriangleEl;
-            fp[EQuadrilateral] = CreateHDivPressureQuadEl;
+            fp[EOned] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundLinearEl(gel,mesh,hdivfam);};
+            fp[ETriangle] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivPressureTriangleEl(gel,mesh,hdivfam);};
+            fp[EQuadrilateral] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivPressureQuadEl(gel,mesh,hdivfam);};
             fp[ETetraedro] = CreateNoElement;
             fp[EPiramide] = CreateNoElement;
             fp[EPrisma] = CreateNoElement;
@@ -692,17 +699,18 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(int dimensio
         case 3:
             fp[EPoint] = CreateNoElement;
             fp[EOned] = CreateNoElement;
-            fp[ETriangle] = CreateHDivBoundTriangleEl;
-            fp[EQuadrilateral] = CreateHDivBoundQuadEl;
-            fp[ETetraedro] = CreateHDivPressureTetraEl;
-            fp[EPiramide] = CreateHDivPressurePyramEl;
-            fp[EPrisma] = CreateHDivPressurePrismEl;
-            fp[ECube] = CreateHDivPressureCubeEl;
+            fp[ETriangle] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundTriangleEl(gel,mesh,hdivfam);};
+            fp[EQuadrilateral] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundQuadEl(gel,mesh,hdivfam);};
+            fp[ETetraedro] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivPressureTetraEl(gel,mesh,hdivfam);};
+            fp[EPiramide] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivPressurePyramEl(gel,mesh,hdivfam);};
+            fp[EPrisma] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivPressurePrismEl(gel,mesh,hdivfam);};
+            fp[ECube] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivPressureCubeEl(gel,mesh,hdivfam);};
             break;
         default:
             DebugStop();
             break;
     }
+     */
     
 }
 #endif

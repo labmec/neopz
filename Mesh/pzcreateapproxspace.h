@@ -15,6 +15,7 @@ class TPZCompMesh;
 #include <functional>
 #include "pzvec.h"
 #include "TPZSavable.h"
+#include "TPZEnumApproxFamily.h"
 
 typedef std::function<TPZCompEl* (TPZGeoEl* el, TPZCompMesh &mesh)> TCreateFunction;
 /*
@@ -38,6 +39,11 @@ class TPZCreateApproximationSpace : public TPZSavable {
     
     /// flag indicating that the elements need to be created with memory
     bool fCreateWithMemory;
+    
+    /// flags indicating "flavor" ofthe approximation space
+    HDivFamily fhdivfam = DefaultFamily::fHDivDefaultValue;
+    H1Family fh1fam = DefaultFamily::fH1DefaultValue;
+    HCurlFamily fhcurlfam = DefaultFamily::fHCurlDefaultValue;
     
 public:
     
@@ -87,6 +93,17 @@ public:
     {
         fCreateWithMemory = flag;
     }
+
+    // Get set methods for space families
+    const HDivFamily &HDivFam() const {return fhdivfam;}
+    const HDivFamily &HDivFam() {return fhdivfam;}
+
+    const H1Family &H1Fam() const {return fh1fam;}
+    const H1Family &H1Fam() {return fh1fam;}
+
+    const HCurlFamily &HCurlFam() const {return fhcurlfam;}
+    const HCurlFamily &HCurlFam() {return fhcurlfam;}
+
     
     /** @brief Create discontinuous approximation spaces */
     void SetAllCreateFunctionsDiscontinuous();

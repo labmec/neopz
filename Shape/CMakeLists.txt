@@ -30,6 +30,7 @@ set(headers
     TPZShapeHCurl.h
     TPZShapeHDivBound.h
     TPZShapeHDivCollapsed.h
+    TPZEnumApproxFamily.h
     )
 
 set(sources

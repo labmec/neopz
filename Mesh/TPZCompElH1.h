@@ -3,6 +3,7 @@
 
 
 #include "pzelctemp.h"
+#include "TPZEnumApproxFamily.h"
 
 /**
    @brief TPZCompElH1 implements a H1-conforming approximation space.
@@ -13,30 +14,33 @@ protected:
   ///! Indexes of the connects associated with the elements
   TPZManVector<int64_t,TSHAPE::NSides> fConnectIndexes =
     TPZManVector<int64_t,TSHAPE::NSides>(TSHAPE::NSides,-1);
+    
+  /// Family of the HDiv space being used. Changing this will change the shape generating class
+  H1Family fh1fam = DefaultFamily::fH1DefaultValue;
 public:
 
   TPZCompElH1() = default;
 
-  TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel);
+  TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, const H1Family h1fam = DefaultFamily::fH1DefaultValue);
 	
-	TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, int nocreate);
+  TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, int nocreate, const H1Family h1fam = DefaultFamily::fH1DefaultValue);
 	
-	TPZCompElH1(TPZCompMesh &mesh, const TPZCompElH1<TSHAPE> &copy);
+  TPZCompElH1(TPZCompMesh &mesh, const TPZCompElH1<TSHAPE> &copy);
 
   TPZCompElH1(const TPZCompElH1 &) = default;
   TPZCompElH1(TPZCompElH1 &&) = default;
   ~TPZCompElH1();
   TPZCompElH1 & operator =(const TPZCompElH1 &) = default;
   TPZCompElH1 & operator =(TPZCompElH1 &&) = default;
-	/** @brief Constructor used to generate patch mesh... generates a map of connect index from global mesh to clone mesh */
-	TPZCompElH1(TPZCompMesh &mesh,
-				const TPZCompElH1<TSHAPE> &copy,
-				std::map<int64_t,int64_t> & gl2lcConMap,
-				std::map<int64_t,int64_t> & gl2lcElMap);
+  /** @brief Constructor used to generate patch mesh... generates a map of connect index from global mesh to clone mesh */
+  TPZCompElH1(TPZCompMesh &mesh,
+              const TPZCompElH1<TSHAPE> &copy,
+              std::map<int64_t,int64_t> & gl2lcConMap,
+              std::map<int64_t,int64_t> & gl2lcElMap);
   
   virtual TPZCompEl *Clone(TPZCompMesh &mesh) const  override {
-		return new TPZCompElH1<TSHAPE> (mesh, *this);
-	}
+    return new TPZCompElH1<TSHAPE> (mesh, *this);
+  }
 	
 	/**
 	 * @brief Create a copy of the given element. The clone copy have the connect indexes
