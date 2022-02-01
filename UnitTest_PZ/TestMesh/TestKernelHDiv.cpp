@@ -155,7 +155,10 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType fShapeType);
 TEST_CASE("HCurl no grads dimension", "[hdivkernel_mesh_tests]") {
     std::cout << "Testing dimension of Hcurl with no high order grads\n";
     const int pOrder = GENERATE(1,2,3);
-
+  //SVD requires LAPACK
+#ifndef PZ_USING_LAPACK
+  return;
+#endif
   TestHCurlNoGradsDim<pzshape::TPZShapeTriang>(pOrder);
   TestHCurlNoGradsDim<pzshape::TPZShapeQuad>(pOrder);
   TestHCurlNoGradsDim<pzshape::TPZShapeTetra>(pOrder);
@@ -167,7 +170,10 @@ TEST_CASE("HCurl no grads dimension", "[hdivkernel_mesh_tests]") {
 TEST_CASE("HDiv Kernel dimension", "[hdivkernel_mesh_tests]") {
     std::cout << "Testing dimension of HDivKernel\n";
     const int pOrder = GENERATE(1,2,3);
-
+  //SVD requires LAPACK
+#ifndef PZ_USING_LAPACK
+  return;
+#endif
   TestShapeHDivKernel<pzshape::TPZShapeTriang>(pOrder);
   TestShapeHDivKernel<pzshape::TPZShapeQuad>(pOrder);
   TestShapeHDivKernel<pzshape::TPZShapeTetra>(pOrder);
