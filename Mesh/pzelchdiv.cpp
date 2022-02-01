@@ -18,6 +18,8 @@
 #include "tpzline.h"
 #include "tpztriangle.h"
 #include "TPZShapeHDiv.h"
+#include "TPZShapeHDivKernel.h"
+#include "TPZShapeHDivConstant.h"
 
 #include "pzshtmat.h"
 
@@ -87,6 +89,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(TSHAPE::NFacets,1), fhdivfam(hdivfa
         this->fIntRule.SetOrder(ord);
     }
 
+    if (fhdivfam == HDivFamily::EHDivConstant) this->AdjustConnects();
 
 }
 
@@ -224,7 +227,20 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
         DebugStop();
     }
 #endif
-    return TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(connect,order);
+    switch (fhdivfam)
+    {
+    case HDivFamily::EHDivStandard:
+        return TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(connect,order);    
+        break;
+    case HDivFamily::EHDivConstant:
+        return TPZShapeHDivConstant<TSHAPE>::ComputeNConnectShapeF(connect,order);
+        break;
+    
+    default:
+        return -1;
+        break;
+    }
+    return -1;
  }
 
 ////
@@ -817,6 +833,38 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	}
 #endif
 
+    if (fhdivfam == HDivFamily::EHDivConstant) {
+        data.fH1ConnectOrders = data.fHDivConnectOrders;
+        if (TSHAPE::Dimension == 2) TPZShapeH1<TSHAPE>::Initialize(data.fCornerNodeIds, data.fH1ConnectOrders, data);
+        
+        const int nSides = TSHAPE::NSides;
+        const int nCorner = TSHAPE::NCornerNodes;
+        TPZManVector<int64_t,nCorner> ids(nCorner,0);
+        for(auto i=0; i<nCorner; i++) ids[i] = i;
+        
+        data.fSideTransformationId.Resize(nSides-nCorner, 0);
+        for (int iside =nCorner; iside< nSides ; iside++) {
+            int pos = iside - nCorner;
+            int trans_id = TSHAPE::GetTransformId(iside, ids); // Foi criado
+            data.fSideTransformationId[iside-nCorner] = trans_id;
+        }
+
+        int nshape = this->NShapeF();
+        // int64_t numvec = TSHAPE::Dimension*TSHAPE::NSides;
+        data.fMasterDirections.Resize(3, nshape);
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < nshape; j++)
+                data.fMasterDirections(i,j) = 1;
+
+        data.divphi.Zero();
+        
+        data.fVecShapeIndex.Resize(nshape);
+        for (int i=0; i<nshape; i++) {
+            data.fVecShapeIndex[i] = std::make_pair(i,1);
+        }
+        data.fDeformedDirections.Resize(3,nshape);
+    }
+
 }
 
 
@@ -825,20 +873,64 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
 
     constexpr int dim = TSHAPE::Dimension;
     const int nshape = this->NShapeF();
-
-    // TPZFNMatrix<dim*80,REAL> phiref(dim,nshape);
-    // TPZFNMatrix<curldim*80,REAL> curlphiref(curldim,nshape);
-
     TPZShapeData &shapedata = data;
-    // TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, phiref, curlphiref);
-
     TPZFMatrix<REAL> auxPhi;
-    TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, auxPhi, data.divphi);
-    int shapeSize = data.divphi.Rows();
-    data.fVecShapeIndex.Resize(shapeSize);
 
-    for (int i = 0; i < shapeSize; i++){
-        data.fVecShapeIndex[i] = make_pair(i,i);
+    switch (fhdivfam)
+    {
+    case HDivFamily::EHDivStandard:
+        TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, auxPhi, data.divphi);
+        {
+            int shapeSize = data.divphi.Rows();
+            data.fVecShapeIndex.Resize(shapeSize);
+
+            for (int i = 0; i < shapeSize; i++){
+                data.fVecShapeIndex[i] = make_pair(i,i);
+            }
+        }
+        break;
+
+    case HDivFamily::EHDivConstant:
+        auxPhi.Resize(TSHAPE::Dimension,nshape);
+        data.divphi.Resize(nshape,1);
+        //Initialize data for HDiv Kernel
+        {
+            auto &dataKernel = data;
+            if(TSHAPE::Dimension == 3){
+                TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes,0);
+                TPZGeoEl *ref = this->Reference();
+                for(auto i=0; i<TSHAPE::NCornerNodes; i++) {
+                    ids[i] = ref->NodePtr(i)->Id();
+                }
+                
+                auto &conOrders = dataKernel.fHDivConnectOrders;
+                constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
+                conOrders.Resize(nConnects,-1);
+                for(auto i = 0; i < nConnects; i++){
+                    conOrders[i] = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes);
+                }
+                for (int i = 0; i < TSHAPE::NumSides(1); i++)
+                {
+                    conOrders[i] = conOrders[TSHAPE::NumSides(1)];
+                }
+                
+                TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, dataKernel);
+                dataKernel.divphi.Resize(dataKernel.fVecShapeIndex.size(),1);
+                TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(dataKernel);
+            }
+            if (TSHAPE::Dimension == 2) {
+                TPZShapeHDivConstant<TSHAPE>::Shape(qsi, shapedata, auxPhi, data.divphi);
+            } else if (TSHAPE::Dimension == 3){
+                TPZShapeHDivConstant<TSHAPE>::Shape(qsi, dataKernel, auxPhi, data.divphi);
+            } else {
+                DebugStop();
+            }
+        }
+        break;
+
+    default:
+        DebugStop();
+        break;
     }
     
     TPZFMatrix<REAL> gradx(3,TSHAPE::Dimension,0.);
@@ -1068,35 +1160,59 @@ int TPZCompElHDiv<TSHAPE>::RestrainedFace()
     return -1;
 }
 
-template<>
-int TPZCompElHDiv<TPZShapePiram>::RestrainedFace()
+// template<>
+// int TPZCompElHDiv<TPZShapePiram>::RestrainedFace()
+// {
+//     if (fRestraints.size() == 0) {
+//         return -1;
+//         DebugStop(); //AQUIPHIL
+//     }
+//     std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin();
+//     int foundis = -1;
+//     bool found = false;
+//     while (found == false && it != fRestraints.end()) {
+//         int64_t connectindex = it->fFaces[3].first;
+//         int64_t cindex = -1;
+//         for (int is = 14; is<18; is++) {
+//             cindex = ConnectIndex(is-13);
+//             if (connectindex == cindex) {
+//                 found = true;
+//                 foundis = is+1;
+//                 if (foundis == 18) {
+//                     foundis = 14;
+//                 }
+//             }
+//         }
+//         it++;
+//     }
+//     if (found == false) {
+//         DebugStop();
+//     }
+//     return foundis;
+// }
+
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::AdjustConnects()
 {
-    if (fRestraints.size() == 0) {
-        return -1;
-        DebugStop(); //AQUIPHIL
-    }
-    std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin();
-    int foundis = -1;
-    bool found = false;
-    while (found == false && it != fRestraints.end()) {
-        int64_t connectindex = it->fFaces[3].first;
-        int64_t cindex = -1;
-        for (int is = 14; is<18; is++) {
-            cindex = ConnectIndex(is-13);
-            if (connectindex == cindex) {
-                found = true;
-                foundis = is+1;
-                if (foundis == 18) {
-                    foundis = 14;
-                }
+    constexpr auto nNodes = TSHAPE::NCornerNodes;
+    auto ncon = this->NConnects();
+    if (TSHAPE::Dimension == 2) ncon =TSHAPE::NSides - nNodes;
+    for(int icon = 0; icon < ncon; icon++){
+        const int connect = icon;//this->MidSideConnectLocId(icon+1);
+        TPZConnect &c = this->Connect(connect);
+        const int nshape =this->NConnectShapeF(connect,c.Order());
+        c.SetNShape(nshape);
+        const auto seqnum = c.SequenceNumber();
+        const int nStateVars = [&](){
+            TPZMaterial * mat =this-> Material();
+            if(mat) return mat->NStateVariables();
+            else {
+                return 1;
             }
-        }
-        it++;
+        }();
+        this-> Mesh()->Block().Set(seqnum,nshape*nStateVars);
     }
-    if (found == false) {
-        DebugStop();
-    }
-    return foundis;
+
 }
 
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapeLinear>>;
@@ -1105,7 +1221,7 @@ template class TPZRestoreClass< TPZCompElHDiv<TPZShapeQuad>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapeCube>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapeTetra>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapePrism>>;
-template class TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>>;
+// template class TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>>;
 
 
 template class TPZCompElHDiv<TPZShapeLinear>;
@@ -1113,7 +1229,7 @@ template class TPZCompElHDiv<TPZShapeTriang>;
 template class TPZCompElHDiv<TPZShapeQuad>;
 template class TPZCompElHDiv<TPZShapeTetra>;
 template class TPZCompElHDiv<TPZShapePrism>;
-template class TPZCompElHDiv<TPZShapePiram>;
+// template class TPZCompElHDiv<TPZShapePiram>;
 template class TPZCompElHDiv<TPZShapeCube>;
 
 
@@ -1153,9 +1269,9 @@ TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily 
 	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
-	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,hdivfam);
-}
+// TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+// 	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,hdivfam);
+// }
 
 TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
 	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel,hdivfam);

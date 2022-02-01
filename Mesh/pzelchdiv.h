@@ -247,6 +247,10 @@ public:
 	void Read(TPZStream &buf, void *context) override;
     /** @brief Refinement along the element */
     virtual void PRefine(int order) override;
+
+    /** @brief Adjust the number of shape functions for each element connect */
+    void AdjustConnects();
+    
 protected:
     //@{
     /** @brief Compute the solution using Hdiv structure */

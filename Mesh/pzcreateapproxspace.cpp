@@ -442,10 +442,11 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
 #include "pzelchdiv.h"
 #include "pzelchdivbound2.h"
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension, HDivFamily hdivfam){
 
     fStyle = EHDiv;
-    const HDivFamily &hdivfam = this->fhdivfam;
+    this->fhdivfam = hdivfam;
+    // const HDivFamily &hdivfam = this->fhdivfam;
     switch (dimension) {
         case 1:
             fp[EPoint] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundPointEl(gel,mesh,hdivfam);};
@@ -473,7 +474,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
             fp[ETriangle] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundTriangleEl(gel,mesh,hdivfam);};
             fp[EQuadrilateral] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundQuadEl(gel,mesh,hdivfam);};
             fp[ETetraedro] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivTetraEl(gel,mesh,hdivfam);};
-            fp[EPiramide] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivPyramEl(gel,mesh,hdivfam);};
+            fp[EPiramide] = CreateNoElement;
             fp[EPrisma] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivPrismEl(gel,mesh,hdivfam);};
             fp[ECube] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivCubeEl(gel,mesh,hdivfam);};
             break;

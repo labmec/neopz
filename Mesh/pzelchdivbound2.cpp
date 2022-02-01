@@ -13,6 +13,9 @@
 #include "TPZMaterialDataT.h"
 #include "pzelchdiv.h"
 #include "TPZShapeHDivBound.h"
+#include "TPZShapeHDivConstantBound.h"
+#include "TPZShapeHDivKernel.h"
+
 
 
 #ifdef PZ_LOG
@@ -76,6 +79,8 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(1), fhdivfam(hdivfam){
       LOGPZ_DEBUG(logger,sout.str())
         }
 #endif
+
+    if (fhdivfam == HDivFamily::EHDivConstant) this->AdjustConnects();
 	 
 }
 
@@ -229,12 +234,31 @@ void TPZCompElHDivBound2<TSHAPE>::SetConnectIndex(int i, int64_t connectindex)
 template<class TSHAPE>
 int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect, int connectorder) const
 {
-	if(connect == 0)
-	{
-        if(connectorder == 0) return 1;
-		TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,connectorder);
-        return TSHAPE::NShapeF(order);
+#ifdef DEBUG
+    if (connect < 0 || connect > TSHAPE::NFacets) {
+        DebugStop();
     }
+#endif
+
+	switch (fhdivfam)
+    {
+    case HDivFamily::EHDivStandard:
+        if(connect == 0)
+        {
+            if(connectorder == 0) return 1;
+            TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,connectorder);
+            return TSHAPE::NShapeF(order);
+        }    
+        break;
+    case HDivFamily::EHDivConstant:
+        return TPZShapeHDivConstantBound<TSHAPE>::ComputeNConnectShapeF(connect,connectorder);
+        break;
+    
+    default:
+        DebugStop();//You shoud choose an approximation space
+        break;
+    }
+    
     return -1;
 }
 
@@ -376,6 +400,14 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     // fill in the datastructures of shapedata
     TPZShapeHDivBound<TSHAPE> shapehdiv;
     shapehdiv.Initialize(id, connectorder, sideorient, data);
+
+    if (fhdivfam == HDivFamily::EHDivConstant){
+        int nshape = this->NShapeF();
+        data.fVecShapeIndex.Resize(nshape);
+        for (int i=0; i<nshape; i++) {
+            data.fVecShapeIndex[i] = std::make_pair(i,1);
+        }
+    }
 
 	//data.fVecShapeIndex=true;
 	/*
@@ -555,12 +587,77 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
     
-    TPZShapeHDivBound<TSHAPE> shapehdiv;
-    TPZShapeData shapedata(data);
+    switch (fhdivfam)
+    {
+    case HDivFamily::EHDivStandard:
+        {
+            TPZShapeHDivBound<TSHAPE> shapehdiv;
+            TPZShapeData shapedata(data);
 
-    data.phi.Resize(shapehdiv.NShape(shapedata), 1);
-    shapehdiv.Shape(intpoint, shapedata, data.phi);
-    data.phi *= 1./data.detjac;
+            data.phi.Resize(shapehdiv.NShape(shapedata), 1);
+            shapehdiv.Shape(intpoint, shapedata, data.phi);
+            data.phi *= 1./data.detjac;
+        }
+        break;
+    case HDivFamily::EHDivConstant:
+        {
+                        bool needsol = data.fNeedsSol;
+            data.fNeedsSol = true;
+            data.fNeedsSol = needsol;
+
+            TPZShapeData &shapedata = data;
+            int nshape = this->NShapeF();
+            data.phi.Resize(nshape,1);
+
+            TPZFMatrix<REAL> auxPhi(nshape,TSHAPE::Dimension);
+            auxPhi.Zero();
+
+            auto &dataKernel = data;
+            if (TSHAPE::Dimension == 2){
+                TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes,0);
+                TPZGeoEl *ref = this->Reference();
+                for(auto i=0; i<TSHAPE::NCornerNodes; i++) {
+                    ids[i] = ref->NodePtr(i)->Id();
+                }
+                
+                auto &conOrders = dataKernel.fHDivConnectOrders;
+                constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
+                conOrders.Resize(nConnects,-1);
+                for(auto i = 0; i < nConnects; i++){
+                    conOrders[i] = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes);
+                }
+                for (int i = 0; i < TSHAPE::NumSides(1); i++)
+                {
+                    conOrders[i] = conOrders[TSHAPE::NumSides(1)];
+                }
+                
+                TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, dataKernel);
+                dataKernel.divphi.Resize(dataKernel.fVecShapeIndex.size(),1);
+                TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(dataKernel);
+            }
+
+            if (TSHAPE::Dimension == 1){
+                TPZShapeHDivConstantBound<TSHAPE>::Shape(intpoint, shapedata, auxPhi);
+            } else if (TSHAPE::Dimension == 2){
+                TPZShapeHDivConstantBound<TSHAPE>::Shape(intpoint, dataKernel, auxPhi);
+            } else {
+                DebugStop();
+            }
+
+            // if (this->GetSideOrient() != 1) DebugStop();
+            if (data.fSideOrient[0] != 1) DebugStop();
+
+            for (int i = 0; i < data.phi.Rows(); i++){
+                data.phi(i,0) = auxPhi(i,0) / data.detjac;
+            }
+        }
+        break;
+       
+    default:
+        DebugStop();//You should chose an HDiv family space
+        break;
+    }
+    
     
 }
 
@@ -668,6 +765,28 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::SetCreateFunctions(TPZCompMesh* mesh) {
     mesh->SetAllCreateFunctionsHDiv();
+}
+
+template<class TSHAPE>
+void TPZCompElHDivBound2<TSHAPE>::AdjustConnects()
+{
+    constexpr auto nNodes = TSHAPE::NCornerNodes;
+    auto ncon = 1;//this->NConnects();
+    for(int icon = 0; icon < ncon; icon++){
+        const int connect = icon;//this->MidSideConnectLocId(icon+1);
+        TPZConnect &c = this->Connect(connect);
+        const int nshape =this->NConnectShapeF(connect,c.Order());
+        c.SetNShape(nshape);
+        const auto seqnum = c.SequenceNumber();
+        const int nStateVars = [&](){
+            TPZMaterial * mat =this-> Material();
+            if(mat) return mat->NStateVariables();
+            else {
+                return 1;
+            }
+        }();
+        this-> Mesh()->Block().Set(seqnum,nshape*nStateVars);
+    }
 }
 
 #include "pzshapetriang.h"

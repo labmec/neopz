@@ -181,6 +181,10 @@ int ClassId() const override;
     /** @brief Prints the relevant data of the element to the output stream */
     virtual void Print(std::ostream &out) const override;
 
+private:
+    /** @brief Adjust the number of shape functions for each element connect */
+    void AdjustConnects();
+
 };
 
 template<class TSHAPE>

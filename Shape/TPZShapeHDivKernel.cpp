@@ -191,6 +191,9 @@ int TPZShapeHDivKernel<TSHAPE>::MaxOrder(const int ordh1){
 }
 
 template
+struct TPZShapeHDivKernel<pzshape::TPZShapeLinear>;
+
+template
 struct TPZShapeHDivKernel<pzshape::TPZShapeTriang>;
 
 template
@@ -204,4 +207,3 @@ struct TPZShapeHDivKernel<pzshape::TPZShapeCube>;
 
 template
 struct TPZShapeHDivKernel<pzshape::TPZShapePrism>;
-

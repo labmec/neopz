@@ -256,7 +256,14 @@ namespace pztopology {
             directions(0,2) = 0.5 * sign;
         }
         
-
+        /// Compute the directions of the HDiv vectors for constant divergent
+        // template <class TVar>
+        static void ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div, const TPZVec<int> &transformationIds){
+            DebugStop();
+        };
+        static void ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds){
+            DebugStop();
+        };
         
         /**
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
