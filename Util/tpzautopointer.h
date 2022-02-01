@@ -278,7 +278,7 @@ public:
 private:
     /** @brief Method for deleting the reference*/
     inline void Release(){
-        if(fRef && fRef->fCounter) {
+        if(fRef && ! fRef->fCounter) {
             delete fRef;
         }
         fRef = nullptr;
