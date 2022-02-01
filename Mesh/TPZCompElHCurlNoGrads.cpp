@@ -146,7 +146,7 @@ void TPZCompElHCurlNoGrads<TSHAPE>::ComputeRequiredDataT(
 
     TPZCompElHCurl<TSHAPE>::TransformCurl(curlHCurl, data.detjac, data.jacobian, data.curlphi);
 
-    data.phi.Transpose(&phiHCurl);
+    //data.phi.Transpose(&phiHCurl);
 
     if (data.fNeedsSol) {
         this->ReallyComputeSolution(data);
