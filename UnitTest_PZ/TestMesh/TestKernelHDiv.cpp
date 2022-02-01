@@ -156,10 +156,10 @@ TEST_CASE("HCurl no grads dimension", "[hdivkernel_mesh_tests]") {
     std::cout << "Testing dimension of Hcurl with no high order grads\n";
     const int pOrder = GENERATE(1,2,3,4);
 
-//   TestHCurlNoGradsDim<pzshape::TPZShapeTriang>(pOrder);
-//   TestHCurlNoGradsDim<pzshape::TPZShapeQuad>(pOrder);
-//   TestHCurlNoGradsDim<pzshape::TPZShapeTetra>(pOrder);
-//   TestHCurlNoGradsDim<pzshape::TPZShapeCube>( pOrder);
+  TestHCurlNoGradsDim<pzshape::TPZShapeTriang>(pOrder);
+  TestHCurlNoGradsDim<pzshape::TPZShapeQuad>(pOrder);
+  TestHCurlNoGradsDim<pzshape::TPZShapeTetra>(pOrder);
+  TestHCurlNoGradsDim<pzshape::TPZShapeCube>( pOrder);
   // TestKernelHDivDim<pzshape::TPZShapePrism>(pOrder);
   std::cout << "Finish test dimension of HCurlNoGrads \n";
 }
@@ -168,10 +168,10 @@ TEST_CASE("HDiv Kernel dimension", "[hdivkernel_mesh_tests]") {
     std::cout << "Testing dimension of Hcurl with no high order grads\n";
     const int pOrder = GENERATE(1,2 ,3,4,5);
 
-//   TestShapeHDivKernel<pzshape::TPZShapeTriang>(pOrder);
-//   TestShapeHDivKernel<pzshape::TPZShapeQuad>(pOrder);
-//   TestShapeHDivKernel<pzshape::TPZShapeTetra>(pOrder);
-//   TestShapeHDivKernel<pzshape::TPZShapeCube>( pOrder);
+  TestShapeHDivKernel<pzshape::TPZShapeTriang>(pOrder);
+  TestShapeHDivKernel<pzshape::TPZShapeQuad>(pOrder);
+  TestShapeHDivKernel<pzshape::TPZShapeTetra>(pOrder);
+  TestShapeHDivKernel<pzshape::TPZShapeCube>( pOrder);
   // TestShapeHDivKernel<pzshape::TPZShapePrism>(pOrder);
   std::cout << "Finish test dimension of HCurlNoGrads \n";
 }
