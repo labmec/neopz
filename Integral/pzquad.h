@@ -252,13 +252,18 @@ class TPZIntCube3D : public TPZIntPoints{
 	TPZGaussRule *fIntZeta;
 public:
 	enum {Dim = 3};
+  /**
+	 * @brief Constructor with three one dimensional rules of same order in each axis.
+	 * @param ord Order for every axis
+	 */
+	TPZIntCube3D(int OrdK = 2) : TPZIntCube3D(OrdK,OrdK,OrdK){}
 	/**
 	 * @brief Constructor with three one dimensional rules.
 	 * @param OrdK Order for \f$ \xi \f$ axe
 	 * @param OrdE Order for \f$ \eta \f$ axe
 	 * @param OrdZ Order for \f$ \zeta \f$ axe at master element.
 	 */
-	TPZIntCube3D(int OrdK = 2,int OrdE = 2,int OrdZ = 2);
+	TPZIntCube3D(int OrdK,int OrdE,int OrdZ);
 	/** @brief Copy constructor */
 	TPZIntCube3D(const TPZIntCube3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fOrdZeta(copy.fOrdZeta),
 		fIntKsi(copy.fIntKsi), fIntEta(copy.fIntEta), fIntZeta(copy.fIntZeta) {

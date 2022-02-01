@@ -8,6 +8,14 @@
 #include "TPZTopologyUtils.h"
 #include "TPZGeoMeshTools.h"
 
+#include "pzshapecube.h"
+#include "pzshapelinear.h"
+#include "pzshapequad.h"
+#include "pzshapepoint.h"
+#include "pzshapetriang.h"
+#include "pzshapetetra.h"
+#include "pzshapeprism.h"
+
 #include "tpztriangle.h"
 #include "tpzquadrilateral.h"
 #include "tpztetrahedron.h"
@@ -44,22 +52,19 @@ static TPZLogger logger("pz.mesh.testhcurl");
 
 namespace hcurltest{
     constexpr REAL tol = 1e-10;
-    // /**
-    //  * This unit test aims to verify the vectors used to build the HCurl approximation space.
-    //  * It was rewritten based on TestFunctionTracesUniformMesh, therefore it could be simplified.
-    //  * @param type element type (triangle, quadrilateral, etc.
-    //  * @param dim dimension of the element
-    //  */
-    // void TestVectorTracesUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh,
-    //                                  MMeshType type);
+
+    /**
+     * This unit test aims to verify the trace compatibility of the HCurl approximation space in the master element
+     * @param k polynomial order of the element.
+     */
+    template<class TSHAPE>
+    void TestPermute(const int k);
     /**
      * This unit test aims to verify the trace compatibility of the HCurl approximation space in a UNIFORM mesh.
      * @param type element type (triangle, quadrilateral, etc.
      * @param dim dimension of the element
      */
     void TestFunctionTracesUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh,
-                                       MMeshType type, const int pOrder);
-    void TestFunctionCurlUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh,
                                        MMeshType type, const int pOrder);
     //auxiliary funcs
     template <class TGEOM>
@@ -73,6 +78,15 @@ namespace hcurltest{
     void VectorProduct(const TPZVec<REAL> &, const TPZVec<REAL> &, TPZVec<REAL> &);
 }
 
+TEMPLATE_TEST_CASE("test hcurl internal funcs under node permutation",
+                   "[hcurl_tests][shape][topology]",
+                   pzshape::TPZShapeTriang,
+                   pzshape::TPZShapeQuad
+                   ){
+
+    auto k = GENERATE(1,2,3,4,5);
+    hcurltest::TestPermute<TestType>(k);
+}
 
 TEST_CASE("Testing trace of HCurl functions",
           "[hcurl_tests][mesh][topology]") {
@@ -102,9 +116,182 @@ TEST_CASE("Testing trace of HCurl functions",
     }
 }
 
-
+#include "TPZShapeHCurl.h"
+#include "pzgeoelrefless.h"
+#include "pzquad.h"
+#include "tpzpermutation.h"
 namespace hcurltest{
 
+    template<class TSHAPE>
+    void TestPermute(const int k){
+        //insert element in mesh
+        auto InsertEl = [](TPZGeoMesh &gmesh, TPZVec<int64_t> & nodeids) ->TPZGeoEl*{
+            TPZGeoEl* gel{nullptr};
+            constexpr int matid = 1;
+            if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeTriang>){
+                gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodeids, matid, gmesh);
+            }else if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeQuad>){
+                gel = new TPZGeoElRefLess<pzgeom::TPZGeoQuad>(nodeids, matid, gmesh);
+            }else{
+                DebugStop();//not yet implemented
+            }
+            return gel;
+        };
+        //check for valid permutation
+        auto CheckPermute =
+            [](const TPZVec<int64_t> &orig, const TPZVec<int64_t> &perm){
+                const int n = orig.size();
+                int pos = 0;
+                for(pos = 0; pos < n; pos++){
+                    if(perm[0] == orig[pos]){ break;}
+                }
+                if(pos == n) DebugStop(); //entry not found in orig vec
+
+                bool valid = true;
+                //anticlockwise
+                for(int ip = 0; ip < n; ip++){
+                    const int ipo = (pos + ip) % n;
+                    if(perm[ip] != orig[ipo]){
+                        valid = false;
+                        break;
+                    }
+                }
+                // if(!valid){
+                //     valid = true;
+                //     //anticlockwise
+                //     for(int ip = 0; ip < n; ip++){
+                //         const int ipo = ((pos-ip)%n+n)%n;
+                //         if(perm[ip] != orig[ipo]){
+                //             valid = false;
+                //             break;
+                //         }
+                //     }
+                // }
+                return valid;
+            };
+        /********************
+           actual method
+        ********************/
+        
+        //info from the element
+        constexpr int dim = TSHAPE::Dimension;
+        constexpr int curldim = 2*dim - 3;
+        constexpr int nnodes = TSHAPE::NCornerNodes;
+        constexpr int nsides = TSHAPE::NSides;
+        constexpr int nfaces = dim == 3 ? TSHAPE::NFacets : 1;
+        constexpr int nedges = dim == 3 ? nsides - nfaces - nnodes - 1 : TSHAPE::NFacets;
+
+        constexpr int ncons = nsides - nnodes;//n connects
+
+
+        TPZGeoMesh gmesh;
+        gmesh.SetDimension(dim);
+        TPZManVector<int, ncons> conorders(ncons,k);
+        TPZManVector<int64_t,nnodes> elids(nnodes,-1),permids(nnodes,-1);
+         
+        for(int i = 0; i < nnodes; i++){
+            TPZManVector<REAL,3> xloc(dim,0), xglob(3,0);
+            TSHAPE::ParametricDomainNodeCoord(i, xloc);
+            const auto nodeid = gmesh.NodeVec().AllocateNewElement();
+            elids[i] = nodeid;
+            for(int ix = 0; ix < dim; ix++) {xglob[ix] = xloc[ix];}
+            gmesh.NodeVec()[nodeid].Initialize(xglob,gmesh);
+        }
+
+        TPZGeoEl* gel = InsertEl(gmesh, elids);
+
+        //number of internal shape functions
+        const int nshapeint = TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(ncons-1, k);
+        int firstshape = 0;
+        for(int ic = 0; ic < ncons-1; ic++){
+            firstshape += TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(ic, k);
+        }
+        const int nshape = firstshape + nshapeint;
+
+        TPZPermutation perm(nnodes);
+        do{
+            perm.Permute(elids, permids);
+            perm++;
+            if (! CheckPermute(elids,permids)){continue;}
+
+            TPZGeoEl* permgel = InsertEl(gmesh,permids);
+            gmesh.BuildConnectivity();
+
+            TPZCompMesh cmesh(&gmesh);
+            cmesh.SetAllCreateFunctionsHCurl();
+            auto *mat = new TPZHCurlProjection<STATE> (1, dim);
+            cmesh.InsertMaterialObject(mat);
+            cmesh.SetDefaultOrder(k);
+            cmesh.AutoBuild();
+
+            TPZMaterialDataT<STATE> eldata, permdata;
+
+            auto cel = dynamic_cast<TPZInterpolatedElement*> (gel->Reference());
+            cel->InitMaterialData(eldata);
+
+            auto permcel = dynamic_cast<TPZInterpolatedElement*>(permgel->Reference());
+            permcel->InitMaterialData(permdata);
+            
+            //initialize shape function data
+            const int pord_int = TPZShapeHCurl<TSHAPE>::MaxOrder(k);
+            typename TSHAPE::IntruleType intrule(2*pord_int);
+            const int npts = intrule.NPoints();
+            REAL weight;
+            TPZVec<REAL> pt(dim,0.), permpt(dim,0.);
+
+
+            TPZFMatrix<REAL> phi(dim,nshape);
+            TPZFMatrix<REAL> curlphi(curldim, nshape);
+            TPZFMatrix<REAL> phiperm(dim,nshape);
+            TPZFMatrix<REAL> curlphiperm(curldim, nshape);
+            TPZGeoElSide gelside(gel,nsides-1);
+            auto sidetransf =
+                gelside.NeighbourSideTransform(gelside.Neighbour());
+
+            for(int ipt = 0; ipt < npts; ipt++){
+                intrule.Point(ipt,pt,weight);
+
+                cel->ComputeRequiredData(eldata, pt);
+
+                //convert to permuted pt
+                sidetransf.Apply(pt, permpt);
+
+                permcel->ComputeRequiredData(permdata, permpt);
+
+                REAL diffx = 0;
+                for(int ix = 0; ix < dim; ix++){
+                    diffx += std::abs(eldata.x[ix] - permdata.x[ix]);
+                }
+                REQUIRE(diffx < tol);
+
+                for(int ix = 0; ix < dim; ix++){
+                    for(int ip = 0; ip < nshapeint; ip++){
+                        const int iphi = firstshape + ip;
+                        REQUIRE(std::abs(eldata.phi(iphi,ix) - permdata.phi(iphi,ix))< tol);
+                    }
+                }
+                for(int ix = 0; ix < curldim; ix++){
+                    for(int ip = 0; ip < nshapeint; ip++){
+                        const int iphi = firstshape + ip;
+
+                        CAPTURE(permids);
+                        CAPTURE(k);
+                        CAPTURE(nshapeint);
+                        CAPTURE(eldata.curlphi);
+                        CAPTURE(permdata.curlphi);
+                        REQUIRE(std::abs(eldata.curlphi(ix,iphi) - permdata.curlphi(ix,iphi))< tol);
+                    }
+                }
+            }
+            gmesh.DeleteElement(permgel);
+            gmesh.ResetConnectivities();
+        }while (perm.IsFirst() == 0);
+        
+        
+        
+    }
+
+    
     void TestFunctionTracesUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh,
                                        MMeshType type, const int pOrder){
         const int dim = MMeshType_Dimension(type);   
@@ -372,113 +559,6 @@ namespace hcurltest{
         //   an.PostProcess(postProcessResolution);
         // }
     }//hcurltest::TestFunctionTracesUniformMesh
-
-    void TestFunctionCurlUniformMesh(TPZAutoPointer<TPZCompMesh> cmesh,
-                                       MMeshType type, const int pOrder)
-    {
-        const auto oldPrecision = Catch::StringMaker<REAL>::precision;
-        Catch::StringMaker<REAL>::precision = std::numeric_limits<REAL>::max_digits10;
-        const int dim = MMeshType_Dimension(type);
-        const int curlDim = dim == 1 ? 1 : 2 * dim -3;
-        MElementType elType = [&](){
-            switch(type){
-            case MMeshType::ETriangular: return ETriangle;
-            case MMeshType::EQuadrilateral: return EQuadrilateral;
-            case MMeshType::ETetrahedral: return ETetraedro;
-            case MMeshType::EHexahedral: return ECube;
-            case MMeshType::EPrismatic: return EPrisma;
-            case MMeshType::EPyramidal: return EPiramide;
-            default: return ENoType;
-            }
-        }();
-
-        if(pOrder > 1 ){
-            cmesh->SetDefaultOrder(pOrder);
-            for(auto cel : cmesh->ElementVec()){
-                TPZInterpolatedElement *intel =
-                    dynamic_cast<TPZInterpolatedElement *> (cel);
-                if(intel) intel->PRefine(pOrder);
-            }
-            cmesh->AutoBuild();
-            cmesh->AdjustBoundaryElements();
-            cmesh->CleanUpUnconnectedNodes();
-        }
-        
-        for(auto dummyCel : cmesh->ElementVec()){
-            const auto cel = dynamic_cast<TPZInterpolatedElement *>(dummyCel);
-            if(!cel) continue;
-            const auto gel = cel->Reference();
-            //skips boundary els
-            if(!cel || cel->Reference()->Type() != elType) continue;
-
-            TPZMaterialDataT<STATE> elData;
-            cel->InitMaterialData(elData);
-            const int nState = cel->Material()->NStateVariables();
-            const int nShapeFunc = cel->NShapeF();
-            const int nSides = gel->NSides();
-            TPZIntPoints *intRule =
-                gel->CreateSideIntegrationRule(nSides-1, pOrder);
-            const int nIntPts = intRule->NPoints();
-            TPZManVector<REAL,3> qsi(dim);
-            REAL w;
-
-            
-            auto Cross = [dim,curlDim](const TPZFMatrix<REAL> v1,
-                               const TPZFMatrix<REAL>&v2,
-                               TPZFMatrix<REAL> &res)
-            {
-                res.Redim(curlDim,1);
-                switch(dim){
-                case 2:
-                    res(0,0) = v1(0,0) * v2(1,0) - v1(1,0) * v2(0,0);
-                    break;
-                case 3:
-                    res(0,0) = v1(1,0) * v2(2,0) - v1(2,0) * v2(1,0);
-                    res(1,0) = v1(2,0) * v2(0,0) - v1(0,0) * v2(2,0);
-                    res(2,0) = v1(0,0) * v2(1,0) - v1(1,0) * v2(0,0);
-                    break;
-                }
-            };
-            
-            TPZFNMatrix<3,REAL>
-                dir(dim,1,0),
-                gphiHat(dim,1,0),              
-                curlX(curlDim,1,0),
-                curlCalc(curlDim,1,0);
-
-            
-            const auto tol = std::numeric_limits<REAL>::epsilon()*10;
-            const auto &indices = elData.fVecShapeIndex;
-            const auto &directions = elData.fMasterDirections;
-            const auto &axes = elData.axes;
-            
-            for(auto iPt = 0; iPt < nIntPts; iPt++){
-                intRule->Point(iPt, qsi,w);
-                cel->ComputeRequiredData(elData, qsi);
-                const auto &gradPhiVec = elData.fDPhi;
-                const auto &jac = elData.jacobian;
-                const auto &detjac = elData.detjac;
-                
-                const auto &curlCalcVec = elData.curlphi;
-                for(auto iShape = 0; iShape < nShapeFunc; iShape++){
-                    curlCalcVec.GetSub(0, iShape, curlDim, 1, curlCalc);
-                    const auto &vi = indices[iShape].first;
-                    const auto &pi = indices[iShape].second;
-                    directions.GetSub(0, vi, dim, 1, dir);
-                    gradPhiVec.GetSub(0, pi, dim, 1, gphiHat);
-                    Cross(gphiHat, dir ,curlX);
-                    if (dim == 3){
-                        curlX = jac * curlX;
-                    }
-                    curlX *= 1./detjac;
-                    CAPTURE(iShape, jac, gphiHat, dir, curlX,curlCalc);
-                    const auto diff = fabs(Norm(curlX-curlCalc));
-                    REQUIRE(diff == Approx(0.0).margin(tol));
-                }//for iShape
-            }//for iPt
-        }//for dummyCel
-        Catch::StringMaker<REAL>::precision = oldPrecision;
-    }//hcurltest::TestFunctionCurlUniformMesh
 
 
     template <class TGEOM>

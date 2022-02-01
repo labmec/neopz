@@ -43,11 +43,15 @@ public:
 	
     virtual void InitMaterialData(TPZMaterialData &data) override;
 
-    void ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi) override;
+    
+    void ComputeRequiredDataT(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi);
     
     void SetSideOrient(int orient);
 
     int GetSideOrient();
+    void ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi) override{
+        ComputeRequiredDataT(data,qsi);
+    }
 
 };
 

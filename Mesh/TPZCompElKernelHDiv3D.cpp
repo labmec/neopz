@@ -113,7 +113,7 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> 
         std::stringstream sout;
         //	this->Print(sout);
         // sout << "\nVecshape = " << data.fVecShapeIndex << std::endl;
-        sout << "Phi = " << data.fDeformedDirections << std::endl;
+        // sout << "Phi = " << data.fDeformedDirections << std::endl;
         LOGPZ_DEBUG(logger,sout.str())
         
     }

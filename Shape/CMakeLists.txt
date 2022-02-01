@@ -28,6 +28,7 @@ set(headers
     TPZShapeHDivConstant.h
     TPZShapeHDivConstantBound.h
     TPZShapeHCurl.h
+    TPZShapeHCurlNoGrads.h
     TPZShapeHDivBound.h
     TPZShapeHDivCollapsed.h
     TPZEnumApproxFamily.h
@@ -53,6 +54,7 @@ set(sources
     TPZShapeHDivConstant.cpp
     TPZShapeHDivConstantBound.cpp
     TPZShapeHCurl.cpp
+    TPZShapeHCurlNoGrads.cpp
     TPZShapeHDivBound.cpp
     TPZShapeHDivCollapsed.cpp
     )

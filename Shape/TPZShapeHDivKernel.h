@@ -24,6 +24,8 @@ struct TPZShapeHDivKernel : public TPZShapeHCurl<TSHAPE>
 
     static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
 
+    //! Maximum (actual) polynomial order. Useful for choosing integration rule
+    [[nodiscard]] static int MaxOrder(const int ordh1);
 };
 
 #endif

@@ -50,6 +50,9 @@
 #include "pznoderep.h"
 #include "pzlog.h"
 
+#undef PZ_KERNELHDIV_DEBUG
+
+
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.testhdivkernel");
 #endif
@@ -133,28 +136,67 @@ CreateGeoMesh(const MMeshType meshType, const TPZVec<int> &nDivs, const int dim,
               const int volId, const int bcId, MShapeType fShapeType);
 
 /*
+    Test the dimension of TPZHCurl approximation spaces with no high order
+    gradient fields.
+*/
+template<class TSHAPE>
+void TestHCurlNoGradsDim(const int &pOrder);
+
+template<class TSHAPE>
+void TestShapeHDivKernel(const int &pOrder);
+
+/*
     Test KernelHdiv problem
 */
 template<class tshape>
 void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType fShapeType);
 
 
-//Test 2D Kernel Hdiv
-TEST_CASE("HDiv Kernel","[hdivkernel_mesh_tests]")
-{
-    std::cout << "Testing HDiv Kernel \n";
-    // colocar as variaveis que fazem generate aqui.
-    const int xdiv = GENERATE(1,2);
-    const int pOrder = GENERATE(1);
-    MShapeType shape = GENERATE(EHDivKernel,EHDivConstant);
-
-    TestKernelHDiv<pzshape::TPZShapeTriang>(xdiv,pOrder,shape);
-    TestKernelHDiv<pzshape::TPZShapeQuad>(xdiv,pOrder,shape);
-    TestKernelHDiv<pzshape::TPZShapeTetra>(xdiv,pOrder,shape);
-    TestKernelHDiv<pzshape::TPZShapeCube>(xdiv,pOrder,shape);
-    TestKernelHDiv<pzshape::TPZShapePrism>(xdiv,pOrder,shape);
-    std::cout << "Finish test HDiv Kernel \n";
+TEST_CASE("HCurl no grads dimension", "[hdivkernel_mesh_tests]") {
+    std::cout << "Testing dimension of Hcurl with no high order grads\n";
+    const int pOrder = GENERATE(1,2,3);
+  //SVD requires LAPACK
+#ifndef PZ_USING_LAPACK
+  return;
+#endif
+  TestHCurlNoGradsDim<pzshape::TPZShapeTriang>(pOrder);
+  TestHCurlNoGradsDim<pzshape::TPZShapeQuad>(pOrder);
+  TestHCurlNoGradsDim<pzshape::TPZShapeTetra>(pOrder);
+  TestHCurlNoGradsDim<pzshape::TPZShapeCube>( pOrder);
+  // TestHCurlNoGradsDim<pzshape::TPZShapePrism>(pOrder);
+  std::cout << "Finish test dimension of HCurlNoGrads \n";
 }
+
+TEST_CASE("HDiv Kernel dimension", "[hdivkernel_mesh_tests]") {
+    std::cout << "Testing dimension of HDivKernel\n";
+    const int pOrder = GENERATE(1,2,3);
+  //SVD requires LAPACK
+#ifndef PZ_USING_LAPACK
+  return;
+#endif
+  TestShapeHDivKernel<pzshape::TPZShapeTriang>(pOrder);
+  TestShapeHDivKernel<pzshape::TPZShapeQuad>(pOrder);
+  TestShapeHDivKernel<pzshape::TPZShapeTetra>(pOrder);
+  TestShapeHDivKernel<pzshape::TPZShapeCube>( pOrder);
+  // TestShapeHDivKernel<pzshape::TPZShapePrism>(pOrder);
+  std::cout << "Finish test dimension of HDivKernel \n";
+}
+
+// // Test 2D Kernel Hdiv: FOR DEBUGGING PURPOSES
+// TEST_CASE("HDiv Kernel", "[hdivkernel_mesh_tests]") {
+//   std::cout << "Testing HDiv Kernel \n";
+//   // colocar as variaveis que fazem generate aqui.
+//   const int xdiv = GENERATE(1,2);
+//   const int pOrder = GENERATE(1,2,3);
+//   MShapeType shape = GENERATE(EHDivKernel,EHDivConstant);
+
+//   TestKernelHDiv<pzshape::TPZShapeTriang>(xdiv,pOrder,shape);
+//   TestKernelHDiv<pzshape::TPZShapeQuad>(xdiv,pOrder,shape);
+//   TestKernelHDiv<pzshape::TPZShapeTetra>(xdiv,pOrder,shape);
+//   TestKernelHDiv<pzshape::TPZShapeCube>(xdiv, pOrder, shape);
+// //   TestKernelHDiv<pzshape::TPZShapePrism>(xdiv,pOrder,shape);
+//   std::cout << "Finish test HDiv Kernel \n";
+// }
 
 TPZGeoMesh*
 ReadMeshFromGmsh(std::string file_name)
@@ -493,7 +535,7 @@ TPZMultiphysicsCompMesh * CreateMultiphysicsCMesh(TPZGeoMesh *fGeoMesh, int fDim
     if (fDimension == 2 && fShapeType == EHDivKernel)BCond->SetForcingFunctionBC(exactSolKernel2D);
     if (fDimension == 3 && fShapeType == EHDivKernel)BCond->SetForcingFunctionBC(exactSolKernel3D);
     if (fDimension == 2 && fShapeType == EHDivConstant)BCond->SetForcingFunctionBC(exactSolConstant2D);
-    if (fDimension == 3 && fShapeType == EHDivConstant)BCond->SetForcingFunctionBC(exactSolConstant3D);
+    if (fDimension == 3 && fShapeType == EHDivConstant)BCond->SetForcingFunctionBC(exactSolConstant2D);
     cmesh->InsertMaterialObject(BCond);
    
     auto *matL2 = new TPZL2ProjectionCS<>(-2,0,1);
@@ -546,6 +588,236 @@ TPZGeoMesh *CreateGeoMeshTetra(const MMeshType meshType, const TPZVec<int> &nDiv
   return gmesh;
 }
 
+
+#include "TPZShapeHCurl.h"
+#include "TPZShapeHCurlNoGrads.h"
+template<class TSHAPE>
+void TestHCurlNoGradsDim(const int &pOrder){
+
+    constexpr int nNodes = TSHAPE::NCornerNodes;
+    constexpr int nSides = TSHAPE::NSides;
+    constexpr int nConnects = nSides - nNodes;
+    constexpr int dim = TSHAPE::Dimension;
+    constexpr int curlDim = dim*2 - 3;
+    
+    TPZVec<int> connectorders(nConnects, pOrder);
+
+    //let us count the shape functions
+    int nunfiltfuncs{0}, nfiltfuncs{0};
+    for(int ic = 0 ; ic < nConnects; ic++){
+        const int conorder = connectorders[ic];
+        nunfiltfuncs +=
+            TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(ic,conorder);
+        nfiltfuncs +=
+            TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(ic,conorder);
+    }
+    
+    TPZVec<int64_t> ids(nNodes,0);
+    for(int i = 0; i < nNodes; i++){ids[i] = i;}
+    
+    
+    TPZShapeData data_unfilt, data_filt;
+    TPZShapeHCurl<TSHAPE>::Initialize(ids, connectorders, data_unfilt);
+    TPZShapeHCurlNoGrads<TSHAPE>::Initialize(ids, connectorders, data_filt);
+
+    const int pord_int = TPZShapeHCurlNoGrads<TSHAPE>::MaxOrder(pOrder);
+    typename TSHAPE::IntruleType intrule(2*pord_int);
+    const int npts = intrule.NPoints();
+
+
+    TPZFMatrix<REAL> curlcurl_filt(nfiltfuncs,nfiltfuncs,0.);
+    TPZFMatrix<REAL> curlcurl_unfilt(nunfiltfuncs,nunfiltfuncs,0.);
+    
+    REAL weight;
+    TPZVec<REAL> pt(dim,0.);
+
+    
+    for(int ipt = 0; ipt < npts; ipt++){
+        intrule.Point(ipt,pt,weight);
+        TPZFMatrix<REAL> phi_unfilt(dim,nunfiltfuncs);
+        TPZFMatrix<REAL> curlphi_unfilt(curlDim, nunfiltfuncs);
+        TPZShapeHCurl<TSHAPE>::Shape(pt,data_unfilt,phi_unfilt,curlphi_unfilt);
+        TPZFMatrix<REAL> phi_filt (dim,nfiltfuncs);
+        TPZFMatrix<REAL> curlphi_filt(curlDim, nfiltfuncs);
+        TPZShapeHCurlNoGrads<TSHAPE>::Shape(pt,data_filt,phi_filt,curlphi_filt);
+        
+        //calc matrix curlphi_i curlphi_j
+        //check if rank filt = rank unfilt
+        //compare rank filt and dim filt
+        for (int ish = 0; ish < nunfiltfuncs; ish++){
+            for (int jsh = 0; jsh < nunfiltfuncs; jsh++){
+                for (int d = 0; d < curlDim; d++){
+                    curlcurl_unfilt(ish,jsh) += curlphi_unfilt(d,ish)*curlphi_unfilt(d,jsh) * weight;
+                }
+            }
+        }
+        for (int ish = 0; ish < nfiltfuncs; ish++){
+            for (int jsh = 0; jsh < nfiltfuncs; jsh++){
+                for (int d = 0; d < curlDim; d++){
+                    curlcurl_filt(ish,jsh) += curlphi_filt(d,ish)*curlphi_filt(d,jsh) * weight;
+                }
+            }
+        }
+                
+        
+    }
+
+
+    auto CalcRank = [](TPZFMatrix<STATE> & mat, const STATE tol){
+
+        TPZFMatrix<STATE> S;
+        TPZFMatrix<STATE> Udummy, VTdummy;
+        mat.SVD(Udummy, S, VTdummy, 'N', 'N');
+
+        int rank = 0;
+        const int dimMat = S.Rows();
+        for (int i = 0; i < dimMat; i++) {
+            rank += S.GetVal(i, 0) > tol ? 1 : 0;
+        }
+        return std::make_tuple(S,rank);
+    };
+    
+
+    std::ofstream out("CurlCheck.nb");
+    curlcurl_unfilt.Print("Unf = ",out,EMathematicaInput);
+    curlcurl_filt.Print("Fil = ",out,EMathematicaInput);
+    static constexpr auto tol = std::numeric_limits<STATE>::epsilon()*10000;
+
+    int rank_filt, rank_unfilt;
+    TPZFMatrix<STATE> S_filt, S_unfilt;
+    std::tie(S_filt, rank_filt) = CalcRank(curlcurl_filt,tol);
+    std::tie(S_unfilt, rank_unfilt) = CalcRank(curlcurl_unfilt,tol);
+    
+    CAPTURE(pOrder);
+    CAPTURE(S_filt, S_unfilt);
+    REQUIRE(rank_filt==rank_unfilt);
+    REQUIRE(nfiltfuncs == rank_filt+TSHAPE::NCornerNodes-1);
+}
+
+#include "TPZShapeHDivKernel.h"
+
+template<class TSHAPE>
+void TestShapeHDivKernel(const int &pOrder){
+
+    constexpr int nNodes = TSHAPE::NCornerNodes;
+    constexpr int nSides = TSHAPE::NSides;
+    constexpr int nConnects = nSides - nNodes;
+    constexpr int dim = TSHAPE::Dimension;
+    constexpr int curlDim = dim*2 - 3;
+    
+    TPZVec<int> connectorders(nConnects, pOrder);
+
+    //let us count the shape functions
+    int nunfiltfuncs{0}, nfiltfuncs{0};
+    for(int ic = 0 ; ic < nConnects; ic++){
+        const int conorder = connectorders[ic];
+        nunfiltfuncs +=
+            TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(ic,conorder);
+        nfiltfuncs +=
+            TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(ic,conorder);
+    }
+    
+    TPZVec<int64_t> ids(nNodes,0);
+    for(int i = 0; i < nNodes; i++){ids[i] = i;}
+    
+    
+    TPZShapeData data_unfilt, data_filt;
+    TPZShapeHCurl<TSHAPE>::Initialize(ids, connectorders, data_unfilt);
+    TPZShapeHDivKernel<TSHAPE>::Initialize(ids, connectorders, data_filt);
+    TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(data_filt);
+
+    const int pord_int = TPZShapeHDivKernel<TSHAPE>::MaxOrder(pOrder);
+    typename TSHAPE::IntruleType intrule(2*pord_int);
+    
+
+    const int npts = intrule.NPoints();
+
+    const int nEdges = TSHAPE::NumSides(1);
+
+
+    TPZFMatrix<REAL> curlcurl_filt(nfiltfuncs,nfiltfuncs,0.);
+    TPZFMatrix<REAL> curlcurl_unfilt(nunfiltfuncs,nunfiltfuncs,0.);
+    
+    REAL weight;
+    TPZVec<REAL> pt(dim,0.);
+
+    
+    for(int ipt = 0; ipt < npts; ipt++){
+        intrule.Point(ipt,pt,weight);
+        TPZFMatrix<REAL> phi_unfilt(dim,nunfiltfuncs);
+        TPZFMatrix<REAL> curlphi_unfilt(curlDim, nunfiltfuncs);
+        TPZShapeHCurl<TSHAPE>::Shape(pt,data_unfilt,phi_unfilt,curlphi_unfilt);
+        TPZFMatrix<REAL> divphi_filt (1,nfiltfuncs);
+        TPZFMatrix<REAL> curlphi_filt(curlDim, nfiltfuncs);
+        TPZShapeHDivKernel<TSHAPE>::Shape(pt,data_filt,curlphi_filt,divphi_filt);
+        // std::cout << "FiLT " << curlphi_filt << std::endl;
+        
+        //calc matrix curlphi_i curlphi_j
+        //check if rank filt = rank unfilt
+        //compare rank filt and dim filt
+        for (int ish = 0; ish < nunfiltfuncs; ish++){
+            for (int jsh = 0; jsh < nunfiltfuncs; jsh++){
+                for (int d = 0; d < curlDim; d++){
+                    curlcurl_unfilt(ish,jsh) += curlphi_unfilt(d,ish)*curlphi_unfilt(d,jsh) * weight;
+                }
+            }
+        }
+        for (int ish = 0; ish < nfiltfuncs; ish++){
+            for (int jsh = 0; jsh < nfiltfuncs; jsh++){
+                for (int d = 0; d < curlDim; d++){
+                    curlcurl_filt(ish,jsh) += curlphi_filt(d,ish)*curlphi_filt(d,jsh) * weight;
+                }
+            }
+        }
+                
+        
+    }
+
+
+    auto CalcRank = [](TPZFMatrix<STATE> & mat, const STATE tol){
+
+        TPZFMatrix<STATE> S;
+        TPZFMatrix<STATE> Udummy, VTdummy;
+        mat.SVD(Udummy, S, VTdummy, 'N', 'N');
+
+        int rank = 0;
+        const int dimMat = S.Rows();
+        for (int i = 0; i < dimMat; i++) {
+            rank += S.GetVal(i, 0) > tol ? 1 : 0;
+        }
+        return std::make_tuple(S,rank);
+    };
+    
+    std::ofstream out("CurlCheck.nb");
+    curlcurl_unfilt.Print("Unf = ",out,EMathematicaInput);
+    curlcurl_filt.Print("Fil = ",out,EMathematicaInput);
+
+    static constexpr auto tol = std::numeric_limits<STATE>::epsilon()*10000;
+
+    int rank_filt, rank_unfilt;
+    TPZFMatrix<STATE> S_filt, S_unfilt;
+    std::tie(S_filt, rank_filt) = CalcRank(curlcurl_filt,tol);
+    std::tie(S_unfilt, rank_unfilt) = CalcRank(curlcurl_unfilt,tol);
+
+    std::string elname{"noname"};
+    //dimension of lowest order gradients
+    constexpr int lo_grad_dim = nNodes - 1;
+    if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeTriang>){
+        elname = "triang";
+    }else if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeQuad>){
+        elname = "quad";
+    }else if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeTetra>){
+        elname = "tetra";
+    }else if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeCube>){
+        elname = "cube";
+    }
+
+    CAPTURE(elname);
+    CAPTURE(pOrder);
+    CAPTURE(S_filt, S_unfilt);
+    REQUIRE(rank_filt==rank_unfilt);
+    REQUIRE(nfiltfuncs == rank_filt+lo_grad_dim);
+}
 
 
 template<class tshape>
@@ -608,12 +880,12 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType shapeType){
     std::string txt =  "cmesh.txt";
     std::ofstream myfile(txt);
     cmesh->Print(myfile);
-
+#ifdef PZ_KERNELHDIV_DEBUG
     //Prints computational mesh properties
     std::string vtk_name = "cmesh.vtk";
     std::ofstream vtkfile(vtk_name.c_str());
     TPZVTKGeoMesh::PrintCMeshVTK(cmesh, vtkfile, true);
-
+#endif
     // Solve the problem
     TPZLinearAnalysis an(cmesh,false);
     //sets number of threads to be used by the solver
@@ -673,21 +945,22 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType shapeType){
     if (DIM == 3 && shapeType == EHDivConstant) an.SetExact(exactSolConstant3D,pOrder);
     
     an.PostProcessError(error);
+#ifdef PZ_KERNELHDIV_DEBUG
+    // TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvector, cmesh);
+    // TPZManVector<std::string,10> scalnames(0), vecnames(2);
+    // // scalnames[0] = "Pressure";
+    // // scalnames[1] = "ExactPressure";
+    // vecnames[0]= "Flux";
+    // vecnames[1]= "ExactFlux";
 
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvector, cmesh);
-    TPZManVector<std::string,10> scalnames(0), vecnames(2);
-    // scalnames[0] = "Pressure";
-    // scalnames[1] = "ExactPressure";
-    vecnames[0]= "Flux";
-    vecnames[1]= "ExactFlux";
-
-    int div = 0;
-    std::string plotfile = "solutionMDFB.vtk";
-    an.DefineGraphMesh(cmesh->Dimension(),scalnames,vecnames,plotfile);
-    an.PostProcess(div,cmesh->Dimension());
-
+    // int div = 0;
+    // std::string plotfile = "solutionMDFB.vtk";
+    // an.DefineGraphMesh(cmesh->Dimension(),scalnames,vecnames,plotfile);
+    // an.PostProcess(div,cmesh->Dimension());
+#endif
     REAL tol = 1.e-6;
-    REQUIRE(error[1] < tol);
+    if (shapeType == EHDivKernel) REQUIRE(error[1] < tol);
+    if (shapeType == EHDivConstant) REQUIRE(error[2] < tol);
 
 
 
