@@ -40,9 +40,9 @@ class TPZAutoPointer {
     struct TPZReference
     {
         /** @brief Pointer to T object */
-        T *fPointer;
+        T *fPointer{nullptr};
         /** @brief Reference counter*/
-        std::atomic_int fCounter;
+        std::atomic_int fCounter{0};
         
         TPZReference()
         {
@@ -104,7 +104,7 @@ class TPZAutoPointer {
     };
     
 	/** @brief The object which contains the pointer and the reference count */
-	TPZReference *fRef;
+	TPZReference *fRef{nullptr};
     
 public:
 	/** @brief Creates an reference counted null pointer */
