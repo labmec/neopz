@@ -60,7 +60,6 @@ set(headers
   TPZCompElKernelHDiv.h
   TPZCompElKernelHDiv3D.h
   TPZCompElKernelHDivBC.h
-  TPZCompElKernelHDivBC3D.h
   TPZHCurlEquationFilter.h
 )
 
@@ -114,7 +113,6 @@ set(sources
   TPZCompElKernelHDiv.cpp
   TPZCompElKernelHDiv3D.cpp
   TPZCompElKernelHDivBC.cpp
-  TPZCompElKernelHDivBC3D.cpp
   TPZHCurlEquationFilter.cpp
 )
 

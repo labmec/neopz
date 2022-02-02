@@ -40,8 +40,6 @@ public:
 	
 	TPZCompElKernelHDiv3D(){};
 	
-	virtual ~TPZCompElKernelHDiv3D();
-	
     /** @brief Set create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions(TPZCompMesh *mesh) override;
 		

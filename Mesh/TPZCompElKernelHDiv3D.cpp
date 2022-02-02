@@ -48,11 +48,6 @@ TPZRegisterClassId(&TPZCompElKernelHDiv3D::ClassId), TPZCompElHCurl<TSHAPE>(mesh
     }
     this->AdjustConnects();
 }
-
-template<class TSHAPE>
-TPZCompElKernelHDiv3D<TSHAPE>::~TPZCompElKernelHDiv3D(){
-    this->~TPZCompElHCurl<TSHAPE>();
-}
  
 
 template<class TSHAPE>
@@ -62,6 +57,18 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> 
                                                 
     bool needsol = data.fNeedsSol;
     data.fNeedsSol = true;
+
+    //Compute the element geometric data
+    TPZGeoEl * ref = this->Reference();
+    if (!ref){
+        PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
+        return;
+    }
+
+    ref->Jacobian(qsi, data.jacobian, data.axes, data.detjac , data.jacinv);
+    ref->X(qsi, data.x);
+    data.xParametric = qsi;
+
     if (fhcurlfam == HCurlFamily::EHCurlNoGrads) {
         // We can't use ComputeRequired data from TPZCompElHCurl, because we are dealing with a number of shape functions
         // uncompatible with the number of HCurl shape functions
@@ -70,19 +77,7 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> 
          * at this point, we already have the basis functions on the deformed element, since we have data.phi,
          * data.fVecShapeIndex and data.fDeformedDirections. Now it is time to compute the curl, which will be stored in
          * data.curlphi.
-         *******************************************************************************************************************/
-        
-        //Compute the element geometric data
-        TPZGeoEl * ref = this->Reference();
-        if (!ref){
-            PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
-            return;
-        }
-        ref->Jacobian(qsi, data.jacobian, data.axes, data.detjac , data.jacinv);
-
-        ref->X(qsi, data.x);
-        data.xParametric = qsi;
-        
+         *******************************************************************************************************************/        
         const int rows = data.phi.Rows();
         const int cols = data.phi.Cols();
         TPZFMatrix<REAL> phiHCurl(cols,rows,0.);
@@ -93,17 +88,6 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> 
         TPZCompElHCurl<TSHAPE>::TransformCurl(curlHCurl, data.detjac, data.jacobian, data.curlphi);
 
     } else if (fhdivfam == HDivFamily::EHDivKernel) {
-        //Compute the element geometric data
-        TPZGeoEl * ref = this->Reference();
-        if (!ref){
-            PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
-            return;
-        }
-
-        ref->Jacobian(qsi, data.jacobian, data.axes, data.detjac , data.jacinv);
-        ref->X(qsi, data.x);
-        data.xParametric = qsi;
-        
         constexpr auto dim{TSHAPE::Dimension};
         int nshape = 0;
         nshape = TPZShapeHDivKernel<TSHAPE>::NHDivShapeF(data);
@@ -112,41 +96,50 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> 
         phiAux.Zero(); divphiAux.Zero();
 
         TPZShapeHDivKernel<TSHAPE>::Shape(qsi,data,phiAux,divphiAux);
-
         TPZCompElHCurl<TSHAPE>::TransformCurl(phiAux, data.detjac, data.jacobian, data.curlphi);
 
-        const int ncorner = TSHAPE::NCornerNodes;
-        int nEdges = TSHAPE::NumSides(1);
-        const int nsides = TSHAPE::NSides;
-
-        data.divphi = divphiAux;
-    
-        if (data.fNeedsSol) {
-            this->ReallyComputeSolution(data);
-        }
+        data.divphi.Zero();
     } else {
         DebugStop();
     }
     
     data.fNeedsSol = needsol;
+    if (TSHAPE::Dimension == 3){
+        int nshape = this->NShapeF();
+        data.fDeformedDirections.Resize(3,nshape);
+        data.fVecShapeIndex.Resize(nshape);
+        TPZShapeData &shapedata = data;
+        int size = data.curlphi.Cols();
 
-    int nshape = this->NShapeF();
-    data.fDeformedDirections.Resize(3,nshape);
-    data.fVecShapeIndex.Resize(nshape);
-    TPZShapeData &shapedata = data;
-    int size = data.curlphi.Cols();
-
-    if (size != nshape) DebugStop();
-    int ncorner = TSHAPE::NCornerNodes;
-    for (int j = 0; j < nshape; j++){
-        data.fVecShapeIndex[j].first = j;
-        data.fVecShapeIndex[j].second = j;
-        for (int i = 0; i < 3; i++){
-            data.fDeformedDirections(i,j)=data.curlphi(i,j);
+        if (size != nshape) DebugStop();
+        int ncorner = TSHAPE::NCornerNodes;
+        for (int j = 0; j < nshape; j++){
+            data.fVecShapeIndex[j].first = j;
+            data.fVecShapeIndex[j].second = j;
+            for (int i = 0; i < 3; i++){
+                data.fDeformedDirections(i,j)=data.curlphi(i,j);
+            }
         }
+        data.phi.Resize(nshape,3);
+        for (int i = 0; i < data.phi.Rows(); i++){
+            data.phi(i,0) = 1.;
+            data.phi(i,1) = 1.;
+            data.phi(i,2) = 1.;
+        }
+        for (int i = 0; i < data.dphix.Rows(); i++)
+            for (int j = 0; j < data.dphix.Cols(); j++)
+                    data.dphix(i,j) = 1.;
+    } else if (TSHAPE::Dimension == 2) {
+        data.phi.Resize(data.curlphi.Cols(),3);
+        data.phi.Zero();
+        if (data.phi.Rows()>1){
+            for (int i = 0; i < data.phi.Rows(); i++){
+                data.phi(i,0) = -data.curlphi(0,i);
+            }
+        }
+    } else {
+        DebugStop();
     }
-    
-    // data.fDeformedDirections=data.curlphi;
 
 #ifdef PZ_LOG
     if (logger.isDebugEnabled())
@@ -160,22 +153,6 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> 
     }
 #endif
 
-    data.phi.Resize(nshape,3);
-    REAL val = 1.;
-
-    for (int i = 0; i < data.phi.Rows(); i++){
-		data.phi(i,0) = val;
-        data.phi(i,1) = val;
-        data.phi(i,2) = val;
-	}
-
-	for (int i = 0; i < data.dphix.Rows(); i++)
-        for (int j = 0; j < data.dphix.Cols(); j++)
-    	    	data.dphix(i,j) = 1.;
-    
-    // for (int i=0; i<data.fVecShapeIndex.size(); i++) {
-	// 	data.fVecShapeIndex[i] = std::make_pair(i,1);
-    // }
     if (data.fNeedsSol) {
         this->ReallyComputeSolution(data);
     }
@@ -354,99 +331,7 @@ void TPZCompElKernelHDiv3D<TSHAPE>::AdjustConnects()
 template<class TSHAPE>
 int TPZCompElKernelHDiv3D<TSHAPE>::NConnectShapeF(int icon, int order) const
 {
-    const int side = icon + TSHAPE::NCornerNodes;
-    #ifdef PZDEBUG
-    if (side < TSHAPE::NCornerNodes || side >= TSHAPE::NSides) {
-        DebugStop();
-    }
-    #endif
-    if(order == 0) {
-        PZError<<__PRETTY_FUNCTION__
-            <<"\nERROR: polynomial order not compatible.\nAborting..."
-            <<std::endl;
-        DebugStop();
-        return 0;
-    }
-    const auto nFaces = TSHAPE::Dimension < 2 ? 0 : TSHAPE::NumSides(2);
-    const auto nEdges = TSHAPE::NumSides(1);
-    const int nShapeF = [&](){
-        if (side < TSHAPE::NCornerNodes + nEdges) {//edge connect
-        return 1;
-        }
-        else if(side < TSHAPE::NCornerNodes + nEdges + nFaces){//face connect
-        switch(TSHAPE::Type(side)){
-        case ETriangle://triangular face
-            /**
-             we remove one internal function for each h1 face function of order k+1
-            since there are (k-1)(k-2)/2 functions per face in a face with order k,
-            we remove k(k-1)/2.
-            so:
-            (k-1)*(k+1)-k*(k-1)/2
-            */
-            return (order - 1) * (order+2) / 2;
-        case EQuadrilateral://quadrilateral face
-            //Following the same logic:
-            /**
-             we remove one internal function for each h1 face function of order k+1
-            since there are (k-1)^2 functions per face in a face with order k,
-            we remove k^2.
-            so:
-            2k(k+1) - k^2 = k(k+2)
-            
-            */
-            // if (order == 2) return 0;
-            return order * (order + 2);
-            // return 2*order * (order + 1);
-        default:
-            PZError<<__PRETTY_FUNCTION__<<" error. Not yet implemented"<<std::endl;
-            DebugStop();
-            return 0;
-        }
-        }
-        else{//internal connect (3D element only)
-        if constexpr (TSHAPE::Type() == ETetraedro){
-        /**
-             we remove one internal function for each h1 internal function of order k+1
-            since there are (k-1)(k-2)(k-3)/6 functions in a h1 element with order k,
-            we remove k(k-1)(k-2)/6.
-            so:
-            (k-1)(k-2)(k+1)/2 - k(k-1)(k-2)/6 = (k-1)(k-2)(2k+3)/6.
-
-            since we will remove k(k-1)(k-2)/6, for each     we remove (k-1)(k-2)/2 funcs.
-
-            we have two kinds of internal functions. phi_kf and phi_ki.
-            func        k                   k-1                 new funcs
-            phi_kf      2(k-1)(k-2)         2(k-2)(k-3)         4(k-2)
-            phi_ki      (k-1)(k-2)(k-3)/2   (k-2)(k-3)(k-4)/2   3(k-2)(k-3)/2
-            
-            that means that if we remove, for each k, (k-2) phi_kf 
-            (for instance, all phi_kf associated with a given face),
-            we need to remove (k-1)(k-2)/2 - (k-2) = (k-2)(k-3)/2
-            which is exactly one third of the phi_ki.
-            
-        */
-            return (order-1)*(order-2)*(2*order+3)/6;
-        } else 
-        if constexpr (TSHAPE::Type() == ECube){
-        /**
-             we remove one internal function for each h1 internal function of order k+1
-            since there are (k-1)^3 functions in a h1 element with order k,
-            we remove k^3.
-            so:
-            3k^2(k+1) - k^3 = k^2 (3 + 2 k).
-
-            we have two kinds of internal functions. phi_kf and phi_ki.
-            func        k                   k-1                 new funcs
-            phi_kf      6k^2                6(k-1)^2            k(8k-k^2-1)
-            phi_ki      3k^2*(k-1)          3(k-1)(k-1)(k-2)/2  3(2-5k+2k^2+k^3)/2
-           
-        */
-            return order*order*(3+2*order);
-        }
-        return 0;
-        }
-    }();
-    return nShapeF;
+    return TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(icon,order);
 }
 
 #include "pzshapelinear.h"
@@ -476,7 +361,6 @@ template class TPZCompElKernelHDiv3D<TPZShapeCube>;
 template class TPZCompElKernelHDiv3D<TPZShapePrism>;
 
 #include "TPZCompElKernelHDivBC.h"
-#include "TPZCompElKernelHDivBC3D.h"
 #include "TPZCompElKernelHDiv.h"
 
 
@@ -488,10 +372,10 @@ TPZCompEl * CreateHDivKernelBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const
 	return new TPZCompElKernelHDivBC< TPZShapeLinear>(mesh,gel);
 }
 TPZCompEl * CreateHDivKernelBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam, const HCurlFamily hcurlfam) {
-    return new TPZCompElKernelHDivBC3D< TPZShapeQuad>(mesh,gel,hdivfam,hcurlfam);
+    return new TPZCompElKernelHDiv3D< TPZShapeQuad>(mesh,gel,hdivfam,hcurlfam);
 }
 TPZCompEl * CreateHDivKernelBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam, const HCurlFamily hcurlfam) {
-    return new TPZCompElKernelHDivBC3D< TPZShapeTriang >(mesh,gel,hdivfam,hcurlfam);
+    return new TPZCompElKernelHDiv3D< TPZShapeTriang >(mesh,gel,hdivfam,hcurlfam);
 }
 
 //Domain

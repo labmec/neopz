@@ -42,9 +42,7 @@
 #include "TPZCompElKernelHDiv.h"
 #include "TPZCompElKernelHDivBC.h"
 #include "TPZCompElKernelHDiv3D.h"
-#include "TPZCompElKernelHDivBC3D.h"
-#include "TPZCompElHDivConstant.h"
-#include "TPZCompElHDivConstantBC.h"
+
 #include "TPZHCurlEquationFilter.h"
 
 #include "pznoderep.h"
@@ -57,7 +55,7 @@
 static TPZLogger logger("pz.mesh.testhdivkernel");
 #endif
 
-enum MShapeType {EHDivKernel, EHDivConstant, EHCurlNoGrads};
+enum MShapeType {EHDivKernel, EHDivConstant};
 enum BCType {Dirichlet, Neumann};
 
 
