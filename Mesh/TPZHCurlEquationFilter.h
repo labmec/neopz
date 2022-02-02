@@ -108,7 +108,7 @@ public:
         @return 0 if no errors were detected, 1 if a vertex was left untreated,
         2 if a vertex had all the adjacent edges removed.
     */
-    bool FilterEdgeEquations(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<int64_t> &activeEquations, bool &domainHybridization);
+    bool FilterEdgeEquations(TPZCompMesh* cmesh, TPZVec<int64_t> &activeEquations, bool &domainHybridization);
 
     void InitDataStructures(TPZGeoMesh *gmesh);
 

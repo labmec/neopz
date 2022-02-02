@@ -8,7 +8,7 @@
 
 #include "pzelctemp.h"
 #include "TPZOneShapeRestraint.h"
-#include "TPZCompElHCurlNoGrads.h"
+#include "TPZCompElHCurl.h"
 
 
 /**
@@ -20,7 +20,7 @@
  * By varying the classes passed as template arguments, the complete family of computational elements are implemented
  */
 template<class TSHAPE>
-class TPZCompElKernelHDiv3D : public TPZCompElHCurlNoGrads<TSHAPE> {
+class TPZCompElKernelHDiv3D : public TPZCompElHCurl<TSHAPE> {
 
     /// vector which defines whether the normal is outward or not
     TPZManVector<int, TSHAPE::NFacets> fSideOrient;
@@ -89,6 +89,8 @@ public:
         return fSideOrient[face];
     }
 
+    int NConnectShapeF(int connect, int order) const override;
+
 protected:
 
 	 //@{
@@ -104,12 +106,14 @@ protected:
     void ComputeSolutionKernelHdivT(TPZMaterialDataT<TVar> &data);
     template<class TVar>
     void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL>&qsi);
+
+    void AdjustConnects();
 };
 
 
 template<class TSHAPE>
 int TPZCompElKernelHDiv3D<TSHAPE>::ClassId() const{
-    return Hash("TPZCompElKernelHDiv3D") ^ TPZCompElHCurlNoGrads<TSHAPE>::ClassId() << 1;
+    return Hash("TPZCompElKernelHDiv3D") ^ TPZCompElHCurl<TSHAPE>::ClassId() << 1;
 }
 
 #include "pzcmesh.h"

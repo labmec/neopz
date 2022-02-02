@@ -268,7 +268,7 @@ void TPZHCurlEquationFilter<TVar>::FirstEdge()
     The equation filter
 */
 template <class TVar>
-bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZAutoPointer<TPZCompMesh> cmesh,
+bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZCompMesh* cmesh,
                     TPZVec<int64_t> &activeEquations, bool &domainHybridization)
 {
 
