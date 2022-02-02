@@ -835,7 +835,9 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
     if (fhdivfam == HDivFamily::EHDivConstant) {
         data.fH1ConnectOrders = data.fHDivConnectOrders;
-        if (TSHAPE::Dimension == 2) TPZShapeH1<TSHAPE>::Initialize(data.fCornerNodeIds, data.fH1ConnectOrders, data);
+        if (TSHAPE::Dimension == 2) {
+            TPZShapeH1<TSHAPE>::Initialize(data.fCornerNodeIds, data.fH1ConnectOrders, data);
+        };
         
         const int nSides = TSHAPE::NSides;
         const int nCorner = TSHAPE::NCornerNodes;
@@ -863,6 +865,29 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
             data.fVecShapeIndex[i] = std::make_pair(i,1);
         }
         data.fDeformedDirections.Resize(3,nshape);
+
+        if (TSHAPE::Dimension == 3){
+            TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes,0);
+            TPZGeoEl *ref = this->Reference();
+            for(auto i=0; i<TSHAPE::NCornerNodes; i++) {
+                ids[i] = ref->NodePtr(i)->Id();
+            }
+            
+            auto &conOrders = data.fHDivConnectOrders;
+            constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
+            conOrders.Resize(nConnects,-1);
+            for(auto i = 0; i < nConnects; i++){
+                conOrders[i] = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes);
+            }
+            for (int i = 0; i < TSHAPE::NumSides(1); i++)
+            {
+                conOrders[i] = conOrders[TSHAPE::NumSides(1)];
+            }
+            
+            TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, data);
+            data.divphi.Resize(data.fVecShapeIndex.size(),1);
+            TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(data);
+        }
     }
 
 }
@@ -874,12 +899,12 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
     constexpr int dim = TSHAPE::Dimension;
     const int nshape = this->NShapeF();
     TPZShapeData &shapedata = data;
-    TPZFMatrix<REAL> auxPhi;
+    TPZFMatrix<REAL> phiMaster;
 
     switch (fhdivfam)
     {
     case HDivFamily::EHDivStandard:
-        TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, auxPhi, data.divphi);
+        TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, phiMaster, data.divphi);
         {
             int shapeSize = data.divphi.Rows();
             data.fVecShapeIndex.Resize(shapeSize);
@@ -891,41 +916,9 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
         break;
 
     case HDivFamily::EHDivConstant:
-        auxPhi.Resize(TSHAPE::Dimension,nshape);
+        phiMaster.Resize(TSHAPE::Dimension,nshape);
         data.divphi.Resize(nshape,1);
-        //Initialize data for HDiv Kernel
-        {
-            auto &dataKernel = data;
-            if(TSHAPE::Dimension == 3){
-                TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes,0);
-                TPZGeoEl *ref = this->Reference();
-                for(auto i=0; i<TSHAPE::NCornerNodes; i++) {
-                    ids[i] = ref->NodePtr(i)->Id();
-                }
-                
-                auto &conOrders = dataKernel.fHDivConnectOrders;
-                constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
-                conOrders.Resize(nConnects,-1);
-                for(auto i = 0; i < nConnects; i++){
-                    conOrders[i] = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes);
-                }
-                for (int i = 0; i < TSHAPE::NumSides(1); i++)
-                {
-                    conOrders[i] = conOrders[TSHAPE::NumSides(1)];
-                }
-                
-                TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, dataKernel);
-                dataKernel.divphi.Resize(dataKernel.fVecShapeIndex.size(),1);
-                TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(dataKernel);
-            }
-            if (TSHAPE::Dimension == 2) {
-                TPZShapeHDivConstant<TSHAPE>::Shape(qsi, shapedata, auxPhi, data.divphi);
-            } else if (TSHAPE::Dimension == 3){
-                TPZShapeHDivConstant<TSHAPE>::Shape(qsi, dataKernel, auxPhi, data.divphi);
-            } else {
-                DebugStop();
-            }
-        }
+        TPZShapeHDivConstant<TSHAPE>::Shape(qsi, shapedata, phiMaster, data.divphi);
         break;
 
     default:
@@ -935,14 +928,11 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
     
     TPZFMatrix<REAL> gradx(3,TSHAPE::Dimension,0.);
     this->Reference()->GradX(qsi, gradx);
-    TPZFMatrix<REAL> phiSHdiv;
-    gradx.Multiply(auxPhi,phiSHdiv);
-    phiSHdiv *= 1./data.detjac;
+    gradx.MultAdd(phiMaster,data.fDeformedDirections,data.fDeformedDirections,1./data.detjac);
     data.divphi *= 1/data.detjac;
 
     data.phi.Resize(data.fVecShapeIndex.size(),1);
     data.phi = 1.;
-    data.fDeformedDirections = phiSHdiv;
 
 }
 
