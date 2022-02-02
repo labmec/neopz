@@ -303,9 +303,11 @@ TPZCompMesh * CreateFluxCMesh(TPZGeoMesh *fGeoMesh, int fDimension, int fDefault
 
     // //Creates computational elements
     if (fShapeType == EHDivKernel){
-        cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(fDimension,HDivFamily::EHDivKernel);
+        cmesh->ApproxSpace().SetHDivFamily(HDivFamily::EHDivKernel);
+        cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(fDimension);
     } else if (fShapeType == EHDivConstant) {
-        cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(fDimension,HDivFamily::EHDivConstant);
+        cmesh->ApproxSpace().SetHDivFamily(HDivFamily::EHDivConstant);
+        cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(fDimension);
     }
     cmesh->AutoBuild();
 

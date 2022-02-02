@@ -97,22 +97,24 @@ public:
     // Get set methods for space families
     const HDivFamily &HDivFam() const {return fhdivfam;}
     const HDivFamily &HDivFam() {return fhdivfam;}
+    const void SetHDivFamily(HDivFamily fam){fhdivfam = fam;}
 
     const H1Family &H1Fam() const {return fh1fam;}
     const H1Family &H1Fam() {return fh1fam;}
+    const void SetH1Family(H1Family fam){fh1fam = fam;}
 
     const HCurlFamily &HCurlFam() const {return fhcurlfam;}
     const HCurlFamily &HCurlFam() {return fhcurlfam;}
-
+    const void SetHCurlFamily(HCurlFamily fam){fhcurlfam = fam;}
     
     /** @brief Create discontinuous approximation spaces */
     void SetAllCreateFunctionsDiscontinuous();
     /** @brief Create continuous approximation spaces */
 	void SetAllCreateFunctionsContinuous();
     /** @brief Create an approximation space with HDiv elements */
-	void SetAllCreateFunctionsHDiv(int meshdim, HDivFamily hdivfam = DefaultFamily::fHDivDefaultValue);
+	void SetAllCreateFunctionsHDiv(int meshdim);
     /** @brief Create an approximation space with HCurl elements */
-    void SetAllCreateFunctionsHCurl(int meshdim, HCurlFamily hcurlfam = DefaultFamily::fHCurlDefaultValue);
+    void SetAllCreateFunctionsHCurl(int meshdim);
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
 //    void SetAllCreateFunctionsHDivFull(int meshdim);
     

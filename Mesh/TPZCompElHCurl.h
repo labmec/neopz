@@ -168,10 +168,32 @@ protected:
     void CreateHCurlConnects(TPZCompMesh &mesh);
 
     void ReallyComputeSolution(TPZMaterialDataT<STATE>& data) override{
-        ComputeSolutionHCurlT(data.phi, data.curlphi, data.sol, data.curlsol);
+        switch (fhcurlfam)
+        {
+        case HCurlFamily::EHCurlStandard:
+            ComputeSolutionHCurlT(data.phi, data.curlphi, data.sol, data.curlsol);    
+            break;
+        case HCurlFamily::EHCurlNoGrads:
+            ComputeSolutionHCurlNoGradsT(data);
+            break;
+        default:
+            DebugStop();
+            break;
+        }
     }
     void ReallyComputeSolution(TPZMaterialDataT<CSTATE>& data) override{
-        ComputeSolutionHCurlT(data.phi, data.curlphi, data.sol, data.curlsol);
+        switch (fhcurlfam)
+        {
+        case HCurlFamily::EHCurlStandard:
+            ComputeSolutionHCurlT(data.phi, data.curlphi, data.sol, data.curlsol);    
+            break;
+        case HCurlFamily::EHCurlNoGrads:
+            ComputeSolutionHCurlNoGradsT(data);
+            break;
+        default:
+            DebugStop();
+            break;
+        }
     }
 
     /**
@@ -187,7 +209,16 @@ protected:
                               TPZSolVec<TVar> &sol,
                               TPZSolVec<TVar> &curlsol);
 
+    /**
+     * This method computes the solution of an HCurlNoGrads element and its derivatives in the local coordinate qsi
+    **/
+    template<class TVar>
+    void ComputeSolutionHCurlNoGradsT(TPZMaterialDataT<TVar> &data);
+
     int MaxOrder() override; 
+
+    ///Adjusts connects for HCurlNoGrads approximation space.
+    void AdjustConnects();
 };
 
 

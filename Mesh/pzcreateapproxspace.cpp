@@ -443,13 +443,12 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
 #include "pzelchdivbound2.h"
 #include "TPZCompElKernelHDiv3D.h"
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension, HDivFamily hdivfam){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
 
     fStyle = EHDiv;
-    this->fhdivfam = hdivfam;
+    const HDivFamily &hdivfam = this->fhdivfam;
 
     if (fhdivfam == HDivFamily::EHDivKernel){
-        // const HDivFamily &hdivfam = this->fhdivfam;
         switch (dimension) {
             case 1:
                 std::cout << "HDivKernel family not implemented for 1D problems" << std::endl;
@@ -468,12 +467,12 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension, HDivF
             case 3:
                 fp[EPoint] = CreateNoElement;
                 fp[EOned] = CreateNoElement;
-                fp[ETriangle] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelBoundTriangleEl(gel,mesh,hdivfam,HCurlFamily::EHCurlStandard);};
-                fp[EQuadrilateral] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelBoundQuadEl(gel,mesh,hdivfam,HCurlFamily::EHCurlStandard);};
-                fp[ETetraedro] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelTetraEl(gel,mesh,hdivfam,HCurlFamily::EHCurlStandard);};
+                fp[ETriangle] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelBoundTriangleEl(gel,mesh,hdivfam);};
+                fp[EQuadrilateral] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelBoundQuadEl(gel,mesh,hdivfam);};
+                fp[ETetraedro] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelTetraEl(gel,mesh,hdivfam);};
                 fp[EPiramide] = CreateNoElement;
-                fp[EPrisma] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelPrismEl(gel,mesh,hdivfam,HCurlFamily::EHCurlStandard);};
-                fp[ECube] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelCubeEl(gel,mesh,hdivfam,HCurlFamily::EHCurlStandard);};
+                fp[EPrisma] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelPrismEl(gel,mesh,hdivfam);};
+                fp[ECube] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelCubeEl(gel,mesh,hdivfam);};
                 break;
             default:
                 DebugStop();
@@ -481,7 +480,6 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension, HDivF
         }
 
     } else {
-        // const HDivFamily &hdivfam = this->fhdivfam;
         switch (dimension) {
             case 1:
                 fp[EPoint] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivBoundPointEl(gel,mesh,hdivfam);};
@@ -534,63 +532,45 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension, HDivF
 
 #include <TPZCompElHCurl.h>
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension, HCurlFamily hcurlfam){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
 
     fStyle = EHCurl;
-    this->fhcurlfam = hcurlfam;
+    const HCurlFamily &hcurlfam = this->fhcurlfam;
 
-    if (fhcurlfam == HCurlFamily::EHCurlNoGrads){
-        switch (dimension) {
-        case 3:
-            fp[EPoint] = CreateNoElement;
-            fp[EOned] = CreateNoElement;
-            fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelBoundTriangleEl(gel,mesh,HDivFamily::EHDivStandard,hcurlfam);};
-            fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelBoundQuadEl(gel,mesh,HDivFamily::EHDivStandard,hcurlfam);};
-            fp[ETetraedro] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelTetraEl(gel,mesh,HDivFamily::EHDivStandard,hcurlfam);};
-            fp[EPiramide] = CreateNoElement;
-            fp[EPrisma] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelPrismEl(gel,mesh,HDivFamily::EHDivStandard,hcurlfam);};
-            fp[ECube] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivKernelCubeEl(gel,mesh,HDivFamily::EHDivStandard,hcurlfam);};
-            break;
-        default:
-            DebugStop();
-            break;
-        }
-    } else {
-        switch (dimension) {
-        case 1:
-            fp[EPoint] = CreateHCurlBoundPointEl;
-            fp[EOned] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlLinearEl(gel,mesh,hcurlfam);};
-            fp[ETriangle] = CreateNoElement;
-            fp[EQuadrilateral] = CreateNoElement;
-            fp[ETetraedro] = CreateNoElement;
-            fp[EPiramide] = CreateNoElement;
-            fp[EPrisma] = CreateNoElement;
-            fp[ECube] = CreateNoElement;
-            break;
-        case 2:
-            fp[EPoint] = CreateNoElement;
-            fp[EOned] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlBoundLinearEl(gel,mesh,hcurlfam);};
-            fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTriangleEl(gel,mesh,hcurlfam);};
-            fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlQuadEl(gel,mesh,hcurlfam);};
-            fp[ETetraedro] = CreateNoElement;
-            fp[EPiramide] = CreateNoElement;
-            fp[EPrisma] = CreateNoElement;
-            fp[ECube] = CreateNoElement;
-            break;
-        case 3:
-            fp[EPoint] = CreateNoElement;
-            fp[EOned] = CreateNoElement;
-            fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTriangleEl(gel,mesh,hcurlfam);};
-            fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlBoundQuadEl(gel,mesh,hcurlfam);};
-            fp[ETetraedro] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTetraEl(gel,mesh,hcurlfam);};
-            fp[EPiramide] = CreateHCurlPyramEl;
-            fp[EPrisma] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlPrismEl(gel,mesh,hcurlfam);};
-            fp[ECube] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlCubeEl(gel,mesh,hcurlfam);};
-            break;
-        default:
-            DebugStop();
-            break;
-        }
+    switch (dimension) {
+    case 1:
+        fp[EPoint] = CreateHCurlBoundPointEl;
+        fp[EOned] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlLinearEl(gel,mesh,hcurlfam);};
+        fp[ETriangle] = CreateNoElement;
+        fp[EQuadrilateral] = CreateNoElement;
+        fp[ETetraedro] = CreateNoElement;
+        fp[EPiramide] = CreateNoElement;
+        fp[EPrisma] = CreateNoElement;
+        fp[ECube] = CreateNoElement;
+        break;
+    case 2:
+        fp[EPoint] = CreateNoElement;
+        fp[EOned] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlBoundLinearEl(gel,mesh,hcurlfam);};
+        fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTriangleEl(gel,mesh,hcurlfam);};
+        fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlQuadEl(gel,mesh,hcurlfam);};
+        fp[ETetraedro] = CreateNoElement;
+        fp[EPiramide] = CreateNoElement;
+        fp[EPrisma] = CreateNoElement;
+        fp[ECube] = CreateNoElement;
+        break;
+    case 3:
+        fp[EPoint] = CreateNoElement;
+        fp[EOned] = CreateNoElement;
+        fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTriangleEl(gel,mesh,hcurlfam);};
+        fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlBoundQuadEl(gel,mesh,hcurlfam);};
+        fp[ETetraedro] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTetraEl(gel,mesh,hcurlfam);};
+        fp[EPiramide] = CreateHCurlPyramEl;
+        fp[EPrisma] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlPrismEl(gel,mesh,hcurlfam);};
+        fp[ECube] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlCubeEl(gel,mesh,hcurlfam);};
+        break;
+    default:
+        DebugStop();
+        break;
     }
     
 }
