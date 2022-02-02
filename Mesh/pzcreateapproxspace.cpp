@@ -448,7 +448,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
     fStyle = EHDiv;
     const HDivFamily &hdivfam = this->fhdivfam;
 
-    if (fhdivfam == HDivFamily::EHDivKernel){
+    if (fhdivfam == HDivFamily::EHDivKernel || fhdivfam == HDivFamily::EHCurlNoGrads){
         switch (dimension) {
             case 1:
                 std::cout << "HDivKernel family not implemented for 1D problems" << std::endl;

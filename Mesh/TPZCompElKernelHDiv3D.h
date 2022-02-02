@@ -28,7 +28,7 @@ class TPZCompElKernelHDiv3D : public TPZCompElHCurl<TSHAPE> {
     /// Data structure which defines the restraints
     std::list<TPZOneShapeRestraint> fRestraints;
 
-    /// Family of the HDiv space being used. Only HDivFamily::EHDivKernel is supported
+    /// Family of the HDiv space being used. Only HDivFamily::EHDivKernel and HDivFamily::EHCurlNoGrads are supported
     HDivFamily fhdivfam = HDivFamily::EHDivKernel;
 
 public:

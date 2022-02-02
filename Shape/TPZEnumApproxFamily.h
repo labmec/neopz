@@ -2,7 +2,7 @@
 #define TPZENUMAPPROXFAMILY_H
 
 /// Enum stating which flavor of HDiv spaces is being used
-enum class HDivFamily {EHDivStandard,EHDivConstant,EHDivKernel};
+enum class HDivFamily {EHDivStandard,EHDivConstant,EHDivKernel,EHCurlNoGrads};
 
 /// Enum stating which flavor of H1 spaces is being used
 enum class H1Family {EH1Standard};
