@@ -25,21 +25,20 @@
 template<class TSHAPE>
 class TPZCompElKernelHDivBC3D : public TPZCompElHCurlNoGrads<TSHAPE>  {
    
-public:
-    // Type of HDiv Space
-    enum MShapeType {EHDivKernel, EHDivConstant, ECurlNoGrads};
-
 private:
     int fSideOrient = 1;
-    
-    /// the type of space this object will generate
-    int fShapeType;
 
+    /// Family of the HDiv/HCurl space being used. Changing this will change the shape generating class
+    // The values are set as Default HDiv or HCurl, but the class will only work for HDivKernel or HCurlNoGrads
+    HDivFamily fhdivfam = DefaultFamily::fHDivDefaultValue;
+    HCurlFamily fhcurlfam = DefaultFamily::fHCurlDefaultValue;
+    
 public:
 	    
 	TPZCompElKernelHDivBC3D();
     
-    TPZCompElKernelHDivBC3D(TPZCompMesh &mesh, TPZGeoEl *gel, int shapetype = EHDivKernel);
+    TPZCompElKernelHDivBC3D(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam = DefaultFamily::fHDivDefaultValue, 
+                            const HCurlFamily hcurlfam = DefaultFamily::fHCurlDefaultValue);
 	
     virtual void InitMaterialData(TPZMaterialData &data) override;
 

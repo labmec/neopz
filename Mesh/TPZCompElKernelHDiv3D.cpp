@@ -29,12 +29,19 @@ static TPZLogger logger("pz.strmatrix");
 using namespace std;
 
 template<class TSHAPE>
-TPZCompElKernelHDiv3D<TSHAPE>::TPZCompElKernelHDiv3D(TPZCompMesh &mesh, TPZGeoEl *gel, int shapetype) :
-TPZRegisterClassId(&TPZCompElKernelHDiv3D::ClassId), TPZCompElHCurlNoGrads<TSHAPE>(mesh,gel), fSideOrient(TSHAPE::NFacets,1), fShapeType(shapetype) {
+TPZCompElKernelHDiv3D<TSHAPE>::TPZCompElKernelHDiv3D(TPZCompMesh &mesh, TPZGeoEl *gel, 
+                                                     const HDivFamily hdivfam, const HCurlFamily hcurlfam) :
+TPZRegisterClassId(&TPZCompElKernelHDiv3D::ClassId), TPZCompElHCurlNoGrads<TSHAPE>(mesh,gel),
+                  fSideOrient(TSHAPE::NFacets,1), fhdivfam(hdivfam), fhcurlfam(hcurlfam) {
     int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
     for(int side = firstside ; side < TSHAPE::NSides-1; side++ )
     {
         fSideOrient[side-firstside] = this->Reference()->NormalOrientation(side);
+    }
+    
+    if (fhdivfam != HDivFamily::EHDivKernel && fhcurlfam != HCurlFamily::EHCurlNoGrads){
+        std::cout << "You need to chose EHivKernel or EHCurlNoGrads approximation space to use TPZCompElKernelHDivBC3D" << std::endl;
+        DebugStop();
     }
 }
 
@@ -51,9 +58,9 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> 
                                                 
     bool needsol = data.fNeedsSol;
     data.fNeedsSol = true;
-    if (fShapeType == ECurlNoGrads) {
+    if (fhcurlfam == HCurlFamily::EHCurlNoGrads) {
         TPZCompElHCurlNoGrads<TSHAPE>::ComputeRequiredData(data,qsi);
-    } else {
+    } else if (fhdivfam == HDivFamily::EHDivKernel) {
         //Compute the element geometric data
         TPZGeoEl * ref = this->Reference();
         if (!ref){
@@ -85,6 +92,8 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> 
         if (data.fNeedsSol) {
             this->ReallyComputeSolution(data);
         }
+    } else {
+        DebugStop();
     }
     
     data.fNeedsSol = needsol;
@@ -145,9 +154,9 @@ template<class TSHAPE>
 void TPZCompElKernelHDiv3D<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
 	data.fNeedsSol = true;
-	if (fShapeType == ECurlNoGrads) {
+	if (fhcurlfam == HCurlFamily::EHCurlNoGrads) {
         TPZCompElHCurlNoGrads<TSHAPE>::InitMaterialData(data);
-    } else {
+    } else if (fhdivfam == HDivFamily::EHDivKernel) {
         //Init the material data of Hcurl
         TPZCompElHCurl<TSHAPE>::InitMaterialData(data);
         
@@ -158,6 +167,8 @@ void TPZCompElKernelHDiv3D<TSHAPE>::InitMaterialData(TPZMaterialData &data)
             
         //setting the type of shape functions as vector shape functions
         data.fShapeType = TPZMaterialData::EVecShape;
+    } else {
+        DebugStop();
     }
 
     data.fShapeType = data.EVecandShape;
@@ -229,7 +240,10 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeSolutionKernelHdivT(TPZMaterialDataT<
 
 }
 
-
+#include "pzshapelinear.h"
+#include "pzshapequad.h"
+#include "pzshapepoint.h"
+#include "pzshapetriang.h"
 #include "pzshapecube.h"
 #include "pzshapetetra.h"
 #include "pzshapeprism.h"
@@ -251,3 +265,39 @@ template class TPZRestoreClass< TPZCompElKernelHDiv3D<TPZShapePrism>>;
 template class TPZCompElKernelHDiv3D<TPZShapeTetra>;
 template class TPZCompElKernelHDiv3D<TPZShapeCube>;
 template class TPZCompElKernelHDiv3D<TPZShapePrism>;
+
+#include "TPZCompElKernelHDivBC.h"
+#include "TPZCompElKernelHDivBC3D.h"
+#include "TPZCompElKernelHDiv.h"
+
+
+//BC
+TPZCompEl * CreateHDivKernelBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElH1<TPZShapePoint>(mesh,gel);
+}
+TPZCompEl * CreateHDivKernelBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElKernelHDivBC< TPZShapeLinear>(mesh,gel);
+}
+TPZCompEl * CreateHDivKernelBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam, const HCurlFamily hcurlfam) {
+    return new TPZCompElKernelHDivBC3D< TPZShapeQuad>(mesh,gel,hdivfam,hcurlfam);
+}
+TPZCompEl * CreateHDivKernelBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam, const HCurlFamily hcurlfam) {
+    return new TPZCompElKernelHDivBC3D< TPZShapeTriang >(mesh,gel,hdivfam,hcurlfam);
+}
+
+//Domain
+TPZCompEl * CreateHDivKernelQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElKernelHDiv< TPZShapeQuad>(mesh,gel);
+}
+TPZCompEl * CreateHDivKernelTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElKernelHDiv< TPZShapeTriang >(mesh,gel);
+}
+TPZCompEl * CreateHDivKernelCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam, const HCurlFamily hcurlfam) {
+	return new TPZCompElKernelHDiv3D< TPZShapeCube >(mesh,gel,hdivfam,hcurlfam);
+}
+TPZCompEl * CreateHDivKernelPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam, const HCurlFamily hcurlfam) {
+	return new TPZCompElKernelHDiv3D< TPZShapePrism>(mesh,gel,hdivfam,hcurlfam);
+}
+TPZCompEl * CreateHDivKernelTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam, const HCurlFamily hcurlfam) {
+	return new TPZCompElKernelHDiv3D< TPZShapeTetra >(mesh,gel,hdivfam,hcurlfam);
+}

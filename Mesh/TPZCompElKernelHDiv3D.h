@@ -28,15 +28,15 @@ class TPZCompElKernelHDiv3D : public TPZCompElHCurlNoGrads<TSHAPE> {
     /// Data structure which defines the restraints
     std::list<TPZOneShapeRestraint> fRestraints;
 
-    // Type of HDiv Space
-    enum MShapeType {EHDivKernel, EHDivConstant, ECurlNoGrads};
-    
-    /// the type of space this object will generate
-    int fShapeType;
+    /// Family of the HDiv/HCurl space being used. Changing this will change the shape generating class
+    // The values are set as Default HDiv or HCurl, but the class will only work for HDivKernel or HCurlNoGrads
+    HDivFamily fhdivfam = DefaultFamily::fHDivDefaultValue;
+    HCurlFamily fhcurlfam = DefaultFamily::fHCurlDefaultValue;
 
 public:
 	    
-	TPZCompElKernelHDiv3D(TPZCompMesh &mesh, TPZGeoEl *gel, int shapetype = EHDivKernel);
+	TPZCompElKernelHDiv3D(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam = DefaultFamily::fHDivDefaultValue, 
+                          const HCurlFamily hcurlfam = DefaultFamily::fHCurlDefaultValue);
 	
 	TPZCompElKernelHDiv3D(){};
 	
@@ -124,5 +124,28 @@ void TPZCompElKernelHDiv3D<TSHAPE>::SetCreateFunctions(TPZCompMesh* mesh) {
 #include "pzshapequad.h"
 #include "pzgeoquad.h"
 #include "tpzquadrilateral.h"
+
+
+
+/** @brief Creates computational quadrilateral element for HDivKernel approximate space */
+TPZCompEl *CreateHDivKernelQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
+/** @brief Creates computational triangular element for HDivKernel approximate space */
+TPZCompEl *CreateHDivKernelTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
+/** @brief Creates computational cube element for HDivKernel approximate space */
+TPZCompEl *CreateHDivKernelCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam, const HCurlFamily hcurlfam);
+/** @brief Creates computational prismal element for HDivKernel approximate space */
+TPZCompEl *CreateHDivKernelPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam, const HCurlFamily hcurlfam);
+/** @brief Creates computational tetrahedral element for HDivKernel approximate space */
+TPZCompEl *CreateHDivKernelTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam, const HCurlFamily hcurlfam);
+
+/** @brief Creates computational point element for HDivKernel approximate space */
+TPZCompEl *CreateHDivKernelBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
+/** @brief Creates computational linear element for HDivKernel approximate space */
+TPZCompEl *CreateHDivKernelBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
+/** @brief Creates computational quadrilateral element for HDivKernel approximate space */
+TPZCompEl *CreateHDivKernelBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam, const HCurlFamily hcurlfam);
+/** @brief Creates computational triangular element for HDivKernel approximate space */
+TPZCompEl *CreateHDivKernelBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam, const HCurlFamily hcurlfam);
+
 
 #endif

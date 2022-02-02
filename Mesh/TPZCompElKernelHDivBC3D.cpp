@@ -14,17 +14,22 @@ static TPZLogger logger("pz.strmatrix");
 #endif
 
 template<class TSHAPE>
-TPZCompElKernelHDivBC3D<TSHAPE>::TPZCompElKernelHDivBC3D(TPZCompMesh &mesh, TPZGeoEl *gel, int shapetype) :
-TPZRegisterClassId(&TPZCompElKernelHDivBC3D::ClassId), TPZCompElHCurlNoGrads<TSHAPE>(mesh,gel), fShapeType(shapetype)  {
-
+TPZCompElKernelHDivBC3D<TSHAPE>::TPZCompElKernelHDivBC3D(TPZCompMesh &mesh, TPZGeoEl *gel, 
+                                                         const HDivFamily hdivfam, const HCurlFamily hcurlfam) :
+TPZRegisterClassId(&TPZCompElKernelHDivBC3D::ClassId), 
+TPZCompElHCurlNoGrads<TSHAPE>(mesh,gel), fhdivfam(hdivfam), fhcurlfam(hcurlfam)  {
+    if (fhdivfam != HDivFamily::EHDivKernel && fhcurlfam != HCurlFamily::EHCurlNoGrads){
+        std::cout << "You need to chose EHivKernel or EHCurlNoGrads approximation space to use TPZCompElKernelHDivBC3D" << std::endl;
+        DebugStop();
+    }
 }
 
 template<class TSHAPE>
 void TPZCompElKernelHDivBC3D<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
-    if (fShapeType == ECurlNoGrads){
+    if (fhcurlfam == HCurlFamily::EHCurlNoGrads){
 	    TPZCompElHCurlNoGrads<TSHAPE>::InitMaterialData(data);
-    } else if (fShapeType == EHDivKernel) {
+    } else if (fhdivfam == HDivFamily::EHDivKernel) {
         //Init the material data of Hcurl
         TPZCompElHCurl<TSHAPE>::InitMaterialData(data);
         
@@ -45,12 +50,12 @@ void TPZCompElKernelHDivBC3D<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 template<class TSHAPE>
 void TPZCompElKernelHDivBC3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi){
 
-    if (fShapeType == ECurlNoGrads){
+    if (fhcurlfam == HCurlFamily::EHCurlNoGrads){
         bool needsol = data.fNeedsSol;
         data.fNeedsSol = true;
         TPZCompElHCurlNoGrads<TSHAPE>::ComputeRequiredData(data,qsi);
         data.fNeedsSol = needsol;
-    } else {
+    } else if (fhdivfam == HDivFamily::EHDivKernel) {
         //Compute the element geometric data
         TPZGeoEl * ref = this->Reference();
         if (!ref){
@@ -89,6 +94,8 @@ void TPZCompElKernelHDivBC3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<STAT
         if (data.fNeedsSol) {
             this->ReallyComputeSolution(data);
         }
+    } else {
+        DebugStop();
     }
     
     data.phi.Resize(data.curlphi.Cols(),3);
