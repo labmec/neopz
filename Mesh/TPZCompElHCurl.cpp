@@ -38,9 +38,6 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fhcurlfam(hcurlfam)
     gel->SetReference(this);
     this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
     this->CreateHCurlConnects(mesh);
-    if (fhcurlfam == HCurlFamily::EHCurlNoGrads) {
-        this->AdjustConnects();
-    }
 }
 
 template<class TSHAPE>
@@ -247,11 +244,8 @@ int TPZCompElHCurl<TSHAPE>::NConnectShapeF(int connect, int order) const
     case HCurlFamily::EHCurlNoGrads:
         return TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(connect, order);
         break;
-
-    default:
-        DebugStop();
-        break;
-    }
+    }/**there is no default case on purpose, because now the compiler
+      will warn us if a new hcurl family is added*/
     return -1;
 }
 
@@ -361,7 +355,17 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
         conOrders[i] = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes);
     }
 
-    TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, shapedata);
+    switch (fhcurlfam)
+    {
+    case HCurlFamily::EHCurlStandard:
+        TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, shapedata);
+        break;
+    case HCurlFamily::EHCurlNoGrads:
+        TPZShapeHCurlNoGrads<TSHAPE>::Initialize(ids, conOrders, shapedata);
+        break;
+    }/**there is no default case on purpose, because now the compiler
+      will warn us if a new hcurl family is added*/
+    
 
     //resizing of TPZMaterialData structures
 
@@ -396,55 +400,6 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
 // 	}
 // #endif
 
-    if (fhcurlfam == HCurlFamily::EHCurlNoGrads){
-        //computes the index that will associate each scalar function to a constant vector field
-        constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
-        TPZManVector<int,nConnects> connectOrders(nConnects,-1);
-        int unfiltnshape = 0;
-        for(auto i = 0; i < nConnects; i++){
-            const auto conorder = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes);
-            connectOrders[i] = conorder;
-            unfiltnshape += TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(i, conorder);
-        }
-
-        const auto nFaces = TSHAPE::Dimension < 2 ? 0 : TSHAPE::NumSides(2);
-        const auto nEdges = TSHAPE::NumSides(1);
-        constexpr auto nNodes = TSHAPE::NCornerNodes;
-
-        TPZManVector<int64_t,nNodes> nodes(nNodes, 0);
-
-        for (auto iNode = 0; iNode < nNodes; iNode++){
-            nodes[iNode] = this->Reference()->NodeIndex(iNode);
-        }
-    
-        TPZManVector<int64_t, TSHAPE::NSides - nNodes>
-            firstH1ShapeFunc(TSHAPE::NSides - nNodes,0);
-        
-        //calculates the first shape function associated with each side of dim > 0
-        TPZManVector<int,TSHAPE::NSides-nNodes> sidesH1Ord(TSHAPE::NSides - nNodes,-1);
-        // TPZShapeHDivKernel<TSHAPE>::CalcH1ShapeOrders(connectOrders,sidesH1Ord);
-        TPZShapeHCurl<TSHAPE>::CalcH1ShapeOrders(connectOrders,sidesH1Ord);
-        firstH1ShapeFunc[0] = nNodes;
-        
-        for (int iSide = nNodes + 1; iSide < TSHAPE::NSides; iSide++) {
-            const int iCon = iSide - nNodes;
-            firstH1ShapeFunc[iCon] =
-            firstH1ShapeFunc[iCon - 1] +
-            TSHAPE::NConnectShapeF(iSide - 1, sidesH1Ord[iCon-1]);
-
-        }
-        
-        auto &indexVecShape = data.fVecShapeIndex;
-        indexVecShape.Resize(unfiltnshape);
-
-        TPZVec<unsigned int> shapeCountVec(TSHAPE::NSides - nNodes, 0);
-        TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(connectOrders,
-                                                    firstH1ShapeFunc,sidesH1Ord, nodes, shapeCountVec,indexVecShape );
-
-        //setting the type of shape functions as vector shape functions
-        data.fShapeType = TPZMaterialData::EVecShape;
-    }
-
 }
 
 template<class TSHAPE>
@@ -471,11 +426,9 @@ void TPZCompElHCurl<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &da
     case HCurlFamily::EHCurlNoGrads:
         TPZShapeHCurlNoGrads<TSHAPE>::Shape(qsi,shapedata,phiref,curlphiref);
         break;
-    
-    default:
-        DebugStop();
-        break;
     }
+    /**there is no default case on purpose, because now the compiler
+      will warn us if a new hcurl family is added*/
     
     //these are resized in InitMaterialData
     auto &phi = data.phi;
@@ -492,45 +445,6 @@ void TPZCompElHCurl<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &da
     case 3:
         TransformCurl<3>(curlphiref, data.detjac, data.jacobian, curlphi);
         break;
-    }
-
-    if (fhcurlfam == HCurlFamily::EHCurlNoGrads){
-        if (TSHAPE::Dimension == 3){
-            int nshape = this->NShapeF();
-            data.fDeformedDirections.Resize(3,nshape);
-            data.fVecShapeIndex.Resize(nshape);
-            TPZShapeData &shapedata = data;
-            int size = data.curlphi.Cols();
-
-            if (size != nshape) DebugStop();
-            int ncorner = TSHAPE::NCornerNodes;
-            for (int j = 0; j < nshape; j++){
-                data.fVecShapeIndex[j].first = j;
-                data.fVecShapeIndex[j].second = j;
-                for (int i = 0; i < 3; i++){
-                    data.fDeformedDirections(i,j)=data.curlphi(i,j);
-                }
-            }
-            data.phi.Resize(nshape,3);
-            for (int i = 0; i < data.phi.Rows(); i++){
-                data.phi(i,0) = 1.;
-                data.phi(i,1) = 1.;
-                data.phi(i,2) = 1.;
-            }
-            for (int i = 0; i < data.dphix.Rows(); i++)
-                for (int j = 0; j < data.dphix.Cols(); j++)
-                        data.dphix(i,j) = 1.;
-        } else if (TSHAPE::Dimension == 2) {
-            data.phi.Resize(data.curlphi.Cols(),3);
-            data.phi.Zero();
-            if (data.phi.Rows()>1){
-                for (int i = 0; i < data.phi.Rows(); i++){
-                    data.phi(i,0) = -data.curlphi(0,i);
-                }
-            }
-        } else {
-            DebugStop();
-        }
     }
 }
 
