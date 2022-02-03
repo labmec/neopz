@@ -53,6 +53,13 @@ public:
 	/** @brief Compute the solution for a given variable */
 	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
 
+    /**
+    * @brief Number of shapefunctions of the connect associated
+    * @param connect connect number
+    * @return number of shape functions
+    */
+    int NConnectShapeF(int connect, int order) const override;
+
 protected:
 	 //@{
     /** @brief Compute the solution using Hdiv structure */
@@ -67,7 +74,8 @@ protected:
     void ComputeSolutionKernelHdivT(TPZMaterialDataT<TVar> &data);
     template<class TVar>
     void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL>&qsi);
-	
+    
+    void AdjustConnects();
 };
 
 

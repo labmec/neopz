@@ -330,11 +330,14 @@ using namespace pztopology;
 using namespace pzgeom;
 using namespace pzshape;
 
-
+template class TPZRestoreClass< TPZCompElKernelHDiv3D<TPZShapeTriang>>;
+template class TPZRestoreClass< TPZCompElKernelHDiv3D<TPZShapeQuad>>;
 template class TPZRestoreClass< TPZCompElKernelHDiv3D<TPZShapeCube>>;
 template class TPZRestoreClass< TPZCompElKernelHDiv3D<TPZShapeTetra>>;
 template class TPZRestoreClass< TPZCompElKernelHDiv3D<TPZShapePrism>>;
 
+template class TPZCompElKernelHDiv3D<TPZShapeTriang>;
+template class TPZCompElKernelHDiv3D<TPZShapeQuad>;
 template class TPZCompElKernelHDiv3D<TPZShapeTetra>;
 template class TPZCompElKernelHDiv3D<TPZShapeCube>;
 template class TPZCompElKernelHDiv3D<TPZShapePrism>;

@@ -18,6 +18,9 @@ template<class TSHAPE>
 TPZCompElKernelHDiv<TSHAPE>::TPZCompElKernelHDiv(TPZCompMesh &mesh, TPZGeoEl *gel) :
 TPZRegisterClassId(&TPZCompElKernelHDiv::ClassId), TPZCompElH1<TSHAPE>(mesh,gel) {
 
+    if (TSHAPE::Type()==ETriangle){
+        this->AdjustConnects();
+    }
 }
 
 template<class TSHAPE>
@@ -51,6 +54,11 @@ void TPZCompElKernelHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		data.fVecShapeIndex[i] = std::make_pair(i,1);
     }
     data.fDeformedDirections.Resize(3,nshape);
+    if (TSHAPE::Type()==ETriangle){
+        data.fH1ConnectOrders[3]++;
+        data.fPhi.Resize(nshape,1);
+        data.fDPhi.Resize(TSHAPE::Dimension, nshape);
+    }
 }
 
 
@@ -69,15 +77,13 @@ void TPZCompElKernelHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData
 
     TPZShapeHDivKernel2D<TSHAPE>::Shape(qsi, shapedata, auxPhi, data.divphi);
 
-    TPZFMatrix<REAL> gradx, aux2(3,auxPhi.Cols());
+    TPZFMatrix<REAL> gradx;
     this->Reference()->GradX(qsi,gradx);
 
     const auto nCorner = TSHAPE::NCornerNodes;
 
-    aux2.Zero();
-    gradx.MultAdd(auxPhi,data.phi,aux2,1/data.detjac,0);
+    gradx.MultAdd(auxPhi,data.phi,data.fDeformedDirections,1/data.detjac,0);
     // std::cout << "AUX2 " << aux2 << std::endl;
-    data.fDeformedDirections = aux2;
 
     data.phi.Resize(auxPhi.Cols(),3);
     data.divphi.Resize(auxPhi.Cols(),1);
@@ -208,6 +214,47 @@ void TPZCompElKernelHDiv<TSHAPE>::ComputeSolutionKernelHdivT(TPZMaterialDataT<TV
     // data.sol[0][1] = data.dsol[0](0,0);
     // data.sol[0][2] = 0.;
 }
+
+template<class TSHAPE>
+int TPZCompElKernelHDiv<TSHAPE>::NConnectShapeF(int connect, int order) const{
+    
+    if (TSHAPE::Type() == ETriangle && connect == 6) order++;
+    if(connect < TSHAPE::NCornerNodes) return TSHAPE::NConnectShapeF(connect,0);
+	if(order < 0) return 0;
+    int nshape = TSHAPE::NConnectShapeF(connect, order);
+#ifdef PZDEBUG
+    if(nshape < 0 )
+    {
+        nshape = TSHAPE::NConnectShapeF(connect, order);
+        DebugStop();
+    }
+#endif
+	return nshape;
+}
+
+
+template<class TSHAPE>
+void TPZCompElKernelHDiv<TSHAPE>::AdjustConnects()
+{
+    constexpr auto nNodes = TSHAPE::NCornerNodes;
+    constexpr auto ncon = TSHAPE::NSides - nNodes;
+    // for(int icon = 0; icon < ncon; icon++){
+        const int connect = this->MidSideConnectLocId(TSHAPE::NSides-1);
+        TPZConnect &c = this->Connect(connect);
+        const int nshape =this->NConnectShapeF(connect,c.Order());
+        c.SetNShape(nshape);
+        const auto seqnum = c.SequenceNumber();
+        const int nStateVars = [&](){
+            TPZMaterial * mat =this-> Material();
+            if(mat) return mat->NStateVariables();
+            else {
+                return 1;
+            }
+        }();
+        this-> Mesh()->Block().Set(seqnum,nshape*nStateVars);
+    // }
+}
+
 
 #include "pzshapelinear.h"
 #include "TPZRefLinear.h"
