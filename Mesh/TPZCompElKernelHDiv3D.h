@@ -44,17 +44,7 @@ public:
 	 * of state variables and material definitions */
 	virtual void InitMaterialData(TPZMaterialData &data) override;
 
-    //@{
-	/** @brief Compute and fill data with requested attributes */
-	void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
-                             TPZVec<REAL> &qsi) override{
-        ComputeRequiredDataT(data,qsi);
-    }
-     void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
-                              TPZVec<REAL> &qsi) override{
-        ComputeRequiredDataT(data,qsi);
-    }
-    //@}
+    void ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
 
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
     int ClassId() const override;
@@ -99,10 +89,7 @@ protected:
 
 	template<class TVar>
     void ComputeSolutionKernelHdivT(TPZMaterialDataT<TVar> &data);
-    template<class TVar>
-    void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL>&qsi);
 
-    void AdjustConnects();
 };
 
 

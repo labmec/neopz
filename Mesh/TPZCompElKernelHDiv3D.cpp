@@ -33,7 +33,7 @@ using namespace std;
 
 template<class TSHAPE>
 TPZCompElKernelHDiv3D<TSHAPE>::TPZCompElKernelHDiv3D(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam) :
-TPZRegisterClassId(&TPZCompElKernelHDiv3D::ClassId), TPZCompElHCurl<TSHAPE>(mesh,gel),
+TPZRegisterClassId(&TPZCompElKernelHDiv3D::ClassId), TPZCompElHCurl<TSHAPE>(mesh,gel,HCurlFamily::EHCurlNoGrads),
                   fSideOrient(TSHAPE::NFacets,1), fhdivfam(hdivfam) {
     int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
     for(int side = firstside ; side < TSHAPE::NSides-1; side++ )
@@ -45,31 +45,18 @@ TPZRegisterClassId(&TPZCompElKernelHDiv3D::ClassId), TPZCompElHCurl<TSHAPE>(mesh
         std::cout << "You need to chose EHivKernel approximation space to use TPZCompElKernelHDiv3D" << std::endl;
         DebugStop();
     }
-    this->AdjustConnects();
+
 }
  
 
 template<class TSHAPE>
-template<class TVar>
-void TPZCompElKernelHDiv3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
-                                                TPZVec<REAL> &qsi){
+void TPZCompElKernelHDiv3D<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data){
                                                 
     bool needsol = data.fNeedsSol;
     data.fNeedsSol = true;
 
-    //Compute the element geometric data
-    TPZGeoEl * ref = this->Reference();
-    if (!ref){
-        PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
-        return;
-    }
-
-    ref->Jacobian(qsi, data.jacobian, data.axes, data.detjac , data.jacinv);
-    ref->X(qsi, data.x);
-    data.xParametric = qsi;
-
-    const int rows = data.phi.Rows();
-    const int cols = data.phi.Cols();
+    int rows = data.phi.Rows();
+    int cols = data.phi.Cols();
     TPZFMatrix<REAL> phiHCurl(cols,rows,0.);
     TPZFMatrix<REAL> curlHCurl(cols,rows,0.);
     TPZFMatrix<REAL> DivPhi(rows,1,0.);
@@ -109,14 +96,9 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> 
             }
         }
         data.phi.Resize(nshape,3);
-        for (int i = 0; i < data.phi.Rows(); i++){
-            data.phi(i,0) = 1.;
-            data.phi(i,1) = 1.;
-            data.phi(i,2) = 1.;
-        }
-        for (int i = 0; i < data.dphix.Rows(); i++)
-            for (int j = 0; j < data.dphix.Cols(); j++)
-                    data.dphix(i,j) = 1.;
+        data.phi = 1.;
+        data.dphix = 1.;
+        
     } else if (TSHAPE::Dimension == 2) {
         data.phi.Resize(data.curlphi.Cols(),3);
         data.phi.Zero();
@@ -135,15 +117,12 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> 
         std::stringstream sout;
         //	this->Print(sout);
         // sout << "\nVecshape = " << data.fVecShapeIndex << std::endl;
-        // sout << "Phi = " << data.fDeformedDirections << std::endl;
+        // sout << "fDeformedDirections = " << data.fDeformedDirections << std::endl;
+        // sout << "phi = " << data.phi << std::endl;
         LOGPZ_DEBUG(logger,sout.str())
         
     }
 #endif
-
-    if (data.fNeedsSol) {
-        this->ReallyComputeSolution(data);
-    }
 
 }//void
 
@@ -151,72 +130,23 @@ template<class TSHAPE>
 void TPZCompElKernelHDiv3D<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
 	data.fNeedsSol = true;
+    
+    // We create the derived element as a HCurlFamily::EHCurlNoGrads, so it will have the right connects.
+    // However, at this point we need to initialize it as a HCurlFamily::EHCurlStandard in order to get
+    // the hardcoded filtered functions a.k.a. TPZShapeHDivKernel.
+    if (fhdivfam == HDivFamily::EHDivKernel) this->fhcurlfam = HCurlFamily::EHCurlStandard;
+
     //Init the material data of Hcurl
     TPZCompElHCurl<TSHAPE>::InitMaterialData(data);
-	if (fhdivfam == HDivFamily::EHCurlNoGrads) {
-        //computes the index that will associate each scalar function to a constant vector field
-        constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
-        TPZManVector<int,nConnects> connectOrders(nConnects,-1);
-        int unfiltnshape = 0;
-        for(auto i = 0; i < nConnects; i++){
-            const auto conorder = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes);
-            connectOrders[i] = conorder;
-            unfiltnshape += TPZCompElHCurl<TSHAPE>::NConnectShapeF(i, conorder);
-        }
-
-        const auto nFaces = TSHAPE::Dimension < 2 ? 0 : TSHAPE::NumSides(2);
-        const auto nEdges = TSHAPE::NumSides(1);
-        constexpr auto nNodes = TSHAPE::NCornerNodes;
-
-        TPZManVector<int64_t,nNodes> nodes(nNodes, 0);
-
-        for (auto iNode = 0; iNode < nNodes; iNode++){
-            nodes[iNode] = this->Reference()->NodeIndex(iNode);
-        }
-    
-        TPZManVector<int64_t, TSHAPE::NSides - nNodes>
-            firstH1ShapeFunc(TSHAPE::NSides - nNodes,0);
-        
-        //calculates the first shape function associated with each side of dim > 0
-        TPZManVector<int,TSHAPE::NSides-nNodes> sidesH1Ord(TSHAPE::NSides - nNodes,-1);
-        // TPZShapeHDivKernel<TSHAPE>::CalcH1ShapeOrders(connectOrders,sidesH1Ord);
-        TPZShapeHCurl<TSHAPE>::CalcH1ShapeOrders(connectOrders,sidesH1Ord);
-        firstH1ShapeFunc[0] = nNodes;
-        
-        for (int iSide = nNodes + 1; iSide < TSHAPE::NSides; iSide++) {
-            const int iCon = iSide - nNodes;
-            firstH1ShapeFunc[iCon] =
-            firstH1ShapeFunc[iCon - 1] +
-            TSHAPE::NConnectShapeF(iSide - 1, sidesH1Ord[iCon-1]);
-
-        }
-        
-        auto &indexVecShape = data.fVecShapeIndex;
-        indexVecShape.Resize(unfiltnshape);
-
-        TPZVec<unsigned int> shapeCountVec(TSHAPE::NSides - nNodes, 0);
-        TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(connectOrders,
-                                                    firstH1ShapeFunc,sidesH1Ord, nodes, shapeCountVec,indexVecShape );
-
-        //setting the type of shape functions as vector shape functions
-        data.fShapeType = TPZMaterialData::EVecShape;
-
-    } else if (fhdivfam == HDivFamily::EHDivKernel) {
-       
-        
-        TPZShapeData dataaux = data;
-        data.fVecShapeIndex=dataaux.fSDVecShapeIndex;
+	
+    if (fhdivfam == HDivFamily::EHDivKernel) {   
+        data.fVecShapeIndex = data.fSDVecShapeIndex;
         data.divphi.Resize(data.fVecShapeIndex.size(),1);
         TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(data);
             
         //setting the type of shape functions as vector shape functions
         data.fShapeType = TPZMaterialData::EVecShape;
-    } else {
-        DebugStop();
     }
-
-    data.fShapeType = data.EVecandShape;
-    
 }
 
 /**
@@ -283,28 +213,6 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeSolutionKernelHdivT(TPZMaterialDataT<
     }
     data.sol = data.curlsol;
 
-}
-
-template<class TSHAPE>
-void TPZCompElKernelHDiv3D<TSHAPE>::AdjustConnects()
-{
-    constexpr auto nNodes = TSHAPE::NCornerNodes;
-    constexpr auto ncon = TSHAPE::NSides - nNodes;
-    for(int icon = 0; icon < ncon; icon++){
-        const int connect = this->MidSideConnectLocId(icon+nNodes);
-        TPZConnect &c = this->Connect(connect);
-        const int nshape =this->NConnectShapeF(connect,c.Order());
-        c.SetNShape(nshape);
-        const auto seqnum = c.SequenceNumber();
-        const int nStateVars = [&](){
-            TPZMaterial * mat =this-> Material();
-            if(mat) return mat->NStateVariables();
-            else {
-                return 1;
-            }
-        }();
-        this-> Mesh()->Block().Set(seqnum,nshape*nStateVars);
-    }
 }
 
 template<class TSHAPE>
