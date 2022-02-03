@@ -29,6 +29,14 @@ void TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
         data.fHDivNumConnectShape[iedge] = 2;
         data.fHDivConnectOrders[iedge] = 1;
     }
+
+    //For triangles and tetrahedron we need order+1 for the internal functions to
+    //get the same error as HDivStandard
+    //PS: This is not working for this hardcoded filter. We need the functions to come
+    //from TPZCompElHCurl with the right order for the volume connect when fhcurfam=EHCurlStandard
+    if (TSHAPE::Type() == ETetraedro){
+        data.fH1ConnectOrders[10]++;
+    }
     TPZShapeHCurl<TSHAPE>::ComputeVecandShape(data);
     
     typedef std::pair<MElementType,int> orderpair;

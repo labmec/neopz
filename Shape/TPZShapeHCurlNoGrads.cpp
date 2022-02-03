@@ -14,6 +14,12 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
                                        TPZVec<int> &connectorders,
                                        TPZShapeData &data)
 {
+  //For triangles and tetrahedron we need order+1 for the internal functions to
+  //get the same error as HDivStandard
+  if (TSHAPE::Type() == ETetraedro){
+      connectorders[10]++;
+  }
+  
   TPZShapeHCurl<TSHAPE>::Initialize(ids,connectorders,data);
   constexpr int ncon = TSHAPE::NSides-TSHAPE::NCornerNodes;
   data.fHDivNumConnectShape.Resize(ncon);
@@ -138,7 +144,10 @@ int TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(const int icon, const in
         }
         else{//internal connect (3D element only)
             if constexpr (TSHAPE::Type() == ETetraedro){
-                return (order-1)*(order-2)*(2*order+3)/6;
+                //For triangles and tetrahedron we need order+1 for the internal functions to
+                //get the same error as HDivStandard
+                auto orderTet = order+1;
+                return (orderTet-1)*(orderTet-2)*(2*orderTet+3)/6;
             } else if constexpr (TSHAPE::Type() == ECube){
                 return order*order*(2*order+3);
             }
