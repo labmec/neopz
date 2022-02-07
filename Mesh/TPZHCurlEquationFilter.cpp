@@ -269,14 +269,13 @@ void TPZHCurlEquationFilter<TVar>::FirstEdge()
 */
 template <class TVar>
 bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZCompMesh* cmesh,
-                    TPZVec<int64_t> &activeEquations, bool &domainHybridization)
+                    TPZVec<int64_t> &activeEquations, bool &domainHybridization, std::set<int64_t> &removed_edges)
 {
 
     cmesh->LoadReferences();
     const auto gmesh = cmesh->Reference();  
     auto nnodes = gmesh->NNodes();
 
-    std::set<int64_t> removed_edges;
     TPZVec<bool> done_vertices(nnodes, false);
 
     if (domainHybridization)
@@ -384,6 +383,9 @@ bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZCompMesh* cmesh,
             }
             const auto seqnum = con.SequenceNumber();
             if (seqnum<0) continue;
+            if (con.IsCondensed()) continue;
+
+
             const auto pos = cmesh->Block().Position(seqnum);
             const auto blocksize = cmesh->Block().Size(seqnum);
             if (blocksize == 0){
