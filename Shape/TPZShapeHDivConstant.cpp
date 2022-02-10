@@ -65,8 +65,8 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
             //Kernel Hdiv
             for (int j = 1; j < data.fHDivConnectOrders[0]; j++)
             {
-                phi(0,count) =  data.fDPhi(1,countKernel);
-                phi(1,count) = -data.fDPhi(0,countKernel);
+                phi(0,count) = -data.fDPhi(1,countKernel);
+                phi(1,count) =  data.fDPhi(0,countKernel);
                 count++;
                 countKernel++;
             }
@@ -74,8 +74,8 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
         
         //Internal functions
         for (int i = countKernel; i < nshape; i++){
-            phi(0,count) =  data.fDPhi(1,countKernel);
-            phi(1,count) = -data.fDPhi(0,countKernel);
+            phi(0,count) = -data.fDPhi(1,countKernel);
+            phi(1,count) =  data.fDPhi(0,countKernel);
             count++;
             countKernel++;
         }

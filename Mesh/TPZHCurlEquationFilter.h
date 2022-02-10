@@ -29,11 +29,7 @@ class TPZHCurlEquationFilter
 {
    
     
-private:
-    const int edgeDim{1};
-
-    int fNumEdgesPerFace = 0;
-
+public:
     // DATA STRUCTURES
     // 1 - VERTEX DATA STRUCTURE
     enum VertexStatusType {ENotTreatedVertex, ETreatedVertex};
@@ -90,6 +86,11 @@ private:
         // };
     };
 
+private:
+    const int edgeDim{1};
+
+    int fNumEdgesPerFace = 0;
+
     // 1 - Vertex Data Structure
     std::map<int64_t, VertexFilter> mVertex;
     // 2 - Edge Data Structure
@@ -119,5 +120,8 @@ public:
     void CheckFaces();
 
     void FirstEdge();
+
+    std::map<int64_t, VertexFilter> &GetVertexDataStructure() {return mVertex;};
+    std::map<int64_t, EdgeFilter> &GetEdgeDataStructure() {return mEdge;};
 };
 #endif

@@ -345,6 +345,15 @@ bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZCompMesh* cmesh,
     // }
     // std::cout << std::endl;
 
+    // for (int i = 0; i < nnodes; i++)
+    // {
+    //     std::cout << "MVertex (" << i << ") = " << mVertex[i].removed_edge << std::endl;
+    // }
+    
+    
+
+
+
     if (!domainHybridization){
         bool check_all_vertices{true};
         for(auto iv = 0; iv < nnodes; iv++){
