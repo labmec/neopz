@@ -2491,6 +2491,7 @@ int TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMa
     }
     S.Resize(min,1);
 
+    if(min == 0) return 1;
     // Get matrices pointers
     double* A_ptr = &(this->operator()(0,0));
     double* U_ptr = &U(0,0);
