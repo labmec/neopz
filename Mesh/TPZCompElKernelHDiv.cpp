@@ -16,7 +16,7 @@ static TPZLogger logger("pz.strmatrix");
 
 template<class TSHAPE>
 TPZCompElKernelHDiv<TSHAPE>::TPZCompElKernelHDiv(TPZCompMesh &mesh, TPZGeoEl *gel) :
-TPZRegisterClassId(&TPZCompElKernelHDiv::ClassId), TPZCompElH1<TSHAPE>(mesh,gel) {
+TPZRegisterClassId(&TPZCompElKernelHDiv::ClassId), fSideOrient(TSHAPE::NFacets,1), TPZCompElH1<TSHAPE>(mesh,gel) {
 
     if (TSHAPE::Type()==ETriangle){
         this->AdjustConnects();
@@ -106,14 +106,34 @@ void TPZCompElKernelHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData
 
 }//void
 
+/**
+ * @brief It set the normal orientation of the element by the side.
+ * Only side that has dimension equal to my dimension minus one.
+ * @param side: side of the reference elemen
+ */
 template<class TSHAPE>
-void TPZCompElKernelHDiv<TSHAPE>::SetSideOrient(int orient){
-    fSideOrient = orient;
+void TPZCompElKernelHDiv<TSHAPE>::SetSideOrient(int side, int sideorient){
+
+    int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
+    if (side < firstside || side >= TSHAPE::NSides - 1) {
+        DebugStop();
+    }
+    fSideOrient[side-firstside] = sideorient;
 }
 
+/**
+ * @brief It returns the normal orientation of the reference element by the side.
+ * Only side that has dimension larger than zero and smaller than me.
+ * @param side: side of the reference elemen
+ */
 template<class TSHAPE>
-int TPZCompElKernelHDiv<TSHAPE>::GetSideOrient(){
-    return fSideOrient;
+int TPZCompElKernelHDiv<TSHAPE>::GetSideOrient(int side){
+
+    int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
+    if (side < firstside || side >= TSHAPE::NSides - 1) {
+        DebugStop();
+    }
+    return fSideOrient[side-firstside];
 }
 
 template<class TSHAPE>

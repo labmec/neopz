@@ -783,9 +783,9 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType shapeType){
         TPZHCurlEquationFilter<REAL> filter;
 
         TPZVec<int64_t> activeEqs;
-        std::set<int64_t> rem_edges;
+
         bool domainHybrid = false;
-        if(filter.FilterEdgeEquations(cmesh, activeEqs, domainHybrid,rem_edges)){
+        if(filter.FilterEdgeEquations(cmesh, activeEqs, domainHybrid)){
             return;
         }
         const int neqs = activeEqs.size();

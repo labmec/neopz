@@ -33,7 +33,8 @@ protected:
     TPZManVector<int64_t,TSHAPE::NSides>(TSHAPE::NSides,-1);
 private:
 
-    int fSideOrient = 1;
+    /// vector which defines whether the normal is outward or not
+    TPZManVector<int,TSHAPE::NFacets> fSideOrient;
 
 public:
 	    
@@ -46,9 +47,14 @@ public:
     // void ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi) override;
     void ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data) override;
     //  void ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data) override;
-    void SetSideOrient(int orient);
+    virtual void SetSideOrient(int side, int sideorient) override;
 
-    int GetSideOrient();
+    /**
+     * @brief It returns the normal orientation of the reference element by the side.
+     * Only side that has dimension larger than zero and smaller than me.
+     * @param side: side of the reference elemen
+     */
+    virtual int GetSideOrient(int side) override;
 
 	/** @brief Compute the solution for a given variable */
 	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;

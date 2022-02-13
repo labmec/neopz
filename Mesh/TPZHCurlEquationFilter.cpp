@@ -269,7 +269,7 @@ void TPZHCurlEquationFilter<TVar>::FirstEdge()
 */
 template <class TVar>
 bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZCompMesh* cmesh,
-                    TPZVec<int64_t> &activeEquations, bool &domainHybridization, std::set<int64_t> &removed_edges)
+                    TPZVec<int64_t> &activeEquations, bool &domainHybridization)
 {
 
     cmesh->LoadReferences();
@@ -289,12 +289,27 @@ bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZCompMesh* cmesh,
             if (!gel) continue;
             int dimg = gel->Dimension();
             if (gel->Dimension() != 3) continue;
-            if (gel->Type() == ETetraedro){
+
+            switch (gel->Type())
+            {
+            case ETetraedro:
                 removed_edges.insert(cel->ConnectIndex(0));
                 removed_edges.insert(cel->ConnectIndex(1));
                 removed_edges.insert(cel->ConnectIndex(5));
-            }else {
+                break;
+            case ECube:
+                removed_edges.insert(cel->ConnectIndex(0));
+                removed_edges.insert(cel->ConnectIndex(1));
+                removed_edges.insert(cel->ConnectIndex(3));
+                removed_edges.insert(cel->ConnectIndex(6));
+                removed_edges.insert(cel->ConnectIndex(7));
+                removed_edges.insert(cel->ConnectIndex(8));
+                removed_edges.insert(cel->ConnectIndex(11));
+                break;
+            
+            default:
                 DebugStop();
+                break;
             }
         }      
    

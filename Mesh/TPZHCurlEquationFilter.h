@@ -100,6 +100,9 @@ private:
     // 4 - The number of free and the corresponding treated nodes
     std::map<int64_t, std::set<int64_t>,std::greater<int>> freeEdgesToTreatedNodes;
 
+    //The removed edges
+    std::set<int64_t> removed_edges;
+
 public:
     /**
          @brief Removes some equations associated with edges to ensure that
@@ -109,7 +112,7 @@ public:
         @return 0 if no errors were detected, 1 if a vertex was left untreated,
         2 if a vertex had all the adjacent edges removed.
     */
-    bool FilterEdgeEquations(TPZCompMesh* cmesh, TPZVec<int64_t> &activeEquations, bool &domainHybridization, std::set<int64_t> &removed_edges);
+    bool FilterEdgeEquations(TPZCompMesh* cmesh, TPZVec<int64_t> &activeEquations, bool &domainHybridization);
 
     void InitDataStructures(TPZGeoMesh *gmesh);
 
@@ -121,6 +124,7 @@ public:
 
     void FirstEdge();
 
+    std::set<int64_t> &GetRemovedEdges() {return removed_edges;};
     std::map<int64_t, VertexFilter> &GetVertexDataStructure() {return mVertex;};
     std::map<int64_t, EdgeFilter> &GetEdgeDataStructure() {return mEdge;};
 };

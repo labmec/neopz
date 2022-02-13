@@ -25,6 +25,7 @@
  */
 template<class TSHAPE>
 class TPZCompElKernelHDivBC : public TPZCompElH1<TSHAPE>  {
+    int fSideOrient;
 
 public:	    
 	TPZCompElKernelHDivBC();
@@ -37,6 +38,8 @@ public:
 
 	void ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data) override;
 
+    virtual void SetSideOrient(int side, int sideorient) override;
+    virtual int GetSideOrient(int side) override;
 };
 
 

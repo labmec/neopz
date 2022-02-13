@@ -10,7 +10,7 @@
 
 template<class TSHAPE>
 TPZCompElKernelHDivBC<TSHAPE>::TPZCompElKernelHDivBC(TPZCompMesh &mesh, TPZGeoEl *gel) :
-TPZRegisterClassId(&TPZCompElKernelHDivBC::ClassId), TPZCompElH1<TSHAPE>(mesh,gel) {
+TPZRegisterClassId(&TPZCompElKernelHDivBC::ClassId), fSideOrient(1), TPZCompElH1<TSHAPE>(mesh,gel) {
 
 }
 
@@ -59,7 +59,25 @@ void TPZCompElKernelHDivBC<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialD
 }//void
 
 
+// NAO TESTADO
+template<class TSHAPE>
+void TPZCompElKernelHDivBC<TSHAPE>::SetSideOrient(int side, int sideorient)
+{
+    if (side != TSHAPE::NSides - 1) {
+        DebugStop();
+    }
+    fSideOrient = sideorient;
+}
 
+// NAO TESTADO
+template<class TSHAPE>
+int TPZCompElKernelHDivBC<TSHAPE>::GetSideOrient(int side)
+{
+    if (side != TSHAPE::NSides - 1) {
+        DebugStop();
+    }
+    return fSideOrient;
+}
 
 #include "pzshapelinear.h"
 #include "TPZRefLinear.h"

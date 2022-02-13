@@ -967,6 +967,8 @@ void TPZCompElSide::SplitConnect(const TPZCompElSide& right) const{
     TPZConnect &cleft = intelleft->SideConnect(0, Side());
     TPZConnect &cright = intelright->SideConnect(0, right.Side());
     if (&cleft != &cright) {
+        std::cout << "cleft " << cleft << std::endl;
+        std::cout << "cright " << cright << std::endl;
         DebugStop(); // CompElSides do not share the same connect!
     }
     
