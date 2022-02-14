@@ -57,7 +57,7 @@ void TPZShapeHDivConstantBound<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeDa
         int nshape = data.fPhi.Rows();
 
         for (int i = 0; i < nshape-ncorner; i++){
-            phi(i+1,0) = -data.fDPhi(0,i+ncorner);
+            phi(i+1,0) = data.fDPhi(0,i+ncorner);
         }
     } else if (dim == 2) {
         
