@@ -52,60 +52,6 @@ void TPZShapeHDivKernel2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
     divphi.Zero();
 }
 
-
-template<class TSHAPE>
-int TPZShapeHDivKernel2D<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
-{
-    int order = data.fH1ConnectOrders[icon];
-    const int side = icon + TSHAPE::NCornerNodes;
-    #ifdef PZDEBUG
-    if (side < TSHAPE::NCornerNodes || side >= TSHAPE::NSides) {
-        DebugStop();
-    }
-    #endif
-    if(order == 0) {
-        PZError<<__PRETTY_FUNCTION__
-            <<"\nERROR: polynomial order not compatible.\nAborting..."
-            <<std::endl;
-        DebugStop();
-        return 0;
-    }
-    const auto nFaces = TSHAPE::Dimension < 2 ? 0 : TSHAPE::NumSides(2);
-    const auto nEdges = TSHAPE::NumSides(1);
-    const int nShapeF = [&](){
-        if (side < TSHAPE::NCornerNodes + nEdges) {//edge connect
-        return 1;
-        }
-        else if(side < TSHAPE::NCornerNodes + nEdges + nFaces){//face connect
-        switch(TSHAPE::Type(side)){
-            case ETriangle://triangular face
-                /**
-                 we remove one internal function for each h1 face function of order k+1
-                since there are (k-1)(k-2)/2 functions per face in a face with order k,
-                we remove k(k-1)/2.
-                so:
-                (k-1)*(k+1)-k*(k-1)/2
-                */
-                return (order - 1) * (order+2) / 2;
-            default:
-                PZError<<__PRETTY_FUNCTION__<<" error. Not yet implemented"<<std::endl;
-                DebugStop();
-                return 0;
-            }
-        }
-        else{//internal connect (3D element only)
-        if constexpr (TSHAPE::Type() == ETetraedro){
-            DebugStop();
-        }
-        return 0;
-        }
-    }();
-    return nShapeF;
-    // return data.fHDivNumConnectShape[icon];
-}
-
-
-
 template
 struct TPZShapeHDivKernel2D<pzshape::TPZShapeTriang>;
 

@@ -20,6 +20,7 @@
 #include "TPZShapeHDiv.h"
 #include "TPZShapeHDivKernel.h"
 #include "TPZShapeHDivConstant.h"
+#include "TPZShapeHCurlNoGrads.h"
 
 #include "pzshtmat.h"
 
@@ -835,6 +836,11 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
     if (fhdivfam == HDivFamily::EHDivConstant) {
         data.fH1ConnectOrders = data.fHDivConnectOrders;
+
+        if (TSHAPE::Type() == ETriangle){
+            auto size = data.fH1ConnectOrders.size();
+            data.fH1ConnectOrders[size-1]++;
+        }
         if (TSHAPE::Dimension == 2) {
             TPZShapeH1<TSHAPE>::Initialize(data.fCornerNodeIds, data.fH1ConnectOrders, data);
         };
@@ -884,9 +890,9 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
                 conOrders[i] = conOrders[TSHAPE::NumSides(1)];
             }
             
-            TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, data);
+            TPZShapeHCurlNoGrads<TSHAPE>::Initialize(ids, conOrders, data);
             data.divphi.Resize(data.fVecShapeIndex.size(),1);
-            TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(data);
+            // TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(data);
         }
     }
 

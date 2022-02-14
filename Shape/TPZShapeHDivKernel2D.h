@@ -15,11 +15,6 @@ template <class TSHAPE>
 struct TPZShapeHDivKernel2D : public TPZShapeH1<TSHAPE>
 {
     
-    
-    static void ComputeVecandShape(TPZShapeData &data);
-    
-    static int NConnectShapeF(int connect, TPZShapeData &data);
-    
     static int NHDivShapeF(TPZShapeData &data);
 
     static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);

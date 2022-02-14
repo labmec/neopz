@@ -163,7 +163,7 @@ int TPZShapeHDivConstant<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
         if(connect < TSHAPE::NFacets) return (order);
         else{
             auto ordTri = order + 1;
-            return (ordTri-1)*(ordTri+2)/2;
+            return (ordTri-1)*(ordTri-2)/2;
         } 
     }
     else if(thistype == EQuadrilateral)
