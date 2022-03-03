@@ -94,46 +94,19 @@ TPZCompElH1<TSHAPE>::~TPZCompElH1() {
 
 template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::InitMaterialData(TPZMaterialData &data){
-  data.gelElId = this->Reference()->Id();
-    auto *mat =
-        dynamic_cast<TPZMatSingleSpace*>(this->Material());
-#ifdef PZDEBUG
-    if(!mat)
-    {
-        DebugStop();
-    }
-#endif
-    TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes);
-    TPZManVector<int,TSHAPE::NSides> orders(TSHAPE::NSides-TSHAPE::NCornerNodes);
-    TPZManVector<int,TSHAPE::NFacets> sideorient(TSHAPE::NFacets,0);
-    TPZGeoEl *gel = this->Reference();
-    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
-    for(int i=TSHAPE::NCornerNodes; i<TSHAPE::NSides; i++) orders[i-TSHAPE::NCornerNodes] = this->Connect(i).Order();
-    TPZShapeData &shapedata = data;
-    TPZShapeH1<TSHAPE>::Initialize(ids, orders, shapedata);
-    mat->FillDataRequirements(data);
-    const int dim = this->Dimension();
-    const int nshape = data.fPhi.Rows();
-    const int nstate = this->Material()->NStateVariables();
-    data.fShapeType = TPZMaterialData::EScalarShape;
-    data.phi.Redim(nshape,1);
-//    data.dphi.Redim(dim,nshape);
-    data.dphix.Redim(dim,nshape);
-    data.axes.Redim(dim,3);
-    data.jacobian.Redim(dim,dim);
-    data.jacinv.Redim(dim,dim);
-    data.x.Resize(3);
-    if (data.fNeedsSol){
-        uint64_t ulen,durow,ducol;
-        mat->GetSolDimensions(ulen,durow,ducol);
-        data.SetSolSizes(nstate, ulen, durow, ducol);
-    }
-    if(data.fNeedsNeighborCenter)
-    {
-        TPZGeoElSide gelside(gel);
-        gelside.CenterX(data.XCenter);
-    }
-    
+  TPZIntelGen<TSHAPE>::InitMaterialData(data);
+  TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes);
+  TPZManVector<int,TSHAPE::NSides> orders(TSHAPE::NSides-TSHAPE::NCornerNodes);
+  TPZGeoEl *gel = this->Reference();
+  for(int i=0; i<TSHAPE::NCornerNodes; i++){
+    ids[i] = gel->NodeIndex(i);
+  }
+  for(int i=TSHAPE::NCornerNodes; i<TSHAPE::NSides; i++){
+    orders[i-TSHAPE::NCornerNodes] = this->Connect(i).Order();
+  }
+  TPZShapeData &shapedata = data;
+  TPZShapeH1<TSHAPE>::Initialize(ids, orders, shapedata);
+  data.fShapeType = TPZMaterialData::EScalarShape;
 }//void
 
 template<class TSHAPE>

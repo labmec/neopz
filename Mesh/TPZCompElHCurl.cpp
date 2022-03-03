@@ -359,26 +359,9 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
     
     auto &phi = data.phi;
     auto &curlphi = data.curlphi;
-    
+
     phi.Redim(nshape,3);
     curlphi.Redim(curldim,nshape);
-    
-    data.axes.Redim(dim,3);
-    data.jacobian.Redim(dim,dim);
-    data.jacinv.Redim(dim,dim);
-    data.x.Resize(3);
-// #ifdef PZ_LOG
-//     if(logger.isDebugEnabled()){
-// 		std::stringstream sout;
-// 		sout << "Vector/Shape indexes \n";
-//         for (int i = 0; i < shapedata.fVecShapeIndex.size(); i++) {
-//             sout << i << '|' << shapedata.fVecShapeIndex[i] << " ";
-//         }
-//         sout << std::endl;
-// 		LOGPZ_DEBUG(logger,sout.str())
-// 	}
-// #endif
-
 }
 
 template<class TSHAPE>

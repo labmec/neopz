@@ -231,6 +231,10 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
         mat->GetSolDimensions(ulen,durow,ducol);
         data.SetSolSizes(nstate, ulen, durow, ducol);
 	}
+  if(data.fNeedsNeighborCenter){
+    TPZGeoElSide gelside(this->Reference());
+    gelside.CenterX(data.XCenter);
+  }
     //Completing for three dimensional elements
 	TPZManVector<REAL,3> x_center(3,0.0);
 	TPZVec<REAL> center_qsi(dim,0.0);
