@@ -524,7 +524,9 @@ void TPZInterpolationSpace::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
 	
 }//CalcResidual
 
-void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) {
+template<class TVar>
+void TPZInterpolationSpace::SolutionInternal(TPZVec<REAL> &qsi,int var,
+                                             TPZVec<TVar> &sol) {
   //TODOCOMPLEX
 	if(var >= 100) {
 		TPZCompEl::Solution(qsi,var,sol);
@@ -539,13 +541,13 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &so
 	}
 	
 	auto* material = 
-    dynamic_cast<TPZMatSingleSpaceT<STATE> *>(this->Material());
+    dynamic_cast<TPZMatSingleSpaceT<TVar> *>(this->Material());
 	if(!material) {
 		sol.Resize(0);
 		return;
 	}
 	//TODOCOMPLEX
-  TPZMaterialDataT<STATE> data;
+  TPZMaterialDataT<TVar> data;
   this->InitMaterialData(data);
 
   ///compute geometric mapping info

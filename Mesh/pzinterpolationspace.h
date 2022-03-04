@@ -264,7 +264,12 @@ virtual int ClassId() const override;
 	 * @see TPZMaterial::Solution
 	 */
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
-	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
+	void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override{
+    SolutionInternal(qsi,var,sol);
+  }
+  void Solution(TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override{
+    SolutionInternal(qsi,var,sol);
+  }
 	
 	/**
 	 * @brief Interpolates the solution into the degrees of freedom nodes from the degrees
@@ -367,6 +372,8 @@ protected:
     template<class TVar>
     void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
 									 TPZVec<REAL> &qsi);
+    template<class TVar>
+    void SolutionInternal(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
     /// Preferred polynomial order
 	int fPreferredOrder;
     //@{
