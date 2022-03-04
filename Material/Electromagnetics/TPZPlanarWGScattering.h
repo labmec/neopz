@@ -14,6 +14,9 @@
  * @brief This class implements the weak statement for the scattering analysis of planar waveguides using H1 elements.
  * It can either approximate TE or TM modes of a 2D waveguide with a 1D cross-section.
  * Currently, only sources aligned with the y direction of a 2D domain can be used.
+ * This source is implemented through a ForcingFunctionBCType. The matrix-type
+ * parameter is not used, and the vector-type is expected to contain source-value
+ * in the first position and beta-value in the second position.
  * @note Formulation taken from: 
  Yasuhide Tsuji and Masanori Koshiba, "Finite Element Method Using Port Truncation by Perfectly Matched Layer Boundary Conditions for Optical Waveguide Discontinuity Problems," J. Lightwave Technol. 20, 463- (2002) 
 */
