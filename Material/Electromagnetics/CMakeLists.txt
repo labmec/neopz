@@ -3,15 +3,21 @@
 set(public_headers
     TPZWaveguideModalAnalysis.h
     TPZWaveguideModalAnalysisPML.h
+    TPZPlanarWGScattering.h
+    TPZPlanarWGScatteringPML.h
     )
 
 set(headers
     TPZWaveguideModalAnalysis.h
     TPZWaveguideModalAnalysisPML.h
+    TPZPlanarWGScattering.h
+    TPZPlanarWGScatteringPML.h
    )
 set(sources
     TPZWaveguideModalAnalysis.cpp
     TPZWaveguideModalAnalysisPML.cpp
+    TPZPlanarWGScattering.cpp
+    TPZPlanarWGScatteringPML.cpp
    )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/Electromagnetics)
