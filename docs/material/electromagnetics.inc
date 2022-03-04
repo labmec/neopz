@@ -2,12 +2,13 @@ Electromagnetics Group
 ----------------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
 .. contents:: Table of Contents
    :local:
       
-This group has materials related to electromagnetic problems.
+This group has materials related to electromagnetic problems. For usage of these
+materials, the reader is referred to the `wgma library <http://github.com/labmec/wgma>`_
 
 
 Modal Analysis of Waveguides
@@ -98,4 +99,75 @@ This class implements a rectangular PML to be used with TPZWaveguideModalAnalysi
    :members:
 
 
+Scattering Analysis of Planar Waveguides
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following classes implement a :math:`H^1(\Omega)` formulation for the scattering analysis of planar waveguides. 
+
+Assuming that
+
+- the computational domain is in the :math:`yz` plane
+- the direction of no variation of the waveguide is :math:`x`
+- at the incidence plane :math:`z=z'`, denoted by :math:`\Gamma`
+  there is a source :math:`f_s: f_s(y)` that propagates with :math:`e^{-j\beta(z-z')}`
+  in the :math:`+z` direction and with :math:`e^{j\beta(z-z')}`
+  in the :math:`-z` direction (such as a mode field obtained by a
+  previous one-dimensional modal analysis, ffor instance),
+
+this material implements:
+
+Find non-trivial :math:`\{\phi\} \in [\mathbb{C}]^N` such that:
+
+.. math::
+   [A]\{\phi\} = [f]\text{,}
+
+where
+
+.. math::
+   [A]_{ij} &= \int_{\Omega}
+   \left[
+   c_z \frac{\partial \phi_i}{\partial z}\frac{\partial \phi_j}{\partial z}
+   +
+   c_y \frac{\partial \phi_i}{\partial y}\frac{\partial \phi_j}{\partial y}  
+   - k_0 c_s \phi_i \phi_j\right] \,d\Omega\\
+   [f]_i &= -2 \int_{\Gamma}c_z \phi_i -j \beta f_s(y)\,d\Gamma\,
+
+where we have, for both TE and TM modes, the following meanings:
+
++---------------+-------------------------+------------------------------+
+|               | TE                      | TM                           |
++===============+=========================+==============================+
+| :math:`\phi`  | :math:`E_x`             | :math:`H_x`                  |
++---------------+-------------------------+------------------------------+
+| :math:`c_z`   | :math:`\mu_{r,yy}^{-1}` | :math:`\epsilon_{r,yy}^{-1}` |
++---------------+-------------------------+------------------------------+
+| :math:`c_y`   | :math:`\mu_{r,zz}^{-1}` | :math:`\epsilon_{r,zz}^{-1}` |
++---------------+-------------------------+------------------------------+
+| :math:`c_s`   | :math:`\mu_{r,xx}^{-1}` | :math:`\epsilon_{r,xx}^{-1}` |
++---------------+-------------------------+------------------------------+
+
+Note that the media are isotropic everywhere except in the PML regions,
+which justify the subscripts in the table above.
+
+This formulation was presented originally in this work :footcite:`koshiba02`, and it
+is specially interesting when analysing waveguide discontinuities.
+
+
+.. note::
+   For simplicity, in the implementation, the computational domain is assumed
+   to be in the :math:`xy` plane (source propagates in the :math:`x` direction).
+
+TPZPlanarWGScattering
+"""""""""""""""""""""
+Implements the scattering analysis of a planar waveguide.
+
+.. doxygenclass:: TPZPlanarWGScattering
+   :members:
+      
+TPZPlanarWGScatteringPML
+""""""""""""""""""""""""
+Implements a PML for the planar waveguide scattering analysis.
+
+.. doxygenclass:: TPZPlanarWGScatteringPML
+   :members:
 .. footbibliography::
