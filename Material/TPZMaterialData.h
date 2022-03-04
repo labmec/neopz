@@ -89,9 +89,12 @@ public:
     
     /// Vector of shapefunctions (format is dependent on the value of shapetype)
     TPZFNMatrix<MatDataNumPhi, REAL> phi;
-    /// Values of the derivative of the shape functions over the master element
-//    TPZFNMatrix<MatDataNumDPhi, REAL> dphi;
-    /// Values of the derivative of the shape functions
+    /** @brief Values of the derivative of the shape functions in the deformed element.
+        @note This derivative is calculated in the element axes. For obtaining the
+        derivative in the xyz-coordinate system, one should call
+        TPZAxesTools<REAL>::Axes2XYZ(dphix, dphix_xyz, data.axes)
+        in the contribute method.
+     */
     TPZFNMatrix<MatDataNumDPhi, REAL> dphix;
     /// Values of the divergence of the shape functions in the mapped element (only applicable to H(div) spaces)    
     TPZFNMatrix<MatDataNumPhi, REAL> divphi;
