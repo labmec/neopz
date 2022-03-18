@@ -186,6 +186,19 @@ void TPZMatrix<TVar>::Identity() {
     }
 }
 
+template<class TVar>
+void TPZMatrix<TVar>::Diagonal(TVar val) {
+    
+    if ( Cols() != Rows() ) {
+        Error( "Diagonal (TPZMatrix<>*) <TPZMatrix<>must be square>" );
+    }
+    for ( int64_t row = 0; row < Rows(); row++) {
+        for ( int64_t col = 0; col < Cols(); col++ ) {
+            (row == col)? PutVal(row,col,val):PutVal(row,col,0.);
+        }
+    }
+}
+
 
 template<class TVar>
 void TPZMatrix<TVar>::Input(std::istream& in )

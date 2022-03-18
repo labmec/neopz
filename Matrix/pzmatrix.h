@@ -209,6 +209,8 @@ public:
 	
 	/** @brief Converts the matrix in an identity matrix*/
 	virtual void Identity();
+    /** @brief Converts the matrix in a diagonal matrix*/
+    virtual void Diagonal(TVar val);
 	/** @brief It makes *T the transpose of current matrix. */
 	virtual void Transpose(TPZMatrix<TVar>*const T) const;
 	

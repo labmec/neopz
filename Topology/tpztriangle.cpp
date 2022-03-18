@@ -103,6 +103,8 @@ namespace pztopology {
 	static constexpr int sidedimension[7] = {0,0,0,1,1,1,2};
 	
 	static constexpr int nhighdimsides[7] = {3,3,3,1,1,1,0};
+
+    static constexpr int fSideOrient[3] = {1,1,1};
 	
 	static constexpr int highsides[7][3] = {
 		{3,5,6},
@@ -1083,40 +1085,51 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         scale = 1.;
         RT0function(0,0) = qsi / scale;
         RT0function(1,0) = (eta - 1.) / scale;
-        div[0] = 1./scale + 1./scale;
+        div[0] = 2./scale;
 
         scale = M_SQRT2;
         RT0function(0,1) = (M_SQRT2 * qsi) / scale;
         RT0function(1,1) = (M_SQRT2 * eta) / scale;
-        div[1] = M_SQRT2/scale + M_SQRT2/scale;
+        div[1] = 2. * M_SQRT2/scale;
 
         scale = 1.;
         RT0function(0,2) = (qsi - 1.) / scale;
         RT0function(1,2) = eta / scale;
-        div[2] = 1./scale + 1./scale;
+        div[2] = 2./scale;
 
     }
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZTriangle::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl)
+    void TPZTriangle::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
     {
-        REAL scale = 2.;
+
         REAL qsi = point[0];
         REAL eta = point[1];
 
+        constexpr auto nEdges{3};
+        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+        }
+
         //First type Nedelec functions
-        N0function(0,0) = (1. - eta) / scale;
-        N0function(1,0) = qsi / scale;
-        curl(2,0) = 2./scale;
+        N0function(0,0) = (1. - eta) * edgeSign[0];
+        N0function(1,0) = qsi * edgeSign[0];
+        curl(0,0) = 2. * edgeSign[0];
 
-        N0function(0,1) = -eta / scale;
-        N0function(1,1) =  qsi / scale;
-        curl(2,1) = 2./scale;
+        N0function(0,1) = -eta * edgeSign[1];
+        N0function(1,1) =  qsi * edgeSign[1];
+        curl(0,1) = 2. * edgeSign[1];
 
-        N0function(0,2) = eta / scale;
-        N0function(1,2) = (1. - qsi) / scale;
-        curl(2,2) = -2./scale;
+        N0function(0,2) = -eta * edgeSign[2];
+        N0function(1,2) = -(1. - qsi) * edgeSign[2];
+        curl(0,2) = 2. * edgeSign[2];
+    }
+
+    // Get face orientation
+    int TPZTriangle::GetSideOrient(const int &face){
+        return fSideOrient[face];
     }
 
     template <class TVar>

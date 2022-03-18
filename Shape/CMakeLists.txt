@@ -22,9 +22,14 @@ set(headers
     pzshapetetra.h
     TPZShapeH1.h
     TPZShapeHDiv.h
-    TPZShapeHDivKernel.h
+    TPZShapeHDivKernel2D.h
     TPZShapeHDivConstant.h
+    TPZShapeHDivConstantBound.h
     TPZShapeHCurl.h
+    TPZShapeHCurlNoGrads.h
+    TPZShapeHDivBound.h
+    TPZShapeHDivCollapsed.h
+    TPZEnumApproxFamily.h
     )
 
 set(sources
@@ -41,9 +46,13 @@ set(sources
     pzshapetriang.cpp
     TPZShapeH1.cpp
     TPZShapeHDiv.cpp
-    TPZShapeHDivKernel.cpp
+    TPZShapeHDivKernel2D.cpp
     TPZShapeHDivConstant.cpp
+    TPZShapeHDivConstantBound.cpp
     TPZShapeHCurl.cpp
+    TPZShapeHCurlNoGrads.cpp
+    TPZShapeHDivBound.cpp
+    TPZShapeHDivCollapsed.cpp
     )
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Shape)

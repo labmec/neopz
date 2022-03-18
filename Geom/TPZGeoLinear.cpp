@@ -20,40 +20,6 @@ using namespace std;
 
 namespace pzgeom {
 
-    // TPZGeoEl * TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
-    //     if(side==2) {
-    //         TPZManVector<int64_t> nodes(2);
-    //         nodes[0] = orig->SideNodeIndex(side,0);
-    //         nodes[1] = orig->SideNodeIndex(side,1);
-    //         int64_t index;
-    //         TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
-    //         TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
-    //         TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
-    //         TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
-    //         return gel;
-    //     }
-    //     else if(side==0 || side==1) {
-    //         TPZManVector<int64_t> nodeindexes(1);
-    //         nodeindexes[0] = orig->SideNodeIndex(side,0);
-    //         int64_t index;
-    //         TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
-    //         TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
-    //         return gel;
-    //     }
-    //     else {
-    //         PZError << "TPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
-    //     }
-        
-    //     return 0;
-    // }
-    
-    // TPZGeoEl * TPZGeoLinear::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-    //                                          TPZVec<int64_t>& nodeindexes,
-    //                                          int matid,
-    //                                          int64_t& index)
-    // {
-    //     return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
-    // }
     
     
     /// create an example element based on the topology

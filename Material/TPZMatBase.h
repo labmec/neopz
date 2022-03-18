@@ -42,7 +42,7 @@ class TPZMatBase : public TPZMaterialT<TVar>,
                          const TPZVec<TVar> &val2) override;
 
     template<class... AddInterfaces>
-    TPZBndCondT<TVar> *CreateBCImpl(TPZMaterial *reference,
+    static TPZBndCondT<TVar> *CreateBCImpl(TPZMaterial *reference,
                                     int id, int type,
                                     const TPZFMatrix<TVar> &val1,
                                     const TPZVec<TVar> &val2);
@@ -85,6 +85,8 @@ class TPZMatBase : public TPZMaterialT<TVar>,
     bool IsMatImpl() final{return true;}
 };
 
+// http://labmec.github.io/neopz/material/index.html#boundary-conditions
+
 template<class TVar, class... Interfaces>
 template<class... AddInterfaces>
 TPZBndCondT<TVar> *
@@ -103,15 +105,15 @@ TPZBndCondT<TVar> *TPZMatBase<TVar, Interfaces...>::CreateBC(TPZMaterial *ref, i
 template<class TVar, class...Interfaces>
 int TPZMatBase<TVar, Interfaces...>::ClassId() const{
     constexpr int nInterfaces = sizeof...(Interfaces);
-    int id = Hash("TPZMatBase") ^
+    int id = Hash("TPZMatBase") ^ ClassIdOrHash<TVar>() ^
         TPZMaterial::ClassId() << 1;
     
-    if constexpr (nInterfaces>0){
-        TPZVec<int> classIds = {Interfaces::ClassId()...};
-        for(auto count =0;count< nInterfaces;count++){
-            id = id ^ (classIds[count] << (count+2));
-        }
-    }
+//    if constexpr (nInterfaces>0){
+//        TPZVec<int> classIds = {Interfaces::ClassId()...};
+//        for(auto count =0;count< nInterfaces;count++){
+//            id = id ^ (classIds[count] << (count+2));
+//        }
+//    }
     return id;
 }
 
@@ -119,20 +121,20 @@ template<class TVar, class...Interfaces>
 void TPZMatBase<TVar, Interfaces...>::Read(
     TPZStream& buf, void* context)
 {
-    TPZMaterial::Read(buf,context);
+    TPZMaterialT<TVar>::Read(buf,context);
     /* The following will perform calls to all the Read methods of the interfaces. 
        This is a c++17 addition called fold expressions.*/
-    (Interfaces::Read(buf,context),...);
+//    (Interfaces::Read(buf,context),...);
 }
 
 template<class TVar, class...Interfaces>
 void TPZMatBase<TVar, Interfaces...>::Write(
     TPZStream& buf, int withclassid) const
 {
-    TPZMaterial::Write(buf,withclassid);
+    TPZMaterialT<TVar>::Write(buf,withclassid);
     /* The following will perform calls to all the Read methods of the interfaces. 
        This is a c++17 addition called fold expressions.*/
-    (Interfaces::Write(buf,withclassid),...);
+//    (Interfaces::Write(buf,withclassid),...);
 }
 
 #endif

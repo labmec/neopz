@@ -17,7 +17,7 @@ class TPZSemaphore
 {
 private:
 	/** @brief Counter of the times the semaphore is locked */
-	int fCounter;
+	int fCounter{0};
 	/** @brief Mutex for the thread */
 	mutable std::mutex fMutex;
 	/** @brief Condition for the thread must to be waiting */

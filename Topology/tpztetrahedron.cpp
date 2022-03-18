@@ -28,7 +28,8 @@ namespace pztopology {
 
 	static constexpr int sidedimension[15] = {0,0,0,0,1,1,1,1,1,1,2,2,2,2,3};
 	
-	
+    static constexpr int fSideOrient[4] = {-1,1,1,-1};
+    
 	static constexpr int FaceConnectLocId[4][7] = { {0,1,2,4,5,6,10},{0,1,3,4,8,7,11},
 		{1,2,3,5,9,8,12},{0,2,3,6,9,7,13} };
 	
@@ -1473,80 +1474,90 @@ namespace pztopology {
         RT0function(0,0) = qsi / scale;
         RT0function(1,0) = eta / scale;
         RT0function(2,0) = (zeta - 1.) / scale;
-        div[0] = 1./scale + 1./scale + 1./scale;
+        div[0] = 3./scale;
 
         scale = 0.5;
         RT0function(0,1) = qsi / scale;
         RT0function(1,1) = (eta - 1.) / scale;
         RT0function(2,1) = zeta / scale;
-        div[1] = 1./scale + 1./scale + 1./scale;
+        div[1] = 3./scale;
 
         scale = M_SQRT3 / 2.;
         RT0function(0,2) = M_SQRT3 * qsi / scale;
         RT0function(1,2) = M_SQRT3 * eta / scale;
         RT0function(2,2) = M_SQRT3 * zeta / scale;
-        div[2] = M_SQRT3/scale + M_SQRT3/scale + M_SQRT3/scale;
+        div[2] = 3.* M_SQRT3/scale;
 
         scale = 0.5;
         RT0function(0,3) = (qsi - 1.) / scale;
         RT0function(1,3) = eta / scale;
         RT0function(2,3) = zeta / scale;
-        div[3] = 1./scale + 1./scale + 1./scale;
+        div[3] = 3./scale;
 
     }
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZTetrahedron::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl)
+    void TPZTetrahedron::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
     {
-        REAL scale = 2.;    
         REAL qsi = point[0];
         REAL eta = point[1];
         REAL zeta = point[2];
 
-        //First type Nedelec functions
-        N0function(0,0) = (1. - eta - zeta) / scale;
-        N0function(1,0) = qsi / scale;
-        N0function(2,0) = qsi / scale;
-        curl(0,0) = 0.;
-        curl(1,0) = -2./scale;
-        curl(2,0) =  2./scale;
+        constexpr auto nEdges{6};
+        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+        }
 
-        N0function(0,1) = -eta / scale;
-        N0function(1,1) =  qsi / scale;
+        //First type Nedelec functions
+        N0function(0,0) = (1. - eta - zeta) * edgeSign[0];
+        N0function(1,0) = qsi * edgeSign[0];
+        N0function(2,0) = qsi * edgeSign[0];
+        curl(0,0) = 0.;
+        curl(1,0) = -2. * edgeSign[0];
+        curl(2,0) = 2. * edgeSign[0];
+
+        N0function(0,1) = -eta * edgeSign[1];
+        N0function(1,1) = qsi * edgeSign[1];
         N0function(2,1) = 0.;
         curl(0,1) = 0.;
         curl(1,1) = 0.;
-        curl(2,1) = 2./scale;
+        curl(2,1) = 2. * edgeSign[1];
 
-        N0function(0,2) = eta / scale;
-        N0function(1,2) = (1. - qsi - zeta) / scale;
-        N0function(2,2) = eta / scale;
-        curl(0,2) =  2./scale;
+        N0function(0,2) = -eta * edgeSign[2];
+        N0function(1,2) = -(1. - qsi - zeta) * edgeSign[2];
+        N0function(2,2) = -eta * edgeSign[2];
+        curl(0,2) = -2. * edgeSign[2];
         curl(1,2) = 0.;
-        curl(2,2) = -2./scale;
+        curl(2,2) = 2. * edgeSign[2];
 
-        N0function(0,3) = zeta / scale;
-        N0function(1,3) = zeta / scale;
-        N0function(2,3) = (1. - qsi - eta) / scale;
-        curl(0,3) = -2./scale;
-        curl(1,3) = 2./scale;
+        N0function(0,3) = zeta * edgeSign[3];
+        N0function(1,3) = zeta * edgeSign[3];
+        N0function(2,3) = (1. - qsi - eta) * edgeSign[3];
+        curl(0,3) = -2. * edgeSign[3];
+        curl(1,3) = 2. * edgeSign[3];
         curl(2,3) = 0.;
-
-        N0function(0,4) = -zeta / scale;
+        
+        N0function(0,4) = -zeta * edgeSign[4];
         N0function(1,4) = 0.;
-        N0function(2,4) = qsi / scale;
+        N0function(2,4) = qsi * edgeSign[4];
         curl(0,4) = 0.;
-        curl(1,4) = -2./scale;
+        curl(1,4) = -2. * edgeSign[4];
         curl(2,4) = 0.;
         
         N0function(0,5) = 0.;
-        N0function(1,5) = -zeta / scale;
-        N0function(2,5) =  eta / scale;
-        curl(0,5) = 2./scale;
+        N0function(1,5) = -zeta * edgeSign[5];
+        N0function(2,5) = eta * edgeSign[5];
+        curl(0,5) = 2. * edgeSign[5];
         curl(1,5) = 0.;
         curl(2,5) = 0.;
 
+    }
+
+    // Get face orientation
+    int TPZTetrahedron::GetSideOrient(const int &face){
+        return fSideOrient[face];
     }
 
     

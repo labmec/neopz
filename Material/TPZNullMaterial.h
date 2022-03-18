@@ -24,10 +24,10 @@ public:
         fNState = 1;
     }
 
-    TPZNullMaterial(int matid, int dimension, int nstate) : TPZRegisterClassId(&TPZNullMaterial::ClassId),
+    TPZNullMaterial(int matid, int dimension, int nstate = 1) : TPZRegisterClassId(&TPZNullMaterial::ClassId),
                                                             TBase(matid) {
 #ifdef PZDEBUG
-        if (dimension < 1 || dimension >3) {
+        if (dimension < 0 || dimension > 3) {
             DebugStop();
         }
 #endif
@@ -63,9 +63,8 @@ public:
                           uint64_t &du_row,
                           uint64_t &du_col) const override;
 
-    void Solution(const TPZMaterialDataT<TVar> &data, int var,
-                  TPZVec<TVar> &sol) override
-    {}
+    void Solution(const TPZMaterialDataT<TVar> &data, int var, TPZVec<TVar> &sol) override;
+
     void Contribute(const TPZMaterialDataT<TVar> &data, REAL weight,
                             TPZFMatrix<TVar> &ek,
                             TPZFMatrix<TVar> &ef) override
@@ -79,13 +78,13 @@ public:
     void Print(std::ostream &out = std::cout) const override;
 
     /** @brief Returns the variable index associated with the name */
-    int VariableIndex(const std::string &name) const override { return 0;}    
+    int VariableIndex(const std::string &name) const override { return 0;}
 
     /**
 	 * @brief Returns the number of variables associated with the variable indexed by var.
 	 * @param var Index variable into the solution, is obtained by calling VariableIndex
 	 */
-    int NSolutionVariables(int var) const override{return 0;}
+    [[nodiscard]] int NSolutionVariables(int var) const override;
 
     /** @brief Unique identifier for serialization purposes */
     [[nodiscard]] int ClassId() const override;

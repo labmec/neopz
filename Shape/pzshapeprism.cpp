@@ -39,7 +39,7 @@ namespace pzshape {
 	
 	REAL TPZShapePrism::gFaceSum3dPrisma2d[5][2] = { {-1.,-1.},{-1.,0.},{0.,0.},{-1.,0.},{-1.,-1.} };
 	
-    void TPZShapePrism::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+    void TPZShapePrism::ShapeCorner(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
         phi(0,0)  = .5*(1.-pt[0]-pt[1])*(1.-pt[2]);
         phi(1,0)  = .5*pt[0]*(1.-pt[2]);
         phi(2,0)  = .5*pt[1]*(1.-pt[2]);
@@ -72,7 +72,7 @@ namespace pzshape {
         dphi(2,5) =  .5*pt[1];
     }
     //esse metodo nao vai ser mais utilizado
-	void TPZShapePrism::CornerShape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+	void TPZShapePrism::CornerShape(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 		phi(0,0)  = .5*(1.-pt[0]-pt[1])*(1.-pt[2]);
 		phi(1,0)  = .5*pt[0]*(1.-pt[2]);
 		phi(2,0)  = .5*pt[1]*(1.-pt[2]);
@@ -112,7 +112,7 @@ namespace pzshape {
 	 * @param phi (input) value of the (4) shape functions
 	 * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
 	 */
-	void TPZShapePrism::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+	void TPZShapePrism::ShapeGenerating(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{
 		int is;
 		// 9 ribs
@@ -212,7 +212,7 @@ namespace pzshape {
      * @param phi (input) value of the (4) shape functions
      * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
      */
-    void TPZShapePrism::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+    void TPZShapePrism::ShapeGenerating(const TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
     {
         int is;
         // 9 ribs

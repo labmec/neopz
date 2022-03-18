@@ -421,7 +421,6 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 	int64_t nelem = elvec.NElements();
 	
 	int64_t neltocreate = 0;
-	int64_t index;
 	for(int64_t i=0; i<nelem; i++) {
 		TPZGeoEl *gel = elvec[i];
 		if(!gel) continue;
@@ -447,7 +446,7 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 			}
 			
 			if(gel->NumInterfaces() == 0){
-				CreateCompEl(gel,index);
+				CreateCompEl(gel);
 			}
 		}
 	}
@@ -465,7 +464,7 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 			}
 			
 			if(gel->NumInterfaces() == 0){
-				CreateCompEl(gel,index);
+				CreateCompEl(gel);
 			}
 		}
 	}
@@ -804,6 +803,14 @@ void TPZCompMesh::ComputeNodElCon() {
 		numnod = nodelist.NElements();
 		for (int64_t in=0; in<numnod; ++in) {
 			int64_t dfnindex = nodelist[in];
+#ifdef PZDEBUG
+            if(dfnindex < 0)
+            {
+                std::cout << "element index i " << i << " node in " << in <<
+                " has negative node index " << dfnindex;
+                DebugStop();
+            }
+#endif
 			TPZConnect *dfn = &fConnectVec[dfnindex];
 			dfn->IncrementElConnected();
 		}
@@ -1338,7 +1345,8 @@ void TPZCompMesh::Coarsen(TPZVec<int64_t> &elements, int64_t &index, bool Create
 	if (CreateDiscontinuous) fCreate.SetAllCreateFunctionsDiscontinuous();
 	else fCreate.SetAllCreateFunctionsContinuous();
 	
-	TPZCompEl * newcel = CreateCompEl(father,index);
+	TPZCompEl * newcel = CreateCompEl(father);
+    index = newcel->Index();
 	
 	TPZCompElDisc * newdisc = dynamic_cast<TPZCompElDisc*>(newcel);
 	if (newdisc){
@@ -1790,7 +1798,7 @@ fSolType(copy.fSolType)
 		TPZCompEl *cel = copy.fElementVec[iel];
 		if(cel && !dynamic_cast<TPZInterfaceElement* >(cel) )
 		{
-			/*TPZCompEl *clone  = */ cel->Clone(*this);
+			TPZCompEl *clone  =  cel->Clone(*this);
 			/*#ifdef PZ_LOG
 			 {
 			 std::stringstream sout;

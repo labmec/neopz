@@ -64,7 +64,7 @@ class TPZSBFemVolumeL2 : public TPZSBFemVolume
 
 public:
     
-    TPZSBFemVolumeL2(TPZCompMesh & mesh, TPZGeoEl * gel, int64_t & index);
+    TPZSBFemVolumeL2(TPZCompMesh & mesh, TPZGeoEl * gel);
     
     virtual ~TPZSBFemVolumeL2()
     {
@@ -206,4 +206,4 @@ public:
     }
 };
 
-TPZCompEl * CreateSBFemPressureCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+TPZCompEl * CreateSBFemPressureCompEl(TPZCompMesh &mesh, TPZGeoEl *gel);

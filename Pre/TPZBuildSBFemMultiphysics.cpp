@@ -472,9 +472,9 @@ void TPZBuildSBFemMultiphysics::CreateSBFemVolumePressure(TPZCompMesh & cmeshpre
         {
             DebugStop();
         }
-
-        int64_t index;
-        auto cel = CreateSBFemPressureCompEl(cmeshpressure, gelcollapsed, index);
+        
+        auto cel = CreateSBFemPressureCompEl(cmeshpressure, gelcollapsed);
+        int64_t index = cel->Index();
 
         // Getting the TPZSBFemVolumeHdiv compel
         auto celsbfem = cmeshpressure.Element(index);
@@ -580,8 +580,7 @@ void TPZBuildSBFemMultiphysics::CreateCompElFlux(TPZCompMesh &cmeshflux, set<int
             DebugStop();
         }
 
-        int64_t index;
-        auto celhdivc = new TPZCompElHDivSBFem<pzshape::TPZShapeLinear>(cmeshflux, gel1d, gelsidecollapsed, index);
+        auto celhdivc = new TPZCompElHDivSBFem<pzshape::TPZShapeLinear>(cmeshflux, gel1d, gelsidecollapsed);
         geltocel[gel1d->Index()] = celhdivc;
 
         previouspartition = partition;
@@ -621,15 +620,15 @@ void TPZBuildSBFemMultiphysics::CreateCompElFlux(TPZCompMesh &cmeshflux, set<int
         {
             DebugStop();
         }
+        
 
-        int64_t index;
-
-        auto hdivboundleft = new TPZCompElHDivBound2<pzshape::TPZShapeLinear>(cmeshflux,gelsideleft.Element(),index);
-        hdivboundleft->SetConnectIndex(0,celhdivc->ConnectIndex(3));
+        auto hdivboundleft = new TPZCompElHDivBound2<pzshape::TPZShapeLinear>(cmeshflux,gelsideleft.Element());
+        celhdivc->SetConnectIndex(3,hdivboundleft->ConnectIndex(0));
+        celhdivc->SetCompElFlux(hdivboundleft);
         gelsideleft.Element()->ResetReference();
 
-        auto hdivboundright = new TPZCompElHDivBound2<pzshape::TPZShapeLinear>(cmeshflux,gelsideright.Element(),index);
-        hdivboundright->SetConnectIndex(0,celhdivc->ConnectIndex(4));
+        auto hdivboundright = new TPZCompElHDivBound2<pzshape::TPZShapeLinear>(cmeshflux,gelsideright.Element());
+        celhdivc->SetConnectIndex(4,hdivboundright->ConnectIndex(0));
         gelsideright.Element()->ResetReference();
     }
 
@@ -666,9 +665,9 @@ void TPZBuildSBFemMultiphysics::CreateSBFemVolumeFlux(TPZCompMesh & cmesh, set<i
         {
             DebugStop();
         }
-
-        int64_t index;
-        auto cel = CreateSBFemFluxCompEl(cmesh, gelcollapsed, index);
+        
+        auto cel = CreateSBFemFluxCompEl(cmesh, gelcollapsed);
+        const int64_t index = cel->Index();
 
         // Getting the TPZSBFemVolumeHdiv compel
         auto celsbfem = cmesh.Element(index);
@@ -772,7 +771,7 @@ void TPZBuildSBFemMultiphysics::AddInterfaceElements(TPZMultiphysicsCompMesh & c
 #ifdef PZDEBUG
         if(gelsideleft.Element()->MaterialId() != fLeftFlux) DebugStop();
 #endif
-        int64_t index;
+        
 
         TPZCompElSide celsidedifpr = gelsidedifpr.Reference();
         TPZCompElSide celsideleft = gelsideleft.Reference();
@@ -784,7 +783,7 @@ void TPZBuildSBFemMultiphysics::AddInterfaceElements(TPZMultiphysicsCompMesh & c
         }
 #endif
         TPZGeoElBC gelbc(gelsideleft, fInterface);
-        TPZMultiphysicsInterfaceElement *intl = new TPZMultiphysicsInterfaceElement(cmeshm, gelbc.CreatedElement(),index,celsidedifpr,celsideleft);
+        TPZMultiphysicsInterfaceElement *intl = new TPZMultiphysicsInterfaceElement(cmeshm, gelbc.CreatedElement(),celsidedifpr,celsideleft);
         fElementPartition[gelbc.CreatedElement()->Index()] = fElementPartition[gelsidedifpr.Element()->Index()];
     }
 
@@ -805,7 +804,6 @@ void TPZBuildSBFemMultiphysics::AddInterfaceElements(TPZMultiphysicsCompMesh & c
             if (gelsideaverpr.Element() == gelsideright.Element()) DebugStop();
 #endif
         }
-        int64_t index;
 
         TPZCompElSide celsideaverpr = gelsideaverpr.Reference();
         TPZCompElSide celsideright = gelsideright.Reference();
@@ -816,7 +814,7 @@ void TPZBuildSBFemMultiphysics::AddInterfaceElements(TPZMultiphysicsCompMesh & c
         }
 #endif
         TPZGeoElBC gelbc(gelsideright, fInterface);
-        auto intr = new TPZMultiphysicsInterfaceElement(cmeshm, gelbc.CreatedElement(),index,celsideright,celsideaverpr);
+        auto intr = new TPZMultiphysicsInterfaceElement(cmeshm, gelbc.CreatedElement(),celsideright,celsideaverpr);
         fElementPartition[gelbc.CreatedElement()->Index()] = fElementPartition[gelsideright.Element()->Index()];
     }
 }
@@ -983,9 +981,9 @@ void TPZBuildSBFemMultiphysics::CreateSBFemMultiphysicsElGroups(TPZMultiphysicsC
     
     for (int64_t el=0; el<numgroups; el++)
     {
-        int64_t index;
-        new TPZSBFemMultiphysicsElGroup(cmesh,index);
-        elementgroupindices[el] = index;
+        
+        TPZCompEl* cel = new TPZSBFemMultiphysicsElGroup(cmesh);
+        elementgroupindices[el] = cel->Index();
     }
     int dim = cmesh.Dimension();
     for (auto cel : cmesh.ElementVec())

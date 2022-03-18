@@ -12,6 +12,7 @@
 #include "TPZCompElDisc.h"
 #include "TPZMaterialDataT.h"
 #include "pzelchdiv.h"
+#include "TPZShapeHDivCollapsed.h"
 
 
 #ifdef PZ_LOG
@@ -21,17 +22,14 @@ static int logger;
 #endif
 
 template<class TSHAPE>
-TPZCompElHDivCollapsed<TSHAPE>::TPZCompElHDivCollapsed(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
+TPZCompElHDivCollapsed<TSHAPE>::TPZCompElHDivCollapsed(TPZCompMesh &mesh, TPZGeoEl *gel) :
 TPZRegisterClassId(&TPZCompElHDivCollapsed::ClassId),
-TPZCompElHDiv<TSHAPE>(mesh,gel,index), fBottom(mesh,gel,index), fTop(mesh,gel,index)
+TPZCompElHDiv<TSHAPE>(mesh,gel)
 {
-    index = this->fIndex;
-    mesh.ElementVec().SetFree(fTop.Index());
-    mesh.ElementVec().SetFree(fBottom.Index());
-    int64_t bottom_c_index = fBottom.ConnectIndex(0);
-    int64_t top_c_index = fTop.ConnectIndex(0);
-    fBottom.SetIndex(-1);
-    fTop.SetIndex(-1);
+//    fbottom_c_index = -1; set at constructor in .h
+//    ftop_c_index = -1; set at constructor in .h
+//    fbottom_side_orient = -1; in .h
+//    ftop_side_orient = 1; in .h
     this->Reference()->SetReference(this);
     
 
@@ -50,7 +48,8 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index), fBottom(mesh,gel,index), fTop(mesh,gel,in
 template<class TSHAPE>
 TPZCompElHDivCollapsed<TSHAPE>::TPZCompElHDivCollapsed(TPZCompMesh &mesh, const TPZCompElHDivCollapsed<TSHAPE> &copy) :
 TPZRegisterClassId(&TPZCompElHDivCollapsed::ClassId),
-TPZCompElHDiv<TSHAPE>(mesh,copy),fBottom(copy.fBottom), fTop(copy.fTop)
+TPZCompElHDiv<TSHAPE>(mesh,copy),fbottom_c_index(copy.fbottom_c_index), ftop_c_index(copy.ftop_c_index),
+fbottom_side_orient(copy.fbottom_side_orient), ftop_side_orient(copy.ftop_side_orient)
 {
 }
 
@@ -61,8 +60,7 @@ TPZCompElHDivCollapsed<TSHAPE>::TPZCompElHDivCollapsed(TPZCompMesh &mesh,
 												 std::map<int64_t,int64_t> & gl2lcConMap,
 												 std::map<int64_t,int64_t> & gl2lcElMap) :
 TPZRegisterClassId(&TPZCompElHDivCollapsed::ClassId),
-TPZCompElHDiv<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap),fBottom(mesh,copy.fBottom,gl2lcConMap,gl2lcElMap),
-fTop(mesh,copy.fBottom,gl2lcConMap,gl2lcElMap)
+TPZCompElHDiv<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
 	
 	this-> fPreferredOrder = copy.fPreferredOrder;
@@ -94,6 +92,7 @@ fTop(mesh,copy.fBottom,gl2lcConMap,gl2lcElMap)
 		this-> fConnectIndexes[i] = lcIdx;
 	}
     // write the code when this constructor is called
+    // Initialize top and bottom connects properly if needed be!
     DebugStop();
 }
 
@@ -101,7 +100,7 @@ fTop(mesh,copy.fBottom,gl2lcConMap,gl2lcElMap)
 template<class TSHAPE>
 TPZCompElHDivCollapsed<TSHAPE>::TPZCompElHDivCollapsed() :
 TPZRegisterClassId(&TPZCompElHDivCollapsed::ClassId),
-TPZCompElHDiv<TSHAPE>(),fBottom(),fTop()
+TPZCompElHDiv<TSHAPE>()
 {
 	this->fPreferredOrder = -1;
 	int i;
@@ -159,10 +158,9 @@ void TPZCompElHDivCollapsed<TSHAPE>::SetSideOrient(int side, int sideorient)
         DebugStop();
     }
 
-
     if(side < TSHAPE::NSides-1) TPZCompElHDiv<TSHAPE>::SetSideOrient(side, sideorient);
-    else if(side == TSHAPE::NSides-1 ) fBottom.SetSideOrient(side, sideorient);
-    else fTop.SetSideOrient(side-1, sideorient);
+    else if(side == TSHAPE::NSides-1 ) fbottom_side_orient = sideorient;
+    else ftop_side_orient = sideorient;
 }
 
 // NAO TESTADO
@@ -177,14 +175,21 @@ int TPZCompElHDivCollapsed<TSHAPE>::GetSideOrient(int side)
     if (side < TSHAPE::NSides - 1) {
         return TPZCompElHDiv<TSHAPE>::GetSideOrient(side);
     }
-    else if(side == TSHAPE::NSides-1) return fBottom.GetSideOrient(side);
-    else return fTop.GetSideOrient(side-1);
+    else if(side == TSHAPE::NSides-1) return fbottom_side_orient;
+    else return ftop_side_orient;
 }
 
 template<class TSHAPE>
 int TPZCompElHDivCollapsed<TSHAPE>::NConnects() const {
-	
-	return TPZCompElHDiv<TSHAPE>::NConnects()+2;
+    int nconnects = TPZCompElHDiv<TSHAPE>::NConnects();
+    if (fbottom_c_index != -1) {
+        nconnects++;
+    }
+    if (ftop_c_index != -1) {
+        nconnects++;
+    }
+
+	return nconnects;
 }
 
 template<class TSHAPE>
@@ -192,15 +197,15 @@ void TPZCompElHDivCollapsed<TSHAPE>::SetConnectIndex(int i, int64_t connectindex
 {
 	if(i <= TSHAPE::NFacets)
 	{
-        SetConnectIndex(i, connectindex);
+        TPZCompElHDiv<TSHAPE>::SetConnectIndex(i, connectindex);
 	}
     else if(i == TSHAPE::NFacets+1)
     {
-        fBottom.SetConnectIndex(0, connectindex);
+        fbottom_c_index = connectindex;
     }
     else if(i == TSHAPE::NFacets+2)
     {
-        fTop.SetConnectIndex(0, connectindex);
+        ftop_c_index = connectindex;
     }
     else
     {
@@ -218,11 +223,13 @@ int TPZCompElHDivCollapsed<TSHAPE>::NConnectShapeF(int connect, int connectorder
     }
     else if(connect == TSHAPE::NFacets+1)
     {
-        return fBottom.NConnectShapeF(0, connectorder);
+        TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,connectorder);
+        return TSHAPE::NShapeF(order);
     }
     else if(connect == TSHAPE::NFacets+2)
     {
-        return fTop.NConnectShapeF(0, connectorder);
+        TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,connectorder);
+        return TSHAPE::NShapeF(order);
     }
     else DebugStop();
     return -1;
@@ -251,32 +258,38 @@ template<class TSHAPE>
 template<class TVar>
 void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialDataT(TPZMaterialDataT<TVar> &data)
 {
-	TPZCompElHDiv<TSHAPE>::InitMaterialData(data);
-    if(data.fUserData) DebugStop();
-    auto datapair = new std::pair<TPZMaterialDataT<TVar>,TPZMaterialDataT<TVar>>;
-    data.fUserData = datapair;
-    TPZMaterialData &datatop = datapair->second, &databottom = datapair->first;
-    fTop.InitMaterialData(datatop);
-    fBottom.InitMaterialData(databottom);
-    // expand the shape vector and normal vector
-//    int nvecshape = data.fVecShapeIndex.size();
-//    int nscalar = data.phi.Rows();
-//    int nscalartop = datatop.phi.Rows();
-//    int nscalarbottom = databottom.phi.Rows();
-//    int nvec = data.fVecShapeIndex.size(); // same as nvecshape
-//    const int dim = TSHAPE::Dimension;
-//    data.fMasterDirections.Resize(dim+1, nvec+2);
-//    data.fMasterDirections(dim,nvec) = 1.;
-//    data.fMasterDirections(dim,nvec+1) = -1.;
-    // nvec is the number of vector shapes in this element. Then we need to sum the vec shapes of top and bottom
-//    data.fDeformedDirections.Resize(3, nvec+nscalartop+nscalarbottom);
-//    data.fVecShapeIndex.Resize(nvecshape+nscalartop+nscalarbottom, {0,0});
-//    for(int i=0; i<nscalartop; i++) data.fVecShapeIndex[nvecshape+i] = std::pair<int,int64_t>(nvec,nscalar+i);
-//    for(int i=0; i<nscalarbottom; i++) data.fVecShapeIndex[nvecshape+nscalartop+i] = std::pair<int,int64_t>(nvec+1,nscalar+nscalartop+i);
-//    data.phi.Resize(nscalar+nscalartop+nscalarbottom, 1);
-//    data.fDPhi.Resize(dim+1,nscalar+nscalartop+nscalarbottom);
-//    data.divphi.Resize(nvecshape+nscalartop+nscalarbottom,1);
-    if(data.fNeedsDeformedDirectionsFad) DebugStop();
+    TPZShapeData& shapedata = data;
+    
+    // Order of top and bot connect
+    TPZConnect& connbot = this->Mesh()->ConnectVec()[fbottom_c_index];
+    TPZConnect& conntop = this->Mesh()->ConnectVec()[ftop_c_index];
+    const int toporder = conntop.Order();
+    const int bottomorder = connbot.Order();
+    
+    // Number of shape and dim
+    const int64_t nvecshapecollpased = this->NShapeF();
+    const int dim = TSHAPE::Dimension+1;
+    
+    // Order of connects
+    int ncon = NConnects();
+    TPZManVector<int> connectorders(ncon,0);
+    for(int i=0; i<TSHAPE::NFacets+1; i++) connectorders[i] = this->Connect(i).Order();
+    connectorders[ncon-2] = bottomorder;
+    connectorders[ncon-1] = toporder;
+    
+    // Side orient
+    TPZManVector<int> sideorient(TSHAPE::NFacets+2,0);
+    for(int i=0; i<TSHAPE::NFacets; i++) sideorient[i] = this->SideOrient(i);
+    sideorient[TSHAPE::NFacets] = GetSideOrient(TSHAPE::NSides-1);
+    sideorient[TSHAPE::NFacets+1] = GetSideOrient(TSHAPE::NSides);
+    
+    // Node ids of geoel
+    TPZGeoEl *gel = this->Reference();
+    TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes);
+    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
+    
+    // Init shape data
+    TPZShapeHDivCollapsed<TSHAPE>::Initialize(ids, connectorders, sideorient, shapedata);
 
 #ifdef PZ_LOG
     if (logger.isDebugEnabled())
@@ -293,10 +306,11 @@ void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialDataT(TPZMaterialDataT<TVar> &d
 template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
+    DebugStop(); // is this function ever used? If so, check if it is ok without fBottom
     if(TSHAPE::SideDimension(side)!= TSHAPE::Dimension || point.size() != TSHAPE::Dimension ){
 		DebugStop() ;
 	}
-    fBottom.SideShapeFunction(side, point, phi, dphi);
+//    fBottom.SideShapeFunction(side, point, phi, dphi);
     
     return;
 }
@@ -313,8 +327,10 @@ template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::Read(TPZStream &buf, void *context)
 {
 	TPZIntelGen<TSHAPE>::Read(buf,context);
-    fBottom.Read(buf,context);
-    fTop.Read(buf, context);
+    buf.Read(&fbottom_c_index,1);
+    buf.Read(&ftop_c_index,1);
+    buf.Read(&fbottom_side_orient,1);
+    buf.Read(&ftop_side_orient,1);
 }
 
 /** Save the element data to a stream */
@@ -322,8 +338,10 @@ template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::Write(TPZStream &buf, int withclassid) const
 {
 	TPZIntelGen<TSHAPE>::Write(buf,withclassid);
-    fBottom.Write(buf, false);
-    fTop.Write(buf, false);
+    buf.Write(&fbottom_c_index,1);
+    buf.Write(&ftop_c_index,1);
+    buf.Write(&fbottom_side_orient,1);
+    buf.Write(&ftop_side_orient,1);
 }
 
 /** @brief Prints the relevant data of the element to the output stream */
@@ -332,9 +350,10 @@ void TPZCompElHDivCollapsed<TSHAPE>::Print(std::ostream &out) const
 {
     out << __PRETTY_FUNCTION__ << std::endl;
     TPZCompElHDiv<TSHAPE>::Print(out);
-    fBottom.Print(out);
-    fTop.Print(out);
-    
+    out << "\nfbottom_c_index = " << fbottom_c_index << std::endl;
+    out << "ftop_c_index = " << ftop_c_index << std::endl;
+    out << "fbottom_side_orient = " << fbottom_side_orient << std::endl;
+    out << "ftop_side_orient = " << ftop_side_orient << std::endl;
 }
 
 #include "pzvec_extras.h"
@@ -390,6 +409,7 @@ static void ExpandAxes(TPZFMatrix<REAL> &axinput, TPZMatrix<REAL> &axout)
     }
 }
 
+/*
 template<class TSHAPE>
 template<class TVar>
 void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
@@ -406,15 +426,15 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
     data.axes = axeslocal;
     const int dim = TSHAPE::Dimension+1;
     const int nvecshapestd = data.fDeformedDirections.Cols();
-    TPZManVector<REAL> topdir(dim,0.), botdir(dim,0.); // top and bot directions in the deformed element
-    TPZManVector<REAL,3> vecup={0,0,1.}, vecdown={0,0,-1.};
+    TPZManVector<REAL> topdir(3,0.), botdir(3,0.); // top and bot directions in the deformed element
+    TPZManVector<REAL,3> vecup={0,0,0}, vecdown={0,0,0};
+    vecup[dim-1] = 1.;
+    vecdown[dim-1] = -1.;
     // compute the deformed directions for the two additional vectors
     {
         for(int i=0; i<3; i++){
-            for(int l=0; l<dim; l++){
-                topdir[i] += data.axes(l,i)*vecup[l];
-                botdir[i] += data.axes(l,i)*vecdown[l];
-            }
+                topdir[i] = data.axes(dim-1,i);
+                botdir[i] = -data.axes(dim-1,i);
         }
     }
     
@@ -438,7 +458,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
         // the shape functions related to the top and bottom connect that communicate
         // with the adjacent 3D elements
         const int64_t nvecshapecollpased = nvecshapestd+nvec_top+nvec_bottom;
-        data.fDeformedDirections.Resize(dim,nvecshapecollpased);
+        data.fDeformedDirections.Resize(3,nvecshapecollpased);
         data.fVecShapeIndex.Resize(nvecshapecollpased);
         data.divphi.Resize(nvecshapecollpased,1);
         data.phi.Resize(nvecshapecollpased,1);
@@ -461,18 +481,11 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
         }
         // Same for divphi
         for (int64_t i= nvec_hdiv; i<nvecshapecollpased-nvec_top; i++) {
-            data.divphi(i,0) = 0.;
-            for (int d = 0; d < 3; d++) {
-                data.divphi(i,0) += databottom.phi(i-nvec_hdiv)*botdir[d];
-            }
+            data.divphi(i,0) = -databottom.phi(i-nvec_hdiv);
         }
         for (int64_t i= nvec_hdiv+nvec_bottom; i<nvecshapecollpased; i++) {
-            data.divphi(i,0) = 0.;
-            for (int d = 0; d < 3; d++) {
-                data.divphi(i,0) += datatop.phi(i-nvec_hdiv-nvec_bottom)*topdir[d];
-            }
+            data.divphi(i,0) = datatop.phi(i-nvec_hdiv-nvec_bottom);
         }
-
     }
     
     if (data.fNeedsSol) {
@@ -490,14 +503,64 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar>
     
 
 }//void
+*/
+
+template<class TSHAPE>
+void TPZCompElHDivCollapsed<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) {
+
+
+    // Some variable definitions
+    TPZConnect& connbot = this->Mesh()->ConnectVec()[fbottom_c_index];
+    TPZConnect& conntop = this->Mesh()->ConnectVec()[ftop_c_index];
+    const int toporder = conntop.Order();
+    const int bottomorder = connbot.Order();
+    const int64_t nvec_top = conntop.NShape();
+    const int64_t nvec_bottom = connbot.NShape();
+    const int64_t nvecshapecollpased = this->NShapeF();
+    const int64_t numvec = nvecshapecollpased - nvec_top - nvec_bottom;
+    const int dim = TSHAPE::Dimension+1;
+    
+    // Expanding element axes
+    TPZFNMatrix<9,REAL> axeslocal(TSHAPE::Dimension+1,3);
+    ExpandAxes(data.axes, axeslocal);
+    
+    // adding a column do gradx pointing to the normal direction (direction that communicates with the 3d neighbor element)
+    TPZFMatrix<REAL> gradx(3,TSHAPE::Dimension,0.);
+    this->Reference()->GradX(qsi, gradx);
+    TPZFNMatrix<9> gradxlocal(3,dim);
+    for (int i=0; i<3; i++) {
+        for (int d=0; d<dim-1; d++) {
+            gradxlocal(i,d) = gradx(i,d);
+        }
+        gradxlocal(i,dim-1) = axeslocal(dim-1,i);
+    }
+    
+    // Computing shape functions using TPZShapeHDivCollapsed structure
+    TPZShapeData& shapedata = data;
+    TPZShapeHDivCollapsed<TSHAPE>::Shape(qsi,shapedata,data.phi,data.divphi);
+    data.divphi *= 1./data.detjac;
+    gradxlocal.Multiply(data.phi,data.fDeformedDirections);
+    data.fDeformedDirections *= 1./data.detjac;
+    
+    // Filling phi with 1 and fVecShapeIndex with 1,1 to make actual materials work
+    data.fVecShapeIndex.Resize(nvecshapecollpased);
+    data.phi.Resize(nvecshapecollpased,1);
+    for(int i=0; i<nvecshapecollpased; i++)
+    {
+        data.fVecShapeIndex[i] = std::pair<int,int64_t>(i,i);
+        data.phi(i) = 1.;
+    }
+}
+
+
 
 template<class TSHAPE>
 int64_t TPZCompElHDivCollapsed<TSHAPE>::ConnectIndex(int con) const
 {
     if(con <= TSHAPE::NFacets) return TPZCompElHDiv<TSHAPE>::ConnectIndex(con);
     if(con > TSHAPE::NFacets + 2) DebugStop();
-    if(con == TSHAPE::NFacets+1) return fBottom.ConnectIndex(0);
-    if(con == TSHAPE::NFacets+2) return fTop.ConnectIndex(0);
+    if(con == TSHAPE::NFacets+1) return fbottom_c_index;
+    if(con == TSHAPE::NFacets+2) return ftop_c_index;
     DebugStop();
     return -1;
 }
@@ -524,8 +587,23 @@ void TPZCompElHDivCollapsed<TSHAPE>::CleanupMaterialData(TPZMaterialData &data)
     data.fUserData = nullptr;
 }
 
+template<class TSHAPE>
+int TPZCompElHDivCollapsed<TSHAPE>::ConnectOrder(int connect) const {
+	if (connect < 0 || connect >= NConnects()){
+#ifdef PZ_LOG
+		{
+			std::stringstream sout;
+			sout << "Connect index out of range connect " << connect <<
+			" nconnects " << NConnects();
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		return -1;
+	}
 
-
+    TPZConnect &c = this->Connect(connect);
+    return c.Order();
+}
 
 template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::SetCreateFunctions(TPZCompMesh* mesh) {

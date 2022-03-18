@@ -25,7 +25,7 @@
 // static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemvolume"));
 // #endif
 
-TPZSBFemVolumeL2::TPZSBFemVolumeL2(TPZCompMesh & mesh, TPZGeoEl * gel, int64_t & index) : TPZSBFemVolume(mesh, gel, index)
+TPZSBFemVolumeL2::TPZSBFemVolumeL2(TPZCompMesh & mesh, TPZGeoEl * gel) : TPZSBFemVolume(mesh, gel)
 {
     fElementVec1D.Resize(3);
 }
@@ -100,7 +100,7 @@ void TPZSBFemVolumeL2::ReallyComputeSolution(TPZMaterialDataT<STATE> & data)
     Ref2D->Jacobian(qsi, data2d.jacobian, data2d.axes, data2d.detjac, data2d.jacinv);
     axes = data2d.axes;
 
-    int nshape = data1d.phi.Rows();
+    int nshape = data1d.fPhi.Rows();
     int nstate = mat2d->NStateVariables();
 #ifdef PZDEBUG
     if (fPhi.Cols() != fCoeficients.Rows()) {
@@ -136,7 +136,7 @@ void TPZSBFemVolumeL2::ReallyComputeSolution(TPZMaterialDataT<STATE> & data)
             std::stringstream sout;
             sout << "uh_xi " << uh_xi << std::endl;
             sout << "Duh_xi " << Duh_xi << std::endl;
-            data1d.phi.Print(sout);
+            data1d.fPhi.Print(sout);
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
@@ -147,8 +147,8 @@ void TPZSBFemVolumeL2::ReallyComputeSolution(TPZMaterialDataT<STATE> & data)
         TPZManVector<STATE, 3> dsolxi(nstate, 0.);
         for (int ishape = 0; ishape < nshape; ishape++) {
             for (int istate = 0; istate < nstate; istate++) {
-                sol[s][istate] += data1d.phi(ishape) * uh_xi[ishape * nstate + istate].real();
-                dsolxi[istate] += data1d.phi(ishape) * Duh_xi[ishape * nstate + istate].real();
+                sol[s][istate] += data1d.fPhi(ishape) * uh_xi[ishape * nstate + istate].real();
+                dsolxi[istate] += data1d.fPhi(ishape) * Duh_xi[ishape * nstate + istate].real();
                 for (int d = 0; d < dim - 1; d++) {
                     dsollow(d, istate) += data1d.fDPhi(d, ishape) * uh_xi[ishape * nstate + istate].real();
                 }
@@ -174,7 +174,7 @@ void TPZSBFemVolumeL2::ReallyComputeSolution(TPZMaterialDataT<STATE> & data)
 
 #include "pzaxestools.h"
 
-TPZCompEl * CreateSBFemPressureCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index)
+TPZCompEl * CreateSBFemPressureCompEl(TPZCompMesh &mesh, TPZGeoEl *gel)
 {
-    return new TPZSBFemVolumeL2(mesh, gel, index);    
+    return new TPZSBFemVolumeL2(mesh, gel);
 }

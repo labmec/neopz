@@ -21,8 +21,10 @@ template<class TSHAPE>
 class TPZCompElHDivCollapsed : public TPZCompElHDiv<TSHAPE> {
 	
 protected:
-    /// vector which defines whether the normal is outward or not
-    TPZCompElHDivBound2<TSHAPE> fBottom,fTop;
+    /// index of the bottom and top connect
+    int64_t fbottom_c_index = -1, ftop_c_index = -1;
+    /// sideorient of bottom and top shape functions. By default -1 for bot and +1 for top
+    int fbottom_side_orient = -1, ftop_side_orient = 1;
     
     /** @brief To append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
@@ -33,7 +35,7 @@ protected:
     void InitMaterialDataT(TPZMaterialDataT<TVar> &data);
 public:
 	    
-	TPZCompElHDivCollapsed(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZCompElHDivCollapsed(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
 	TPZCompElHDivCollapsed(TPZCompMesh &mesh, const TPZCompElHDivCollapsed<TSHAPE> &copy);
 	
@@ -120,14 +122,18 @@ public:
 
     //@{
 	/** @brief Compute and fill data with requested attributes */
-	void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
-                             TPZVec<REAL> &qsi) override{
-        ComputeRequiredDataT(data,qsi);
-    }
-    void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
-                             TPZVec<REAL> &qsi) override{
-        ComputeRequiredDataT(data,qsi);
-    }
+//	void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
+//                             TPZVec<REAL> &qsi) override{
+//        ComputeRequiredDataT(data,qsi);
+//    }
+//    void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
+//                             TPZVec<REAL> &qsi) override{
+//        ComputeRequiredDataT(data,qsi);
+//    }
+    
+    void ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
+
+
     //@}
 
 	
@@ -144,6 +150,8 @@ public:
 	void Read(TPZStream &buf, void *context) override;
     /** @brief Refinement along the element */
 //    virtual void PRefine(int order) override;
+
+	virtual int ConnectOrder(int connect) const override;
 	
 };
 

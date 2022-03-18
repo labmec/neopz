@@ -16,7 +16,7 @@ class TPZLagrangeMultiplierBase{
 };
 
 /// Material which implements a Lagrange Multiplier for single space materials.
-template<class TVar>
+template<class TVar = STATE>
 class TPZLagrangeMultiplier :
     public TPZMatBase<TVar,
                       TPZMatSingleSpaceT<TVar>,

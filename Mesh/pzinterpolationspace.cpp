@@ -41,14 +41,8 @@ TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpo
 	fPreferredOrder = copy.fPreferredOrder;
 }
 
-TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, int64_t &index)
-: TPZCompEl(mesh, copy, index)
-{
-	fPreferredOrder = copy.fPreferredOrder;
-}
-
-TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index)
-: TPZCompEl(mesh,gel,index)
+TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel)
+: TPZCompEl(mesh,gel)
 {
 	fPreferredOrder = mesh.GetDefaultOrder();
 }
@@ -279,6 +273,8 @@ void TPZInterpolationSpace::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
   }
   ref->Jacobian(qsi, data.jacobian, data.axes, data.detjac , data.jacinv);
 
+    data.detjac = std::abs(data.detjac);
+    
   Reference()->X(qsi, data.x);
   data.xParametric = qsi;
   
@@ -530,7 +526,9 @@ void TPZInterpolationSpace::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
 	
 }//CalcResidual
 
-void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) {
+template<class TVar>
+void TPZInterpolationSpace::SolutionInternal(TPZVec<REAL> &qsi,int var,
+                                             TPZVec<TVar> &sol) {
   //TODOCOMPLEX
 	if(var >= 100) {
 		TPZCompEl::Solution(qsi,var,sol);
@@ -545,13 +543,13 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &so
 	}
 	
 	auto* material = 
-    dynamic_cast<TPZMatSingleSpaceT<STATE> *>(this->Material());
+    dynamic_cast<TPZMatSingleSpaceT<TVar> *>(this->Material());
 	if(!material) {
 		sol.Resize(0);
 		return;
 	}
 	//TODOCOMPLEX
-  TPZMaterialDataT<STATE> data;
+  TPZMaterialDataT<TVar> data;
   this->InitMaterialData(data);
 
   ///compute geometric mapping info
@@ -777,7 +775,6 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 	if(size){
 		//Interface has the same material of the neighbour with lesser dimension.
 		//It makes the interface have the same material of boundary conditions (TPZCompElDisc with interface dimension)
-		int64_t index;
 		
 		TPZCompEl *list0 = list[0].Element();
 		int list0side = list[0].Side();
@@ -812,8 +809,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
             }
             TPZCompElSide thiscompelside(this, thisside);
             TPZCompElSide neighcompelside(list0, neighside);
-            int64_t index;
-            newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,neighcompelside);
+            newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,thiscompelside,neighcompelside);
             
         } else 
         {
@@ -830,7 +826,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
                 //a normal aponta para fora do contorno
                 TPZCompElSide thiscompelside(this, thisside);
                 TPZCompElSide neighcompelside(list0, neighside);
-                newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,neighcompelside);
+                newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,thiscompelside,neighcompelside);
             } else {
                 const int matid = this->Material()->Id();
                 TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
@@ -838,7 +834,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
                 //caso contrario ou caso ambos sejam de volume
                 TPZCompElSide thiscompelside(this, thisside);
                 TPZCompElSide neighcompelside(list0, neighside);
-                newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,neighcompelside,thiscompelside);
+                newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,neighcompelside,thiscompelside);
             }
 		}
 		
@@ -921,9 +917,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 			}
 		}
         TPZInterfaceElement * newcreatedinterface = NULL;
-        
-		int64_t index;
-		
+        		
         if(Dimension() == lowcel->Dimension()){///faces internas
             
             const int matid = this->Mesh()->Reference()->InterfaceMaterial(lowcel->Material()->Id(), this->Material()->Id() );
@@ -932,8 +926,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
             
             TPZCompElSide lowcelcompelside(lowcel, neighside);
             TPZCompElSide thiscompelside(this, thisside);
-            int64_t index;
-            newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
+            newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,lowcelcompelside,thiscompelside);
         }
         else{
             
@@ -947,7 +940,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
                 //para que o elemento esquerdo seja de volume
                 TPZCompElSide thiscompelside(this, thisside);
                 TPZCompElSide lowcelcompelside(lowcel, neighside);
-                newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,lowcelcompelside);
+                newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,thiscompelside,lowcelcompelside);
             } else {
                 const int matid = this->Material()->Id();
                 TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
@@ -969,7 +962,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
                     LOGPZ_DEBUG(logger,sout.str())
                 }
 #endif
-                newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
+                newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,lowcelcompelside,thiscompelside);
             }
         }		
 		/** GeoBlend verifications ***/

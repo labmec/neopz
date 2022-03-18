@@ -83,7 +83,7 @@ public:
 	 * @param mesh reference mesh
 	 * @param index reference mesh element index to transfer to submesh
 	 */
-	TPZSubCompMesh(TPZCompMesh &mesh, int64_t &index);
+	TPZSubCompMesh(TPZCompMesh &mesh);
 	/** @brief Default constructor */
 	TPZSubCompMesh();
 	/** @brief Destructor. */

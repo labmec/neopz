@@ -110,8 +110,9 @@ void TPZSBFemMultiphysicsElGroup::GroupandCondense(set<int> & condensedmatid)
 #ifdef PZDEBUG
     if (fElGroup.size() == 0 || condensedmatid.size() == 0) DebugStop();
 #endif
-    int64_t index;
-    fCondensedEls = new TPZElementGroup(*Mesh(), index);
+
+    fCondensedEls = new TPZElementGroup(*Mesh());
+    const int64_t index = fCondensedEls->Index();
 
     for (auto celvol : fElGroup)
     {
@@ -261,8 +262,8 @@ void TPZSBFemMultiphysicsElGroup::CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElem
     TPZFMatrix<STATE> globmatkeep(globmat);
     TPZFNMatrix<100,complex<double> > eigenVectors;
     TPZManVector<complex<double> > eigenvalues;
-    globmatkeep.SolveEigenProblem(eigenvalues, eigenVectors);
-    // this->SolveEigenProblemSBFEM(globmatkeep, eigenvalues, eigenVectors);
+    // globmatkeep.SolveEigenProblem(eigenvalues, eigenVectors);
+    this->SolveEigenProblemSBFEM(globmatkeep, eigenvalues, eigenVectors);
 #ifdef LOG4CXX
     if (loggerfulleigensys->isDebugEnabled())
     {
@@ -456,6 +457,12 @@ void TPZSBFemMultiphysicsElGroup::ComputeMatrices(TPZElementMatrixT<STATE> &E0, 
             E1.fMat(i,j) = ek.fMat(i+n,j);
             E2.fMat(i,j) = ek.fMat(i+n,j+n);
         }
+    }
+    {
+        std::ofstream out("coefmatrices.txt");
+        E0.fMat.Print("E0pz = ", out, EMathematicaInput);
+        E1.fMat.Print("E1pz = ", out, EMathematicaInput);
+        E2.fMat.Print("E2pz = ", out, EMathematicaInput);
     }
 
 #ifdef LOG4CXX

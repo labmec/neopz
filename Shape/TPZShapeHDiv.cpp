@@ -19,9 +19,10 @@ TPZShapeHDiv<TSHAPE>::TPZShapeHDiv()
 }
 
 template<class TSHAPE>
-void TPZShapeHDiv<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
-                                             TPZVec<int> &connectorders,
-                                             TPZVec<int>& sideorient, TPZShapeData &data)
+void TPZShapeHDiv<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
+                                      const TPZVec<int> &connectorders,
+                                      const TPZVec<int>& sideorient,
+                                      TPZShapeData &data)
 {
     
         
@@ -294,22 +295,9 @@ void TPZShapeHDiv<TSHAPE>::FillOrderScalarShapeFunctions(const TPZVec<int> &conn
     
 
 template<class TSHAPE>
-void TPZShapeHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi)
+void TPZShapeHDiv<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi)
 {
     
-//    int64_t numvec = TSHAPE::Dimension*TSHAPE::NSides;
-//    TPZManVector<int64_t,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
-//    TPZManVector<int, TSHAPE::NSides-TSHAPE::NCornerNodes+1> ord(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
-//    int i;
-//    TPZGeoEl *ref = this->Reference();
-//    for(i=0; i<TSHAPE::NCornerNodes; i++) {
-//        id[i] = ref->NodePtr(i)->Id();
-//    }
-
-
-//    FillOrder(ord);
-//    int nshape= this->NShapeContinuous(ord);
-
     divphi.Resize(data.fSDVecShapeIndex.size(),1);
     divphi.Zero();
     phi.Resize(TSHAPE::Dimension,data.fSDVecShapeIndex.size());
@@ -372,18 +360,25 @@ void TPZShapeHDiv<TSHAPE>::HDivPermutation(int side, TPZShapeData &data, TPZVec<
     }
     
     MElementType sidetype = TSHAPE::Type(side);
+    HDivPermutation(sidetype, id, permutegather);
+
+}
+
+template<class TSHAPE>
+void TPZShapeHDiv<TSHAPE>::HDivPermutation(MElementType eltype, const TPZVec<int64_t> &ids, TPZVec<int> &permutegather)
+{
     int transformid;
-    switch (sidetype) {
+    switch (eltype) {
         case EOned:
-            transformid = pztopology::TPZLine::GetTransformId(id);
+            transformid = pztopology::TPZLine::GetTransformId(ids);
             pztopology::TPZLine::GetSideHDivPermutation(transformid, permutegather);
             break;
         case EQuadrilateral:
-            transformid = pztopology::TPZQuadrilateral::GetTransformId(id);
+            transformid = pztopology::TPZQuadrilateral::GetTransformId(ids);
             pztopology::TPZQuadrilateral::GetSideHDivPermutation(transformid, permutegather);
             break;
         case ETriangle:
-            transformid = pztopology::TPZTriangle::GetTransformId(id);
+            transformid = pztopology::TPZTriangle::GetTransformId(ids);
             pztopology::TPZTriangle::GetSideHDivPermutation(transformid, permutegather);
             break;
         case EPoint:

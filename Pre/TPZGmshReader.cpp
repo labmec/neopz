@@ -30,10 +30,10 @@
 #include "tpzgeoblend.h"
 #include <tpzarc3d.h>
 
+#include "TPZGeoElement.h"
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
-#include "TPZGeoElement.h"
-
+#include <cassert>
 
 TPZGmshReader::TPZGmshReader() {
     m_dim_entity_tag_and_physical_tag.Resize(4);
@@ -125,458 +125,469 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
     TPZGeoMesh * gmesh = gmesh_input;
     if(!gmesh) gmesh = new TPZGeoMesh;
     int max_dimension = 0;
-    
-    {
-        
-        // reading a general mesh information by filter
-        std::ifstream read (file_name.c_str());
-        if(!read)
-        {
-            std::cout << "Couldn't open the file " << file_name << std::endl;
-            DebugStop();
-        }
-        
-        if (!read) {
-            std::cout << "Gmsh Reader: the mesh file path is wrong " << std::endl;
-            DebugStop();
-        }
-        
 
-        while(read)
-        {
-            char buf[1024];
-            read.getline(buf, 1024);
-            std::string str(buf);
-            
-            if(str == "$MeshFormat" || str == "$MeshFormat\r")
-            {
-                //skips line
-                read.getline(buf, 1024);//read rest of line
-                
-            }
-            
-            if(str == "$PhysicalNames" || str == "$PhysicalNames\r" )
-            {
-                
-                int64_t n_physical_names;
-                read >> n_physical_names;
-                
-                int dimension, id;
-                std::string name;
-                std::pair<int, std::string> chunk;
-                
-                for (int64_t i_name = 0; i_name < n_physical_names; i_name++) {
-                    
-                    read.getline(buf, 1024);
-                    read >> dimension;
-                    read >> id;
-                    read >> name;
-                    name.erase(0,1);
-                    name.erase(name.end()-1,name.end());
-                    
-                    if(m_dim_name_and_physical_tag[dimension].find(name) == m_dim_name_and_physical_tag[dimension].end())
-                    {
-                        if (!addNonAssignedEls)
-                            continue;
-                        std::cout << "Automatically associating " << name << " with material id " << id << std::endl;
-                        m_dim_name_and_physical_tag[dimension][name] = id;
-                    }
-                    else
-                    {
-                        int pzmatid = m_dim_name_and_physical_tag[dimension][name];
-                        std::cout << "Associating " << name << " with material id " << id <<
-                        " with pz material id " << pzmatid << std::endl;
-                    }
-                    m_dim_physical_tag_and_name[dimension][id] = name;
-                    m_dim_physical_tag_and_physical_tag[dimension][id] = m_dim_name_and_physical_tag[dimension][name];
-                    
-                    if (max_dimension < dimension) {
-                        max_dimension = dimension;
-                    }
-                }
-                m_dimension = max_dimension; //  for coherence
-                gmesh->SetDimension(max_dimension);
-                
-                char buf_end[1024];
-                read.getline(buf_end, 1024);
-                read.getline(buf_end, 1024);
-                std::string str_end(buf_end);
-                if(str_end == "$EndPhysicalNames" || str_end == "$EndPhysicalNames\r")
-                {
-                    std::cout << "Read mesh physical entities = " << n_physical_names << std::endl;
-                }
-                continue;
-            }
-            
-            if(str == "$Entities" || str == "$Entities\r")
-            {
-                read >> m_n_points;
-                read >> m_n_curves;
-                read >> m_n_surfaces;
-                read >> m_n_volumes;
+    // periodic nodes indexed by dimension of containing entity
+    TPZVec<std::map<int64_t, std::map<int64_t, int64_t>>> entity_periodic_nodes(
+        4);
+    // periodic entities indexed by dimension
+    TPZVec<std::map<int64_t, int64_t>> periodic_entities(4);
 
-                if (addNonAssignedEls){
-                    // Dont want to change dimension of mesh if not adding non assigned elements
-                    if(max_dimension < 3 && m_n_volumes > 0) max_dimension = 3;
-                    else if(max_dimension < 2 && m_n_surfaces > 0) max_dimension = 2;
-                    else if(max_dimension < 1 && m_n_curves > 0) max_dimension = 1;
-                }
-                
-                int n_physical_tag;
-                std::pair<int, std::vector<int> > chunk;
-                /// Entity bounding box data
-                REAL x_min, y_min, z_min;
-                REAL x_max, y_max, z_max;
-                std::vector<int> n_entities = {m_n_points,m_n_curves,m_n_surfaces,m_n_volumes};
-                std::vector<int> n_entities_with_physical_tag = {0,0,0,0};
-                
-                
-                for (int i_dim = 0; i_dim <4; i_dim++) {
-                    for (int64_t i_entity = 0; i_entity < n_entities[i_dim]; i_entity++) {
-                        
-                        read.getline(buf, 1024);
-                        read >> chunk.first;
-                        read >> x_min;
-                        read >> y_min;
-                        read >> z_min;
-                        if(i_dim > 0)
-                        {
-                            read >> x_max;
-                            read >> y_max;
-                            read >> z_max;
-                        }
-                        read >> n_physical_tag;
-                        chunk.second.resize(n_physical_tag);
-                        for (int i_data = 0; i_data < n_physical_tag; i_data++) {
-                            read >> chunk.second[i_data];
-                        }
-                        if(i_dim > 0)
-                        {
-                            size_t n_bounding_points;
-                            read >> n_bounding_points;
-                            for (int i_data = 0; i_data < n_bounding_points; i_data++) {
-                                int point_tag;
-                                read >> point_tag;
-                            }
-                        }
-                        n_entities_with_physical_tag[i_dim] += n_physical_tag;
-                        m_dim_entity_tag_and_physical_tag[i_dim].insert(chunk);
-                    }
-                }
-
-                m_n_physical_points = n_entities_with_physical_tag[0];
-                m_n_physical_curves = n_entities_with_physical_tag[1];
-                m_n_physical_surfaces = n_entities_with_physical_tag[2];
-                m_n_physical_volumes = n_entities_with_physical_tag[3];
-                
-                char buf_end[1024];
-                read.getline(buf_end, 1024);
-                read.getline(buf_end, 1024);
-                std::string str_end(buf_end);
-                if(str_end == "$EndEntities" || str_end == "$EndEntities\r")
-                {
-                    std::cout << "Read mesh entities = " <<  m_n_points + m_n_curves + m_n_surfaces + m_n_volumes << std::endl;
-                    std::cout << "Read mesh entities with physical tags = " <<  m_n_physical_points + m_n_physical_curves + m_n_physical_surfaces + m_n_physical_volumes << std::endl;
-                }
-                continue;
-            }
-            
-            if(str == "$Nodes" || str == "$Nodes\r")
-            {
-                
-                int64_t n_entity_blocks, n_nodes, min_node_tag, max_node_tag;
-                read >> n_entity_blocks;
-                read >> n_nodes;
-                read >> min_node_tag;
-                read >> max_node_tag;
-                
-                int64_t node_id;
-                double nodecoordX , nodecoordY , nodecoordZ ;
-                gmesh -> NodeVec().Resize(max_node_tag);
-                gmesh->SetMaxNodeId(max_node_tag);
-                // needed for node insertion
-                const int64_t Tnodes = max_node_tag;
-                TPZVec <TPZGeoNode> Node(Tnodes);
-                
-                int entity_tag, entity_dim, entity_parametric, entity_nodes;
-                for (int64_t i_block = 0; i_block < n_entity_blocks; i_block++)
-                {
-                    read.getline(buf, 1024);
-                    read >> entity_dim;
-                    read >> entity_tag;
-                    read >> entity_parametric;
-                    read >> entity_nodes;
-                    
-                    if (entity_parametric != 0) {
-                        std::cout << "TPZGmshReader:: Characteristic not implemented." << std::endl;
-                        DebugStop();
-                    }
-                    
-                    TPZManVector<int64_t,10> nodeids(entity_nodes,-1);
-                    for (int64_t inode = 0; inode < entity_nodes; inode++) {
-                        read >> nodeids[inode];
-                    }
-                    for (int64_t inode = 0; inode < entity_nodes; inode++) {
-                        read >> nodecoordX;
-                        read >> nodecoordY;
-                        read >> nodecoordZ;
-                        
-                        Node[nodeids[inode]-1].SetNodeId(nodeids[inode]-1);
-                        Node[nodeids[inode]-1].SetCoord(0,nodecoordX/m_characteristic_lentgh);
-                        Node[nodeids[inode]-1].SetCoord(1,nodecoordY/m_characteristic_lentgh);
-                        Node[nodeids[inode]-1].SetCoord(2,nodecoordZ/m_characteristic_lentgh);
-                        gmesh->NodeVec()[nodeids[inode]-1] = Node[nodeids[inode]-1];
-                        
-                    }
-                }
-                
-                char buf_end[1024];
-                read.getline(buf_end, 1024);
-                read.getline(buf_end, 1024);
-                std::string str_end(buf_end);
-                if(str_end == "$EndNodes" || str_end == "$EndNodes\r")
-                {
-                    std::cout << "Read mesh nodes = " <<  gmesh->NNodes() << std::endl;
-                }
-                continue;
-            }
-            
-            if(str == "$Elements" || str == "$Elements\r")
-            {
-                
-                int64_t n_entity_blocks, n_elements, min_element_tag, max_element_tag;
-                read >> n_entity_blocks;
-                read >> n_elements;
-                read >> min_element_tag;
-                read >> max_element_tag;
-                gmesh->SetMaxElementId(n_elements-1);
-                
-                int entity_tag, entity_dim, entity_el_type, entity_elements;
-                for (int64_t i_block = 0; i_block < n_entity_blocks; i_block++)
-                {
-                    read.getline(buf, 1024);
-                    read >> entity_dim;
-                    read >> entity_tag;
-                    read >> entity_el_type;
-                    read >> entity_elements;
-                    
-                    if(entity_elements == 0){
-                        std::cout << "The entity with tag " << entity_tag << " does not have elements to insert" << std::endl;
-                    }
-                    
-                    for (int64_t iel = 0; iel < entity_elements; iel++) {
-                        int physical_identifier;
-                        int n_physical_identifier = 0;
-                        if(m_dim_entity_tag_and_physical_tag[entity_dim].find(entity_tag) != m_dim_entity_tag_and_physical_tag[entity_dim].end())
-                        {
-                            n_physical_identifier = m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag].size();
-                        }
-                        bool physical_identifier_Q = n_physical_identifier != 0;
-                        if(physical_identifier_Q)
-                        {
-                        
-//                            std::cout << "The entity with tag " << entity_tag << std::endl;
-//                            std::cout << "Has associated " << n_physical_identifier << "  physical tags" << std::endl;
-//                            std::cout << "Creating different elements for each one..." << std::endl;
-                            read.getline(buf, 1024);
-                            int el_identifier, n_el_nodes;
-                            n_el_nodes = GetNumberofNodes(entity_el_type);
-                            read >> el_identifier;
-                            std::vector<int> node_identifiers(n_el_nodes);
-                            for (int i_node = 0; i_node < n_el_nodes; i_node++) {
-                                read >> node_identifiers[i_node];
-                            }
-                            
-                            for (int i_data = 0; i_data < n_physical_identifier; i_data++) {
-                              if (i_data > 0) {
-                                  el_identifier = max_element_tag + i_data;
-                                  max_element_tag = el_identifier;
-                                  gmesh->SetMaxElementId(el_identifier-1);
-                              }
-                              
-                              const int64_t gmshPhysicalTagTemp = m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag][i_data];
-                              
-                              if(m_dim_physical_tag_and_physical_tag[entity_dim].find(gmshPhysicalTagTemp) != m_dim_physical_tag_and_physical_tag[entity_dim].end()){
-                                  physical_identifier = m_dim_physical_tag_and_physical_tag[entity_dim][gmshPhysicalTagTemp];
-                              } else {
-                                  if (!addNonAssignedEls) {
-                                      continue; // not adding elements without physical identifier
-                                  }                                  
-                              }
-                            
-                              // std::cout << "Creating el for tag " << gmshPhysicalTagTemp << " with physical id = " << physical_identifier << std::endl;
-                              
-                              /// Internally the nodes index and element index is converted to zero based indexation
-                              InsertElement(gmesh, physical_identifier, entity_el_type, el_identifier, node_identifiers);
-                              
-                            }
-                                                        
-                        }else{
-                          
-                            read.getline(buf, 1024);
-                            int el_identifier, n_el_nodes;
-                            n_el_nodes = GetNumberofNodes(entity_el_type);
-                            read >> el_identifier;
-                            std::vector<int> node_identifiers(n_el_nodes);
-                            for (int i_node = 0; i_node < n_el_nodes; i_node++) {
-                                read >> node_identifiers[i_node];
-                            }
-                            std::cout << "Please associate physical tag to entity tag number " << entity_tag << " which is used for element " << el_identifier << std::endl;
-                            DebugStop();
-
-                            std::cout << "The entity with tag " << entity_tag << " does not have a physical tag, element " << el_identifier << " skipped " << std::endl;
-                        }
-
-                    }
-                }
-                
-                char buf_end[1024];
-                read.getline(buf_end, 1024);
-                read.getline(buf_end, 1024);
-                std::string str_end(buf_end);
-                if(str_end == "$EndElements" || str_end == "$EndElements\r")
-                {
-                    std::cout << "Read mesh elements = " << gmesh->NElements() << std::endl;
-                }
-                continue;
-            }
-            
-        }
-        
+    // reading a general mesh information by filter
+    std::ifstream read(file_name.c_str());
+    if (!read) {
+      std::cout << "Couldn't open the file " << file_name << std::endl;
+      DebugStop();
     }
-    
+
+    while (read) {
+      std::string str;
+      read >> str;
+
+      if (str == "$MeshFormat" || str == "$MeshFormat\r") {
+        // skips line
+        // does nothing
+        ;
+      }
+
+      if (str == "$PhysicalNames" || str == "$PhysicalNames\r") {
+
+        int64_t n_physical_names;
+        read >> n_physical_names;
+
+        int dimension, id;
+        std::string name;
+        std::pair<int, std::string> chunk;
+
+        for (int64_t i_name = 0; i_name < n_physical_names; i_name++) {
+          read >> dimension;
+          read >> id;
+          read >> name;
+          name.erase(0, 1);
+          name.erase(name.end() - 1, name.end());
+
+          if (m_dim_name_and_physical_tag[dimension].find(name) ==
+              m_dim_name_and_physical_tag[dimension].end()) {
+            if (!addNonAssignedEls)
+              continue;
+            std::cout << "Automatically associating " << name
+                      << " with material id " << id << std::endl;
+            m_dim_name_and_physical_tag[dimension][name] = id;
+          } else {
+            int pzmatid = m_dim_name_and_physical_tag[dimension][name];
+            std::cout << "Associating " << name << " with material id " << id
+                      << " with pz material id " << pzmatid << std::endl;
+          }
+          m_dim_physical_tag_and_name[dimension][id] = name;
+          m_dim_physical_tag_and_physical_tag[dimension][id] =
+              m_dim_name_and_physical_tag[dimension][name];
+
+          if (max_dimension < dimension) {
+            max_dimension = dimension;
+          }
+        }
+        m_dimension = max_dimension; //  for coherence
+        gmesh->SetDimension(max_dimension);
+
+        std::string str_end;
+        read >> str_end;
+        if (str_end == "$EndPhysicalNames" ||
+            str_end == "$EndPhysicalNames\r") {
+          std::cout << "Read mesh physical entities = " << n_physical_names
+                    << std::endl;
+        }
+        continue;
+      }
+
+      if (str == "$Entities" || str == "$Entities\r") {
+        read >> m_n_points;
+        read >> m_n_curves;
+        read >> m_n_surfaces;
+        read >> m_n_volumes;
+
+        if (addNonAssignedEls) {
+          // Dont want to change dimension of mesh if not adding non assigned
+          // elements
+          if (max_dimension < 3 && m_n_volumes > 0)
+            max_dimension = 3;
+          else if (max_dimension < 2 && m_n_surfaces > 0)
+            max_dimension = 2;
+          else if (max_dimension < 1 && m_n_curves > 0)
+            max_dimension = 1;
+        }
+
+        int n_physical_tag;
+        std::pair<int, std::vector<int>> chunk;
+        /// Entity bounding box data
+        REAL x_min, y_min, z_min;
+        REAL x_max, y_max, z_max;
+        std::vector<int> n_entities = {m_n_points, m_n_curves, m_n_surfaces,
+                                       m_n_volumes};
+        std::vector<int> n_entities_with_physical_tag = {0, 0, 0, 0};
+
+        for (int i_dim = 0; i_dim < 4; i_dim++) {
+          for (int64_t i_entity = 0; i_entity < n_entities[i_dim]; i_entity++) {
+            read >> chunk.first;
+            read >> x_min;
+            read >> y_min;
+            read >> z_min;
+            if (i_dim > 0) {
+              read >> x_max;
+              read >> y_max;
+              read >> z_max;
+            }
+            read >> n_physical_tag;
+            chunk.second.resize(n_physical_tag);
+            for (int i_data = 0; i_data < n_physical_tag; i_data++) {
+              read >> chunk.second[i_data];
+            }
+            if (i_dim > 0) {
+              size_t n_bounding_points;
+              read >> n_bounding_points;
+              for (int i_data = 0; i_data < n_bounding_points; i_data++) {
+                int point_tag;
+                read >> point_tag;
+              }
+            }
+            n_entities_with_physical_tag[i_dim] += n_physical_tag;
+            m_dim_entity_tag_and_physical_tag[i_dim].insert(chunk);
+          }
+        }
+
+        m_n_physical_points = n_entities_with_physical_tag[0];
+        m_n_physical_curves = n_entities_with_physical_tag[1];
+        m_n_physical_surfaces = n_entities_with_physical_tag[2];
+        m_n_physical_volumes = n_entities_with_physical_tag[3];
+
+        std::string str_end;
+        read >> str_end;
+        if (str_end == "$EndEntities" || str_end == "$EndEntities\r") {
+          std::cout << "Read mesh entities = "
+                    << m_n_points + m_n_curves + m_n_surfaces + m_n_volumes
+                    << std::endl;
+          std::cout << "Read mesh entities with physical tags = "
+                    << m_n_physical_points + m_n_physical_curves +
+                           m_n_physical_surfaces + m_n_physical_volumes
+                    << std::endl;
+        }
+        continue;
+      }
+
+      if (str == "$Nodes" || str == "$Nodes\r") {
+
+        int64_t n_entity_blocks, n_nodes, min_node_tag, max_node_tag;
+        read >> n_entity_blocks;
+        read >> n_nodes;
+        read >> min_node_tag;
+        read >> max_node_tag;
+
+        int64_t node_id;
+        double nodecoordX, nodecoordY, nodecoordZ;
+        gmesh->NodeVec().Resize(max_node_tag);
+        gmesh->SetMaxNodeId(max_node_tag);
+        // needed for node insertion
+        const int64_t Tnodes = max_node_tag;
+        TPZVec<TPZGeoNode> Node(Tnodes);
+
+        int entity_tag, entity_dim, entity_parametric, entity_nodes;
+        for (int64_t i_block = 0; i_block < n_entity_blocks; i_block++) {
+          read >> entity_dim;
+          read >> entity_tag;
+          read >> entity_parametric;
+          read >> entity_nodes;
+
+          if (entity_parametric != 0) {
+            std::cout << "TPZGmshReader:: Characteristic not implemented."
+                      << std::endl;
+            DebugStop();
+          }
+
+          TPZManVector<int64_t, 10> nodeids(entity_nodes, -1);
+          for (int64_t inode = 0; inode < entity_nodes; inode++) {
+            read >> nodeids[inode];
+          }
+          for (int64_t inode = 0; inode < entity_nodes; inode++) {
+            read >> nodecoordX;
+            read >> nodecoordY;
+            read >> nodecoordZ;
+
+            Node[nodeids[inode] - 1].SetNodeId(nodeids[inode] - 1);
+            Node[nodeids[inode] - 1].SetCoord(0, nodecoordX /
+                                                     m_characteristic_lentgh);
+            Node[nodeids[inode] - 1].SetCoord(1, nodecoordY /
+                                                     m_characteristic_lentgh);
+            Node[nodeids[inode] - 1].SetCoord(2, nodecoordZ /
+                                                     m_characteristic_lentgh);
+            gmesh->NodeVec()[nodeids[inode] - 1] = Node[nodeids[inode] - 1];
+          }
+        }
+        std::string str_end;
+        read >> str_end;
+        if (str_end == "$EndNodes" || str_end == "$EndNodes\r") {
+          std::cout << "Read mesh nodes = " << gmesh->NNodes() << std::endl;
+        }
+        continue;
+      }
+
+      if (str == "$Elements" || str == "$Elements\r") {
+
+        int64_t n_entity_blocks, n_elements, min_element_tag, max_element_tag;
+        read >> n_entity_blocks;
+        read >> n_elements;
+        read >> min_element_tag;
+        read >> max_element_tag;
+        gmesh->SetMaxElementId(n_elements - 1);
+
+        int entity_tag, entity_dim, entity_el_type, entity_elements;
+        for (int64_t i_block = 0; i_block < n_entity_blocks; i_block++) {
+          read >> entity_dim;
+          read >> entity_tag;
+          read >> entity_el_type;
+          read >> entity_elements;
+
+          int n_el_nodes;
+          n_el_nodes = GetNumberofNodes(entity_el_type);
+
+          if (entity_elements == 0) {
+            std::cout << "The entity with tag " << entity_tag
+                      << " does not have elements to insert" << std::endl;
+          }
+
+          int n_physical_identifier = 0;
+          if (m_dim_entity_tag_and_physical_tag[entity_dim].find(entity_tag) !=
+              m_dim_entity_tag_and_physical_tag[entity_dim].end()) {
+            n_physical_identifier =
+                m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag]
+                    .size();
+          }
+          bool physical_identifier_Q = n_physical_identifier != 0;
+
+          for (int64_t iel = 0; iel < entity_elements; iel++) {
+            int physical_identifier{-999};
+
+            int el_identifier;
+            read >> el_identifier;
+            std::vector<int> node_identifiers(n_el_nodes);
+            for (int i_node = 0; i_node < n_el_nodes; i_node++) {
+              read >> node_identifiers[i_node];
+            }
+            if (physical_identifier_Q) {
+
+              //                            std::cout << "The entity with tag "
+              //                            << entity_tag << std::endl;
+              //                            std::cout << "Has associated " <<
+              //                            n_physical_identifier << "  physical
+              //                            tags" << std::endl; std::cout <<
+              //                            "Creating different elements for
+              //                            each one..." << std::endl;
+
+              for (int i_data = 0; i_data < n_physical_identifier; i_data++) {
+                if (i_data > 0) {
+                  el_identifier = max_element_tag + i_data;
+                  max_element_tag = el_identifier;
+                  gmesh->SetMaxElementId(el_identifier - 1);
+                }
+
+                const int64_t physical_identifier =
+                    m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag]
+                                                     [i_data];
+
+                // std::cout << "Creating el for tag " << gmshPhysicalTagTemp <<
+                // " with physical id = " << physical_identifier << std::endl;
+
+                /// Internally the nodes index and element index is converted to
+                /// zero based indexation
+                InsertElement(gmesh, physical_identifier, entity_el_type,
+                              el_identifier, node_identifiers);
+              }
+
+            } else {
+
+              std::cout << "Please associate physical tag to entity tag number "
+                        << entity_tag << " which is used for element "
+                        << el_identifier << std::endl;
+              DebugStop();
+
+              std::cout << "The entity with tag " << entity_tag
+                        << " does not have a physical tag, element "
+                        << el_identifier << " skipped " << std::endl;
+            }
+          }
+        }
+        std::string str_end;
+        read >> str_end;
+        if (str_end == "$EndElements" || str_end == "$EndElements\r") {
+          std::cout << "Read mesh elements = " << gmesh->NElements()
+                    << std::endl;
+        }
+        continue;
+      }
+      if (str == "$Periodic" || str == "$Periodic\r") {
+        int64_t n_periodic_entities;
+        read >> n_periodic_entities;
+        int entity_dim, indep_tag, dep_tag;
+        for (int64_t i_block = 0; i_block < n_periodic_entities; i_block++) {
+          read >> entity_dim;
+          read >> dep_tag;
+          read >> indep_tag;
+
+          periodic_entities[entity_dim][dep_tag] = indep_tag;
+          int naffinecoords;
+          read >> naffinecoords;
+          // currently we discard info regarding the affine transformation
+          for (int i = 0; i < naffinecoords; i++) {
+            double tmp;
+            read >> tmp;
+          }
+          int64_t nnodes;
+          read >> nnodes;
+          std::map<int64_t, int64_t> entitymap;
+          for (int64_t inode = 0; inode < nnodes; inode++) {
+            int64_t depnode, indepnode;
+            read >> depnode;
+            read >> indepnode;
+            // NODES IN GMSH ARE 1-INDEXED
+            entitymap[depnode - 1] = indepnode - 1;
+          }
+          entity_periodic_nodes[entity_dim][dep_tag] = entitymap;
+        }
+        std::string str_end;
+        read >> str_end;
+        assert(str_end == "$EndPeriodic" || str_end == "$EndPeriodic\r");
+        continue;
+      }
+    }
+
     gmesh->SetDimension(max_dimension);
     std::cout << "Read General Mesh Data -> done!" << std::endl;
     std::cout << "Number of elements " << gmesh->NElements() << std::endl;
     gmesh->BuildConnectivity();
     std::cout << "Geometric Mesh Connectivity -> done!" << std::endl;
+
+    /*now we need to find the correspondence between periodic elements
+     we will both:
+    - create the periodic_els map that relates the ids of dependent/independent
+    element
+    - change the node ids of the dependent el so as to match the ones
+    in the independent el.
+    this ensures that they will have the same orientation
+    */
+    SetPeriodicElements(gmesh, entity_periodic_nodes, periodic_entities);
     return gmesh;
     
 }
 
-void TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier, int & el_type, int & el_identifier, std::vector<int> & node_identifiers){
-    
-    TPZManVector <int64_t,15> Topology;
-    int n_nodes = node_identifiers.size();
-    Topology.Resize(n_nodes, 0);
-    for (int k_node = 0; k_node<n_nodes; k_node++) {
-        Topology[k_node] = node_identifiers[k_node]-1;
+void TPZGmshReader::InsertElement(TPZGeoMesh *gmesh,
+                                  const int physical_identifier,
+                                  const int el_type, const int el_id,
+                                  const std::vector<int> &node_identifiers) {
+  // let us adopt 0-based indexing
+  TPZManVector<int64_t, 15> nodes;
+  int n_nodes = node_identifiers.size();
+  nodes.Resize(n_nodes, 0);
+  for (int k_node = 0; k_node < n_nodes; k_node++) {
+    nodes[k_node] = node_identifiers[k_node] - 1;
+  }
+
+  const int el_identifier = el_id - 1;
+  switch (el_type) {
+  case 1: { // Line
+    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(el_identifier, nodes,
+                                                 physical_identifier, *gmesh);
+    m_n_line_els++;
+  } break;
+  case 2: {
+    // Triangle
+    new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(el_identifier, nodes,
+                                                   physical_identifier, *gmesh);
+    m_n_triangle_els++;
+
+  } break;
+  case 3: {
+    // Quadrilateral
+    new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(el_identifier, nodes,
+                                               physical_identifier, *gmesh);
+    m_n_quadrilateral_els++;
+
+  } break;
+  case 4: {
+    // Tetrahedron
+    new TPZGeoElRefPattern<pzgeom::TPZGeoTetrahedra>(
+        el_identifier, nodes, physical_identifier, *gmesh);
+    m_n_tetrahedron_els++;
+
+  } break;
+  case 5: {
+    // Hexahedra
+    new TPZGeoElRefPattern<pzgeom::TPZGeoCube>(el_identifier, nodes,
+                                               physical_identifier, *gmesh);
+    m_n_hexahedron_els++;
+  } break;
+  case 6: {
+    // Prism
+    new TPZGeoElRefPattern<pzgeom::TPZGeoPrism>(el_identifier, nodes,
+                                                physical_identifier, *gmesh);
+    m_n_prism_els++;
+  } break;
+  case 7: {
+    // Pyramid
+    new TPZGeoElRefPattern<pzgeom::TPZGeoPyramid>(el_identifier, nodes,
+                                                  physical_identifier, *gmesh);
+    m_n_pyramid_els++;
+  } break;
+  case 8: {
+    // Quadratic Line
+    new TPZGeoElRefPattern<pzgeom::TPZQuadraticLine>(
+        el_identifier, nodes, physical_identifier, *gmesh);
+    m_n_line_els++;
+  } break;
+  case 9: {
+    // Triangle
+    new TPZGeoElRefPattern<pzgeom::TPZQuadraticTrig>(
+        el_identifier, nodes, physical_identifier, *gmesh);
+    m_n_triangle_els++;
+  } break;
+  case 10: {
+    TPZManVector<int64_t, 15> nodes_c(n_nodes - 1);
+    for (int k_node = 0; k_node < n_nodes - 1;
+         k_node++) { /// Gmsh representation Quadrangle8 and Quadrangle9, but by
+                     /// default Quadrangle9 is always generated. (?_?).
+      nodes_c[k_node] = nodes[k_node];
     }
-    
-    el_identifier--;
-    switch (el_type) {
-        case 1:
-        {   // Line
-            new TPZGeoElRefPattern< pzgeom::TPZGeoLinear> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_line_els++;
-        }
-            break;
-        case 2:
-        {
-            // Triangle
-            new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_triangle_els++;
-            
-        }
-            break;
-        case 3:
-        {
-            // Quadrilateral
-            new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_quadrilateral_els++;
-            
-        }
-            break;
-        case 4:
-        {
-            // Tetrahedron
-            new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_tetrahedron_els++;
-            
-        }
-            break;
-        case 5:
-        {
-            // Hexahedra
-            new TPZGeoElRefPattern< pzgeom::TPZGeoCube> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_hexahedron_els++;
-        }
-            break;
-        case 6:
-        {
-            // Prism
-            new TPZGeoElRefPattern< pzgeom::TPZGeoPrism> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_prism_els++;
-        }
-            break;
-        case 7:
-        {
-            // Pyramid
-            new TPZGeoElRefPattern< pzgeom::TPZGeoPyramid> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_pyramid_els++;
-        }
-            break;
-        case 8:
-        {
-            // Quadratic Line
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticLine> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_line_els++;
-        }
-            break;
-        case 9:
-        {
-            // Triangle
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticTrig> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_triangle_els++;
-        }
-            break;
-        case 10:
-        {
-            TPZManVector <int64_t,15> Topology_c(n_nodes-1);
-            for (int k_node = 0; k_node < n_nodes-1; k_node++) { /// Gmsh representation Quadrangle8 and Quadrangle9, but by default Quadrangle9 is always generated. (?_?).
-                Topology_c[k_node] = Topology[k_node];
-            }
-            // Quadrilateral
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad> (el_identifier, Topology_c, physical_identifier, *gmesh);
-            m_n_quadrilateral_els++;
-        }
-            break;
-        case 11:
-        {
-            // Tetrahedron
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticTetra> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_tetrahedron_els++;
-            
-        }
-            break;
-        case 12:
-        {
-            // Hexahedra
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticCube> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_hexahedron_els++;
-        }
-            break;
-        case 13:
-        {
-            // Prism
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticPrism> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_pyramid_els++;
-        }
-            break;
-        case 15:{
-            // Point
-            new TPZGeoElement< pzgeom::TPZGeoPoint, pzrefine::TPZRefPoint> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_point_els++;
-        }
-            break;
-        default:
-        {
-            std::cout << "Element not impelemented." << std::endl;
-            DebugStop();
-        }
-            break;
-    }
-    
+    // Quadrilateral
+    new TPZGeoElRefPattern<pzgeom::TPZQuadraticQuad>(
+        el_identifier, nodes_c, physical_identifier, *gmesh);
+    m_n_quadrilateral_els++;
+  } break;
+  case 11: {
+    // Tetrahedron
+    new TPZGeoElRefPattern<pzgeom::TPZQuadraticTetra>(
+        el_identifier, nodes, physical_identifier, *gmesh);
+    m_n_tetrahedron_els++;
+
+  } break;
+  case 12: {
+    // Hexahedra
+    new TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>(
+        el_identifier, nodes, physical_identifier, *gmesh);
+    m_n_hexahedron_els++;
+  } break;
+  case 13: {
+    // Prism
+    new TPZGeoElRefPattern<pzgeom::TPZQuadraticPrism>(
+        el_identifier, nodes, physical_identifier, *gmesh);
+    m_n_pyramid_els++;
+  } break;
+  case 15: {
+    // Point
+    new TPZGeoElement<pzgeom::TPZGeoPoint, pzrefine::TPZRefPoint>(
+        el_identifier, nodes, physical_identifier, *gmesh);
+    m_n_point_els++;
+  } break;
+  default: {
+    std::cout << "Element not impelemented." << std::endl;
+    DebugStop();
+  } break;
+  }
 }
 
 int TPZGmshReader::GetNumberofNodes(int & el_type){
@@ -1262,4 +1273,84 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
     }
     
     return true;
+}
+
+void TPZGmshReader::SetPeriodicElements(
+    TPZGeoMesh *gmesh,
+    const TPZVec<std::map<int64_t, std::map<int64_t, int64_t>>>
+        &entity_periodic_nodes,
+    const TPZVec<std::map<int64_t, int64_t>> &periodic_entities) {
+  const auto max_dimension = gmesh->Dimension();
+  // associates ids of periodic regions
+  std::map<int64_t, int64_t> periodic_physical_ids;
+  /**for a given region, all the periodic nodes.
+     indexed by the dimension of the physical region.*/
+  std::vector<std::map<int64_t, std::map<int64_t, int64_t>>>
+      periodic_nodes_by_physical_ids(4);
+  for (int idim = 0; idim < max_dimension; idim++) {
+    // just to make it more readable
+    auto &physical_entity_map = m_dim_entity_tag_and_physical_tag[idim];
+    for (auto [deptag, indeptag] : periodic_entities[idim]) {
+      const int ndepid = physical_entity_map[deptag].size();
+      const int nindepid = physical_entity_map[indeptag].size();
+      assert(ndepid == nindepid);
+      if (ndepid > 0) { // we only care if there is an associated physical id
+        const int64_t depid = physical_entity_map[deptag][0];
+        const int64_t indepid = physical_entity_map[indeptag][0];
+        periodic_physical_ids[depid] = indepid;
+        const auto periodic_nodes = entity_periodic_nodes[idim][deptag];
+        for (auto [dep, indep] : periodic_nodes) {
+          periodic_nodes_by_physical_ids[idim][depid][dep] = indep;
+        }
+      }
+    }
+  }
+
+  for (int idim = 0; idim < max_dimension; idim++) {
+    for (auto [depid, periodic_nodes] : periodic_nodes_by_physical_ids[idim]) {
+      assert(periodic_physical_ids.find(depid) != periodic_physical_ids.end());
+      const auto indepid = periodic_physical_ids[depid];
+      int count = 0;
+      for (auto depel : gmesh->ElementVec()) {
+        if (depel->MaterialId() == depid) {
+          const auto nnodes = depel->NNodes();
+          const auto dep_type = depel->Type();
+          std::vector<int64_t> mapped_nodes(nnodes);
+          count++;
+          for (auto in = 0; in < nnodes; in++) {
+            const auto depnode = depel->Node(in).Id();
+            assert(periodic_nodes.find(depnode) != periodic_nodes.end());
+            mapped_nodes[in] = periodic_nodes.at(depnode);
+          }
+          for (auto indepel : gmesh->ElementVec()) {
+            const int indep_type = indepel->Type();
+            const bool sametype = indep_type == dep_type;
+            if (indepel->MaterialId() == indepid && sametype) {
+              bool samenodes = true;
+              for (auto in = 0; in < nnodes; in++) {
+                const auto indepnode = indepel->Node(in).Id();
+                const bool hasnode =
+                    std::find(mapped_nodes.begin(), mapped_nodes.end(),
+                              indepnode) != mapped_nodes.end();
+                samenodes = samenodes & hasnode;
+              }
+              if (samenodes) {
+                m_periodic_els[depel->Id()] = indepel->Id();
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  // the node ids of the dependent el will be set as the same from the
+  // independent el
+  for (auto [depel_id, indepel_id] : m_periodic_els) {
+    auto *depel = gmesh->Element(depel_id);
+    auto *indepel = gmesh->Element(indepel_id);
+    const auto nnodes = depel->NNodes();
+    for (auto i = 0; i < nnodes; i++) {
+      depel->Node(i).SetNodeId(indepel->Node(i).Id());
+    }
+  }
 }

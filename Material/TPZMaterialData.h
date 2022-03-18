@@ -59,17 +59,9 @@ public:
                              const int duRow, const int duCol) = 0;
     static constexpr int MatDataNumPhi{20};
     static constexpr int MatDataNumDPhi{60};
-    static constexpr int MatDataNumDir{81};
+    static constexpr int MatDataNumDir{110};
     static constexpr int MatDataDimSol{10};
     static constexpr int MatDataNumSol{20};
-    /*! Type of the shape function associated with an element*/
-    enum MShapeFunctionType {EEmpty,
-        EScalarShape,///< Scalar shape functions (H1, L2)
-        EVecandShape,///< Composite shape function (scalar function and vector field, HDiv and HCurl spaces)
-        EVecShape///< Vector shape function (e.g. vector H1 space)
-    };
-    //! Type of shape function
-    MShapeFunctionType fShapeType{EEmpty};
     //! Auxiliary attribute for collapsed HDiv elements
     void* fUserData;
     /** @name Flags
@@ -97,9 +89,12 @@ public:
     
     /// Vector of shapefunctions (format is dependent on the value of shapetype)
     TPZFNMatrix<MatDataNumPhi, REAL> phi;
-    /// Values of the derivative of the shape functions over the master element
-//    TPZFNMatrix<MatDataNumDPhi, REAL> dphi;
-    /// Values of the derivative of the shape functions
+    /** @brief Values of the derivative of the shape functions in the deformed element.
+        @note This derivative is calculated in the element axes. For obtaining the
+        derivative in the xyz-coordinate system, one should call
+        TPZAxesTools<REAL>::Axes2XYZ(dphix, dphix_xyz, data.axes)
+        in the contribute method.
+     */
     TPZFNMatrix<MatDataNumDPhi, REAL> dphix;
     /// Values of the divergence of the shape functions in the mapped element (only applicable to H(div) spaces)    
     TPZFNMatrix<MatDataNumPhi, REAL> divphi;
@@ -125,8 +120,6 @@ public:
     REAL detjac;
     /// Value of the coordinate at the center of the element
     TPZManVector<REAL,3> XCenter;
-    /// Directions on the master element
-    //TPZFNMatrix<MatDataNumDir> fMasterDirections;
     // Id of associated geometric element
     int gelElId{-1};    
     /// Correspondence between direction vector index and index of the shape functions. Used for H(div) and H(curl) approximation spaces.

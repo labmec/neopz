@@ -8,6 +8,7 @@
 
 #include "pzelctemp.h"
 #include "TPZOneShapeRestraint.h"
+#include "TPZEnumApproxFamily.h"
 
 
 /**
@@ -33,11 +34,14 @@ protected:
     TPZManVector<int64_t,TSHAPE::NFacets+1>(TSHAPE::NFacets+1,-1);
     /** @brief To append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
+    
+    /// Family of the HDiv space being used. Changing this will change the shape generating class
+    HDivFamily fhdivfam = DefaultFamily::fHDivDefaultValue;
 
 public:
 	
     //Constructors and destructor
-	TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam = DefaultFamily::fHDivDefaultValue);
 	
 	TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy);
 	
@@ -57,6 +61,8 @@ public:
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const  override {
 		return new TPZCompElHDiv<TSHAPE> (mesh, *this);
 	}
+    
+    const HDivFamily GetHDivFamily() const { return fhdivfam;}
 	
 	/**
 	 * @brief Create a copy of the given element. The clone copy have the connect indexes
@@ -183,7 +189,7 @@ public:
      **/
 	int NShapeContinuous(TPZVec<int> &order);
     
-    /// Return the maximum order??
+    /// Return the maximum order of the HDiv functions
     virtual int MaxOrder() override;
     
     /// the orientation of the face
@@ -241,6 +247,7 @@ public:
 	void Read(TPZStream &buf, void *context) override;
     /** @brief Refinement along the element */
     virtual void PRefine(int order) override;
+    
 protected:
     //@{
     /** @brief Compute the solution using Hdiv structure */
@@ -271,35 +278,27 @@ void TPZCompElHDiv<TSHAPE>::SetCreateFunctions(TPZCompMesh* mesh) {
 
 
 /** @brief Creates computational linear element for HDiv approximate space */
-TPZCompEl *CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
 /** @brief Creates computational quadrilateral element for HDiv approximate space */
-TPZCompEl *CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
 /** @brief Creates computational triangular element for HDiv approximate space */
-TPZCompEl *CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
 /** @brief Creates computational cube element for HDiv approximate space */
-TPZCompEl *CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
 /** @brief Creates computational prismal element for HDiv approximate space */
-TPZCompEl *CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
 /** @brief Creates computational pyramidal element for HDiv approximate space */
-TPZCompEl *CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
 /** @brief Creates computational tetrahedral element for HDiv approximate space */
-TPZCompEl *CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
 /** @brief Creates computational point element for HDiv approximate space */
-TPZCompEl *CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
 /** @brief Creates computational linear element for HDiv approximate space */
-TPZCompEl *CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
 /** @brief Creates computational quadrilateral element for HDiv approximate space */
-TPZCompEl *CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
 /** @brief Creates computational triangular element for HDiv approximate space */
-TPZCompEl *CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
-
-TPZCompEl * CreateRefHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
-TPZCompEl * CreateRefHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
-TPZCompEl * CreateRefHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
-TPZCompEl * CreateRefHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
-TPZCompEl * CreateRefHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
-TPZCompEl * CreateRefHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
-TPZCompEl * CreateRefHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
 
 
 /** @} */

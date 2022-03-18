@@ -69,7 +69,7 @@ private:
 public:
 	
 	/** @brief Constructor: If the element is possible to grouped returns a new index, else returns -1. */
-	TPZAgglomerateElement(int nummat,int64_t &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh);
+	TPZAgglomerateElement(int nummat,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh);
 	
 	TPZAgglomerateElement();
 	

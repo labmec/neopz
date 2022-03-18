@@ -180,7 +180,7 @@ namespace pzgeom
         {
             
             /** Computing Axes */
-            TPZManVector< T > Vpc(3), Vpa(3), Vpb(3), Vt(3), OUTv(3);
+            TPZManVector< T > Vpc(3,0.), Vpa(3,0.), Vpb(3,0.), Vt(3,0.), OUTv(3,0.);
             
             TPZManVector< T > middle(1, 0.);
             X(coord,middle,OUTv);

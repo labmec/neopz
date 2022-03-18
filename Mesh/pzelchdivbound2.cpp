@@ -12,16 +12,18 @@
 #include "TPZCompElDisc.h"
 #include "TPZMaterialDataT.h"
 #include "pzelchdiv.h"
-
+#include "TPZShapeHDivBound.h"
+#include "TPZShapeHDivConstantBound.h"
+#include "TPZShapeHCurlNoGrads.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.TPZCompElHDivBound2");
 #endif
 
 template<class TSHAPE>
-TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
+TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam) :
 TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
+TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(1), fhdivfam(hdivfam){
 		
 	//int i;
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
@@ -66,6 +68,23 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 	//TPZManVector<int,3> order(3,20);
 	this->fIntRule.SetOrder(order);
 
+
+    if (fhdivfam == HDivFamily::EHDivConstant) {
+        // For HDiv constant, polynomial order was compatibilized in connectorders, 
+        // see TPZShapeHDivConstantBound<TSHAPE>::Initialize. So now we need to update
+        // the number of shape functions and also the integration rule
+        if (TSHAPE::Type() == ETriangle || TSHAPE::Type() == EOned){
+            for (int icon = 0; icon < this->NConnects(); icon++)
+            {
+                TPZConnect &c = this->Connect(icon);
+                int nShapeF = NConnectShapeF(icon,c.Order());
+                if (c.NShape() != nShapeF){
+                    DebugStop();
+                }
+            }
+        }
+    }
+
 #ifdef PZ_LOG
   if (logger.isDebugEnabled())
     {
@@ -81,8 +100,11 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCompElHDivBound2<TSHAPE> &copy) :
 TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
-TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
+TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient), fConnectIndexes(copy.fConnectIndexes), fhdivfam(copy.fhdivfam)
 {
+#ifdef PZDEBUG
+    if(fConnectIndexes[0] != copy.fConnectIndexes[0]) DebugStop();
+#endif
 }
 
 // NAO TESTADO
@@ -92,7 +114,7 @@ TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh,
 												 std::map<int64_t,int64_t> & gl2lcConMap,
 												 std::map<int64_t,int64_t> & gl2lcElMap) :
 TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
-TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient)
+TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient), fhdivfam(copy.fhdivfam)
 {
 	
 	this-> fPreferredOrder = copy.fPreferredOrder;
@@ -225,12 +247,19 @@ void TPZCompElHDivBound2<TSHAPE>::SetConnectIndex(int i, int64_t connectindex)
 template<class TSHAPE>
 int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect, int connectorder) const
 {
-	if(connect == 0)
-	{
-        if(connectorder == 0) return 1;
-		TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,connectorder);
-        return TSHAPE::NShapeF(order);
+#ifdef DEBUG
+    if (connect < 0 || connect > TSHAPE::NFacets) {
+        DebugStop();
     }
+#endif
+
+    if(connect == 0)
+    {
+        if(connectorder == 0) return 1;
+        TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,connectorder);
+        return TSHAPE::NShapeF(order);
+    }    
+    
     return -1;
 }
 
@@ -361,63 +390,29 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		LOGPZ_DEBUG(logger,"Initializing normal vectors")
 	}
 #endif
-	
-	//data.fVecShapeIndex=true;
-	/*
-	TPZGeoElSide gelside(this->Reference(),TSHAPE::NSides-1);
-	TPZGeoElSide neighbour = gelside.Neighbour();
-	while(gelside != neighbour && neighbour.Element()->Dimension() != TSHAPE::Dimension+1)
-	{
-		neighbour = neighbour.Neighbour();
-	}
-	if(neighbour.Element()->Dimension() != TSHAPE::Dimension+1)
-	{
-		DebugStop();
-	}
-	TPZGeoEl *neighel = neighbour.Element();
-	TPZManVector<int,9> normalsides;
-//    TPZFNMatrix<100,REAL> normalvec;
-	neighel->ComputeNormals(neighbour.Side(),data.fDeformedDirections, normalsides);
-//#ifdef PZ_LOG
-//	{
-//		std::stringstream sout;
-//		sout << "normal side depois do ComputeNormals " << normalsides << std::endl;
-//		LOGPZ_DEBUG(logger,sout.str())
-//	}
-//#endif
-	
-	// relate the sides indicated in vecindex to the sides of the current element
-	int64_t nvec = normalsides.NElements();
-	int64_t ivec;
-	for(ivec=0; ivec<nvec; ivec++)
-	{
-		TPZGeoElSide neigh(neighel,normalsides[ivec]);
-//#ifdef PZ_LOG
-//		{
-//			std::stringstream sout;
-//			sout << "normal side depois do TPZGeoElSide " << normalsides << std::endl;
-//			LOGPZ_DEBUG(logger,sout.str())
-//		}
-//#endif
-		while(neigh.Element() != this->Reference())
-		{
-			
-			neigh = neigh.Neighbour();
-		}
-		
-		normalsides[ivec]=neigh.Side();
-	}
-	IndexShapeToVec(normalsides,data.fVecShapeIndex);
-	data.numberdualfunctions = 0;
-#ifdef PZ_LOG
-	{
-		std::stringstream sout;
-		data.fDeformedDirections.Print("Normal vectors", sout);
-		sout << "Vector/Shape indexes " << data.fVecShapeIndex << std::endl;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
-	*/
+    TPZGeoEl *gel = this->Reference();
+    int nc = gel->NCornerNodes();
+    TPZManVector<int64_t,8> id(nc);
+    for (int ic=0; ic<nc; ic++) {
+        id[ic] = gel->Node(ic).Id();
+    }
+    int connectorder = this->Connect(0).Order();
+    int sideorient = fSideOrient;
+
+    // fill in the datastructures of shapedata
+    switch (fhdivfam)
+    {
+    case HDivFamily::EHDivStandard:
+        TPZShapeHDivBound<TSHAPE>::Initialize(id, connectorder, sideorient, data);
+        break;
+    case HDivFamily::EHDivConstant:
+        TPZShapeHDivConstantBound<TSHAPE>::Initialize(id, connectorder, sideorient, data);
+        break;
+    
+    default:
+        DebugStop();
+        break;
+    }
 }
 
 template<class TSHAPE>
@@ -497,57 +492,29 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
         TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
         gel->Jacobian(point, jac, axes, detjac, jacinv);
     }
-    if(gel->Type() == ETriangle)
-    {
-        // we multiply the shape functions by 6
-        detjac /= 6.;
-    }
-    if(this->Connect(0).Order() == 0)
-    {
-        phi(0) = 1./detjac/gel->NCornerNodes();
-        dphi.Zero();
-        return;
-    }
+    
+    TPZShapeHDivBound<TSHAPE> shapehdiv;
+    TPZShapeData shapedata;
     int nc = gel->NCornerNodes();
     TPZManVector<int64_t,8> id(nc);
     for (int ic=0; ic<nc; ic++) {
         id[ic] = gel->Node(ic).Id();
     }
-    TPZManVector<int,TSHAPE::NSides> ord;
-    this->GetInterpolationOrder(ord);
-
-    TPZFNMatrix<50,REAL> philoc(phi.Rows(),phi.Cols()),dphiloc(dphi.Rows(),dphi.Cols());
-    TSHAPE::Shape(point,id,ord,philoc,dphiloc);
-    
-    //int idsize = id.size();
-    TPZManVector<int,9> permutegather(TSHAPE::NSides);
-    int transformid = TSHAPE::GetTransformId(id);
-    TSHAPE::GetSideHDivPermutation(transformid, permutegather);
-    
-    TPZManVector<int64_t,27> FirstIndex(TSHAPE::NSides+1);
-    FirstShapeIndex(FirstIndex);
-   
-
-    int order = this->Connect(0).Order();
-    for (int side=0; side < TSHAPE::NSides; side++) {
-        int ifirst = FirstIndex[side];
-        int kfirst = FirstIndex[permutegather[side]];
-        int nshape = TSHAPE::NConnectShapeF(side,order);
-        for (int i=0; i<nshape; i++) {
-            phi(ifirst+i,0) = philoc(kfirst+i,0)/detjac;
-            for (int d=0; d< TSHAPE::Dimension; d++) {
-                dphi(d,ifirst+i) = dphiloc(d,kfirst+i)/detjac;
-            }
-        }
-    }
-    
-    return;
+    int connectorder = this->Connect(0).Order();
+    int sideorient = 1;
+    // fill in the datastructures of shapedata
+    shapehdiv.Initialize(id, connectorder, sideorient, shapedata);
+    // compute the shape functions at the integration point
+    shapehdiv.Shape(point, shapedata, phi);
+    phi *= 1./detjac;
+        
 }
 
 /** Compute the shape function at the integration point */
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 {
+    DebugStop(); // Is this ever used (Nov 2021). If yes, just uncomment me
     TPZManVector<int,TSHAPE::NSides> ordl;
     this->GetInterpolationOrder(ordl);
     TPZConnect &c = this->Connect(0);
@@ -556,21 +523,41 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
     dphi.Resize(TSHAPE::Dimension, nshape);
     SideShapeFunction(TSHAPE::NSides-1, pt, phi, dphi);
 
-
     if (fSideOrient == -1) {
-        phi *= -1.;
-        dphi *= -1.;
+        phi(0,0) *= -1.;
+        dphi(0,0) *= -1.;
     }
+    
 }
 
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
     
-    this->Shape(intpoint, data.phi, data.fDPhi);
+    TPZShapeData shapedata(data);
     
-    TPZGeoEl *ref = this->Reference();
-    ref->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+    switch (fhdivfam)
+    {
+    case HDivFamily::EHDivStandard:
+        {
+            auto nShape = TPZShapeHDivBound<TSHAPE>::NShape(shapedata);
+            data.phi.Resize(nShape, 1);
+            TPZShapeHDivBound<TSHAPE>::Shape(intpoint, shapedata, data.phi);
+        }
+        break;
+    case HDivFamily::EHDivConstant:
+        {
+            data.phi.Resize(this->NShapeF(), 1);
+            TPZShapeHDivConstantBound<TSHAPE>::Shape(intpoint, shapedata, data.phi);
+        }
+        break;
+       
+    default:
+        DebugStop();//You should chose an HDiv family space
+        break;
+    }
     
+    data.phi *= 1./data.detjac;
+
 }
 
 template<class TSHAPE>
@@ -676,8 +663,10 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::SetCreateFunctions(TPZCompMesh* mesh) {
-    mesh->SetAllCreateFunctionsHDiv();
+    mesh->ApproxSpace().SetHDivFamily(fhdivfam);
+    mesh->ApproxSpace().SetAllCreateFunctionsHDiv(TSHAPE::Dimension);
 }
+
 
 #include "pzshapetriang.h"
 #include "pzshapepoint.h"

@@ -13,7 +13,7 @@
 #include "TPZShapeData.h"
 
 template<class TSHAPE>
-void TPZShapeHCurl<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
+void TPZShapeHCurl<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
                                        TPZVec<int> &connectorders,
                                        TPZShapeData &data)
 {
@@ -133,8 +133,6 @@ int TPZShapeHCurl<TSHAPE>::NHCurlShapeF(const TPZShapeData &data)
 template<class TSHAPE>
 void TPZShapeHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &curlphi)
 {
-    
-
 
     constexpr int ncorner = TSHAPE::NCornerNodes;
     constexpr int nsides = TSHAPE::NSides;
@@ -220,103 +218,22 @@ int TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(const int icon, const int order
             }
         }
         else{//internal connect (3D element only)
-            int count = 0;
-
-            //let us compute the h1 funcs order
-            const int ordh1 =
-                TSHAPE::Type() == ECube || TSHAPE::Type() == EPrisma ?
-                order + 1 : order;
-            TPZManVector<int,TSHAPE::NSides> h1connects(nEdges+nFaces+1,ordh1);
-            TPZManVector<int,TSHAPE::NSides> firsth1func(TSHAPE::NSides,-1);
-            for(int i = 0; i < nNodes; i++){
-                firsth1func[i] = i;
+            if constexpr (TSHAPE::Type() == ETetraedro){
+                return (order-1)*(order-2)*(order+1)/2;
             }
-            for(int i = nNodes; i < TSHAPE::NSides; i++){
-                firsth1func[i] =
-                    firsth1func[i-1]+TSHAPE::NConnectShapeF(i-1,ordh1);
+            else if constexpr (TSHAPE::Type() == ECube){
+                return 3*order*order*(order+1);
             }
-            const int nh1funcs = TSHAPE::NShapeF(h1connects);
-            TPZGenMatrix<int> shapeorders(nh1funcs,3);
-            
-            TPZManVector<int64_t,nNodes> idvec(nNodes,-1);
-            for(int i=0; i < nNodes;i++){idvec[i] = i;}
-            TSHAPE::ShapeOrder(idvec,h1connects, shapeorders);
-            
-            //first, the phi KF functions
-            for(int iFace = 0; iFace < nFaces; iFace++){
-                const auto faceSide = iFace + nEdges + nNodes;
-                const auto nH1FaceFuncs =
-                    firsth1func[faceSide+1] - firsth1func[faceSide];
-
-                if constexpr (TSHAPE::Type() == EPrisma){
-                    /*the quad faces of prisms need special attention*/
-                    for(auto iFunc = 0; iFunc < nH1FaceFuncs; iFunc++ ){
-                        const int shapeindex = firsth1func[faceSide]+iFunc;
-                        const int ordvec[] = {shapeorders(shapeindex,0),
-                            shapeorders(shapeindex,1)};
-
-                        if((TSHAPE::Type(faceSide) == EQuadrilateral) &&
-                           (ordvec[0] <= order) &&
-                           (ordvec[1] <= order+1)){
-                            //for quad faces ordvec[0] = xord and ordvec[1] = zord
-                            count++;
-                        }
-                        else if((TSHAPE::Type(faceSide) == ETriangle) &&
-                                (ordvec[0] <= order+1) &&
-                                (ordvec[1] <= order+1)){
-                            //for triang faces ordvec[0] = xord and ordvec[1] = yord
-                            count++;
-                        }
-                    }
-                
-                }else{
-                    count+=nH1FaceFuncs;
-                }
-                
+            else if constexpr (TSHAPE::Type() == EPrisma){
+                return 3*order*(order-1)*(order+1)/2;
             }
-            const int nVkf = count;
-            //now we count the interior bubble functions
-            int nVki = 0;
-            const int nH1Internal = TSHAPE::NConnectShapeF(icon+nNodes,ordh1);
-            for(auto iFunc = 0; iFunc < nH1Internal; iFunc++ ){
-                const auto shapeIndex = firsth1func[icon+nNodes] + iFunc;
-                const int xord = shapeorders(shapeIndex,0);
-                const int yord = shapeorders(shapeIndex,1);
-                const int zord = shapeorders(shapeIndex,2);
-                if constexpr(TSHAPE::Type() == ECube){
-                    if(xord <= order){
-                        nVki++;
-                    }
-                    if(yord <= order){
-                        nVki++;
-                    }
-                    if(zord <= order){
-                        nVki++;
-                    }
-                }
-                else if constexpr(TSHAPE::Type() == EPrisma){
-                    if((xord <= order) &&
-                       (yord <= order) &&
-                       (zord <= order+1)){
-                        nVki++;
-                        nVki++;
-                    }
-                    if((xord <= order+1) &&
-                       (yord <= order+1) &&
-                       (zord <= order)){
-                        nVki++;
-                    }
-              
-                }
-                else{
-                    nVki+=3;
-                }
+            else{
+                PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
+                DebugStop();
+                return 0;
             }
-            count += nVki;
-            return count;
         }
     }();
-
 #ifdef PZ_LOG2
     if (logger.isDebugEnabled())
         {
@@ -554,22 +471,64 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
         const auto quadFace = TSHAPE::Type(iSide) == EQuadrilateral;
         
         if(quadFace){
+            const auto transid = transformationIds[iCon];
+            /*
+              transformation id is 0 or 1 if starting at node 0
+              transformation id is 2 or 3 if starting at node 1
+              transformation id is 4 or 5 if starting at node 2
+              transformation id is 6 or 7 if starting at node 3
+              even numbers are counterclockwise dir,
+              odd numbers are clockwise direction
+              so ids 0, 3, 4, 7 have x as first dir
+              and 1, 2, 5, 6 have y as first dir.
+
+              we know that the vft vectors are created
+              such that the first one is in x and the second one
+              is in y (local face coordinates).
+              therefore, we need the variables in the h1 functions
+              to match.
+              warning: sketchy integer arithmetic will follow:
+             */
+            const auto xdir = ((transid+1)/2)%2;//i told you so
+            const auto ydir = 1-xdir;
+
             const auto hCurlFaceOrder = h1FaceOrder-1;
+            const auto nfuncsk = 2 * (hCurlFaceOrder - 1) * (hCurlFaceOrder - 1);
+            const auto nfuncsk1 = hCurlFaceOrder - 1;
+            TPZVec<std::pair<int,int>> funcXY(nfuncsk);
+            TPZVec<std::pair<int,int>> funcX(nfuncsk1);
+            TPZVec<std::pair<int,int>> funcY(nfuncsk1);
+            int countxy{0}, countx{0},county{0};
             /**now we assume that the first vft vec is in the x direction
                and that the next one is in the y direction.*/
             const int vecindex[] = {firstVftVec + 2*iFace,firstVftVec + 2*iFace+1};
             for(auto iFunc = 0; iFunc < nH1FaceFuncs; iFunc++ ){
                 const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc;
 
-                for(auto ix = 0; ix < 2; ix++){
-                    if(shapeorders(shapeIndex,ix) <= hCurlFaceOrder){
-                        indexVecShape[shapeCount] =
-                            std::make_pair(vecindex[ix],shapeIndex);
-                        shapeCount++;
-                        shapeCountVec[iCon]++;
-                    }
+                //functions of degree k
+                if((shapeorders(shapeIndex,xdir) <= hCurlFaceOrder) &&
+                   (shapeorders(shapeIndex,ydir) <= hCurlFaceOrder)){
+                    funcXY[countxy++] = {vecindex[0],shapeIndex};
+                    funcXY[countxy++] = {vecindex[1],shapeIndex};
+                }else if(shapeorders(shapeIndex,xdir) <= hCurlFaceOrder){
+                    funcX[countx++] = {vecindex[0],shapeIndex};
+                }else if(shapeorders(shapeIndex,ydir) <= hCurlFaceOrder){
+                    funcY[county++] = {vecindex[1],shapeIndex};
                 }
             }
+
+            auto AddFromVec = [&indexVecShape,&shapeCountVec, &shapeCount,iCon]
+                (TPZVec<std::pair<int,int>> myvec){
+                for(auto [vi,si] : myvec){
+                    indexVecShape[shapeCount] = std::make_pair(vi,si);
+                    shapeCount++;
+                    shapeCountVec[iCon]++;
+                }
+            };
+            AddFromVec(funcXY);
+            AddFromVec(funcX);
+            AddFromVec(funcY);
+            
         }
         else{
             //ok that one is easy to guess
@@ -647,10 +606,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
                     skip = false;
                     
                 }
-                else if((TSHAPE::Type(faceSide) == ETriangle) &&
-                        (ordvec[0] <= sideOrder+1) &&
-                        (ordvec[1] <= sideOrder+1)){
-                    //for triang faces ordvec[0] = xord and ordvec[1] = yord
+                else if(TSHAPE::Type(faceSide) == ETriangle){
                     skip = false;
                 }
             }
@@ -681,21 +637,38 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
         shapeCount++;
         shapeCountVec[iCon]++;
     };
-        
+    /**in order to filter the gradients of hcurl functions,
+       we need to sort the shape functions for the hexahedral el*/
+    auto AddToVec = [](TPZVec<std::pair<int,int>> &v,std::pair<int,int> vs){
+        const auto vi = v.size();
+        v.Resize(vi+1);
+        v[vi] = vs;
+    };
+
+    TPZVec<std::pair<int,int>> funcXYZ, funcX, funcY, funcZ;
+    
+    
     for(auto iFunc = 0; iFunc < nH1Internal; iFunc++ ){
         const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc;
         const int xord = shapeorders(shapeIndex,0);
         const int yord = shapeorders(shapeIndex,1);
         const int zord = shapeorders(shapeIndex,2);
         if constexpr(TSHAPE::Type() == ECube){
-            if(xord <= sideOrder){
-                addFunc(xVecIndex,shapeIndex);
+            if(xord <= sideOrder && yord <= sideOrder && zord <= sideOrder){
+                AddToVec(funcXYZ, std::make_pair(xVecIndex,shapeIndex));
+                AddToVec(funcXYZ, std::make_pair(yVecIndex,shapeIndex));
+                AddToVec(funcXYZ, std::make_pair(zVecIndex,shapeIndex));
             }
-            if(yord <= sideOrder){
-                addFunc(yVecIndex,shapeIndex);
-            }
-            if(zord <= sideOrder){
-                addFunc(zVecIndex,shapeIndex);
+            else{
+                if(xord <= sideOrder){
+                    AddToVec(funcX, std::make_pair(xVecIndex,shapeIndex));
+                }
+                if(yord <= sideOrder){
+                    AddToVec(funcY, std::make_pair(yVecIndex,shapeIndex));
+                }
+                if(zord <= sideOrder){
+                    AddToVec(funcZ, std::make_pair(zVecIndex,shapeIndex));
+                }
             }
         }
         else if constexpr(TSHAPE::Type() == EPrisma){
@@ -717,6 +690,22 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
             addFunc(zVecIndex,shapeIndex);
         }
     }
+    //now we actually add the functions
+    if constexpr(TSHAPE::Type() == ECube){
+        for(auto [v,s] : funcXYZ){
+            addFunc(v,s);
+        }
+        for(auto [v,s] : funcX){
+            addFunc(v,s);
+        }
+        for(auto [v,s] : funcY){
+            addFunc(v,s);
+        }
+        for(auto [v,s] : funcZ){
+            addFunc(v,s);
+        }
+    }
+    
     if(shapeCount != indexVecShape.size()){
         DebugStop();
     }

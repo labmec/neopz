@@ -60,10 +60,10 @@ public:
 	TPZMultiphysicsInterfaceElement();
 	
 	/** @brief Constructor */
-	TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index, TPZCompElSide left, TPZCompElSide right);
+	TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, TPZCompElSide left, TPZCompElSide right);
     
     /** @brief Constructor */
-    TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index);
+    TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref);
     
     /** @brief create a copy of the given element */
     TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy);

@@ -23,7 +23,7 @@ class TPZMatErrorCombinedSpacesBC;
  * It should be used as a template parameter of TPZMatBase.
  */
 template<class TVar>
-class TPZMatErrorCombinedSpaces : public TPZMatError<TVar>{
+class TPZMatErrorCombinedSpaces : public virtual TPZMatError<TVar>{
  public:
     // this is type alias
     // https://en.cppreference.com/w/cpp/language/type_alias
@@ -34,7 +34,7 @@ class TPZMatErrorCombinedSpaces : public TPZMatError<TVar>{
     TPZMatErrorCombinedSpaces() = default;
 
     
-    [[nodiscard]] int ClassId() const override;
+//    [[nodiscard]] virtual int ClassId() const override;
 
     //! @name Error
     /** @{*/
@@ -48,7 +48,7 @@ class TPZMatErrorCombinedSpaces : public TPZMatError<TVar>{
 
     /** @brief Returns the number of error norms.
         Default is 3: norm, L2 and seminorm. */
-    int NEvalErrors() override {return TPZMatError<TVar>::NEvalErrors();}
+//    int NEvalErrors() const override {return TPZMatError<TVar>::NEvalErrors();}
     /** @}*/
 };
 

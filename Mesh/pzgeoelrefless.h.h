@@ -221,14 +221,6 @@ TPZGeoElRefLess<TGeo>::NSideSubElements(int side) const {
 }
 
 
-// template<class TGeo>
-// TPZGeoEl *
-// TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
-// 	TPZGeoEl * result = fGeo.CreateBCGeoEl(this,side,bc);
-// //    result->BuildBlendConnectivity();
-// 	result->Initialize();
-// 	return result;  
-// }
 
 template<class TGeo>
 TPZGeoEl *
@@ -243,6 +235,81 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
 		std::cout <<"\nCreateBCGeoEl not implemented for tridimensional sides \n";
 		return 0;
 	}
+    
+    // the side orientation will be +1 if the side is oriented counterclockwise
+    // -1 if the side is clockwise
+    
+    
+    int faceSide = 0;
+    if (fGeo.Dimension == 2){
+        faceSide = side - TGeo::NCornerNodes;
+    } else if (fGeo.Dimension == 3){
+        faceSide = side - TGeo::NCornerNodes - TGeo::NumSides(1);
+    }
+
+    int sideorient = 1;
+    switch (TGeo::Type())
+    {
+    case ETriangle:
+        sideorient = pztopology::TPZTriangle::GetSideOrient(faceSide);
+        break;
+    case EQuadrilateral:
+        sideorient = pztopology::TPZQuadrilateral::GetSideOrient(faceSide);
+        break;
+    case ETetraedro:
+        sideorient = pztopology::TPZTetrahedron::GetSideOrient(faceSide);
+        break;
+    case ECube:
+        sideorient = pztopology::TPZCube::GetSideOrient(faceSide);
+        break;
+    case EPrisma:
+        sideorient = pztopology::TPZPrism::GetSideOrient(faceSide);
+        break;
+    
+    default:
+        break;
+    }
+    
+    
+    // Build vector with node indices of element to be created
+    MElementType sidetype = TGeo::Type(side);
+    int sidennodes = TGeo::NSideNodes(side);
+    int sizeMap = 0;
+    switch (sidetype){
+    case EPoint:
+        sizeMap = 1;
+        break;
+    case EOned:
+        sizeMap = 3;
+        break;
+    case ETriangle:
+        sizeMap = 7;
+        break;
+    case EQuadrilateral:
+        sizeMap = 9;
+        break;
+    default:
+        DebugStop();
+    }
+
+    TPZManVector<int,27> mapside(sizeMap,0);
+    for(int i=0; i<sizeMap; i++) mapside[i] = i;
+    
+    if(sideorient == -1)
+    {
+        switch(sidetype){
+            case EOned:
+                mapside = {1,0,2};
+                break;
+            case ETriangle:
+                mapside = {0,2,1,5,4,3,6};
+                break;
+            case EQuadrilateral:
+                mapside = {0,3,2,1,7,6,5,4,8};
+            default:
+                break;
+        }
+    }
 
 	// Is side straight?
 	TPZStack<int> LowAllSides;
@@ -259,17 +326,17 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
 	}
 	if(straight == false)
 	{
-		TPZGeoEl *BCGeoEl = CreateBCGeoBlendEl(side,bc);
+		TPZGeoEl *BCGeoEl = CreateBCGeoBlendEl(side,bc,mapside);
 		return BCGeoEl;
 	}
 	
 	// else
 
-	// Build vector with node indices of element to be created
-	int sidennodes = TGeo::NSideNodes(side);
 	TPZManVector<int64_t,4> nodeindices(sidennodes);
 	for(int inode = 0; inode < sidennodes; inode++){
-		nodeindices[inode] = this->SideNodeIndex(side,inode);
+        int orientednode = inode;
+        if(sideorient == -1) orientednode = mapside[inode];
+		nodeindices[orientednode] = this->SideNodeIndex(side,inode);
 	}
 
 	// Create GeoElement
@@ -277,13 +344,17 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
 	MElementType BCtype = TGeo::Type(side);
 	TPZGeoEl *BCGeoEl = this->Mesh()->CreateGeoElement(BCtype, nodeindices, bc, index);
 
+    TPZGeoElSide BCGelside(BCGeoEl);
+    TPZGeoElSide thisside(this,side);
+    BCGelside.InsertConnectivity(thisside,mapside);
+    /*
 	// Set Connectivity
 	int sidensides = TGeo::NContainedSides(side);
 	for(int iside=0; iside < sidensides-1; iside++){
-		TPZGeoElSide(BCGeoEl,iside).SetConnectivity(TPZGeoElSide(this,TGeo::ContainedSideLocId(side,iside)));
+		TPZGeoElSide(BCGeoEl,mapside[iside]).SetConnectivity(TPZGeoElSide(this,TGeo::ContainedSideLocId(side,iside)));
 	}
 	TPZGeoElSide(BCGeoEl, sidensides-1).SetConnectivity(TPZGeoElSide(this,side));
-
+*/
 	// Return pointer to new element
 	BCGeoEl->Initialize();
 	return BCGeoEl;  
@@ -313,6 +384,31 @@ TPZGeoEl *TPZGeoElRefLess<TGeo>::CreateBCGeoBlendEl(int side,int bc)
 	
 	return newel;
 }
+
+template <class TGeo>
+TPZGeoEl *TPZGeoElRefLess<TGeo>::CreateBCGeoBlendEl(int side,int bc, const TPZVec<int> &mapside)
+{
+    int sidennodes = TGeo::NSideNodes(side);
+    TPZManVector<int64_t> nodeindices(sidennodes);
+    int inode;
+    for(inode=0; inode<sidennodes; inode++){
+        nodeindices[mapside[inode]] = this->SideNodeIndex(side,inode);
+    }
+    int64_t index;
+    
+    TPZGeoMesh *mesh = this->Mesh();
+    MElementType BCtype = TGeo::Type(side);
+    
+    TPZGeoEl *newel = mesh->CreateGeoBlendElement(BCtype, nodeindices, bc, index);
+    TPZGeoElSide me(this,side);
+    TPZGeoElSide newelside(newel,newel->NSides()-1);
+    
+    newelside.InsertConnectivity(me,mapside);
+    newel->Initialize();
+    
+    return newel;
+}
+
 
 
 template<class TGeo>

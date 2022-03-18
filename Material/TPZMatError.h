@@ -20,7 +20,8 @@ using ExactSolType = std::function<void (const TPZVec<REAL> &loc, TPZVec<TVar> &
   \ingroup material
  */
 template<class TVar>
-class TPZMatError : public virtual TPZSavable{
+//class TPZMatError : public virtual TPZSavable{
+class TPZMatError {
 public:
 
     //! Default constructor
@@ -52,13 +53,13 @@ public:
 
     /** @brief Returns the number of error norms.
         Default is 3: norm, L2 and seminorm. */
-    virtual int NEvalErrors() {return 3;}
+    virtual int NEvalErrors() const{return 3;}
     /** @}*/
 
-    [[nodiscard]] int ClassId() const override;
+//    [[nodiscard]] int ClassId() const;
 protected:
     //! Exact Solution
-    ExactSolType<TVar> fExactSol;
+    ExactSolType<TVar> fExactSol = 0;
     //! Suggested integration order for ExactSol
     int fExactPOrder{0};
 };

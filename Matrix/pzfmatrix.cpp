@@ -1037,10 +1037,20 @@ template <class TVar>
 int TPZFMatrix<TVar>::Resize(const int64_t newRows,const int64_t newCols) {
     if ( newRows == this->Rows() && newCols == this->Cols() ) return( 1 );
     int64_t newsize = ((int64_t)newRows)*newCols;
-    TVar * newElem;
+    TVar * newElem{nullptr};
     if(fGiven && fElem != fGiven && newsize <= fSize)
     {
         newElem = fGiven;
+    } else if(fGiven && fElem == fGiven && newsize <= fSize && newCols == 1)
+    {
+        this->fRow = newRows;
+        this->fCol = newCols;
+        return( 1 );
+    } else if(fGiven && fElem == fGiven && newsize <= fSize && newRows == this->fRow)
+    {
+        this->fRow = newRows;
+        this->fCol = newCols;
+        return( 1 );
     } else
     {
         newElem = new TVar[ newRows * newCols ] ;

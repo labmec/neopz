@@ -88,7 +88,7 @@ public:
     }
     
     /// constructor
-    TPZSBFemElementGroup(TPZCompMesh &mesh, int64_t &index);
+    TPZSBFemElementGroup(TPZCompMesh &mesh);
     
     /** @brief add an element to the element group
      */

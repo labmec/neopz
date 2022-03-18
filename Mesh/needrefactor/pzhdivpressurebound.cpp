@@ -21,9 +21,9 @@ static TPZLogger logger("pz.mesh.TPZCompElHDivPressureBound");
 
 
 template <class TSHAPE>
-TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
+TPZCompElHDivPressureBound<TSHAPE>::TPZCompElHDivPressureBound(TPZCompMesh &mesh, TPZGeoEl *gel) :
 TPZRegisterClassId(&TPZCompElHDivPressureBound::ClassId),
-TPZCompElHDivBound2<TSHAPE>(mesh, gel, index){
+TPZCompElHDivBound2<TSHAPE>(mesh, gel){
     
     
     //Creating connect of the pressure's variable

@@ -52,7 +52,7 @@ public:
 private:
 
     // Member variable to describe a constant permeability field
-    STATE fConstantPermeability{};
+    STATE fConstantPermeability = 1.;
 
     // Member variable to describe a varying permeability field
     PermeabilityFunctionType fPermeabilityFunction{};

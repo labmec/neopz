@@ -106,17 +106,14 @@ public:
 	
 	/** @brief Put a copy of the element in the patch mesh */
 	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int64_t,int64_t> &gl2lcElMap);
-	
-	/** @brief Copy of the element in the new mesh returning allocated index */
-	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int64_t &index);
-	
+		
 	/**
 	 * @brief Creates a computational element within mesh. Inserts the element within the data structure of the mesh
 	 * @param mesh mesh wher will be created the element
 	 * @param gel geometric element for which the computational element will be created
 	 * @param index new elemen index
 	 */
-	TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
 	/** @brief Sets the value of the default interpolation order */
 	static void SetgOrder( int order );
@@ -757,6 +754,12 @@ public:
 	 * @param onlyinterpolated if == 1, only elements derived from TPZInterpolatedElement will be checked
 	 */
 	TPZCompElSide LowerIdElementList(TPZCompElSide &expandvec,int onlyinterpolated);
+    
+    /**
+     * @brief Split the connect shared between this and right compelsides
+     * @param right compelside that shares the same connects as in this
+     */
+    void SplitConnect(const TPZCompElSide& right) const;
 
 	/** @brief Returns the index of the middle side connect alon fSide */
     int64_t ConnectIndex() const;

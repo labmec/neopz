@@ -1,4 +1,5 @@
 *.msh
+.vscode
 .DS_Store
 CMakeLists.txt.user
 cmake-build-debug
@@ -7,7 +8,6 @@ cmake-build-release
 build
 build-*
 NeoPZ_CMake
-.vscode
 *.icloud
 compile_commands.json
 .cquery_cached_index

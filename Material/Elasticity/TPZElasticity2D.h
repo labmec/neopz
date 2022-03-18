@@ -151,7 +151,7 @@ public :
     /** @name Errors */
 	/** @{ */
     /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
-    int NEvalErrors() override {return 6;}
+    int NEvalErrors() const override {return 6;}
 
     void GetSolDimensions(uint64_t &u_len,
                           uint64_t &du_row,

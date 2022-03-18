@@ -493,9 +493,9 @@ private:
 public:
 	
     /** @brief Create a computational element based on the geometric element */
-    TPZCompEl *CreateCompEl(TPZGeoEl *gel, int64_t &index)
+    TPZCompEl *CreateCompEl(TPZGeoEl *gel)
     {
-        return fCreate.CreateCompEl(gel, *this, index);
+        return fCreate.CreateCompEl(gel, *this);
     }
     
 	/** @brief Creates the computational elements, and the degree of freedom nodes */ 
@@ -571,6 +571,11 @@ public:
     void SetAllCreateFunctionsMultiphysicElem()
     {
         fCreate.SetAllCreateFunctionsMultiphysicElem();
+    }
+
+	void SetAllCreateFunctionsSBFemMultiphysics()
+    {
+        fCreate.SetAllCreateFunctionsSBFemMultiphysics(this->Dimension());
     }
 
     void SetAllCreateFunctionsMultiphysicElemWithMem()

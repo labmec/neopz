@@ -14,8 +14,8 @@ static int logger;
 
 
 template<class TSHAPE>
-TPZCompElH1<TSHAPE>::TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) : TPZRegisterClassId(&TPZCompElH1::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,index){
+TPZCompElH1<TSHAPE>::TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, const H1Family h1fam) : TPZRegisterClassId(&TPZCompElH1::ClassId),
+TPZIntelGen<TSHAPE>(mesh,gel), fh1fam(h1fam){
 
 	for(int i=0;i<TSHAPE::NSides;i++) {
 		fConnectIndexes[i] = this->CreateMidSideConnect(i);
@@ -24,15 +24,17 @@ TPZIntelGen<TSHAPE>(mesh,gel,index){
 }
 
 template<class TSHAPE>
-TPZCompElH1<TSHAPE>::TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index, int nocreate) : TPZRegisterClassId(&TPZCompElH1::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,index)
+TPZCompElH1<TSHAPE>::TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel,
+                                 int nocreate, const H1Family h1fam) :
+TPZRegisterClassId(&TPZCompElH1::ClassId),
+TPZIntelGen<TSHAPE>(mesh,gel), fh1fam(h1fam)
 {
 	
 }
 
 template<class TSHAPE>
 TPZCompElH1<TSHAPE>::TPZCompElH1(TPZCompMesh &mesh, const TPZCompElH1<TSHAPE> &copy) : TPZRegisterClassId(&TPZCompElH1::ClassId),
-                                                                                       TPZIntelGen<TSHAPE>(mesh,copy){
+                                                                                       TPZIntelGen<TSHAPE>(mesh,copy), fh1fam(copy.fh1fam){
 	this->fConnectIndexes = copy.fConnectIndexes;
 }
 
@@ -43,7 +45,7 @@ TPZCompElH1<TSHAPE>::TPZCompElH1(TPZCompMesh &mesh,
 								 std::map<int64_t,int64_t> & gl2lcConMap,
 								 std::map<int64_t,int64_t> & gl2lcElMap) :
 TPZRegisterClassId(&TPZCompElH1::ClassId), 
-TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
+TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fh1fam(copy.fh1fam)
 {
 	int i;
 	for(i=0;i<TSHAPE::NSides;i++)

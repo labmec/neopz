@@ -54,11 +54,12 @@ set(headers
   pzsubcmesh.h
   TPZGeoElSidePartition.h
   pzflowcmesh.h
-  pzhdivpressure.h 
-  pzhdivpressurebound.h
   tpzagglomeratemesh.h
   TPZAgglomerateEl.h
   TPZCompElH1.h
+  TPZCompElKernelHDiv.h
+  TPZCompElKernelHDiv3D.h
+  TPZHCurlEquationFilter.h
 )
 
 set(sources
@@ -106,10 +107,11 @@ set(sources
   TPZCompElHCurl.cpp
   TPZGeoElSideAncestors.cpp
   pzflowcmesh.cpp
-  pzhdivpressure.cpp
-  pzhdivpressurebound.cpp
   TPZAgglomerateEl.cpp
   TPZCompElH1.cpp
+  TPZCompElKernelHDiv.cpp
+  TPZCompElKernelHDiv3D.cpp
+  TPZHCurlEquationFilter.cpp
 )
 
 if(USING_MKL)

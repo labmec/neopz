@@ -841,9 +841,8 @@ void TPZMHMixedMeshControl::HybridizeSkeleton(int skeletonmatid, int pressuremat
         TPZGeoElBC skeleton2(gelside,fSecondSkeletonMatId);
         fFluxMesh->SetAllCreateFunctionsHDiv();
         // create a flux boundary element
-        int64_t indexflux;
-        fFluxMesh->CreateCompEl(skeleton2.CreatedElement(), indexflux);
-        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(fFluxMesh->Element(indexflux));
+        TPZCompEl* celflux = fFluxMesh->CreateCompEl(skeleton2.CreatedElement());
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(celflux);
         SetSubdomain(intel, -1);
 #ifdef PZDEBUG
         if (intel->NConnects() != 1) {
@@ -866,10 +865,9 @@ void TPZMHMixedMeshControl::HybridizeSkeleton(int skeletonmatid, int pressuremat
         // this will be changed to the pressure mesh
 //        fFluxMesh->SetAllCreateFunctionsContinuous();
         fPressureFineMesh->SetAllCreateFunctionsContinuous();
-        int64_t indexpressure;
 //        fFluxMesh->CreateCompEl(pressuregel.CreatedElement(), indexpressure);
-        fPressureFineMesh->CreateCompEl(pressuregel.CreatedElement(), indexpressure);
-        TPZInterpolatedElement *presel = dynamic_cast<TPZInterpolatedElement *>(fPressureFineMesh->Element(indexpressure));
+        TPZCompEl* celpressure = fPressureFineMesh->CreateCompEl(pressuregel.CreatedElement());
+        TPZInterpolatedElement *presel = dynamic_cast<TPZInterpolatedElement *>(celpressure);
         SetSubdomain(presel, -1);
         // set the lagrange multiplier to the highest level
         int nc = presel->NConnects();
@@ -996,9 +994,8 @@ void TPZMHMixedMeshControl::CreateInternalFluxElements() {
         // Create the flux element
         TPZGeoEl *gel = fGMesh->Element(elIndex);
         if (!gel || gel->HasSubElement()) continue;
-        int64_t index;
-        cmeshHDiv->CreateCompEl(gel, index);
-        TPZCompEl *cel = cmeshHDiv->Element(index);
+        TPZCompEl* cel = cmeshHDiv->CreateCompEl(gel);
+//        TPZCompEl *cel = cmeshHDiv->Element(index);
         // Associate the connects with the subdomain for the flux mesh
         SetSubdomain(cel, MHMDomain);
     }
@@ -1033,10 +1030,9 @@ void TPZMHMixedMeshControl::CreateSkeleton()
             // TPZMHMixedMeshControl::AdjustBoundaryElements
         }
         TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
-        int64_t index;
         // create an element to model the flux between subdomains
-        fFluxMesh->CreateCompEl(gel, index);
-        TPZCompEl *cel = fFluxMesh->ElementVec()[index];
+        TPZCompEl *cel = fFluxMesh->CreateCompEl(gel);
+//        TPZCompEl *cel = fFluxMesh->ElementVec()[index];
         int Side = gel->NSides()-1;
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
         SetSubdomain(cel, -1);
@@ -1276,19 +1272,18 @@ void TPZMHMixedMeshControl::CreateMultiPhysicsInterfaceElements(int dim, int pre
         // and the neighbouring elements
         TPZGeoElBC gbcleft(gelside, fLagrangeMatIdLeft);
         TPZGeoElBC gbcright(gelside, fLagrangeMatIdRight);
-        int64_t index1,index2;
 //        celside.Element()->Print();
 //        celstack[0].Element()->Print();
 //        celstack[1].Element()->Print();
-        new TPZMultiphysicsInterfaceElement(*MixedFluxPressureCmesh,gbcleft.CreatedElement(),index1,celstack[0],celside);
-        new TPZMultiphysicsInterfaceElement(*MixedFluxPressureCmesh,gbcright.CreatedElement(),index2,celstack[1],celside);
+        TPZCompEl* cel1 = new TPZMultiphysicsInterfaceElement(*MixedFluxPressureCmesh,gbcleft.CreatedElement(),celstack[0],celside);
+        TPZCompEl* cel2 = new TPZMultiphysicsInterfaceElement(*MixedFluxPressureCmesh,gbcright.CreatedElement(),celstack[1],celside);
 #ifdef PZ_LOG
         if(logger.isDebugEnabled())
         {
             std::stringstream sout;
-            sout << "Created an interface skeleton element index " << index1 << " between mphys " << celstack[0].Element()->Index() << " and pressure mphyx " << celside.Element()->Index()
+            sout << "Created an interface skeleton element index " << cel1->Index() << " between mphys " << celstack[0].Element()->Index() << " and pressure mphyx " << celside.Element()->Index()
             << std::endl;
-            sout << "Created an interface skeleton element index " << index2 << " between mphys " << celstack[1].Element()->Index() << " and pressure mphyx " << celside.Element()->Index();
+            sout << "Created an interface skeleton element index " << cel2->Index() << " between mphys " << celstack[1].Element()->Index() << " and pressure mphyx " << celside.Element()->Index();
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
@@ -1444,9 +1439,7 @@ void TPZMHMixedMeshControl::AdjustBoundaryElements() {
         if (elindex == it->second.second) {
 
             // create boundary compels
-            int64_t index;
-            fFluxMesh->CreateCompEl(gel, index);
-            TPZCompEl *cel = fFluxMesh->ElementVec()[index];
+            TPZCompEl* cel = fFluxMesh->CreateCompEl(gel);
             SetSubdomain(cel, -1);
 
             // set the side orientation of the boundary elements

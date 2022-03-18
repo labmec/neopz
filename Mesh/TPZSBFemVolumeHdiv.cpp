@@ -26,7 +26,7 @@
 // static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemvolume"));
 // #endif
 
-TPZSBFemVolumeHdiv::TPZSBFemVolumeHdiv(TPZCompMesh & mesh, TPZGeoEl * gel, int64_t & index) : TPZInterpolationSpace(mesh, gel, index), fElementGroupIndex(-1), fSkeleton(-1)
+TPZSBFemVolumeHdiv::TPZSBFemVolumeHdiv(TPZCompMesh & mesh, TPZGeoEl * gel) : TPZInterpolationSpace(mesh, gel), fElementGroupIndex(-1), fSkeleton(-1)
 {
     fElementVec1D.Resize(3);
 }
@@ -194,7 +194,7 @@ void TPZSBFemVolumeHdiv::ReallyComputeSolution(TPZMaterialDataT<STATE> & data)
                     for (int d = 0; d < dim; d++)
                     {
                         int id = (ishape + is)* nstate + istate;
-                        data.sol[s][d] += data.phi(id) * data.fDeformedDirections(d,ic) * uh_xi[id].real();
+                        data.sol[s][d] += data.fPhi(id) * data.fDeformedDirections(d,ic) * uh_xi[id].real();
                     }
                 }
             }
@@ -266,7 +266,7 @@ int TPZSBFemVolumeHdiv::NConnects() const
     return fConnectIndexes.size();   
 }
 
-TPZCompEl * CreateSBFemFluxCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index)
+TPZCompEl * CreateSBFemFluxCompEl(TPZCompMesh &mesh, TPZGeoEl *gel)
 {
-    return new TPZSBFemVolumeHdiv(mesh, gel, index);    
+    return new TPZSBFemVolumeHdiv(mesh, gel);    
 }

@@ -24,9 +24,9 @@ using namespace std;
 
 // TESTADO
 template<class TSHAPE>
-TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
+TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam) :
 TPZRegisterClassId(&TPZCompElHDivPressure::ClassId),
-TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
+TPZCompElHDiv<TSHAPE>(mesh,gel,hdivfam) {
 		
 		if (TSHAPE::Type()==EQuadrilateral) {
 				fPressureOrder = mesh.GetDefaultOrder();
@@ -638,36 +638,36 @@ template class TPZCompElHDivPressure<TPZShapePiram>;
 template class TPZCompElHDivPressure<TPZShapeCube>;
 
 
-//TPZCompEl * CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-//		return new TPZCompElHDivPressure<TPZShapePoint>(mesh,gel,index);
+//TPZCompEl * CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh) {
+//		return new TPZCompElHDivPressure<TPZShapePoint>(mesh,gel);
 //}
 
 
-TPZCompEl * CreateHDivPressureLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-		return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,index);
+TPZCompEl * CreateHDivPressureLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+		return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivPressureQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-		return new TPZCompElHDivPressure< TPZShapeQuad>(mesh,gel,index);
+TPZCompEl * CreateHDivPressureQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+		return new TPZCompElHDivPressure< TPZShapeQuad>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivPressureTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-		return new TPZCompElHDivPressure< TPZShapeTriang >(mesh,gel,index);
+TPZCompEl * CreateHDivPressureTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+		return new TPZCompElHDivPressure< TPZShapeTriang >(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivPressureCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-		return new TPZCompElHDivPressure< TPZShapeCube >(mesh,gel,index);
+TPZCompEl * CreateHDivPressureCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+		return new TPZCompElHDivPressure< TPZShapeCube >(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivPressurePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-		return new TPZCompElHDivPressure< TPZShapePrism>(mesh,gel,index);
+TPZCompEl * CreateHDivPressurePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+		return new TPZCompElHDivPressure< TPZShapePrism>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-		return new TPZCompElHDivPressure< TPZShapePiram >(mesh,gel,index);
+TPZCompEl * CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+		return new TPZCompElHDivPressure< TPZShapePiram >(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-		return new TPZCompElHDivPressure< TPZShapeTetra >(mesh,gel,index);
+TPZCompEl * CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+		return new TPZCompElHDivPressure< TPZShapeTetra >(mesh,gel,hdivfam);
 }
 

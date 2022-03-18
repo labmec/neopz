@@ -14,11 +14,13 @@
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
 #include "TPZMaterialDataT.h"
-#include "pzhdivpressure.h"
 #include "pzshapepiram.h"
 #include "tpzline.h"
 #include "tpztriangle.h"
 #include "TPZShapeHDiv.h"
+#include "TPZShapeH1.h"
+#include "TPZShapeHDivConstant.h"
+#include "TPZShapeHCurlNoGrads.h"
 
 #include "pzshtmat.h"
 
@@ -31,9 +33,9 @@ using namespace std;
 
 
 template<class TSHAPE>
-TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
+TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam) :
 TPZRegisterClassId(&TPZCompElHDiv::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFacets,1) {
+TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(TSHAPE::NFacets,1), fhdivfam(hdivfam) {
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
 	int nconflux= TPZCompElHDiv::NConnects();
     this->fConnectIndexes.Resize(nconflux);
@@ -88,17 +90,30 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFacets,1) {
         this->fIntRule.SetOrder(ord);
     }
 
-
+    if (fhdivfam == HDivFamily::EHDivConstant) {
+        // For HDiv constant, polynomial order was compatibilized in connectorders, 
+        // see TPZShapeHDivConstant<TSHAPE>::Initialize. So now we need to update
+        // the number of shape functions and also the integration rule
+        if (TSHAPE::Type() == ETriangle || TSHAPE::Type() == EQuadrilateral || TSHAPE::Type() == ETetraedro){
+            for (int icon = 0; icon < this->NConnects(); icon++)
+            {
+                TPZConnect &c = this->Connect(icon);
+                int nShapeF = NConnectShapeF(icon,c.Order());
+                if (c.NShape() != nShapeF){
+                    DebugStop();
+                }
+            }
+        }
+    }
 }
 
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy) :
 TPZRegisterClassId(&TPZCompElHDiv::ClassId),
-TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
+TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient), fhdivfam(copy.fhdivfam)
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
     this->fConnectIndexes = copy.fConnectIndexes;
-
 }
 
 template<class TSHAPE>
@@ -107,7 +122,7 @@ TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh,
 									 std::map<int64_t,int64_t> & gl2lcConMap,
 									 std::map<int64_t,int64_t> & gl2lcElMap) :
 TPZRegisterClassId(&TPZCompElHDiv::ClassId),
-TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient)
+TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOrient), fhdivfam(copy.fhdivfam)
 {
 	this-> fPreferredOrder = copy.fPreferredOrder;
 	int i;
@@ -226,7 +241,20 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
         DebugStop();
     }
 #endif
-    return TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(connect,order);
+    switch (fhdivfam)
+    {
+    case HDivFamily::EHDivStandard:
+        return TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(connect,order);    
+        break;
+    case HDivFamily::EHDivConstant:
+        return TPZShapeHDivConstant<TSHAPE>::ComputeNConnectShapeF(connect,order);
+        break;
+    
+    default:
+        return -1;
+        break;
+    }
+    return -1;
  }
 
 ////
@@ -347,8 +375,7 @@ void TPZCompElHDiv<TSHAPE>::SetSideOrder(int side, int order){
     TPZMaterial * mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
     c.SetNState(nvar);
-    // int nshape =this->NConnectShapeF(connectaux,order);
-    int nshape =TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(connectaux,order);
+    int nshape =this->NConnectShapeF(connectaux,order);
     c.SetNShape(nshape);
 	this-> Mesh()->Block().Set(seqnum,nshape*nvar);
 }
@@ -507,7 +534,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
         TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
         gelside.Jacobian(point, jac, axes, detjac, jacinv);
     }
-
+    if(sidetype == ETriangle) detjac /= 6.;
     for (int side=0; side < ncs; side++) {
         int ifirst = FirstIndex[side];
         int kfirst = FirstIndex[permutegather[side]];
@@ -630,18 +657,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
         /// ish loops of the number of shape functions associated with the block
         for(int ish=0; ish<dfvar/nstate; ish++)
         {
-            ivec    = data.fVecShapeIndex[counter].first;
-            ishape  = data.fVecShapeIndex[counter].second;
-
-
-            // portion of the gradient coming from the gradient of the scalar function
-//            for (int e = 0; e < dim; e++) {
-//                for (int f = 0; f< dim; f++) {
-//                    //REMARK: dphix IS NOT COMPUTED AFTER TPZShapeData REFACTORING.
-//                    //GradOfPhiHdiv(e,f) = Normalvec(e,ivec)*dphix(f,ishape);
-//                }
-//            }
-
             for (int64_t is=0; is<numbersol; is++)
             {
                 for(int idf=0; idf<nstate; idf++)
@@ -687,6 +702,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
                 }
             }
             counter++;
+            ivec++;
+            ishape++;
         }
     }
 
@@ -767,19 +784,33 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     TPZManVector<int,TSHAPE::NSides> orders(TSHAPE::NFacets+1,0);
     TPZManVector<int,TSHAPE::NFacets> sideorient(TSHAPE::NFacets,0);
     TPZGeoEl *gel = this->Reference();
-    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
+    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodePtr(i)->Id();
     for(int i=0; i<TSHAPE::NFacets+1; i++) orders[i] = this->Connect(i).Order();
     for(int i=0; i<TSHAPE::NFacets; i++) sideorient[i] = this->SideOrient(i);
     TPZShapeData &shapedata = data;
-    TPZShapeHDiv<TSHAPE>::Initialize(ids, orders, sideorient, data);
+    int nvec_shape = 0;
+
+    switch (fhdivfam)
+    {
+    case HDivFamily::EHDivStandard:
+        TPZShapeHDiv<TSHAPE>::Initialize(ids, orders, sideorient, data);
+        nvec_shape = TPZShapeHDiv<TSHAPE>::NShapeF(shapedata);
+        break;
+    case HDivFamily::EHDivConstant:
+        TPZShapeHDivConstant<TSHAPE>::Initialize(ids, orders, sideorient, data);
+        nvec_shape = this->NShapeF();
+        break;
     
+    default:
+        break;
+    }
 
 //    int nshapescalar = shapedata.fPhi.Rows();
 //    data.dphi.Resize(TSHAPE::Dimension, nshapescalar);
 //    data.dphix.Resize(TSHAPE::Dimension, nshapescalar);
     // Trick to make actual hdiv materials work.
     // phi are all = 1. VecShapeIndex is 1 to 1 with its size the number of vec shapes
-    int nvec_shape = TPZShapeHDiv<TSHAPE>::NShapeF(shapedata);
+    
     data.phi.Resize(nvec_shape,1);
     data.fVecShapeIndex.Resize(nvec_shape);
     for (int ish = 0; ish<nvec_shape; ish++) {
@@ -795,10 +826,6 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 #endif
 
     data.fShapeType = TPZMaterialData::EVecShape;
-
-//    cout << "vecShape " << endl;
-//    cout << data.fVecShapeIndex << endl;;
-
 
 #ifdef PZ_LOG
     if(logger.isDebugEnabled())
@@ -827,33 +854,39 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
 
     constexpr int dim = TSHAPE::Dimension;
     const int nshape = this->NShapeF();
-
-    // TPZFNMatrix<dim*80,REAL> phiref(dim,nshape);
-    // TPZFNMatrix<curldim*80,REAL> curlphiref(curldim,nshape);
-
     TPZShapeData &shapedata = data;
-    // TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, phiref, curlphiref);
+    TPZFMatrix<REAL> phiMaster;
 
-    TPZFMatrix<REAL> auxPhi;
-    TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, auxPhi, data.divphi);
+    switch (fhdivfam)
+    {
+    case HDivFamily::EHDivStandard:
+        TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, phiMaster, data.divphi);
+        break;
+
+    case HDivFamily::EHDivConstant:
+        phiMaster.Resize(TSHAPE::Dimension,nshape);
+        data.divphi.Resize(nshape,1);
+        TPZShapeHDivConstant<TSHAPE>::Shape(qsi, shapedata, phiMaster, data.divphi);
+        break;
+
+    default:
+        DebugStop();
+        break;
+    }
+
+    //This is for legacy material classes - will be deleted in the future
     int shapeSize = data.divphi.Rows();
-    data.fVecShapeIndex.Resize(shapeSize);
 
     for (int i = 0; i < shapeSize; i++){
         data.fVecShapeIndex[i] = make_pair(i,i);
     }
+    //
     
-    TPZFMatrix<REAL> gradx(3,TSHAPE::Dimension,0.);
+    TPZFNMatrix<9,REAL> gradx(3,TSHAPE::Dimension,0.);
     this->Reference()->GradX(qsi, gradx);
-    TPZFMatrix<REAL> phiSHdiv(TSHAPE::Dimension,data.fVecShapeIndex.size(),0.);
-    gradx.Multiply(auxPhi,phiSHdiv);
-    phiSHdiv *= 1./data.detjac;
-    data.divphi *= 1/data.detjac;
-
-    data.phi.Resize(data.fVecShapeIndex.size(),1);
+    gradx.MultAdd(phiMaster,data.fDeformedDirections,data.fDeformedDirections,1./fabs(data.detjac));
+    data.divphi *= 1/fabs(data.detjac);
     data.phi = 1.;
-    data.fDeformedDirections.Resize(TSHAPE::Dimension,data.fVecShapeIndex.size());
-    data.fDeformedDirections = phiSHdiv;
 
 }
 
@@ -917,6 +950,9 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::PRefine(int order)
 {
+    // This function has been deprecated since TPZCompElHDivPressure has been deprecated
+    // TODO: Delete or update?
+    /*
     this->SetPreferredOrder(order);
     int side;
     int icon;
@@ -978,7 +1014,7 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
 		this->Mesh()->Block().Set(seqnum,nshape);
     }
 
-
+     */
 }
 
 /** @brief Prints the relevant data of the element to the output stream */
@@ -1004,6 +1040,11 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::MaxOrder(){
 
     int maxorder = TPZInterpolationSpace::MaxOrder();
+    // if (fhdivfam == HDivFamily::EHDivConstant){
+    //     if (TSHAPE::Type() == ETetraedro || TSHAPE::Type() == ETriangle){
+    //         maxorder++;
+    //     }
+    // }
     return maxorder+1;
 }
 
@@ -1068,36 +1109,37 @@ int TPZCompElHDiv<TSHAPE>::RestrainedFace()
     return -1;
 }
 
-template<>
-int TPZCompElHDiv<TPZShapePiram>::RestrainedFace()
-{
-    if (fRestraints.size() == 0) {
-        return -1;
-        DebugStop(); //AQUIPHIL
-    }
-    std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin();
-    int foundis = -1;
-    bool found = false;
-    while (found == false && it != fRestraints.end()) {
-        int64_t connectindex = it->fFaces[3].first;
-        int64_t cindex = -1;
-        for (int is = 14; is<18; is++) {
-            cindex = ConnectIndex(is-13);
-            if (connectindex == cindex) {
-                found = true;
-                foundis = is+1;
-                if (foundis == 18) {
-                    foundis = 14;
-                }
-            }
-        }
-        it++;
-    }
-    if (found == false) {
-        DebugStop();
-    }
-    return foundis;
-}
+// template<>
+// int TPZCompElHDiv<TPZShapePiram>::RestrainedFace()
+// {
+//     if (fRestraints.size() == 0) {
+//         return -1;
+//         DebugStop(); //AQUIPHIL
+//     }
+//     std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin();
+//     int foundis = -1;
+//     bool found = false;
+//     while (found == false && it != fRestraints.end()) {
+//         int64_t connectindex = it->fFaces[3].first;
+//         int64_t cindex = -1;
+//         for (int is = 14; is<18; is++) {
+//             cindex = ConnectIndex(is-13);
+//             if (connectindex == cindex) {
+//                 found = true;
+//                 foundis = is+1;
+//                 if (foundis == 18) {
+//                     foundis = 14;
+//                 }
+//             }
+//         }
+//         it++;
+//     }
+//     if (found == false) {
+//         DebugStop();
+//     }
+//     return foundis;
+// }
+
 
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapeLinear>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapeTriang>>;
@@ -1105,7 +1147,7 @@ template class TPZRestoreClass< TPZCompElHDiv<TPZShapeQuad>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapeCube>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapeTetra>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapePrism>>;
-template class TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>>;
+// template class TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>>;
 
 
 template class TPZCompElHDiv<TPZShapeLinear>;
@@ -1113,51 +1155,51 @@ template class TPZCompElHDiv<TPZShapeTriang>;
 template class TPZCompElHDiv<TPZShapeQuad>;
 template class TPZCompElHDiv<TPZShapeTetra>;
 template class TPZCompElHDiv<TPZShapePrism>;
-template class TPZCompElHDiv<TPZShapePiram>;
+// template class TPZCompElHDiv<TPZShapePiram>;
 template class TPZCompElHDiv<TPZShapeCube>;
 
 
-TPZCompEl * CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDivBound2<TPZShapePoint>(mesh,gel,index);
+TPZCompEl * CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDivBound2<TPZShapePoint>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,index);
+TPZCompEl * CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZCompElHDivBound2< TPZShapeQuad>(mesh,gel,index);
+TPZCompEl * CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+    return new TPZCompElHDivBound2< TPZShapeQuad>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZCompElHDivBound2< TPZShapeTriang >(mesh,gel,index);
+TPZCompEl * CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+    return new TPZCompElHDivBound2< TPZShapeTriang >(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZCompElHDiv< TPZShapeLinear>(mesh,gel,index);
+TPZCompEl * CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+    return new TPZCompElHDiv< TPZShapeLinear>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapeQuad>(mesh,gel,index);
+TPZCompEl * CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDiv< TPZShapeQuad>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapeTriang >(mesh,gel,index);
+TPZCompEl * CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDiv< TPZShapeTriang >(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapeCube >(mesh,gel,index);
+TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDiv< TPZShapeCube >(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel,index);
+TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel,hdivfam);
 }
 
-TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,index);
-}
+// TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+// 	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,hdivfam);
+// }
 
-TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel,index);
+TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel,hdivfam);
 }
 

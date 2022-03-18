@@ -21,16 +21,16 @@ template<class TSHAPE>
 class TPZCompElHDivSBFem : public TPZCompElHDivCollapsed<TSHAPE> {
 
     /// geometric element representing the collapsed volume
-    TPZGeoElSide fGelVolSide;
+    TPZGeoElSide fGeoElVolSide;
 
-    /// vector which defines whether the normal is outward or not
-    TPZManVector<int, TSHAPE::NFacets> fSideOrient;
+    /// element representing the flux element
+    TPZCompElHDivBound2<TSHAPE> * fCelFlux;
     
 public:
 	    
-	TPZCompElHDivSBFem(TPZCompMesh &mesh, TPZGeoEl *gel, TPZGeoElSide &gelside, int64_t &index);
+	TPZCompElHDivSBFem(TPZCompMesh &mesh, TPZGeoEl *gel, TPZGeoElSide &gelside);
 
-	TPZCompElHDivSBFem(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZCompElHDivSBFem(TPZCompMesh &mesh, TPZGeoEl *gel);
 	
 	TPZCompElHDivSBFem(TPZCompMesh &mesh, const TPZCompElHDivSBFem<TSHAPE> &copy);
 	
@@ -53,13 +53,18 @@ public:
 
     void ComputeDeformedDirections(TPZMaterialDataT<STATE> &data);
 
-    void HDivCollapsedDirections(TPZMaterialDataT<STATE> &data, int64_t nshape1d);
+    void ComputeSBFemVolumeHdivData(TPZMaterialDataT<STATE> &data, int64_t nshape1d);
 
     void AdjustAxes3D(const TPZFMatrix<REAL> &axes2D, TPZFMatrix<REAL> &axes3D, TPZFMatrix<REAL> &jac3D, TPZFMatrix<REAL> &jacinv3D, REAL detjac);
 
     void ExtendShapeFunctions(TPZMaterialDataT<STATE> &data2d, REAL nshape1d);
 
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialDataT<STATE> &data);
+
+    void SetCompElFlux(TPZCompElHDivBound2<TSHAPE> * cel)
+    {
+        fCelFlux = cel;
+    }
 
 };
 
@@ -72,8 +77,8 @@ int TPZCompElHDivSBFem<TSHAPE>::ClassId() const{
 
 
 /** @brief Creates computational linear element for HDiv approximate space */
-TPZCompEl *CreateHDivColapsedLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivColapsedLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational quadrilateral element for HDiv approximate space */
-TPZCompEl *CreateHDivColapsedQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivColapsedQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh);
 /** @brief Creates computational triangular element for HDiv approximate space */
-TPZCompEl *CreateHDivColapsedTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivColapsedTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh);

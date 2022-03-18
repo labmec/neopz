@@ -121,9 +121,9 @@ int TPZCompEl::gOrder = 2;
 TPZCompEl::TPZCompEl() : fMesh(0), fIndex(-1), fReferenceIndex(-1), fIntegrationRule(0) {
 }
 
-TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index) : fIntegrationRule(0) {
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref) : fIntegrationRule(0) {
     fMesh = &mesh;
-    index = mesh.ElementVec().AllocateNewElement();
+    const int64_t index = mesh.ElementVec().AllocateNewElement();
     mesh.ElementVec()[index] = this;
     fIndex = index;
     fReferenceIndex = (ref == 0) ? -1 : ref->Index();
@@ -132,17 +132,6 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index) : fIntegr
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy): fIntegrationRule(0) {
     fMesh = &mesh;
     int64_t index = copy.fIndex;
-    if(index >= 0) mesh.ElementVec()[index] = this;
-    fIndex = index;
-    fReferenceIndex = copy.fReferenceIndex;
-    if (copy.fIntegrationRule) {
-        fIntegrationRule = copy.fIntegrationRule->Clone();
-    }
-}
-
-TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int64_t &index) : fIntegrationRule(0) {
-    fMesh = &mesh;
-    index = mesh.ElementVec().AllocateNewElement();
     if(index >= 0) mesh.ElementVec()[index] = this;
     fIndex = index;
     fReferenceIndex = copy.fReferenceIndex;
@@ -969,6 +958,28 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
     }
     for(i=0;i<nelems;i++)
         if(locexpand[i].Element()) expandvec.Push(locexpand[i]);
+}
+
+void TPZCompElSide::SplitConnect(const TPZCompElSide& right) const{
+    TPZInterpolatedElement *intelleft = dynamic_cast<TPZInterpolatedElement *> (Element());
+    TPZInterpolatedElement *intelright = dynamic_cast<TPZInterpolatedElement *> (right.Element());
+    if (!intelleft || !intelright) DebugStop();
+    TPZConnect &cleft = intelleft->SideConnect(0, Side());
+    TPZConnect &cright = intelright->SideConnect(0, right.Side());
+    if (&cleft != &cright) {
+        DebugStop(); // CompElSides do not share the same connect!
+    }
+    
+    TPZCompMesh* cmesh = intelleft->Mesh();
+    int64_t index = cmesh->AllocateNewConnect(cleft);
+    TPZConnect &newcon = cmesh->ConnectVec()[index];
+    cleft.DecrementElConnected();
+    newcon.ResetElConnected();
+    newcon.IncrementElConnected();
+    newcon.SetSequenceNumber(cmesh->NConnects() - 1);
+    
+    int rightlocindex = intelright->SideConnectLocId(0, right.Side());
+    intelright->SetConnectIndex(rightlocindex, index);
 }
 
 /// Return the index of the middle side connect alon fSide

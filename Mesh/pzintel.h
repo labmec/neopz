@@ -55,7 +55,7 @@ public:
 	 * @param reference reference object to which this element will refer
 	 * @param index index in the vector of elements of mesh where this element was inserted
 	 */
-	TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int64_t &index);
+	TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference);
 	
 	/**
 	 * @brief Constructor aimed at creating a copy of an interpolated element within a new mesh

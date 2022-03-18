@@ -12,10 +12,12 @@ class TPZGeoEl;
 class TPZCompEl;
 class TPZCompMesh;
 #include <set>
+#include <functional>
 #include "pzvec.h"
 #include "TPZSavable.h"
+#include "TPZEnumApproxFamily.h"
 
-typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh,int64_t &index);
+typedef std::function<TPZCompEl* (TPZGeoEl* el, TPZCompMesh &mesh)> TCreateFunction;
 /*
  * @brief Administer the creation of approximation spaces
  * @author Philippe Devloo
@@ -24,7 +26,7 @@ typedef TPZCompEl *(*TCreateFunction)(TPZGeoEl *el,TPZCompMesh &mesh,int64_t &in
  */
 class TPZCreateApproximationSpace : public TPZSavable {
     /** @brief Function pointer which determines what type of computational element will be created */
-    TPZCompEl *(*fp[8])(TPZGeoEl *el,TPZCompMesh &mesh,int64_t &index);
+    TCreateFunction fp[8];
     
     /// @brief boolean indicating if each element should be created disconnected from the others
     /**
@@ -37,6 +39,11 @@ class TPZCreateApproximationSpace : public TPZSavable {
     
     /// flag indicating that the elements need to be created with memory
     bool fCreateWithMemory;
+    
+    /// flags indicating "flavor" ofthe approximation space
+    HDivFamily fhdivfam = DefaultFamily::fHDivDefaultValue;
+    H1Family fh1fam = DefaultFamily::fH1DefaultValue;
+    HCurlFamily fhcurlfam = DefaultFamily::fHCurlDefaultValue;
     
 public:
     
@@ -86,6 +93,19 @@ public:
     {
         fCreateWithMemory = flag;
     }
+
+    // Get set methods for space families
+    const HDivFamily &HDivFam() const {return fhdivfam;}
+    const HDivFamily &HDivFam() {return fhdivfam;}
+    const void SetHDivFamily(HDivFamily fam){fhdivfam = fam;}
+
+    const H1Family &H1Fam() const {return fh1fam;}
+    const H1Family &H1Fam() {return fh1fam;}
+    const void SetH1Family(H1Family fam){fh1fam = fam;}
+
+    const HCurlFamily &HCurlFam() const {return fhcurlfam;}
+    const HCurlFamily &HCurlFam() {return fhcurlfam;}
+    const void SetHCurlFamily(HCurlFamily fam){fhcurlfam = fam;}
     
     /** @brief Create discontinuous approximation spaces */
     void SetAllCreateFunctionsDiscontinuous();
@@ -120,14 +140,19 @@ public:
     
     /** @brief Set custom function pointers */
     void SetCreateFunctions(TPZVec<TCreateFunction> &createfuncs);
-    
-    MApproximationStyle Style()
+
+    MApproximationStyle& Style()
+    {
+        return fStyle;
+    }
+
+    const MApproximationStyle& Style() const
     {
         return fStyle;
     }
     
     /** @brief Create a computational element using the function pointer for the topology */
-    TPZCompEl *CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index) const;
+    TPZCompEl *CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh) const;
     
 	/** @brief Creates the computational elements, and the degree of freedom nodes */ 
 	/** Only element of material id in the set<int> will be created */

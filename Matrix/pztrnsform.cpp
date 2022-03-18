@@ -116,7 +116,7 @@ TPZTransform<T> TPZTransform<T>::Multiply(TPZTransform<T> &right) {
 }
 
 template<class T>
-void TPZTransform<T>::Apply(TPZVec<T> &in, TPZVec<T> &out){
+void TPZTransform<T>::Apply(const TPZVec<T> &in, TPZVec<T> &out){
 #ifdef PZDEBUG
     
     

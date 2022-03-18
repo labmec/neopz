@@ -9,6 +9,8 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 
+class TPZShapeData;
+
 /// groups all classes dedicated to the computation of shape functions
 namespace pzshape {
     
@@ -79,7 +81,10 @@ namespace pzshape {
 		
 		static void Shape(int &dimension,int &degree,TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,MShapeType type);	
 		
-		
+        /// initialize the TPZShapeData datastructure
+        static void Initialize(int order, int dimension, MShapeType shapetype, TPZShapeData &data);
+        
+
         
         /** @brief Number of shapefunctions dependent on the dimension and order of interpolation */
         static int NShapeF(int degree, int dimension, MShapeType type);

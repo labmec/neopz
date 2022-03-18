@@ -22,31 +22,6 @@ TPZFMatrix<REAL> TensorProd(TPZFMatrix<REAL> &mat1, TPZFMatrix<REAL> &mat2);
 
 namespace pzgeom {
 	
-    // template<class GeomQuad>
-	// TPZGeoEl *TPZQuadSphere<GeomQuad>::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
-	// {
-    
-	// 	int ns = orig->NSideNodes(side);
-	// 	TPZManVector<int64_t> nodeindices(ns);
-	// 	int in;
-	// 	for(in=0; in<ns; in++)
-	// 	{
-	// 		nodeindices[in] = orig->SideNodeIndex(side,in);
-	// 	}
-	// 	int64_t index;
-		
-	// 	TPZGeoMesh *mesh = orig->Mesh();
-	// 	MElementType type = orig->Type(side);
-		
-	// 	TPZGeoEl *newel = mesh->CreateGeoBlendElement(type, nodeindices, bc, index);
-	// 	TPZGeoElSide me(orig,side);
-	// 	TPZGeoElSide newelside(newel,newel->NSides()-1);
-		
-	// 	newelside.InsertConnectivity(me);
-	// 	newel->Initialize();
-		
-	// 	return newel;
-	// }
 	  template<class GeomQuad>
     int TPZQuadSphere<GeomQuad>::ClassId() const
     {

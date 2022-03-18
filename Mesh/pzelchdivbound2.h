@@ -8,6 +8,7 @@
 
 #include "pzelctemp.h"
 #include "TPZOneShapeRestraint.h"
+#include "TPZEnumApproxFamily.h"
 
 /** \addtogroup CompElement */
 /** @{ */
@@ -27,12 +28,14 @@ class TPZCompElHDivBound2 : public TPZIntelGen<TSHAPE> {
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
 
 protected:
-  ///! Indexes of the connects associated with the elements
-  TPZManVector<int64_t,1> fConnectIndexes =
-    TPZManVector<int64_t,1>(1,-1);
+    ///! Indexes of the connects associated with the elements
+    TPZManVector<int64_t,1> fConnectIndexes = TPZManVector<int64_t,1>(1,-1);
+    
+    /// Family of the HDiv space being used. Changing this will change the shape generating class
+    HDivFamily fhdivfam = DefaultFamily::fHDivDefaultValue;
 public:
 	
-	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam = DefaultFamily::fHDivDefaultValue);
 	
 	TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCompElHDivBound2<TSHAPE> &copy);
 
@@ -51,7 +54,11 @@ public:
 	virtual ~TPZCompElHDivBound2();
 	
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override {
-		return new TPZCompElHDivBound2<TSHAPE> (mesh, *this);
+		auto cop = new TPZCompElHDivBound2<TSHAPE> (mesh, *this);
+#ifdef PZDEBUG
+        if(cop->ConnectIndex(0) != this->ConnectIndex(0)) DebugStop();
+#endif
+        return cop;
 	}
 	
 	/**
@@ -173,7 +180,7 @@ int ClassId() const override;
     
     /** @brief Prints the relevant data of the element to the output stream */
     virtual void Print(std::ostream &out) const override;
-
+    
 };
 
 template<class TSHAPE>
@@ -181,14 +188,6 @@ int TPZCompElHDivBound2<TSHAPE>::ClassId() const{
     return Hash("TPZCompElHDivBound2") ^ TPZIntelGen<TSHAPE>::ClassId() << 1;
 }
 
-/** @brief Creates computational point element for HDiv approximate space */
-TPZCompEl *CreateRefHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
-/** @brief Creates computational linear element for HDiv approximate space */
-TPZCompEl *CreateRefHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
-/** @brief Creates computational quadrilateral element for HDiv approximate space */
-TPZCompEl *CreateRefHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
-/** @brief Creates computational triangular element for HDiv approximate space */
-TPZCompEl *CreateRefHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 /** @} */
 

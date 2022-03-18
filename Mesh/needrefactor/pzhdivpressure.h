@@ -7,7 +7,7 @@
 #define PZHDIVPRESSUREHTT
 
 #include "pzelchdiv.h"
-
+#include "TPZEnumApproxFamily.h"
 
 /**
  * @brief This class implements a "generic" computational element to HDiv scope. \ref CompElement "Computational Element"
@@ -26,7 +26,7 @@ class TPZCompElHDivPressure : public TPZCompElHDiv<TSHAPE> {
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
 public:
 	
-	TPZCompElHDivPressure(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
+	TPZCompElHDivPressure(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam = HDivFamily::EDefault);
 	
 	TPZCompElHDivPressure(TPZCompMesh &mesh, const TPZCompElHDivPressure<TSHAPE> &copy);
 	
@@ -164,21 +164,21 @@ int TPZCompElHDivPressure<TSHAPE>::ClassId() const{
 }
 
 /** @brief Creates computational point element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,const HDivFamily hdivfam);
 /** @brief Creates computational linear element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressureLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivPressureLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,const HDivFamily hdivfam);
 /** @brief Creates computational quadrilateral element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressureQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivPressureQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,const HDivFamily hdivfam);
 /** @brief Creates computational triangular element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressureTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivPressureTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,const HDivFamily hdivfam);
 /** @brief Creates computational cube element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressureCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivPressureCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,const HDivFamily hdivfam);
 /** @brief Creates computational prismal element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressurePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivPressurePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,const HDivFamily hdivfam);
 /** @brief Creates computational pyramidal element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,const HDivFamily hdivfam);
 /** @brief Creates computational tetrahedral element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+TPZCompEl *CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,const HDivFamily hdivfam);
 
 /** @} */
 

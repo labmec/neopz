@@ -1,0 +1,1 @@
+add_unit_test(TestHDivCollapsed TestHDivCollapsed.cpp)

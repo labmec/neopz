@@ -132,7 +132,7 @@ public:
 		 */
 		static void Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
-        static void ShapeCorner(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+        static void ShapeCorner(const TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
 		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
@@ -188,7 +188,7 @@ public:
 		 * @param phi (input/output) value of the  shape functions
 		 * @param dphi (input/output) value of the derivatives of the shape functions holding the derivatives in a column
 		 */
-		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+		static void ShapeGenerating(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
         /**
          * @brief Computes the generating shape functions for a quadrilateral element
@@ -196,7 +196,7 @@ public:
          * @param phi (input/output) value of the  shape functions
          * @param dphi (input/output) value of the derivatives of the shape functions holding the derivatives in a column
          */
-        static void ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+        static void ShapeGenerating(const TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
         {
             ShapeGenerating(pt, phi, dphi);
         }

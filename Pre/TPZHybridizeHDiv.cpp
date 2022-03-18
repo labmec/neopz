@@ -116,15 +116,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     }
     else
     {
-        int64_t index = fluxmesh->AllocateNewConnect(cleft);
-        TPZConnect &newcon = fluxmesh->ConnectVec()[index];
-        cleft.DecrementElConnected();
-        newcon.ResetElConnected();
-        newcon.IncrementElConnected();
-        newcon.SetSequenceNumber(fluxmesh->NConnects() - 1);
-
-        int rightlocindex = intelright->SideConnectLocId(0, right.Side());
-        intelright->SetConnectIndex(rightlocindex, index);
+        left.SplitConnect(right);
     }
     int sideorder = cleft.Order();
     fluxmesh->SetDefaultOrder(sideorder);
@@ -135,8 +127,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
         intelleft->LoadElementReference();
         intelleft->SetPreferredOrder(sideorder);
         TPZGeoElBC gbc(gleft, fHDivWrapMatid);
-        int64_t index;
-        wrap1 = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh, index);
+        wrap1 = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh);
         if(cleft.Order() != sideorder)
         {
             DebugStop();
@@ -156,8 +147,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
         int rightprevorder = cright.Order();
         intelright->SetPreferredOrder(cright.Order());
         TPZGeoElBC gbc(gright, fHDivWrapMatid);
-        int64_t index;
-        wrap2 = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh, index);
+        wrap2 = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh);
         if(cright.Order() != rightprevorder)
         {
             DebugStop();
@@ -251,22 +241,13 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     }
     else {
         for (auto& celside : cellsidestack){
-            int64_t newmeshindex = fluxmesh->AllocateNewConnect(cleft);
-            TPZConnect &newcon = fluxmesh->ConnectVec()[newmeshindex];
-            cleft.DecrementElConnected();
-            newcon.IncrementElConnected();
-            newcon.SetSequenceNumber(fluxmesh->NConnects() - 1);
-            
+            left.SplitConnect(celside);
             
             TPZInterpolatedElement *inteltochange = dynamic_cast<TPZInterpolatedElement *> (celside.Element());
             if (!inteltochange)
                 DebugStop();
-            
             inteltochange->SetSideOrient(celside.Side(), 1);
-            
             intelvec[count++] = inteltochange;
-            int oldelindex = inteltochange->SideConnectLocId(0, celside.Side());
-            inteltochange->SetConnectIndex(oldelindex, newmeshindex);
         }
     }
     int sideorder = cleft.Order();
@@ -281,8 +262,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
         intelleft->LoadElementReference();
         intelleft->SetPreferredOrder(sideorder);
         TPZGeoElBC gbc(gleft, fHDivWrapMatid); // creates geoelbc for side
-        int64_t index;
-        wrapleft = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh, index);
+        wrapleft = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh);
         if(cleft.Order() != sideorder)
         {
             DebugStop();
@@ -306,8 +286,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
         
         TPZGeoElSide gelside(celside.Reference());
         TPZGeoElBC gbc(gelside,fHDivWrapMatid);
-        int64_t index;
-        TPZCompEl* wrap = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh, index);
+        TPZCompEl* wrap = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh);
         wrapvec[i++] = wrap;
         if (con.Order() != prevorder)
             DebugStop();
@@ -341,7 +320,8 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     return std::make_tuple(pressureindex,pressureorder);
 }
 
-bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid, const bool isIntersectEnd) {
+bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid,
+                                          const bool isIntersectEnd) {
     
     // ==> Getting meshes
     TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
@@ -351,7 +331,18 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     
     // ==> Splitting flux mesh connect
     gmesh->ResetReference();
-    fluxmesh->LoadReferences();
+    if (fIdToHybridize != -1000){
+        for (auto cel : fluxmesh->ElementVec()) {
+            if(!cel) continue;
+            const int celmatid = cel->Reference()->MaterialId();
+            if (celmatid == fIdToHybridize) {
+                cel->LoadElementReference();
+            }
+        }
+    }
+    else {
+        fluxmesh->LoadReferences();
+    }    
     
     const bool isFractureIntersectionMesh = true;
     std::tuple<int64_t, int> pindexporder;
@@ -385,8 +376,7 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     int order;
     std::tie(elindex, order) = pindexporder;
     TPZGeoEl *gel = gmesh->Element(elindex);
-    int64_t celindex;
-    TPZCompEl *cel = pressuremesh->ApproxSpace().CreateCompEl(gel, *pressuremesh, celindex);
+    TPZCompEl *cel = pressuremesh->ApproxSpace().CreateCompEl(gel, *pressuremesh);
     TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cel);
     TPZCompElDisc *intelDisc = dynamic_cast<TPZCompElDisc *> (cel);
     if (intel){
@@ -458,8 +448,7 @@ void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hyb
         int order;
         std::tie(elindex, order) = pindex;
         TPZGeoEl *gel = gmesh->Element(elindex);
-        int64_t celindex;
-        TPZCompEl *cel = pressuremesh->ApproxSpace().CreateCompEl(gel, *pressuremesh, celindex);
+        TPZCompEl *cel = pressuremesh->ApproxSpace().CreateCompEl(gel, *pressuremesh);
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cel);
         TPZCompElDisc *intelDisc = dynamic_cast<TPZCompElDisc *> (cel);
         if (intel){
@@ -506,8 +495,8 @@ void TPZHybridizeHDiv::CreateInterfaceElementsForGeoEl(TPZCompMesh *cmesh_Hybrid
             if (celneigh->NConnects() != 1) {
                 DebugStop();
             }
-            int64_t index;
-            TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), index, celside, celstackside);
+            
+            TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), celside, celstackside);
             count++;
         }
     }
@@ -531,9 +520,8 @@ void TPZHybridizeHDiv::CreateInterfaceElementsForGeoEl(TPZCompMesh *cmesh_Hybrid
         clarge = glarge.Reference();
         if(!clarge) DebugStop();
         TPZGeoElBC gbc(gelside, fInterfaceMatid.second);
-
-        int64_t index;
-        TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), index, celside, clarge);
+        
+        TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), celside, clarge);
         count++;
     }
     
@@ -575,8 +563,8 @@ void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec
                 if (celneigh->NConnects() != 1) {
                     DebugStop();
                 }
-                int64_t index;
-                TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), index, celside, celstackside);
+                
+                TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), celside, celstackside);
                 count++;
             }
         }
@@ -600,9 +588,8 @@ void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec
             clarge = glarge.Reference();
             if(!clarge) DebugStop();
             TPZGeoElBC gbc(gelside, fInterfaceMatid.second);
-
-            int64_t index;
-            TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), index, celside, clarge);
+            
+            TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), celside, clarge);
             count++;
         }
         if (count != 2 && count != 0) {
@@ -735,8 +722,7 @@ void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh) {
         if(groupnum == -1) continue;
         auto iter = groupmap.find(groupnum);
         if (groupmap.find(groupnum) == groupmap.end()) {
-            int64_t index;
-            TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
+            TPZElementGroup *elgr = new TPZElementGroup(*cmesh);
             groupmap[groupnum] = elgr;
             elgr->AddElement(cmesh->Element(el));
         }
@@ -771,8 +757,7 @@ void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh, int lagrange
         if(groupnum == -1) continue;
         auto iter = groupmap.find(groupnum);
         if (groupmap.find(groupnum) == groupmap.end()) {
-            int64_t index;
-            TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
+            TPZElementGroup *elgr = new TPZElementGroup(*cmesh);
             groupmap[groupnum] = elgr;
             elgr->AddElement(cmesh->Element(el));
         }
@@ -853,21 +838,21 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
     int dim = cmesh_Hybrid->Dimension();
     
     if (!cmesh_Hybrid->FindMaterial(fLagrangeInterface)) {
-        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterface<<std::endl;
+//        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterface<<std::endl;
         auto matPerif = new TPZNullMaterialCS<STATE>(fLagrangeInterface);
         matPerif->SetNStateVariables(fNState);
         matPerif->SetDimension(dim-1);
         cmesh_Hybrid->InsertMaterialObject(matPerif);
     }
     if (!cmesh_Hybrid->FindMaterial(fLagrangeInterfaceEnd)) {
-        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterfaceEnd<<std::endl;
+//        std::cout<<"LagrangeInterface MatId "<<fLagrangeInterfaceEnd<<std::endl;
         auto matPerif = new TPZNullMaterialCS<STATE>(fLagrangeInterfaceEnd);
         matPerif->SetNStateVariables(fNState);
         matPerif->SetDimension(dim-1);
         cmesh_Hybrid->InsertMaterialObject(matPerif);
     }
     if (!cmesh_Hybrid->FindMaterial(fHDivWrapMatid)) {
-        std::cout<<"HDivWrapMatid MatId "<<fHDivWrapMatid<<std::endl;
+//        std::cout<<"HDivWrapMatid MatId "<<fHDivWrapMatid<<std::endl;
         auto matPerif = new TPZNullMaterialCS<STATE>(fHDivWrapMatid);
         matPerif->SetNStateVariables(fNState);
         matPerif->SetDimension(dim-1);
@@ -875,14 +860,14 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
     }
     if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid.first)) {
         
-        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
+//        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
         auto *matleft = new TPZLagrangeMultiplierCS<STATE>(fInterfaceMatid.first, dim - 1, fNState);
         matleft->SetMultiplier(Lagrange_term_multiplier);
         cmesh_Hybrid->InsertMaterialObject(matleft);
     }
     if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid.second)) {
         
-        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
+//        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
         auto *matleft = new TPZLagrangeMultiplierCS<STATE>(fInterfaceMatid.second, dim - 1, fNState);
         matleft->SetMultiplier(Lagrange_term_multiplier);
         cmesh_Hybrid->InsertMaterialObject(matleft);
@@ -1070,7 +1055,16 @@ void TPZHybridizeHDiv::GetAllConnectedCompElSides(TPZInterpolatedElement *intel,
         for (auto& cel : celstack) {
             TPZGeoEl *neigh = cel.Element()->Reference();
             if (neigh->Dimension() == gel->Dimension()) {
-                celsidestack.push_back(cel);
+                const int celmatid = cel.Element()->Reference()->MaterialId();
+                if (fIdToHybridize != -1000) {
+                    if (celmatid == fIdToHybridize) {
+                        celsidestack.push_back(cel);
+                    }
+                }
+                else {
+                    celsidestack.push_back(cel);
+                }
+                
             }
         } // cel
     } // else

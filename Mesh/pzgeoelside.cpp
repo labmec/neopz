@@ -390,9 +390,47 @@ void TPZGeoElSide::InsertConnectivity(TPZGeoElSide &neighbour)
 	{
 		TPZGeoElSide myl(fGeoEl,mylowerdimension[is]);
 		TPZGeoElSide neighl(neighbour.fGeoEl,neighbourlowerdimension[is]);
+#ifdef PZDEBUG
+        std::set<int64_t> mynodes,neighnodes;
+        int nsidenodes = myl.NSideNodes();
+        for (int is = 0; is<nsidenodes; is++) {
+            mynodes.insert(myl.SideNodeIndex(is));
+            neighnodes.insert(neighl.SideNodeIndex(is));
+        }
+        if(mynodes != neighnodes) DebugStop();
+#endif
 		myl.SetConnectivity(neighl);
 	}
-	
+}
+
+/**
+ * This method inserts the element/side and all lowerdimension sides into the connectivity loop
+ */
+void TPZGeoElSide::InsertConnectivity(TPZGeoElSide &neighbour, const TPZVec<int> &mapsides)
+{
+    if(!fGeoEl || !neighbour.fGeoEl) return;
+    
+    TPZStack<int> mylowerdimension, neighbourlowerdimension;
+    fGeoEl->LowerDimensionSides(fSide,mylowerdimension);
+    neighbour.fGeoEl->LowerDimensionSides(neighbour.fSide,neighbourlowerdimension);
+    SetConnectivity(neighbour);
+    int ns = mylowerdimension.NElements();
+
+    for(int is=0; is<ns; is++)
+    {
+        TPZGeoElSide myl(fGeoEl,mylowerdimension[mapsides[is]]);
+        TPZGeoElSide neighl(neighbour.fGeoEl,neighbourlowerdimension[is]);
+#ifdef PZDEBUG
+        std::set<int64_t> mynodes,neighnodes;
+        int nsidenodes = myl.NSideNodes();
+        for (int ss = 0; ss<nsidenodes; ss++) {
+            mynodes.insert(myl.SideNodeIndex(ss));
+            neighnodes.insert(neighl.SideNodeIndex(ss));
+        }
+        if(mynodes != neighnodes) DebugStop();
+#endif
+        myl.SetConnectivity(neighl);
+    }
 }
 
 void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const{

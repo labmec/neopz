@@ -5,6 +5,11 @@
 #include "TPZMixedDarcyFlow.h"
 #include "TPZMaterialDataT.h"
 #include "pzaxestools.h"
+#ifdef USING_MKL
+#include "mkl.h"
+#endif
+
+#define USEBLAS
 
 TPZMixedDarcyFlow::TPZMixedDarcyFlow() : TPZRegisterClassId(&TPZMixedDarcyFlow::ClassId),
                                          TBase(), fDim(-1) {}
@@ -13,6 +18,24 @@ TPZMixedDarcyFlow::TPZMixedDarcyFlow() : TPZRegisterClassId(&TPZMixedDarcyFlow::
                                                         TBase(id), fDim(dim)
 {
 }
+
+/**
+         copy constructor
+ */
+TPZMixedDarcyFlow::TPZMixedDarcyFlow(const TPZMixedDarcyFlow &copy) : TBase(copy), fDim(copy.fDim)
+{
+    
+}
+/**
+         copy constructor
+ */
+TPZMixedDarcyFlow &TPZMixedDarcyFlow::operator=(const TPZMixedDarcyFlow &copy)
+{
+    TBase::operator=(copy);
+    fDim = copy.fDim;
+    return *this;
+}
+
 
 void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek,
                                    TPZFMatrix<STATE> &ef) {
@@ -25,12 +48,13 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
     }
     const STATE perm = GetPermeability(datavec[0].x);
     const STATE inv_perm = 1 / perm;
-
+    
     // Setting the phis
     TPZFMatrix<REAL> &phiQ = datavec[0].phi;
     TPZFMatrix<REAL> &phip = datavec[1].phi;
     TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
     TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
+    TPZFMatrix<REAL> &divQ = datavec[0].divphi;
     TPZFNMatrix<9, REAL> dphiPXY(3, dphiP.Cols());
     TPZAxesTools<REAL>::Axes2XYZ(dphiP, dphiPXY, datavec[1].axes);
 
@@ -60,6 +84,86 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
     }
 #endif
 
+#if defined(USEBLAS) && defined(USING_MKL)
+    TPZFNMatrix<3, REAL> ivec(3, phrq, 0.);
+    for (int iq = 0; iq < phrq; iq++){
+        //ef(iq, 0) += 0.;
+        int ivecind = datavec[0].fVecShapeIndex[iq].first;
+        for (int id = 0; id < 3; id++) {
+            ivec(id, iq) = datavec[0].fDeformedDirections(id, ivecind);
+        }
+    }
+
+
+    /**
+       We cannot make the BLAS calls directly since
+       the dimensions dont match:
+       we are filling ek "blockwise".
+       any ideas on how to use TPZFMatrix::MultAdd?
+     **/
+    {
+        const double alpha = weight*inv_perm;
+        constexpr double beta = 1.0;
+        double *A, *B, *C;
+        int m,n,k;
+        m = phrq;
+        n = phrq;
+        k = 3;
+        int LDA,LDB,LDC;
+        LDA = 3;
+        LDB = 3;
+        LDC = ek.Rows();
+        A = &ivec(0,0);
+        B = &ivec(0,0);
+        C = &ek(0,0);
+        
+        cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
+                    m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
+        // ek = (weight/K) * (ivec^T ivec) + ek
+    }
+    
+    //contribution matrix B
+    if(phrp>0){
+        double *A, *B, *C;
+        const double alpha = - weight;
+        constexpr double beta = 1.0;
+        int m,n,k;
+        m = phrq;
+        n = phrp;
+        k = 1;
+        int LDA,LDB,LDC;
+        LDA = phrq;
+        LDB = phrp;
+        LDC = ek.Rows();
+        A = &divQ(0,0);
+        B = &phip(0,0);
+        C = &ek(0,phrq);
+        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
+                    m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
+        //ek = -weight* divQ phip^T + ek
+    }
+    //contribution matrix B^t
+    if(phrp>0){
+        double *A, *B, *C;
+        const double alpha = - weight;
+        constexpr double beta = 1.0;
+        int m,n,k;
+        m = phrp;
+        n = phrq;
+        k = 1;
+        int LDA,LDB,LDC;
+        LDA = phrp;
+        LDB = phrq;
+        LDC = ek.Rows();
+        A = &phip(0,0);
+        B = &divQ(0,0);
+        C = &ek(phrq,0);
+        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans,
+                    m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
+    }
+
+#else
+    
     //Calculate the matrix contribution for flux. Matrix A
     for (int iq = 0; iq < phrq; iq++) {
         //ef(iq, 0) += 0.;
@@ -91,7 +195,6 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         }
     }
 
-
     // Coupling terms between flux and pressure. Matrix B
     for (int iq = 0; iq < phrq; iq++) {
         int ivecind = datavec[0].fVecShapeIndex[iq].first;
@@ -119,6 +222,8 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
 
         }
     }
+    
+#endif
 
     // source term related to the pressure equation
     for (int ip = 0; ip < phrp; ip++) {
@@ -540,3 +645,4 @@ TPZMixedDarcyFlow::FillBoundaryConditionDataRequirements(int type, TPZVec<TPZMat
         }
     }
 }
+#undef USEBLAS

@@ -32,6 +32,7 @@ add_subdirectory(TestRandom)
 add_subdirectory(TestBlend)
 add_subdirectory(TestShape)
 add_subdirectory(TestMultithreading)
+add_subdirectory(TestHDivCollapsed)
 
 if(USING_MKL)
   add_subdirectory(TestSBFem)
