@@ -237,7 +237,7 @@ You can read more about these interfaces in the section <a class="reference inte
 <p>Actual materials should derive from <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase</span></a> </p>
 </div>
 </p>
-<p>Subclassed by <a class="reference internal" href="#classTPZMaterialT"><span class="std std-ref">TPZMaterialT&lt; TVar &gt;</span></a></p>
+<p>Subclassed by <a class="reference internal" href="#classTPZMaterialT"><span class="std std-ref">TPZMaterialT&lt; STATE &gt;</span></a>, <a class="reference internal" href="#classTPZMaterialT"><span class="std std-ref">TPZMaterialT&lt; CSTATE &gt;</span></a>, <a class="reference internal" href="#classTPZMaterialT"><span class="std std-ref">TPZMaterialT&lt; TVar &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-constructors">Constructors</p>
 <dl class="cpp function">
@@ -359,7 +359,7 @@ You can read more about these interfaces in the section <a class="reference inte
 <p>Actual materials should derive from <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase</span></a> </p>
 </div>
 </p>
-<p>Subclassed by <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase&lt; STATE, TPZMatSingleSpaceT&lt; STATE &gt;, TPZMatInterfaceSingleSpace&lt; STATE &gt; &gt;</span></a>, <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase&lt; STATE, TPZMatSingleSpaceT&lt; STATE &gt;, TPZMatErrorSingleSpace&lt; STATE &gt;, TPZIsotropicPermeability &gt;</span></a>, <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase&lt; STATE, TPZMatSingleSpaceT&lt; STATE &gt;, TPZMatErrorSingleSpace&lt; STATE &gt;, TPZMatLoadCases&lt; STATE &gt; &gt;</span></a>, <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase&lt; STATE, TPZMatSingleSpaceT&lt; STATE &gt;, TPZMatErrorSingleSpace&lt; STATE &gt; &gt;</span></a>, <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase&lt; TVar, TPZMatSingleSpaceT&lt; TVar &gt;, TPZMatInterfaceSingleSpace&lt; TVar &gt; &gt;</span></a>, <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase&lt; TVar, TPZMatCombinedSpacesT&lt; TVar &gt;, TPZMatInterfaceCombinedSpaces&lt; TVar &gt; &gt;</span></a>, <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase&lt; STATE, TPZMatCombinedSpacesT&lt; STATE &gt;, TPZMatErrorCombinedSpaces&lt; STATE &gt;, TPZIsotropicPermeability &gt;</span></a>, <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase&lt; STATE, TPZMatSingleSpaceT&lt; STATE &gt; &gt;</span></a>, <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase&lt; STATE, TPZMatCombinedSpacesT&lt; STATE &gt; &gt;</span></a>, <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase&lt; CSTATE, TPZMatCombinedSpacesT&lt; CSTATE &gt;, TPZMatGeneralisedEigenVal &gt;</span></a>, <a class="reference internal" href="#classTPZBndCondBase"><span class="std std-ref">TPZBndCondBase&lt; TVar, Interfaces &gt;</span></a>, <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase&lt; TVar, Interfaces &gt;</span></a></p>
+<p>Subclassed by <a class="reference internal" href="#classTPZBndCondBase"><span class="std std-ref">TPZBndCondBase&lt; TVar, Interfaces &gt;</span></a>, <a class="reference internal" href="#classTPZMatBase"><span class="std std-ref">TPZMatBase&lt; TVar, Interfaces &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-forcingfunction">ForcingFunction</p>
 <dl class="cpp function">
@@ -564,8 +564,11 @@ It requests to the material which attributes must be computed by the computation
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N15TPZMaterialData5dphixE">
 <span id="_CPPv3N15TPZMaterialData5dphixE"></span><span id="_CPPv2N15TPZMaterialData5dphixE"></span><span id="TPZMaterialData::dphix__TPZFNMatrix:MatDataNumDPhi.REAL:"></span><span class="target" id="classTPZMaterialData_1aca725a7ba5cdd77101e979d1855f4a44"></span><span class="n"><span class="pre">TPZFNMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">MatDataNumDPhi</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dphix</span></span></span><a class="headerlink" href="#_CPPv4N15TPZMaterialData5dphixE" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Values of the derivative of the shape functions over the master element. </p>
-<p>Values of the derivative of the shape functions </p>
+<dd><p>Values of the derivative of the shape functions in the deformed element. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This derivative is calculated in the element axes. For obtaining the derivative in the xyz-coordinate system, one should call TPZAxesTools&lt;REAL&gt;::Axes2XYZ(dphix, dphix_xyz, data.axes) in the contribute method. </p>
+</div>
 </dd></dl>
 
 <dl class="cpp var">
@@ -638,12 +641,6 @@ It requests to the material which attributes must be computed by the computation
 <dt class="sig sig-object cpp" id="_CPPv4N15TPZMaterialData7XCenterE">
 <span id="_CPPv3N15TPZMaterialData7XCenterE"></span><span id="_CPPv2N15TPZMaterialData7XCenterE"></span><span id="TPZMaterialData::XCenter__TPZManVector:REAL.3:"></span><span class="target" id="classTPZMaterialData_1a820201ac2b85df2372ae3692ca665718"></span><span class="n"><span class="pre">TPZManVector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">XCenter</span></span></span><a class="headerlink" href="#_CPPv4N15TPZMaterialData7XCenterE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Value of the coordinate at the center of the element. </p>
-</dd></dl>
-
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N15TPZMaterialData7gelElIdE">
-<span id="_CPPv3N15TPZMaterialData7gelElIdE"></span><span id="_CPPv2N15TPZMaterialData7gelElIdE"></span><span id="TPZMaterialData::gelElId__i"></span><span class="target" id="classTPZMaterialData_1ae8977c1f64d842313f59ab05e7778957"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gelElId</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N15TPZMaterialData7gelElIdE" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Directions on the master element. </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -1096,9 +1093,9 @@ see <a class="reference internal" href="singlespace.html"><span class="doc">The 
 <p>However, special care must be taken due to the materials associated with boundary conditions: In some cases the boundary condition material might need to forward function calls to its associated material, or sometimes it needs to be cast to the interface type.</p>
 <p>For this to happen, an auxiliary class for the interface is needed, as it can be seen in the following example:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">//forward declare bc auxiliary class</span>
-<span class="k">class</span> <span class="nc">TPZMyInterfaceBC</span><span class="p">;</span><span class="w"></span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TPZMyInterfaceBC</span><span class="p">;</span><span class="w"></span>
 
-<span class="k">class</span> <span class="nc">TPZMyInterface</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">TPZSavable</span><span class="p">{</span><span class="w"></span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TPZMyInterface</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">TPZSavable</span><span class="p">{</span><span class="w"></span>
 <span class="k">public</span><span class="o">:</span><span class="w"></span>
 <span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">TInterfaceBC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TPZMyInterfaceBC</span><span class="p">;</span><span class="w"></span>
 <span class="w">  </span><span class="c1">//declare all the virtual methods and etc as usual</span>
@@ -1111,9 +1108,9 @@ see <a class="reference internal" href="singlespace.html"><span class="doc">The 
 <span class="p">};</span><span class="w"></span>
 
 <span class="c1">//maybe this forward declaration is needed</span>
-<span class="k">class</span> <span class="nc">TPZMaterial</span><span class="p">;</span><span class="w"></span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TPZMaterial</span><span class="p">;</span><span class="w"></span>
 
-<span class="k">class</span> <span class="nc">TPZMyInterfaceBC</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">TPZMyInterface</span><span class="p">{</span><span class="w"></span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TPZMyInterfaceBC</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">TPZMyInterface</span><span class="p">{</span><span class="w"></span>
 <span class="k">protected</span><span class="o">:</span><span class="w"></span>
 <span class="w">  </span><span class="n">TPZMyInterface</span><span class="w"> </span><span class="o">*</span><span class="n">fMatMyInterface</span><span class="p">{</span><span class="k">nullptr</span><span class="p">};</span><span class="w"></span>
 <span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">SetMaterialImpl</span><span class="p">(</span><span class="n">TPZMaterial</span><span class="o">*</span><span class="w"> </span><span class="n">mat</span><span class="p">){</span><span class="w"></span>
