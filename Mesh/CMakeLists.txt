@@ -61,8 +61,6 @@ set(headers
   TPZCompElHDivConstantBC.h
   TPZCompElKernelHDiv.h
   TPZCompElKernelHDiv3D.h
-  TPZCompElKernelHDivBC.h
-  TPZCompElKernelHDivBC3D.h
   TPZCompElHCurlNoGrads.h
   TPZHCurlEquationFilter.h
 )
@@ -118,8 +116,6 @@ set(sources
   TPZCompElHDivConstantBC.cpp
   TPZCompElKernelHDiv.cpp
   TPZCompElKernelHDiv3D.cpp
-  TPZCompElKernelHDivBC.cpp
-  TPZCompElKernelHDivBC3D.cpp
   TPZCompElHCurlNoGrads.cpp
   TPZHCurlEquationFilter.cpp
 )

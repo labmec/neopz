@@ -7,8 +7,8 @@
 #include "TPZMaterialData.h"
 #include "TPZMaterialDataT.h"
 #include "TPZShapeHDivKernel2D.h"
-#include <TPZCompElHCurl.h>
 #include "pzcmesh.h"
+#include "TPZMatSingleSpace.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.strmatrix");
@@ -18,39 +18,93 @@ template<class TSHAPE>
 TPZCompElKernelHDiv<TSHAPE>::TPZCompElKernelHDiv(TPZCompMesh &mesh, TPZGeoEl *gel) :
 TPZRegisterClassId(&TPZCompElKernelHDiv::ClassId), TPZCompElH1<TSHAPE>(mesh,gel) {
 
+    //Updates the number of shape functions and also the integration rule
+    for (int icon = 0; icon < this->NConnects(); icon++)
+    {
+        TPZConnect &c = this->Connect(icon);
+        int nShapeF = NConnectShapeF(icon,c.Order());
+        c.SetNShape(nShapeF);
+        int64_t seqnum = c.SequenceNumber();
+        int nvar = 1;
+        TPZMaterial * mat = this->Material();
+        if (mat) nvar = mat->NStateVariables();
+        this->Mesh()->Block().Set(seqnum, nvar * nShapeF);
+        this->AdjustIntegrationRule();
+    }
 }
+
+// The MaxOrder of the elements is increased by one to be compatible with the approximation space;
+// For triangles it needs to be increased by two as the internal connect has higher polynomial order
+template<class TSHAPE>
+int TPZCompElKernelHDiv<TSHAPE>::MaxOrder(){
+    int maxorder = TPZInterpolationSpace::MaxOrder();
+
+    return maxorder + 1;
+}
+
 
 template<class TSHAPE>
 void TPZCompElKernelHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
-	TPZCompElH1<TSHAPE>::InitMaterialData(data);
+    data.gelElId = this->Reference()->Id();
+    auto *mat =
+        dynamic_cast<TPZMatSingleSpace*>(this->Material());
+#ifdef PZDEBUG
+    if(!mat)
+    {
+        DebugStop();
+    }
+#endif
 
-    const int nSides = TSHAPE::NSides;
-    const int nCorner = TSHAPE::NCornerNodes;
-    TPZManVector<int64_t,nCorner> ids(nCorner,0);
-    for(auto i=0; i<nCorner; i++) ids[i] = i;
-    
-    data.fSideTransformationId.Resize(nSides-nCorner, 0);
-    for (int iside =nCorner; iside< nSides ; iside++) {
-        int pos = iside - nCorner;
-        int trans_id = TSHAPE::GetTransformId(iside, ids); // Foi criado
-        data.fSideTransformationId[iside-nCorner] = trans_id;
+    TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes);
+    TPZManVector<int,TSHAPE::NSides> orders(TSHAPE::NSides-TSHAPE::NCornerNodes);
+    TPZManVector<int,TSHAPE::NFacets> sideorient(TSHAPE::NFacets,0);
+    TPZGeoEl *gel = this->Reference();
+    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
+    for(int i=TSHAPE::NCornerNodes; i<TSHAPE::NSides; i++) orders[i-TSHAPE::NCornerNodes] = this->Connect(i).Order()+1;
+    if (TSHAPE::Type() == ETriangle){
+        orders[TSHAPE::NSides-TSHAPE::NCornerNodes-1]++;
+    }
+    TPZShapeData &shapedata = data;
+
+    TPZShapeH1<TSHAPE>::Initialize(ids, orders, shapedata);
+
+    mat->FillDataRequirements(data);
+    const int dim = this->Dimension();
+    const int nshape = data.fPhi.Rows();
+    const int nstate = this->Material()->NStateVariables();
+    data.fShapeType = TPZMaterialData::EScalarShape;
+    data.phi.Redim(nshape,1);
+    data.fDeformedDirections.Redim(3,nshape);
+//    data.dphi.Redim(dim,nshape);
+    data.dphix.Redim(dim,nshape);
+    data.axes.Redim(dim,3);
+    data.jacobian.Redim(dim,dim);
+    data.jacinv.Redim(dim,dim);
+    data.x.Resize(3);
+    if (data.fNeedsSol){
+        uint64_t ulen,durow,ducol;
+        mat->GetSolDimensions(ulen,durow,ducol);
+        data.SetSolSizes(nstate, ulen, durow, ducol);
+    }
+    if(data.fNeedsNeighborCenter)
+    {
+        TPZGeoElSide gelside(gel);
+        gelside.CenterX(data.XCenter);
     }
 
-    int nshape = this->NShapeF();
-    // int64_t numvec = TSHAPE::Dimension*TSHAPE::NSides;
-    data.fMasterDirections.Resize(3, nshape);
-	for (int i = 0; i < 3; i++)
-		for (int j = 0; j < nshape; j++)
-			data.fMasterDirections(i,j) = 1;
+	// TPZCompElH1<TSHAPE>::InitMaterialData(data);
 
+    // int nshape = this->NShapeF();
+
+    data.divphi.Resize(nshape,1);
     data.divphi.Zero();
     
     data.fVecShapeIndex.Resize(nshape);
     for (int i=0; i<nshape; i++) {
 		data.fVecShapeIndex[i] = std::make_pair(i,1);
     }
-    data.fDeformedDirections.Resize(3,nshape);
+ 
 }
 
 
@@ -61,54 +115,44 @@ void TPZCompElKernelHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData
     data.fNeedsSol = true;
     data.fNeedsSol = needsol;
     TPZCompElH1<TSHAPE>::ComputeShape(qsi,data);
+    auto dim = TSHAPE::Dimension;
 
     TPZShapeData &shapedata = data;
     int nshape = this->NShapeF();
-    TPZFMatrix<REAL> auxPhi(2,nshape);
+    TPZFMatrix<REAL> auxPhi(dim,nshape);
     auxPhi.Zero();
 
     TPZShapeHDivKernel2D<TSHAPE>::Shape(qsi, shapedata, auxPhi, data.divphi);
 
-    TPZFMatrix<REAL> gradx, aux2(3,auxPhi.Cols());
-    this->Reference()->GradX(qsi,gradx);
-
-    const auto nCorner = TSHAPE::NCornerNodes;
-
-    aux2.Zero();
-    gradx.MultAdd(auxPhi,data.phi,aux2,1/data.detjac,0);
-    // std::cout << "AUX2 " << aux2 << std::endl;
-    data.fDeformedDirections = aux2;
-
-    data.phi.Resize(auxPhi.Cols(),3);
-    data.divphi.Resize(auxPhi.Cols(),1);
-    data.divphi.Zero();
-    data.phi = 1.;
-    // data.phi.Transpose(&aux2);
-    // std::cout << "PHI = " << data.phi << std::endl;
-// #ifdef PZ_LOG
-//     if (logger.isDebugEnabled())
-//     {
-//         std::stringstream sout;
-//         //	this->Print(sout);
-//         // sout << "\nVecshape = " << data.fVecShapeIndex << std::endl;
-//         // sout << "MASTER = " << data.fMasterDirections << std::endl;
-//         sout << "\nPhi = " << data.phi << std::endl;
-//         LOGPZ_DEBUG(logger,sout.str())
-        
-//     }
-// #endif
-
+    switch (dim)
+    {
+    case 1:
+        if (data.phi.Rows()>1){
+            for (int i = 0; i < data.phi.Rows(); i++){
+                data.phi(i,0) = -auxPhi(0,i)/data.detjac;//Used to assemble the load vector
+                data.fDeformedDirections(0,i) = data.phi(i,0);//Used to compute the solution
+            }
+        }
+        break;
+    case 2:
+        {
+            TPZFMatrix<REAL> gradx;
+            this->Reference()->GradX(qsi,gradx);
+            const auto nCorner = TSHAPE::NCornerNodes;
+            gradx.MultAdd(auxPhi,data.phi,data.fDeformedDirections,1/data.detjac,0);
+            data.phi.Resize(auxPhi.Cols(),3);
+            data.phi = 1.;
+        }
+        break;
+    
+    default:
+        DebugStop();
+        break;
+    }
+    
 }//void
 
-template<class TSHAPE>
-void TPZCompElKernelHDiv<TSHAPE>::SetSideOrient(int orient){
-    fSideOrient = orient;
-}
 
-template<class TSHAPE>
-int TPZCompElKernelHDiv<TSHAPE>::GetSideOrient(){
-    return fSideOrient;
-}
 
 template<class TSHAPE>
 void TPZCompElKernelHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol)
@@ -166,78 +210,58 @@ void TPZCompElKernelHDiv<TSHAPE>::ComputeSolutionKernelHdivT(TPZMaterialDataT<TV
     TPZBlock &block =this->Mesh()->Block();
     int ishape=0,ivec=0,counter=0;
 
-
-
-    // TPZFMatrix<TVar> dsolX(3,1);
-    // // const auto &sol = data.sol[0];
-    // const auto &dsol = data.dsol[0];
-    // TPZAxesTools<TVar>::Axes2XYZ(dsol,dsolX,data.axes);
-
-//     int nshapeV = data.fVecShapeIndex.NElements();
-
     for(int in=0; in<ncon; in++)
     {
         TPZConnect *df = &this->Connect(in);
         int64_t dfseq = df->SequenceNumber();
         int dfvar = block.Size(dfseq);
-//         // pos : position of the block in the solution matrix
+        // pos : position of the block in the solution matrix
         int64_t pos = block.Position(dfseq);
 
-//         /// ish loops of the number of shape functions associated with the block
+        /// ish loops of the number of shape functions associated with the block
         for(int ish=0; ish<dfvar/nstate; ish++)
         {
             ishape  = data.fVecShapeIndex[counter].first;
             for(int idf=0; idf<nstate; idf++)
             {
-                TVar meshsol = MeshSol(pos+ish*nstate+idf,0);
-                REAL phival = data.phi(ishape,0);
-                //Computes sol and dsol
-                // data.sol[0][dim*idf] += phival*meshsol;
-                // data.dsol[0](dim*idf,0)+= meshsol * dphix(0,ishape);
-                // data.dsol[0](dim*idf,1)+= meshsol * dphix(1,ishape);
-
+                TVar meshsol = MeshSol(pos+ish*nstate+idf,0);                
                 //Compute rotated flux
-                data.sol[0][dim*idf+0] -= meshsol * dphix(1,ishape);
-                data.sol[0][dim*idf+1] += meshsol * dphix(0,ishape);
+                data.sol[0][dim*idf+0] -= meshsol * data.fDeformedDirections(0,ishape);
+                data.sol[0][dim*idf+1] -= meshsol * data.fDeformedDirections(1,ishape);
             }
             counter++;
         }
     }
-    // data.sol[1][0] = 0.;
-    // data.sol[0][0] = -data.dsol[0](0,1);
-    // data.sol[0][1] = data.dsol[0](0,0);
-    // data.sol[0][2] = 0.;
 }
 
-#include "pzshapelinear.h"
-#include "TPZRefLinear.h"
-#include "pzrefquad.h"
-#include "pzshapequad.h"
-#include "pzgeoquad.h"
-#include "pzshapetriang.h"
-#include "pzreftriangle.h"
-#include "pzgeotriangle.h"
-#include "pzrefpoint.h"
-#include "pzgeopoint.h"
+template<class TSHAPE>
+int TPZCompElKernelHDiv<TSHAPE>::NConnectShapeF(int connect, int order) const{
+    if (TSHAPE::Type() == ETriangle && connect == 6) order++;// For triangles, the internal shape function is one degree higher
+    order++;
+    return TPZCompElH1<TSHAPE>::NConnectShapeF(connect,order);
+}
+
+
 #include "pzshapepoint.h"
-#include "pzgraphelq2dd.h"
-#include "tpzgraphelt3d.h"
-#include "pzgraphel1dd.h"
-#include "pztrigraphd.h"
-#include "pzgraphelq3dd.h"
-#include "tpzgraphelt2dmapped.h"
+#include "pzshapelinear.h"
+#include "pzshapequad.h"
+#include "pzshapetriang.h"
 
-using namespace pztopology;
-
-// #include "tpzpoint.h"
-// #include "tpzline.h"
-#include "tpzquadrilateral.h"
-#include "tpztriangle.h"
-
-// #include "TPZCompElHCurl.h"
-
-using namespace pzgeom;
 using namespace pzshape;
 
+template class TPZCompElKernelHDiv<TPZShapeLinear>;
 template class TPZCompElKernelHDiv<TPZShapeTriang>;
 template class TPZCompElKernelHDiv<TPZShapeQuad>;
+
+//BC
+TPZCompEl * CreateHDivKernelBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElKernelHDiv< TPZShapeLinear>(mesh,gel);
+}
+
+//Domain
+TPZCompEl * CreateHDivKernelQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElKernelHDiv< TPZShapeQuad>(mesh,gel);
+}
+TPZCompEl * CreateHDivKernelTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElKernelHDiv< TPZShapeTriang >(mesh,gel);
+}

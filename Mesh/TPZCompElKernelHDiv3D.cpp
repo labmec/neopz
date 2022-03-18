@@ -17,7 +17,9 @@
 #include "pzshapepiram.h"
 // #include "tpzline.h"
 #include "tpztriangle.h"
-#include "TPZShapeHDivKernel.h"
+#include "TPZShapeHCurlNoGrads.h"
+#include <pzconnect.h>
+#include <pzcmesh.h>
 
 #include "pzshtmat.h"
 
@@ -29,177 +31,136 @@ static TPZLogger logger("pz.strmatrix");
 using namespace std;
 
 template<class TSHAPE>
-TPZCompElKernelHDiv3D<TSHAPE>::TPZCompElKernelHDiv3D(TPZCompMesh &mesh, TPZGeoEl *gel, int shapetype) :
-TPZRegisterClassId(&TPZCompElKernelHDiv3D::ClassId), TPZCompElHCurlNoGrads<TSHAPE>(mesh,gel), fSideOrient(TSHAPE::NFacets,1), fShapeType(shapetype) {
+TPZCompElKernelHDiv3D<TSHAPE>::TPZCompElKernelHDiv3D(TPZCompMesh &mesh, TPZGeoEl *gel, const HDivFamily hdivfam) :
+TPZRegisterClassId(&TPZCompElKernelHDiv3D::ClassId), TPZCompElHCurl<TSHAPE>(mesh,gel,HCurlFamily::EHCurlNoGrads),
+                  fhdivfam(hdivfam) {
     int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
-    for(int side = firstside ; side < TSHAPE::NSides-1; side++ )
-    {
-        fSideOrient[side-firstside] = this->Reference()->NormalOrientation(side);
+    
+    //Updates the number of shape functions and also the integration rule
+    if (TSHAPE::Type() == ETetraedro || TSHAPE::Type() == ETriangle){
+        for (int icon = 0; icon < this->NConnects(); icon++)
+        {
+            TPZConnect &c = this->Connect(icon);
+            int nShapeF = NConnectShapeF(icon,c.Order());
+            c.SetNShape(nShapeF);
+            int64_t seqnum = c.SequenceNumber();
+            int nvar = 1;
+            TPZMaterial * mat = this->Material();
+            if (mat) nvar = mat->NStateVariables();
+            this->Mesh()->Block().Set(seqnum, nvar * nShapeF);
+            this->AdjustIntegrationRule();
+        }
     }
-}
-
-template<class TSHAPE>
-TPZCompElKernelHDiv3D<TSHAPE>::~TPZCompElKernelHDiv3D(){
-    this->~TPZCompElHCurlNoGrads<TSHAPE>();
 }
  
 
 template<class TSHAPE>
-template<class TVar>
-void TPZCompElKernelHDiv3D<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
-                                                TPZVec<REAL> &qsi){
+void TPZCompElKernelHDiv3D<TSHAPE>::InitMaterialData(TPZMaterialData &data){
+
+	TPZIntelGen<TSHAPE>::InitMaterialData(data);
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled()){
+        LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHCurl")
+    }
+#endif
+    data.fShapeType = TPZMaterialData::MShapeFunctionType::EVecShape;
+    TPZShapeData & shapedata = data;
+
+    TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes,0);
+    TPZGeoEl *ref = this->Reference();
+    for(auto i=0; i<TSHAPE::NCornerNodes; i++) {
+        ids[i] = ref->NodePtr(i)->Id();
+    }
+    
+    auto &conOrders = shapedata.fHDivConnectOrders;
+    constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
+    conOrders.Resize(nConnects,-1);
+    // For Tetrahedra we increase the polynomial order by one. The internal connect is increased by two
+    int ordTop = 0;
+    if (TSHAPE::Type() == ETetraedro || TSHAPE::Type() == ETriangle) ordTop = 1;
+    for(auto i = 0; i < nConnects; i++){
+        conOrders[i] = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes) + ordTop;
+    }
+    if (TSHAPE::Type() == ETetraedro){
+        conOrders[nConnects-1]++;
+    }
+
+    TPZShapeHCurlNoGrads<TSHAPE>::Initialize(ids, conOrders, shapedata);
+
+    //resizing of TPZMaterialData structures
+    constexpr int dim = TSHAPE::Dimension;
+    constexpr int curldim = [dim](){
+        if constexpr (dim == 1) return 1;
+        else{
+            return 2*dim - 3;//1 for 2D 3 for 3D
+        }
+    }();
+    const int nshape = this->NShapeF();
+    
+    auto &phi = data.phi;
+    auto &curlphi = data.curlphi;
+    
+    phi.Redim(nshape,3);
+    curlphi.Redim(curldim,nshape);
+    data.divphi.Redim(nshape,1);
+
+    data.axes.Redim(dim,3);
+    data.jacobian.Redim(dim,dim);
+    data.jacinv.Redim(dim,dim);
+    data.x.Resize(3);
+    data.fDeformedDirections.Resize(3,nshape);
+    data.fVecShapeIndex.Resize(nshape);
+
+}
+
+
+template<class TSHAPE>
+void TPZCompElKernelHDiv3D<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data){
                                                 
     bool needsol = data.fNeedsSol;
     data.fNeedsSol = true;
-    if (fShapeType == ECurlNoGrads) {
-        TPZCompElHCurlNoGrads<TSHAPE>::ComputeRequiredData(data,qsi);
-    } else {
-        //Compute the element geometric data
-        TPZGeoEl * ref = this->Reference();
-        if (!ref){
-            PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
-            return;
-        }
 
-        ref->Jacobian(qsi, data.jacobian, data.axes, data.detjac , data.jacinv);
-        ref->X(qsi, data.x);
-        data.xParametric = qsi;
-        
-        constexpr auto dim{TSHAPE::Dimension};
-        int nshape = 0;
-        nshape = TPZShapeHDivKernel<TSHAPE>::NHDivShapeF(data);
-        
-        TPZFMatrix<REAL> phiAux(dim,nshape),divphiAux(nshape,1);
-        phiAux.Zero(); divphiAux.Zero();
+    auto nshape = this->NShapeF();
+    TPZFMatrix<REAL> phiHCurl(3,nshape,0.);
+    TPZFMatrix<REAL> curlHCurl(3,nshape,0.);
 
-        TPZShapeHDivKernel<TSHAPE>::Shape(qsi,data,phiAux,divphiAux);
-
-        TPZCompElHCurl<TSHAPE>::TransformCurl(phiAux, data.detjac, data.jacobian, data.curlphi);
-
-        const int ncorner = TSHAPE::NCornerNodes;
-        int nEdges = TSHAPE::NumSides(1);
-        const int nsides = TSHAPE::NSides;
-
-        data.divphi = divphiAux;
-    
-        if (data.fNeedsSol) {
-            this->ReallyComputeSolution(data);
-        }
-    }
+    TPZShapeHCurlNoGrads<TSHAPE>::Shape(qsi,data,phiHCurl,curlHCurl);
+    TPZCompElHCurl<TSHAPE>::TransformCurl(curlHCurl, data.detjac, data.jacobian, data.curlphi);    
     
     data.fNeedsSol = needsol;
+    if (TSHAPE::Dimension == 3){        
+        TPZShapeData &shapedata = data;
+        int size = data.curlphi.Cols();
+        if (size != nshape) DebugStop();
+        int ncorner = TSHAPE::NCornerNodes;
+        data.fDeformedDirections = data.curlphi;
+        data.phi = 1.;
+        data.dphix = 1.;
+        
+    } else if (TSHAPE::Dimension == 2) {
+        if (data.phi.Rows()>1){
+            for (int i = 0; i < data.phi.Rows(); i++){
+                data.phi(i,0) = data.curlphi(0,i);
+            }
+        }
+    } else {
+        DebugStop();
+    }
 
-    int nshape = this->NShapeF();
-    data.fDeformedDirections.Resize(3,nshape);
-    data.fVecShapeIndex.Resize(nshape);
-    TPZShapeData &shapedata = data;
-    int size = data.curlphi.Cols();
-
-    if (size != nshape) DebugStop();
-    int ncorner = TSHAPE::NCornerNodes;
     for (int j = 0; j < nshape; j++){
         data.fVecShapeIndex[j].first = j;
         data.fVecShapeIndex[j].second = j;
-        for (int i = 0; i < 3; i++){
-            data.fDeformedDirections(i,j)=data.curlphi(i,j);
-        }
-    }
-    
-    // data.fDeformedDirections=data.curlphi;
-
-#ifdef PZ_LOG
-    if (logger.isDebugEnabled())
-    {
-        std::stringstream sout;
-        //	this->Print(sout);
-        // sout << "\nVecshape = " << data.fVecShapeIndex << std::endl;
-        // sout << "Phi = " << data.fDeformedDirections << std::endl;
-        LOGPZ_DEBUG(logger,sout.str())
-        
-    }
-#endif
-
-    data.phi.Resize(nshape,3);
-    REAL val = 1.;
-
-    for (int i = 0; i < data.phi.Rows(); i++){
-		data.phi(i,0) = val;
-        data.phi(i,1) = val;
-        data.phi(i,2) = val;
-	}
-
-	for (int i = 0; i < data.dphix.Rows(); i++)
-        for (int j = 0; j < data.dphix.Cols(); j++)
-    	    	data.dphix(i,j) = 1.;
-    
-    // for (int i=0; i<data.fVecShapeIndex.size(); i++) {
-	// 	data.fVecShapeIndex[i] = std::make_pair(i,1);
-    // }
-    if (data.fNeedsSol) {
-        this->ReallyComputeSolution(data);
     }
 
 }//void
 
-template<class TSHAPE>
-void TPZCompElKernelHDiv3D<TSHAPE>::InitMaterialData(TPZMaterialData &data)
-{
-	data.fNeedsSol = true;
-	if (fShapeType == ECurlNoGrads) {
-        TPZCompElHCurlNoGrads<TSHAPE>::InitMaterialData(data);
-    } else {
-        //Init the material data of Hcurl
-        TPZCompElHCurl<TSHAPE>::InitMaterialData(data);
-        
-        TPZShapeData dataaux = data;
-        data.fVecShapeIndex=dataaux.fSDVecShapeIndex;
-        data.divphi.Resize(data.fVecShapeIndex.size(),1);
-        TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(data);
-            
-        //setting the type of shape functions as vector shape functions
-        data.fShapeType = TPZMaterialData::EVecShape;
-    }
-
-    data.fShapeType = data.EVecandShape;
-    
-}
-
-/**
- * @brief It returns the normal orientation of the reference element by the side.
- * Only side that has dimension larger than zero and smaller than me.
- * @param side: side of the reference elemen
- */
-template<class TSHAPE>
-int TPZCompElKernelHDiv3D<TSHAPE>::GetSideOrient(int side){
-
-    int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
-    if (side < firstside || side >= TSHAPE::NSides - 1) {
-        DebugStop();
-    }
-    return fSideOrient[side-firstside];
-}
-
-/**
- * @brief It set the normal orientation of the element by the side.
- * Only side that has dimension equal to my dimension minus one.
- * @param side: side of the reference elemen
- */
-template<class TSHAPE>
-void TPZCompElKernelHDiv3D<TSHAPE>::SetSideOrient(int side, int sideorient){
-
-    int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
-    if (side < firstside || side >= TSHAPE::NSides - 1) {
-        DebugStop();
-    }
-    fSideOrient[side-firstside] = sideorient;
-}
 
 template<class TSHAPE>
 template<class TVar>
 void TPZCompElKernelHDiv3D<TSHAPE>::ComputeSolutionKernelHdivT(TPZMaterialDataT<TVar> &data)
 {
-    TPZCompElHCurlNoGrads<TSHAPE>::ReallyComputeSolution(data);
-    // data.fDeformedDirections=data.curlphi;
+    this->ComputeSolutionHCurlT(data.phi, data.curlphi,
+                                data.sol, data.curlsol);
 
     const int dim = 3; // Hdiv vectors are always in R3
     const int nstate = this->Material()->NStateVariables();
@@ -229,25 +190,68 @@ void TPZCompElKernelHDiv3D<TSHAPE>::ComputeSolutionKernelHdivT(TPZMaterialDataT<
 
 }
 
+template<class TSHAPE>
+int TPZCompElKernelHDiv3D<TSHAPE>::NConnectShapeF(int icon, int order) const
+{
+    if (TSHAPE::Type() == ETetraedro || TSHAPE::Type() == ETriangle){
+        order++;
+        if (icon == 10){//the internal connect
+            order++;
+        }
+    }
+    return TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(icon,order);
+}
 
+// The MaxOrder of the boundary elements is increased by one to be compatible with the approximation space;
+// For Tetrahedron, it needs to be increased by two as the internal connect has higher polynomial order
+template<class TSHAPE>
+int TPZCompElKernelHDiv3D<TSHAPE>::MaxOrder(){
+    int maxorder = TPZInterpolationSpace::MaxOrder();
+    
+    return maxorder +1;
+}
+
+
+#include "pzshapelinear.h"
+#include "pzshapequad.h"
+#include "pzshapepoint.h"
+#include "pzshapetriang.h"
 #include "pzshapecube.h"
 #include "pzshapetetra.h"
 #include "pzshapeprism.h"
 
-using namespace pztopology;
-
-#include "tpzcube.h"
-#include "tpztetrahedron.h"
-#include "tpzprism.h"
-
 using namespace pzgeom;
 using namespace pzshape;
 
-
+template class TPZRestoreClass< TPZCompElKernelHDiv3D<TPZShapeTriang>>;
+template class TPZRestoreClass< TPZCompElKernelHDiv3D<TPZShapeQuad>>;
 template class TPZRestoreClass< TPZCompElKernelHDiv3D<TPZShapeCube>>;
 template class TPZRestoreClass< TPZCompElKernelHDiv3D<TPZShapeTetra>>;
 template class TPZRestoreClass< TPZCompElKernelHDiv3D<TPZShapePrism>>;
 
+template class TPZCompElKernelHDiv3D<TPZShapeTriang>;
+template class TPZCompElKernelHDiv3D<TPZShapeQuad>;
 template class TPZCompElKernelHDiv3D<TPZShapeTetra>;
 template class TPZCompElKernelHDiv3D<TPZShapeCube>;
 template class TPZCompElKernelHDiv3D<TPZShapePrism>;
+
+#include "TPZCompElKernelHDiv.h"
+
+//BC
+TPZCompEl * CreateHDivKernelBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+    return new TPZCompElKernelHDiv3D< TPZShapeQuad>(mesh,gel,hdivfam);
+}
+TPZCompEl * CreateHDivKernelBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+    return new TPZCompElKernelHDiv3D< TPZShapeTriang >(mesh,gel,hdivfam);
+}
+
+//Domain
+TPZCompEl * CreateHDivKernelCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElKernelHDiv3D< TPZShapeCube >(mesh,gel,hdivfam);
+}
+TPZCompEl * CreateHDivKernelPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElKernelHDiv3D< TPZShapePrism>(mesh,gel,hdivfam);
+}
+TPZCompEl * CreateHDivKernelTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
+	return new TPZCompElKernelHDiv3D< TPZShapeTetra >(mesh,gel,hdivfam);
+}
