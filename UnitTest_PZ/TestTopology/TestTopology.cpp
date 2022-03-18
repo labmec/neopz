@@ -22,7 +22,6 @@
 #include "TPZShapeData.h"
 #include "TPZMaterialData.h"
 #include "pzelctemp.h"
-#include "TPZShapeHDivKernel.h"
 #include "TPZShapeHDivKernel2D.h"
 
 #include "pzshapequad.h"
@@ -236,7 +235,7 @@ namespace topologytests{
             // std::cout << "divHDiv =  " << divHDiv << std::endl;
             
             //Compute the curl for each edge
-            top::ComputeConstantHDiv(node,RT0Function,divRT0,shapedata.fSideTransformationId);
+            top::ComputeConstantHDiv(node,RT0Function,divRT0);
 
             // std::cout << "Constant phi = " << RT0Function << std::endl;
             // std::cout << "Constant div = " << divRT0 << std::endl;

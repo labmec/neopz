@@ -1388,7 +1388,7 @@ namespace pztopology {
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZCube::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div, const TPZVec<int> &transformationIds)
+    void TPZCube::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
 
         REAL scale = 4.;    
@@ -1396,27 +1396,21 @@ namespace pztopology {
         REAL eta = point[1];
         REAL zeta = point[2];
 
-        constexpr auto nEdges{6};
-        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
-        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
-            edgeSign[iEdge] = 1.;//transformationIds[iEdge] == 0 ? 1 : -1;
-        }
-
         //Face functions
         //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
-        RT0function(2,5) = 0.5 * (1. + zeta) / scale * edgeSign[5];
-        div[5] = 0.5 / scale * edgeSign[5];
-        RT0function(1,3) = 0.5 * (1. + eta) / scale * edgeSign[3];
-        div[3] = 0.5 / scale * edgeSign[3];
-        RT0function(0,2) = 0.5 * (1. + qsi) / scale * edgeSign[2];
-        div[2] = 0.5 / scale * edgeSign[2];
+        RT0function(2,5) = 0.5 * (1. + zeta) / scale;
+        div[5] = 0.5 / scale;
+        RT0function(1,3) = 0.5 * (1. + eta) / scale;
+        div[3] = 0.5 / scale;
+        RT0function(0,2) = 0.5 * (1. + qsi) / scale;
+        div[2] = 0.5 / scale;
 
-        RT0function(0,4) = -0.5 * (1. - qsi) / scale * edgeSign[4];
-        div[4] = 0.5 / scale * edgeSign[4];
-        RT0function(1,1) = -0.5 * (1. - eta) / scale * edgeSign[1];
-        div[1] = 0.5 / scale * edgeSign[1];
-        RT0function(2,0) = -0.5 * (1. - zeta) / scale * edgeSign[0];
-        div[0] = 0.5 / scale * edgeSign[0];
+        RT0function(0,4) = -0.5 * (1. - qsi) / scale;
+        div[4] = 0.5 / scale;
+        RT0function(1,1) = -0.5 * (1. - eta) / scale;
+        div[1] = 0.5 / scale;
+        RT0function(2,0) = -0.5 * (1. - zeta) / scale;
+        div[0] = 0.5 / scale;
 
 
     }
