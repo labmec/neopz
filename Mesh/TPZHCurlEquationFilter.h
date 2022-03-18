@@ -27,13 +27,8 @@ class TPZStack;
 template <class TVar>
 class TPZHCurlEquationFilter
 {
-   
-    
-private:
-    const int edgeDim{1};
-
-    int fNumEdgesPerFace = 0;
-
+       
+public:
     // DATA STRUCTURES
     // 1 - VERTEX DATA STRUCTURE
     enum VertexStatusType {ENotTreatedVertex, ETreatedVertex};
@@ -83,12 +78,12 @@ private:
         //  2 - blocked: 2 edges removed
         //  3 - fortunate: 1 edge blocked
         FaceStatusType status = EFreeFace;
-
-        // int64_t UpdateFace(int removedEdge, std::set<int> faceEdges){
-
-        //     return -1 = nao bloquead, senão connect index do edge bloqueado.
-        // };
     };
+
+private:
+    const int edgeDim{1};
+
+    int fNumEdgesPerFace = 0;
 
     // 1 - Vertex Data Structure
     std::map<int64_t, VertexFilter> mVertex;
@@ -99,25 +94,66 @@ private:
     // 4 - The number of free and the corresponding treated nodes
     std::map<int64_t, std::set<int64_t>,std::greater<int>> freeEdgesToTreatedNodes;
 
+    //The removed edges
+    std::set<int64_t> removed_edges;
+
 public:
     /**
          @brief Removes some equations associated with edges to ensure that
         the gradient of the lowest order H1 functions cannot be represented.
         @param[in] cmesh Computational mesh.
-        @param[out] indices of all remaining equations.
+        @param[out] activeEquations a vector containing the index of all remaining equations.
+        @param[in] domainHybridization If some kind of hybridization is applied to fluxes, this input 
+        should be set as true as in this case the edge connects are disconnected and edges need to be 
+        removed elementwise.
         @return 0 if no errors were detected, 1 if a vertex was left untreated,
         2 if a vertex had all the adjacent edges removed.
     */
-    bool FilterEdgeEquations(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<int64_t> &activeEquations, bool &domainHybridization);
+    bool FilterEdgeEquations(TPZCompMesh* cmesh, TPZVec<int64_t> &activeEquations, bool domainHybridization = false);
 
+    /**
+        @brief Initialize the data structures, which are based only on the geometric mesh
+        @param[in] gmesh geometric mesh.
+    */
     void InitDataStructures(TPZGeoMesh *gmesh);
 
-    void ChooseNodeAndEdge(int64_t &treatNode, int64_t &remEdge);
+    /**
+        @brief Associate an edge to a vertex and set it to be removed
+        @param[out] treatVertex treated vertex
+        @param[out] remEdge removed edge
+    */
+    void ChooseVertexAndEdge(int64_t &treatVertex, int64_t &remEdge);
 
+    /**
+        @brief Updates the edge and face status into the data structures
+        @param[in] remEdge removed edge 
+    */
     void UpdateEdgeAndFaceStatus(int64_t &remEdge);
 
+    /**
+        @brief Checks if all edges of a face have been removed. Returns a DebugStop() if true.
+    */
     void CheckFaces();
 
+    /**
+        @brief Chooses the first edge to be removed: the first edge is the one
+        that have the highest number of neighbour free edges
+    */
     void FirstEdge();
+
+    /**
+        @brief Returns a set containing the indexes of all removed edges
+    */
+    std::set<int64_t> &GetRemovedEdges() {return removed_edges;};
+    
+    /**
+        @brief Returns the vertex data structure
+    */
+    std::map<int64_t, VertexFilter> &GetVertexDataStructure() {return mVertex;};
+
+    /**
+        @brief Returns the edge data structure
+    */
+    std::map<int64_t, EdgeFilter> &GetEdgeDataStructure() {return mEdge;};
 };
 #endif
