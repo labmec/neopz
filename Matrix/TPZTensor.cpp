@@ -8,4 +8,4 @@ STATE TPZTensor<T>::TPZDecomposed::gEigval[3] = {0.};
 template class TPZTensor<STATE>;
 
 #include "tfad.h"
-template class TPZTensor<TFad<6,double>>;
+template class TPZTensor<TFad<6,STATE>>;

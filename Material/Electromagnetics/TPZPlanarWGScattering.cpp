@@ -190,7 +190,7 @@ TPZPlanarWGScattering::ContributeBCInternal(const CSTATE coeffGradX,
       const auto beta = res[1];//beta
       const int nshape=phi.Rows();
       for(int i = 0 ; i<nshape ; i++){
-        const CSTATE load = (phi(i,0) * coeffGradX) * -2i * beta * Am;
+        const CSTATE load = (phi(i,0) * coeffGradX) * -2_i * beta * Am;
         ef(i,0) += weight * load;
       }
       break;

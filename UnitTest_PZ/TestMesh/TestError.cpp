@@ -31,14 +31,14 @@ TEST_CASE("error_poisson","[error_tests]")
     REQUIRE(checkConv);
     lastError=error;
   }
-  auto oldPrecision = Catch::StringMaker<REAL>::precision;
-  Catch::StringMaker<REAL>::precision = std::numeric_limits<REAL>::max_digits10;
+  auto oldPrecision = Catch::StringMaker<double>::precision;
+  Catch::StringMaker<double>::precision = std::numeric_limits<REAL>::max_digits10;
   //the solution is contained in the p=4 approx space
   for(auto ier : lastError){
     CAPTURE(ier);
     REQUIRE(ier == Approx(0.0).margin(std::numeric_limits<REAL>::epsilon()*10));
   }
-  Catch::StringMaker<REAL>::precision = oldPrecision;
+  Catch::StringMaker<double>::precision = oldPrecision;
 }
 
 void CheckErrorPoisson(const int pOrder, TPZVec<REAL>&error)

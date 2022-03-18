@@ -35,10 +35,10 @@ public:
 	 * @param id material id
 	 * @param deltaT time step
 	 */
-	TPZBlackOil2P3D(int id, double deltaT);
+	TPZBlackOil2P3D(int id, REAL deltaT);
 	
 	/** @brief Defines simulation time step. */
-	void SetTimeStep(double timestep){
+	void SetTimeStep(REAL timestep){
 		this->fDeltaT = timestep;
 	}
 	
@@ -117,33 +117,33 @@ public:
 	 * @brief Oil relative permeability.
 	 * \f$ Kro = Kro( Sw ) \f$
 	 */
-	void Kro(double So, double &Kro, double &dKroSo);
+	void Kro(REAL So, REAL &Kro, REAL &dKroSo);
 	void Kro(BFadREAL So, BFadREAL &Kro);
 	
 	/**
 	 * @brief Water relative permeability.
 	 * \f$ Krw = Krw( Sw ) \f$
 	 */
-	void Krw(double So, double &Krw, double &dKrwSo);
+	void Krw(REAL So, REAL &Krw, REAL &dKrwSo);
 	void Krw(BFadREAL So, BFadREAL &Krw);
 	
 	/** 
 	 * @brief \f$ Bo = Bo( po ) \f$
 	 * @param po initial pressure
 	 */
-	void Bo(double po, double &Bo, double &dBoDpo);
+	void Bo(REAL po, REAL &Bo, REAL &dBoDpo);
 	void Bo(BFadREAL po, BFadREAL &Bo);
 	
 	/** @brief Oil viscosity. \f$ ViscOleo = ViscOleo( po ) \f$ */
-	void OilVisc(double po, double &ViscOleo, double &dViscOleoDpo);
+	void OilVisc(REAL po, REAL &ViscOleo, REAL &dViscOleoDpo);
 	void OilVisc(BFadREAL po, BFadREAL &ViscOleo);
 	
 	/** @brief Capilar pressure. \f$ pc = pc( Sw ) \f$ */
-	void CapilarPressure(double So, double &pc, double &DpcDSo);
+	void CapilarPressure(REAL So, REAL &pc, REAL &DpcDSo);
 	void CapilarPressure(BFadREAL So, BFadREAL &pc);
 	
 	/** @brief Porosity. \f$ Phi = Phi( pw ) - fizemos como Phi ( po ) \f$ */
-	void Porosity(double po, double &poros, double &dPorosDpo);
+	void Porosity(REAL po, REAL &poros, REAL &dPorosDpo);
 	void Porosity(BFadREAL po, BFadREAL &poros);
 	
 	/** @brief Oil density on standard conditions - kg/m3 */
@@ -168,7 +168,7 @@ public:
 protected:
 	
 	/** @brief Interpolacao linear */
-	void Interpolate(std::map<REAL,REAL> &dados, double x, double &y, double &dy);
+	void Interpolate(std::map<REAL,REAL> &dados, REAL x, REAL &y, REAL &dy);
 	void Interpolate(std::map<REAL,REAL> &dados, BFadREAL x, BFadREAL &y);
 	
 	/** @brief Simulation time step */

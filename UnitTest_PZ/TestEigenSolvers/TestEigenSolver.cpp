@@ -44,7 +44,7 @@ template<class matx, class TVar>
 void TestArnoldiSolver(TPZAutoPointer<matx> A, const TPZFMatrix<CTVar> &sol);
 
 TEMPLATE_TEST_CASE("Arnoldi Iteration", "[eigen_tests]",
-                   double)
+                   REAL)
 {
   bool isSym{true};
   SECTION("Sym")
@@ -75,9 +75,9 @@ TEMPLATE_TEST_CASE("Arnoldi Iteration", "[eigen_tests]",
 
 #ifdef PZ_USING_LAPACK
 TEMPLATE_TEST_CASE("Arnoldi Solver 1", "[eigen_tests]",
-                   TPZFYsmpMatrix<double>,
-                   TPZFMatrix<double>,
-                   TPZFMatrix<std::complex<double>>
+                   TPZFYsmpMatrix<REAL>,
+                   TPZFMatrix<REAL>,
+                   TPZFMatrix<std::complex<REAL>>
                    )
 {
 
@@ -100,11 +100,11 @@ TEMPLATE_TEST_CASE("Arnoldi Solver 1", "[eigen_tests]",
 */
   constexpr int dim{2};
   TPZAutoPointer<TestType> basis_mat = [dim]() -> TestType *{
-    if constexpr (std::is_same_v<TPZFMatrix<double>,TestType> ||
-                  std::is_same_v<TPZFMatrix<std::complex<double>>,TestType>){
+    if constexpr (std::is_same_v<TPZFMatrix<REAL>,TestType> ||
+                  std::is_same_v<TPZFMatrix<std::complex<REAL>>,TestType>){
       return new TestType(dim,dim,0);
-    }else if constexpr (std::is_same_v<TPZFYsmpMatrix<double>,TestType> ||
-                  std::is_same_v<TPZFYsmpMatrix<std::complex<double>>,TestType>){
+    }else if constexpr (std::is_same_v<TPZFYsmpMatrix<REAL>,TestType> ||
+                  std::is_same_v<TPZFYsmpMatrix<std::complex<REAL>>,TestType>){
       //full matrix
       auto mat = new TestType(dim,dim);
       TPZVec<int64_t> ia(dim+1,0), ja(dim*dim,0);
@@ -132,10 +132,10 @@ TEMPLATE_TEST_CASE("Arnoldi Solver 1", "[eigen_tests]",
     TPZFMatrix<CType(typename TestType::Type)> sol(dim,1);
     sol(0,0) = 0;
     sol(1,0) = 2;
-    if constexpr (std::is_same_v<typename TestType::Type,double>){
-      TestArnoldiSolver<TestType, double>(mat, sol);
+    if constexpr (std::is_same_v<typename TestType::Type,REAL>){
+      TestArnoldiSolver<TestType, REAL>(mat, sol);
     }else{
-      TestArnoldiSolver<TestType, std::complex<double>>(mat, sol);
+      TestArnoldiSolver<TestType, std::complex<REAL>>(mat, sol);
     }
   }
   SECTION("real_mat_cplx_eigenpairs"){
@@ -146,46 +146,46 @@ TEMPLATE_TEST_CASE("Arnoldi Solver 1", "[eigen_tests]",
     mat->PutVal(0,1,-1);
     mat->PutVal(1,0,1);
     TPZFMatrix<CType(typename TestType::Type)> sol(dim,1);
-    sol(0,0) = 1.-1i;
-    sol(1,0) = 1.+1i;
-    if constexpr (std::is_same_v<typename TestType::Type,double>){
-      TestArnoldiSolver<TestType, double>(mat,sol);
+    sol(0,0) = 1.-1_i;
+    sol(1,0) = 1.+1_i;
+    if constexpr (std::is_same_v<typename TestType::Type,REAL>){
+      TestArnoldiSolver<TestType, REAL>(mat,sol);
     }else{
-      TestArnoldiSolver<TestType, std::complex<double>>(mat,sol);
+      TestArnoldiSolver<TestType, std::complex<REAL>>(mat,sol);
     }
   }
-  if constexpr (std::is_same_v<typename TestType::Type,std::complex<double>>){
+  if constexpr (std::is_same_v<typename TestType::Type,std::complex<REAL>>){
     using namespace std::complex_literals;
     SECTION("cplx_mat_real_eigenpairs"){
       auto mat = basis_mat;
       mat->PutVal(0,0,1);
       mat->PutVal(1,1,1);
-      mat->PutVal(0,1,1i);
-      mat->PutVal(1,0,-1i);
+      mat->PutVal(0,1,1_i);
+      mat->PutVal(1,0,-1_i);
       TPZFMatrix<CType(typename TestType::Type)> sol(dim,1);
       sol(0,0) = 2.;
       sol(1,0) = 0.;
-      TestArnoldiSolver<TestType, std::complex<double>>(mat,sol);
+      TestArnoldiSolver<TestType, std::complex<REAL>>(mat,sol);
     }
     SECTION("cplx_mat_cplx_eigenpairs"){
       auto mat = basis_mat;
       mat->PutVal(0,0,1);
       mat->PutVal(1,1,1);
-      mat->PutVal(0,1,1i);
-      mat->PutVal(1,0,1i);
+      mat->PutVal(0,1,1_i);
+      mat->PutVal(1,0,1_i);
       TPZFMatrix<CType(typename TestType::Type)> sol(dim,1);
-      sol(0,0) = 1.+1i;
-      sol(1,0) = 1.-1i;
-      TestArnoldiSolver<TestType, std::complex<double>>(mat,sol);
+      sol(0,0) = 1.+1_i;
+      sol(1,0) = 1.-1_i;
+      TestArnoldiSolver<TestType, std::complex<REAL>>(mat,sol);
     }
   }
 }
 
 TEMPLATE_TEST_CASE("Arnoldi Solver 2", "[eigen_tests]",
-                   TPZSkylNSymMatrix<double>,
-                   TPZSkylMatrix<double>,
-                   TPZFYsmpMatrix<double>,
-                   TPZSYsmpMatrix<double>
+                   TPZSkylNSymMatrix<REAL>,
+                   TPZSkylMatrix<REAL>,
+                   TPZFYsmpMatrix<REAL>,
+                   TPZSYsmpMatrix<REAL>
                    )
 {
 

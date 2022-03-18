@@ -223,7 +223,7 @@ public:
             const T sig2 = this->fEigenvalues[1];
             const T sig3 = this->fEigenvalues[2];
             const T trace = sig1 + sig2 + sig3;
-            const T trace_3 = trace / 3.;
+            const T trace_3 = trace / (T)3.;
 
             TPZTensor<T> SigVol;
             SigVol.XX() = SigVol.YY() = SigVol.ZZ() = K * trace;
@@ -528,7 +528,7 @@ public:
      */
     void Lodeangle(TPZTensor<T> &GradLode, T &Lode)const;
 
-    bool IsZeroTensor(T tol = 1.e-9) const {
+    bool IsZeroTensor(T tol = T(1.e-9)) const {
         REAL realTol = TPZExtractVal::val(tol);
         for (unsigned int i = 0; i < 6; ++i) {
             if (fabs(this->fData[i]) > realTol) {
@@ -538,7 +538,7 @@ public:
         return true;
     }
 
-    bool IsDiagonal(T tol = 1.e-9) const {
+    bool IsDiagonal(T tol = T(1.e-9)) const {
         REAL realTol = TPZExtractVal::val(tol);
         if ((fabs(this->XY()) > realTol) || (fabs(this->XZ()) > realTol) || (fabs(this->YZ()) > realTol)) {
             return false;
@@ -650,7 +650,7 @@ public:
 
 protected:
 
-    static inline bool IsZeroVal(const T & val, T tol = 1.e-9) {
+    static inline bool IsZeroVal(const T & val, T tol = T(1.e-9)) {
         return (fabs(TPZExtractVal::val(val)) <= tol);
     }
 
@@ -1120,7 +1120,7 @@ void TPZTensor<T>::ComputeEigenvalues(TPZDecomposed &eigensystem, const bool com
     TPZManVector<T, 3> &eigenvalues = eigensystem.fEigenvalues;
     TPZManVector<TPZManVector<T, 3>, 3> &eigenvectors = eigensystem.fEigenvectors;
 
-    T tol = Norm()*1.e-12;
+    T tol = Norm()*T(1.e-12);
 
     if (this->IsZeroTensor(tol)) {
         eigensystem.fDistinctEigenvalues = 1;
@@ -1333,7 +1333,7 @@ void TPZTensor<T>::ComputeEigenvectors(TPZDecomposed &eigensystem) const {
             case 2:
             case 3:
             {
-                T tol = Norm()*1.e-12;
+                T tol = Norm()*T(1.e-12);
                 if (IsDiagonal(tol)) {
                     for (unsigned int i = 0; i < 3; ++i) {
                         unsigned int j;
@@ -1384,7 +1384,7 @@ void TPZTensor<T>::EigenProjection(const TPZVec<T> &EigenVals, int index, const 
         const int j = DistinctEigenvalues[count];
         if (j == index) continue;
         local.Identity();
-        local *= -1. * EigenVals[j];
+        local *= (T)-1. * EigenVals[j];
 
         this->CopyToTensor(aux);
         local += aux;
@@ -1392,7 +1392,7 @@ void TPZTensor<T>::EigenProjection(const TPZVec<T> &EigenVals, int index, const 
 #ifdef PZDEBUG
         if (AreEqual(EigenVals[index], EigenVals[j])) DebugStop();
 #endif
-        local *= 1. / (EigenVals[index] - EigenVals[j]);
+        local *= (T)1. / (EigenVals[index] - EigenVals[j]);
         Ei.CopyToTensor(aux);
         aux.Multiply(local, resultingTensor);
         Ei[_XX_] = resultingTensor(0, 0);
@@ -1614,22 +1614,22 @@ void TPZTensor<T>::DirectEigenValues(TPZDecomposed &eigensystem, bool compute_ei
     TPZTensor<T> A;
     Precondition(conditionFactor, A, eigensystem);
 
-    T norm = pow(A.XY(), 2.) + pow(A.XZ(), 2.) + pow(A.YZ(), 2.);
+    T norm = pow(A.XY(), (REAL) 2.) + pow(A.XZ(), (REAL) 2.) + pow(A.YZ(), (REAL) 2.);
     // Compute the eigenvalues.  The acos(z) function requires |z| <= 1,
     // but will fail silently and return NaN if the input is larger than 1 in
     // magnitude.  To avoid this condition due to rounding errors, the halfDet
     // value is clamped to [-1,1].
-    T traceDiv3 = A.I1() / 3.;
+    T traceDiv3 = A.I1() / (T)3.;
     T b00 = A.XX() - traceDiv3;
     T b11 = A.YY() - traceDiv3;
     T b22 = A.ZZ() - traceDiv3;
-    T denom = sqrt((pow(b00, 2.) + pow(b11, 2.) + pow(b22, 2.) + norm * T(2.)) / T(6.));
+    T denom = sqrt((pow(b00, (REAL) 2.) + pow(b11, (REAL) 2.) + pow(b22, (REAL) 2.) + norm * T(2.)) / T(6.));
     T c00 = b11 * b22 - A.YZ() * A.YZ();
     T c01 = A.XY() * b22 - A.YZ() * A.XZ();
     T c02 = A.XY() * A.YZ() - b11 * A.XZ();
     T det = (b00 * c00 - A.XY() * c01 + A.XZ() * c02) / (denom * denom * denom);
     T halfDet = det * T(0.5);
-    halfDet = std::min(std::max(TPZExtractVal::val(halfDet), -1.), 1.);
+    halfDet = std::min(std::max(TPZExtractVal::val(halfDet), (REAL)-1.), (REAL)1.);
 
     // The eigenvalues of B are ordered as beta0 <= beta1 <= beta2.  The
     // number of digits in twoThirdsPi is chosen so that, whether float or
@@ -1653,7 +1653,7 @@ void TPZTensor<T>::DirectEigenValues(TPZDecomposed &eigensystem, bool compute_ei
         DebugStop();
     }
 
-    if (halfDet > 0. || IsZeroVal(halfDet)) { // greatest eigenvalue has multiplicity 1
+    if (halfDet > (REAL) 0. || IsZeroVal(halfDet)) { // greatest eigenvalue has multiplicity 1
         eigensystem.fGeometricMultiplicity[0] = 1;
     } else { // lowest eigenvalue has multiplicity 1
         eigensystem.fGeometricMultiplicity[2] = 1;

@@ -199,7 +199,7 @@ namespace structTest{
     const int nEq = cMesh->NElements() + 1;
     
     // mat->Print(std::cout);
-    auto oldPrecision = Catch::StringMaker<STATE>::precision;
+    auto oldPrecision = Catch::StringMaker<double>::precision;
     REQUIRE(mat->GetVal(0,0) == 2.0_a);
     REQUIRE(mat->GetVal(nEq-1,nEq-1) == 2.0_a);
     REQUIRE(mat->GetVal(0,1) == 1.0_a);
@@ -209,7 +209,7 @@ namespace structTest{
       REQUIRE(mat->GetVal(i,i) == 4.0_a);
       REQUIRE(mat->GetVal(i,i+1) == 1.0_a);
     }
-    Catch::StringMaker<STATE>::precision = oldPrecision;
+    Catch::StringMaker<double>::precision = oldPrecision;
   }
 
   template <class TSTMAT>
@@ -238,11 +238,11 @@ namespace structTest{
     TPZFMatrix<STATE> matDiff(nr,nc, 0.0);
     matSerial->Subtract(matParallel, matDiff);
     const auto normDiff = Norm(matDiff);
-    auto oldPrecision = Catch::StringMaker<STATE>::precision;
+    auto oldPrecision = Catch::StringMaker<double>::precision;
     CAPTURE(normDiff);
     REQUIRE(normDiff == Approx(0.0).margin(
                 10*std::numeric_limits<STATE>::epsilon()));
-    Catch::StringMaker<STATE>::precision = oldPrecision;
+    Catch::StringMaker<double>::precision = oldPrecision;
   }
 
   template <class TPARLAYER>
@@ -316,11 +316,11 @@ namespace structTest{
     TPZFMatrix<STATE> matDiff(nr,nc, 0.0);
     mat1->Subtract(mat2, matDiff);
     const auto normDiff = Norm(matDiff);
-    auto oldPrecision = Catch::StringMaker<STATE>::precision;
+    auto oldPrecision = Catch::StringMaker<double>::precision;
     CAPTURE(normDiff);
     REQUIRE(normDiff == Approx(0.0).margin(
                 10*std::numeric_limits<STATE>::epsilon()));
-    Catch::StringMaker<STATE>::precision = oldPrecision;
+    Catch::StringMaker<double>::precision = oldPrecision;
   }
   
 

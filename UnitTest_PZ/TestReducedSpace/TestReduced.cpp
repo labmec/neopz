@@ -144,7 +144,7 @@ TEST_CASE("reduced_space","[reduced_space]")
         auto cmeshreduced = GenerateReducedMesh(cmeshH1);
         int nsol = cmeshreduced->Solution().Rows();
 
-        auto oldPrecision = Catch::StringMaker<REAL>::precision;
+        auto oldPrecision = Catch::StringMaker<double>::precision;
         for (int sol = 0; sol < nsol; sol++) {
             auto result = RunConfig(cmeshreduced, sol);
             TPZVec<REAL> correct(result.Rows(),0.);
@@ -154,7 +154,7 @@ TEST_CASE("reduced_space","[reduced_space]")
                 REQUIRE_THAT(result(i), Catch::Matchers::WithinAbs(correct[i],1.e-8));
             }
         }
-        Catch::StringMaker<REAL>::precision = oldPrecision;
+        Catch::StringMaker<double>::precision = oldPrecision;
     }
 
 }

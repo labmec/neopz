@@ -237,7 +237,5 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
   return true;
 }
 
-template class TPZKrylovEigenSolver<float>;
-template class TPZKrylovEigenSolver<double>;
-template class TPZKrylovEigenSolver<std::complex<float>>;
-template class TPZKrylovEigenSolver<std::complex<double>>;
+template class TPZKrylovEigenSolver<STATE>;
+template class TPZKrylovEigenSolver<CSTATE>;

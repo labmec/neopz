@@ -256,6 +256,59 @@ typedef long double STATE;
 typedef std::complex<STATE> CSTATE;
 // set(STATE_COMPLEX "STATE_COMPLEX")
 
+
+
+
+#define FIRSTHACK
+
+#ifdef FIRSTHACK
+// Trick to allow type promotion below
+template <typename T>
+struct identity_t { typedef T type; };
+
+/// Make working with std::complex<> nubmers suck less... allow promotion.
+#define COMPLEX_OPS(OP)                                                 \
+  template <typename _Tp>                                               \
+  std::complex<_Tp>                                                     \
+  operator OP(std::complex<_Tp> lhs, const typename identity_t<_Tp>::type & rhs) \
+  {                                                                     \
+    return lhs OP rhs;                                                  \
+  }                                                                     \
+  template <typename _Tp>                                               \
+  std::complex<_Tp>                                                     \
+  operator OP(const typename identity_t<_Tp>::type & lhs, const std::complex<_Tp> & rhs) \
+  {                                                                     \
+    return lhs OP rhs;                                                  \
+  }
+COMPLEX_OPS(+)
+COMPLEX_OPS(-)
+COMPLEX_OPS(*)
+COMPLEX_OPS(/)
+#undef COMPLEX_OPS
+#endif
+
+// #define STATE float
+// #define CSTATE std::complex<STATE>
+/*2nd part: */
+//shall we create our own complex literal that works for whatever CSTATE is?
+constexpr auto operator""_i(unsigned long long d)
+{
+    return CSTATE{0.0, static_cast<STATE>(d)};
+}
+constexpr auto operator""_i(long double d)
+{
+    return CSTATE{0.0, static_cast<STATE>(d)};
+}
+
+
+
+
+
+
+
+
+
+
 enum ESolType{ EReal=1,EComplex=2,EUndefined=3};
 #ifdef VC
 #include <io.h>

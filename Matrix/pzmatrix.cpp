@@ -285,7 +285,7 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
         constexpr int columnlength = typlim::max_digits10;
 
         auto PrintVal = [columnlength](std::ostream &out, RTVar val){
-            if(val<0.) {
+            if(val<(RTVar)0.) {
                 out << std::setw(columnlength+1) << std::left << val << " ";
             }else{
                 out << " ";

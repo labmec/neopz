@@ -101,7 +101,7 @@ TPZCompMesh * SBFemTest::CreateCMesh(TPZAutoPointer<TPZGeoMesh> & gmesh, bool da
 void SBFemTest::InsertMaterialDarcy(TPZCompMesh * cmesh)
 {
   TPZFMatrix<STATE> val1(1, 1, 0.);
-  const TPZManVector<double> val2(1, 0.);
+  const TPZManVector<REAL> val2(1, 0.);
   auto *mat = new TPZDarcyFlow(SBFemTest::EMat1, 2);
   auto forcingFunction = [](const TPZVec<REAL>&x, TPZVec<STATE>&u){
     LaplaceExact.ForcingFunction()->Execute(x, u);
@@ -121,7 +121,7 @@ void SBFemTest::InsertMaterialDarcy(TPZCompMesh * cmesh)
 void SBFemTest::InsertMaterialElasticity3D(TPZCompMesh * cmesh)
 {
   TPZFMatrix<STATE> val1(3, 3, 0.);
-  const TPZManVector<double> val2(3, 0.);
+  const TPZManVector<REAL> val2(3, 0.);
   auto *mat = new TPZElasticity3D(SBFemTest::EMat1);
   mat->SetBigNumber(1.e20);
   mat->SetMaterialDataHook(ElastExact.fE, ElastExact.fPoisson);
@@ -172,7 +172,7 @@ void SBFemTest::SBFemElasticity3D(const int nThreads){
   auto start = std::chrono::system_clock::now();
   Analysis(an, nThreads, errorVecPar);
   auto end = std::chrono::system_clock::now();
-  std::chrono::duration<double> elapsedParallel = end - start;
+  std::chrono::duration<REAL> elapsedParallel = end - start;
   std::cout << "\tParallel time: " << elapsedParallel.count() << "s\n";
   std::cout << "\tParallel errors: " << errorVecPar << std::endl;
 
@@ -204,7 +204,7 @@ void SBFemTest::SBFemBubblesDarcy(const int nThreads) {
   TPZManVector<REAL> errorVecSer;
   Analysis(an, 0, errorVecSer);
   auto end = std::chrono::system_clock::now();
-  std::chrono::duration<double> elapsedSerial = end - start;
+  std::chrono::duration<REAL> elapsedSerial = end - start;
   std::cout << "\tSerial time: " << elapsedSerial.count() << "s\n";
   std::cout << "\tSerial errors: " << errorVecSer << std::endl;
 
@@ -212,7 +212,7 @@ void SBFemTest::SBFemBubblesDarcy(const int nThreads) {
   TPZManVector<REAL> errorVecPar;
   Analysis(an, nThreads, errorVecPar);
   end = std::chrono::system_clock::now();
-  std::chrono::duration<double> elapsedParallel = end - start;
+  std::chrono::duration<REAL> elapsedParallel = end - start;
   std::cout << "\tParallel time: " << elapsedParallel.count() << "s\n";
   std::cout << "\tParallel errors: " << errorVecPar << std::endl;
 

@@ -96,7 +96,7 @@ namespace gengridtest{
             if(!gel) continue;
 
             // Compute jacobian of geomtric map
-            TPZVec<REAL> qsi(gel->Dimension(),0.); TPZFMatrix<double> jac; TPZFMatrix<double> axes; REAL detjac = notcomputed; TPZFMatrix<double> jacinv;
+            TPZVec<REAL> qsi(gel->Dimension(),0.); TPZFMatrix<REAL> jac; TPZFMatrix<REAL> axes; REAL detjac = notcomputed; TPZFMatrix<REAL> jacinv;
             gel->Jacobian(qsi,jac,axes,detjac,jacinv);
 
             // Require that det(J) be positive

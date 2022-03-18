@@ -70,11 +70,11 @@ void TPZWaveguideModalAnalysisPML::ComputeSParameters(const TPZVec<REAL> &x,
     sx = 1;
     sy = 1;
     if(fAttX){
-        sx = 1. - 1i * fAlphaMaxX * ((x[0]-fPmlBeginX) / fDX )
+        sx = 1. - 1_i * fAlphaMaxX * ((x[0]-fPmlBeginX) / fDX )
             * ((x[0]-fPmlBeginX) / fDX );
     }
     if(fAttY){
-        sy = 1. - 1i * fAlphaMaxY * ((x[1]-fPmlBeginY) / fDY ) *
+        sy = 1. - 1_i * fAlphaMaxY * ((x[1]-fPmlBeginY) / fDY ) *
             ((x[1]-fPmlBeginY) / fDY );
     }
 }

@@ -68,11 +68,11 @@ void TPZPlanarWGScatteringPML::ComputeSParameters(const TPZVec<REAL> &x,
      */
     if(fAttX){
         const auto distx = (x[0]-fPmlBeginX) / fDX;
-        sx = 1. - 1i * fAlphaMaxX * distx * distx;
+        sx = 1. - 1_i * fAlphaMaxX * distx * distx;
     }
     if(fAttY){
         const auto disty = (x[1]-fPmlBeginY) / fDY;
-        sy = 1. - 1i * fAlphaMaxY * disty * disty;
+        sy = 1. - 1_i * fAlphaMaxY * disty * disty;
     }
 }
 
