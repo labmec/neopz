@@ -9,7 +9,12 @@ class TPZFMatrix;
 
 #include "TPZShapeData.h"
 
-/// Generates HCurl spaces in the reference element using constant vector fields and H1 shape functions.
+/**
+   @brief This class generates a set of Hcurl conforming shape functions
+   such that the high order gradient fields are removed.
+   In order to generate a truly grad-free Hcurl-conforming approximation
+   space, the TPZHCurlEquationFilter class should be used.
+*/
 template <class TSHAPE>
 struct TPZShapeHCurlNoGrads
 {
@@ -40,9 +45,8 @@ struct TPZShapeHCurlNoGrads
     [[nodiscard]] static int MaxOrder(const int ordh1);
 
   /**
-     @brief Given the original indices of functions of a a HCurl element,
-     calculates the subset corresponding to
-     the filtered higher-order (face, interior) functions.
+     @brief Filters the high-order gradient fields out of a HCurl element.
+     This filter acts only on face and volumetric functions.
      @param[in] firstHCurlFunc index of first Hurl function corresponding to a given connect.
      @param[in] conOrders connect orders.
      @param[in] filteredFuncs indices of desired of Hcurl functions.

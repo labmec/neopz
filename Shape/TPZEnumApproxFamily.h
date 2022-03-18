@@ -8,7 +8,7 @@ enum class HDivFamily {EHDivStandard};
 enum class H1Family {EH1Standard};
 
 /// Enum stating which flavor of HCurl spaces is being used
-enum class HCurlFamily {EHCurlStandard};
+enum class HCurlFamily {EHCurlStandard,EHCurlNoGrads};
 
 struct DefaultFamily {
     static const HDivFamily fHDivDefaultValue = HDivFamily::EHDivStandard;

@@ -10,7 +10,7 @@
 #include "pzshapeprism.h"
 
 template<class TSHAPE>
-void TPZShapeHCurlNoGrads<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
+void TPZShapeHCurlNoGrads<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
                                        TPZVec<int> &connectorders,
                                        TPZShapeData &data)
 {
