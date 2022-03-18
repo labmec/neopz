@@ -97,13 +97,15 @@ public:
     // Get set methods for space families
     const HDivFamily &HDivFam() const {return fhdivfam;}
     const HDivFamily &HDivFam() {return fhdivfam;}
+    const void SetHDivFamily(HDivFamily fam){fhdivfam = fam;}
 
     const H1Family &H1Fam() const {return fh1fam;}
     const H1Family &H1Fam() {return fh1fam;}
+    const void SetH1Family(H1Family fam){fh1fam = fam;}
 
     const HCurlFamily &HCurlFam() const {return fhcurlfam;}
     const HCurlFamily &HCurlFam() {return fhcurlfam;}
-
+    const void SetHCurlFamily(HCurlFamily fam){fhcurlfam = fam;}
     
     /** @brief Create discontinuous approximation spaces */
     void SetAllCreateFunctionsDiscontinuous();

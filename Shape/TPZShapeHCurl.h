@@ -16,7 +16,7 @@ struct TPZShapeHCurl
     
     TPZShapeHCurl() = default;
     //! Should be called once per element. Initializes the data structure
-    static void Initialize(TPZVec<int64_t> &ids,
+    static void Initialize(const TPZVec<int64_t> &ids,
                     TPZVec<int> &connectorders,                    
                     TPZShapeData &data);
     //! Computes the pair (vec, h1 shape) that are used for creating the HCurl shape functions

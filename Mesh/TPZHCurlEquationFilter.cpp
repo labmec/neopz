@@ -8,8 +8,9 @@
 #include "pzgmesh.h"
 #include <TPZVTKGeoMesh.h>
 
-/* 
-    Initialize the data structures used to filter the equations
+/**
+    @brief Initialize the data structures, which are based only on the geometric mesh
+    @param[in] gmesh geometric mesh.
 */
 template <class TVar>
 void TPZHCurlEquationFilter<TVar>::InitDataStructures(TPZGeoMesh* gmesh)
@@ -97,12 +98,13 @@ void TPZHCurlEquationFilter<TVar>::InitDataStructures(TPZGeoMesh* gmesh)
 }
 
 
-/* 
-    Chooses a node to be treated and edge to be removed
+/**
+    @brief Associate an edge to a vertex and set it to be removed
+    @param[out] treatVertex treated vertex
+    @param[out] remEdge removed edge
 */
-
 template <class TVar>
-void TPZHCurlEquationFilter<TVar>::ChooseNodeAndEdge(int64_t &treatNode, int64_t &remEdge)
+void TPZHCurlEquationFilter<TVar>::ChooseVertexAndEdge(int64_t &treatVertex, int64_t &remEdge)
 {
     
     // The treated node must be connected to an already treated node by a free edge
@@ -133,7 +135,7 @@ void TPZHCurlEquationFilter<TVar>::ChooseNodeAndEdge(int64_t &treatNode, int64_t
                     // Thus fill the variables with the proper values
                     base_node = ibase;
                     remEdge = iedge;
-                    treatNode = inode;
+                    treatVertex = inode;
                     ibase_free = free_edges.first;
                     
                     flag = true;
@@ -144,15 +146,15 @@ void TPZHCurlEquationFilter<TVar>::ChooseNodeAndEdge(int64_t &treatNode, int64_t
     }
 
     mVertex[base_node].free_edges--;
-    mVertex[treatNode].free_edges--;
+    mVertex[treatVertex].free_edges--;
     mEdge[remEdge].status = ERemovedEdge;
     
     //Update the data structure.
     //Delete node and realocate the base node
     freeEdgesToTreatedNodes[ibase_free].erase(base_node);
     freeEdgesToTreatedNodes[ibase_free-1].insert(base_node);
-    //Insert treatNode
-    freeEdgesToTreatedNodes[mVertex[treatNode].free_edges].insert(treatNode);
+    //Insert treatVertex
+    freeEdgesToTreatedNodes[mVertex[treatVertex].free_edges].insert(treatVertex);
 
     //Clears the freeEdgesToTreatedNodes with 0 nodes in some free edges - to avoid a bug when looping std::map
     for (auto it = freeEdgesToTreatedNodes.cbegin(); it != freeEdgesToTreatedNodes.cend();) {
@@ -164,8 +166,9 @@ void TPZHCurlEquationFilter<TVar>::ChooseNodeAndEdge(int64_t &treatNode, int64_t
     }//it
 }
 
-/* 
-    Updates the edge and face data structures
+/**
+    @brief Updates the edge and face status into the data structures
+    @param[in] remEdge removed edge 
 */
 template <class TVar>
 void TPZHCurlEquationFilter<TVar>::UpdateEdgeAndFaceStatus(int64_t &remEdge)
@@ -204,8 +207,8 @@ void TPZHCurlEquationFilter<TVar>::UpdateEdgeAndFaceStatus(int64_t &remEdge)
     }    
 }
 
-/* 
-    Check faces
+/**
+    @brief Checks if all edges of a face have been removed. Returns a DebugStop() if true.
 */
 template <class TVar>
 void TPZHCurlEquationFilter<TVar>::CheckFaces()
@@ -224,8 +227,9 @@ void TPZHCurlEquationFilter<TVar>::CheckFaces()
     }//it
 }
 
-/* 
-    Chooses the first edge to be removed
+/**
+    @brief Chooses the first edge to be removed: the first edge is the one
+    that have the highest number of neighbour free edges
 */
 template <class TVar>
 void TPZHCurlEquationFilter<TVar>::FirstEdge()
@@ -264,19 +268,27 @@ void TPZHCurlEquationFilter<TVar>::FirstEdge()
     }
 }
 
-/* 
-    The equation filter
+
+/**
+    @brief Removes some equations associated with edges to ensure that
+    the gradient of the lowest order H1 functions cannot be represented.
+    @param[in] cmesh Computational mesh.
+    @param[out] activeEquations a vector containing the index of all remaining equations.
+    @param[in] domainHybridization If some kind of hybridization is applied to fluxes, this input 
+    should be set as true as in this case the edge connects are disconnected and edges need to be 
+    removed elementwise.
+    @return 0 if no errors were detected, 1 if a vertex was left untreated,
+    2 if a vertex had all the adjacent edges removed.
 */
 template <class TVar>
-bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZAutoPointer<TPZCompMesh> cmesh,
-                    TPZVec<int64_t> &activeEquations, bool &domainHybridization)
+bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZCompMesh* cmesh,
+                    TPZVec<int64_t> &activeEquations, bool domainHybridization)
 {
 
     cmesh->LoadReferences();
     const auto gmesh = cmesh->Reference();  
     auto nnodes = gmesh->NNodes();
 
-    std::set<int64_t> removed_edges;
     TPZVec<bool> done_vertices(nnodes, false);
 
     if (domainHybridization)
@@ -290,12 +302,27 @@ bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZAutoPointer<TPZCompMes
             if (!gel) continue;
             int dimg = gel->Dimension();
             if (gel->Dimension() != 3) continue;
-            if (gel->Type() == ETetraedro){
+
+            switch (gel->Type())
+            {
+            case ETetraedro:
                 removed_edges.insert(cel->ConnectIndex(0));
                 removed_edges.insert(cel->ConnectIndex(1));
                 removed_edges.insert(cel->ConnectIndex(5));
-            }else {
+                break;
+            case ECube:
+                removed_edges.insert(cel->ConnectIndex(0));
+                removed_edges.insert(cel->ConnectIndex(1));
+                removed_edges.insert(cel->ConnectIndex(3));
+                removed_edges.insert(cel->ConnectIndex(6));
+                removed_edges.insert(cel->ConnectIndex(7));
+                removed_edges.insert(cel->ConnectIndex(8));
+                removed_edges.insert(cel->ConnectIndex(11));
+                break;
+            
+            default:
                 DebugStop();
+                break;
             }
         }      
    
@@ -313,12 +340,12 @@ bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZAutoPointer<TPZCompMes
         while (treated_nodes < nnodes)
         {
             // - Escolher um nó do mapa
-            int64_t treatNode, remEdge;
-            ChooseNodeAndEdge(treatNode,remEdge);
+            int64_t treatVertex, remEdge;
+            ChooseVertexAndEdge(treatVertex,remEdge);
 
-            mVertex[treatNode].removed_edge = remEdge;
-            mVertex[treatNode].status = ETreatedVertex;
-            mEdge[remEdge].vertex_treated = treatNode;
+            mVertex[treatVertex].removed_edge = remEdge;
+            mVertex[treatVertex].status = ETreatedVertex;
+            mEdge[remEdge].vertex_treated = treatVertex;
 
             // Updates the edges (if some needs to be blocked) and faces status.
             // UpdateEdgeAndFaceStatus(remEdge);
@@ -345,6 +372,15 @@ bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZAutoPointer<TPZCompMes
     //     std::cout << rem << " " ;
     // }
     // std::cout << std::endl;
+
+    // for (int i = 0; i < nnodes; i++)
+    // {
+    //     std::cout << "MVertex (" << i << ") = " << mVertex[i].removed_edge << std::endl;
+    // }
+    
+    
+
+
 
     if (!domainHybridization){
         bool check_all_vertices{true};
@@ -384,6 +420,9 @@ bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZAutoPointer<TPZCompMes
             }
             const auto seqnum = con.SequenceNumber();
             if (seqnum<0) continue;
+            if (con.IsCondensed()) continue;
+
+
             const auto pos = cmesh->Block().Position(seqnum);
             const auto blocksize = cmesh->Block().Size(seqnum);
             if (blocksize == 0){
@@ -410,6 +449,6 @@ bool TPZHCurlEquationFilter<TVar>::FilterEdgeEquations(TPZAutoPointer<TPZCompMes
 
 
 template class TPZHCurlEquationFilter<STATE>;
-// template class TPZHCurlEquationFilter<CSTATE>;
+template class TPZHCurlEquationFilter<CSTATE>;
 
 

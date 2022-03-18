@@ -273,6 +273,8 @@ void TPZInterpolationSpace::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
   }
   ref->Jacobian(qsi, data.jacobian, data.axes, data.detjac , data.jacinv);
 
+    data.detjac = std::abs(data.detjac);
+    
   Reference()->X(qsi, data.x);
   data.xParametric = qsi;
   

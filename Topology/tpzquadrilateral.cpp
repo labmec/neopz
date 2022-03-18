@@ -1143,32 +1143,26 @@ namespace pztopology {
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZQuadrilateral::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div, const TPZVec<int> &transformationIds)
+    void TPZQuadrilateral::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
         REAL scale = 2.;
         REAL qsi = point[0];
         REAL eta = point[1];
         RT0function.Zero();
 
-        constexpr auto nEdges{4};
-        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
-        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
-            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
-        }
-
         //Face functions
         //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
-        RT0function(1,0) = -0.5 * (1. - eta) / scale * edgeSign[0];
-        div[0] = 0.5 / scale * edgeSign[0]; 
+        RT0function(1,0) = -0.5 * (1. - eta) / scale;
+        div[0] = 0.5 / scale;
 
-        RT0function(0,1) = 0.5 * (1. + qsi) / scale * edgeSign[1];
-        div[1] = 0.5 / scale * edgeSign[1]; 
+        RT0function(0,1) = 0.5 * (1. + qsi) / scale;
+        div[1] = 0.5 / scale;
 
-        RT0function(1,2) = 0.5 * (1. + eta) / scale * edgeSign[2];
-        div[2] = 0.5 / scale * edgeSign[2]; 
+        RT0function(1,2) = 0.5 * (1. + eta) / scale;
+        div[2] = 0.5 / scale;
 
-        RT0function(0,3) = 0.5 * (1. - qsi) / scale * edgeSign[3];
-        div[3] = -0.5 / scale * edgeSign[3]; 
+        RT0function(0,3) = -0.5 * (1. - qsi) / scale;
+        div[3] = 0.5 / scale; 
         
     }
 

@@ -180,7 +180,7 @@ int ClassId() const override;
     
     /** @brief Prints the relevant data of the element to the output stream */
     virtual void Print(std::ostream &out) const override;
-
+    
 };
 
 template<class TSHAPE>

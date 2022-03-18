@@ -5,7 +5,7 @@
 #include "pzshapetriang.h"
 #include "pzshapequad.h"
 #include "pzshapepoint.h"
-#include "TPZShapeHDivKernel.h"
+#include "TPZShapeHCurlNoGrads.h"
 
 template <class TSHAPE>
 void TPZShapeHDivConstantBound<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
@@ -19,13 +19,26 @@ void TPZShapeHDivConstantBound<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
         DebugStop();
     }
 #endif
+    if(TSHAPE::Type() == ETriangle || TSHAPE::Type() == EOned) connectorder++;
+
     data.fSideOrient.Resize(1);
     data.fSideOrient[0] = sideorient;
     data.fH1ConnectOrders.Resize(nsides-ncorner, connectorder);
     data.fH1ConnectOrders.Fill(connectorder);
-    if(connectorder > 0)
+
+    if(TSHAPE::Dimension == 1)
     {
         TPZShapeH1<TSHAPE>::Initialize(ids,data.fH1ConnectOrders,data);
+    } else if (TSHAPE::Dimension == 2){
+        const int nedges = TSHAPE::NSides-TSHAPE::NFacets-TSHAPE::NCornerNodes-1;
+        TPZManVector<int,15> locconorders(TSHAPE::NSides-TSHAPE::NCornerNodes,1);
+        for(int ic = nedges; ic<TSHAPE::NSides-TSHAPE::NCornerNodes; ic++)
+        {
+            locconorders[ic] = data.fH1ConnectOrders[ic-nedges];
+        }
+        TPZShapeHCurlNoGrads<TSHAPE>::Initialize(ids,locconorders,data);
+    } else {
+        DebugStop();
     }
 }
 
@@ -52,7 +65,7 @@ void TPZShapeHDivConstantBound<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeDa
     TPZShapeH1<TSHAPE>::Shape(pt,data);
 
     if (dim == 1){
-        phi(0,0) = -0.5;
+        phi(0,0) = 0.5 * data.fSideOrient[0];
 
         int nshape = data.fPhi.Rows();
 
@@ -63,24 +76,23 @@ void TPZShapeHDivConstantBound<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeDa
         
         
         if (TSHAPE::Type() == EQuadrilateral){
-            phi(0,0) = -0.25;
+            phi(0,0) = 0.25 * data.fSideOrient[0];
         } else if (TSHAPE::Type() == ETriangle){
-            phi(0,0) = -2.;
+            phi(0,0) = 2. * data.fSideOrient[0];
         }
 
-        auto nshape = TPZShapeHDivKernel<TSHAPE>::NHCurlShapeF(data);
-        
-        TPZFMatrix<REAL> phiAux(2,nshape),divphiAux(nshape,1);
+        int nshape = TPZShapeHCurlNoGrads<TSHAPE>::NHCurlShapeF(data);
+
+        TPZFMatrix<REAL> phiAux(2,nshape),curlPhiAux(1,nshape);
+        curlPhiAux.Zero();
         auto qsi = pt;
-        TPZShapeHDivKernel<TSHAPE>::Shape(qsi,data,phiAux,divphiAux);
+        TPZShapeHCurlNoGrads<TSHAPE>::Shape(qsi,data,phiAux,curlPhiAux);
 
         auto nEdges = TSHAPE::NumSides(1); 
-        // std::cout << "phiaux = " << phiAux << std::endl;
        
         for (int i = nEdges; i < nshape; i++)
         {
-            phi(i-nEdges+1,0) = -phiAux(0,i);
-            phi(i-nEdges+1,1) = -phiAux(1,i);
+            phi(i-nEdges+1,0) = curlPhiAux(0,i);
         }
         
     } else {
@@ -103,10 +115,12 @@ int TPZShapeHDivConstantBound<TSHAPE>::ComputeNConnectShapeF(int connect, int or
 
     if(thistype == EOned)
     {
+        order++;
         return order;
     }
     else if(thistype == ETriangle)
     {
+        order++;
         if(connect < TSHAPE::NFacets) return 1 + (order-1)*(2*order+4)/4;
         else return 0;
     }

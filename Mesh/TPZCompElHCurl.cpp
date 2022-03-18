@@ -5,6 +5,7 @@
 #include "TPZCompElHCurl.h"
 
 #include "TPZShapeHCurl.h"
+#include "TPZShapeHCurlNoGrads.h"
 #include "TPZMaterial.h"
 #include "pzcmesh.h"
 #include "pzshapelinear.h"
@@ -235,7 +236,17 @@ void TPZCompElHCurl<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
 template<class TSHAPE>
 int TPZCompElHCurl<TSHAPE>::NConnectShapeF(int connect, int order) const
 {
-    return TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(connect, order);
+    switch (fhcurlfam)
+    {
+    case HCurlFamily::EHCurlStandard:
+        return TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(connect, order);
+        break;
+    case HCurlFamily::EHCurlNoGrads:
+        return TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(connect, order);
+        break;
+    }/**there is no default case on purpose, because now the compiler
+      will warn us if a new hcurl family is added*/
+    return -1;
 }
 
 template<class TSHAPE>
@@ -344,7 +355,17 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
         conOrders[i] = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes);
     }
 
-    TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, shapedata);
+    switch (fhcurlfam)
+    {
+    case HCurlFamily::EHCurlStandard:
+        TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, shapedata);
+        break;
+    case HCurlFamily::EHCurlNoGrads:
+        TPZShapeHCurlNoGrads<TSHAPE>::Initialize(ids, conOrders, shapedata);
+        break;
+    }/**there is no default case on purpose, because now the compiler
+      will warn us if a new hcurl family is added*/
+    
 
     //resizing of TPZMaterialData structures
 
@@ -397,8 +418,18 @@ void TPZCompElHCurl<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &da
     TPZFNMatrix<curldim*80,REAL> curlphiref(curldim,nshape);
 
     TPZShapeData &shapedata = data;
-    TPZShapeHCurl<TSHAPE>::Shape(qsi, shapedata, phiref, curlphiref);
-
+    switch (fhcurlfam)
+    {
+    case HCurlFamily::EHCurlStandard:
+        TPZShapeHCurl<TSHAPE>::Shape(qsi, shapedata, phiref, curlphiref);
+        break;
+    case HCurlFamily::EHCurlNoGrads:
+        TPZShapeHCurlNoGrads<TSHAPE>::Shape(qsi,shapedata,phiref,curlphiref);
+        break;
+    }
+    /**there is no default case on purpose, because now the compiler
+      will warn us if a new hcurl family is added*/
+    
     //these are resized in InitMaterialData
     auto &phi = data.phi;
     auto &curlphi = data.curlphi;

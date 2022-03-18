@@ -57,13 +57,8 @@ set(headers
   tpzagglomeratemesh.h
   TPZAgglomerateEl.h
   TPZCompElH1.h
-  TPZCompElHDivConstant.h
-  TPZCompElHDivConstantBC.h
   TPZCompElKernelHDiv.h
   TPZCompElKernelHDiv3D.h
-  TPZCompElKernelHDivBC.h
-  TPZCompElKernelHDivBC3D.h
-  TPZCompElHCurlNoGrads.h
   TPZHCurlEquationFilter.h
 )
 
@@ -114,13 +109,8 @@ set(sources
   pzflowcmesh.cpp
   TPZAgglomerateEl.cpp
   TPZCompElH1.cpp
-  TPZCompElHDivConstant.cpp
-  TPZCompElHDivConstantBC.cpp
   TPZCompElKernelHDiv.cpp
   TPZCompElKernelHDiv3D.cpp
-  TPZCompElKernelHDivBC.cpp
-  TPZCompElKernelHDivBC3D.cpp
-  TPZCompElHCurlNoGrads.cpp
   TPZHCurlEquationFilter.cpp
 )
 

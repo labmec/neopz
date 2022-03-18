@@ -21,6 +21,8 @@
 #include "pzshapetetra.h"
 #include "pzshapeprism.h"
 
+using namespace pzshape;
+
 #include <pzfstrmatrix.h>
 #include <TPZLinearAnalysis.h>
 #include <pzstepsolver.h>
@@ -40,11 +42,8 @@
 #include "TPZCompElDisc.h"
 #include "TPZCompElH1.h"
 #include "TPZCompElKernelHDiv.h"
-#include "TPZCompElKernelHDivBC.h"
 #include "TPZCompElKernelHDiv3D.h"
-#include "TPZCompElKernelHDivBC3D.h"
-#include "TPZCompElHDivConstant.h"
-#include "TPZCompElHDivConstantBC.h"
+
 #include "TPZHCurlEquationFilter.h"
 
 #include "pznoderep.h"
@@ -53,11 +52,8 @@
 #undef PZ_KERNELHDIV_DEBUG
 
 
-#ifdef PZ_LOG
-static TPZLogger logger("pz.mesh.testhdivkernel");
-#endif
 
-enum MShapeType {EHDivKernel, EHDivConstant, EHCurlNoGrads};
+enum MShapeType {EHDivKernel, EHDivConstant};
 enum BCType {Dirichlet, Neumann};
 
 
@@ -142,14 +138,14 @@ CreateGeoMesh(const MMeshType meshType, const TPZVec<int> &nDivs, const int dim,
 template<class TSHAPE>
 void TestHCurlNoGradsDim(const int &pOrder);
 
-template<class TSHAPE>
-void TestShapeHDivKernel(const int &pOrder);
-
 /*
     Test KernelHdiv problem
 */
 template<class tshape>
 void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType fShapeType);
+
+//Rotates a geometric by a given angle aroung a given axis
+static void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
 
 
 TEST_CASE("HCurl no grads dimension", "[hdivkernel_mesh_tests]") {
@@ -167,36 +163,21 @@ TEST_CASE("HCurl no grads dimension", "[hdivkernel_mesh_tests]") {
   std::cout << "Finish test dimension of HCurlNoGrads \n";
 }
 
-TEST_CASE("HDiv Kernel dimension", "[hdivkernel_mesh_tests]") {
-    std::cout << "Testing dimension of HDivKernel\n";
-    const int pOrder = GENERATE(1,2,3);
-  //SVD requires LAPACK
-#ifndef PZ_USING_LAPACK
-  return;
-#endif
-  TestShapeHDivKernel<pzshape::TPZShapeTriang>(pOrder);
-  TestShapeHDivKernel<pzshape::TPZShapeQuad>(pOrder);
-  TestShapeHDivKernel<pzshape::TPZShapeTetra>(pOrder);
-  TestShapeHDivKernel<pzshape::TPZShapeCube>( pOrder);
-  // TestShapeHDivKernel<pzshape::TPZShapePrism>(pOrder);
-  std::cout << "Finish test dimension of HDivKernel \n";
+// Test 2D Kernel Hdiv: FOR DEBUGGING PURPOSES
+TEST_CASE("HDiv Kernel", "[hdivkernel_mesh_tests]") {
+  std::cout << "Testing HDiv Kernel \n";
+
+  const int xdiv = GENERATE(2);
+  const int pOrder = GENERATE(1,2);
+  MShapeType shape = GENERATE(EHDivKernel);
+
+  TestKernelHDiv<pzshape::TPZShapeTriang>(xdiv,pOrder,shape);
+  TestKernelHDiv<pzshape::TPZShapeQuad>(xdiv,pOrder,shape);
+  TestKernelHDiv<pzshape::TPZShapeTetra>(xdiv,pOrder,shape);
+  TestKernelHDiv<pzshape::TPZShapeCube>(xdiv, pOrder, shape);
+//   TestKernelHDiv<pzshape::TPZShapePrism>(xdiv,pOrder,shape);
+  std::cout << "Finish test HDiv Kernel \n";
 }
-
-// // Test 2D Kernel Hdiv: FOR DEBUGGING PURPOSES
-// TEST_CASE("HDiv Kernel", "[hdivkernel_mesh_tests]") {
-//   std::cout << "Testing HDiv Kernel \n";
-//   // colocar as variaveis que fazem generate aqui.
-//   const int xdiv = GENERATE(1,2);
-//   const int pOrder = GENERATE(1,2,3);
-//   MShapeType shape = GENERATE(EHDivKernel,EHDivConstant);
-
-//   TestKernelHDiv<pzshape::TPZShapeTriang>(xdiv,pOrder,shape);
-//   TestKernelHDiv<pzshape::TPZShapeQuad>(xdiv,pOrder,shape);
-//   TestKernelHDiv<pzshape::TPZShapeTetra>(xdiv,pOrder,shape);
-//   TestKernelHDiv<pzshape::TPZShapeCube>(xdiv, pOrder, shape);
-// //   TestKernelHDiv<pzshape::TPZShapePrism>(xdiv,pOrder,shape);
-//   std::cout << "Finish test HDiv Kernel \n";
-// }
 
 TPZGeoMesh*
 ReadMeshFromGmsh(std::string file_name)
@@ -253,21 +234,13 @@ void CreateOrientedBoundaryElements(TPZGeoMesh *fGeoMesh)
 {   
     for(auto gel : fGeoMesh->ElementVec())
     {
-        if (gel->Dimension() < 3) continue;
-        int sideStart = 0;
-        int sideEnd = 0;
-        if (gel->Type() == ETetraedro){
-            sideStart = 10;
-            sideEnd = 14;
-        } else if (gel->Type() == ECube){
-            sideStart = 20;
-            sideEnd = 26;
-        } else if (gel->Type() == EPrisma){
-            sideStart = 15;
-            sideEnd = 20;
-        }
+        if (gel->Dimension() < fGeoMesh->Dimension()) continue;
+        
+        int nSides = gel->NSides();
         //For tetrahedra only, loop over the surface sides
-        for (int side = sideStart; side < sideEnd; side++){
+        for (int side = 0; side < nSides; side++){
+            if (gel->SideDimension(side) != gel->Dimension()-1) continue;
+
             TPZGeoElSide gelside(gel,side);
             TPZGeoElSide neighbour = gelside.Neighbour();
             //Neighbour material id
@@ -303,130 +276,24 @@ TPZCompMesh * CreateFluxCMesh(TPZGeoMesh *fGeoMesh, int fDimension, int fDefault
         mat->SetBigNumber(1.e10);
     } 
 
-    //Creates computational elements
-    int64_t nel = fGeoMesh->NElements();
-    for (int64_t el = 0; el < nel; el++) {
-        TPZGeoEl *gel = fGeoMesh->Element(el);
+    // //Creates computational elements
+    if (fShapeType == EHDivKernel){
+        cmesh->ApproxSpace().SetHDivFamily(HDivFamily::EHDivKernel);
+        cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(fDimension);
+    } else if (fShapeType == EHDivConstant) {
+        cmesh->ApproxSpace().SetHDivFamily(HDivFamily::EHDivConstant);
+        cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(fDimension);
+    }
 
-        if(!gel) DebugStop();
-        auto type = gel -> Type();
-        auto matid = gel->MaterialId();
-
-        using namespace pzgeom;
-        using namespace pzshape;
-
-        if (type == EPoint){
-            if (fDimension == 3) continue;
-            new TPZCompElH1<TPZShapePoint>(*cmesh,gel);
-            TPZMaterial *mat = cmesh->FindMaterial(matid);
-            TPZNullMaterial<> *nullmat = dynamic_cast<TPZNullMaterial<> *>(mat);
-            // nullmat->SetDimension(0);
-        } else if (type == EOned){
-
-            if (allMat.find(matid) == allMat.end()) continue;
-            
-            if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                new TPZCompElKernelHDivBC<TPZShapeLinear>(*cmesh,gel);
-            } else if (fShapeType == EHDivConstant) {
-                new TPZCompElHDivConstantBC<TPZShapeLinear>(*cmesh,gel);
-            } else {
-                DebugStop();
-            }
-            TPZMaterial *mat = cmesh->FindMaterial(matid);
-            TPZNullMaterial<> *nullmat = dynamic_cast<TPZNullMaterial<> *>(mat);
-            nullmat->SetDimension(1);
-
-        } else if (type == EQuadrilateral){
-            if (fDimension == 2){
-                if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                    new TPZCompElKernelHDiv<TPZShapeQuad>(*cmesh,gel);
-                } else if (fShapeType == EHDivConstant) {
-                    new TPZCompElHDivConstant<TPZShapeQuad>(*cmesh,gel);
-                } else {
-                    DebugStop();
-                }
-                TPZMaterial *mat = cmesh->FindMaterial(matid);
-                TPZNullMaterial<> *nullmat = dynamic_cast<TPZNullMaterial<> *>(mat);
-                nullmat->SetDimension(2);
-            } else if (fDimension == 3){
-                if (allMat.find(matid) == allMat.end()) continue;
-                if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                    new TPZCompElKernelHDivBC3D<TPZShapeQuad>(*cmesh,gel,fShapeType);
-                } else if (fShapeType == EHDivConstant) {
-                    new TPZCompElHDivConstantBC<TPZShapeQuad>(*cmesh,gel);
-                } else {
-                    DebugStop();
-                }
-                TPZMaterial *mat = cmesh->FindMaterial(matid);
-                TPZNullMaterial<> *nullmat = dynamic_cast<TPZNullMaterial<> *>(mat);                
-                nullmat->SetDimension(2);
-
-            }
-        } else if(type == ETriangle) {
-            if (fDimension == 2){
-                if (fShapeType == EHDivKernel){
-                    new TPZCompElKernelHDiv<TPZShapeTriang>(*cmesh,gel);
-                } else if (fShapeType == EHDivConstant){
-                    new TPZCompElHDivConstant<TPZShapeTriang>(*cmesh,gel);
-                } else {
-                    DebugStop();
-                }
-                TPZMaterial *mat = cmesh->FindMaterial(matid);
-                TPZNullMaterial<> *nullmat = dynamic_cast<TPZNullMaterial<> *>(mat);
-                nullmat->SetDimension(2);
-            } else if (fDimension == 3){
-                if (allMat.find(matid) == allMat.end()) continue;
-                if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                    new TPZCompElKernelHDivBC3D<TPZShapeTriang>(*cmesh,gel,fShapeType);
-                } else if (fShapeType == EHDivConstant) {
-                    new TPZCompElHDivConstantBC<TPZShapeTriang>(*cmesh,gel);
-                } else {
-                    DebugStop();
-                }
-                TPZMaterial *mat = cmesh->FindMaterial(matid);
-                TPZNullMaterial<> *nullmat = dynamic_cast<TPZNullMaterial<> *>(mat);                
-                nullmat->SetDimension(2);
-        
-            }
-        } else if(type == ETetraedro) {
-            if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                new TPZCompElKernelHDiv3D<TPZShapeTetra>(*cmesh,gel,fShapeType);
-            } else if (fShapeType == EHDivConstant){
-                new TPZCompElHDivConstant<TPZShapeTetra>(*cmesh,gel);
-            } else {
-                DebugStop();
-            }
-            TPZMaterial *mat = cmesh->FindMaterial(matid);
-            TPZNullMaterial<> *nullmat = dynamic_cast<TPZNullMaterial<> *>(mat);
-            nullmat->SetDimension(3);
-        } else if(type == ECube) {
-            if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                new TPZCompElKernelHDiv3D<TPZShapeCube>(*cmesh,gel,fShapeType);
-            } else if (fShapeType == EHDivConstant){
-                new TPZCompElHDivConstant<TPZShapeCube>(*cmesh,gel);
-            } else {
-                DebugStop();
-            }
-            TPZMaterial *mat = cmesh->FindMaterial(matid);
-            TPZNullMaterial<> *nullmat = dynamic_cast<TPZNullMaterial<> *>(mat);
-            nullmat->SetDimension(3);
-        } else if(type == EPrisma) {
-            if (fShapeType == EHDivKernel || fShapeType == EHCurlNoGrads){
-                new TPZCompElKernelHDiv3D<TPZShapePrism>(*cmesh,gel,fShapeType);
-            } else if (fShapeType == EHDivConstant){
-                new TPZCompElHDivConstant<TPZShapePrism>(*cmesh,gel);
-            } else {
-                DebugStop();
-            }
-            TPZMaterial *mat = cmesh->FindMaterial(matid);
-            TPZNullMaterial<> *nullmat = dynamic_cast<TPZNullMaterial<> *>(mat);
-            nullmat->SetDimension(3);
-        }        
-    }    
-
-    cmesh->InitializeBlock();
-    cmesh->ComputeNodElCon();
-    cmesh->LoadReferences();
+    for (auto gel:fGeoMesh->ElementVec())
+    {
+        if (gel->Dimension() == 0){
+            new TPZCompElH1<TPZShapePoint>(*cmesh,gel,H1Family::EH1Standard);
+            // CreatePointEl(gel,*cmesh,H1Family::EH1Standard);
+        }
+    }
+    
+    cmesh->AutoBuild();
 
     return cmesh;
 }
@@ -689,134 +556,9 @@ void TestHCurlNoGradsDim(const int &pOrder){
     std::tie(S_unfilt, rank_unfilt) = CalcRank(curlcurl_unfilt,tol);
     
     CAPTURE(pOrder);
-    CAPTURE(S_filt, S_unfilt);
+    // CAPTURE(S_filt, S_unfilt);
     REQUIRE(rank_filt==rank_unfilt);
     REQUIRE(nfiltfuncs == rank_filt+TSHAPE::NCornerNodes-1);
-}
-
-#include "TPZShapeHDivKernel.h"
-
-template<class TSHAPE>
-void TestShapeHDivKernel(const int &pOrder){
-
-    constexpr int nNodes = TSHAPE::NCornerNodes;
-    constexpr int nSides = TSHAPE::NSides;
-    constexpr int nConnects = nSides - nNodes;
-    constexpr int dim = TSHAPE::Dimension;
-    constexpr int curlDim = dim*2 - 3;
-    
-    TPZVec<int> connectorders(nConnects, pOrder);
-
-    //let us count the shape functions
-    int nunfiltfuncs{0}, nfiltfuncs{0};
-    for(int ic = 0 ; ic < nConnects; ic++){
-        const int conorder = connectorders[ic];
-        nunfiltfuncs +=
-            TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(ic,conorder);
-        nfiltfuncs +=
-            TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(ic,conorder);
-    }
-    
-    TPZVec<int64_t> ids(nNodes,0);
-    for(int i = 0; i < nNodes; i++){ids[i] = i;}
-    
-    
-    TPZShapeData data_unfilt, data_filt;
-    TPZShapeHCurl<TSHAPE>::Initialize(ids, connectorders, data_unfilt);
-    TPZShapeHDivKernel<TSHAPE>::Initialize(ids, connectorders, data_filt);
-    TPZShapeHDivKernel<TSHAPE>::ComputeVecandShape(data_filt);
-
-    const int pord_int = TPZShapeHDivKernel<TSHAPE>::MaxOrder(pOrder);
-    typename TSHAPE::IntruleType intrule(2*pord_int);
-    
-
-    const int npts = intrule.NPoints();
-
-    const int nEdges = TSHAPE::NumSides(1);
-
-
-    TPZFMatrix<REAL> curlcurl_filt(nfiltfuncs,nfiltfuncs,0.);
-    TPZFMatrix<REAL> curlcurl_unfilt(nunfiltfuncs,nunfiltfuncs,0.);
-    
-    REAL weight;
-    TPZVec<REAL> pt(dim,0.);
-
-    
-    for(int ipt = 0; ipt < npts; ipt++){
-        intrule.Point(ipt,pt,weight);
-        TPZFMatrix<REAL> phi_unfilt(dim,nunfiltfuncs);
-        TPZFMatrix<REAL> curlphi_unfilt(curlDim, nunfiltfuncs);
-        TPZShapeHCurl<TSHAPE>::Shape(pt,data_unfilt,phi_unfilt,curlphi_unfilt);
-        TPZFMatrix<REAL> divphi_filt (1,nfiltfuncs);
-        TPZFMatrix<REAL> curlphi_filt(curlDim, nfiltfuncs);
-        TPZShapeHDivKernel<TSHAPE>::Shape(pt,data_filt,curlphi_filt,divphi_filt);
-        // std::cout << "FiLT " << curlphi_filt << std::endl;
-        
-        //calc matrix curlphi_i curlphi_j
-        //check if rank filt = rank unfilt
-        //compare rank filt and dim filt
-        for (int ish = 0; ish < nunfiltfuncs; ish++){
-            for (int jsh = 0; jsh < nunfiltfuncs; jsh++){
-                for (int d = 0; d < curlDim; d++){
-                    curlcurl_unfilt(ish,jsh) += curlphi_unfilt(d,ish)*curlphi_unfilt(d,jsh) * weight;
-                }
-            }
-        }
-        for (int ish = 0; ish < nfiltfuncs; ish++){
-            for (int jsh = 0; jsh < nfiltfuncs; jsh++){
-                for (int d = 0; d < curlDim; d++){
-                    curlcurl_filt(ish,jsh) += curlphi_filt(d,ish)*curlphi_filt(d,jsh) * weight;
-                }
-            }
-        }
-                
-        
-    }
-
-
-    auto CalcRank = [](TPZFMatrix<STATE> & mat, const STATE tol){
-
-        TPZFMatrix<STATE> S;
-        TPZFMatrix<STATE> Udummy, VTdummy;
-        mat.SVD(Udummy, S, VTdummy, 'N', 'N');
-
-        int rank = 0;
-        const int dimMat = S.Rows();
-        for (int i = 0; i < dimMat; i++) {
-            rank += S.GetVal(i, 0) > tol ? 1 : 0;
-        }
-        return std::make_tuple(S,rank);
-    };
-    
-    std::ofstream out("CurlCheck.nb");
-    curlcurl_unfilt.Print("Unf = ",out,EMathematicaInput);
-    curlcurl_filt.Print("Fil = ",out,EMathematicaInput);
-
-    static constexpr auto tol = std::numeric_limits<STATE>::epsilon()*10000;
-
-    int rank_filt, rank_unfilt;
-    TPZFMatrix<STATE> S_filt, S_unfilt;
-    std::tie(S_filt, rank_filt) = CalcRank(curlcurl_filt,tol);
-    std::tie(S_unfilt, rank_unfilt) = CalcRank(curlcurl_unfilt,tol);
-
-    std::string elname{"noname"};
-    //dimension of lowest order gradients
-    constexpr int lo_grad_dim = nNodes - 1;
-    if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeTriang>){
-        elname = "triang";
-    }else if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeQuad>){
-        elname = "quad";
-    }else if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeTetra>){
-        elname = "tetra";
-    }else if constexpr (std::is_same_v<TSHAPE, pzshape::TPZShapeCube>){
-        elname = "cube";
-    }
-
-    CAPTURE(elname);
-    CAPTURE(pOrder);
-    CAPTURE(S_filt, S_unfilt);
-    REQUIRE(rank_filt==rank_unfilt);
-    REQUIRE(nfiltfuncs == rank_filt+lo_grad_dim);
 }
 
 
@@ -859,9 +601,25 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType shapeType){
     auto gmesh = CreateGeoMesh(meshType, nDivs, DIM, volId, bcId, shapeType);
     // TPZGeoMesh *gmesh = CreateGeoMeshTetra(meshType,nDivs,volId,bcId);
     // auto gmesh = ReadMeshFromGmsh("1tetra.msh");
-    
     if (DIM == 3) CreateOrientedBoundaryElements(gmesh);
 
+    //rotate the geoMesh
+    int Axis;
+    REAL theta, dump = 0.0;
+
+    if (DIM == 3){
+        theta = 48.0;
+        Axis = 1;
+        RotateGeomesh(gmesh, theta*dump, Axis);
+
+        theta = -45.0;
+        Axis = 2;
+        RotateGeomesh(gmesh, theta*dump, Axis);
+    }
+    
+    theta = 120.0;
+    Axis = 3;
+    RotateGeomesh(gmesh, theta*dump, Axis);
 
     TPZCompMesh * cmeshflux = CreateFluxCMesh(gmesh,DIM,pOrder,shapeType);
     TPZCompMesh * cmeshpres = CreatePressureCMesh(gmesh,DIM,pOrder,shapeType);
@@ -888,11 +646,8 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType shapeType){
 #endif
     // Solve the problem
     TPZLinearAnalysis an(cmesh,false);
-    //sets number of threads to be used by the solver
 
-    constexpr int nThreads{0};
     TPZSkylineStructMatrix<REAL> matskl(cmesh);
-    matskl.SetNumThreads(nThreads);
 
     //Filter equations
     if (DIM == 3 && shapeType == EHDivKernel){
@@ -923,29 +678,77 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType shapeType){
 
     an.SetSolver(step);
 
-    //assembles the system
-    an.Assemble();
+    //Solve the problem
+    an.Run();
 
-    ///solves the system
-    an.Solve();
-    auto mat = an.StructMatrix();
+    // ///solves the system
+    // an.Solve();
+    // auto mat = an.StructMatrix();
 
     ///Calculating approximation error  
     TPZManVector<REAL,5> error;
 
-    int64_t nelem = cmesh->NElements();
-    cmesh->LoadSolution(cmesh->Solution());
-    cmesh->ExpandSolution();
-    cmesh->ElementSolution().Redim(nelem, 5);
+    // int64_t nelem = cmesh->NElements();
+    // cmesh->LoadSolution(cmesh->Solution());
+    // cmesh->ExpandSolution();
+    // cmesh->ElementSolution().Redim(nelem, 5);
     
     // an.SetExact(LaplaceExact.ExactSolution(),pOrder);
     if (DIM == 2 && shapeType == EHDivKernel) an.SetExact(exactSolKernel2D,pOrder);
     if (DIM == 3 && shapeType == EHDivKernel) an.SetExact(exactSolKernel3D,pOrder);
     if (DIM == 2 && shapeType == EHDivConstant) an.SetExact(exactSolConstant2D,pOrder);
     if (DIM == 3 && shapeType == EHDivConstant) an.SetExact(exactSolConstant3D,pOrder);
-    
-    an.PostProcessError(error);
-#ifdef PZ_KERNELHDIV_DEBUG
+
+    // an.PostProcessError(error);
+    //Check element error
+    int nel = cmesh->NElements();
+    cmesh->LoadSolution(cmesh->Solution());
+    for(int i = 0; i<nel; i++){
+        TPZCompEl *cel = cmesh->ElementVec()[i];
+        TPZGeoEl *gel = cel->Reference();
+        if(gel->Dimension()<cmesh->Dimension()) continue;
+        int ns = gel->NSides();
+        int dim = gel->Dimension();
+        TPZIntPoints *rule = gel->CreateSideIntegrationRule(ns-1, 4);//3
+        int np = rule->NPoints();
+        for(int ip=0; ip<np; ip++)
+        {
+            //TPZManVector<REAL,3> xi(2), xco(3), sol(1), exactsol(1);
+            TPZManVector<REAL,3> xi(dim), xco(3);
+            TPZManVector<STATE,3> sol(1), exactsol(1), solFlux(3);
+            TPZFNMatrix<2,STATE> gradp(3,1);
+            REAL weight;
+            rule->Point(ip, xi, weight);
+            gel->X(xi, xco);
+            // cel->Solution(xi, 2, sol);
+            cel->Solution(xi, 1, solFlux);
+            
+            if (DIM == 2 && shapeType == EHDivKernel) exactSolKernel2D(xco,exactsol,gradp);
+            if (DIM == 3 && shapeType == EHDivKernel) exactSolKernel3D(xco,exactsol,gradp);
+            if (DIM == 2 && shapeType == EHDivConstant) exactSolConstant2D(xco,exactsol,gradp);
+            if (DIM == 3 && shapeType == EHDivConstant) exactSolConstant3D(xco,exactsol,gradp);
+
+            STATE normError = std::sqrt((solFlux[0]+gradp(0,0))*(solFlux[0]+gradp(0,0)) + 
+                                        (solFlux[1]+gradp(1,0))*(solFlux[1]+gradp(1,0)) + 
+                                        (solFlux[2]+gradp(2,0))*(solFlux[2]+gradp(2,0))); // flux = -gradp
+
+            if (normError > 1.e-6) {
+                std::cout << "xi = " << xi <<std::endl;
+                std::cout << "xco = " << xco <<std::endl;
+                std::cout << "SOL = " << sol[0] << " " << exactsol[0] <<std::endl;
+                std::cout << "flux = " << solFlux << "\n " << gradp <<std::endl;
+            }
+
+            // std::cout << "SOL = " << sol[0] << " " << exactsol[0] <<std::endl;
+            // std::cout << "flux = " << solFlux << "\n " << gradp <<std::endl;
+
+            REQUIRE(normError < 1.e-6); // Flux
+            
+        }
+    }
+
+
+#ifdef PZ_LOG
     // TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvector, cmesh);
     // TPZManVector<std::string,10> scalnames(0), vecnames(2);
     // // scalnames[0] = "Pressure";
@@ -958,10 +761,73 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType shapeType){
     // an.DefineGraphMesh(cmesh->Dimension(),scalnames,vecnames,plotfile);
     // an.PostProcess(div,cmesh->Dimension());
 #endif
-    REAL tol = 1.e-6;
-    if (shapeType == EHDivKernel) REQUIRE(error[1] < tol);
-    if (shapeType == EHDivConstant) REQUIRE(error[2] < tol);
-
-
-
+   
 }
+
+
+void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
+{
+    REAL theta =  (M_PI/180.0)*CounterClockwiseAngle;
+    // It represents a 3D rotation around the z axis.
+    TPZFMatrix<REAL> RotationMatrix(3,3,0.0);
+
+    switch (Axis) {
+        case 1:
+        {
+            RotationMatrix(0,0) = 1.0;
+            RotationMatrix(1,1) =   +cos(theta);
+            RotationMatrix(1,2) =   -sin(theta);
+            RotationMatrix(2,1) =   +sin(theta);
+            RotationMatrix(2,2) =   +cos(theta);
+        }
+            break;
+        case 2:
+        {
+            RotationMatrix(0,0) =   +cos(theta);
+            RotationMatrix(0,2) =   +sin(theta);
+            RotationMatrix(1,1) = 1.0;
+            RotationMatrix(2,0) =   -sin(theta);
+            RotationMatrix(2,2) =   +cos(theta);
+        }
+            break;
+        case 3:
+        {
+            RotationMatrix(0,0) =   +cos(theta);
+            RotationMatrix(0,1) =   -sin(theta);
+            RotationMatrix(1,0) =   +sin(theta);
+            RotationMatrix(1,1) =   +cos(theta);
+            RotationMatrix(2,2) = 1.0;
+        }
+            break;
+        default:
+        {
+            RotationMatrix(0,0) =   +cos(theta);
+            RotationMatrix(0,1) =   -sin(theta);
+            RotationMatrix(1,0) =   +sin(theta);
+            RotationMatrix(1,1) =   +cos(theta);
+            RotationMatrix(2,2) = 1.0;
+        }
+            break;
+    }
+    
+    TPZVec<REAL> iCoords(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
+    
+    //RotationMatrix.Print("Rotation = ");
+    
+    int NumberofGeoNodes = gmesh->NNodes();
+    for (int inode = 0; inode < NumberofGeoNodes; inode++)
+    {
+        TPZGeoNode GeoNode = gmesh->NodeVec()[inode];
+        GeoNode.GetCoordinates(iCoords);
+        // Apply rotation
+        iCoordsRotated[0] = RotationMatrix(0,0)*iCoords[0]+RotationMatrix(0,1)*iCoords[1]+RotationMatrix(0,2)*iCoords[2];
+        iCoordsRotated[1] = RotationMatrix(1,0)*iCoords[0]+RotationMatrix(1,1)*iCoords[1]+RotationMatrix(1,2)*iCoords[2];
+        iCoordsRotated[2] = RotationMatrix(2,0)*iCoords[0]+RotationMatrix(2,1)*iCoords[1]+RotationMatrix(2,2)*iCoords[2];
+        GeoNode.SetCoord(iCoordsRotated);
+        gmesh->NodeVec()[inode] = GeoNode;
+    }
+    
+}
+
+    

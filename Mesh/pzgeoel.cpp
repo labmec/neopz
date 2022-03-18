@@ -1101,6 +1101,7 @@ void TPZGeoEl::RemoveConnectivities(){
 	for(side=0;side<nsides;side++){
 		TPZGeoElSide thisside(this,side);
 		TPZGeoElSide neighbour (thisside.Neighbour());
+        if(!neighbour) DebugStop();
 		thisside.RemoveConnectivity();
 		if(neighbour != thisside){
 		    TPZGeoElSide neighneigh = neighbour;

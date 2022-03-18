@@ -59,7 +59,7 @@ public:
                              const int duRow, const int duCol) = 0;
     static constexpr int MatDataNumPhi{20};
     static constexpr int MatDataNumDPhi{60};
-    static constexpr int MatDataNumDir{81};
+    static constexpr int MatDataNumDir{110};
     static constexpr int MatDataDimSol{10};
     static constexpr int MatDataNumSol{20};
     //! Auxiliary attribute for collapsed HDiv elements
@@ -120,8 +120,6 @@ public:
     REAL detjac;
     /// Value of the coordinate at the center of the element
     TPZManVector<REAL,3> XCenter;
-    /// Directions on the master element
-    //TPZFNMatrix<MatDataNumDir> fMasterDirections;
     // Id of associated geometric element
     int gelElId{-1};    
     /// Correspondence between direction vector index and index of the shape functions. Used for H(div) and H(curl) approximation spaces.

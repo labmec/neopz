@@ -31,9 +31,6 @@ protected:
   ///! Indexes of the connects associated with the elements
   TPZManVector<int64_t,TSHAPE::NSides> fConnectIndexes =
     TPZManVector<int64_t,TSHAPE::NSides>(TSHAPE::NSides,-1);
-private:
-
-    int fSideOrient = 1;
 
 public:
 	    
@@ -45,13 +42,14 @@ public:
 
     // void ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi) override;
     void ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data) override;
-    //  void ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data) override;
-    void SetSideOrient(int orient);
-
-    int GetSideOrient();
 
 	/** @brief Compute the solution for a given variable */
 	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
+    
+    int NConnectShapeF(int connect, int order) const override;
+
+    /// Return the maximum order
+    virtual int MaxOrder() override;
 
 protected:
 	 //@{
@@ -67,8 +65,18 @@ protected:
     void ComputeSolutionKernelHdivT(TPZMaterialDataT<TVar> &data);
     template<class TVar>
     void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL>&qsi);
-	
+    
 };
 
+#include "tpzquadrilateral.h"
+#include "tpztriangle.h"
+
+/** @brief Creates computational quadrilateral element for HDivKernel approximate space */
+TPZCompEl *CreateHDivKernelQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
+/** @brief Creates computational triangular element for HDivKernel approximate space */
+TPZCompEl *CreateHDivKernelTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
+
+/** @brief Creates computational linear element for HDivKernel approximate space */
+TPZCompEl *CreateHDivKernelBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam);
 
 #endif

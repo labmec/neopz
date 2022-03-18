@@ -189,7 +189,7 @@ public:
      **/
 	int NShapeContinuous(TPZVec<int> &order);
     
-    /// Return the maximum order??
+    /// Return the maximum order of the HDiv functions
     virtual int MaxOrder() override;
     
     /// the orientation of the face
@@ -247,6 +247,7 @@ public:
 	void Read(TPZStream &buf, void *context) override;
     /** @brief Refinement along the element */
     virtual void PRefine(int order) override;
+    
 protected:
     //@{
     /** @brief Compute the solution using Hdiv structure */
