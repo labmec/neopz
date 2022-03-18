@@ -83,9 +83,9 @@ int TPZShapeHDivConstant<TSHAPE>::NHDivShapeF(TPZShapeData &data)
 {
     // int nshape = TPZShapeH1<TSHAPE>::NShape(data);
     int nshape = 0;
-    constexpr int nEdges = TSHAPE::NSides-TSHAPE::NCornerNodes-TSHAPE::NFacets-1;
+    constexpr int firstConnect = TSHAPE::NSides-TSHAPE::NCornerNodes-TSHAPE::NFacets-1;
     int nc = data.fHDivNumConnectShape.size();
-    for(int ic = nEdges; ic<nc; ic++) nshape += data.fHDivNumConnectShape[ic];
+    for(int ic = firstConnect; ic<nc; ic++) nshape += data.fHDivNumConnectShape[ic];
     nshape += TSHAPE::NFacets;
     return nshape;
 }
@@ -203,8 +203,8 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
 template<class TSHAPE>
 int TPZShapeHDivConstant<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
 {
-    const int nedges = TSHAPE::NSides-TSHAPE::NFacets-TSHAPE::NCornerNodes-1;
-    int faceconnect = icon+nedges;
+    const int firstcon = TSHAPE::NSides-TSHAPE::NFacets-TSHAPE::NCornerNodes-1;
+    int faceconnect = icon+firstcon;
     int nshape = data.fHDivNumConnectShape[faceconnect] + 1;
     return nshape;
 }
