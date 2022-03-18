@@ -1,5 +1,5 @@
 #include "TPZShapeHDivConstant.h"
-#include "TPZShapeHDivKernel.h" 
+#include "TPZShapeHCurlNoGrads.h" 
 
 #include "TPZShapeH1.h"
 #include "pzshapelinear.h"
@@ -14,14 +14,79 @@
 #include "TPZShapeData.h"
 #include "TPZCompElHCurl.h"
 
+//! Should be called once per element. Initializes the data structure
+template<class TSHAPE>
+void TPZShapeHDivConstant<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
+                TPZVec<int> &connectorders,
+                const TPZVec<int>& sideorient, 
+                TPZShapeData &data)
+{
+    data.fSideOrient = sideorient;
+    data.fHDivConnectOrders.Resize(TSHAPE::NFacets+1);
+    data.fHDivNumConnectShape.Resize(TSHAPE::NFacets+1);
+    if(TSHAPE::Dimension == 2)
+    {
+        //Compatibilize the polynomial order
+        int conSize = connectorders.size();
+        for (int i = 0; i < conSize; i++){
+            connectorders[i]++;
+        }
+        if (TSHAPE::Type() == ETriangle){
+            connectorders[conSize-1]++;
+        }
+        //Initialize data structures
+        TPZShapeH1<TSHAPE>::Initialize(ids,connectorders,data);
+
+        for(int ic = 0; ic<TSHAPE::NFacets;ic++)
+        {
+            data.fHDivConnectOrders[ic] =  connectorders[ic];
+            data.fHDivNumConnectShape[ic] = data.fH1NumConnectShape[ic]+1;
+        }
+        int ic = TSHAPE::NFacets;
+        data.fHDivConnectOrders[ic] =  connectorders[ic];
+        data.fHDivNumConnectShape[ic] = data.fH1NumConnectShape[ic];
+    }
+    else
+    {
+        //Compatibilize the polynomial order
+        if (TSHAPE::Type() == ETetraedro) {
+            int conSize = connectorders.size();
+            for (int i = 0; i < conSize; i++){
+                connectorders[i]++;
+            }
+            connectorders[conSize-1]++;
+        }
+
+        const int nedges = TSHAPE::NSides-TSHAPE::NFacets-TSHAPE::NCornerNodes-1;
+        TPZManVector<int,15> locconorders(TSHAPE::NSides-TSHAPE::NCornerNodes,1);
+        for(int ic = nedges; ic<TSHAPE::NSides-TSHAPE::NCornerNodes; ic++)
+        {
+            locconorders[ic] = connectorders[ic-nedges];
+        }
+        TPZShapeHCurlNoGrads<TSHAPE>::Initialize(ids, locconorders, data);
+//        TPZManVector<int> HCurlNumConnectShapeF = data.fHDivNumConnectShape;
+//        data.fHDivNumConnectShape.Resize(TSHAPE::NFacets+1);
+//        for(int ic=nedges; ic<TSHAPE::NSides-TSHAPE::NCornerNodes-1; ic++)
+//        {
+//            int numshape = HCurlNumConnectShapeF[ic]+1;
+//            data.fHDivNumConnectShape[ic-nedges] = numshape;
+//        }
+//        int ic = TSHAPE::NSides-TSHAPE::NCornerNodes-1;
+//        int numshape = HCurlNumConnectShapeF[ic];
+//        data.fHDivNumConnectShape[ic-nedges] = numshape;
+    }
+}
+
 
 template<class TSHAPE>
 int TPZShapeHDivConstant<TSHAPE>::NHDivShapeF(TPZShapeData &data)
 {
     // int nshape = TPZShapeH1<TSHAPE>::NShape(data);
     int nshape = 0;
+    constexpr int nEdges = TSHAPE::NSides-TSHAPE::NCornerNodes-TSHAPE::NFacets-1;
     int nc = data.fHDivNumConnectShape.size();
-    for(int ic = 0; ic<nc; ic++) nshape += data.fHDivNumConnectShape[ic];
+    for(int ic = nEdges; ic<nc; ic++) nshape += data.fHDivNumConnectShape[ic];
+    nshape += TSHAPE::NFacets;
     return nshape;
 }
 
@@ -42,7 +107,7 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
     vecDiv.Zero();
     div.Fill(0.);
     // std::cout << "FSide trans ID = " << data.fSideTransformationId << std::endl;
-    TSHAPE::ComputeConstantHDiv(pt, vecDiv, div, data.fSideTransformationId);
+    TSHAPE::ComputeConstantHDiv(pt, vecDiv, div);
 
     int nshape = data.fPhi.Rows();
     
@@ -63,10 +128,10 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
             count++;
 
             //Kernel Hdiv
-            for (int j = 1; j < data.fHDivConnectOrders[0]; j++)
+            for (int j = 1; j < data.fHDivConnectOrders[i]; j++)
             {
-                phi(0,count) =  data.fDPhi(1,countKernel);
-                phi(1,count) = -data.fDPhi(0,countKernel);
+                phi(0,count) = -data.fDPhi(1,countKernel);
+                phi(1,count) =  data.fDPhi(0,countKernel);
                 count++;
                 countKernel++;
             }
@@ -74,8 +139,8 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
         
         //Internal functions
         for (int i = countKernel; i < nshape; i++){
-            phi(0,count) =  data.fDPhi(1,countKernel);
-            phi(1,count) = -data.fDPhi(0,countKernel);
+            phi(0,count) = -data.fDPhi(1,countKernel);
+            phi(1,count) =  data.fDPhi(0,countKernel);
             count++;
             countKernel++;
         }
@@ -83,12 +148,13 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
         
         divphi.Zero();
         const auto nEdges = TSHAPE::NumSides(1);
-        int nshape = TPZShapeHDivKernel<TSHAPE>::NHDivShapeF(data);
+        int nshapehcurl = TPZShapeHCurlNoGrads<TSHAPE>::NHCurlShapeF(data);
+        int nshape = NHDivShapeF(data);
         
-        TPZFMatrix<REAL> phiAux(dim,nshape),divphiAux(nshape,1);
-        phiAux.Zero(); divphiAux.Zero();
+        TPZFMatrix<REAL> phiAux(dim,nshapehcurl),curlPhiAux(3,nshapehcurl);
+        phiAux.Zero(); curlPhiAux.Zero();
 
-        TPZShapeHDivKernel<TSHAPE>::Shape(pt,data,phiAux,divphiAux);
+        TPZShapeHCurlNoGrads<TSHAPE>::Shape(pt,data,phiAux,curlPhiAux);
         
         int count = 0;
         int countKernel=nEdges;
@@ -105,9 +171,9 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
             count++;
         
             //Kernel HDiv functions
-            for (int k = 0; k < data.fHDivNumConnectShape[TSHAPE::NumSides(1)]; k++){
+            for (int k = 0; k < data.fHDivNumConnectShape[nEdges]; k++){
                 for(auto d = 0; d < dim; d++) {
-                    phi(d,count) = phiAux(d,countKernel);               
+                    phi(d,count) = curlPhiAux(d,countKernel);               
                 }
                 countKernel++;
                 count++;
@@ -118,7 +184,7 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
         {
             for (auto d = 0; d < dim; d++)
             {
-                phi(d,count) = phiAux(d,countKernel);  
+                phi(d,count) = curlPhiAux(d,countKernel);  
             }
             countKernel++;
             count++;
@@ -133,17 +199,20 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
 
 }
 
-
+// icon is the connect index of the hdiv element
 template<class TSHAPE>
 int TPZShapeHDivConstant<TSHAPE>::NConnectShapeF(int icon, TPZShapeData &data)
 {
-    int nshape = data.fHDivNumConnectShape[icon] + 1;
+    const int nedges = TSHAPE::NSides-TSHAPE::NFacets-TSHAPE::NCornerNodes-1;
+    int faceconnect = icon+nedges;
+    int nshape = data.fHDivNumConnectShape[faceconnect] + 1;
     return nshape;
 }
 
 template<class TSHAPE>
 int TPZShapeHDivConstant<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
 {
+
 #ifdef DEBUG
     if (connect < 0 || connect > TSHAPE::NFacets) {
         DebugStop();
@@ -153,25 +222,35 @@ int TPZShapeHDivConstant<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
     MElementType thistype = TSHAPE::Type();
 
     if(thistype == EOned)
-    {
+    {   
+        order++;
         if(connect < 2) return 0;
         else return order;
         // DebugStop();
     }
     else if(thistype == ETriangle)
-    {
+    {   
+        order++;
         if(connect < TSHAPE::NFacets) return (order);
-        else return (order-1)*(order-2)/2;
+        else {
+            order++;
+            return (order-1)*(order-2)/2;
+        }
     }
     else if(thistype == EQuadrilateral)
     {
+        order++;
         if(connect < TSHAPE::NFacets) return (order);
         else return (order-1)*(order-1);
     }
     else if(thistype == ETetraedro)
     {
+        order++;
         if(connect < TSHAPE::NFacets) return 1 + (order-1)*(2*order+4)/4;
-        else return (order-1)*(order-2)*(2*order+3)/6;
+        else {
+            order++;
+            return (order-1)*(order-2)*(2*order+3)/6;
+        }
     }
     else if(thistype == EPrisma)
     {
@@ -189,6 +268,8 @@ int TPZShapeHDivConstant<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
     unreachable();
  }
 
+template
+struct TPZShapeHDivConstant<pzshape::TPZShapeLinear>;
 
 template
 struct TPZShapeHDivConstant<pzshape::TPZShapeTriang>;
