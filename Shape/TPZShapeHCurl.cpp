@@ -13,7 +13,7 @@
 #include "TPZShapeData.h"
 
 template<class TSHAPE>
-void TPZShapeHCurl<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
+void TPZShapeHCurl<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
                                        TPZVec<int> &connectorders,
                                        TPZShapeData &data)
 {
