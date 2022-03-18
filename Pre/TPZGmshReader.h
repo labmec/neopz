@@ -97,9 +97,10 @@ class TPZGmshReader{
     
     /// Characteristic length to apply a Scale affine transformation
     REAL m_characteristic_lentgh = 1;
-    
+
     //////////// Members related to file format with version 4 ////////////
-    
+    /// Data structure for storing periodic elements (only available in v4)
+    std::map<int64_t, int64_t> m_periodic_els;
     /// Data structure of both: physical entities and names indexed by dimension
     TPZManVector<std::map<int,std::vector<int>>,4> m_dim_entity_tag_and_physical_tag;
     
@@ -148,8 +149,14 @@ class TPZGmshReader{
     TPZGeoMesh * GeometricGmshMesh3(std::string file_name, TPZGeoMesh *gmesh = NULL);
 
     void ReadVersion(std::string file_name);
-public:
-    
+    //! Fills m_periodic_els structure after creating the mesh
+    void SetPeriodicElements(
+        TPZGeoMesh *gmesh,
+        const TPZVec<std::map<int64_t, std::map<int64_t, int64_t>>>
+            &entity_periodic_nodes,
+        const TPZVec<std::map<int64_t, int64_t>> &periodic_entities);
+
+  public:
     /// Default constructor
     TPZGmshReader();
     
@@ -164,11 +171,15 @@ public:
     
     /// Print the partition summary after the reading process
     void PrintPartitionSummary(std::ostream & out);
-    
-    void InsertElement(TPZGeoMesh * gmesh, int & physical_identifier, int & el_type, int & el_identifier, std::vector<int> & node_identifiers);
-    
+
+    void InsertElement(TPZGeoMesh *gmesh, const int physical_identifier,
+                       const int el_type, const int el_identifier,
+                       const std::vector<int> &node_identifiers);
+
     int GetNumberofNodes(int & el_type);
-    
+
+    //! Get periodic elements
+    auto GetPeriodicEls() const { return m_periodic_els; }
     /// Insert elements following msh file format */
     bool InsertElement(TPZGeoMesh * gmesh, std::ifstream & line);
     
