@@ -83,7 +83,18 @@ public:
         if (neq) {
             activeset.insert(&active[0], &active[neq-1]+1);
         }
-
+#ifdef PZDEBUG       
+        if (activeset.size() > fNumEq){
+            std::cout << "active set with size = " << activeset.size() << 
+                         " should be greater than the number of equations " << fNumEq << std::endl;
+            DebugStop();
+        }
+        if (*activeset.rbegin() > fNumEq){
+            std::cout << "active set rbegin = " << *activeset.rbegin() << 
+                         " cannot be greater than the number of equations " << fNumEq << std::endl;
+            DebugStop();
+        }
+#endif
         fDestIndices.Resize(fNumEq);
         fDestIndices.Fill(-1);
         int64_t count = 0;
