@@ -316,7 +316,7 @@ void TPZBuildSBFemMultiphysics::CreateCollapsedGeoEls(TPZCompMesh & cmeshpressur
                 gel->JacobianXYZ(qsi, jacobian, axes, detjac, jacinv);
                 if (detjac < 0)
                 {
-                    cout << "The element " << index << " is not countclockwise\n";
+                    if(0 )cout << "The element " << index << " is not countclockwise\n";
                     TPZManVector<int64_t> nodescopy(Nodes);
                     gel->SetNodeIndex(0,Nodes[1]);
                     gel->SetNodeIndex(1,Nodes[0]);

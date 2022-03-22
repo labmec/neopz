@@ -348,7 +348,7 @@ void TPZSBFemMultiphysicsElGroup::CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElem
     TPZFMatrix<std::complex<double>> ekloc;
     QVectors.Multiply(fPhiInverse, ekloc);
 #ifdef PZDEBUG
-    cout << eigenvalues << "\n";
+    if(0) cout << eigenvalues << "\n";
 #endif
 
     ek.fMat.Resize(ekloc.Rows(),ekloc.Cols());
