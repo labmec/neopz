@@ -1040,11 +1040,7 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::MaxOrder(){
 
     int maxorder = TPZInterpolationSpace::MaxOrder();
-    // if (fhdivfam == HDivFamily::EHDivConstant){
-    //     if (TSHAPE::Type() == ETetraedro || TSHAPE::Type() == ETriangle){
-    //         maxorder++;
-    //     }
-    // }
+    
     return maxorder+1;
 }
 

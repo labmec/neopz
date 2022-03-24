@@ -667,6 +667,14 @@ void TPZCompElHDivBound2<TSHAPE>::SetCreateFunctions(TPZCompMesh* mesh) {
     mesh->ApproxSpace().SetAllCreateFunctionsHDiv(TSHAPE::Dimension);
 }
 
+template<class TSHAPE>
+int TPZCompElHDivBound2<TSHAPE>::MaxOrder(){
+
+    int maxorder = TPZInterpolationSpace::MaxOrder();
+
+    return maxorder + 1;
+}
+
 
 #include "pzshapetriang.h"
 #include "pzshapepoint.h"

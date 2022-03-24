@@ -152,7 +152,8 @@ public:
     {
         DebugStop();
     }
-    
+    /// Return the maximum order of the HDiv functions
+    virtual int MaxOrder() override;
 
     /// Return a list with the shape restraints
     virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const override
