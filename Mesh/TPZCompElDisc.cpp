@@ -131,7 +131,7 @@ TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fIndex), fCenterPoint(copy.
     Reference()->SetReference(this);
     //TPZMaterial * mat = copy.Material();
     fConstC = copy.fConstC;
-    CreateMidSideConnect();
+    fConnectIndex = copy.fConnectIndex;
     this->SetDegree( copy.Degree() );
     //as interfaces foram clonadas
     if (copy.fIntRule){
