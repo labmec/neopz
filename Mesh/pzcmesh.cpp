@@ -1772,7 +1772,7 @@ fReference(copy.fReference),fConnectVec(copy.fConnectVec),
 fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
 fCreate(copy.fCreate), fBlock(copy.fBlock),
 fSolution(copy.fSolution),
-fElementSolution(copy.fElementSolution),
+fElementSolution(copy.fElementSolution),fDimModel(copy.fDimModel),
 fSolN(copy.fSolN),
 fSolType(copy.fSolType)
 {
