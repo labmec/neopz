@@ -84,7 +84,7 @@ void TPZSBFemVolumeL2::ReallyComputeSolution(TPZMaterialDataT<STATE> & data)
         }
     }
 
-    auto CSkeleton = dynamic_cast<TPZInterpolationSpace *> (fElementVec1D[2]);
+    auto CSkeleton = dynamic_cast<TPZInterpolationSpace *> (fElementVec1D[1]);
 
     TPZMaterialDataT<STATE> data1d, data2d;
     // compute the lower dimensional shape functions
