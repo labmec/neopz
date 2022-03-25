@@ -61,7 +61,7 @@ namespace structTest{
 TEMPLATE_TEST_CASE("Assemble known matrix",
                    "[struct_tests][struct][multithread]",
                    TPZStructMatrixOR<STATE>,TPZStructMatrixOT<STATE>
-#if defined(PZ_USING_TBB) && !defined(MACOSX)
+#if (0) 
                    ,TPZStructMatrixTBBFlow<STATE>
 #endif
                    )
@@ -148,7 +148,7 @@ TEMPLATE_TEST_CASE("Compare parallel and serial matrices","[struct_tests][struct
 TEMPLATE_TEST_CASE("Test Equation Filter support",
                    "[struct_tests][struct][multithread]",
                    TPZStructMatrixOR<STATE>,TPZStructMatrixOT<STATE>
-#if defined(PZ_USING_TBB) && !defined(MACOSX)
+#if (0) 
                    ,TPZStructMatrixTBBFlow<STATE>
 #endif
                    )
@@ -167,7 +167,7 @@ TEST_CASE("Compare parallel strategies","[struct_tests][struct][multithread]")
   SECTION("Compare OR/OT"){
     structTest::CompareParallelLayerStiffMat<TPZStructMatrixOR<STATE>,TPZStructMatrixOT<STATE>>(cMesh, nThreads);
   }
-#if defined(PZ_USING_TBB) && !defined(MACOSX)
+#if (0) 
   SECTION("Compare OR/TBBFlow"){
     structTest::CompareParallelLayerStiffMat<TPZStructMatrixOR<STATE>,TPZStructMatrixTBBFlow<STATE>>(cMesh, nThreads);
   }
