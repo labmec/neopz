@@ -33,10 +33,16 @@ public:
      * @param[in] f Forcing function
      * @param[in] pOrder Suggested integration rule order.
      */
-    void SetForcingFunctionBC(ForcingFunctionBCType<TVar> f, int pOrder = 0){
+    void SetForcingFunctionBC(ForcingFunctionBCType<TVar> f, int pOrder){
         fForcingFunctionBC = f;
         fForcingFunctionBCPOrder = pOrder;
     }
+
+    /**
+     * @brief Returns the polynomial order of the BC forcing function 
+     */
+    int ForcingFunctionBCPOrder() const {return fForcingFunctionBCPOrder;}
+
     //! Whether a forcing function has been set.
     [[nodiscard]] bool HasForcingFunctionBC() const final{
         return (bool)fForcingFunctionBC;}

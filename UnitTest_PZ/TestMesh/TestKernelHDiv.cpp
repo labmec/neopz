@@ -399,10 +399,10 @@ TPZMultiphysicsCompMesh * CreateMultiphysicsCMesh(TPZGeoMesh *fGeoMesh, int fDim
 
     //Boundary Conditions
     TPZBndCondT<STATE> * BCond = mat->CreateBC(mat, 2, BC, val1, val2);
-    if (fDimension == 2 && fShapeType == EHDivKernel)BCond->SetForcingFunctionBC(exactSolKernel2D);
-    if (fDimension == 3 && fShapeType == EHDivKernel)BCond->SetForcingFunctionBC(exactSolKernel3D);
-    if (fDimension == 2 && fShapeType == EHDivConstant)BCond->SetForcingFunctionBC(exactSolConstant2D);
-    if (fDimension == 3 && fShapeType == EHDivConstant)BCond->SetForcingFunctionBC(exactSolConstant2D);
+    if (fDimension == 2 && fShapeType == EHDivKernel)BCond->SetForcingFunctionBC(exactSolKernel2D,3);
+    if (fDimension == 3 && fShapeType == EHDivKernel)BCond->SetForcingFunctionBC(exactSolKernel3D,3);
+    if (fDimension == 2 && fShapeType == EHDivConstant)BCond->SetForcingFunctionBC(exactSolConstant2D,3);
+    if (fDimension == 3 && fShapeType == EHDivConstant)BCond->SetForcingFunctionBC(exactSolConstant2D,3);
     cmesh->InsertMaterialObject(BCond);
    
     auto *matL2 = new TPZL2ProjectionCS<>(-2,0,1);

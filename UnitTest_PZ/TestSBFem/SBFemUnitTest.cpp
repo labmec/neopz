@@ -112,7 +112,7 @@ void SBFemTest::InsertMaterialDarcy(TPZCompMesh * cmesh)
 
   auto bc = mat->CreateBC(mat, SBFemTest::EBc1, 0, val1, val2);
   cmesh->InsertMaterialObject(bc);
-  bc->SetForcingFunctionBC(LaplaceExact.ExactSolution());
+  bc->SetForcingFunctionBC(LaplaceExact.ExactSolution(),3);
 
   auto bcs = mat->CreateBC(mat, SBFemTest::ESkeleton, 1, val1, val2);
   cmesh->InsertMaterialObject(bcs);
@@ -128,7 +128,7 @@ void SBFemTest::InsertMaterialElasticity3D(TPZCompMesh * cmesh)
   cmesh->InsertMaterialObject(mat);
 
   auto bc = mat->CreateBC(mat, SBFemTest::EBc1, 0, val1, val2);
-  bc->SetForcingFunctionBC(ElastExact.ExactSolution());
+  bc->SetForcingFunctionBC(ElastExact.ExactSolution(),3);
   cmesh->InsertMaterialObject(bc);
 
   auto bcs = mat->CreateBC(mat, SBFemTest::ESkeleton, 1, val1, val2);

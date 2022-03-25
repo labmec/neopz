@@ -399,7 +399,7 @@ void SetExactSolution(TLaplaceExample1 &config, TPZCompMesh *cmesh)
                                TPZFMatrix<STATE>&du){
             config.Exact()->Execute(x, u, du);
         };
-        mat->SetForcingFunctionBC(exact);
+        mat->SetForcingFunctionBC(exact,3);
     }
 }
 

@@ -723,7 +723,7 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     // domain bcs
     auto * BCond0 = mat->CreateBC(mat, EFaceBCPressure, 0, val1, val2);
     if (isLinPVar)
-        BCond0->SetForcingFunctionBC(exactSolLinP);
+        BCond0->SetForcingFunctionBC(exactSolLinP,2);
     cmesh->InsertMaterialObject(BCond0);
     
     TPZManVector<STATE> val2n(1,0.);
@@ -742,7 +742,7 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     auto * BCond1 = mat->CreateBC(mat, EPressureFracBnd, 0, val1, val2);
 //    auto * BCond1 = mat->CreateBC(mat, EPressureFracBnd, 1, val1, val2n);
     if (isLinPVar)
-        BCond1->SetForcingFunctionBC(exactSolFrac);
+        BCond1->SetForcingFunctionBC(exactSolFrac,2);
     cmesh->InsertMaterialObject(BCond1);
     
     // ===> Materials for hybridizing intersection between fractures

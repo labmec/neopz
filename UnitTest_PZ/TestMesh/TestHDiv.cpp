@@ -144,14 +144,14 @@ void VectorDirections();
 
 static void ExactPressure(const TPZVec<REAL> &x, TPZVec<STATE> &pres, TPZFMatrix<STATE> &gradp)
 {
-    // pres[0] =  5. + 3. * x[0] + 2. * x[1] + 4. * x[0] * x[1];
-    // gradp(0,0) =  3. + 4. * x[1];
-    // gradp(1,0) = 2. + 4. * x[0];
-    // gradp(2,0) = 0.;
-   pres[0] =  x[0]+x[1];
-   gradp(0,0) = 1.;
-   gradp(1,0) = 1.;
-   gradp(2,0) = 0.;
+    pres[0] =  5. + 3. * x[0] + 2. * x[1] + 4. * x[0] * x[1];
+    gradp(0,0) =  3. + 4. * x[1];
+    gradp(1,0) = 2. + 4. * x[0];
+    gradp(2,0) = 0.;
+//    pres[0] =  x[0]+x[1];
+//    gradp(0,0) = 1.;
+//    gradp(1,0) = 1.;
+//    gradp(2,0) = 0.;
 }
 /// verify if the divergence of each vector function is included in the pressure space
 static void CheckDRham(TPZCompEl *cel);
@@ -1518,7 +1518,7 @@ void RunBilinear(MElementType eltype, HDivFamily hdivfam)
     {
         TPZBndCondT<STATE> *mat = dynamic_cast<TPZBndCondT<STATE>*>(cmesh->FindMaterial(-1));
         if(!mat) DebugStop();
-        mat->SetForcingFunctionBC(ExactPressure);
+        mat->SetForcingFunctionBC(ExactPressure,3);
 //        TPZDummyFunction<STATE> *dumforce = new TPZDummyFunction<STATE>(ExactPressure, 5);
 //        TPZAutoPointer<TPZFunction<STATE> > autofunc (dumforce);
 //        mat->SetForcingFunction(autofunc);
@@ -1526,13 +1526,13 @@ void RunBilinear(MElementType eltype, HDivFamily hdivfam)
     {
         TPZBndCondT<STATE> *mat = dynamic_cast<TPZBndCondT<STATE>*>(cmesh->FindMaterial(-2));
         if(!mat) DebugStop();
-        mat->SetForcingFunctionBC(ExactPressure);
+        mat->SetForcingFunctionBC(ExactPressure,3);
     }
     
     {
         TPZBndCondT<STATE> *mat = dynamic_cast<TPZBndCondT<STATE>*>(cmesh->FindMaterial(-3));
         if(!mat) DebugStop();
-        mat->SetForcingFunctionBC(ExactPressure);
+        mat->SetForcingFunctionBC(ExactPressure,3);
     }
     
     

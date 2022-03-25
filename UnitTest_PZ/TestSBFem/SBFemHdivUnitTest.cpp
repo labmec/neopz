@@ -94,7 +94,7 @@ TPZCompMesh * SBFemTest::CreateCMeshPressure(TPZAutoPointer<TPZGeoMesh> & gmesh)
   TPZManVector<STATE> val2(2,0.);
   {
       auto bcond = mat->CreateBC(mat, SBFemTest::EBc1, 0, val1, val2);
-      bcond->SetForcingFunctionBC(LaplaceExact.ExactSolution());
+      bcond->SetForcingFunctionBC(LaplaceExact.ExactSolution(),3);
       cmesh->InsertMaterialObject(bcond);
   }
   {
@@ -153,7 +153,7 @@ TPZMultiphysicsCompMesh * SBFemTest::CreateCMeshMultiphysics(TPZAutoPointer<TPZG
   TPZManVector<STATE> val2(2,0.);
   {
       auto bcond = mat->CreateBC(mat, SBFemTest::EBc1, 0, val1, val2);
-      bcond->SetForcingFunctionBC(LaplaceExact.ExactSolution());
+      bcond->SetForcingFunctionBC(LaplaceExact.ExactSolution(),3);
       cmesh->InsertMaterialObject(bcond);
   }
   {
