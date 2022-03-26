@@ -65,6 +65,11 @@ public:
     {
         return fForcingFunctionBC;
     }
+    
+    int ForcingFunctionBCPOrder() const
+    {
+        return fForcingFunctionBCPOrder;
+    }
     //@}
 
     //! Prints data associated with the material.
