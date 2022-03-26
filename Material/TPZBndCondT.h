@@ -56,6 +56,11 @@ public:
     {
         return fForcingFunctionBC;
     }
+    
+    int ForcingFunctionBCPOrder() const
+    {
+        return fForcingFunctionBCPOrder;
+    }
     //@}
 
     /** @name ReadWrite */
