@@ -19,6 +19,8 @@ inline std::ostream &operator<<(std::ostream &out, const std::pair<int,int> &ele
 	return out;
 }
 
+template<class T, int NumExtAlloc>
+class TPZManVector;
 /**
  * @ingroup util
  * @brief This class implements a simple vector storage scheme for a templated class T. \ref util "Utility"
@@ -70,6 +72,12 @@ public:
      */
     TPZVec(TPZVec<T> &&rval);
     
+    /**
+     * @brief Creates a vector using the move constructor.
+     * No memory is allocated.
+     */
+    template<int NumExtAlloc>
+    TPZVec(TPZManVector<T,NumExtAlloc> &&rval);
 	/** @brief destructor, will delete the storage allocated */
 	virtual ~TPZVec();
 	/**
@@ -625,4 +633,21 @@ class TPZCompMesh;
 extern template class TPZVec<TPZGraphEl *>;
 extern template class TPZVec<TPZGraphNode *>;
 extern template class TPZVec<TPZCompMesh *>;
+
+#include "pzmanvector.h"
+/**
+ * @brief Creates a vector using the move constructor.
+ * No memory is allocated.
+ */
+template<class T>
+template<int NumExtAlloc>
+TPZVec<T>::TPZVec(TPZManVector<T,NumExtAlloc> &&rval)
+{
+    fNElements = rval.fNElements;
+    fStore = new T[fNElements];
+    fNAlloc = fNElements;
+    for(int64_t i=0; i<fNElements; i++)
+        fStore[i]=rval.fStore[i];
+}
+
 #endif
