@@ -1028,6 +1028,10 @@ const STATE ComputeIntegralOverDomain(TPZCompMesh* cmesh, const std::string& var
         return vecint[0];
     else if (varname == "Flux")
         return vecint[1];
+    else
+        DebugStop();
+    
+    return -100000; // default value so compiler does not complain
 }
 
 // ---------------------------------------------------------------------
