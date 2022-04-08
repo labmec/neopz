@@ -630,7 +630,7 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int64_t>
 		newnodeindexes[index] = -1;
 		REAL smallestDiff = -1.;
 		int smallestDiffIndex = -1;
-		//check if the node has already been created using information previsouly obtained from neighbour
+		//check if the node has already been created using information previously obtained from neighbour
 		for(int i=0; i< sideindices.NElements(); i++)
 		{
 			for(int k=0; k<3; k++) neighbourcoord_X[k] = gmesh->NodeVec()[sideindices[i]].Coord(k);
@@ -664,6 +664,12 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int64_t>
             std::cout << "Either the refinement patterns are incompatible or there is an issue with the mapping.\n";
             std::cout << "newnodecoord_X(" << newnodecoord_X[0] << "," << newnodecoord_X[1] << "," << newnodecoord_X[2] << ")" << std::endl;
             std::cout << "neighbourcoord_X(" << neighbourcoord_X[0] << "," << neighbourcoord_X[1] << "," << neighbourcoord_X[2] << ")" << std::endl;
+            std::cout << "Neighbor information:" << std::endl;
+            neighbour.Print(std::cout);
+            neighbour.Element()->Print(std::cout);
+            std::cout << "Myself information:" << std::endl;
+            gelside.Print(std::cout);
+            gelside.Element()->Print(std::cout);
 			DebugStop();
 		}
 		if (newnodeindexes[index] == -1)

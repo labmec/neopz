@@ -447,3 +447,27 @@ void TPZCheckGeom::UniformRefine(int nDiv)
         }
     }
 }
+
+bool TPZCheckGeom::CheckNeighboursConsistency() const {
+    const int maxcount = 1000;
+    bool res = false;
+    for (auto gel: fMesh->ElementVec()) {
+        if(!gel) continue;
+        const int nsides = gel->NSides();
+        for (int iside = 0 ; iside < nsides ; iside++){
+            TPZGeoElSide gelside(gel,iside);
+            TPZGeoElSide neig = gelside.Neighbour();
+            int count = 0;
+            while (neig != gelside && count < maxcount) {
+                count++;
+                neig++;
+            }
+            if (count == maxcount){
+                cout << "\n\n======> ERROR! Element index " << gel->Index() << " on side " << iside
+                << " has inconsistent neighbouring information" << endl;
+                res = true;
+            }
+        }
+    }
+    return res;
+}
