@@ -583,9 +583,6 @@ int TPZCompEl::HasDependency() {
     for(in=0; in<nconnects; in++) if(Connect(in).HasDependency()){
         return 1;
     }
-    if (GetShapeRestraints().size()) {
-        return 1;
-    }
     return 0;
 }
 
