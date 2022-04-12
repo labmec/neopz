@@ -14,6 +14,7 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"
+#include "TPZMultiphysicsCompMesh.h"
 
 /// class oriented towards the creation of multiscale hybrid meshes - YES
 class TPZMHMeshControl
@@ -29,17 +30,20 @@ protected:
     TPZAutoPointer<TPZGeoMesh> fGMesh;
     
     /// computational MHM mesh being built by this class
-    TPZAutoPointer<TPZCompMesh> fCMesh;
+    TPZAutoPointer<TPZMultiphysicsCompMesh> fCMesh;
     
+    // Mesh that contains the elements belonging to the HDiv space
+    TPZAutoPointer<TPZCompMesh> fFluxMesh;
+
+    /// computational mesh to contain the pressure elements - continuous is MHM-H1 and discontinuous if MHM-HDiv
+    TPZAutoPointer<TPZCompMesh> fPressureFineMesh;
+
     /// computational mesh to represent the distributed flux in each subdomain
-    TPZAutoPointer<TPZCompMesh> fCMeshLagrange;
+    TPZAutoPointer<TPZCompMesh> fCMeshDomainFlux;
     
     /// computational mesh to represent the constant states
-    TPZAutoPointer<TPZCompMesh> fCMeshConstantPressure;
+    TPZAutoPointer<TPZCompMesh> fCMeshDomainPressure;
     
-    /// computational mesh to contain the pressure elements
-    // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
-    TPZAutoPointer<TPZCompMesh> fPressureFineMesh;
     
     /// Variable defining the type of problem
     MProblemType fProblemType = EScalar;
@@ -51,12 +55,6 @@ public:
     /// material id associated with the skeleton elements
     int fSkeletonMatId = 4;
     
-    /// material id associated with the skeleton elements
-    int fSecondSkeletonMatId = 3;
-    
-    /// material id associated with the skeleton elements in a hybrid context
-    int fPressureSkeletonMatId = 6;
-    
     /// material id associated with the lagrange multiplier elements
     int fLagrangeMatIdLeft = 550, fLagrangeMatIdRight = 551;
     
@@ -66,7 +64,7 @@ public:
     /// materials for boundary conditions
     std::set<int> fMaterialBCIds;
     
-protected:
+public:
     
     /// interpolation order of the internal elements
     int fpOrderInternal = 1;
@@ -77,6 +75,8 @@ protected:
     //internal order for enrichement spaces
     
     int fHdivmaismais = 0;
+
+protected:
     
     /// material index of the skeleton wrap
     int fSkeletonWrapMatId = 500;
@@ -133,10 +133,7 @@ public:
     fLagrangeAveragePressure(false),
     fHybridize(false), fSwitchLagrangeSign(false), fGlobalSystemSize(-1), fGlobalSystemWithLocalCondensationSize(-1), fNumeq(-1)
     {
-        fGMesh = new TPZGeoMesh;
         fGMesh->SetDimension(dimension);
-        fCMesh = new TPZCompMesh(fGMesh);
-        fPressureFineMesh = new TPZCompMesh(fGMesh);
     }
 
     /// constructor, indicating that the MHM approximation will use the elements indicated by coarseindices as the macro elements
@@ -153,7 +150,7 @@ public:
     
     TPZMHMeshControl &operator=(const TPZMHMeshControl &cp);
     
-    TPZAutoPointer<TPZCompMesh> CMesh() const
+    TPZAutoPointer<TPZMultiphysicsCompMesh> CMesh() const
     {
         return fCMesh;
     }
@@ -168,9 +165,15 @@ public:
         return fPressureFineMesh;
     }
     
+    TPZAutoPointer<TPZCompMesh> FluxMesh()
+    {
+        return fFluxMesh;
+    }
+    
     /// Define the MHM partition by the coarse element indices
     void DefinePartitionbyCoarseIndices(TPZVec<int64_t> &coarseindices);
 
+protected:
     void DefineSkeleton(std::map<int64_t,std::pair<int64_t,int64_t> > &skeleton)
     {
         fInterfaces = skeleton;
@@ -186,13 +189,19 @@ public:
         }
 #endif
     }
-    
+public:
     /// Define the partitioning information of the MHM mesh
+    /// partitionindex : value of the MHM domain index for each geometric element
+    /// skeleton : indices of the skeleton elements and the left/right partitions they separate
     void DefinePartition(TPZVec<int64_t> &partitionindex, std::map<int64_t,std::pair<int64_t,int64_t> > &skeleton);
 
     /// Define the partitioning information of the MHM mesh
     // This method calculates the skeleton indexes
+    // partitionindex : mhm domain for each geometric element
     void DefinePartition(TPZVec<int64_t> &partitionindex);
+
+    /// Create the wrap elements for the skeleton elements
+    void BuildWrapMesh();
 
     /// Set the problem type of the simulation
     void SetProblemType(MProblemType problem)
@@ -217,7 +226,7 @@ public:
     void SetInternalPOrder(int order)
     {
         fpOrderInternal = order;
-        if(fCMesh) fCMesh->SetDefaultOrder(order);
+        if(fPressureFineMesh) fPressureFineMesh->SetDefaultOrder(order);
     }
     
     void SetSkeletonPOrder(int order)
@@ -259,10 +268,7 @@ protected:
 public:
     /// divide the skeleton elements
     void DivideSkeletonElements(int ndivide);
-    
-    /// divide the boundary skeleton elements
-    void DivideBoundarySkeletonElements();
-    
+        
     /// switch the sign of the lagrange multipliers
     void SwitchLagrangeMultiplierSign(bool sw)
     {
@@ -278,32 +284,38 @@ public:
     /// Put the pointers to the meshes in a vector
     void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
     {
-        if (fCMeshLagrange)
+        if (fCMeshDomainFlux)
         {
-            meshvec.Resize(3);
-            meshvec[0] = fPressureFineMesh.operator->();
-            meshvec[1] = fCMeshLagrange.operator->();
-            meshvec[2] = fCMeshConstantPressure.operator->();
+            meshvec.Resize(4);
+            meshvec[0] = fFluxMesh.operator->();
+            meshvec[1] = fPressureFineMesh.operator->();
+            meshvec[2] = fCMeshDomainFlux.operator->();
+            meshvec[3] = fCMeshDomainPressure.operator->();
         }
         else
         {
-            meshvec.resize(0);
+            meshvec.resize(2);
+            meshvec[0] = fFluxMesh.operator->();
+            meshvec[1] = fPressureFineMesh.operator->();
         }
     }
     
     TPZVec<TPZAutoPointer<TPZCompMesh> > GetMeshes()
     {
         TPZManVector<TPZAutoPointer<TPZCompMesh>,3> result;
-        if (fCMeshLagrange)
+        if (fCMeshDomainFlux)
         {
-            result.Resize(3);
-            result[0] = fPressureFineMesh;
-            result[1] = fCMeshLagrange;
-            result[2] = fCMeshConstantPressure;
+            result.Resize(4);
+            result[0] = fFluxMesh;
+            result[1] = fPressureFineMesh;
+            result[2] = fCMeshDomainFlux;
+            result[3] = fCMeshDomainPressure;
         }
         else
         {
-            result.resize(0);
+            result.Resize(2);
+            result[0] = fFluxMesh;
+            result[1] = fPressureFineMesh;
         }
         return result;
     }
@@ -331,12 +343,7 @@ protected:
     
     /// will create the internal elements, one coarse element at a time
     void CreateInternalElements();
-    
-    /// Add the boundary elements to the computational mesh
-    void AddBoundaryElements();
-    
-    /// Add the boundary interface elements to the computational mesh
-    void AddBoundaryInterfaceElements();
+   
     
     /// will create the elements on the skeleton
     void CreateSkeleton();
@@ -344,10 +351,6 @@ protected:
     /// will create the interface elements between the internal elements and the skeleton
     void CreateInterfaceElements();
     void CreateInterfaceElements2();
-    
-    /// hybridize the flux elements with the given material id - each flux element creates
-    /// a pressure element
-    virtual void HybridizeSkeleton(int skeletonmatid, int pressurematid);
     
     /// verify if the element is a sibling of
     bool IsSibling(int64_t son, int64_t father);
@@ -362,18 +365,7 @@ protected:
     void SubStructure();
     void SubStructure2();
     
-    /// Create the wrap elements
-    void BuildWrapMesh(int dim);
     
-    /// Verify if the element side contains a wrap neighbour
-    int HasWrapNeighbour(TPZGeoElSide gelside);
-    
-    /// Verify if the mesh datastructure is consistent
-    /// if the current gelside has no father, then none of its neighbours should either
-    void CheckDivisionConsistency(TPZGeoElSide gelside);
-    
-    /// Return the wrap material id (depends on being boundary, neighbour of skeleton or interior
-    int WrapMaterialId(TPZGeoElSide gelside);
     
     /// Return true if the material id is related to a skeleton
     virtual bool IsSkeletonMatid(int matid)
@@ -386,15 +378,6 @@ protected:
     {
         return fMaterialBCIds.find(matid) != fMaterialBCIds.end();
     }
-    
-    /// CreateWrapMesh of a given material id
-    void CreateWrap(TPZGeoElSide gelside);
-    
-    /// CreateWrapMesh of a given material id
-    void CreateWrap(TPZGeoElSide gelside, int wrapmaterial);
-    
-    /// Divide the wrap element while it has divided neighbours
-    void DivideWrap(TPZGeoEl *wrapelement);
     
 protected:
     /// create the lagrange multiplier mesh, one element for each subdomain

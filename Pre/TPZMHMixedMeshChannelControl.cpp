@@ -38,7 +38,8 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
         DebugStop();
     }
     InsertPeriferalMaterialObjects();
-    CreateHDivMHMMesh();
+    DebugStop();
+//    CreateHDivMHMMesh();
     
     if(OpenChannel==true){
         for(auto it:oppen_channel){
@@ -80,7 +81,8 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
     
     fFluxMesh->CleanUpUnconnectedNodes();
     fFluxMesh->ExpandSolution();
-    InsertPeriferalPressureMaterialObjects();
+    DebugStop();
+//    InsertPeriferalPressureMaterialObjects();
     
 #ifdef PZDEBUG
     if (fFluxMesh->Dimension() != fGMesh->Dimension()) {

@@ -12,22 +12,26 @@
 #include <stdio.h>
 
 #include "TPZMHMeshControl.h"
+#include "TPZEnumApproxFamily.h"
 
 /// class for creating TPZMHMM with Mixed Meshes
 class TPZMHMixedMeshControl : public TPZMHMeshControl
 {
     
 protected:
-    /// computational mesh to contain the pressure elements
-    // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
-    TPZAutoPointer<TPZCompMesh> fFluxMesh;
     
     /// computational mesh to contain the rotation elements
     TPZAutoPointer<TPZCompMesh> fRotationMesh;
     
-
+    /// distributed flux per element
+    TPZAutoPointer<TPZCompMesh> fElementFluxMesh;
+    /// average state value per element
+    TPZAutoPointer<TPZCompMesh> fElementAverageMesh;
+    
+    HDivFamily fHDivFamily = HDivFamily::EHDivStandard;
 public:
     
+    enum LagrangeLevels {BoundHdiv = 0, CornerPressure = 1, ElementFLux = 2, Pressure = 3, Rotation = 4, InternalHdiv = 5, Elpressure = 6, DomainFlux = 7, OneElPressure = 8, SkeletonHdiv = 9, DomainPressure = 10 };
     TPZMHMixedMeshControl() : TPZMHMeshControl()
     {
         
@@ -57,22 +61,9 @@ public:
     /// Insert Boundary condition objects that do not perform any actual computation
     virtual void InsertPeriferalMaterialObjects() override;
     
-    /// Insert the necessary H(div) material objects to create the flux mesh
-    virtual void InsertPeriferalHdivMaterialObjects();
-    
-    /// Insert the necessary Pressure material objects to create the flux mesh
-    virtual void InsertPeriferalPressureMaterialObjects();
-    
-    /// Insert the necessary Rotation material objects to create the flux mesh
-    virtual void InsertPeriferalRotationMaterialObjects();
     
     /// Create all data structures for the computational mesh
     virtual void BuildComputationalMesh(bool usersubstructure) override;
-    
-    TPZAutoPointer<TPZCompMesh> FluxMesh()
-    {
-        return fFluxMesh;
-    }
     
     /// Set the flag for creating Lagrange Dofs for the average pressure
     void SetLagrangeAveragePressure(bool flag)
@@ -80,6 +71,18 @@ public:
         if (flag == true) {
             DebugStop();
         }
+    }
+    
+    /// set the HDiv Family of the HDiv space
+    void SetHDivFamily(HDivFamily fam)
+    {
+        if(fam == HDivFamily::EHDivKernel) DebugStop();
+        fHDivFamily = fam;
+    }
+    
+    HDivFamily HDivFamily() const
+    {
+        return fHDivFamily;
     }
     
     /// Set the hybridization to true
@@ -91,20 +94,54 @@ public:
     /// Put the pointers to the meshes in a vector
     void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
     {
-        meshvec.Resize(2);
+        meshvec.Resize(7);
         meshvec[0] = fFluxMesh.operator->();
         meshvec[1] = fPressureFineMesh.operator->();
+        int count = 2;
+        if(fRotationMesh)
+        {
+            meshvec[count++] =  fRotationMesh.operator->();
+        }
+        if(fElementFluxMesh)
+        {
+            meshvec[count++] = fElementFluxMesh.operator->();
+            meshvec[count++] = fElementAverageMesh.operator->();
+        }
+        if(fCMeshDomainFlux)
+        {
+            meshvec[count++] = fCMeshDomainFlux.operator->();
+            meshvec[count++] = fCMeshDomainPressure.operator->();
+        }
+        meshvec.Resize(count);
     }
 
     TPZVec<TPZAutoPointer<TPZCompMesh> > GetMeshes()
     {
-        TPZManVector<TPZAutoPointer<TPZCompMesh>,3> result(2);
+        TPZManVector<TPZAutoPointer<TPZCompMesh>,7> result(7);
         result[0] = fFluxMesh;
         result[1] = fPressureFineMesh;
+        int count = 2;
+        if(fRotationMesh)
+        {
+            result[count++] =  fRotationMesh;
+        }
+        if(fElementFluxMesh)
+        {
+            result[count++] = fElementFluxMesh;
+            result[count++] = fElementAverageMesh;
+        }
+        if(fCMeshDomainFlux)
+        {
+            result[count++] = fCMeshDomainFlux;
+            result[count++] = fCMeshDomainPressure;
+        }
+        result.Resize(count);
         return result;
     }
     
-
+    /// Create the meshes which represent element distributed flux and element average
+    void CreateAverageElementMeshes();
+    
     /// print the data structure
     void Print(std::ostream &out);
 
@@ -114,12 +151,15 @@ public:
         
     }
     
+    // set the Lagrange levels of the connects for the atomic meshes
+    void InitializeLagrangeLevels();
+    
 protected:
     
    
 
     /// Create the mesh of the flux approximation space
-    void CreateHDivMHMMesh();
+    void CreateFluxMesh();
     
     /// Create the pressure mesh which is dual to the flux mesh
     virtual void CreatePressureMHMMesh();
@@ -128,10 +168,8 @@ protected:
     virtual void CreateRotationMesh();
     
     // create the elements domain per domain with approximation spaces disconnected from each other
-    virtual void CreateInternalFluxElements();
+    virtual void CreateFluxElements();
     
-    // create the approximation space associated with the skeleton and restrain the connects
-    virtual void CreateSkeleton();
     
 
     /// Create the multiphysics mesh
@@ -140,29 +178,16 @@ protected:
     /// build the multi physics mesh (not at the finest geometric mesh level
     void BuildMultiPhysicsMesh();
 
-    /// Create the interfaces between the pressure elements of dimension dim
-    virtual void CreateMultiPhysicsInterfaceElements(int dim);
-    
-    /// Create the multiphysics interface elements between elements of specified material id
-    virtual void CreateMultiPhysicsInterfaceElements(int dim, int pressmatid, std::pair<int,int> skelmatid);
-    
     /// put the elements in TPZSubCompMesh, group the elements and condense locally
     void HideTheElements();
 
     /// hybridize the flux elements with the given material id - each flux element creates
     /// a pressure element
-    virtual void HybridizeSkeleton(int skeletonmatid, int pressurematid) override;
-    
-    /// switch the elements pointed to by the interface by lower dimensional elements
-    void OptimizeInterfaceElements();
+//    virtual void HybridizeSkeleton(int skeletonmatid, int pressurematid);
     
     /// group and condense the elements
     virtual void GroupandCondenseElements();
     
-    /// delete the pressure elements leaving the geometric mesh without pointing to the computational mesh
-    void DeletePressureElements();
-
-    void AdjustBoundaryElements();
 };
 
 #endif /* TPZMHMixedMeshControl_hpp */
