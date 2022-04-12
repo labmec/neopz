@@ -22,7 +22,7 @@
 #include "TPZMatErrorCombinedSpaces.h"
 
 
-class TPZHybridDarcyFlow : public TPZMatCombinedSpacesT<STATE>, TPZMatErrorCombinedSpaces<STATE>, public TPZDarcyFlow {
+class TPZHybridDarcyFlow : public TPZMatCombinedSpacesT<STATE>, public TPZMatErrorCombinedSpaces<STATE>, public TPZDarcyFlow {
 
 
 public:
@@ -86,7 +86,7 @@ public:
     virtual void ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
                               REAL weight, TPZFMatrix<STATE> &ek,
                               TPZFMatrix<STATE> &ef,
-                              TPZBndCondT<STATE> &bc) override {}
+                              TPZBndCondT<STATE> &bc) override;
 
     /**@}*/
     /** @brief Returns the solution associated with a given index
@@ -96,18 +96,26 @@ public:
         @param[out] sol FEM Solution at the integration point
     */
     virtual void Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
-                          int var, TPZVec<STATE> &sol) override {}
+                          int var, TPZVec<STATE> &sol) override {
+        TPZDarcyFlow::Solution(datavec[1],var,sol);
+    }
     /**
      * @brief Returns an integer associated with a post-processing variable name
      * @param [in] name string containing the name of the post-processing variable. Ex: "Pressure".
      */
-    [[nodiscard]] int VariableIndex(const std::string &name) const override;
+    [[nodiscard]] int VariableIndex(const std::string &name) const override
+    {
+        return TPZDarcyFlow::VariableIndex(name);
+    }
 
     /**
      * @brief Returns an integer with the dimension of a post-processing variable
      * @param [in] var index of the post-processing variable, according to TPZDarcyFlow::VariableIndex method.
      */
-    [[nodiscard]] int NSolutionVariables(int var) const override;
+    [[nodiscard]] int NSolutionVariables(int var) const override
+    {
+        return TPZDarcyFlow::NSolutionVariables(var);
+    }
 
     //! @name Error
     /** @{*/
@@ -117,7 +125,10 @@ public:
       \param[out] errors The calculated errors.
      */
     virtual void Errors(const TPZVec<TPZMaterialDataT<STATE>> &data,
-                        TPZVec<REAL> &errors) override {}
+                        TPZVec<REAL> &errors) override 
+        {
+            TPZDarcyFlow::Errors(data[1],errors);
+        }
 
     /**
      * @brief Returns an unique class identifier
