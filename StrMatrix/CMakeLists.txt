@@ -9,6 +9,7 @@ set(public_headers
     TPZStructMatrixBase.h
     #parallel scheme
     pzstrmatrixot.h
+    pzstrmatrixLCC.h
     pzstrmatrix.h
     pzstrmatrixflowtbb.h
     #matrix storage format
@@ -39,6 +40,7 @@ set(headers
     pzbstrmatrix.h
     pzskylstrmatrix.h
     pzstrmatrixot.h
+    pzstrmatrixLCC.h
     TPZFrontStructMatrix.h
     TPZSkylineNSymStructMatrix.h
     doxstrmatrix.h
@@ -56,6 +58,7 @@ set(sources
     pzbstrmatrix.cpp
     pzskylstrmatrix.cpp
     pzstrmatrixot.cpp
+    pzstrmatrixLCC.cpp
     TPZEquationFilter.cpp
     TPZSSpStructMatrix.cpp
     TPZStructMatrixBase.cpp
