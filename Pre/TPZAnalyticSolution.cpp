@@ -1913,9 +1913,9 @@ void TLaplaceExample1::setPermeabilyTensor(TPZFNMatrix<9,REAL> K, TPZFNMatrix<9,
 }
 
 template<class TVar>
-void TLaplaceExample1::Permeability(const TPZVec<TVar> &x, TVar &Perm)
+TVar TLaplaceExample1::Permeability(const TPZVec<REAL> &x)
 {
-    Perm = (TVar)(1.);
+    return 1.;
 }
 
 void TLaplaceExample1::PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
@@ -1924,8 +1924,7 @@ void TLaplaceExample1::PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &r
     for (unsigned int i = 0; i<xloc.size(); ++i) {
         xloc[i] = x[i];
     }
-    STATE Perm;
-    Permeability(xloc, Perm);
+    STATE Perm = 1.;
     deriv.Zero();
     deriv(0,0) = Perm;
     deriv(1,1) = Perm;

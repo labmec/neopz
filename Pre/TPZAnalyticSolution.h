@@ -381,7 +381,7 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     void graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad) const;
 
     template<class TVar>
-    static void Permeability(const TPZVec<TVar> &x, TVar &Elast);
+    TVar Permeability(const TPZVec<REAL> &x);
 
     static void PermeabilityDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
