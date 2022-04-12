@@ -206,6 +206,21 @@ void TPZMultiphysicsCompMesh::AddElements(){
     int64_t n_gels = geometry->NElements();
     TPZVec<TPZCompEl *> Referred(n_gels,0);
     int n_approx_spaces = m_mesh_vector.size();
+    
+    // Set the number of elements of each multiphysics element
+    for (int64_t el = 0; el<n_cels; el++) {
+        TPZCompEl *cel = Element(el);
+        TPZMultiphysicsElement * mfcel = dynamic_cast<TPZMultiphysicsElement *> (cel);
+        if(mfcel)
+        {
+            mfcel->AddElement(0, n_approx_spaces-1);
+        }
+        else
+        {
+            DebugStop();
+        }
+    }
+    
     for(int i_as = 0; i_as < n_approx_spaces; i_as++)
     {
         TPZCompMesh *atom = m_mesh_vector[i_as];
