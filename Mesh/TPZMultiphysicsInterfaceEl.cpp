@@ -832,6 +832,7 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredDataT(TPZMaterialDataT<TVar
 
 void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
 {
+    return;
 	TPZGeoEl *ref = Reference();
 	if (ref->Dimension() != dimension) {
 		return;
