@@ -38,11 +38,6 @@ public:
         fForcingFunctionBCPOrder = pOrder;
     }
 
-    /**
-     * @brief Returns the polynomial order of the BC forcing function 
-     */
-    int ForcingFunctionBCPOrder() const {return fForcingFunctionBCPOrder;}
-
     //! Whether a forcing function has been set.
     [[nodiscard]] bool HasForcingFunctionBC() const final{
         return (bool)fForcingFunctionBC;}
@@ -57,6 +52,9 @@ public:
         return fForcingFunctionBC;
     }
     
+    /**
+     * @brief Returns the polynomial order of the BC forcing function
+     */
     int ForcingFunctionBCPOrder() const
     {
         return fForcingFunctionBCPOrder;
