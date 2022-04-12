@@ -459,6 +459,9 @@ void TPZCompMeshTools::UnCondensedElements(TPZCompMesh *cmesh){
 }
 
 /// Put the element set into a subcompmesh and make the connects internal
+/// elindices . first identifier for the submesh, is copied into indices.first
+/// elindices.second : vector of elements to be transferred
+/// indices.second index of the submesh
 void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::set<int64_t> >&elindices, std::map<int64_t,int64_t> &indices, int KeepOneLagrangian)
 {
     for (std::map<int64_t,std::set<int64_t> >::iterator it = elindices.begin(); it != elindices.end(); it++) {

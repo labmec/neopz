@@ -47,7 +47,7 @@ namespace TPZCompMeshTools
     /// create a condensed element and do not condense the connect with a given lagrange level
     // the method does the same procedure as CreatedCondensedElements, but has different policy for
     // keeping a connect out the condensation loop
-    void CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNotCondensed, bool keepmatrix);
+    void CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNotCondensed, bool keepmatrix = true);
 
     /// ungroup all embedded elements of the computational mesh
     void UnGroupElements(TPZCompMesh *cmesh);
