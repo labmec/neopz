@@ -244,6 +244,9 @@ public:
 	
 	/** @brief Access method for the element solution vectors */
 	TPZSolutionMatrix &ElementSolution() { return fElementSolution;}
+    
+    /** @brief Expand the element solution to have the given number of columns */
+    void ExpandElementSolution(int ncols);
 	
 	/** @} */
 	

@@ -1662,6 +1662,21 @@ REAL TPZCompMesh::CompareMesh(int var, char *matname){
 	return (error);
 }
 
+/** @brief Expand the element solution to have the given number of columns */
+void TPZCompMesh::ExpandElementSolution(int ncols)
+{
+    int64_t nels = fElementVec.NElements();
+    fElementSolution.Resize(nels, ncols);
+    for (int64_t el = 0; el<nels; el++) {
+        TPZCompEl *cel = Element(el);
+        TPZSubCompMesh *sub = dynamic_cast<TPZSubCompMesh *>(cel);
+        if(sub)
+        {
+            sub->ExpandElementSolution(ncols);
+        }
+    }
+}
+
 
 template<class TVar>
 void TPZCompMesh::SetElementSolution(int64_t i, TPZVec<TVar> &sol){
@@ -2368,13 +2383,28 @@ void TPZCompMesh::SaddlePermute()
 {
     TPZVec<int64_t> permutegather,permutescatter;
     int64_t numinternalconnects = NIndependentConnects();
+    int64_t numconnects = ConnectVec().NElements();
+#ifdef PZDEBUG
+    {
+        std::set<int64_t> seqset;
+        for(int64_t ic=0; ic<numconnects; ic++)
+        {
+            TPZConnect &c = ConnectVec()[ic];
+            if(c.HasDependency() || c.IsCondensed()) continue;
+            if (c.SequenceNumber() < 0) {
+                continue;
+            }
+            seqset.insert(c.SequenceNumber());
+            if(c.SequenceNumber() >= numinternalconnects) DebugStop();
+        }
+    }
+#endif
     permutegather.Resize(numinternalconnects,0);
     permutescatter.Resize(numinternalconnects,0);
     for (int64_t i=0; i<numinternalconnects; i++) {
         permutegather[i] = i;
         permutescatter[i] = i;
     }
-    int64_t numconnects = ConnectVec().NElements();
     int64_t numindepconnects = NIndependentConnects();
     if (numconnects==0) {
         return;
