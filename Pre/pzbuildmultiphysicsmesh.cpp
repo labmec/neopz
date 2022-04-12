@@ -1041,13 +1041,24 @@ void TPZBuildMultiphysicsMesh::ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<at
 #ifdef PZDEBUG
     {
         int notfound = 0;
+        std::set<int64_t> lostindexes;
         for (int64_t i=0; i<indexes.size(); i++) {
             if(mesh->ConnectVec()[i].SequenceNumber() < 0) continue;
-            if(indexes[i].first == 0) notfound++;
+            if(indexes[i].first == 0)
+            {
+                notfound++;
+                lostindexes.insert(i);
+            }
         }
         if(notfound)
         {
             std::cout << __PRETTY_FUNCTION__ << " number of missing connects " << notfound << std::endl;
+            for(auto ind : lostindexes)
+            {
+                std::cout << ind << ' ';
+                mesh->ConnectVec()[ind].Print(*mesh);
+            }
+            std::cout << '\n';
         }
     }
 #endif
