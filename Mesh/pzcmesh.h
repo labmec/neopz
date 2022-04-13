@@ -669,6 +669,9 @@ public:
 	
 	/** @brief Copies the materials of this mesh to the given mesh */
 	void CopyMaterials(TPZCompMesh &mesh) const ;
+    
+    /** @brief Copies the materials of this mesh to the material vector */
+    void CopyMaterials(std::map<int, TPZMaterial * > &copy) const;
 
     // @brief Delete material and erase it from material vector
     void DeleteMaterial(const int matId);
