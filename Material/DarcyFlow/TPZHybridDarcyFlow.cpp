@@ -45,14 +45,14 @@ void TPZHybridDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datav
                         REAL weight,TPZFMatrix<STATE> &ek,
                         TPZFMatrix<STATE> &ef)
 {
-    const TPZFMatrix<REAL> &phi = datavec[1].fPhi;
-    const TPZFMatrix<REAL> &dphi = datavec[1].dphix;
-    const TPZVec<REAL> &x = datavec[1].x;
-    const TPZFMatrix<REAL> &axes = datavec[1].axes;
-    const TPZFMatrix<REAL> &jacinv = datavec[1].jacinv;
+    const TPZFMatrix<REAL> &phi = datavec[0].fPhi;
+    const TPZFMatrix<REAL> &dphi = datavec[0].dphix;
+    const TPZVec<REAL> &x = datavec[0].x;
+    const TPZFMatrix<REAL> &axes = datavec[0].axes;
+    const TPZFMatrix<REAL> &jacinv = datavec[0].jacinv;
     auto phr = dphi.Cols();
 
-    const STATE perm = GetPermeability(datavec[1].x);
+    const STATE perm = GetPermeability(datavec[0].x);
 
     STATE source_term = 0;
     if (this->HasForcingFunction()) {
