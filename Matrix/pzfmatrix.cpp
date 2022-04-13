@@ -91,16 +91,16 @@ TPZMatrix<TVar>( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
     memcpy((void *)(p),(void *)(src),(size_t)size*sizeof(TVar));
 }
 
-template<class TVar>
-TPZFMatrix<TVar>::TPZFMatrix(TPZFMatrix<TVar> &&A)
-    : TPZMatrix<TVar>(A), fElem(A.fElem),
-      fGiven(A.fGiven),fSize(A.fSize),
-      fPivot(A.fPivot), fWork(A.fWork)
-{
-    A.fElem=nullptr;
-    A.fGiven=nullptr;
-    A.fSize=0;
-}
+//template<class TVar>
+//TPZFMatrix<TVar>::TPZFMatrix(TPZFMatrix<TVar> &&A)
+//    : TPZMatrix<TVar>(A), fElem(A.fElem),
+//      fGiven(A.fGiven),fSize(A.fSize),
+//      fPivot(A.fPivot), fWork(A.fWork)
+//{
+//    A.fElem=nullptr;
+//    A.fGiven=nullptr;
+//    A.fSize=0;
+//}
 
 /********************************/
 /*** Constructor( TPZVerySparseMatrix<TVar> & ) ***/
@@ -159,20 +159,20 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
     return *this;
 }
 
-template<class TVar>
-TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(TPZFMatrix<TVar> &&A ) {
-    TPZMatrix<TVar>::operator=(A);
-    fElem=A.fElem;
-    fGiven=A.fGiven;
-    fSize=A.fSize;
-    fPivot = A.fPivot;
-    fWork = A.fWork;
-    
-    A.fElem = nullptr;
-    A.fGiven = nullptr;
-    A.fSize = 0;
-    return *this;
-}
+//template<class TVar>
+//TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(TPZFMatrix<TVar> &&A ) {
+//    TPZMatrix<TVar>::operator=(A);
+//    fElem=A.fElem;
+//    fGiven=A.fGiven;
+//    fSize=A.fSize;
+//    fPivot = A.fPivot;
+//    fWork = A.fWork;
+//
+//    A.fElem = nullptr;
+//    A.fGiven = nullptr;
+//    A.fSize = 0;
+//    return *this;
+//}
 
 /******** Operacoes com matrizes FULL  ********/
 

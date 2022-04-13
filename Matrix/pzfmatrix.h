@@ -107,11 +107,11 @@ public:
      * @brief Move constructor
      * @param refmat Used as a model for current object
      */
-    TPZFMatrix(TPZFMatrix<TVar> && refmat);
+//    TPZFMatrix(TPZFMatrix<TVar> && refmat);
     //!Copy-assignment operator
     TPZFMatrix&operator= (const TPZFMatrix<TVar> &A );
     //!Move-assignment operator
-    TPZFMatrix&operator= (TPZFMatrix<TVar> &&A );
+//    TPZFMatrix&operator= (TPZFMatrix<TVar> &&A );
     inline TPZFMatrix<TVar>*NewMatrix() const override {return new TPZFMatrix<TVar>{};}
     CLONEDEF(TPZFMatrix<TVar>)
     TPZFMatrix(const TPZMatrix<TVar> & refmat);
@@ -794,6 +794,11 @@ public:
         *this = copy;
     }
     
+//    TPZFNMatrix(const TPZFNMatrix<N,TVar> &&copy)
+//    {
+//        *this = copy;
+//    }
+
     virtual ~TPZFNMatrix()
     {
     }
