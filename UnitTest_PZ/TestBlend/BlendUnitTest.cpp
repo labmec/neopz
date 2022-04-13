@@ -1318,6 +1318,11 @@ static TPZLogger logger("pz.mesh.testgeom");
                             }
                             hasAnErrorOccurred = blendtest::CheckMatrices(gradXreal, "gradXreal", gradXfad, "gradXfad",
                                                                           blendtest::tol);
+                            if(hasAnErrorOccurred)
+                            {
+                                gradXreal.Print(std::cout);
+                                gradXfad.Print(std::cout);
+                            }
                             REQUIRE(!hasAnErrorOccurred);
                             if (hasAnErrorOccurred) {
                                 errors++;
