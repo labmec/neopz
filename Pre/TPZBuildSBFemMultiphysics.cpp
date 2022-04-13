@@ -388,22 +388,23 @@ void TPZBuildSBFemMultiphysics::CreateCompElPressure(TPZCompMesh &cmeshpressure,
     cmeshpressure.SetReference(fGMesh);
     auto matvec = cmeshpressure.MaterialVec();
     map<int, TPZMaterial*> matveccopy;
-    for (auto const& [key, val] : matvec)
-    {
-        auto valbndcnd = dynamic_cast<TPZMaterial *>(val);
-        if(!valbndcnd)
-        {
-            matveccopy[key] = val->NewMaterial();
-        } else 
-        {
-            map<int, TPZMaterial*> bnd;
-            valbndcnd->Clone(bnd);
-            for (auto const& [keybnd, valbnd] : bnd)
-            {
-                matveccopy[keybnd] = valbnd;
-            }
-        }
-    }
+    cmeshpressure.CopyMaterials(matveccopy);
+//    for (auto const& [key, val] : matvec)
+//    {
+//        auto valbndcnd = dynamic_cast<TPZMaterial *>(val);
+//        if(!valbndcnd)
+//        {
+//            matveccopy[key] = val->NewMaterial();
+//        } else
+//        {
+//            map<int, TPZMaterial*> bnd;
+//            valbndcnd->Clone(bnd);
+//            for (auto const& [keybnd, valbnd] : bnd)
+//            {
+//                matveccopy[keybnd] = valbnd;
+//            }
+//        }
+//    }
 
     auto dim = cmeshpressure.Dimension()-1; // materials with dim-1 dimensional elements
     auto nstate = cmeshpressure.MaterialVec().begin()->second->NStateVariables();
