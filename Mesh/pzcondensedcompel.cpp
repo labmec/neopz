@@ -735,7 +735,7 @@ void TPZCondensedCompEl::LoadSolution()
         int64_t seqnum = c.SequenceNumber();
         int blsize = bl.Size(seqnum);
         for (int ibl=0; ibl<blsize; ibl++) {
-            sol.at(bl.at(seqnum,0,ibl,0)) = elsol(count++,0);
+            sol(bl.Index(seqnum,ibl),0) = elsol(count++,0);
         }
     }
 #ifdef PZ_LOG
