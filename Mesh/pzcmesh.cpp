@@ -1496,12 +1496,7 @@ void TPZCompMesh::ConnectSolution(std::ostream & out) {
 }
 void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
 	
-	errorSum.Resize(3);
-	errorSum.Fill(0.);
-	
-	TPZManVector<REAL,3> true_error(3);
-	true_error.Fill(0.);
-	
+    TPZManVector<REAL, 10> true_error(errorSum.size(),0.);
 
 	TPZCompEl *cel;
 	int gridDim = Dimension();
