@@ -71,8 +71,9 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 	if(fSequenceNumber > -1)
 	{
         int64_t pos = mesh.Block().Position(fSequenceNumber);
+        int blsize = mesh.Block().Size(fSequenceNumber);
         out << "\tEquation = " << pos;
-		out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
+		out << "\tNumElCon = " << fNElConnected << " Block size " << blsize;
 		out << " Solution ";
     if(mesh.GetSolType() == ESolType::EReal){
       const TPZFMatrix<STATE> &meshSol = mesh.Solution();

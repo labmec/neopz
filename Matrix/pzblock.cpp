@@ -191,7 +191,8 @@ int64_t TPZBlock::Index(const int64_t bRow, const int r) const
 {
     auto MaxBlocks = fBlock.NElements();
     int64_t row(r);
-    if(bRow <0 || bRow >= MaxBlocks || row < 0 || row >= fBlock[bRow].dim) {
+    int blockdim = fBlock[bRow].dim;
+    if(bRow <0 || bRow >= MaxBlocks || row < 0 || row >= blockdim) {
         PZError << __PRETTY_FUNCTION__ <<" indexes out of range\n";
         DebugStop();
     }
