@@ -1172,7 +1172,10 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool
       dynamic_cast<TPZMatCombinedSpacesT<TVar>*>(this->Material());
   auto *matError =
       dynamic_cast<TPZMatErrorCombinedSpaces<TVar>*>(mat);
-  
+  auto *matErrorBC =
+        dynamic_cast<TPZMatErrorCombinedSpacesBC<TVar>*>(mat);
+
+    
   //TPZMaterial * matptr = material.operator->();
   if (!mat) {
       PZError << __PRETTY_FUNCTION__;
@@ -1185,7 +1188,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool
       PZError<<"See TPZMatErrorCombinedSpaces\n";
       return;
   }
-      
+    if(matErrorBC) return;
   const int NErrors = matError->NEvalErrors();
   errors.Resize(NErrors);
   errors.Fill(0.);
@@ -1211,8 +1214,6 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool
   intrule->SetOrder(maxorder);
 
   const int ndof = this->Material()->NStateVariables();
-  TPZManVector<STATE, 10> u_exact(ndof);
-  TPZFNMatrix<3, STATE> du_exact(dim, ndof);
   TPZManVector<REAL, 10> intpoint(Reference()->Dimension()), values(NErrors);
   values.Fill(0.0);
   REAL weight;
