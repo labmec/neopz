@@ -402,7 +402,7 @@ void TPZSubCompMesh::TransferDependencies(int64_t local)
 	TPZCompMesh *father = FatherMesh();
 	int64_t superind = fConnectIndex[fExternalLocIndex[local]];
 #ifdef PZDEBUG 
-	if(father->ConnectVec()[superind].NElConnected() != 1)
+	if(father->ConnectVec()[superind].NElConnected() != 1 && 0)
 	{
 		std::cout << __PRETTY_FUNCTION__ << " number of elements connected to connect " << superind <<
         " = " << father->ConnectVec()[superind].NElConnected() << std::endl;
