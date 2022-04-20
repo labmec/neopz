@@ -2,8 +2,7 @@
  * @file
  * @brief Contains TPZMatrixclass which implements full matrix (using column major representation). Some functionalities depend on LAPACK.
 
- The functionalities that depend on LAPACK will result in runtime error if LAPACK is not linked to NeoPZ. Search for LAPACK in this header to 
- know which functions are affected by this dependency.
+ The functionalities that depend on LAPACK will result in runtime error if LAPACK is not linked to NeoPZ. Search for LAPACK in this header to know which functions are affected by this dependency.
  LAPACK can be linked by setting USING_LAPACK=ON or USING_MKL=ON on CMake
 when configuring the library.
  */

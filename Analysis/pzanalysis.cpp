@@ -325,7 +325,7 @@ template<class TVar>
 void TPZAnalysis::AssembleInternal()
 {
     auto mySolver =
-        dynamic_cast<TPZMatrixSolver<TVar> *>(fSolver); // Ricardo must analyze
+        dynamic_cast<TPZMatrixSolver<TVar> *>(fSolver);
     if(!fCompMesh || !fStructMatrix || !mySolver)
 	{
 		std::stringstream sout;
@@ -376,7 +376,6 @@ void TPZAnalysis::Assemble()
 	//TODOCOMPLEX
     TPZAnalysis::AssembleInternal<STATE>();
 }
-
 
 template<class TVar>
 void TPZAnalysis::SolveInternal(){

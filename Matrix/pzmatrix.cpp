@@ -23,6 +23,8 @@
 #include "pzlog.h"
 #include <complex>
 
+#include <TPZParallelUtils.h>
+
 #ifdef PZ_LOG
 static TPZLogger logger("pz.matrix.tpzmatrix");
 static TPZLogger loggerCheck("pz.checkconsistency");
@@ -555,6 +557,11 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &destinati
 }
 
 template<class TVar>
+void TPZMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex){
+    DebugStop();
+}
+
+template<class TVar>
 void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &source, TPZVec<int64_t> &destinationindex) {
 	
 	int64_t nelem = source.NElements();
@@ -586,6 +593,7 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &source, T
 		}
 	}
 }
+
 
 
 /***************/
