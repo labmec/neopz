@@ -70,14 +70,14 @@ public :
      */
     virtual int PutVal(const int64_t /*row*/,const int64_t /*col*/,const TVar & val ) override;
 
-	
+    virtual  void AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex) override;
+    
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** @note z and x cannot overlap in memory */
-	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const override;
+	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha=1., const TVar beta = 0., const int opt = 0) const override;
 	
 	/** @brief Sets data to the class */
-	virtual void SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A );
+	virtual void SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A);
 	
     /// Access function for the coefficients
     TPZVec<TVar> &A()

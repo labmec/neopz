@@ -348,7 +348,9 @@ public:
 	 * @param destinationindex Contains destine indexes on current matrix
 	 */
 	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex);
-
+    
+    virtual  void AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex);
+    
 	/**
 	 * @name Inquire
 	 * @brief Returns information of the current object

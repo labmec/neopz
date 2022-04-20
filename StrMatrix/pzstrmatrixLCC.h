@@ -84,6 +84,8 @@ protected:
     /** @brief Assemble the global right hand side */
     virtual void Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
+    void VerifyStiffnessSum(TPZMatrix<STATE> &stiffness);
+
     /** @brief Assemble the global right hand side */
     virtual void MultiThread_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
@@ -91,14 +93,9 @@ protected:
     virtual void MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
 public:
-    void orderElements(void);
-    
-    /** @brief Find the order to assemble the elements */
-    static void OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &ElementOrder);
-    
-    /** @brief Create blocks of elements to parallel processing */
-    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor, TPZVec<int64_t> &elBlocked, TPZVec<int64_t> &NumelColors);    
-    
+    void OrderElements();
+    int GetNumberColors();
+
     /** @brief Establish whether the element should be computed */
     bool ShouldCompute(int matid) const override
     {
@@ -160,6 +157,7 @@ protected:
     friend struct ThreadData;
 protected:
     TPZVec<int> fElVecColor;
+    bool fShouldColor = false;
     
     /** @brief Vectors for mesh coloring */
     TPZVec<int64_t> fElBlocked, fElSequenceColor;
