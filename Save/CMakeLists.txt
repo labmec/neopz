@@ -12,7 +12,7 @@ set(headers
     TPZGeneralFStream.h
     TPZRestoredInstance.h
     TPZStream.h
-    pzmd5stream.h
+    #pzmd5stream.h
     TPZChunkInTranslation.h
     TPZCircBufferedStream.h
     TPZFileStream.h
@@ -27,7 +27,7 @@ set(sources
     TPZContBufferedStream.cpp
     TPZPersistenceManager.cpp
     TPZSavable.cpp
-    pzmd5stream.cpp
+    #pzmd5stream.cpp
     TPZChunkInTranslation.cpp
     TPZCircBufferedStream.cpp
     TPZFileStream.cpp
