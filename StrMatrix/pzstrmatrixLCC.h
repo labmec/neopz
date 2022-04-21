@@ -92,6 +92,20 @@ protected:
     /** @brief Assemble the global system of equations into the matrix which has already been created */
     virtual void MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
+    void AssemblingUsingTBBandColoring(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs );
+        
+
+
+    void AssemblingUsingOMPandColoring(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs );
+        
+
+    void AssemblingUsingTBBbutNotColoring(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs );
+        
+
+    void AssemblingUsingOMPbutNotColoring(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs );
+    
+    void ComputingCalcstiffAndAssembling(TPZMatrix<STATE>& stiffness,TPZFMatrix<STATE> &rhs,TPZCompEl *el);
+    
 public:
     void OrderElements();
     int GetNumberColors();
@@ -108,6 +122,13 @@ public:
         return fMaterialIds;
     }
     
+    void SetTBBorOMP (bool type){
+        fUsingTBB = type;
+    }
+    
+    void SetShouldColor (bool type){
+        fShouldColor = type;
+    }
 protected:
     
     /** @brief Structure to manipulate thread to solve system equations */
@@ -158,6 +179,7 @@ protected:
 protected:
     TPZVec<int> fElVecColor;
     bool fShouldColor = false;
+    bool fUsingTBB = false;
     
     /** @brief Vectors for mesh coloring */
     TPZVec<int64_t> fElBlocked, fElSequenceColor;

@@ -25,7 +25,9 @@
 #include <tbb/parallel_for.h>
 #include <tbb/task_scheduler_init.h>
 #endif
-
+#ifdef USING_OMP
+#include "omp.h"
+#endif
 #include "pzcheckconsistency.h"
 #include "TPZMaterial.h"
 
@@ -68,7 +70,8 @@ TPZStructMatrixLCC::TPZStructMatrixLCC(const TPZStructMatrixLCC &copy) : TPZStru
     fElementsComputed = copy.fElementsComputed;
     fElementCompleted = copy.fElementCompleted;
     fSomeoneIsSleeping = copy.fSomeoneIsSleeping;
-    
+    fShouldColor = copy.fShouldColor;
+    fUsingTBB = copy.fUsingTBB;
 }
 
 
@@ -266,97 +269,130 @@ int TPZStructMatrixLCC::GetNumberColors(){
 
 void TPZStructMatrixLCC::MultiThread_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
     
-    int64_t nelem = fMesh->NElements();
-    const int nthread = this->fNumThreads;
-    
     if (fShouldColor){
-        TPZStructMatrixLCC::OrderElements();
-        int ncolor = GetNumberColors();
+        if (fUsingTBB){
+            AssemblingUsingTBBandColoring(stiffness,rhs);
+            
+        }else{
+            AssemblingUsingOMPandColoring(stiffness,rhs);
+        }
         
-        for (int icol=0; icol<ncolor; icol++){
-                
-        #ifdef USING_TBB
-        tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
-        tbb::parallel_for( tbb::blocked_range<int64_t>(0,nelem),
-                          [&](tbb::blocked_range<int64_t> r){
-        for (int64_t iel = r.begin(); iel < r.end(); iel++)
-        {
-            if (icol != fElVecColor[iel]) continue;
-            TPZCompEl *el = fMesh->Element(iel);
-            if (!el) continue;
+    }else{
+        if (fUsingTBB){
+            AssemblingUsingTBBbutNotColoring(stiffness,rhs);
             
-            TPZElementMatrix ek(fMesh, TPZElementMatrix::EK), ef(fMesh, TPZElementMatrix::EF);
-            
-            el->CalcStiff(ek, ef);
-                        
-            if(!el->HasDependency()) {
-                ek.ComputeDestinationIndices();
-                fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
-                
-                stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-            } else {
-                // the element has dependent nodes
-                ek.ApplyConstraints();
-                ef.ApplyConstraints();
-                ek.ComputeDestinationIndices();
-                fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
-                stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-                rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-              }
+        }else{
+            AssemblingUsingOMPbutNotColoring(stiffness,rhs);
         }
-        });
-        #endif
-            }
-        #ifdef PZDEBUG
-            VerifyStiffnessSum(stiffness);
-        #endif
-    } else {
-    #ifdef USING_TBB
-        tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
-        tbb::parallel_for( tbb::blocked_range<int64_t>(0,nelem),
-                          [&](tbb::blocked_range<int64_t> r){
-        for (int64_t iel = r.begin(); iel < r.end(); iel++)
-        {
-            TPZCompEl *el = fMesh->Element(iel);
-            if (!el) continue;
-            
-            TPZElementMatrix ek(fMesh, TPZElementMatrix::EK), ef(fMesh, TPZElementMatrix::EF);
-            
-            el->CalcStiff(ek, ef);
-            if(!el->HasDependency()) {
-                ek.ComputeDestinationIndices();
-                fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
-                
-                stiffness.AddKelAtomic(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                //AddKelAtomic(stiffness, ek.fMat, ek.fSourceIndex, ek.fDestinationIndex);
-                //AddKel(stiffness, ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
-
-                rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                //AddFelAtomic(rhs, ef.fMat, ek.fSourceIndex, ek.fDestinationIndex);
-                //AddFel(rhs, ef.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
-                
-
-            } else {
-                // the element has dependent nodes
-                ek.ApplyConstraints();
-                ef.ApplyConstraints();
-                ek.ComputeDestinationIndices();
-                fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
-                //stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-                stiffness.AddKelAtomic(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
-                rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-                //AddFelAtomic(rhs, ef.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
-            }
-        }
-        });
-    #endif
-        }
+    }
+    
     #ifdef PZDEBUG
         VerifyStiffnessSum(stiffness);
     #endif
     }
     
+void TPZStructMatrixLCC::AssemblingUsingTBBandColoring(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs ){
+#ifndef USING_TBB
+    DebugStop();
+#endif
+
+    int64_t nelem = fMesh->NElements();
+    const int nthread = this->fNumThreads;
+    
+    TPZStructMatrixLCC::OrderElements();
+    int ncolor = GetNumberColors();
+    
+    for (int icol=0; icol<ncolor; icol++){
+            
+        tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
+        tbb::parallel_for( tbb::blocked_range<int64_t>(0,nelem),
+                          [&](tbb::blocked_range<int64_t> r){
+        for (int64_t iel = r.begin(); iel < r.end(); iel++)
+            {
+                if (icol != fElVecColor[iel]) continue;
+                TPZCompEl *el = fMesh->Element(iel);
+                if (!el) continue;
+                
+                ComputingCalcstiffAndAssembling(stiffness,rhs,el);
+
+            }
+        });
+    }
+    }
+
+
+void TPZStructMatrixLCC::AssemblingUsingOMPandColoring(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs ){
+#ifdef USING_OMP
+    
+    int64_t nelem = fMesh->NElements();
+    const int nthread = this->fNumThreads;
+            
+    TPZStructMatrixLCC::OrderElements();
+    int ncolor = GetNumberColors();
+    
+    for (int icol=0; icol<ncolor; icol++){
+            
+        omp_set_num_threads(nthread);
+        #pragma omp parallel for schedule(dynamic,1)
+        for (int64_t iel = 0; iel < nelem; iel++){
+        if (icol != fElVecColor[iel]) continue;
+        TPZCompEl *el = fMesh->Element(iel);
+        if (!el) continue;
+        
+            ComputingCalcstiffAndAssembling(stiffness,rhs,el);
+
+        }
+    }
+#else
+    DebugStop();
+#endif
+    }
+
+void TPZStructMatrixLCC::AssemblingUsingTBBbutNotColoring(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs ){
+#ifdef USING_TBB
+    int64_t nelem = fMesh->NElements();
+    const int nthread = this->fNumThreads;
+    
+
+        tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
+        tbb::parallel_for( tbb::blocked_range<int64_t>(0,nelem),
+                          [&](tbb::blocked_range<int64_t> r){
+        for (int64_t iel = r.begin(); iel < r.end(); iel++)
+        {
+            TPZCompEl *el = fMesh->Element(iel);
+            if (!el) continue;
+            
+            ComputingCalcstiffAndAssembling(stiffness,rhs,el);
+
+        }
+        });
+#elif
+    DebugStop();
+#endif
+    
+}
+
+void TPZStructMatrixLCC::AssemblingUsingOMPbutNotColoring(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs ){
+#ifdef USING_OMP
+
+    int64_t nelem = fMesh->NElements();
+    const int nthread = this->fNumThreads;
+    
+    omp_set_num_threads(nthread);
+    #pragma omp parallel for schedule(dynamic,1)
+    for (int64_t iel = 0; iel < nelem; iel++){
+        {
+            TPZCompEl *el = fMesh->Element(iel);
+            if (!el) continue;
+                        
+            ComputingCalcstiffAndAssembling(stiffness,rhs,el);
+        }
+    }
+#else
+    DebugStop();
+#endif
+}
+
 
 
 
@@ -415,6 +451,37 @@ void TPZStructMatrixLCC::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPoi
     
 }
 
+void TPZStructMatrixLCC::ComputingCalcstiffAndAssembling(TPZMatrix<STATE>& stiffness,TPZFMatrix<STATE> &rhs,TPZCompEl *el){
+    
+    TPZElementMatrix ek(fMesh, TPZElementMatrix::EK), ef(fMesh, TPZElementMatrix::EF);
+    el->CalcStiff(ek, ef);
+    
+    if(!el->HasDependency()) {
+        ek.ComputeDestinationIndices();
+        fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
+        
+        if (fShouldColor){
+            stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+        }else{
+            stiffness.AddKelAtomic(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+        }
+        rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+        
+    } else {
+        // the element has dependent nodes
+        ek.ApplyConstraints();
+        ef.ApplyConstraints();
+        ek.ComputeDestinationIndices();
+        fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
+        if (fShouldColor){
+            stiffness.AddKelAtomic(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+        }else{
+            stiffness.AddKelAtomic(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+        }
+        rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+            
+    }
+}
 
 TPZStructMatrixLCC::ThreadData::ThreadData(TPZStructMatrixLCC *strmat, int seqnum, TPZMatrix<STATE> &mat,
                                           TPZFMatrix<STATE> &rhs,
