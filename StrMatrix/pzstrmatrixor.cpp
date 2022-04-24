@@ -136,7 +136,7 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
 #endif
 
 #ifdef PZDEBUG
-    if (ComputeRhs() &&
+    if (ComputeRhs() && myself->EquationFilter().IsActive() &&
         rhs.Rows() != myself->EquationFilter().NActiveEquations()) {
         DebugStop();
     }
