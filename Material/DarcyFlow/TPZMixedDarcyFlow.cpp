@@ -71,10 +71,15 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         }
     }
 #ifdef PZDEBUG
-    if (nactive == 4) {
-        int phrgb = datavec[2].phi.Rows();
-        int phrub = datavec[3].phi.Rows();
-        if (phrp + phrq + phrgb + phrub != ek.Rows()) {
+    if (nactive >= 4) {
+        if(nactive%2 != 0) DebugStop();
+        int numavg = (nactive-2)/2;
+        for(int iavg = 0; iavg<numavg; iavg++)
+        {
+            if(datavec[2+2*iavg].phi.Rows() != 1) DebugStop();
+            if(datavec[2+2*iavg+1].phi.Rows() != 1) DebugStop();
+        }
+        if (phrp + phrq + 2*numavg != ek.Rows()) {
             DebugStop();
         }
     } else {
@@ -230,13 +235,18 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         ef(phrq + ip, 0) += (-1.) * weight * force * phip(ip, 0);
     }
 
-    if (nactive == 4) {
-        for (int ip = 0; ip < phrp; ip++) {
-            ek(phrq + ip, phrq + phrp) += phip(ip, 0) * weight;
-            ek(phrq + phrp, phrq + ip) += phip(ip, 0) * weight;
+    if (nactive >= 4) {
+        if(nactive%2 != 0) DebugStop();
+        int numav = (nactive-2)/2;
+        for(int iav = 0; iav < numav; iav++)
+        {
+            for (int ip = 0; ip < phrp; ip++) {
+                ek(phrq + ip, phrq + phrp + 2*iav) += phip(ip, 0) * weight;
+                ek(phrq + phrp + 2*iav, phrq + ip) += phip(ip, 0) * weight;
+            }
+            ek(phrp + phrq + 2*iav + 1, phrq + phrp + 2*iav) += -weight;
+            ek(phrq + phrp * 2*iav, phrp + phrq + 2*iav + 1) += -weight;
         }
-        ek(phrp + phrq + 1, phrq + phrp) += -weight;
-        ek(phrq + phrp, phrp + phrq + 1) += -weight;
     }
 }
 
