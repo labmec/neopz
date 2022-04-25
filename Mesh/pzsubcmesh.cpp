@@ -299,6 +299,7 @@ void TPZSubCompMesh::MakeExternal(int64_t local){
 		fConnectIndex[lastext] = extconnect;
 		fExternalLocIndex[local] = lastext;
 		fFatherToLocal[extconnect] = local;
+		fLocalToFather[local] = extconnect;
 		TPZConnect::TPZDepend *listdepend = fConnectVec[local].FirstDepend();
 		while(listdepend) {
 			int64_t depindex = listdepend->fDepConnectIndex;
@@ -342,6 +343,7 @@ int64_t TPZSubCompMesh::GetFromSuperMesh(int64_t superind, TPZCompMesh *super){
 		fConnectIndex[fConnectIndex.NElements()-1] = superind;
 		fExternalLocIndex[gl] = fConnectIndex.NElements()-1;
 		fFatherToLocal[superind] = gl;
+		fLocalToFather[gl] = superind;
 		return gl;
 	} else {
 		int64_t j;

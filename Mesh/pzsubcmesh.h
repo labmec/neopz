@@ -51,6 +51,8 @@ protected:
 	TPZManVector<int64_t> fExternalLocIndex;
 	/** @brief Maps indicating the correspondence between the connect index of the father mesh and de local connect id */
 	std::map<int64_t,int64_t> fFatherToLocal;
+	/** @brief Maps indicating the correspondence between the local connect index and the father mesh connect index*/
+	std::map<int64_t,int64_t> fLocalToFather;
     
     /// Number of rigid body modes expected by the internal matrix inversion
     int64_t fSingularConnect;
@@ -119,6 +121,16 @@ public:
     /** @brief Sets the analysis type. */
     void SetAnalysisFStruct(int numThreads);
 
+	/// Get and set for fLocalToFather
+	std::map<int64_t,int64_t>& LocalToFather() {return fLocalToFather;}
+	/// Get method for fLocalToFather
+	const std::map<int64_t,int64_t>& LocalToFather() const {return fLocalToFather;}
+
+	/// Get and set for fFatherToLocal
+	std::map<int64_t,int64_t>& FatherToLocal() {return fFatherToLocal;}
+	/// Get method for fFatherToLocal
+	const std::map<int64_t,int64_t>& FatherToLocal() const {return fFatherToLocal;}
+	
     /**
      * @brief Condense the internal equations using a skyline symetric matrix 
      * the preconditioned argument indicates whether the equations are condensed with a direct method (0) or 
