@@ -484,18 +484,6 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::
                 if (c.LagrangeMultiplier() == KeepOneLagrangian) {
                     c.IncrementElConnected();
                     count++;
-                    if(count == 1 && c.NState() == 1)
-                    {
-                        break;
-                    }
-                    else if(count == 2 && c.NState() == 2)
-                    {
-                        break;
-                    }
-                    else if(count == 3 && c.NState() == 3)
-                    {
-                        break;
-                    }
                 }
             }
         }
@@ -510,9 +498,7 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::
         }
 #endif
     }
-
-    
-    
+	
 }
 
 

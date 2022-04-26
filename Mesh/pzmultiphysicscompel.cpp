@@ -716,6 +716,9 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialDataT(TPZVec<TPZMaterialDataT
     
     for (int64_t iref = 0; iref < nref; iref++) {
         dataVec[iref].fActiveApproxSpace = fActiveApproxSpace[iref];
+		if(!fElementVec[iref].Element()){
+			dataVec[iref].fActiveApproxSpace = 0;
+		}
     }
     auto * mat =
         dynamic_cast<TPZMatCombinedSpacesT<TVar>*>(this->Material());

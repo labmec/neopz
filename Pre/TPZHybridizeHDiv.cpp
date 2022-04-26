@@ -336,7 +336,7 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
             if(!cel) continue;
             const int celmatid = cel->Reference()->MaterialId();
             if (celmatid == fIdToHybridize) {
-                cel->LoadElementReference();
+                cel->LoadElementReference(); // TODO: NATHAN WE CANNOT DO ALL THE LOAD REFERENCES EVERYTIME
             }
         }
     }
