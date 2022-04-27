@@ -121,11 +121,11 @@ public:
 };
 
 /** This is the original and stable version of multi_thread_assemble (producer-consumer) */
-//#include "pzstrmatrix.h"
-//typedef TPZStructMatrixOR TPZStructMatrix;
+#include "pzstrmatrix.h"
+typedef TPZStructMatrixOR TPZStructMatrix;
 
-#include "pzstrmatrixLCC.h"
-typedef TPZStructMatrixLCC TPZStructMatrix;
+//#include "pzstrmatrixLCC.h"
+//typedef TPZStructMatrixLCC TPZStructMatrix;
 
 /** This version uses graph coloring to define the order to process the elements (Devloo-Gilvan) and
  * each color is processed and synchronized */

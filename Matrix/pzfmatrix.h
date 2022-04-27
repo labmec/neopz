@@ -187,6 +187,9 @@ public:
      * @param source Source index on rhs
      * @param destination Destine index on current matrix
      */
+    
+    void AddFelNonAtomic(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination);
+    
     void AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination);
     
     

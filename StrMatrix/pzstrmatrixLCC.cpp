@@ -462,10 +462,11 @@ void TPZStructMatrixLCC::ComputingCalcstiffAndAssembling(TPZMatrix<STATE>& stiff
         
         if (fShouldColor){
             stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            rhs.AddFelNonAtomic(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
         }else{
             stiffness.AddKelAtomic(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
         }
-        rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
         
     } else {
         // the element has dependent nodes
@@ -474,12 +475,13 @@ void TPZStructMatrixLCC::ComputingCalcstiffAndAssembling(TPZMatrix<STATE>& stiff
         ek.ComputeDestinationIndices();
         fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
         if (fShouldColor){
-            stiffness.AddKelAtomic(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+            stiffness.AddKel(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+            rhs.AddFelNonAtomic(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
         }else{
             stiffness.AddKelAtomic(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+            rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
         }
-        rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-            
+    
     }
 }
 
