@@ -23,8 +23,12 @@
 
 #ifdef USING_TBB
 #include <tbb/parallel_for.h>
-#include <tbb/task_scheduler_init.h>
+//#include <tbb/task_scheduler_init.h>
+#include <tbb/info.h>
+#include <tbb/task_arena.h>
+#include <tbb/global_control.h>
 #endif
+
 #ifdef USING_OMP
 #include "omp.h"
 #endif
@@ -295,7 +299,7 @@ void TPZStructMatrixLCC::AssemblingUsingTBBandColoring(TPZMatrix<STATE> & stiffn
 #ifndef USING_TBB
     DebugStop();
 #endif
-
+#ifdef USING_TBB
     int64_t nelem = fMesh->NElements();
     const int nthread = this->fNumThreads;
     
@@ -304,7 +308,8 @@ void TPZStructMatrixLCC::AssemblingUsingTBBandColoring(TPZMatrix<STATE> & stiffn
     
     for (int icol=0; icol<ncolor; icol++){
             
-        tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
+        //tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
+        tbb::global_control global_limit(tbb::global_control::max_allowed_parallelism, nthread);
         tbb::parallel_for( tbb::blocked_range<int64_t>(0,nelem),
                           [&](tbb::blocked_range<int64_t> r){
         for (int64_t iel = r.begin(); iel < r.end(); iel++)
@@ -318,6 +323,7 @@ void TPZStructMatrixLCC::AssemblingUsingTBBandColoring(TPZMatrix<STATE> & stiffn
             }
         });
     }
+#endif
     }
 
 
@@ -354,7 +360,8 @@ void TPZStructMatrixLCC::AssemblingUsingTBBbutNotColoring(TPZMatrix<STATE> & sti
     const int nthread = this->fNumThreads;
     
 
-        tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
+        //tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
+        tbb::global_control global_limit(tbb::global_control::max_allowed_parallelism, nthread);
         tbb::parallel_for( tbb::blocked_range<int64_t>(0,nelem),
                           [&](tbb::blocked_range<int64_t> r){
         for (int64_t iel = r.begin(); iel < r.end(); iel++)
@@ -366,7 +373,7 @@ void TPZStructMatrixLCC::AssemblingUsingTBBbutNotColoring(TPZMatrix<STATE> & sti
 
         }
         });
-#elif
+#else
     DebugStop();
 #endif
     

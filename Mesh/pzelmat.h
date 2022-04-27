@@ -33,7 +33,7 @@ struct TPZElementMatrix {
 	
 	MType fType;
 	
-	TPZCompMesh * fMesh;
+	TPZCompMesh *fMesh;
 	
 	/** @brief Vector of pointers to TPZConnect objects*/
 	TPZStack<int64_t> fConnect;
