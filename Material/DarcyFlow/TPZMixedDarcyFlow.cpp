@@ -600,7 +600,7 @@ int TPZMixedDarcyFlow::NSolutionVariables(int var) const {
     if (var == 7) return 3;
     if (var == 8) return 1;
     if (var == 9) return 3;
-    if (var == 10 || var == 41) return 1;
+    if (var == 10 || var == 11) return 1;
     if (var == 12) return 3;
     if (var == 13) return 1;
     if (var == 14) return 1;
