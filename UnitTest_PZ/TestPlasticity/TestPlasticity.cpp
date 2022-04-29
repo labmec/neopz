@@ -8,15 +8,15 @@
 #include "iostream"
 #include "fstream"
 #include <chrono>
-#include "TPZElasticResponse.h" // linear elastic (LE)
-#include "TPZElasticCriterion.h"
-#include "TPZPorousElasticResponse.h" // Porous elasticity (PE)
-#include "TPZPorousElasticCriterion.h"
-#include "TPZSandlerExtended.h" // LE with DiMaggio Sandler (LEDS)
-#include "TPZYCMohrCoulombPV.h" // LE with Mohr Coulomb (LEMC)
+#include "Plasticity/TPZElasticResponse.h" // linear elastic (LE)
+#include "Plasticity/TPZElasticCriterion.h"
+#include "Plasticity/TPZPorousElasticResponse.h" // Porous elasticity (PE)
+#include "Plasticity/TPZPorousElasticCriterion.h"
+#include "Plasticity/TPZSandlerExtended.h" // LE with DiMaggio Sandler (LEDS)
+#include "Plasticity/TPZYCMohrCoulombPV.h" // LE with Mohr Coulomb (LEMC)
 
-#include "TPZMatElastoPlastic2D_impl.h"
-#include "TPZPlasticStepPV.h" // Plastic Integrator
+// #include "TPZMatElastoPlastic2D_impl.h"
+#include "Plasticity/TPZPlasticStepPV.h" // Plastic Integrator
 #include <catch2/catch.hpp>
 /**
  Read DiMaggio Sandler data

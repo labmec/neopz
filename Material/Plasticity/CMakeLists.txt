@@ -1,9 +1,5 @@
 # @file neopz/Material/REAL/Plasticity/CMakeLists.txt  -- CMake file for Plasticity Materials
 
-target_include_directories(pz PUBLIC
-                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Material/REAL/Plasticity>
-                           )
 set(headers
     TPZDruckerPrager.h
     TPZElasticCriterion.h
@@ -160,6 +156,6 @@ endif()
 
 
 
-install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/REAL/Plasticity)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/Plasticity)
 
 target_sources(pz PRIVATE ${headers} ${sources})
