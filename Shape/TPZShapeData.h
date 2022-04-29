@@ -54,8 +54,9 @@ public:
     enum MShapeFunctionType {EEmpty,
         EScalarShape,///< Scalar shape functions (H1, L2)
         EVecandShape,///< Composite shape function (scalar function and vector field, HDiv and HCurl spaces)
-        EVecShape///< Vector shape function (e.g. vector H1 space)
-    };//TODO:Remove?
+        EVecShape,///< Vector shape function (e.g. vector H1 space)
+        ETensorShape// Tensor shape function (e.g. stress functions)
+    };
     //! Type of shape function
     MShapeFunctionType fShapeType{EEmpty};
     //! Corner node ids determine the parameter transformations to the sides
