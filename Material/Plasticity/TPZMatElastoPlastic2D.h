@@ -52,6 +52,11 @@ public:
 	
 	/** returns the number of state variables associated with the material*/
 	virtual int NStateVariables() const override { return 2; }
+
+	void GetSolDimensions(uint64_t &u_len,
+												uint64_t &du_row,
+												uint64_t &du_col) const override
+	{u_len = 2; du_row = 2; du_col=2;}
 	
     /** @brief Prints out the data associated with the material */
     virtual void Print(std::ostream &out) const override;
