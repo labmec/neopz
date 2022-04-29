@@ -285,6 +285,7 @@ void TPZCondensedCompEl::CalcStiffInternal(TPZElementMatrixT<TVar> &ekglob,TPZEl
         Print(sout);
         sout << "Connect indices of element stiffness" << ek.fConnect << std::endl;
         ek.fMat.Print("EKOrig = ",sout,EMathematicaInput);
+        ef.fMat.Print("EFOrig = ",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
