@@ -97,7 +97,7 @@ public:
     * Returns the number of norm errors: 3 (Semi H1, L2 and H1)
     * Method not implemented
     */
-    virtual int NEvalErrors() override {return 3;}
+    virtual int NEvalErrors() const override {return 3;}
 
     /**
     * It computes a contribution to the stiffness matrix and load vector at one integration point.
