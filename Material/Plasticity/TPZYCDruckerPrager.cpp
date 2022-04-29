@@ -1,4 +1,4 @@
-#include <TPZYCDruckerPrager.h>
+#include "TPZYCDruckerPrager.h"
 
 
 int TPZYCDruckerPrager::ClassId() const{
