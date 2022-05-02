@@ -245,7 +245,7 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
                 ek(phrq + phrp + 2*iav, phrq + ip) += phip(ip, 0) * weight;
             }
             ek(phrp + phrq + 2*iav + 1, phrq + phrp + 2*iav) += -weight;
-            ek(phrq + phrp * 2*iav, phrp + phrq + 2*iav + 1) += -weight;
+            ek(phrq + phrp + 2*iav, phrp + phrq + 2*iav + 1) += -weight;
         }
     }
 }
