@@ -97,3 +97,34 @@ TEST_CASE("tpzmanvector_tests","[test_vectypes]") {
         REQUIRE(true);
     }
 }
+
+TEST_CASE("mixedvecs_tests","[test_vectypes]") {
+
+    auto myfunc = []() -> TPZVec<int> {
+        //this vector has not allocated any memory
+        TPZManVector<int,3> myvec = {1,2,3};
+        return std::move(myvec);
+    };
+
+
+    //move ctor
+    try{
+        TPZVec<int> myextvec = myfunc();
+        myextvec[0]++;//just to see if memory is still valid
+    }catch(...){
+        REQUIRE(false);
+    }
+    REQUIRE(true);
+
+    
+    //move assignment operator
+    try{
+        TPZManVector<int,3> manvec = {1,2,3};
+        TPZVec<int> normalvec = {4,5,6};
+        normalvec = std::move(manvec);
+        normalvec[0]++;//just to see if memory is still valid
+    }catch(...){
+        REQUIRE(false);
+    }
+    REQUIRE(true);
+}
