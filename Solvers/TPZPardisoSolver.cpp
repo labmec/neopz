@@ -294,6 +294,10 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
     nrhs = rhs.Cols();
     n = rhs.Rows();
     b = &rhs.g(0,0);
+	auto normb = Norm(rhs);
+	if(IsZero(normb)){
+		return;
+	}
     x = &sol.g(0,0);
     perm = &fPermutation[0];
     /// forward and backward substitution

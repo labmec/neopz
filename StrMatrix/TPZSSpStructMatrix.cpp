@@ -32,7 +32,7 @@ TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::Create(){
     int64_t neq = this->fMesh->NEquations();
     if(this->fMesh->FatherMesh()) {
 		cout << "TPZSSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
-        DebugStop();
+//        DebugStop(); // WHY?
     }
     /**
      *Longhin implementation
