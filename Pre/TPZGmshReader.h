@@ -68,6 +68,9 @@ class TPZGmshReader{
     /// gmsh file format version (supported versions = {3,4})
     std::string m_format_version;
     
+    /// pointer to the geometric mesh being read
+    TPZGeoMesh *m_gmesh = 0;
+    
     /// Number of volumes
     int m_n_volumes = 0;
     
@@ -115,6 +118,9 @@ class TPZGmshReader{
     /// Structure of both: physical id and user defined physical tag indexed by dimension
     TPZManVector<std::map<int,int>,4> m_dim_physical_tag_and_physical_tag;
     
+    /// Flag indicating whether elements without defined physical tag should be read
+    bool m_read_undefined_physical_tag_elements = true;
+    
     /// Entity index to which the element belongs
     TPZVec<int64_t> m_entity_index;
     
@@ -143,12 +149,28 @@ class TPZGmshReader{
     int m_n_point_els = 0;
     
     /// Convert a Gmsh *.msh file with format 4 to a TPZGeoMesh object
-    TPZGeoMesh * GeometricGmshMesh4(std::string file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
+    TPZGeoMesh * GeometricGmshMesh4(std::string &file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
 
     /// Convert a Gmsh *.msh file with format 3 to a TPZGeoMesh object
-    TPZGeoMesh * GeometricGmshMesh3(std::string file_name, TPZGeoMesh *gmesh = NULL);
+    TPZGeoMesh * GeometricGmshMesh3(std::string &file_name, TPZGeoMesh *gmesh = NULL);
 
-    void ReadVersion(std::string file_name);
+    // read the version line at the top of the gmsh file
+    void ReadVersion(std::string &file_name);
+    
+    // read the version line at the top of the gmsh file
+    void ReadVersion(std::istream &file_name);
+    
+public:
+    /// read the physical property section of the gmsh file
+    void ReadPhysicalProperties4(std::istream &input);
+
+private:
+    /// read the elements and nodes
+    void ReadElements4(std::istream &input);
+    
+    /// read the data with respect to periodic nodes
+    void ReadPeriodic4(std::istream &input);
+    
     //! Fills m_periodic_els structure after creating the mesh
     void SetPeriodicElements(
         TPZGeoMesh *gmesh,
@@ -164,8 +186,9 @@ class TPZGmshReader{
     ~TPZGmshReader() = default;
     
     /// Convert Gmsh msh files in a TPZGeoMesh object, detecting .msh version
-    TPZGeoMesh * GeometricGmshMesh(std::string file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
+    TPZGeoMesh * GeometricGmshMesh(std::string &file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
 
+    
     /// Set the Characteristic length (before reading the mesh)
     void SetCharacteristiclength(REAL length);
     
