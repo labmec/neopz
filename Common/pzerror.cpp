@@ -14,13 +14,13 @@ void pzinternal::DebugStopImpl(const char *fileName, const std::size_t lineN)
 	PZError << "\n\nYour chance to put a breakpoint at " << fileName<< ":"<< lineN <<  "\n";
     //#endif
 
-    void* callstack[128];
-    int i, frames = backtrace(callstack, 128);
-    char** strs = backtrace_symbols(callstack, frames);
-    for (i = 0; i < frames; ++i) {
-        printf("%s\n", strs[i]);
-    }
-    free(strs);
+//    void* callstack[128];
+//    int i, frames = backtrace(callstack, 128);
+//    char** strs = backtrace_symbols(callstack, frames);
+//    for (i = 0; i < frames; ++i) {
+//        printf("%s\n", strs[i]);
+//    }
+//    free(strs);
 
 
     throw std::bad_exception();
