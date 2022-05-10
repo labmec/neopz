@@ -331,15 +331,15 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     
     // ==> Splitting flux mesh connect
     gmesh->ResetReference();
-    if (fIdToHybridize != -1000){
-        for (auto cel : fluxmesh->ElementVec()) {
-            if(!cel) continue;
-            const int celmatid = cel->Reference()->MaterialId();
-            if (celmatid == fIdToHybridize) {
-                cel->LoadElementReference(); // TODO: NATHAN WE CANNOT DO ALL THE LOAD REFERENCES EVERYTIME
-            }
-        }
-    }
+	if (fIdsToHybridize.size()){
+		for (auto cel : fluxmesh->ElementVec()) {
+			if(!cel) continue;
+			const int celmatid = cel->Reference()->MaterialId();
+			if (fIdsToHybridize.find(celmatid) != fIdsToHybridize.end()) {
+				cel->LoadElementReference();
+			}
+		}
+	}
     else {
         fluxmesh->LoadReferences();
     }    
@@ -1056,8 +1056,8 @@ void TPZHybridizeHDiv::GetAllConnectedCompElSides(TPZInterpolatedElement *intel,
             TPZGeoEl *neigh = cel.Element()->Reference();
             if (neigh->Dimension() == gel->Dimension()) {
                 const int celmatid = cel.Element()->Reference()->MaterialId();
-                if (fIdToHybridize != -1000) {
-                    if (celmatid == fIdToHybridize) {
+                if (fIdsToHybridize.size()) {
+                    if (fIdsToHybridize.find(celmatid) != fIdsToHybridize.end()) {
                         celsidestack.push_back(cel);
                     }
                 }
