@@ -149,13 +149,13 @@ class TPZGmshReader{
     int m_n_point_els = 0;
     
     /// Convert a Gmsh *.msh file with format 4 to a TPZGeoMesh object
-    TPZGeoMesh * GeometricGmshMesh4(std::string &file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
+    TPZGeoMesh * GeometricGmshMesh4(const std::string &file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
 
     /// Convert a Gmsh *.msh file with format 3 to a TPZGeoMesh object
-    TPZGeoMesh * GeometricGmshMesh3(std::string &file_name, TPZGeoMesh *gmesh = NULL);
+    TPZGeoMesh * GeometricGmshMesh3(const std::string &file_name, TPZGeoMesh *gmesh = NULL);
 
     // read the version line at the top of the gmsh file
-    void ReadVersion(std::string &file_name);
+    void ReadVersion(const std::string &file_name);
     
     // read the version line at the top of the gmsh file
     void ReadVersion(std::istream &file_name);
@@ -186,7 +186,7 @@ private:
     ~TPZGmshReader() = default;
     
     /// Convert Gmsh msh files in a TPZGeoMesh object, detecting .msh version
-    TPZGeoMesh * GeometricGmshMesh(std::string &file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
+    TPZGeoMesh * GeometricGmshMesh(const std::string &file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
 
     
     /// Set the Characteristic length (before reading the mesh)
