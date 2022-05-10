@@ -1044,7 +1044,8 @@ void HybridizeIntersections(TPZVec<TPZCompMesh *>& meshvec_Hybrid, TPZHybridizeH
     }
     
     hybridizer->fHDivWrapMatid = EKd2;
-    hybridizer->fIdToHybridize = EFracture;
+//  hybridizer->fIdToHybridize = EFracture;
+    hybridizer->fIdsToHybridize.insert(EFracture);
     
     // ===> Initializing variables
     TPZCompMesh* fluxmesh = meshvec_Hybrid[0];
