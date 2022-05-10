@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <map>
+#include <set>
 #include "pzstack.h"
 //#include "pzgeoelrefless.h"
 
@@ -37,7 +38,7 @@ struct TPZHybridizeHDiv {
     std::pair<int,int> fInterfaceMatid = {-8,-8};
     // number of state variables
     int fNState = 1;
-    int fIdToHybridize = -1000;
+	std::set<int> fIdsToHybridize;
     
     TPZHybridizeHDiv() = default;
     
@@ -48,8 +49,8 @@ struct TPZHybridizeHDiv {
     /// compute material ids for the periferal material objects
     void ComputePeriferalMaterialIds(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
     
-    int& IdToHybridize() {return fIdToHybridize;}
-    const int& IdToHybridize() const {return fIdToHybridize;}
+	std::set<int>& IdsToHybridize() {return fIdsToHybridize;}
+	const std::set<int>& IdsToHybridize() const {return fIdsToHybridize;}
     
     /// set the periferal material ids
     void SetPeriferalMaterialIds(int HDivWrapMatid, int LagrangeInterface, int InterfaceMatid)
