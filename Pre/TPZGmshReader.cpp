@@ -44,7 +44,7 @@ TPZGmshReader::TPZGmshReader() {
     
 }//method
 
-void TPZGmshReader::ReadVersion(std::string &file_name){
+void TPZGmshReader::ReadVersion(const std::string &file_name){
     // reading a general mesh information by filter
     std::ifstream read (file_name.c_str());
     if(!read){
@@ -436,7 +436,7 @@ void TPZGmshReader::ReadPeriodic4(std::istream &read)
 
 
 
-TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string &file_name, TPZGeoMesh *gmesh_input, bool addNonAssignedEls)  {
+TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(const std::string &file_name, TPZGeoMesh *gmesh_input, bool addNonAssignedEls)  {
 
     m_read_undefined_physical_tag_elements = addNonAssignedEls;
     m_gmesh = gmesh_input;
@@ -489,7 +489,7 @@ void TPZGmshReader::PrintPartitionSummary(std::ostream & out){
 
 }
 
-TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string &file_name, TPZGeoMesh *gmesh_input, bool addNonAssignedEls){
+TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(const std::string &file_name, TPZGeoMesh *gmesh_input, bool addNonAssignedEls){
     
     //  Mesh Creation
     TPZGeoMesh * gmesh = gmesh_input;
@@ -754,7 +754,7 @@ int TPZGmshReader::GetNumberofNodes(int & el_type){
     return n_nodes;
 }
 
-TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(std::string &file_name, TPZGeoMesh *gmesh_input)
+TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(const std::string &file_name, TPZGeoMesh *gmesh_input)
 {
     
     //  Mesh Creation
