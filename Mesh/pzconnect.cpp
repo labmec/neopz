@@ -68,18 +68,25 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 	int nstate  = fCompose.fNState;
 	int nshape  = fNShape;
 	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<"  Order = " << orde << "  NState = " << nstate << "  NShape " << nshape << " IsCondensed " << IsCondensed() << " IsLagrMult " << (int) LagrangeMultiplier();
-    const TPZFMatrix<STATE> &meshSol = mesh.Solution();
 	if(fSequenceNumber > -1)
 	{
         int64_t pos = mesh.Block().Position(fSequenceNumber);
         out << "\tEquation = " << pos;
 		out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
 		out << " Solution ";
-		int64_t ieq;
-		for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
-		{
-			out << meshSol.GetVal(mesh.Block().Index(fSequenceNumber,ieq),0) << ' ';
-		}
+    if(mesh.GetSolType() == ESolType::EReal){
+      const TPZFMatrix<STATE> &meshSol = mesh.Solution();
+      for(auto ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
+        {
+          out << meshSol.at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
+        }
+    }else{
+      const TPZFMatrix<CSTATE> &meshSol = mesh.Solution();
+      for(auto ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
+        {
+          out << meshSol.at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
+        }
+    }
 	}
 	
 	out << endl;
