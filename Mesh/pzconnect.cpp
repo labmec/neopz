@@ -101,17 +101,27 @@ void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
 {
 	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<" Order = " << fCompose.fOrder << " NState = " << fCompose.fNState << " NShape " << fNShape ;
 	out << " coordinate " << cp;
-    //TODOCOMPLEX
-    const TPZFMatrix<STATE> &meshSol = mesh.Solution();
+  
 	if(fSequenceNumber > -1)
 	{
 		out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
 		out << " Solution ";
-		int64_t ieq;
-		for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
-		{
-			out << meshSol.at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
-		}
+    if(mesh.GetSolType() == ESolType::EReal){
+      const TPZFMatrix<STATE> &meshSol = mesh.Solution();
+      int64_t ieq;
+      for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
+        {
+          out << meshSol.at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
+        }
+    }else{
+      const TPZFMatrix<CSTATE> &meshSol = mesh.Solution();
+      int64_t ieq;
+      for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
+        {
+          out << meshSol.at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
+        }
+    }
+    
 	}
 	
 	out << endl;
