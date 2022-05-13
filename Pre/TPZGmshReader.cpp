@@ -1340,6 +1340,7 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
     return true;
 }
 
+
 void TPZGmshReader::SetPeriodicElements(
     TPZGeoMesh *gmesh,
     const TPZVec<std::map<int64_t, std::map<int64_t, int64_t>>>
@@ -1371,6 +1372,41 @@ void TPZGmshReader::SetPeriodicElements(
     }
   }
 
+  /*
+    now we just want to change the ids of the dependent nodes
+    so as to match the ordering of the independent nodes
+  */
+
+  //contain all periodic nodes
+  std::vector<std::pair<int64_t,int64_t>> all_per_nodes;
+
+  for(auto all_periodic_ids : periodic_nodes_by_physical_ids){
+      for(auto &[_,periodic_ids] : all_periodic_ids){
+          for(auto &[dep_node,indep_node] : periodic_ids){
+              all_per_nodes.push_back({dep_node,indep_node});
+          }
+      }
+  }
+
+  std::set<int64_t> dep_ids, indep_ids;
+  for(auto [dep,indep] : all_per_nodes){
+      dep_ids.insert(dep);
+      indep_ids.insert(indep);
+  }
+
+  const int n_nodes = dep_ids.size();
+  auto d_i = dep_ids.begin();
+  auto i_i = indep_ids.begin();
+  for(auto i = 0; i < n_nodes; i++){
+      auto dep_node = all_per_nodes[i].first;
+      auto indep_node = all_per_nodes[i].second;
+      m_gmesh->NodeVec()[dep_node].SetNodeId(*d_i);
+      m_gmesh->NodeVec()[indep_node].SetNodeId(*i_i);
+      d_i++;
+      i_i++;
+  }
+  
+  //now we want to map periodic ELEMENTS
   for (int idim = 0; idim < max_dimension; idim++) {
     for (auto [depid, periodic_nodes] : periodic_nodes_by_physical_ids[idim]) {
       assert(periodic_physical_ids.find(depid) != periodic_physical_ids.end());
@@ -1406,16 +1442,6 @@ void TPZGmshReader::SetPeriodicElements(
           }
         }
       }
-    }
-  }
-  // the node ids of the dependent el will be set as the same from the
-  // independent el
-  for (auto [depel_id, indepel_id] : m_periodic_els) {
-    auto *depel = gmesh->Element(depel_id);
-    auto *indepel = gmesh->Element(indepel_id);
-    const auto nnodes = depel->NNodes();
-    for (auto i = 0; i < nnodes; i++) {
-      depel->Node(i).SetNodeId(indepel->Node(i).Id());
     }
   }
 }
