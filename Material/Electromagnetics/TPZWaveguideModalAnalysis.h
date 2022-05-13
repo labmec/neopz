@@ -30,25 +30,25 @@ public:
     /**
        @brief Constructor taking a few material parameters
        @param[in] id Material identifier.
-       @param[in] ur Relative permeability.
        @param[in] er Relative permittivity.
+       @param[in] ur Relative permeability.
        @param[in] scale Scale for geometric domain.
        @note the `scale` param might help with floating point arithmetics on really small domains.
     */
-    TPZWaveguideModalAnalysis(int id, const CSTATE ur,
-                              const CSTATE er, const STATE lambda,
+    TPZWaveguideModalAnalysis(int id, const CSTATE er,
+                              const CSTATE ur, const STATE lambda,
                               const REAL &scale = 1.);
     /**
        @brief Constructor taking a few material parameters
        @param[in] id Material identifier.
-       @param[in] ur Relative permeability (xx, yy, zz).
        @param[in] er Relative permittivity (xx, yy, zz).
+       @param[in] ur Relative permeability (xx, yy, zz).
        @param[in] scale Scale for geometric domain.
        @note the `scale` param might help with floating point arithmetics on really small domains.
     */
     TPZWaveguideModalAnalysis(int id,
-                              const TPZVec<CSTATE> & ur,
                               const TPZVec<CSTATE> & er,
+                              const TPZVec<CSTATE> & ur,
                               STATE lambda,
                               const REAL &scale = 1.);
     explicit TPZWaveguideModalAnalysis(int id);

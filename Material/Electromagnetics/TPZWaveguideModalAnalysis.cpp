@@ -13,8 +13,8 @@ TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id) : TBase(id){
 }
 
 TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id, 
-                                                     const CSTATE ur,
                                                      const CSTATE er,
+                                                     const CSTATE ur,
                                                      const STATE lambda,
                                                      const REAL &scale) :
     TBase(id), fUr(3), fEr(3), fScaleFactor(scale),
@@ -37,13 +37,13 @@ TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id,
         PZError<<"Setting negative permeability. Aborting..\n";
         DebugStop();
     }
-    SetPermeability(ur);
     SetPermittivity(er);
+    SetPermeability(ur);
 }
 
 TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id, 
-                                                     const TPZVec<CSTATE> &ur,
                                                      const TPZVec<CSTATE> &er,
+                                                     const TPZVec<CSTATE> &ur,
                                                      const STATE lambda,
                                                      const REAL &scale) :
     TBase(id), fUr(3), fEr(3), fScaleFactor(scale),
@@ -57,8 +57,8 @@ TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id,
         DebugStop();
     }
 
-    SetPermeability(ur);
     SetPermittivity(er);
+    SetPermeability(ur);
     
 }
 

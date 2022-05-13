@@ -9,14 +9,14 @@ TPZPlanarWGScattering::TPZPlanarWGScattering() : TBase()
   
 }
 
-TPZPlanarWGScattering::TPZPlanarWGScattering(int id, const CSTATE ur,const CSTATE er,
+TPZPlanarWGScattering::TPZPlanarWGScattering(int id, const CSTATE er,const CSTATE ur,
                                              const STATE lambda, const ModeType mode,
                                              const REAL &scale) :
   TBase(id), fScaleFactor(scale), fMode(mode)
 {
   SetWavelength(lambda);
-  SetPermeability(ur);
   SetPermittivity(er);
+  SetPermeability(ur);
 }
 
   

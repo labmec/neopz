@@ -35,7 +35,7 @@ public:
      @param[in] scale Scale for geometric domain.
      @note the `scale` param might help with floating point arithmetics on really small domains.
   */
-  TPZPlanarWGScattering(int id, const CSTATE ur,const CSTATE er,
+  TPZPlanarWGScattering(int id, const CSTATE er,const CSTATE ur,
                         const STATE lambda,
                         const ModeType mode,
                         const REAL &scale = 1.);
