@@ -30,10 +30,10 @@ public:
     TPZMultiphysicsCompMesh();
     
     /// Constructor based on TPZGeoMesh pointer and vector of meshes
-    TPZMultiphysicsCompMesh(TPZGeoMesh * gmesh);
+    TPZMultiphysicsCompMesh(TPZGeoMesh * gmesh, bool isComplex=false);
     
     /// Constructor based on TPZGeoMesh pointer and vector of meshes
-    TPZMultiphysicsCompMesh(TPZAutoPointer<TPZGeoMesh>  gmesh);
+    TPZMultiphysicsCompMesh(TPZAutoPointer<TPZGeoMesh>  gmesh, bool isComplex=false);
     
     /// Copy constructor
     TPZMultiphysicsCompMesh(const TPZMultiphysicsCompMesh &other);

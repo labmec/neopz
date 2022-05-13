@@ -20,13 +20,13 @@ TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh() : TPZCompMesh(){
     m_mesh_vector.Resize(0);
 }
 
-TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh(TPZGeoMesh * gmesh) : TPZCompMesh(gmesh){
+TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh(TPZGeoMesh * gmesh, bool isComplex) : TPZCompMesh(gmesh, isComplex){
     
     m_active_approx_spaces.Resize(0);
     m_mesh_vector.Resize(0);
 }
 
-TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh(TPZAutoPointer<TPZGeoMesh>  gmesh) : TPZCompMesh(gmesh),
+TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh(TPZAutoPointer<TPZGeoMesh>  gmesh, bool isComplex) : TPZCompMesh(gmesh, isComplex),
     m_active_approx_spaces(), m_mesh_vector(){
     
 }
