@@ -379,6 +379,18 @@ void TPZGmshReader::ReadElements4(std::istream &read)
         break;
       }
     }
+    // set the element id equal to the element index
+    {
+        int64_t nel = m_gmesh->NElements();
+        for(int64_t el = 0; el<nel; el++)
+        {
+            TPZGeoEl *gel = m_gmesh->Element(el);
+#ifdef PZDEBUG
+            if(!gel) DebugStop();
+#endif
+            gel->SetId(el);
+        }
+    }
 }
 
 /// read the data with respect to periodic nodes
