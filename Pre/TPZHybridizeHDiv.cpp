@@ -330,6 +330,7 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     
     
     // ==> Splitting flux mesh connect
+    // this is extremely expensive
     gmesh->ResetReference();
 	if (fIdsToHybridize.size()){
 		for (auto cel : fluxmesh->ElementVec()) {

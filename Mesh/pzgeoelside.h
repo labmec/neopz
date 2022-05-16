@@ -269,7 +269,7 @@ public:
      */
     void InsertConnectivity(TPZGeoElSide &neighbour, const TPZVec<int> &mapsides);
 
-    /// Remove the element from the connectivity loop
+    /// Remove the element/side from the connectivity loop
 	void RemoveConnectivity();
 	
 	static void BuildConnectivities(TPZVec<TPZGeoElSide> &elvec, TPZVec<TPZGeoElSide> &neighvec);
