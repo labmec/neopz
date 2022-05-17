@@ -520,12 +520,6 @@ void TPZCompEl::BuildConnectList(TPZStack<int64_t> &connectlist) const {
         buf = std::set<int64_t>(&localcon[0],&localcon[0]+nconloc);
     }
     std::set<int64_t> buf2;
-    std::list<TPZOneShapeRestraint> mylist = GetShapeRestraints();
-    for (std::list<TPZOneShapeRestraint>::iterator it = mylist.begin(); it != mylist.end(); it++) {
-        for (int i=0; i<4; i++) {
-            buf2.insert(it->fFaces[i].first);
-        }
-    }
     nconloc = NConnects();
     for(int64_t i = 0; i < nconloc; i++) {
         TPZConnect &c = Connect(i);
