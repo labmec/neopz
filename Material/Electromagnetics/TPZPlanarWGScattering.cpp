@@ -247,3 +247,6 @@ void TPZPlanarWGScattering::Solution(const TPZMaterialDataT<CSTATE> &data,
     TBase::Solution(data,var,solout);
   } 
 }
+
+#include "TPZMatPML.h"
+template class TPZSingleSpacePML<TPZPlanarWGScattering>;

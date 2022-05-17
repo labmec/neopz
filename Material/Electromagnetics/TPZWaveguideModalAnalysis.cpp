@@ -459,3 +459,5 @@ void TPZWaveguideModalAnalysis::Solution(
             break;
     }
 }
+#include "TPZMatPML.h"
+template class TPZCombinedSpacesPML<TPZWaveguideModalAnalysis>;
