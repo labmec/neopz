@@ -78,7 +78,9 @@ public:
         return new TPZCompElWithMem<TBASE> (mesh, *this, gl2lcConMap, gl2lcElMap);
     }
     
-    virtual void ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi) override;
+    void ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi) override;
+    
+    void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data, TPZVec<REAL> &qsi) override;
     
     int64_t GetGlobalIntegrationPointIndex(TPZMaterialData &data);
     
@@ -262,6 +264,18 @@ void TPZCompElWithMem<TBASE>::CopyIntPtIndicesFrom(const TPZCompElWithMem<TBASE>
 /** Save the element data to a stream */
 template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialDataT<STATE> &data,
+                                                         TPZVec<REAL> &qsi){
+    TBASE::ComputeRequiredData(data, qsi);
+    if(fIntPtIndices.size())
+    {
+        data.intGlobPtIndex = GetGlobalIntegrationPointIndex(data);
+    }
+    //material index for the n-th CompEl integration point
+}
+
+/** Save the element data to a stream */
+template <class TBASE>
+inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
                                                          TPZVec<REAL> &qsi){
     TBASE::ComputeRequiredData(data, qsi);
     if(fIntPtIndices.size())
