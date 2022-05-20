@@ -191,20 +191,6 @@ TPZPlanarWGScattering::ContributeBCInternal(const CSTATE coeffGradX,
     case 1:
       ///PMC condition just adds zero to both matrices. nothing to do here....
       break;
-    case 2:{
-      ///Source term
-      TPZFNMatrix<9,CSTATE> dummy;
-      TPZManVector<CSTATE,2> res(2);
-      bc.ForcingFunctionBC()(data.x,res,dummy);
-      const auto Am = res[0];//amplitude
-      const auto beta = res[1];//beta
-      const int nshape=phi.Rows();
-      for(int i = 0 ; i<nshape ; i++){
-        const CSTATE load = (phi(i,0) * coeffGradX) * -2i * beta * Am;
-        ef(i,0) += weight * load;
-      }
-      break;
-    }
     default:
       PZError<<__PRETTY_FUNCTION__;
       PZError<<"\nThis module supports only dirichlet and neumann boundary conditions.\n";
