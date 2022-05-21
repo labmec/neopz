@@ -4,6 +4,7 @@ set(public_headers
     TPZWgma.h
     TPZPlanarWgScatt.h
     TPZPlanarWgScattSrc.h
+    TPZPeriodicWgma.h
     TPZMatPML.h
     TPZMatPML_impl.h
     )
@@ -12,6 +13,7 @@ set(headers
     TPZWgma.h
     TPZPlanarWgScatt.h
     TPZPlanarWgScattSrc.h
+    TPZPeriodicWgma.h
     TPZMatPML.h
     TPZMatPML_impl.h
    )
@@ -19,6 +21,7 @@ set(sources
     TPZWgma.cpp
     TPZPlanarWgScatt.cpp
     TPZPlanarWgScattSrc.cpp
+    TPZPeriodicWgma.cpp
    )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/Electromagnetics)
