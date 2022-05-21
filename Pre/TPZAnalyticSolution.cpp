@@ -1312,6 +1312,22 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             disp[0] = atan(atanco)*mult;
         }
             break;
+        case ESteepWave:
+        {
+            TPZManVector<TVar,3> x0;
+            x0.resize(fDimension);
+            TVar r2Circle = TVar(0);
+            TVar r0 = TVar(0.7);
+            TVar alpha = TVar(100);
+
+            for (int i=0; i<fDimension; i++) {
+                x0[i] = TVar(-0.05);
+                r2Circle += (xloc[i]-x0[i])*(xloc[i]-x0[i]);
+            }
+            TVar rCircle = sqrt(r2Circle);
+            disp[0] = atan(alpha*(rCircle-r0));
+        }
+            break;
         case EArcTanSingular://5*(0.5*pi + arctang(20(0.25 - r^2))))
         {
             REAL B = 5.;
@@ -1628,6 +1644,24 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
             disp[0] = FADatan(atanco)*mult;
         }
             break;
+            
+        case ESteepWave:
+        {
+            TPZManVector<TVar,3> x0;
+            x0.resize(fDimension);
+            TVar r2Circle = TVar(0);
+            TVar r0 = TVar(0.7);
+            TVar alpha = TVar(100);
+
+            for (int i=0; i<fDimension; i++) {
+                x0[i] = TVar(-0.05);
+                r2Circle += (xloc[i]-x0[i])*(xloc[i]-x0[i]);
+            }
+            TVar rCircle = FADsqrt(r2Circle);
+            disp[0] = FADatan(alpha*(rCircle-r0));
+        }
+            break;
+
         case EArcTanSingular:
         {
             REAL B = 5.;
