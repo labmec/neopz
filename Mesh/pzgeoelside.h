@@ -247,7 +247,22 @@ public:
 		*this = this->Neighbour();
 		return *this;
 	}
-    
+    /** @brief Next neighbour operator as post-increment */
+    TPZGeoElSide operator--(int){
+        TPZGeoElSide pre = *this;
+        TPZGeoElSide neigh = *this;
+        while(neigh.Neighbour() != *this) neigh = neigh.Neighbour();
+        *this = neigh;
+        return pre;
+    }
+    /** @brief Next neighbour operator as pre-increment */
+    TPZGeoElSide& operator--(){
+        TPZGeoElSide neigh = *this;
+        while(neigh.Neighbour() != *this) neigh = neigh.Neighbour();
+        *this = neigh;
+        return *this;
+    }
+
     /** @brief The conversion to bool indicates whether the object has an associated element */
     operator bool() const
     {
