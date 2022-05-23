@@ -1418,30 +1418,36 @@ void TPZGmshReader::SetPeriodicElements(
       i_i++;
   }
   
-  //now we want to map periodic ELEMENTS
+  /**
+     now we want to map periodic ELEMENTS
+     IMPORTANT: since we have changed the node ids,
+     now we no longer have index == id
+     */
   for (int idim = 0; idim < max_dimension; idim++) {
-    for (auto [depid, periodic_nodes] : periodic_nodes_by_physical_ids[idim]) {
-      assert(periodic_physical_ids.find(depid) != periodic_physical_ids.end());
-      const auto indepid = periodic_physical_ids[depid];
+    for (auto [depmatid, periodic_nodes] : periodic_nodes_by_physical_ids[idim]) {
+      assert(periodic_physical_ids.find(depmatid) != periodic_physical_ids.end());
+      //material id of independent region
+      const auto indepmatid = periodic_physical_ids[depmatid];
       int count = 0;
       for (auto depel : gmesh->ElementVec()) {
-        if (depel->MaterialId() == depid) {
+        if (depel->MaterialId() == depmatid) {
           const auto nnodes = depel->NNodes();
           const auto dep_type = depel->Type();
+          //mapped node INDICES, not IDENTIFIERS
           std::vector<int64_t> mapped_nodes(nnodes);
           count++;
           for (auto in = 0; in < nnodes; in++) {
-            const auto depnode = depel->Node(in).Id();
+            const auto depnode = depel->NodeIndex(in);
             assert(periodic_nodes.find(depnode) != periodic_nodes.end());
             mapped_nodes[in] = periodic_nodes.at(depnode);
           }
           for (auto indepel : gmesh->ElementVec()) {
             const int indep_type = indepel->Type();
             const bool sametype = indep_type == dep_type;
-            if (indepel->MaterialId() == indepid && sametype) {
+            if (indepel->MaterialId() == indepmatid && sametype) {
               bool samenodes = true;
               for (auto in = 0; in < nnodes; in++) {
-                const auto indepnode = indepel->Node(in).Id();
+                const auto indepnode = indepel->NodeIndex(in);
                 const bool hasnode =
                     std::find(mapped_nodes.begin(), mapped_nodes.end(),
                               indepnode) != mapped_nodes.end();
@@ -1449,6 +1455,14 @@ void TPZGmshReader::SetPeriodicElements(
               }
               if (samenodes) {
                 m_periodic_els[depel->Id()] = indepel->Id();
+                // useful for checking periodicity
+                // for (auto in = 0; in < nnodes; in++) {
+                //     std::cout<<"dep "<<depel->NodeIndex(in)
+                //              <<" indep "<<indepel->NodeIndex(in)
+                //              <<" map(dep) "<<periodic_nodes.at(depel->NodeIndex(in))
+                //              <<std::endl;
+                // }
+                
               }
             }
           }
