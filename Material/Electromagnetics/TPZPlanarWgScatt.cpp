@@ -11,7 +11,7 @@ TPZPlanarWgScatt::TPZPlanarWgScatt() : TBase()
 
 TPZPlanarWgScatt::TPZPlanarWgScatt(int id, const CSTATE er,const CSTATE ur,
                                              const STATE lambda, const ModeType mode,
-                                             const REAL &scale) :
+                                             const REAL scale) :
   TBase(id), fScaleFactor(scale), fMode(mode)
 {
   SetWavelength(lambda);
@@ -90,24 +90,9 @@ void TPZPlanarWgScatt::Contribute(const TPZMaterialDataT<CSTATE> &data,
     cS = 1./ur[2];
     break;
   }
-  ContributeInternal(cGx, cGy, cS, data, weight, ek, ef);
-}
-
-void
-TPZPlanarWgScatt::ContributeInternal(const CSTATE cGradX,
-                                          const CSTATE cGradY,
-                                          const CSTATE cScal,
-                                          const TPZMaterialDataT<CSTATE> &data,
-                                          REAL weight,
-                                          TPZFMatrix<CSTATE> &ek,
-                                          TPZFMatrix<CSTATE> &ef)
-{
   const int nshape = data.phi.Rows();
   const auto &phi = data.phi;
 
-  //antigo
-  // const auto &dphix = data.dphix;
-  //novo
   TPZFNMatrix<3,REAL> dphix(3, phi.Rows(), 0.);
   {
     const TPZFMatrix<REAL> &dphidaxes = data.dphix;
@@ -115,53 +100,26 @@ TPZPlanarWgScatt::ContributeInternal(const CSTATE cGradX,
   }
   
   const STATE k0 = fScaleFactor * 2*M_PI/fLambda;
-  TPZManVector<CSTATE,3> er,ur;
-  GetPermittivity(data.x,er);
-  GetPermeability(data.x,ur);
+  
 	for(int i = 0; i < nshape; i++){
 		for(int j = 0; j < nshape; j++){
       const STATE gradX = dphix.GetVal(0,i) * dphix.GetVal(0,j);
       const STATE gradY = dphix.GetVal(1,i) * dphix.GetVal(1,j);
       const STATE phiIphiJ = phi.GetVal(i,0) * phi.GetVal(j,0);
       CSTATE stiff = 0;
-      stiff += gradX * cGradX + gradY * cGradY;
-      stiff -= k0*k0*cScal*phiIphiJ;
+      stiff += gradX * cGx + gradY * cGy;
+      stiff -= k0*k0*cS*phiIphiJ;
       ek(i, j) += weight * stiff;
 		}//for j
 	}//for i
-
 }
+
 
 void TPZPlanarWgScatt::ContributeBC(const TPZMaterialDataT<CSTATE> &data,
                                          REAL weight,
                                          TPZFMatrix<CSTATE> &ek,
                                          TPZFMatrix<CSTATE> &ef,
                                          TPZBndCondT<CSTATE> &bc)
-{
-  CSTATE cGradX{-1};
-  TPZManVector<CSTATE,3> er,ur;
-  GetPermittivity(data.x,er);
-  GetPermeability(data.x,ur);
-  
-  switch(fMode){
-  case ModeType::TE:
-    cGradX = 1./ur[1];
-    break;
-  case ModeType::TM:
-    cGradX = er[1];
-    break;
-  }
-   ContributeBCInternal(cGradX, data, weight, ek, ef, bc);
-}
-
-
-void
-TPZPlanarWgScatt::ContributeBCInternal(const CSTATE coeffGradX,
-                                            const TPZMaterialDataT<CSTATE> &data,
-                                            REAL weight,
-                                            TPZFMatrix<CSTATE> &ek,
-                                            TPZFMatrix<CSTATE> &ef,
-                                            TPZBndCondT<CSTATE> &bc)
 {
   const auto &phi = data.phi;
   const auto& BIG = TPZMaterial::fBigNumber;
@@ -199,6 +157,7 @@ TPZPlanarWgScatt::ContributeBCInternal(const CSTATE coeffGradX,
       break;
     }
 }
+
 //! Variable index of a given solution
 int TPZPlanarWgScatt::VariableIndex(const std::string &name) const
 {

@@ -12,11 +12,8 @@
 /**
  * @ingroup material
  * @brief This class implements the weak statement for the scattering analysis of planar waveguides using H1 elements.
- * It can either approximate TE or TM modes of a 2D waveguide with a 1D cross-section.
- * Currently, only sources aligned with the y direction of a 2D domain can be used.
- * This source is implemented through a ForcingFunctionBCType. The matrix-type
- * parameter is not used, and the vector-type is expected to contain source-value
- * in the first position and beta-value in the second position.
+ * It can either approximate TE or TM modes of a planar waveguide, periodic or not.
+ * This source is implemented through the material TPZPlanarWgScattSrc.
  * @note Formulation taken from: 
  Yasuhide Tsuji and Masanori Koshiba, "Finite Element Method Using Port Truncation by Perfectly Matched Layer Boundary Conditions for Optical Waveguide Discontinuity Problems," J. Lightwave Technol. 20, 463- (2002) 
 */
@@ -36,9 +33,9 @@ public:
      @note the `scale` param might help with floating point arithmetics on really small domains.
   */
   TPZPlanarWgScatt(int id, const CSTATE er,const CSTATE ur,
-                        const STATE lambda,
-                        const ModeType mode,
-                        const REAL &scale = 1.);
+                   const STATE lambda,
+                   const ModeType mode,
+                   const REAL scale = 1.);
 
   TPZPlanarWgScatt * NewMaterial() const override;
     
@@ -91,15 +88,6 @@ public:
                 int var, TPZVec<CSTATE> &solout) override;
   /**@}*/
 protected:
-  //! Actual Contribute method (both TE/TM)
-  void ContributeInternal(const CSTATE cGradX, const CSTATE cGradY, const CSTATE cScal,
-                          const TPZMaterialDataT<CSTATE> &data, REAL weight,
-                          TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef);
-  //! Actual ContributeBC method (both TE/TM)
-  void ContributeBCInternal(const CSTATE coeffGradX,
-                    const TPZMaterialDataT<CSTATE> &data, REAL weight,
-                    TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
-                    TPZBndCondT<CSTATE> &bc);
   //! Mode type being solved
   ModeType fMode{ModeType::TE};
   //! Relative magnetic permeability
