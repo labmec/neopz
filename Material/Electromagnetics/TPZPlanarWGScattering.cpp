@@ -36,10 +36,12 @@ void TPZPlanarWGScattering::SetWavelength(STATE lambda)
     fLambda = lambda;
 }
 
+void TPZPlanarWGScattering::GetPermeability(
+  [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &ur) const
+{
+  ur = {fUr,fUr,fUr};
+}
 
-TPZVec<CSTATE>
-TPZPlanarWGScattering::GetPermeability([[maybe_unused]] const TPZVec<REAL> &x) const
-{ return {fUr,fUr,fUr};}
 
  void TPZPlanarWGScattering::SetPermeability(const CSTATE ur)
 {
@@ -51,9 +53,11 @@ TPZPlanarWGScattering::GetPermeability([[maybe_unused]] const TPZVec<REAL> &x) c
     fUr = ur;
 }
 
-TPZVec<CSTATE>
-TPZPlanarWGScattering::GetPermittivity([[maybe_unused]] const TPZVec<REAL> &x) const
-{ return {fEr,fEr,fEr};}
+void TPZPlanarWGScattering::GetPermittivity(
+  [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &er) const
+{
+  er = {fEr,fEr,fEr};
+}
 
 void TPZPlanarWGScattering::SetPermittivity(const CSTATE er)
 {
@@ -70,8 +74,9 @@ void TPZPlanarWGScattering::Contribute(const TPZMaterialDataT<CSTATE> &data,
                                        TPZFMatrix<CSTATE> &ek,
                                        TPZFMatrix<CSTATE> &ef)
 {
-  auto er = GetPermittivity(data.x);
-  auto ur = GetPermeability(data.x);
+  TPZManVector<CSTATE,3> er,ur;
+  GetPermittivity(data.x,er);
+  GetPermeability(data.x,ur);
   CSTATE cGx{0}, cGy{0}, cS{0};
   switch(fMode){
   case ModeType::TE:
@@ -110,8 +115,9 @@ TPZPlanarWGScattering::ContributeInternal(const CSTATE cGradX,
   }
   
   const STATE k0 = fScaleFactor * 2*M_PI/fLambda;
-  const auto er = GetPermittivity(data.x);
-  const auto ur = GetPermeability(data.x);
+  TPZManVector<CSTATE,3> er,ur;
+  GetPermittivity(data.x,er);
+  GetPermeability(data.x,ur);
 	for(int i = 0; i < nshape; i++){
 		for(int j = 0; j < nshape; j++){
       const STATE gradX = dphix.GetVal(0,i) * dphix.GetVal(0,j);
@@ -133,12 +139,16 @@ void TPZPlanarWGScattering::ContributeBC(const TPZMaterialDataT<CSTATE> &data,
                                          TPZBndCondT<CSTATE> &bc)
 {
   CSTATE cGradX{-1};
+  TPZManVector<CSTATE,3> er,ur;
+  GetPermittivity(data.x,er);
+  GetPermeability(data.x,ur);
+  
   switch(fMode){
   case ModeType::TE:
-    cGradX = 1./GetPermeability(data.x)[1];
+    cGradX = 1./ur[1];
     break;
   case ModeType::TM:
-    cGradX = GetPermittivity(data.x)[1];
+    cGradX = er[1];
     break;
   }
    ContributeBCInternal(cGradX, data, weight, ek, ef, bc);

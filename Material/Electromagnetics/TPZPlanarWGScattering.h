@@ -60,11 +60,13 @@ public:
   //! Sets the permeability of the material
   void SetPermeability(const CSTATE ur);
   //! Gets the permeability of the material
-  virtual TPZVec<CSTATE> GetPermeability([[maybe_unused]] const TPZVec<REAL> &x) const;
+  virtual void GetPermeability([[maybe_unused]] const TPZVec<REAL> &x,
+                                 TPZVec<CSTATE> &ur) const;
   //! Sets the permittivity of the material
   void SetPermittivity(const CSTATE er);
   //! Gets the permittivity of the material
-  virtual TPZVec<CSTATE> GetPermittivity([[maybe_unused]] const TPZVec<REAL> &x) const;
+  virtual void GetPermittivity([[maybe_unused]] const TPZVec<REAL> &x,
+                                 TPZVec<CSTATE> &er) const;
   /**@}*/
   /**
      @name ContributeMethods
