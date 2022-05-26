@@ -104,7 +104,16 @@ public:
     /**
        @name SolutionMethods
        @{*/
-    //! Variable index of a given solution
+    /** @brief Variable index of a given solution.
+        Possibilities are:
+        -Et_real
+        -Ez_real
+        -Et_abs
+        -Ez_abs
+        -Material
+        -P_H1
+        -P_HCurl
+    */
     int VariableIndex(const std::string &name) const override;
     //! Number of variables associated with a given solution
     int NSolutionVariables(int var) const override;
@@ -117,14 +126,6 @@ public:
     //! Set the propagation constant used for post processing the solution
     inline void SetKz(const CSTATE &kz)
     { fKz = kz;}
-    /** @brief Whether to print only the real part of the electromagnetic field.
-     If false, it prints the magnitude of the field.*/
-    [[nodiscard]] inline bool ShouldPrintFieldRealPart() const
-    { return fPrintFieldRealPart;}
-    /** @brief Set to print only the real part of the electromagnetic field.
-     If set to false, it prints the magnitude of the field*/
-    void SetPrintFieldRealPart(bool printFieldRealPart)
-    { fPrintFieldRealPart = printFieldRealPart;}
     /**@}*/
 
     /** @name GeneralisedMethods */
@@ -156,8 +157,6 @@ protected:
     STATE fLambda{1.55e-9};
     //! Scale factor for the domain (helps with floating point arithmetic on small domains)
     const REAL fScaleFactor{1.};
-    //! Alternates between printing the real part of magnitude of the field
-    bool fPrintFieldRealPart{true};
     //!Fixes a propagation constant for printing the solution
     CSTATE fKz{1};
     static constexpr int fH1MeshIndex{1};

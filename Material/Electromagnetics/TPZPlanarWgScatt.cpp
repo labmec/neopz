@@ -202,8 +202,12 @@ TPZPlanarWgScatt::ContributeBCInternal(const CSTATE coeffGradX,
 //! Variable index of a given solution
 int TPZPlanarWgScatt::VariableIndex(const std::string &name) const
 {
-  if( strcmp(name.c_str(), "Field_re") == 0) return 0;
-  if( strcmp(name.c_str(), "Field_abs") == 0) return 1;
+  if( strcmp(name.c_str(), "Field_real") == 0) return 0;
+  if( strcmp(name.c_str(), "Field_imag") == 0) return 1;
+  if( strcmp(name.c_str(), "Field_abs") == 0) return 2;
+  if( strcmp(name.c_str(), "Deriv_real") == 0) return 3;
+  if( strcmp(name.c_str(), "Deriv_imag") == 0) return 4;
+  if( strcmp(name.c_str(), "Deriv_abs") == 0) return 5;
   return TPZMaterial::VariableIndex(name);
 }
 //! Number of variables associated with a given solution
@@ -211,9 +215,13 @@ int TPZPlanarWgScatt::NSolutionVariables(int var) const
 {
   switch(var){
   case 0: //field (real part)
+  case 1: //field (imag val)
+  case 2: //field (abs val)
     return 1;
-  case 1: //field (abs val)
-    return 1;
+  case 3://deriv (real part)
+  case 4://deriv (imag val)
+  case 5://deriv (abs val)
+    return 2;
   default:
     return TPZMaterial::NSolutionVariables(var);
   }
@@ -222,16 +230,36 @@ int TPZPlanarWgScatt::NSolutionVariables(int var) const
 void TPZPlanarWgScatt::Solution(const TPZMaterialDataT<CSTATE> &data,
               int var, TPZVec<CSTATE> &solout)
 {
-  switch(var){
+  TPZFNMatrix<3, CSTATE> dsolx(3, 1, 0.);
+  {
+    const TPZFMatrix<CSTATE> &dsoldaxes = data.dsol[0];
+    TPZAxesTools<CSTATE>::Axes2XYZ(dsoldaxes, dsolx, data.axes);
+  }
+  switch (var) {
   case 0:
     solout[0] = std::real(data.sol[0][0]);
     break;
   case 1:
+    solout[0] = std::imag(data.sol[0][0]);
+    break;
+  case 2:
     solout[0] = std::abs(data.sol[0][0]);
     break;
+  case 3:
+    solout[0] = std::real(dsolx.GetVal(0,0));
+    solout[1] = std::real(dsolx.GetVal(1,0));
+    break;
+  case 4:
+    solout[0] = std::imag(dsolx.GetVal(0,0));
+    solout[1] = std::imag(dsolx.GetVal(1,0));
+    break;
+  case 5:
+    solout[0] = std::abs(dsolx.GetVal(0,0));
+    solout[1] = std::abs(dsolx.GetVal(1,0));
+    break;
   default:
-    TBase::Solution(data,var,solout);
-  } 
+    TBase::Solution(data, var, solout);
+  }
 }
 
 #include "TPZMatPML.h"

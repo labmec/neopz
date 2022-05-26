@@ -368,11 +368,13 @@ void TPZWgma::ContributeBCB(
 
 int TPZWgma::VariableIndex(const std::string &name) const
 {
-    if( strcmp(name.c_str(), "Et") == 0) return 0;
-    if( strcmp(name.c_str(), "Ez") == 0) return 1;
-    if( strcmp(name.c_str(), "Material") == 0) return 2;
-    if( strcmp(name.c_str(), "POrderH1") == 0) return 3;
-    if( strcmp(name.c_str(), "POrderHCurl") == 0) return 4;
+    if( strcmp(name.c_str(), "Et_real") == 0) return 0;
+    if( strcmp(name.c_str(), "Ez_real") == 0) return 1;
+    if( strcmp(name.c_str(), "Et_abs") == 0) return 2;
+    if( strcmp(name.c_str(), "Ez_abs") == 0) return 3;
+    if( strcmp(name.c_str(), "Material") == 0) return 4;
+    if( strcmp(name.c_str(), "P_H1") == 0) return 5;
+    if( strcmp(name.c_str(), "P_HCurl") == 0) return 6;
     DebugStop();
     return 1;
 }
@@ -380,16 +382,19 @@ int TPZWgma::VariableIndex(const std::string &name) const
 int TPZWgma::NSolutionVariables(int var) const
 {
     switch (var) {
-        case 0: //Et
+        case 0: //Et_real
             return 2;
-            break;
-        case 1://Ez
+        case 1://Ez_real
             return 1;
-        case 2://material
+        case 2: //Et_abs
             return 2;
-        case 3://pOrderH1
+        case 3://Ez_abs
             return 1;
-        case 4://pOrderHCurl
+        case 4://material
+            return 2;
+        case 5://pOrderH1
+            return 1;
+        case 6://pOrderHCurl
             return 1;
         default:
             DebugStop();
@@ -422,41 +427,56 @@ void TPZWgma::Solution(
     ez = datavec[ fH1MeshIndex ].sol[0];
 
     switch (var) {
-        case 0:{//et
-            for (int i = 0; i < et.size(); ++i) {
-                et[i] /= fKz;
-                et[i] = fPrintFieldRealPart ? std::real(et[i]) : std::abs(et[i]);
-            }
-            solout = et;
-            break;
+    case 0:{//et_real
+        for (int i = 0; i < et.size(); ++i) {
+            et[i] /= fKz;
+            et[i] = std::real(et[i]);
         }
-        case 1:{//ez
-            for (int i = 0; i < ez.size(); ++i) {
-                ez[i] *= 1.0i;
-                ez[i] = fPrintFieldRealPart ? std::real(ez[i]) : std::abs(ez[i]);
-            }
-            solout = ez;
-            break;
+        solout = et;
+        break;
+    }
+    case 1:{//ez_real
+        for (int i = 0; i < ez.size(); ++i) {
+            ez[i] *= 1.0i;
+            ez[i] = std::real(ez[i]);
         }
-
-        case 2:{//material
-            solout[0] = exx;
-            solout[1] = eyy;
-            break;
+        solout = ez;
+        break;
+    }
+    case 2:{//et_abs
+        for (int i = 0; i < et.size(); ++i) {
+            et[i] /= fKz;
+            et[i] = std::abs(et[i]);
         }
-        case 3:{//pOrder
-            solout.Resize(1);
-            solout[0] = datavec[fH1MeshIndex].p;
-            break;
+        solout = et;
+        break;
+    }
+    case 3:{//ez_abs
+        for (int i = 0; i < ez.size(); ++i) {
+            ez[i] *= 1.0i;
+            ez[i] = std::abs(ez[i]);
         }
-        case 4:{//pOrder
-            solout.Resize(1);
-            solout[0] = datavec[fHCurlMeshIndex].p;
-            break;
-        }
-        default:
-            DebugStop();
-            break;
+        solout = ez;
+        break;
+    }
+    case 4:{//material
+        solout[0] = exx;
+        solout[1] = eyy;
+        break;
+    }
+    case 5:{//pOrder
+        solout.Resize(1);
+        solout[0] = datavec[fH1MeshIndex].p;
+        break;
+    }
+    case 6:{//pOrder
+        solout.Resize(1);
+        solout[0] = datavec[fHCurlMeshIndex].p;
+        break;
+    }
+    default:
+        DebugStop();
+        break;
     }
 }
 #include "TPZMatPML.h"
