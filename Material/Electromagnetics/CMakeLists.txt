@@ -1,21 +1,21 @@
 # @file neopz/Material/Poisson/CMakeLists.txt
 
 set(public_headers
-    TPZWaveguideModalAnalysis.h
-    TPZPlanarWGScattering.h
+    TPZWgma.h
+    TPZPlanarWgScatt.h
     TPZMatPML.h
     TPZMatPML_impl.h
     )
 
 set(headers
-    TPZWaveguideModalAnalysis.h
-    TPZPlanarWGScattering.h
+    TPZWgma.h
+    TPZPlanarWgScatt.h
     TPZMatPML.h
     TPZMatPML_impl.h
    )
 set(sources
-    TPZWaveguideModalAnalysis.cpp
-    TPZPlanarWGScattering.cpp
+    TPZWgma.cpp
+    TPZPlanarWgScatt.cpp
    )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/Electromagnetics)

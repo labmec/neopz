@@ -1,15 +1,15 @@
-#include "TPZPlanarWGScattering.h"
+#include "TPZPlanarWgScatt.h"
 #include "TPZMaterialDataT.h"
 #include <pzaxestools.h>
 using namespace std::complex_literals;
 
 
-TPZPlanarWGScattering::TPZPlanarWGScattering() : TBase()
+TPZPlanarWgScatt::TPZPlanarWgScatt() : TBase()
 {
   
 }
 
-TPZPlanarWGScattering::TPZPlanarWGScattering(int id, const CSTATE er,const CSTATE ur,
+TPZPlanarWgScatt::TPZPlanarWgScatt(int id, const CSTATE er,const CSTATE ur,
                                              const STATE lambda, const ModeType mode,
                                              const REAL &scale) :
   TBase(id), fScaleFactor(scale), fMode(mode)
@@ -21,12 +21,12 @@ TPZPlanarWGScattering::TPZPlanarWGScattering(int id, const CSTATE er,const CSTAT
 
   
 
-TPZPlanarWGScattering * TPZPlanarWGScattering::NewMaterial() const
+TPZPlanarWgScatt * TPZPlanarWgScatt::NewMaterial() const
 {
-  return new TPZPlanarWGScattering(*this);
+  return new TPZPlanarWgScatt(*this);
 }
 
-void TPZPlanarWGScattering::SetWavelength(STATE lambda)
+void TPZPlanarWgScatt::SetWavelength(STATE lambda)
 {
     if (lambda <0){
         PZError<<__PRETTY_FUNCTION__;
@@ -36,14 +36,14 @@ void TPZPlanarWGScattering::SetWavelength(STATE lambda)
     fLambda = lambda;
 }
 
-void TPZPlanarWGScattering::GetPermeability(
+void TPZPlanarWgScatt::GetPermeability(
   [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &ur) const
 {
   ur = {fUr,fUr,fUr};
 }
 
 
- void TPZPlanarWGScattering::SetPermeability(const CSTATE ur)
+ void TPZPlanarWgScatt::SetPermeability(const CSTATE ur)
 {
     if (std::real(ur) <0){
         PZError<<__PRETTY_FUNCTION__;
@@ -53,13 +53,13 @@ void TPZPlanarWGScattering::GetPermeability(
     fUr = ur;
 }
 
-void TPZPlanarWGScattering::GetPermittivity(
+void TPZPlanarWgScatt::GetPermittivity(
   [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &er) const
 {
   er = {fEr,fEr,fEr};
 }
 
-void TPZPlanarWGScattering::SetPermittivity(const CSTATE er)
+void TPZPlanarWgScatt::SetPermittivity(const CSTATE er)
 {
     if (std::real(er) <0){
         PZError<<__PRETTY_FUNCTION__;
@@ -69,7 +69,7 @@ void TPZPlanarWGScattering::SetPermittivity(const CSTATE er)
     fEr = er;
 }
 
-void TPZPlanarWGScattering::Contribute(const TPZMaterialDataT<CSTATE> &data,
+void TPZPlanarWgScatt::Contribute(const TPZMaterialDataT<CSTATE> &data,
                                        REAL weight,
                                        TPZFMatrix<CSTATE> &ek,
                                        TPZFMatrix<CSTATE> &ef)
@@ -94,7 +94,7 @@ void TPZPlanarWGScattering::Contribute(const TPZMaterialDataT<CSTATE> &data,
 }
 
 void
-TPZPlanarWGScattering::ContributeInternal(const CSTATE cGradX,
+TPZPlanarWgScatt::ContributeInternal(const CSTATE cGradX,
                                           const CSTATE cGradY,
                                           const CSTATE cScal,
                                           const TPZMaterialDataT<CSTATE> &data,
@@ -132,7 +132,7 @@ TPZPlanarWGScattering::ContributeInternal(const CSTATE cGradX,
 
 }
 
-void TPZPlanarWGScattering::ContributeBC(const TPZMaterialDataT<CSTATE> &data,
+void TPZPlanarWgScatt::ContributeBC(const TPZMaterialDataT<CSTATE> &data,
                                          REAL weight,
                                          TPZFMatrix<CSTATE> &ek,
                                          TPZFMatrix<CSTATE> &ef,
@@ -156,7 +156,7 @@ void TPZPlanarWGScattering::ContributeBC(const TPZMaterialDataT<CSTATE> &data,
 
 
 void
-TPZPlanarWGScattering::ContributeBCInternal(const CSTATE coeffGradX,
+TPZPlanarWgScatt::ContributeBCInternal(const CSTATE coeffGradX,
                                             const TPZMaterialDataT<CSTATE> &data,
                                             REAL weight,
                                             TPZFMatrix<CSTATE> &ek,
@@ -200,14 +200,14 @@ TPZPlanarWGScattering::ContributeBCInternal(const CSTATE coeffGradX,
     }
 }
 //! Variable index of a given solution
-int TPZPlanarWGScattering::VariableIndex(const std::string &name) const
+int TPZPlanarWgScatt::VariableIndex(const std::string &name) const
 {
   if( strcmp(name.c_str(), "Field_re") == 0) return 0;
   if( strcmp(name.c_str(), "Field_abs") == 0) return 1;
   return TPZMaterial::VariableIndex(name);
 }
 //! Number of variables associated with a given solution
-int TPZPlanarWGScattering::NSolutionVariables(int var) const
+int TPZPlanarWgScatt::NSolutionVariables(int var) const
 {
   switch(var){
   case 0: //field (real part)
@@ -219,7 +219,7 @@ int TPZPlanarWGScattering::NSolutionVariables(int var) const
   }
 }
 //! Computes the solution at an integration point
-void TPZPlanarWGScattering::Solution(const TPZMaterialDataT<CSTATE> &data,
+void TPZPlanarWgScatt::Solution(const TPZMaterialDataT<CSTATE> &data,
               int var, TPZVec<CSTATE> &solout)
 {
   switch(var){
@@ -235,4 +235,4 @@ void TPZPlanarWGScattering::Solution(const TPZMaterialDataT<CSTATE> &data,
 }
 
 #include "TPZMatPML.h"
-template class TPZSingleSpacePML<TPZPlanarWGScattering>;
+template class TPZSingleSpacePML<TPZPlanarWgScatt>;

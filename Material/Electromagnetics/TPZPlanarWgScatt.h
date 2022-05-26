@@ -1,6 +1,6 @@
 /**
- * @file TPZPlanarWGScattering.h
- * @brief Header file for class TPZPlanarWGScattering.\n
+ * @file TPZPlanarWgScatt.h
+ * @brief Header file for class TPZPlanarWgScatt.\n
  */
 
 #ifndef TPZPLANARSCATTERING_H
@@ -20,7 +20,7 @@
  * @note Formulation taken from: 
  Yasuhide Tsuji and Masanori Koshiba, "Finite Element Method Using Port Truncation by Perfectly Matched Layer Boundary Conditions for Optical Waveguide Discontinuity Problems," J. Lightwave Technol. 20, 463- (2002) 
 */
-class  TPZPlanarWGScattering :
+class  TPZPlanarWgScatt :
   public TPZMatBase<CSTATE,TPZMatSingleSpaceT<CSTATE>>
 {
   using TBase = TPZMatBase<CSTATE,TPZMatSingleSpaceT<CSTATE>>;
@@ -35,14 +35,14 @@ public:
      @param[in] scale Scale for geometric domain.
      @note the `scale` param might help with floating point arithmetics on really small domains.
   */
-  TPZPlanarWGScattering(int id, const CSTATE er,const CSTATE ur,
+  TPZPlanarWgScatt(int id, const CSTATE er,const CSTATE ur,
                         const STATE lambda,
                         const ModeType mode,
                         const REAL &scale = 1.);
 
-  TPZPlanarWGScattering * NewMaterial() const override;
+  TPZPlanarWgScatt * NewMaterial() const override;
     
-  std::string Name() const override { return "TPZPlanarWGScattering"; }
+  std::string Name() const override { return "TPZPlanarWgScatt"; }
   
   /** @brief Returns the integrable dimension of the material */
   int Dimension() const override {return 2;}
@@ -111,7 +111,7 @@ protected:
   //! Scale factor for the domain (helps with floating point arithmetic on small domains)
   const REAL fScaleFactor{1.};
 
-  TPZPlanarWGScattering();
+  TPZPlanarWgScatt();
 };
 
 #endif

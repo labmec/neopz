@@ -1,7 +1,7 @@
 /**
 
- * @file TPZWaveguideModalAnalysis.h
- * @brief Header file for class TPZWaveguideModalAnalysis.\n
+ * @file TPZWgma.h
+ * @brief Header file for class TPZWgma.\n
  */
 
 #ifndef TPZWAVEGUIDEMODALANALYSIS_H
@@ -17,7 +17,7 @@
  * It uses a 2D Hcurl space for the transversal components of the electric field and an 1D H1 space for the longitudinal component.
  * @note Formulation taken from: LEE, J.-F.; SUN, D.-K.; CENDES, Z.J. Full-wave analysis of dielectric waveguides using tangential vector finite elements.IEEE Transactions on Microwave Theory and Techniques, Institute of Electrical and Electronics Engineers (IEEE), v. 39, n. 8,p. 1262–1271, 1991
  */
-class  TPZWaveguideModalAnalysis :
+class  TPZWgma :
     public TPZMatBase<CSTATE,
                       TPZMatCombinedSpacesT<CSTATE>,
                       TPZMatGeneralisedEigenVal>
@@ -35,7 +35,7 @@ public:
        @param[in] scale Scale for geometric domain.
        @note the `scale` param might help with floating point arithmetics on really small domains.
     */
-    TPZWaveguideModalAnalysis(int id, const CSTATE er,
+    TPZWgma(int id, const CSTATE er,
                               const CSTATE ur, const STATE lambda,
                               const REAL &scale = 1.);
     /**
@@ -46,16 +46,16 @@ public:
        @param[in] scale Scale for geometric domain.
        @note the `scale` param might help with floating point arithmetics on really small domains.
     */
-    TPZWaveguideModalAnalysis(int id,
+    TPZWgma(int id,
                               const TPZVec<CSTATE> & er,
                               const TPZVec<CSTATE> & ur,
                               STATE lambda,
                               const REAL &scale = 1.);
-    explicit TPZWaveguideModalAnalysis(int id);
+    explicit TPZWgma(int id);
 
-    TPZWaveguideModalAnalysis * NewMaterial() const override;
+    TPZWgma * NewMaterial() const override;
     
-    std::string Name() const override { return "TPZWaveguideModalAnalysis"; }
+    std::string Name() const override { return "TPZWgma"; }
     
     /** @brief Returns the integrable dimension of the material */
     int Dimension() const override {return 2;}
@@ -170,7 +170,7 @@ protected:
     //! Pointer to the current ContributeBC function
     TContributeBCType fCurrentContributeBC{nullptr};
     /** @} */
-    TPZWaveguideModalAnalysis();
+    TPZWgma();//< Default constructor
 
     /** @name InternalContributeMethods */
     /** @{*/
