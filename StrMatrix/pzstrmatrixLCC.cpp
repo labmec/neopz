@@ -21,9 +21,13 @@
 #include "pzgnode.h"
 #include "TPZTimer.h"
 
+#ifdef USING_MKL
+#include "mkl.h"
+#endif
+
 #ifdef USING_TBB
 #include <tbb/parallel_for.h>
-//#include <tbb/task_scheduler_init.h>
+
 #include <tbb/info.h>
 #include <tbb/task_arena.h>
 #include <tbb/global_control.h>
@@ -181,43 +185,44 @@ void TPZStructMatrixLCC::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiI
 
 void TPZStructMatrixLCC::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface ){
     int64_t nelem = fMesh->NElements();
+    mkl_set_num_threads_local(1);  
+    std::cout << "LCC_Serial_Assemble\n";          
+    for (int64_t iel = 0; iel < nelem; iel++)
+    {
+        TPZCompEl *el = fMesh->Element(iel);
+        if (!el) continue;
+        
+        TPZElementMatrix ek(fMesh, TPZElementMatrix::EK), ef(fMesh, TPZElementMatrix::EF);
+        
+        el->CalcStiff(ek, ef);
                     
-        for (int64_t iel = 0; iel < nelem; iel++)
-        {
-            TPZCompEl *el = fMesh->Element(iel);
-            if (!el) continue;
+        if(!el->HasDependency()) {
+            ek.ComputeDestinationIndices();
+            fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
+            //            TPZSFMatrix<STATE> test(stiffness);
+            //            TPZFMatrix<STATE> test2(stiffness.Rows(),stiffness.Cols(),0.);
+            //            stiffness.Print("before assembly",std::cout,EMathematicaInput);
+            stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            //            stiffness.Print("stiffness after assembly STK = ",std::cout,EMathematicaInput);
+            //            rhs.Print("rhs after assembly Rhs = ",std::cout,EMathematicaInput);
+            //            test2.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            //            test -= stiffness;
+            //            test.Print("matriz de rigidez diference",std::cout);
+            //            test2.Print("matriz de rigidez interface",std::cout);
             
-            TPZElementMatrix ek(fMesh, TPZElementMatrix::EK), ef(fMesh, TPZElementMatrix::EF);
-            
-            el->CalcStiff(ek, ef);
-                        
-            if(!el->HasDependency()) {
-                ek.ComputeDestinationIndices();
-                fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
-                //            TPZSFMatrix<STATE> test(stiffness);
-                //            TPZFMatrix<STATE> test2(stiffness.Rows(),stiffness.Cols(),0.);
-                //            stiffness.Print("before assembly",std::cout,EMathematicaInput);
-                stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                //            stiffness.Print("stiffness after assembly STK = ",std::cout,EMathematicaInput);
-                //            rhs.Print("rhs after assembly Rhs = ",std::cout,EMathematicaInput);
-                //            test2.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                //            test -= stiffness;
-                //            test.Print("matriz de rigidez diference",std::cout);
-                //            test2.Print("matriz de rigidez interface",std::cout);
-                
-    
-            } else {
-                // the element has dependent nodes
-                ek.ApplyConstraints();
-                ef.ApplyConstraints();
-                ek.ComputeDestinationIndices();
-                fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
-                stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-                rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-    
-            }
+
+        } else {
+            // the element has dependent nodes
+            ek.ApplyConstraints();
+            ef.ApplyConstraints();
+            ek.ComputeDestinationIndices();
+            fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
+            stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+            rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+
         }
+    }
 #ifdef PZDEBUG
     VerifyStiffnessSum(stiffness);
 #endif
@@ -272,7 +277,7 @@ int TPZStructMatrixLCC::GetNumberColors(){
 }
 
 void TPZStructMatrixLCC::MultiThread_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
-    
+    mkl_set_num_threads(1);
     if (fShouldColor){
         if (fUsingTBB){
             AssemblingUsingTBBandColoring(stiffness,rhs);
