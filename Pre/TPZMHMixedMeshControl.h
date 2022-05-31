@@ -80,7 +80,7 @@ public:
         fHDivFamily = fam;
     }
     
-    HDivFamily HDivFamily() const
+    HDivFamily HdivFamily() const
     {
         return fHDivFamily;
     }
