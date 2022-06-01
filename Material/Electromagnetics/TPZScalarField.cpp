@@ -107,9 +107,11 @@ int TPZScalarField::VariableIndex(const std::string &name) const
   if( strcmp(name.c_str(), "Field_real") == 0) return 0;
   if( strcmp(name.c_str(), "Field_imag") == 0) return 1;
   if( strcmp(name.c_str(), "Field_abs") == 0) return 2;
-  if( strcmp(name.c_str(), "Deriv_real") == 0) return 3;
-  if( strcmp(name.c_str(), "Deriv_imag") == 0) return 4;
-  if( strcmp(name.c_str(), "Deriv_abs") == 0) return 5;
+  if( strcmp(name.c_str(), "Field_phase") == 0) return 3;
+  if( strcmp(name.c_str(), "Deriv_real") == 0) return 4;
+  if( strcmp(name.c_str(), "Deriv_imag") == 0) return 5;
+  if( strcmp(name.c_str(), "Deriv_abs") == 0) return 6;
+  if( strcmp(name.c_str(), "Deriv_phase") == 0) return 7;
   return TPZMaterial::VariableIndex(name);
 }
 //! Number of variables associated with a given solution
@@ -119,10 +121,12 @@ int TPZScalarField::NSolutionVariables(int var) const
   case 0: //field (real part)
   case 1: //field (imag val)
   case 2: //field (abs val)
+  case 3: //field (phase)
     return 1;
-  case 3://deriv (real part)
-  case 4://deriv (imag val)
-  case 5://deriv (abs val)
+  case 4://deriv (real part)
+  case 5://deriv (imag val)
+  case 6://deriv (abs val)
+  case 7://deriv (phase)
     return 2;
   default:
     return TPZMaterial::NSolutionVariables(var);
@@ -148,16 +152,23 @@ void TPZScalarField::Solution(const TPZMaterialDataT<CSTATE> &data,
     solout[0] = std::abs(data.sol[0][0]);
     break;
   case 3:
+    solout[0] = std::arg(data.sol[0][0]);
+    break;
+  case 4:
     solout[0] = std::real(dsolx.GetVal(0,0));
     solout[1] = std::real(dsolx.GetVal(1,0));
     break;
-  case 4:
+  case 5:
     solout[0] = std::imag(dsolx.GetVal(0,0));
     solout[1] = std::imag(dsolx.GetVal(1,0));
     break;
-  case 5:
+  case 6:
     solout[0] = std::abs(dsolx.GetVal(0,0));
     solout[1] = std::abs(dsolx.GetVal(1,0));
+    break;
+  case 7:
+    solout[0] = std::arg(dsolx.GetVal(0,0));
+    solout[1] = std::arg(dsolx.GetVal(1,0));
     break;
   default:
     TBase::Solution(data, var, solout);
