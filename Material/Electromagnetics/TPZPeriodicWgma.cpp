@@ -4,56 +4,8 @@
 #include <pzaxestools.h>
 using namespace std::complex_literals;
 
-TPZPeriodicWgma::TPZPeriodicWgma() : TBase() {}
-
-TPZPeriodicWgma::TPZPeriodicWgma(
-    int id, int dim, const CSTATE er, const CSTATE ur, const STATE lambda,
-    const ModeType mode, const REAL &scale)
-  : TBase(id), fScaleFactor(scale), fMode(mode), fDim(dim) {
-  SetWavelength(lambda);
-  SetPermittivity(er);
-  SetPermeability(ur);
-}
-
 TPZPeriodicWgma *TPZPeriodicWgma::NewMaterial() const {
   return new TPZPeriodicWgma(*this);
-}
-
-void TPZPeriodicWgma::SetWavelength(STATE lambda) {
-  if (lambda < 0) {
-    PZError << __PRETTY_FUNCTION__;
-    PZError << "Setting negative wavelength. Aborting..\n";
-    DebugStop();
-  }
-  fLambda = lambda;
-}
-
-void TPZPeriodicWgma::GetPermeability(
-  [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &ur) const {
-  ur = {fUr, fUr, fUr};
-}
-
-void TPZPeriodicWgma::SetPermeability(const CSTATE ur) {
-  if (std::real(ur) < 0) {
-    PZError << __PRETTY_FUNCTION__;
-    PZError << "Setting negative permeability. Aborting..\n";
-    DebugStop();
-  }
-  fUr = ur;
-}
-
-void TPZPeriodicWgma::GetPermittivity(
-  [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE>&er) const {
-  er = {fEr, fEr, fEr};
-}
-
-void TPZPeriodicWgma::SetPermittivity(const CSTATE er) {
-  if (std::real(er) < 0) {
-    PZError << __PRETTY_FUNCTION__;
-    PZError << "Setting negative permeability. Aborting..\n";
-    DebugStop();
-  }
-  fEr = er;
 }
 
 void TPZPeriodicWgma::Contribute(const TPZMaterialDataT<CSTATE> &data,
@@ -198,63 +150,21 @@ void TPZPeriodicWgma::ContributeBCInternalA(
     break;
   }
 }
-//! Variable index of a given solution
-int TPZPeriodicWgma::VariableIndex(const std::string &name) const {
-  if( strcmp(name.c_str(), "Field_real") == 0) return 0;
-  if( strcmp(name.c_str(), "Field_imag") == 0) return 1;
-  if( strcmp(name.c_str(), "Field_abs") == 0) return 2;
-  if( strcmp(name.c_str(), "Deriv_real") == 0) return 3;
-  if( strcmp(name.c_str(), "Deriv_imag") == 0) return 4;
-  if( strcmp(name.c_str(), "Deriv_abs") == 0) return 5;
-  return TPZMaterial::VariableIndex(name);
+
+int TPZPeriodicWgma::ClassId() const
+{
+  return Hash("TPZPeriodicWgma") ^
+    TPZPeriodicWgma::ClassId() << 1;
 }
-//! Number of variables associated with a given solution
-int TPZPeriodicWgma::NSolutionVariables(int var) const {
-  switch(var){
-  case 0: //field (real part)
-  case 1: //field (imag val)
-  case 2: //field (abs val)
-    return 1;
-  case 3://deriv (real part)
-  case 4://deriv (imag val)
-  case 5://deriv (abs val)
-    return 2;
-  default:
-    return TPZMaterial::NSolutionVariables(var);
-  }
+
+void TPZPeriodicWgma::Read(TPZStream& buf, void* context)
+{
+  TPZScalarField::Read(buf,context);
+  buf.Read(&fBeta);
 }
-//! Computes the solution at an integration point
-void TPZPeriodicWgma::Solution(const TPZMaterialDataT<CSTATE> &data,
-                                        int var, TPZVec<CSTATE> &solout) {
-  
-  TPZFNMatrix<3, CSTATE> dsolx(3, 1, 0.);
-  {
-    const TPZFMatrix<CSTATE> &dsoldaxes = data.dsol[0];
-    TPZAxesTools<CSTATE>::Axes2XYZ(dsoldaxes, dsolx, data.axes);
-  }
-  switch (var) {
-  case 0:
-    solout[0] = std::real(data.sol[0][0]);
-    break;
-  case 1:
-    solout[0] = std::imag(data.sol[0][0]);
-    break;
-  case 2:
-    solout[0] = std::abs(data.sol[0][0]);
-    break;
-  case 3:
-    solout[0] = std::real(dsolx.GetVal(0,0));
-    solout[1] = std::real(dsolx.GetVal(1,0));
-    break;
-  case 4:
-    solout[0] = std::imag(dsolx.GetVal(0,0));
-    solout[1] = std::imag(dsolx.GetVal(1,0));
-    break;
-  case 5:
-    solout[0] = std::abs(dsolx.GetVal(0,0));
-    solout[1] = std::abs(dsolx.GetVal(1,0));
-    break;
-  default:
-    TBase::Solution(data, var, solout);
-  }
+
+void TPZPeriodicWgma::Write(TPZStream& buf, int withclassid) const
+{
+  TPZScalarField::Write(buf,withclassid);
+  buf.Write(&fBeta);
 }
