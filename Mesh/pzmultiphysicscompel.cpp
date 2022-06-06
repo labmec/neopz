@@ -1190,7 +1190,8 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool
   }
     if(matErrorBC) return;
   const int NErrors = matError->NEvalErrors();
-  errors.Resize(NErrors);
+    if(NErrors != errors.size()) DebugStop();
+//  errors.Resize(NErrors);
   errors.Fill(0.);
 
   // Return if BC

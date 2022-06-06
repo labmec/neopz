@@ -1509,8 +1509,9 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
         
         cel->EvaluateError(true_error, store_error);
 
+        if(true_error.size() != errorSum.size()) DebugStop();
         int64_t nerrors = true_error.NElements();
-        errorSum.Resize(nerrors, 0.);
+//        errorSum.Resize(nerrors, 0.);
         for (int64_t ii = 0; ii < nerrors; ii++)
             errorSum[ii] += true_error[ii] * true_error[ii];
 
