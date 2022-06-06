@@ -164,6 +164,7 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
     InsertPeriferalMaterialObjects();
     CreateFluxMesh();
     
+    
 #ifdef PZDEBUG
     if (fFluxMesh->Dimension() != fGMesh->Dimension()) {
         DebugStop();
@@ -186,6 +187,8 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
     InitializeLagrangeLevels();
     
     CreateHDivPressureMHMMesh();
+    
+    
     std::cout << "Total number of equations " << fCMesh->Solution().Rows() << std::endl;
     fGlobalSystemWithLocalCondensationSize = fCMesh->NEquations();
     fGlobalSystemSize = fCMesh->Solution().Rows();
@@ -901,8 +904,8 @@ void TPZMHMixedMeshControl::CreateFluxElements() {
                     std::inserter(matids, matids.begin()));
     matids.insert(fSkeletonMatId);
     cmeshHDiv->AutoBuild(matids);
+    fConnectToSubDomainIdentifier[cmeshHDiv].Resize(cmeshHDiv->NConnects(), -1);
     //Criar elementos computacionais malha MHM
-    
     TPZGeoEl *gel = NULL;
     TPZGeoEl *gsubel = NULL;
     int64_t nel = cmeshHDiv->NElements();
@@ -1086,7 +1089,8 @@ void TPZMHMixedMeshControl::GroupandCondenseElements()
         }
 #endif
         TPZAutoPointer<TPZGuiInterface> guiInterface;
-        subcmesh->SetAnalysisSkyline(numthreads, preconditioned, guiInterface);
+        subcmesh->SetAnalysisFStruct(numthreads);
+//        subcmesh->SetAnalysisSkyline(numthreads, preconditioned, guiInterface);
     }
     
 }
