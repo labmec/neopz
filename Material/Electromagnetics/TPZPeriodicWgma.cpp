@@ -22,9 +22,9 @@ void TPZPeriodicWgma::Contribute(const TPZMaterialDataT<CSTATE> &data,
     cS = er[2];
     break;
   case ModeType::TM:
-    cGx = er[1];
-    cGy = er[0];
-    cS = 1. / ur[2];
+    cGx = 1. / er[1];
+    cGy = 1. / er[0];
+    cS =  ur[2];
     break;
   }
   switch(this->fAssembling){
@@ -96,7 +96,7 @@ void TPZPeriodicWgma::ContributeBC(
     cGradX = 1. / ur[1];
     break;
   case ModeType::TM:
-    cGradX = er[1];
+    cGradX = 1. / er[1];
     break;
   }
   switch(this->fAssembling){
