@@ -63,7 +63,7 @@ void TPZPlanarWgScattSrc::Contribute(
     cGx = 1./ur[1];
     break;
   case ModeType::TM:
-    cGx = er[1];
+    cGx = 1./er[1];
     break;
   }
 
