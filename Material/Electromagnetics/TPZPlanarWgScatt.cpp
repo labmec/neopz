@@ -24,9 +24,9 @@ void TPZPlanarWgScatt::Contribute(const TPZMaterialDataT<CSTATE> &data,
     cS = er[2];
     break;
   case ModeType::TM:
-    cGx = er[1];
-    cGy = er[0];
-    cS = 1./ur[2];
+    cGx = 1./er[1];
+    cGy = 1./er[0];
+    cS = ur[2];
     break;
   }
   const int nshape = data.phi.Rows();
