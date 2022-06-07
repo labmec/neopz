@@ -223,14 +223,14 @@ void TPZEigenAnalysis::SolveT()
     const auto nReducedEq = fStructMatrix->NReducedEquations();
     const bool isReduced = nReducedEq == nEq ? false : true;
     auto &eigSolver = this->EigenSolver<TVar>();
-    //if there is no equation filter nReducedEq == numeq
-    fEigenvalues.Resize(nReducedEq);
+    const auto nev = eigSolver.NEigenpairs();
+    fEigenvalues.Resize(nev);
     if (ComputeEigenvectors()) {
       TPZFMatrix<CTVar> *eigvectors = &fEigenvectors;
       if(isReduced){
         eigvectors = new TPZFMatrix<CTVar>;
       }
-      const auto nev = eigSolver.NEigenpairs();
+      //if there is no equation filter nReducedEq == numeq
       eigvectors->Redim(nReducedEq, nev);
       eigSolver.Solve(fEigenvalues, *eigvectors);
       if(isReduced){
