@@ -115,16 +115,16 @@ TPZGeoMesh *  CreateGMesh ( int ref )
         coord[1] = co[inode][1];
         gmesh->NodeVec() [inode] = TPZGeoNode ( inode, coord, *gmesh );
     }
-    TPZVec <long> TopoQuad ( 4 );
+    TPZVec <int64_t> TopoQuad ( 4 );
     for ( int iel=0; iel<topol.size(); iel++ ) {
         TopoQuad[0] = topol[iel][0];
         TopoQuad[1] = topol[iel][1];
-        TopoQuad[2] =	topol[iel][2];
+        TopoQuad[2] = topol[iel][2];
         TopoQuad[3] = topol[iel][3];
         new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> ( iel, TopoQuad, 1,*gmesh );
     }
     int id = topol.size();
-    TPZVec <long> TopoLine ( 2 );
+    TPZVec <int64_t> TopoLine ( 2 );
     TopoLine[0] = 0;
     TopoLine[1] = 1;
     new TPZGeoElRefPattern< pzgeom::TPZGeoLinear> ( id, TopoLine, bottombc, *gmesh );//bottom
@@ -252,7 +252,7 @@ vector<vector<int>> topol = {{0,  1,  14, 13},{1,  2,  10, 14}, {14, 10, 3,  12}
         coord[1] = co[inode][1];
         gmesh->NodeVec() [inode] = TPZGeoNode ( inode, coord, *gmesh );
     }
-    TPZVec <long> TopoQuad ( 4 );
+    TPZVec <int64_t> TopoQuad ( 4 );
     for ( int iel=0; iel<topol.size(); iel++ ) {
         TopoQuad[0] = topol[iel][0];
         TopoQuad[1] = topol[iel][1];
@@ -261,7 +261,7 @@ vector<vector<int>> topol = {{0,  1,  14, 13},{1,  2,  10, 14}, {14, 10, 3,  12}
         new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> ( iel, TopoQuad, 1,*gmesh );
     }
     int id = topol.size();
-    TPZVec <long> TopoLine ( 2 );
+    TPZVec <int64_t> TopoLine ( 2 );
     TopoLine[0] = 0;
     TopoLine[1] = 1;
     new TPZGeoElRefPattern< pzgeom::TPZGeoLinear> ( id, TopoLine, bottombc_slope, *gmesh );//bottom
