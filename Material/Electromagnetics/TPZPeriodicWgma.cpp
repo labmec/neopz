@@ -35,6 +35,7 @@ void TPZPeriodicWgma::Contribute(const TPZMaterialDataT<CSTATE> &data,
     ContributeInternalB(cGx, cGy, cS, data, weight, ek, ef);
     return;
   case EWhichMatrix::NDefined:
+    DebugStop();
     return;
   }
 }
@@ -56,8 +57,9 @@ void TPZPeriodicWgma::ContributeInternalA(
     for (int j = 0; j < nshape; j++) {
       const STATE gradX = dphix.GetVal(0, i) * dphix.GetVal(0, j);
       const STATE gradY = dphix.GetVal(1, i) * dphix.GetVal(1, j);
-      const STATE cross = dphix.GetVal(0, i) * phi.GetVal(j,0) -
-        dphix.GetVal(0, j) * phi.GetVal(i,0);
+      const STATE cross =
+        phi.GetVal(i,0) * dphix.GetVal(0, j) - 
+        phi.GetVal(j,0) * dphix.GetVal(0, i);
       const STATE phiIphiJ = phi.GetVal(i, 0) * phi.GetVal(j, 0);
       CSTATE stiff = 0;
       stiff -= gradX * cGradX + gradY * cGradY;
@@ -87,21 +89,9 @@ void TPZPeriodicWgma::ContributeInternalB(
 void TPZPeriodicWgma::ContributeBC(
     const TPZMaterialDataT<CSTATE> &data, REAL weight, TPZFMatrix<CSTATE> &ek,
     TPZFMatrix<CSTATE> &ef, TPZBndCondT<CSTATE> &bc) {
-  CSTATE cGradX{-1};
-  TPZManVector<CSTATE,3> er,ur;
-  GetPermittivity(data.x,er);
-  GetPermeability(data.x,ur);
-  switch (fMode) {
-  case ModeType::TE:
-    cGradX = 1. / ur[1];
-    break;
-  case ModeType::TM:
-    cGradX = 1. / er[1];
-    break;
-  }
   switch(this->fAssembling){
   case EWhichMatrix::A:
-    ContributeBCInternalA(cGradX, data, weight, ek, ef, bc);
+    ContributeBCInternalA(data, weight, ek, ef, bc);
     return;
   case EWhichMatrix::B://nothing to do here
   case EWhichMatrix::NDefined:
@@ -110,7 +100,7 @@ void TPZPeriodicWgma::ContributeBC(
 }
 
 void TPZPeriodicWgma::ContributeBCInternalA(
-    const CSTATE coeffGradX, const TPZMaterialDataT<CSTATE> &data, REAL weight,
+    const TPZMaterialDataT<CSTATE> &data, REAL weight,
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef, TPZBndCondT<CSTATE> &bc) {
   const auto &phi = data.phi;
   const auto &BIG = TPZMaterial::fBigNumber;
@@ -139,7 +129,8 @@ void TPZPeriodicWgma::ContributeBCInternalA(
   case 1:
     /// PMC condition just adds zero to both matrices. nothing to do here....
     break;
-  case 2:// periodic conditions are treated at a mesh level
+  case 2:
+    /// periodic conditions are treated at a mesh level
     break;
   default:
     PZError << __PRETTY_FUNCTION__;

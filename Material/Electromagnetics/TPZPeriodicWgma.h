@@ -70,10 +70,9 @@ protected:
                           const TPZMaterialDataT<CSTATE> &data, REAL weight,
                           TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef);
   //! Actual ContributeBC method (both TE/TM) for matrix A
-  void ContributeBCInternalA(const CSTATE coeffGradX,
-                            const TPZMaterialDataT<CSTATE> &data, REAL weight,
-                            TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
-                            TPZBndCondT<CSTATE> &bc);
+  void ContributeBCInternalA(const TPZMaterialDataT<CSTATE> &data, REAL weight,
+                             TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
+                             TPZBndCondT<CSTATE> &bc);
   //! Actual Contribute method (both TE/TM) for matrix B
   void ContributeInternalB(const CSTATE cGradX, const CSTATE cGradY,
                           const CSTATE cScal,
