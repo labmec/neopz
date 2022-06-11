@@ -19,6 +19,7 @@
 #include "pzelementgroup.h"
 #include "pzanalysis.h"
 #include "pzsfulmat.h"
+#include "mkl.h"
 
 #include "pzgnode.h"
 #include "TPZTimer.h"
@@ -79,6 +80,7 @@ static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
 static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 void TPZStructMatrixOR::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+    mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
     ass_stiff.start();
     if (fEquationFilter.IsActive()) {
         int64_t neqcondense = fEquationFilter.NActiveEquations();
@@ -131,6 +133,8 @@ void TPZStructMatrixOR::Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiI
 }
 double calcstiffTime;
 void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+  //mkl_set_num_threads_local(1);
+  //mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
 #ifdef PZDEBUG
     TExceptionManager activateExceptions;
 #endif
@@ -161,8 +165,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     bool globalresult = true;
     bool writereadresult = true;
 #endif
-    TPZTimer calcstiff("Computing the stiffness matrices");
-    TPZTimer assemble("Assembling the stiffness matrices");
+    //TPZTimer calcstiff("Computing the stiffness matrices");
+    //TPZTimer assemble("Assembling the stiffness matrices");
     TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
 
     int64_t count = 0;
@@ -178,7 +182,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         if(matidsize){
             if(!el->NeedsComputing(fMaterialIds)) continue;
         }
-
+        /*
         count++;
         if (!(count % 1000)) {
             std::cout << '*';
@@ -187,8 +191,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         if (!(count % 20000)) {
             std::cout << "\n";
         }
-        
-        calcstiff.start();
+        */
+        //calcstiff.start();
         ek.Reset();
         ef.Reset();
 /*
@@ -249,8 +253,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
 
 #endif
 
-        calcstiff.stop();
-        assemble.start();
+        //calcstiff.stop();
+        //assemble.start();
 
         if (!ek.HasDependency()) {
             ek.ComputeDestinationIndices();
@@ -366,9 +370,9 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         //        
         //        stiffness.Zero();
         //        rhs.Zero();
-        assemble.stop();
+        //assemble.stop();
     }//fim for iel
-    if (count > 1000) std::cout << std::endl;
+    //if (count > 1000) std::cout << std::endl;
 
 #ifdef PZ_LOG
     if (loggerCheck.isDebugEnabled()) {
@@ -385,11 +389,10 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     }
 
 #endif
-
+mkl_set_num_threads_local(0);
 }
 
 void TPZStructMatrixOR::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
-
     int64_t iel;
     int64_t nelem = fMesh->NElements();
 
@@ -487,6 +490,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
 }
 
 void TPZStructMatrixOR::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+    //mkl_set_num_threads_local(1);
+    //mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
     ThreadData threaddata(this,mat,rhs,fMaterialIds,guiInterface);
     const int numthreads = this->fNumThreads;
     std::vector<std::thread> allthreads;
@@ -515,6 +520,7 @@ void TPZStructMatrixOR::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
         LOGPZ_DEBUG(loggerCheck, sout.str())
     }
 #endif
+  mkl_set_num_threads_local(0);
 }
 
 void TPZStructMatrixOR::MultiThread_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {

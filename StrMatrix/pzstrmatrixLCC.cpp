@@ -97,6 +97,8 @@ static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
 static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 void TPZStructMatrixLCC::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+    mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+    //mkl_set_num_threads_local(1);
     ass_stiff.start();
     if (fEquationFilter.IsActive()) {
         int64_t neqcondense = fEquationFilter.NActiveEquations();
@@ -125,6 +127,7 @@ void TPZStructMatrixLCC::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE
         }
     }
     ass_stiff.stop();
+    mkl_set_num_threads_local(0);
 }
 
 void TPZStructMatrixLCC::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
@@ -184,8 +187,9 @@ void TPZStructMatrixLCC::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiI
 
 
 void TPZStructMatrixLCC::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface ){
-    int64_t nelem = fMesh->NElements();
-    mkl_set_num_threads_local(1);  
+    //mkl_set_num_threads_local(1);
+    //mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+    int64_t nelem = fMesh->NElements(); 
     std::cout << "LCC_Serial_Assemble\n";          
     for (int64_t iel = 0; iel < nelem; iel++)
     {
@@ -226,6 +230,7 @@ void TPZStructMatrixLCC::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatri
 #ifdef PZDEBUG
     VerifyStiffnessSum(stiffness);
 #endif
+ mkl_set_num_threads_local(0);
 }
  
 void TPZStructMatrixLCC::VerifyStiffnessSum(TPZMatrix<STATE> & stiffness){
@@ -277,7 +282,8 @@ int TPZStructMatrixLCC::GetNumberColors(){
 }
 
 void TPZStructMatrixLCC::MultiThread_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
-    mkl_set_num_threads(1);
+    //mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+    //mkl_set_num_threads_local(1);
     if (fShouldColor){
         if (fUsingTBB){
             AssemblingUsingTBBandColoring(stiffness,rhs);
@@ -298,7 +304,7 @@ void TPZStructMatrixLCC::MultiThread_Assemble(TPZMatrix<STATE> & stiffness, TPZF
     #ifdef PZDEBUG
         VerifyStiffnessSum(stiffness);
     #endif
-    }
+}
     
 void TPZStructMatrixLCC::AssemblingUsingTBBandColoring(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs ){
 #ifndef USING_TBB
@@ -386,12 +392,13 @@ void TPZStructMatrixLCC::AssemblingUsingTBBbutNotColoring(TPZMatrix<STATE> & sti
 
 void TPZStructMatrixLCC::AssemblingUsingOMPbutNotColoring(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs ){
 #ifdef USING_OMP
-
+    
     int64_t nelem = fMesh->NElements();
     const int nthread = this->fNumThreads;
     
     omp_set_num_threads(nthread);
-    #pragma omp parallel for schedule(dynamic,1)
+    omp_set_nested(true);
+    #pragma omp parallel for schedule(dynamic,1) 
     for (int64_t iel = 0; iel < nelem; iel++){
         {
             TPZCompEl *el = fMesh->Element(iel);
