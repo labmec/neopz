@@ -144,7 +144,7 @@ void TPZShapeHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatr
         }
     }();
     
-    TPZShapeH1<TSHAPE>::Shape(pt,data);
+    TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);
     for(int i = 0; i< data.fSDVecShapeIndex.size(); i++)
     {
         const auto &it = data.fSDVecShapeIndex[i];

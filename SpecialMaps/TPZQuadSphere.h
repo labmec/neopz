@@ -136,8 +136,9 @@ namespace pzgeom {
                 gradphi(i,0) = - (1. / (norm*norm*norm) ) * xqsiLxc[i];
             }
             
-            TPZFNMatrix <9,T> DphivDx(3,3,0.); // will store d(phi*v)/dx
-            DphivDx = TensorProd(v,gradphi) + phi*gradv;
+            TPZFNMatrix <9,T> DphivDx(3,3,0.),vgradphi(3,3,0.); // will store d(phi*v)/dx
+            vgradphi = TensorProd(v,gradphi);
+            DphivDx = vgradphi + phi*gradv;
             
             DphivDx.Multiply(dxdqsi, gradx);
         }

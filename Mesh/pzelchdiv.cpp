@@ -881,9 +881,45 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
         data.fVecShapeIndex[i] = make_pair(i,i);
     }
     //
-    
     TPZFNMatrix<9,REAL> gradx(3,TSHAPE::Dimension,0.);
     this->Reference()->GradX(qsi, gradx);
+    if(data.fNeedsDeformedDirectionsFad)
+    {
+        const int dim = TSHAPE::Dimension;
+#ifdef PZDEBUG
+        for(int d1 = 0; d1<dim; d1++)
+        {
+            for(int d=dim; d<3; d++)
+            {
+                if(!IsZero(gradx(d,d1))) DebugStop();
+            }
+        }
+#endif
+        TPZFNMatrix<9,REAL> jac(dim,dim,0),jacinv(dim,dim,0),
+            axes(dim,3);
+        for(int d1=0; d1<dim; d1++) for(int d2=0; d2<dim; d2++) jac(d1,d2) = gradx(d1,d2);
+        jac.Inverse(jacinv, ELU);
+        TPZManVector<Fad<REAL> ,3> qsifad(dim);
+        for(int d1=0; d1<dim; d1++)
+        {
+            qsifad[d1] = Fad<REAL>(dim,qsi[d1]);
+            for(int d2=0; d2<dim; d2++)
+            {
+                qsifad[d1].fastAccessDx(d2) = jacinv(d1,d2);
+            }
+        }
+        TPZFNMatrix<9,Fad<REAL>> gradxfad(3,dim);
+        this->Reference()->GradX(qsifad,gradxfad);
+        TPZFMatrix<Fad<REAL>> phiMasterFad, divphiFad;
+
+        if(fhdivfam == HDivFamily::EHDivStandard)
+        {
+            TPZShapeHDiv<TSHAPE>::Shape(qsifad, shapedata, phiMasterFad, divphiFad);
+        }
+        Fad<REAL> detjacFad;
+        this->Reference()->ComputeDetjac(gradxfad,detjacFad);
+        gradxfad.MultAdd(phiMasterFad,data.fDeformedDirectionsFad,data.fDeformedDirectionsFad,1./fabs(detjacFad));
+    }
     gradx.MultAdd(phiMaster,data.fDeformedDirections,data.fDeformedDirections,1./fabs(data.detjac));
     data.divphi *= 1/fabs(data.detjac);
     data.phi = 1.;

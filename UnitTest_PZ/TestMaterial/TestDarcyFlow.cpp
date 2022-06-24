@@ -41,7 +41,7 @@ static void computeStiffnessH1(TPZFMatrix<STATE> &ek)
     {
         REAL weight;
         integrule.Point(p, pt, weight);
-        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[0]);
+        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[0], DataVec[0].fPhi,DataVec[0].fDPhi);
         DataVec[0].dphix = DataVec[0].fDPhi;
         material.Contribute(DataVec[0], weight, ek, ef);
     }
@@ -71,7 +71,7 @@ static void computeStiffnessHybrid(TPZFMatrix<STATE> &ek)
     {
         REAL weight;
         integrule.Point(p, pt, weight);
-        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[0]);
+        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[0], DataVec[0].fPhi, DataVec[0].fDPhi);
         int degree = 0;
         pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[1].fPhi,DataVec[1].fDPhi,shtype);
         pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[2].fPhi,DataVec[2].fDPhi,shtype);

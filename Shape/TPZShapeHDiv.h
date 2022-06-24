@@ -22,6 +22,10 @@ struct TPZShapeHDiv
                     const TPZVec<int> &connectorders,
                     const TPZVec<int>& sideorient, TPZShapeData &data);
     
+    static void Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
+
+    static void Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data, TPZFMatrix<Fad<REAL>> &phi, TPZFMatrix<Fad<REAL>> &divphi);
+
     static void ComputeMasterDirections(TPZShapeData &data);
     
     static void ComputeVecandShape(TPZShapeData &data);
@@ -36,8 +40,6 @@ struct TPZShapeHDiv
     
     static void HDivPermutation(MElementType eltype, const TPZVec<int64_t> &ids, TPZVec<int> &permutegather);
     
-    static void Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
-
     static int ComputeNConnectShapeF(int connect, int order);
     
     static int NConnectShapeF(int connect, const TPZShapeData &data);

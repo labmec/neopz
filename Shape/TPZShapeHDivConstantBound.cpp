@@ -62,7 +62,7 @@ void TPZShapeHDivConstantBound<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeDa
     const int nsides = TSHAPE::NSides;
     const int dim = TSHAPE::Dimension;
     const auto nEdges = TSHAPE::NumSides(1);
-    TPZShapeH1<TSHAPE>::Shape(pt,data);
+    TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);
 
     if (dim == 1){
         phi(0,0) = 0.5 * data.fSideOrient[0];
