@@ -93,13 +93,24 @@ TPZMatrix<TVar>( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
 
 template<class TVar>
 TPZFMatrix<TVar>::TPZFMatrix(TPZFMatrix<TVar> &&A)
-    : TPZMatrix<TVar>(A), fElem(A.fElem),
-      fGiven(A.fGiven),fSize(A.fSize),
-      fPivot(A.fPivot), fWork(A.fWork)
+    : TPZMatrix<TVar>(A), fElem(0),
+      fGiven(0),fSize(0),
+      fPivot(0), fWork(0)
 {
-    A.fElem=nullptr;
-    A.fGiven=nullptr;
-    A.fSize=0;
+    if(A.fElem == A.fGiven)
+    {
+        int64_t size = A.fRow * A.fCol;
+        fElem = new TVar[size] ;
+        memcpy((void *)(fElem),(void *)(A.fElem),(size_t)size*sizeof(TVar));
+    }
+    else {
+        fElem = A.fElem;
+        fPivot = A.fPivot;
+        fWork = A.fWork;
+        A.fElem=nullptr;
+        A.fGiven=nullptr;
+        A.fSize=0;
+    }
 }
 
 /********************************/
