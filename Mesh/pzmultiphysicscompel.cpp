@@ -554,7 +554,8 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     
     for(ic=0; ic<ncon; ic++)
     {
-        int64_t neqThisConn = Connect(ic).NDof(*Mesh());
+        TPZConnect &c = Connect(ic);
+        int64_t neqThisConn = c.NDof(*Mesh());
         numeq += neqThisConn;
     }
     

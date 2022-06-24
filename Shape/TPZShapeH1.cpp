@@ -39,13 +39,9 @@ void TPZShapeH1<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
 
 
 template <class TSHAPE>
-void TPZShapeH1<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data) {
+void TPZShapeH1<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 
-    
-//    TPZVec<REAL> &pt = par.pt;
-//    TPZFMatrix<REAL> &phi = par.phi;
-//    TPZFMatrix<REAL> &dphi = par.dphi;
-    
+        
     TSHAPE::ShapeCorner(pt,data.fPhi,data.fDPhi);
     
     if(data.fPhi.Rows() == TSHAPE::NCornerNodes) return;
@@ -112,7 +108,81 @@ void TPZShapeH1<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data) {
 
         }
     }
+    phi = data.fPhi;
+    dphi = data.fDPhi;
+}
+
+template <class TSHAPE>
+void TPZShapeH1<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data, TPZFMatrix<Fad<REAL>> &phi, TPZFMatrix<Fad<REAL>> &dphi)
+{
+    TSHAPE::ShapeCorner(pt,phi,dphi);
     
+    if(data.fPhi.Rows() == TSHAPE::NCornerNodes) return;
+    
+    const int dim = TSHAPE::Dimension;
+    const int NSides = TSHAPE::NSides;
+    const int NCorners = TSHAPE::NCornerNodes;
+
+    TPZFNMatrix<NSides*dim,Fad<REAL>> phiblend(NSides,1),dphiblend(dim,NSides);
+    for(int nod=0; nod<NCorners; nod++)
+    {
+        phiblend(nod,0) = data.fPhi(nod,0);
+        for(int d=0; d< dim; d++)
+        {
+            dphiblend(d,nod) = data.fDPhi(d,nod);
+        }
+    }
+    TSHAPE::ShapeGenerating(pt, phiblend, dphiblend);
+    int shape = NCorners;
+    for (int side = NCorners; side<NSides ; side++)
+    {
+        int numshape = TSHAPE::NConnectShapeF(side, data.fH1ConnectOrders[side-NCorners]);
+        if(numshape == 0) continue;
+        
+        phi(shape,0) = phiblend(side,0);
+        for(int d=0; d<dim; d++) dphi(d,shape) = dphiblend(d,side);
+        shape++;
+        
+        if(numshape == 1) continue;
+        
+        TPZTransform<REAL> &transformREAL = data.fSideTransforms[side - NCorners];
+        TPZTransform<Fad<REAL>> transform(transformREAL.Rows(),transformREAL.Cols());
+        int sidedim = TSHAPE::SideDimension(side);
+        TPZFNMatrix<100,Fad<REAL>> phin(numshape,1), dphin(sidedim,numshape), dphiaux(TSHAPE::Dimension,numshape),
+            dphiaux2(TSHAPE::Dimension,numshape);
+        TPZManVector<Fad<REAL>,3> outvec(sidedim);
+        transform.Apply(pt, outvec);
+//        dphin.Zero();
+        TSHAPE::ShapeInternal(side, outvec,data.fH1ConnectOrders[side - NCorners], phin, dphin);
+        if(sidedim < 3)
+        {
+            Fad<REAL> alpha = 1.;
+            Fad<REAL> beta = 0.;
+            constexpr int opt = 1;
+            TPZFNMatrix<1,Fad<REAL>> auxmat(1,1,0);
+            TPZFMatrix<Fad<REAL>> &mult = transform.Mult();
+            mult.MultAdd(dphin, auxmat, dphiaux,alpha,beta,opt);
+            
+            for (int i = 1; i < numshape; i++) {
+                phi(shape,0) = phiblend(side,0)*phin(i,0);
+                for(int xj=0;xj<TSHAPE::Dimension;xj++) {
+                    dphi(xj,shape) = dphiblend(xj,side)*phin(i,0)+phiblend(side,0)*dphiaux(xj,i);
+                }
+                shape++;
+            }
+        } else
+        {
+            for (int i = 1; i < numshape; i++) {
+                phi(shape,0) = phiblend(side,0)*phin(i,0);
+                for(int xj=0;xj<TSHAPE::Dimension;xj++) {
+                    dphi(xj,shape) = dphiblend(xj,side)*phin(i,0)+phiblend(side,0)*dphin(xj,i);
+                }
+                shape++;
+            }
+
+        }
+    }
+
 }
 
 template

@@ -140,7 +140,7 @@ template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
     
     TPZShapeData &shapedata = data;
-    TPZShapeH1<TSHAPE>::Shape(intpoint,shapedata);
+    TPZShapeH1<TSHAPE>::Shape(intpoint,shapedata,shapedata.fPhi,shapedata.fDPhi);
     int tranpose = 1;
     REAL alpha = 1.;
     REAL beta = 0.;

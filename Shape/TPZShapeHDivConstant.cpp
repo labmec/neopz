@@ -112,7 +112,7 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
     int nshape = data.fPhi.Rows();
     
     if (dim == 2){
-        TPZShapeH1<TSHAPE>::Shape(pt,data);    
+        TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);    
         divphi.Zero();
         const auto nEdges = TSHAPE::NumSides(1);
 

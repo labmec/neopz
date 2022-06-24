@@ -23,7 +23,7 @@ void TPZShapeHDivKernel2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
 {
 
     const int dim = TSHAPE::Dimension;
-    TPZShapeH1<TSHAPE>::Shape(pt,data);
+    TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);
     divphi.Zero();
 
     int nshape = data.fPhi.Rows();

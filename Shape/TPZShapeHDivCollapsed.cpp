@@ -92,7 +92,7 @@ void TPZShapeHDivCollapsed<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
     const int dim = TSHAPE::Dimension;
-    TPZShapeH1<TSHAPE>::Shape(pt,data);
+    TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);
     for(int i = 0; i< data.fSDVecShapeIndex.size(); i++)
     {
         auto it = data.fSDVecShapeIndex[i];
