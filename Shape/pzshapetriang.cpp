@@ -31,54 +31,7 @@ namespace pzshape {
 	REAL TPZShapeTriang::gVet1dT[3] = {-1.,0.,1.};
 	
 	
-	void TPZShapeTriang::ShapeCorner(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
-		
-		phi(0,0) =  1.-pt[0]-pt[1];
-		phi(1,0) =  pt[0];
-		phi(2,0) =  pt[1];
-		dphi(0,0) = -1.;
-		dphi(1,0) = -1.;
-		dphi(0,1) =  1.;
-		dphi(1,1) =  0.;
-		dphi(0,2) =  0.;
-		dphi(1,2) =  1.;
-	}
 	
-	/**
-	 * Computes the generating shape functions for a quadrilateral element
-	 * @param pt (input) point where the shape function is computed
-	 * @param phi (input/output) value of the (4) shape functions
-	 * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
-	 */
-	void TPZShapeTriang::ShapeGenerating(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
-	{
-		int is;
-		for(is=3; is<6; is++)
-		{
-			int is1 = is%3;
-			int is2 = (is+1)%3;
-			phi(is,0) = phi(is1,0)*phi(is2,0);
-			dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
-			dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
-		}
-		int is1 = 0;
-		int is2 = 1;
-		int is3 = 2;
-		phi(is,0) = phi(is1,0)*phi(is2,0)*phi(is3,0);
-		dphi(0,is) = dphi(0,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(0,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(0,is3);
-		dphi(1,is) = dphi(1,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(1,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(1,is3);
-
-		// Make the generating shape functions linear and unitary
-		REAL mult[] = {1.,1.,1.,4.,4.,4.,27.};
-		for(is=3;is<NSides; is++)
-		{
-			phi(is,0) *= mult[is];
-			dphi(0,is) *= mult[is];
-			dphi(1,is) *= mult[is];
-		}
-
-		
-	}
 	
     /**
      * Computes the generating shape functions for a quadrilateral element
@@ -276,40 +229,6 @@ namespace pzshape {
         
     }
     
-    void TPZShapeTriang::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
-                                       TPZFMatrix<REAL> &dphi) {
-        
-        if((order - 2 ) <= 0) return;
-        int numshape = ((order-2)*(order-1))/2;
-        
-        TPZManVector<REAL,2> out(2,0.0);
-        out[0] = 2.*x[0]-1.;
-        out[1] = 2.*x[1]-1.;
-        
-        if (phi.Rows() < numshape || dphi.Cols() < numshape) {
-            PZError << "\nTPZCompEl::Shape2dTriangleInternal phi or dphi resized\n";
-            phi.Resize(numshape,1);
-            dphi.Resize(dphi.Rows(),numshape);
-        }
-        
-        TPZFNMatrix<50,REAL> phi0(numshape,1),phi1(numshape,1);
-        TPZFNMatrix<100,REAL> dphi0(1,numshape),dphi1(1,numshape);
-        
-        TPZShapeLinear::fOrthogonal(out[0],numshape,phi0,dphi0);
-        TPZShapeLinear::fOrthogonal(out[1],numshape,phi1,dphi1);
-        int index = 0;
-        int i;
-       
-        for (int iplusj=0;iplusj<(order - 2);iplusj++) {
-            for (int j=0;j<=iplusj;j++) {
-                i = iplusj-j;
-                phi(index,0) = phi0(i,0)*phi1(j,0);
-                dphi(0,index) = 2.0*dphi0(0,i)*phi1(j,0);
-                dphi(1,index) = 2.0*phi0(i,0)*dphi1(0,j);
-                index++;
-            }
-        }
-    }
     
     void TPZShapeTriang::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
                                        TPZFMatrix<REAL> &dphi,int triangle_transformation_index) {
@@ -350,36 +269,6 @@ namespace pzshape {
     
     
     
-    void TPZShapeTriang::ShapeInternal(int side, TPZVec<REAL> &x, int order,
-                                     TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
-        if (side < 3 || side > 6) {
-            DebugStop();
-        }
-        
-        switch (side) {
-                
-            case 3:
-            case 4:
-            case 5:
-            {
-                pzshape::TPZShapeLinear::ShapeInternal(x, order, phi, dphi);
-            }
-                break;
-            case 6:
-            {
-                
-                ShapeInternal(x, order, phi, dphi);
-            }
-                break;
-            default:
-                std::cout << __PRETTY_FUNCTION__ << " Wrong side parameter side " << side << std::endl;
-                DebugStop();
-                break;
-        }
-      
-        
-        
-    }
 	
 	void TPZShapeTriang::ProjectPoint2dTriangToRib(int rib, TPZVec<REAL> &in, REAL &out) {
 		

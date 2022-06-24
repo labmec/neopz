@@ -103,7 +103,7 @@ namespace pzshape {
 		 * @param phi shapefunction values with derivatives
 		 * REMARK: The Derivative classes MUST store at least one derivative - 1d problem
 		 */
-		static void (*FADfOrthogonal)(FADREAL& x,int num,TPZVec<FADREAL> &phi);
+        static void (*FADfOrthogonal)(const FADREAL& x,int num,TPZFMatrix<FADREAL> & phi,TPZFMatrix<FADREAL> & dphi);
 		/**
 		 * @brief Chebyshev orthogonal polynomial, computes num orthogonal functions at the point x
 		 * @param x coordinate of the point (with derivative already setup)
@@ -111,7 +111,7 @@ namespace pzshape {
 		 * @param phi shapefunction values and derivatives
 		 * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
 		 */
-		static void Chebyshev(FADREAL & x,int num,TPZVec<FADREAL> &phi);
+		static void Chebyshev(const FADREAL & x,int num,TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
 
 		/** @} */
 		
@@ -132,7 +132,14 @@ public:
 		 */
 		static void Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
-        static void ShapeCorner(const TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+        template<class T>
+        static void ShapeCorner(const TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+            phi(0,0) = (1-pt[0])/2.;
+            phi(1,0) = (1+pt[0])/2.;
+            dphi(0,0) = -0.5;
+            dphi(0,1)= 0.5;
+        }
+
 		
 		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
@@ -180,7 +187,25 @@ public:
          * The shape1dInternal function is extensively used by the shapefunction computation of
          * the other elements
          */
-        static void ShapeInternal(TPZVec<REAL> &x,int ord,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+        static void ShapeInternal(TPZVec<REAL> &x,int ord,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
+        {    //versao nova-> o ponto vem transformado
+            // Quadratic or higher shape functions
+            int num = ord-1;
+            if(num <= 0) return;
+            REAL y;
+            fOrthogonal(x[0],num,phi,dphi);
+        }
+        static void ShapeInternal(TPZVec<Fad<REAL>> &x,int ord,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi)
+        {    //versao nova-> o ponto vem transformado
+            // Quadratic or higher shape functions
+            int num = ord-1;
+            if(num <= 0) return;
+            REAL y;
+            FADfOrthogonal(x[0],num,phi,dphi);
+        }
+
+            
+
 		
 		/**
 		 * @brief Computes the generating shape functions for a quadrilateral element
@@ -188,8 +213,15 @@ public:
 		 * @param phi (input/output) value of the  shape functions
 		 * @param dphi (input/output) value of the derivatives of the shape functions holding the derivatives in a column
 		 */
-		static void ShapeGenerating(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-		
+        template<class T>
+		static void ShapeGenerating(const TPZVec<T> &pt, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi)
+        {
+                
+                phi(2,0) = 4.*phi(0,0)*phi(1,0);
+                dphi(0,2) = 4.*(dphi(0,0)*phi(1,0)+phi(0,0)*dphi(0,1));
+                
+        }
+
         /**
          * @brief Computes the generating shape functions for a quadrilateral element
          * @param pt (input) point where the shape function is computed
@@ -215,7 +247,7 @@ public:
 		/**
 		 * The shape1dInternal function is extensively used by the shapefunction computation of the other elements
 		 */
-		static void ShapeInternal(FADREAL & x,int num,TPZVec<FADREAL> & phi,int transformation_index);
+		static void ShapeInternal(FADREAL & x,int num,TPZFMatrix<FADREAL> & phi,int transformation_index);
 
 		/**
 		 * @brief Computes the transformation applied to the variational parameter of the one-d element
@@ -278,7 +310,25 @@ public:
 		static int NShapeF(const TPZVec<int> &order);
         static void TransformPoint1d(int transid,double &val) ;
         static TPZTransform<REAL> ParametricTransform(int transid);
-        static void ShapeInternal(int side, TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+        
+        // compute internal shape function of the side, x was already projected
+        static void ShapeInternal(int side, TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+        {
+            if (side != 2) {
+                phi(0,0) = 1.;
+                return;
+            }
+            ShapeInternal(x, order, phi, dphi);
+        }
+        static void ShapeInternal(int side, TPZVec<FADREAL> &x, int order,TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi)
+        {
+            if (side != 2) {
+                phi(0,0) = 1.;
+                return;
+            }
+            ShapeInternal(x, order, phi, dphi);
+        }
+
 		
 	};
 	
