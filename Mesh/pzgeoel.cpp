@@ -2588,3 +2588,52 @@ TPZGeoEl* TPZGeoEl::Father() const {
 TPZGeoNode* TPZGeoEl::SideNodePtr(int side, int nodenum) const {
     return &(fMesh->NodeVec()[SideNodeIndex(side, nodenum)]);
 }
+
+void TPZGeoEl::ComputeQsiGrad(TPZVec<REAL> &qsi, TPZVec<Fad<REAL>> &qsifad)
+{
+    const int dim = Dimension();
+    TPZFNMatrix<9,REAL> gradx(3,dim);
+    GradX(qsi, gradx);
+#ifdef PZDEBUG
+    for(int d1 = 0; d1<dim; d1++)
+    {
+        for(int d=dim; d<3; d++)
+        {
+            if(!IsZero(gradx(d,d1))) DebugStop();
+        }
+    }
+#endif
+    TPZFNMatrix<9,REAL> jac(dim,dim,0),jacinv(dim,dim,0),
+        axes(dim,3);
+    for(int d1=0; d1<dim; d1++) for(int d2=0; d2<dim; d2++) jac(d1,d2) = gradx(d1,d2);
+    jac.Inverse(jacinv, ELU);
+    for(int d1=0; d1<dim; d1++)
+    {
+        qsifad[d1] = Fad<REAL>(dim,qsi[d1]);
+        for(int d2=0; d2<dim; d2++)
+        {
+            qsifad[d1].fastAccessDx(d2) = jacinv(d1,d2);
+        }
+    }
+}
+
+
+void
+TPZGeoEl::ComputeDetjac(TPZFMatrix<Fad<REAL> > &gradx, Fad<REAL> &detjac)
+{
+    const int dim = gradx.Cols();
+    switch(dim) {
+        case 0:
+            break;
+        case 1:
+            detjac = gradx(0,0);
+            break;
+        case 2:
+            detjac = gradx(0,0)*gradx(1,1)-gradx(1,0)*gradx(0,1);
+            break;
+        case 3:
+            detjac = (gradx(0,0)*gradx(1,1)*gradx(2,2)+
+            gradx(1,0)*gradx(2,1)*gradx(0,2)+gradx(0,1)*gradx(1,2)*gradx(2,0))-
+            (gradx(2,0)*gradx(1,1)*gradx(0,2) + gradx(0,1)*gradx(2,2)*gradx(1,0) + gradx(1,2)*gradx(0,0)*gradx(2,1));
+    }
+}
