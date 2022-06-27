@@ -341,7 +341,7 @@ void TPZShapeHDiv<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data
         auto it = data.fSDVecShapeIndex[i];
         int vecindex = it.first;
         int scalindex = it.second;
-        divphi(i,0) = Fad<REAL>(0.,fadsize);
+        divphi(i,0) = Fad<REAL>(fadsize,0.);
         for(int d = 0; d<TSHAPE::Dimension; d++)
         {
             phi(d,i) = locphi(scalindex,0)*data.fMasterDirections(d,vecindex);

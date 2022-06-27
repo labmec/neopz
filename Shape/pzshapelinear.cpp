@@ -361,7 +361,7 @@ namespace pzshape {
 		if(num <= 0) return;
         FADREAL zero(x.size(),0.);
 		dphi.Put(0,0, zero*0.0);
-		phi(0,0) = 1.0; // <!> Remark: the derivatives other than the 0th are set to null
+		phi(0,0) = 1.0+zero; // <!> Remark: the derivatives other than the 0th are set to null
 		if(num == 1) return;
 		phi.Put(1,0, x);
 		dphi.Put(0,1, 1.0+zero);
