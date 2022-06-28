@@ -575,6 +575,48 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
         DebugStop();
     }
 
+
+    /*
+      ShapeFAD2 version: while rebasing onto develop i didnt know how to proceed
+
+
+      TPZManVector<int,TSHAPE::NSides> ord(TSHAPE::NContainedSides(side)-TSHAPE::NSideNodes(side),order);
+
+    int sidedimension = TSHAPE::SideDimension(side);
+    TPZFNMatrix<50,REAL> philoc(nsideshape,1),dphiloc(sidedimension,nsideshape);
+
+    TPZShapeH1<TSHAPE>::SideShape(side, point, id, ord, philoc, dphiloc);
+
+//    TSHAPE::SideShape(side,point,id,ord,philoc,dphiloc);
+
+    int ncs = TSHAPE::NContainedSides(side);
+    TPZManVector<int64_t,28> FirstIndex(ncs+1,0);
+    for (int ls=0; ls<ncs; ls++) {
+        int localside = TSHAPE::ContainedSideLocId(side,ls);
+        FirstIndex[ls+1] = FirstIndex[ls]+TSHAPE::NConnectShapeF(localside,order);
+    }
+
+    REAL detjac = 1.;
+    {
+        TPZGeoElSide gelside = TPZGeoElSide(this->Reference(),side);
+        int dim = gel->SideDimension(side);
+        TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
+        gelside.Jacobian(point, jac, axes, detjac, jacinv);
+    }
+    if(sidetype == ETriangle) detjac /= 6.;
+    for (int side=0; side < ncs; side++) {
+        int ifirst = FirstIndex[side];
+        int kfirst = FirstIndex[permutegather[side]];
+        int nshape = FirstIndex[side+1]-FirstIndex[side];
+        for (int i=0; i<nshape; i++) {
+            phi(ifirst+i,0) = philoc(kfirst+i,0)/detjac;
+            for (int d=0; d< sidedimension; d++) {
+                dphi(d,ifirst+i) = dphiloc(d,kfirst+i)/detjac;
+            }
+        }
+    }
+      
+     */
     TPZGeoEl *gel = this->Reference();
     REAL detjac = 1.;
     {
