@@ -97,73 +97,83 @@ namespace pzshape {
 		 * @param phi (output) value of the (8) shape functions
 		 * @param dphi (output) value of the derivatives of the (8) shape functions holding the derivatives in a column
 		 */
-        static void ShapeCorner(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
-        {
-            
-            REAL x[2],dx[2],y[2],dy[2],z[2],dz[2];
-            x[0]  = (1.-pt[0])/2.;
-            x[1]  = (1.+pt[0])/2.;
-            dx[0] = -0.5;
-            dx[1] =  0.5;
-            y[0]  = (1.-pt[1])/2.;
-            y[1]  = (1.+pt[1])/2.;
-            dy[0] = -0.5;
-            dy[1] =  0.5;
-            z[0]  = (1.-pt[2])/2.;
-            z[1]  = (1.+pt[2])/2.;
-            dz[0] = -0.5;
-            dz[1] =  0.5;
-            
-            phi(0,0)  = x[0]*y[0]*z[0];
-            phi(1,0)  = x[1]*y[0]*z[0];
-            phi(2,0)  = x[1]*y[1]*z[0];
-            phi(3,0)  = x[0]*y[1]*z[0];
-            phi(4,0)  = x[0]*y[0]*z[1];
-            phi(5,0)  = x[1]*y[0]*z[1];
-            phi(6,0)  = x[1]*y[1]*z[1];
-            phi(7,0)  = x[0]*y[1]*z[1];
-            dphi(0,0) = dx[0]*y[0]*z[0];
-            dphi(1,0) = x[0]*dy[0]*z[0];
-            dphi(2,0) = x[0]*y[0]*dz[0];
-            dphi(0,1) = dx[1]*y[0]*z[0];
-            dphi(1,1) = x[1]*dy[0]*z[0];
-            dphi(2,1) = x[1]*y[0]*dz[0];
-            dphi(0,2) = dx[1]*y[1]*z[0];
-            dphi(1,2) = x[1]*dy[1]*z[0];
-            dphi(2,2) = x[1]*y[1]*dz[0];
-            dphi(0,3) = dx[0]*y[1]*z[0];
-            dphi(1,3) = x[0]*dy[1]*z[0];
-            dphi(2,3) = x[0]*y[1]*dz[0];
-            dphi(0,4) = dx[0]*y[0]*z[1];
-            dphi(1,4) = x[0]*dy[0]*z[1];
-            dphi(2,4) = x[0]*y[0]*dz[1];
-            dphi(0,5) = dx[1]*y[0]*z[1];
-            dphi(1,5) = x[1]*dy[0]*z[1];
-            dphi(2,5) = x[1]*y[0]*dz[1];
-            dphi(0,6) = dx[1]*y[1]*z[1];
-            dphi(1,6) = x[1]*dy[1]*z[1];
-            dphi(2,6) = x[1]*y[1]*dz[1];
-            dphi(0,7) = dx[0]*y[1]*z[1];
-            dphi(1,7) = x[0]*dy[1]*z[1];
-            dphi(2,7) = x[0]*y[1]*dz[1];
-        }
-         static void ShapeCorner(const TPZVec<FADREAL> &pt, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi)
+//        static void ShapeCorner(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+//        {
+//
+//            REAL x[2],dx[2],y[2],dy[2],z[2],dz[2];
+//            x[0]  = (1.-pt[0])/2.;
+//            x[1]  = (1.+pt[0])/2.;
+//            dx[0] = -0.5;
+//            dx[1] =  0.5;
+//            y[0]  = (1.-pt[1])/2.;
+//            y[1]  = (1.+pt[1])/2.;
+//            dy[0] = -0.5;
+//            dy[1] =  0.5;
+//            z[0]  = (1.-pt[2])/2.;
+//            z[1]  = (1.+pt[2])/2.;
+//            dz[0] = -0.5;
+//            dz[1] =  0.5;
+//
+//            phi(0,0)  = x[0]*y[0]*z[0];
+//            phi(1,0)  = x[1]*y[0]*z[0];
+//            phi(2,0)  = x[1]*y[1]*z[0];
+//            phi(3,0)  = x[0]*y[1]*z[0];
+//            phi(4,0)  = x[0]*y[0]*z[1];
+//            phi(5,0)  = x[1]*y[0]*z[1];
+//            phi(6,0)  = x[1]*y[1]*z[1];
+//            phi(7,0)  = x[0]*y[1]*z[1];
+//            dphi(0,0) = dx[0]*y[0]*z[0];
+//            dphi(1,0) = x[0]*dy[0]*z[0];
+//            dphi(2,0) = x[0]*y[0]*dz[0];
+//            dphi(0,1) = dx[1]*y[0]*z[0];
+//            dphi(1,1) = x[1]*dy[0]*z[0];
+//            dphi(2,1) = x[1]*y[0]*dz[0];
+//            dphi(0,2) = dx[1]*y[1]*z[0];
+//            dphi(1,2) = x[1]*dy[1]*z[0];
+//            dphi(2,2) = x[1]*y[1]*dz[0];
+//            dphi(0,3) = dx[0]*y[1]*z[0];
+//            dphi(1,3) = x[0]*dy[1]*z[0];
+//            dphi(2,3) = x[0]*y[1]*dz[0];
+//            dphi(0,4) = dx[0]*y[0]*z[1];
+//            dphi(1,4) = x[0]*dy[0]*z[1];
+//            dphi(2,4) = x[0]*y[0]*dz[1];
+//            dphi(0,5) = dx[1]*y[0]*z[1];
+//            dphi(1,5) = x[1]*dy[0]*z[1];
+//            dphi(2,5) = x[1]*y[0]*dz[1];
+//            dphi(0,6) = dx[1]*y[1]*z[1];
+//            dphi(1,6) = x[1]*dy[1]*z[1];
+//            dphi(2,6) = x[1]*y[1]*dz[1];
+//            dphi(0,7) = dx[0]*y[1]*z[1];
+//            dphi(1,7) = x[0]*dy[1]*z[1];
+//            dphi(2,7) = x[0]*y[1]*dz[1];
+//        }
+        template<class T>
+         static void ShapeCorner(const TPZVec<T> &pt, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi)
          {
              
-             FADREAL x[2],dx[2],y[2],dy[2],z[2],dz[2];
-             const int dim = pt[0].size();
+             T x[2],dx[2],y[2],dy[2],z[2],dz[2];
              x[0]  = (1.-pt[0])/2.;
              x[1]  = (1.+pt[0])/2.;
-             dx[0] = FADREAL(dim,-0.5);
-             dx[1] = FADREAL(dim, 0.5);
+             T half;
+             if constexpr (std::is_same_v<FADREAL, T>)
+             {
+                 const int dim = pt[0].size();
+                 half = FADREAL(dim,0.5);
+             }
+             else
+             {
+                 half = 0.5;
+             }
+             dx[0] = -half;
+             dx[1] = half;
              y[0]  = (1.-pt[1])/2.;
              y[1]  = (1.+pt[1])/2.;
-             dy[0] = FADREAL(dim,-0.5);
-             dy[1] = FADREAL(dim, 0.5);
+             dy[0] = -half;
+             dy[1] = half;
              z[0]  = (1.-pt[2])/2.;
              z[1]  = (1.+pt[2])/2.;
-             dz[0] = FADREAL(dim,-0.5);
-             dz[1] = FADREAL(dim, 0.5);
+             dz[0] = -half;
+             dz[1] = half;
              
              phi(0,0)  = x[0]*y[0]*z[0];
              phi(1,0)  = x[1]*y[0]*z[0];
@@ -292,45 +302,54 @@ namespace pzshape {
 		 * Shape3dCubeInternal is basically a call to the orthogonal shapefunction with the transformation \n
 		 * determined by the transformation index
 		 */
-		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
-								  TPZFMatrix<REAL> &dphi)
+//		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
+//								  TPZFMatrix<REAL> &dphi)
+//        {
+//            if((order-1) < 1) return;
+//            int ord = order - 1;//fSideOrder[18]-1;
+//            int nshape = ord*ord*ord;
+//            phi.Resize(nshape,1);
+//            dphi.Resize(3,nshape);
+//            REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
+//            TPZFNMatrix<20, REAL> phi0(ord,1),phi1(ord,1),phi2(ord,1),
+//            dphi0(1,ord),dphi1(1,ord),dphi2(1,ord);
+//            TPZShapeLinear::fOrthogonal(x[0],ord,phi0,dphi0);
+//            TPZShapeLinear::fOrthogonal(x[1],ord,phi1,dphi1);
+//            TPZShapeLinear::fOrthogonal(x[2],ord,phi2,dphi2);
+//            for (int i=0;i<ord;i++) {
+//                for (int j=0;j<ord;j++) {
+//                    for (int k=0;k<ord;k++) {
+//                        int index = ord*(ord*i+j)+k;
+//                        phi(index,0) =  phi0(i,0)* phi1(j,0)* phi2(k,0);
+//                        dphi(0,index) = dphi0(0,i)* phi1(j,0)* phi2(k,0);
+//                        dphi(1,index) =  phi0(i,0)*dphi1(0,j)* phi2(k,0);
+//                        dphi(2,index) =  phi0(i,0)* phi1(j,0)*dphi2(0,k);
+//                    }
+//                }
+//            }
+//        }
+        template<class T>
+        static void ShapeInternal(TPZVec<T> &x, int order,TPZFMatrix<T> &phi,
+                                  TPZFMatrix<T> &dphi)
         {
             if((order-1) < 1) return;
             int ord = order - 1;//fSideOrder[18]-1;
             int nshape = ord*ord*ord;
             phi.Resize(nshape,1);
             dphi.Resize(3,nshape);
-            REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
-            TPZFNMatrix<20, REAL> phi0(ord,1),phi1(ord,1),phi2(ord,1),
+            TPZFNMatrix<20, T> phi0(ord,1),phi1(ord,1),phi2(ord,1),
             dphi0(1,ord),dphi1(1,ord),dphi2(1,ord);
-            TPZShapeLinear::fOrthogonal(x[0],ord,phi0,dphi0);
-            TPZShapeLinear::fOrthogonal(x[1],ord,phi1,dphi1);
-            TPZShapeLinear::fOrthogonal(x[2],ord,phi2,dphi2);
-            for (int i=0;i<ord;i++) {
-                for (int j=0;j<ord;j++) {
-                    for (int k=0;k<ord;k++) {
-                        int index = ord*(ord*i+j)+k;
-                        phi(index,0) =  phi0(i,0)* phi1(j,0)* phi2(k,0);
-                        dphi(0,index) = dphi0(0,i)* phi1(j,0)* phi2(k,0);
-                        dphi(1,index) =  phi0(i,0)*dphi1(0,j)* phi2(k,0);
-                        dphi(2,index) =  phi0(i,0)* phi1(j,0)*dphi2(0,k);
-                    }
-                }
+            if constexpr (std::is_same_v<FADREAL, T>)
+            {
+                TPZShapeLinear::FADfOrthogonal(x[0],ord,phi0,dphi0);
+                TPZShapeLinear::FADfOrthogonal(x[1],ord,phi1,dphi1);
+                TPZShapeLinear::FADfOrthogonal(x[2],ord,phi2,dphi2);
             }
-        }
-        static void ShapeInternal(TPZVec<FADREAL> &x, int order,TPZFMatrix<FADREAL> &phi,
-                                  TPZFMatrix<FADREAL> &dphi)
-        {
-            if((order-1) < 1) return;
-            int ord = order - 1;//fSideOrder[18]-1;
-            int nshape = ord*ord*ord;
-            phi.Resize(nshape,1);
-            dphi.Resize(3,nshape);
-            TPZFNMatrix<20, FADREAL> phi0(ord,1),phi1(ord,1),phi2(ord,1),
-            dphi0(1,ord),dphi1(1,ord),dphi2(1,ord);
-            TPZShapeLinear::FADfOrthogonal(x[0],ord,phi0,dphi0);
-            TPZShapeLinear::FADfOrthogonal(x[1],ord,phi1,dphi1);
-            TPZShapeLinear::FADfOrthogonal(x[2],ord,phi2,dphi2);
+            else{
+                TPZShapeLinear::fOrthogonal(x[0],ord,phi0,dphi0);
+                TPZShapeLinear::fOrthogonal(x[1],ord,phi1,dphi1);
+                TPZShapeLinear::fOrthogonal(x[2],ord,phi2,dphi2);
+            }
             for (int i=0;i<ord;i++) {
                 for (int j=0;j<ord;j++) {
                     for (int k=0;k<ord;k++) {
@@ -430,6 +449,7 @@ namespace pzshape {
 		 * @return number of shape functions
 		 */
 		static int NShapeF(const TPZVec<int> &order);
+        
         template<class T>
         static void ShapeInternal(int side, TPZVec<T> &x, int order, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi)
         {
