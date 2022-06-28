@@ -481,7 +481,7 @@ TPZGeoMesh *TPZGenSpecialGrid::CreateGeoMesh3D_DividedSphere(int nDiv)
     std::cout << __PRETTY_FUNCTION__ << std::endl;
 #endif
     TPZGeoMesh *gmesh = new TPZGeoMesh();
-    
+    gmesh->SetDimension(3);
     const int64_t nNodesHexa = 8;
     const int64_t nNodes= nNodesHexa;//+nNodesArc;
     
@@ -632,6 +632,7 @@ TPZGeoMesh *TPZGenSpecialGrid::CreateGeoMesh3D_DividedSphere(int nDiv)
         delete gmesh;
         gmesh = newgmesh;
     }
+    gmesh->SetDimension(3);
     gmesh->ResetConnectivities();
     gmesh->BuildConnectivity();
 #ifdef BLEND_OUTPUT_TXT
