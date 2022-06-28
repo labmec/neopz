@@ -16,6 +16,10 @@
 #include "TPZShapeHDiv.h"
 #include "pzshapetriang.h"
 #include "pzshapequad.h"
+#include "pzshapecube.h"
+#include "pzshapeprism.h"
+#include "pzshapepiram.h"
+#include "pzshapetetra.h"
 #include "TPZMaterialDataT.h"
 #include "pzlog.h"
 #ifdef PZ_LOG
@@ -34,11 +38,27 @@ static TPZLogger logger("pz.mesh.testgeom");
 namespace shapetest{
 const int pOrder = 3;
 const REAL tol = 1e-8;
-void TestMesh2D(TPZGeoMesh *gmesh, int nDiv);
+
+template<class TSHAPE>
+void TestMesh(TPZGeoMesh *gmesh, int nDiv);
 void TestMesh3D(TPZGeoMesh *gmesh, int nDiv);
+template<class TSHAPE>
+void ComputePhiFAD(const TPZVec<Fad<REAL>> &pt, TPZVec<int64_t> &nodeids, TPZFMatrix<REAL> &dphi, TPZFMatrix<Fad<REAL>> &phiFAD);
+
+// compute the HDiv functions with standard point e computed with Fad
+template<class TSHAPE>
+void ComputeHDivFunctions(const TPZVec<Fad<REAL>> &pt, TPZVec<int64_t> &nodeids, TPZFMatrix<REAL> &phiHDiv, TPZFMatrix<REAL> &phiHDivFAD);
+
+// verify if the divergence of the HDiv functions is conforming the Piola transform
+template<class TSHAPE>
+void VerifyDivergenceCompatibility(const TPZVec<Fad<REAL>> &pt, const TPZFMatrix<Fad<REAL>> &gradX, TPZVec<int64_t> &nodeids, TPZFMatrix<REAL> &divphimaster, TPZFMatrix<REAL> &divphicomputed);
+
 //check the fobrenius norm of the difference between two given matrices
 bool CheckMatrices(const TPZFMatrix<REAL> &gradx1, std::string name1,
                    const TPZFMatrix<REAL> &gradx2, std::string name2, const REAL &tol);
+
+template<class T>
+T DetJac(const TPZFMatrix<T> &mat);
 
 }
 
@@ -46,13 +66,6 @@ TEST_CASE("shapefad_tests","[shape_tests]") {
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-    {
-        const int nDiv = 4;
-        auto gmesh = TPZGenSpecialGrid::CreateGeoMesh2D_Circle(0);
-        shapetest::TestMesh2D(gmesh,nDiv);
-        delete gmesh;
-    }
-    
     gRefDBase.InitializeUniformRefPattern(ETetraedro);
     gRefDBase.InitializeUniformRefPattern(EPiramide);
     gRefDBase.InitializeUniformRefPattern(EPrisma);
@@ -60,249 +73,185 @@ TEST_CASE("shapefad_tests","[shape_tests]") {
     {
         const int nDiv = 2;
         auto gmesh = TPZGenSpecialGrid::CreateGeoMesh3D_DividedSphere(0);
-        shapetest::TestMesh3D(gmesh, nDiv);
+        
+        shapetest::TestMesh<pzshape::TPZShapeCube>(gmesh, nDiv);
         delete gmesh;
     }
+    {
+        const int nDiv = 4;
+        auto gmesh = TPZGenSpecialGrid::CreateGeoMesh2D_Circle(0);
+        
+        shapetest::TestMesh<pzshape::TPZShapeQuad>(gmesh,nDiv);
+        shapetest::TestMesh<pzshape::TPZShapeTriang>(gmesh,nDiv);
+        delete gmesh;
+    }
+    
 }
 
 
 namespace shapetest{
 
 
-
-void TestMesh2D(TPZGeoMesh *gmesh, int nDiv)
+template<class TSHAPE>
+void TestMesh(TPZGeoMesh *gmesh, int nDiv)
 {
-    if(gmesh->Dimension() != 2) DebugStop();
+    if(gmesh->Dimension() != TSHAPE::Dimension) DebugStop();
     {
+        const int dim = TSHAPE::Dimension;
         TPZManVector<REAL,3> xiReal;
         TPZManVector<Fad<REAL>,3> xiFad;
         REAL weight = -1;//useless
         const int nel = gmesh->NElements();
         for (int iel = 0; iel < nel; iel++) {
             TPZGeoEl *geo = gmesh->ElementVec()[iel];
-            if (geo && geo->Dimension()==2 && !geo->HasSubElement()) {
-                uint64_t errors = 0;
-                int nnodes = geo->NNodes();
-                TPZManVector<int64_t,4> nodeids(nnodes);
-                for (int in = 0; in<nnodes; in++) {
-                    nodeids[in]= geo->NodePtr(in)->Id();
+            if(!geo) continue;
+            if(geo->HasSubElement()) continue;
+            if(geo->Type() != TSHAPE::Type()) continue;
+            uint64_t errors = 0;
+            int nnodes = geo->NNodes();
+            TPZManVector<int64_t,4> nodeids(nnodes);
+            for (int in = 0; in<nnodes; in++) {
+                nodeids[in]= geo->NodePtr(in)->Id();
+            }
+            auto intRule = geo->CreateSideIntegrationRule(geo->NSides()-1, pOrder);
+            xiReal.Resize(geo->Dimension(),0);
+            xiFad.Resize(geo->Dimension(),0);
+            for(int iPt = 0; iPt < intRule->NPoints(); iPt++){
+                bool hasAnErrorOccurred = false;
+                intRule->Point(iPt,xiReal,weight);
+                for(int x = 0; x < geo->Dimension(); x++){
+                    xiFad[x] = Fad<REAL>(geo->Dimension(),x,xiReal[x]);
                 }
-                auto intRule = geo->CreateSideIntegrationRule(geo->NSides()-1, pOrder);
-                xiReal.Resize(geo->Dimension(),0);
-                xiFad.Resize(geo->Dimension(),0);
-                for(int iPt = 0; iPt < intRule->NPoints(); iPt++){
-                    bool hasAnErrorOccurred = false;
-                    intRule->Point(iPt,xiReal,weight);
-                    for(int x = 0; x < geo->Dimension(); x++){
-                        xiFad[x] = Fad<REAL>(geo->Dimension(),x,xiReal[x]);
+                //                        Fad<REAL> func;
+                //                        func = 9*xiFad[0];
+                //                        for(int i =0; i < func.size(); i++){
+                //                            std::cout<<"dx["<<i<<"]:\t"<<func.dx(i)<<std::endl;
+                //                        }
+                TPZManVector<Fad<REAL>,3> xFad(3);
+                geo->X(xiFad, xFad);
+                TPZFNMatrix<9,REAL> gradXreal(3,3,0);
+                geo->GradX(xiReal, gradXreal);
+                TPZFNMatrix<9,REAL> gradXfad(gradXreal.Rows(),gradXreal.Cols(),0.0);
+                for(int i = 0; i < gradXreal.Rows(); i++){
+                    for(int j = 0; j < gradXreal.Cols(); j++){
+                        gradXfad(i,j) = xFad[i].dx(j);
                     }
-                    //                        Fad<REAL> func;
-                    //                        func = 9*xiFad[0];
-                    //                        for(int i =0; i < func.size(); i++){
-                    //                            std::cout<<"dx["<<i<<"]:\t"<<func.dx(i)<<std::endl;
-                    //                        }
-                    TPZManVector<Fad<REAL>,3> xFad(3);
-                    geo->X(xiFad, xFad);
-                    TPZFNMatrix<9,REAL> gradXreal(3,3,0);
-                    geo->GradX(xiReal, gradXreal);
-                    TPZFNMatrix<9,REAL> gradXfad(gradXreal.Rows(),gradXreal.Cols(),0.0);
-                    for(int i = 0; i < gradXreal.Rows(); i++){
-                        for(int j = 0; j < gradXreal.Cols(); j++){
-                            gradXfad(i,j) = xFad[i].dx(j);
-                        }
+                }
+                hasAnErrorOccurred = shapetest::CheckMatrices(gradXreal,"gradXreal",gradXfad,"gradXfad",shapetest::tol);
+                REQUIRE(!hasAnErrorOccurred);
+                if(hasAnErrorOccurred){
+                    errors++;
+                }
+                // initialize the value of xi with derivatives in xy
+                TPZManVector<Fad<REAL>,3> qsifad(dim);
+                TPZFNMatrix<9,Fad<REAL>> gradXFAD(3,dim);
+                geo->ComputeQsiGrad(xiReal, qsifad);
+                geo->GradX(qsifad, gradXFAD);
+                TPZFNMatrix<9,REAL> gradx(dim,dim),gradinv(dim,dim),gradxLU(dim,dim);
+                for (int i=0; i<dim; i++) {
+                    for (int j=0; j<dim; j++) {
+                        gradx(i,j) = gradXreal(i,j);
                     }
-                    hasAnErrorOccurred = shapetest::CheckMatrices(gradXreal,"gradXreal",gradXfad,"gradXfad",shapetest::tol);
-                    REQUIRE(!hasAnErrorOccurred);
-                    if(hasAnErrorOccurred){
-                        errors++;
-                    }
-                    // initialize the value of xi with derivatives in xy
-                    TPZManVector<Fad<REAL>,2> qsifad(2);
-                    TPZFNMatrix<9,Fad<REAL>> gradXFAD(2,2);
-                    geo->ComputeQsiGrad(xiReal, qsifad);
-                    geo->GradX(qsifad, gradXFAD);
-                    Fad<REAL> detjac = gradXFAD(0,0)*gradXFAD(1,1)-gradXFAD(0,1)*gradXFAD(1,0);
-                    TPZFNMatrix<9,REAL> gradx(2,2),gradinv(2,2),gradxLU(2,2);
-                    for (int i=0; i<2; i++) {
-                        for (int j=0; j<2; j++) {
-                            gradx(i,j) = gradXreal(i,j);
-                        }
-                    }
+                }
 //                    gradx.Print("gradx = ",std::cout,EMathematicaInput);
-                    gradxLU = gradx;
-                    gradxLU.Inverse(gradinv, ELU);
+                gradxLU = gradx;
+                gradxLU.Inverse(gradinv, ELU);
 //                    gradinv.Print("gradinv = ",std::cout,EMathematicaInput);
 //                    std::cout << "qsifad" << qsifad << std::endl;
-                    TPZMaterialDataT<REAL> data;
-                    TPZManVector<int, 4> orders(geo->NSides()-geo->NCornerNodes(),shapetest::pOrder);
-                    TPZFNMatrix<25,REAL> dphix,dphi;
-                    TPZFNMatrix<25,Fad<REAL>> phiFAD;
-                    TPZManVector<int,4> sideorient(geo->NSides(1),1);
-                    if(geo->Type() == ETriangle)
+                TPZMaterialDataT<REAL> data;
+                TPZManVector<int, 4> orders(geo->NSides()-geo->NCornerNodes(),shapetest::pOrder);
+                TPZFNMatrix<25,REAL> dphix,dphi;
+                TPZFNMatrix<25,Fad<REAL>> phiFAD;
+                TPZManVector<int,4> sideorient(geo->NSides(1),1);
+                ComputePhiFAD<TSHAPE>(qsifad, nodeids, dphi, phiFAD);
+                gradinv.MultAdd(dphi, dphi, dphix, 1., 0., 1);
+                TPZFNMatrix<50,REAL> dphixFAD(dphix);
+                for (int i=0; i<dphixFAD.Cols(); i++) {
+                    for(int d=0; d<dim; d++)
                     {
-                        TPZShapeH1<pzshape::TPZShapeTriang> shapeh1;
-                        shapeh1.Initialize(nodeids, orders, data);
-                        phiFAD.Resize(data.fPhi.Rows(),1);
-                        TPZFMatrix<REAL> phi;
-                        shapeh1.Shape(xiReal, data, phi, dphi);
-                        TPZFMatrix<Fad<REAL>> dphiFAD(2,data.fDPhi.Cols());
-                        shapeh1.Shape(qsifad, data, phiFAD, dphiFAD);
-                    }
-                    if(geo->Type() == EQuadrilateral)
-                    {
-                        TPZShapeH1<pzshape::TPZShapeQuad> shapeh1;
-                        shapeh1.Initialize(nodeids, orders, data);
-                        phiFAD.Resize(data.fPhi.Rows(),1);
-                        TPZFMatrix<REAL> phi;
-                        shapeh1.Shape(xiReal, data, phi, dphi);
-//                        dphi.Print("dphi = ",std::cout, EMathematicaInput);
-                        TPZFMatrix<Fad<REAL>> dphiFAD(2,data.fDPhi.Cols());
-                        shapeh1.Shape(qsifad, data, phiFAD, dphiFAD);
-//                        phiFAD.Print("phiFAD",std::cout);
-                    }
-                    gradinv.MultAdd(dphi, dphi, dphix, 1., 0., 1);
-                    TPZFNMatrix<50,REAL> dphixFAD(dphix);
-                    for (int i=0; i<dphixFAD.Cols(); i++) {
-                        dphixFAD(0,i) = phiFAD(i,0).dx(0);
-                        dphixFAD(1,i) = phiFAD(i,0).dx(1);
-                    }
-                    hasAnErrorOccurred = shapetest::CheckMatrices(dphix,"dphiXreal",dphixFAD,"dphiXfad",shapetest::tol);
-                    REQUIRE(!hasAnErrorOccurred);
-                    if(hasAnErrorOccurred){
-                        errors++;
-                    }
-                    if(geo->Type() == ETriangle)
-                    {
-                        TPZShapeHDiv<pzshape::TPZShapeTriang> shapehdiv;
-                        shapehdiv.Initialize(nodeids, orders, sideorient, data);
-                        phiFAD.Resize(data.fPhi.Rows(),1);
-                        TPZFMatrix<REAL> phi, divphi;
-                        shapehdiv.Shape(xiReal, data, phi, divphi);
-                        TPZFMatrix<Fad<REAL>> dphiFAD(2,data.fDPhi.Cols());
-                        shapehdiv.Shape(qsifad, data, phiFAD, dphiFAD);
-                        TPZFMatrix<REAL> phiFADREAL(phi);
-                        for (int i=0; i<phi.Rows(); i++) {
-                            for (int j=0; j<phi.Cols(); j++) {
-                                phiFADREAL(i,j) = phiFAD(i,j).val();
-                            }
-                        }
-                        hasAnErrorOccurred = shapetest::CheckMatrices(phi,"hdivphi",phiFADREAL,"hdivphiFAD",shapetest::tol);
-                        REQUIRE(!hasAnErrorOccurred);
-                        if(hasAnErrorOccurred){
-                            errors++;
-                        }
-                        TPZFMatrix<Fad<REAL>> dirHDiv;
-                        gradXFAD.MultAdd(phiFAD, phiFAD, dirHDiv, 1./detjac, 0.);
-                        TPZFMatrix<REAL> divmaster(dirHDiv.Cols(),1);
-                        for (int i = 0; i<divmaster.Rows(); i++) {
-                            divmaster(i,0) = (dirHDiv(0,i).dx(0)+dirHDiv(1,i).dx(1))*detjac.val();
-                        }
-//                        std::cout << "div phi master " << divphi(0,0) << std::endl;
-//                        std::cout << "div computed fad " << divmaster(0,0) << std::endl;
-//                        std::cout << "ratio ";
-//                        for(int i=0; i<10; i++) std::cout << divphi(i,0)/divmaster(i,0) << " ";
-//                        std::cout  << std::endl;
-                        hasAnErrorOccurred = shapetest::CheckMatrices(divmaster,"div master",divphi,"div computed FAD",shapetest::tol);
-                        REQUIRE(!hasAnErrorOccurred);
-                        if(hasAnErrorOccurred){
-                            errors++;
-                        }
-                    }
-                    if(geo->Type() == EQuadrilateral)
-                    {
-                        TPZShapeHDiv<pzshape::TPZShapeQuad> shapehdiv;
-                        shapehdiv.Initialize(nodeids, orders, sideorient, data);
-                        phiFAD.Resize(data.fPhi.Rows(),1);
-                        TPZFMatrix<REAL> phi,divphi;
-                        shapehdiv.Shape(xiReal, data, phi, divphi);
-                        TPZFMatrix<Fad<REAL>> dphiFAD(2,data.fDPhi.Cols());
-                        shapehdiv.Shape(qsifad, data, phiFAD, dphiFAD);
-//                        phi.Print("phihdiv ",std::cout);
-//                        phiFAD.Print("phiFAD hdiv ",std::cout);
-                        TPZFMatrix<REAL> phiFADREAL(phi);
-                        for (int i=0; i<phi.Rows(); i++) {
-                            for (int j=0; j<phi.Cols(); j++) {
-                                phiFADREAL(i,j) = phiFAD(i,j).val();
-                            }
-                        }
-                        hasAnErrorOccurred = shapetest::CheckMatrices(phi,"hdivphi",phiFADREAL,"hdivphiFAD",shapetest::tol);
-                        REQUIRE(!hasAnErrorOccurred);
-                        if(hasAnErrorOccurred){
-                            errors++;
-                        }
-                        TPZFMatrix<Fad<REAL>> dirHDiv;
-                        gradXFAD.MultAdd(phiFAD, phiFAD, dirHDiv, 1./detjac, 0.);
-                        TPZFMatrix<REAL> divmaster(dirHDiv.Cols(),1);
-                        for (int i = 0; i<divmaster.Rows(); i++) {
-                            divmaster(i,0) = (dirHDiv(0,i).dx(0)+dirHDiv(1,i).dx(1))*detjac.val();
-                        }
-//                        std::cout << "div phi master " << divphi(0,0) << std::endl;
-//                        std::cout << "div computed fad " << divmaster(0,0) << std::endl;
-//                        std::cout << "ratio ";
-//                        for(int i=0; i<10; i++) std::cout << divphi(i,0)/divmaster(i,0) << " ";
-//                        std::cout  << std::endl;
-                        hasAnErrorOccurred = shapetest::CheckMatrices(divmaster,"div master",divphi,"div computed FAD",shapetest::tol);
-                        REQUIRE(!hasAnErrorOccurred);
-                        if(hasAnErrorOccurred){
-                            errors++;
-                        }
-                    }
+                        dphixFAD(d,i) = phiFAD(i,0).dx(d);
+                    }                }
+                hasAnErrorOccurred = shapetest::CheckMatrices(dphix,"dphiXreal",dphixFAD,"dphiXfad",shapetest::tol);
+                REQUIRE(!hasAnErrorOccurred);
+                if(hasAnErrorOccurred){
+                    errors++;
+                }
+                
+                TPZFMatrix<REAL> phihdiv,phihdivFad;
+                ComputeHDivFunctions<TSHAPE>(qsifad, nodeids, phihdiv, phihdivFad);
+                hasAnErrorOccurred = shapetest::CheckMatrices(phihdiv,"hdivphi",phihdivFad,"hdivphiFAD",shapetest::tol);
+                REQUIRE(!hasAnErrorOccurred);
+                if(hasAnErrorOccurred){
+                    errors++;
+                }
+                TPZFMatrix<REAL> divphi,divphiFad;
+                
+                VerifyDivergenceCompatibility<TSHAPE>(qsifad, gradXFAD, nodeids, divphi, divphiFad);
 
+//                divphi.Print("divphi master",std::cout);
+//
+//                divphiFad.Print("divphi deformed", std::cout);
+                hasAnErrorOccurred = shapetest::CheckMatrices(divphi,"hdivphi",divphiFad,"hdivphiFAD",shapetest::tol);
+                REQUIRE(!hasAnErrorOccurred);
+                if(hasAnErrorOccurred){
+                    errors++;
                 }
-#ifdef SHAPEFAD_VERBOSE
-                if(errors > 0 || geo->IsGeoBlendEl()){
-                    std::cout << "============================"
-                    << std::endl;
-                    std::cout
-                    << "Element: " << geo->Id()
-                    << "\tType: " << MElementType_Name(geo->Type());
-                    std::cout << "\tIs blend? : " << geo->IsGeoBlendEl()
-                    << std::endl;
-                    std::cout
-                    << "\tNumber of points: " << intRule->NPoints()
-                    << "\tErrors: " << errors << std::endl;
-                }
-#endif
-                delete intRule;
+
             }
+#ifdef SHAPEFAD_VERBOSE
+            if(errors > 0 || geo->IsGeoBlendEl()){
+                std::cout << "============================"
+                << std::endl;
+                std::cout
+                << "Element: " << geo->Id()
+                << "\tType: " << MElementType_Name(geo->Type());
+                std::cout << "\tIs blend? : " << geo->IsGeoBlendEl()
+                << std::endl;
+                std::cout
+                << "\tNumber of points: " << intRule->NPoints()
+                << "\tErrors: " << errors << std::endl;
+            }
+#endif
+            delete intRule;
         }
     }
     
     
     {
+        TPZGeoMesh copy(*gmesh);
         TPZVec<TPZGeoEl *> sons;
         std::vector<std::string> loading = {"-","/","|","\\"};
         for (int iDiv = 0; iDiv < nDiv; iDiv++) {
             std::cout<<"Performing "<<iDiv+1<<" ref step out of " << nDiv<<std::endl;
-            const int nel = gmesh->NElements();
+            const int nel = copy.NElements();
             for (int iel = 0; iel < nel; iel++) {
                 std::cout<<"\b"<<loading[iel%4]<<std::flush;
-                TPZGeoEl *geo = gmesh->ElementVec()[iel];
+                TPZGeoEl *geo = copy.ElementVec()[iel];
                 if (geo && !geo->HasSubElement()) {
                     geo->Divide(sons);
                 }
             }
             std::cout<<"\b";
         }
-    }
 #ifdef SHAPEFAD_OUTPUT_TXT
-    {
-        const std::string meshFileName =
-        "blendmesh2D.txt";
-        std::ofstream outTXT(meshFileName.c_str());
-        gmesh->Print(outTXT);
-        outTXT.close();
-    }
+        {
+            const std::string meshFileName =
+            "blendmesh2D.txt";
+            std::ofstream outTXT(meshFileName.c_str());
+            copy.Print(outTXT);
+            outTXT.close();
+        }
 #endif
 #ifdef SHAPEFAD_OUTPUT_VTK
-    {
-        const std::string meshFileName =
-        "blendmesh2D.vtk";
-        std::ofstream outVTK(meshFileName.c_str());
-        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
-        outVTK.close();
-    }
+        {
+            const std::string meshFileName =
+            "blendmesh2D.vtk";
+            std::ofstream outVTK(meshFileName.c_str());
+            TPZVTKGeoMesh::PrintGMeshVTK(&copy, outVTK, true);
+            outVTK.close();
+        }
 #endif
+    }
 }
 
 
@@ -446,5 +395,87 @@ bool CheckMatrices(const TPZFMatrix<REAL> &gradx1, std::string name1,
     return hasAnErrorOccurred;
 }
 
+template<class TSHAPE>
+void ComputePhiFAD(const TPZVec<Fad<REAL>> &pt, TPZVec<int64_t> &nodeids, TPZFMatrix<REAL> &dphi, TPZFMatrix<Fad<REAL>> &phiFAD)
+{
+    TPZManVector<int,27> orders(TSHAPE::NSides-TSHAPE::NCornerNodes,pOrder);
+    TPZShapeH1<TSHAPE> shapeh1;
+    TPZShapeData data;
+    shapeh1.Initialize(nodeids, orders, data);
+    phiFAD.Resize(data.fPhi.Rows(),1);
+    TPZFMatrix<REAL> phi;
+    TPZManVector<REAL> xiReal(pt.size());
+    for(int i=0; i<xiReal.size(); i++) xiReal[i] = pt[i].val();
+    shapeh1.Shape(xiReal, data, phi, dphi);
+    TPZFMatrix<Fad<REAL>> dphiFAD(pt.size(),data.fDPhi.Cols());
+    shapeh1.Shape(pt, data, phiFAD, dphiFAD);
+}
 
+// compute the HDiv functions with standard point e computed with Fad
+template<class TSHAPE>
+void ComputeHDivFunctions(const TPZVec<Fad<REAL>> &qsifad, TPZVec<int64_t> &nodeids, TPZFMatrix<REAL> &phiHDiv, TPZFMatrix<REAL> &phiHDivFADReal)
+{
+    const int nfaces = TSHAPE::NFacets;
+    TPZManVector<int,27> orders(nfaces+1,pOrder);
+    const int dim = TSHAPE::Dimension;
+    TPZManVector<int,27> sideorient(nfaces,1);
+    TPZShapeHDiv<TSHAPE> shapehdiv;
+    TPZShapeData data;
+    shapehdiv.Initialize(nodeids, orders, sideorient, data);
+    TPZFMatrix<REAL> divphi;
+    TPZManVector<REAL,3> xiReal(dim);
+    for(int i=0; i<dim; i++) xiReal[i]=qsifad[i].val();
+    shapehdiv.Shape(xiReal, data, phiHDiv, divphi);
+    TPZFMatrix<Fad<REAL>> phiHDivFAD,divphiFAD;
+    shapehdiv.Shape(qsifad, data, phiHDivFAD, divphiFAD);
+    phiHDivFADReal.Resize(phiHDivFAD.Rows(),phiHDivFAD.Cols());
+    for (int i=0; i<phiHDiv.Rows(); i++) {
+        for (int j=0; j<phiHDiv.Cols(); j++) {
+            phiHDivFADReal(i,j) = phiHDivFAD(i,j).val();
+        }
+    }
+}
+
+
+template<class T>
+T DetJac(const TPZFMatrix<T> &mat)
+{
+    if(mat.Cols() == 2) return mat(0,0)*mat(1,1)-mat(0,1)*mat(1,0);
+    if(mat.Cols() == 3)
+    {
+        return mat(0,0)*mat(1,1)*mat(2,2)+mat(0,1)*mat(1,2)*mat(2,0)+mat(1,0)*mat(2,1)*mat(0,2)
+        -mat(0,2)*mat(1,1)*mat(2,0)-mat(1,0)*mat(0,1)*mat(2,2)-mat(2,1)*mat(1,2)*mat(0,0);
+
+    }
+    DebugStop();
+}
+
+template<class TSHAPE>
+void VerifyDivergenceCompatibility(const TPZVec<Fad<REAL>> &qsifad, const TPZFMatrix<Fad<REAL>> &gradX, TPZVec<int64_t> &nodeids, TPZFMatrix<REAL> &divphimaster, TPZFMatrix<REAL> &divphicomputed)
+{
+    const int nfaces = TSHAPE::NFacets;
+    TPZManVector<int,27> orders(nfaces+1,pOrder);
+    const int dim = TSHAPE::Dimension;
+    TPZManVector<int,27> sideorient(nfaces,1);
+    TPZShapeHDiv<TSHAPE> shapehdiv;
+    TPZShapeData data;
+    shapehdiv.Initialize(nodeids, orders, sideorient, data);
+    TPZFMatrix<REAL> phi;
+    TPZManVector<REAL,3> xiReal(dim);
+    for(int i=0; i<dim; i++) xiReal[i]=qsifad[i].val();
+    shapehdiv.Shape(xiReal, data, phi, divphimaster);
+    TPZFMatrix<Fad<REAL>> dphiFAD(2,data.fDPhi.Cols()),phiFAD;
+    shapehdiv.Shape(qsifad, data, phiFAD, dphiFAD);
+    TPZFMatrix<Fad<REAL>> dirHDiv;
+    auto detjac = DetJac(gradX);
+    gradX.MultAdd(phiFAD, phiFAD, dirHDiv, 1./detjac, 0.);
+    divphicomputed.Resize(dirHDiv.Cols(),1);
+    for (int i = 0; i<divphicomputed.Rows(); i++) {
+        divphicomputed(i,0) = 0.;
+        for (int d=0; d<dim; d++) {
+            divphicomputed(i,0) += dirHDiv(d,i).dx(d)*detjac.val();
+        }
+    }
+
+}
 }
