@@ -39,6 +39,7 @@
 #include "pzshapelinear.h"
 #include "TPZRefPatternTools.h"
 #include "pzshtmat.h"
+#include "TPZShapeH1.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
 #include "pzshapecube.h"
@@ -1189,9 +1190,10 @@ void CheckShapeOrder(int order)
                         point[2] = c+sidecenter[2];
                     }
 
+                    TPZManVector<int,27> locorders(tshape::NContainedSides(is)-tshape::NSideNodes(is),order);
                     TPZFNMatrix<200,REAL> philegendre(numlegendre,1,0.);
                     TPZFNMatrix<200,REAL> dphi(sidedim,nsideshape+firstshape), dphilegendre(1,numlegendre,0.), phi(nsideshape+firstshape,1,0.);
-                    tshape::SideShape(is, point, locids, orders, phi, dphi);
+                    TPZShapeH1<tshape>::SideShape(is, point, locids, locorders, phi, dphi);
                     
 //                    for (int ishape = firstshape; ishape<firstshape+nsideshape; ishape++) {
 //                        std::cout << phi(ishape,0) << " ";
