@@ -88,8 +88,10 @@ TPZMatrix<TVar>( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
     // Copia a matriz
     TVar * src = A.fElem;
     TVar * p = fElem;
-    memcpy((void *)(p),(void *)(src),(size_t)size*sizeof(TVar));
+    for(int64_t i = 0; i< size; i++) p[i]=src[i];
+//    memcpy((void *)(p),(void *)(src),(size_t)size*sizeof(TVar));
 }
+
 
 template<class TVar>
 TPZFMatrix<TVar>::TPZFMatrix(TPZFMatrix<TVar> &&A)
@@ -101,7 +103,8 @@ TPZFMatrix<TVar>::TPZFMatrix(TPZFMatrix<TVar> &&A)
     {
         int64_t size = A.fRow * A.fCol;
         fElem = new TVar[size] ;
-        memcpy((void *)(fElem),(void *)(A.fElem),(size_t)size*sizeof(TVar));
+        for(int64_t i = 0; i< size; i++) fElem[i]=A.fElem[i];
+//        memcpy((void *)(fElem),(void *)(A.fElem),(size_t)size*sizeof(TVar));
     }
     else {
         fElem = A.fElem;
@@ -162,7 +165,8 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
     fElem = newElem;
     
     // Copia a matriz
-    memcpy((void *)(fElem),(void *)(A.fElem),(size_t)size*sizeof(TVar));
+    for(int64_t i = 0; i<size; i++) fElem[i] = A.fElem[i];
+//    memcpy((void *)(fElem),(void *)(A.fElem),(size_t)size*sizeof(TVar));
     
     TPZMatrix<TVar>::operator=(A);
     
@@ -609,7 +613,10 @@ void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, int64_t rows, int64_t cols, cons
         if(beta != (TVar)0.) {
             const TVar *yp = &y.g(0,ic);
             if(&z != &y) {
-                memcpy((void *)zp,(void *)yp,numeq*sizeof(TVar));
+                for (int64_t i = 0; i<numeq; i++) {
+                    zp[i] = yp[i];
+                }
+//                memcpy((void *)zp,(void *)yp,numeq*sizeof(TVar));
             }
             for(int64_t i=0; i< numeq; i++) for(int64_t c=0; c<xcols; c++) z(i,c) *= beta;
         } else {
@@ -830,7 +837,8 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
             if(beta != (TVar)0.) {
                 const TVar *yp = &y.g(0,ic);
                 if(&z != &y) {
-                    memcpy((void *)zp,(void *)yp,numeq*sizeof(TVar));
+                    for(int64_t i = 0; i<numeq; i++) zp[i]=yp[i];
+//                    memcpy((void *)zp,(void *)yp,numeq*sizeof(TVar));
                 }
                 for(int64_t i=0; i< numeq; i++) z(i,ic) *= beta;
                 
