@@ -496,6 +496,10 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
 
     MElementType sidetype = TSHAPE::Type(side);
     switch (sidetype) {
+        case EPoint:
+            transformid = pztopology::TPZPoint::GetTransformId(id);
+            pztopology::TPZPoint::GetSideHDivPermutation(transformid, permutegather);
+            break;
         case EOned:
             transformid = pztopology::TPZLine::GetTransformId(id);
             pztopology::TPZLine::GetSideHDivPermutation(transformid, permutegather);
@@ -513,12 +517,14 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
             break;
     }
 
-    TPZManVector<int,TSHAPE::NSides> ord(TSHAPE::NSides,order);
+    TPZManVector<int,TSHAPE::NSides> ord(TSHAPE::NContainedSides(side)-TSHAPE::NSideNodes(side),order);
 
     int sidedimension = TSHAPE::SideDimension(side);
     TPZFNMatrix<50,REAL> philoc(nsideshape,1),dphiloc(sidedimension,nsideshape);
 
-    TSHAPE::SideShape(side,point,id,ord,philoc,dphiloc);
+    TPZShapeH1<TSHAPE>::SideShape(side, point, id, ord, philoc, dphiloc);
+
+//    TSHAPE::SideShape(side,point,id,ord,philoc,dphiloc);
 
     int ncs = TSHAPE::NContainedSides(side);
     TPZManVector<int64_t,28> FirstIndex(ncs+1,0);
