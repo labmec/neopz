@@ -996,9 +996,14 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
     TPZMaterial * material = Material();
     auto *matCombined =
        dynamic_cast<TPZMatCombinedSpacesT<STATE>*>(material);
+    auto *matBC = dynamic_cast<TPZBndCondT<STATE>*>(material);
     if(!material || !matCombined){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
         return result;
+    }
+    if (matBC) {
+        material = matBC->Material();
+        matCombined =dynamic_cast<TPZMatCombinedSpacesT<STATE>*>(matBC->Material());
     }
     
     if (this->NConnects() == 0) return result;//boundary discontinuous elements have this characteristic
