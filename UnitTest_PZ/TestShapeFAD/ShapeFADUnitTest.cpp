@@ -31,9 +31,9 @@ static TPZLogger logger("pz.mesh.testgeom");
 
 #include<catch2/catch.hpp>
 
-#define SHAPEFAD_VERBOSE //outputs x and grad comparisons
-#define SHAPEFAD_OUTPUT_TXT//prints all elements in .txt format
-#define SHAPEFAD_OUTPUT_VTK//prints all elements in .vtk format
+//#define SHAPEFAD_VERBOSE //outputs x and grad comparisons
+//#define SHAPEFAD_OUTPUT_TXT//prints all elements in .txt format
+//#define SHAPEFAD_OUTPUT_VTK//prints all elements in .vtk format
 
 namespace shapetest{
 const int pOrder = 3;
@@ -72,9 +72,11 @@ TEST_CASE("shapefad_tests","[shape_tests]") {
     gRefDBase.InitializeUniformRefPattern(ECube);
     {
         const int nDiv = 2;
-        auto gmesh = TPZGenSpecialGrid::CreateGeoMesh3D_DividedSphere(0);
-        
+        auto gmesh = TPZGenSpecialGrid::CreateGeoMesh3D_DividedSphere(0);        
         shapetest::TestMesh<pzshape::TPZShapeCube>(gmesh, nDiv);
+        shapetest::TestMesh<pzshape::TPZShapeTetra>(gmesh, nDiv);
+        shapetest::TestMesh<pzshape::TPZShapePrism>(gmesh, nDiv);
+        shapetest::TestMesh<pzshape::TPZShapePiram>(gmesh, nDiv);
         delete gmesh;
     }
     {
@@ -177,26 +179,28 @@ void TestMesh(TPZGeoMesh *gmesh, int nDiv)
                     errors++;
                 }
                 
-                TPZFMatrix<REAL> phihdiv,phihdivFad;
-                ComputeHDivFunctions<TSHAPE>(qsifad, nodeids, phihdiv, phihdivFad);
-                hasAnErrorOccurred = shapetest::CheckMatrices(phihdiv,"hdivphi",phihdivFad,"hdivphiFAD",shapetest::tol);
-                REQUIRE(!hasAnErrorOccurred);
-                if(hasAnErrorOccurred){
-                    errors++;
-                }
-                TPZFMatrix<REAL> divphi,divphiFad;
-                
-                VerifyDivergenceCompatibility<TSHAPE>(qsifad, gradXFAD, nodeids, divphi, divphiFad);
+                if(geo->Type() != EPiramide)
+                {
+                    TPZFMatrix<REAL> phihdiv,phihdivFad;
+                    ComputeHDivFunctions<TSHAPE>(qsifad, nodeids, phihdiv, phihdivFad);
+                    hasAnErrorOccurred = shapetest::CheckMatrices(phihdiv,"hdivphi",phihdivFad,"hdivphiFAD",shapetest::tol);
+                    REQUIRE(!hasAnErrorOccurred);
+                    if(hasAnErrorOccurred){
+                        errors++;
+                    }
+                    TPZFMatrix<REAL> divphi,divphiFad;
+                    
+                    VerifyDivergenceCompatibility<TSHAPE>(qsifad, gradXFAD, nodeids, divphi, divphiFad);
 
-//                divphi.Print("divphi master",std::cout);
-//
-//                divphiFad.Print("divphi deformed", std::cout);
-                hasAnErrorOccurred = shapetest::CheckMatrices(divphi,"hdivphi",divphiFad,"hdivphiFAD",shapetest::tol);
-                REQUIRE(!hasAnErrorOccurred);
-                if(hasAnErrorOccurred){
-                    errors++;
+    //                divphi.Print("divphi master",std::cout);
+    //
+    //                divphiFad.Print("divphi deformed", std::cout);
+                    hasAnErrorOccurred = shapetest::CheckMatrices(divphi,"hdivphi",divphiFad,"hdivphiFAD",shapetest::tol);
+                    REQUIRE(!hasAnErrorOccurred);
+                    if(hasAnErrorOccurred){
+                        errors++;
+                    }
                 }
-
             }
 #ifdef SHAPEFAD_VERBOSE
             if(errors > 0 || geo->IsGeoBlendEl()){
@@ -402,11 +406,13 @@ void ComputePhiFAD(const TPZVec<Fad<REAL>> &pt, TPZVec<int64_t> &nodeids, TPZFMa
     TPZShapeH1<TSHAPE> shapeh1;
     TPZShapeData data;
     shapeh1.Initialize(nodeids, orders, data);
-    phiFAD.Resize(data.fPhi.Rows(),1);
-    TPZFMatrix<REAL> phi;
+    
+    TPZFMatrix<REAL> phi(data.fPhi);
+    dphi.Resize(data.fDPhi.Rows(),data.fDPhi.Cols());
     TPZManVector<REAL> xiReal(pt.size());
     for(int i=0; i<xiReal.size(); i++) xiReal[i] = pt[i].val();
     shapeh1.Shape(xiReal, data, phi, dphi);
+    phiFAD.Resize(data.fPhi.Rows(),1);
     TPZFMatrix<Fad<REAL>> dphiFAD(pt.size(),data.fDPhi.Cols());
     shapeh1.Shape(pt, data, phiFAD, dphiFAD);
 }
