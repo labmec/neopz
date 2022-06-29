@@ -140,8 +140,9 @@ void TPZKrylovEigenSolver<TVar>::SetNEigenpairs(int n)
 template<class TVar>
 void TPZKrylovEigenSolver<TVar>::SetKrylovDim(int k)
 {
-  if(k<2){
-    k = 2;
+  
+  if(k<2 || k < 10*this->fNEigenpairs){
+    k = std::max(10*this->fNEigenpairs,10);
     std::cout<< "Adjusted Krylov dim to "<< k<<std::endl;
   }
   fKrylovDim = k;

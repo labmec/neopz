@@ -1,7 +1,7 @@
 /**
 
- * @file TPZWaveguideModalAnalysis.h
- * @brief Header file for class TPZWaveguideModalAnalysis.\n
+ * @file TPZWgma.h
+ * @brief Header file for class TPZWgma.\n
  */
 
 #ifndef TPZWAVEGUIDEMODALANALYSIS_H
@@ -17,7 +17,7 @@
  * It uses a 2D Hcurl space for the transversal components of the electric field and an 1D H1 space for the longitudinal component.
  * @note Formulation taken from: LEE, J.-F.; SUN, D.-K.; CENDES, Z.J. Full-wave analysis of dielectric waveguides using tangential vector finite elements.IEEE Transactions on Microwave Theory and Techniques, Institute of Electrical and Electronics Engineers (IEEE), v. 39, n. 8,p. 1262–1271, 1991
  */
-class  TPZWaveguideModalAnalysis :
+class  TPZWgma :
     public TPZMatBase<CSTATE,
                       TPZMatCombinedSpacesT<CSTATE>,
                       TPZMatGeneralisedEigenVal>
@@ -30,32 +30,32 @@ public:
     /**
        @brief Constructor taking a few material parameters
        @param[in] id Material identifier.
-       @param[in] ur Relative permeability.
        @param[in] er Relative permittivity.
+       @param[in] ur Relative permeability.
        @param[in] scale Scale for geometric domain.
        @note the `scale` param might help with floating point arithmetics on really small domains.
     */
-    TPZWaveguideModalAnalysis(int id, const CSTATE ur,
-                              const CSTATE er, const STATE lambda,
+    TPZWgma(int id, const CSTATE er,
+                              const CSTATE ur, const STATE lambda,
                               const REAL &scale = 1.);
     /**
        @brief Constructor taking a few material parameters
        @param[in] id Material identifier.
-       @param[in] ur Relative permeability (xx, yy, zz).
        @param[in] er Relative permittivity (xx, yy, zz).
+       @param[in] ur Relative permeability (xx, yy, zz).
        @param[in] scale Scale for geometric domain.
        @note the `scale` param might help with floating point arithmetics on really small domains.
     */
-    TPZWaveguideModalAnalysis(int id,
-                              const TPZVec<CSTATE> & ur,
+    TPZWgma(int id,
                               const TPZVec<CSTATE> & er,
+                              const TPZVec<CSTATE> & ur,
                               STATE lambda,
                               const REAL &scale = 1.);
-    explicit TPZWaveguideModalAnalysis(int id);
+    explicit TPZWgma(int id);
 
-    TPZWaveguideModalAnalysis * NewMaterial() const override;
+    TPZWgma * NewMaterial() const override;
     
-    std::string Name() const override { return "TPZWaveguideModalAnalysis"; }
+    std::string Name() const override { return "TPZWgma"; }
     
     /** @brief Returns the integrable dimension of the material */
     int Dimension() const override {return 2;}
@@ -104,7 +104,16 @@ public:
     /**
        @name SolutionMethods
        @{*/
-    //! Variable index of a given solution
+    /** @brief Variable index of a given solution.
+        Possibilities are:
+        -Et_real
+        -Ez_real
+        -Et_abs
+        -Ez_abs
+        -Material
+        -P_H1
+        -P_HCurl
+    */
     int VariableIndex(const std::string &name) const override;
     //! Number of variables associated with a given solution
     int NSolutionVariables(int var) const override;
@@ -117,14 +126,6 @@ public:
     //! Set the propagation constant used for post processing the solution
     inline void SetKz(const CSTATE &kz)
     { fKz = kz;}
-    /** @brief Whether to print only the real part of the electromagnetic field.
-     If false, it prints the magnitude of the field.*/
-    [[nodiscard]] inline bool ShouldPrintFieldRealPart() const
-    { return fPrintFieldRealPart;}
-    /** @brief Set to print only the real part of the electromagnetic field.
-     If set to false, it prints the magnitude of the field*/
-    void SetPrintFieldRealPart(bool printFieldRealPart)
-    { fPrintFieldRealPart = printFieldRealPart;}
     /**@}*/
 
     /** @name GeneralisedMethods */
@@ -156,8 +157,6 @@ protected:
     STATE fLambda{1.55e-9};
     //! Scale factor for the domain (helps with floating point arithmetic on small domains)
     const REAL fScaleFactor{1.};
-    //! Alternates between printing the real part of magnitude of the field
-    bool fPrintFieldRealPart{true};
     //!Fixes a propagation constant for printing the solution
     CSTATE fKz{1};
     static constexpr int fH1MeshIndex{1};
@@ -170,7 +169,7 @@ protected:
     //! Pointer to the current ContributeBC function
     TContributeBCType fCurrentContributeBC{nullptr};
     /** @} */
-    TPZWaveguideModalAnalysis();
+    TPZWgma();//< Default constructor
 
     /** @name InternalContributeMethods */
     /** @{*/

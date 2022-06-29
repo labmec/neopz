@@ -62,7 +62,7 @@ where
 
 This formulation was presented originally in this work :footcite:`lee1991`. In this work :footcite:`orlandini2018` a very detailed derivation along with results obtained using NeoPZ are presented.
 
-TPZWaveguideModalAnalysis
+TPZWgma
 """""""""""""""""""""""""
 This class supports materials with the following form of anisotropy:
 
@@ -80,22 +80,22 @@ This class supports materials with the following form of anisotropy:
    0 & 0 & \mu_{zz}\\
    \end{bmatrix}
 
-.. doxygenclass:: TPZWaveguideModalAnalysis
+.. doxygenclass:: TPZWgma
    :members:
    :protected-members:
    :membergroups: ContributeMethods InternalContributeMethods SolutionMethods GeneralisedMethods InternalGeneralisedTypes InternalGeneralisedAttributes
 
 .. note::
    
-   The methods :cpp:expr:`TPZWaveguideModalAnalysis::SetMatrixA` and :cpp:expr:`TPZWaveguideModalAnalysis::SetMatrixB` are responsible for ensuring that the right call to the contribute method is done depending on which matrix is being assembled.
+   The methods :cpp:expr:`TPZWgma::SetMatrixA` and :cpp:expr:`TPZWgma::SetMatrixB` are responsible for ensuring that the right call to the contribute method is done depending on which matrix is being assembled.
 
-TPZWaveguideModalAnalysisPML
+TPZMatPML
 """"""""""""""""""""""""""""
 
-This class implements a rectangular PML to be used with TPZWaveguideModalAnalysis.
+This class implements a rectangular PML to be used with electromagnetic materials.
 
 
-.. doxygenclass:: TPZWaveguideModalAnalysisPML
+.. doxygenclass:: TPZMatPML
    :members:
 
 
@@ -157,17 +157,17 @@ is specially interesting when analysing waveguide discontinuities.
    For simplicity, in the implementation, the computational domain is assumed
    to be in the :math:`xy` plane (source propagates in the :math:`x` direction).
 
-TPZPlanarWGScattering
+TPZPlanarWgScatt
 """""""""""""""""""""
 Implements the scattering analysis of a planar waveguide.
 
-.. doxygenclass:: TPZPlanarWGScattering
+.. doxygenclass:: TPZPlanarWgScatt
    :members:
       
-TPZPlanarWGScatteringPML
+TPZPeriodicWgma
 """"""""""""""""""""""""
-Implements a PML for the planar waveguide scattering analysis.
+Implements the modal analysis of periodic planar waveguides :footcite:`koshiba02`.
 
-.. doxygenclass:: TPZPlanarWGScatteringPML
+.. doxygenclass:: TPZPlanarWgScattPML
    :members:
 .. footbibliography::

@@ -1,20 +1,20 @@
-#include "Electromagnetics/TPZWaveguideModalAnalysis.h"
+#include "Electromagnetics/TPZWgma.h"
 #include "TPZBndCondT.h"
 #include "TPZCompElHCurl.h"
 #include "pzaxestools.h"
 
 using namespace std::complex_literals;
-TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis() : TBase()
+TPZWgma::TPZWgma() : TBase()
 {
     SetMatrixA();
 }
-TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id) : TBase(id){
+TPZWgma::TPZWgma(int id) : TBase(id){
     SetMatrixA();
 }
 
-TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id, 
-                                                     const CSTATE ur,
+TPZWgma::TPZWgma(int id, 
                                                      const CSTATE er,
+                                                     const CSTATE ur,
                                                      const STATE lambda,
                                                      const REAL &scale) :
     TBase(id), fUr(3), fEr(3), fScaleFactor(scale),
@@ -37,13 +37,13 @@ TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id,
         PZError<<"Setting negative permeability. Aborting..\n";
         DebugStop();
     }
-    SetPermeability(ur);
     SetPermittivity(er);
+    SetPermeability(ur);
 }
 
-TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id, 
-                                                     const TPZVec<CSTATE> &ur,
+TPZWgma::TPZWgma(int id, 
                                                      const TPZVec<CSTATE> &er,
+                                                     const TPZVec<CSTATE> &ur,
                                                      const STATE lambda,
                                                      const REAL &scale) :
     TBase(id), fUr(3), fEr(3), fScaleFactor(scale),
@@ -57,17 +57,17 @@ TPZWaveguideModalAnalysis::TPZWaveguideModalAnalysis(int id,
         DebugStop();
     }
 
-    SetPermeability(ur);
     SetPermittivity(er);
+    SetPermeability(ur);
     
 }
 
-TPZWaveguideModalAnalysis* TPZWaveguideModalAnalysis::NewMaterial() const{
-    return new TPZWaveguideModalAnalysis();
+TPZWgma* TPZWgma::NewMaterial() const{
+    return new TPZWgma();
 }
 
 
-void TPZWaveguideModalAnalysis::SetWavelength(STATE lambda)
+void TPZWgma::SetWavelength(STATE lambda)
 {
     if (lambda <0){
         PZError<<__PRETTY_FUNCTION__;
@@ -78,7 +78,7 @@ void TPZWaveguideModalAnalysis::SetWavelength(STATE lambda)
 }
 
 
-void TPZWaveguideModalAnalysis::SetPermeability(CSTATE ur)
+void TPZWgma::SetPermeability(CSTATE ur)
 {
     if (std::real(ur) <0){
         PZError<<__PRETTY_FUNCTION__;
@@ -88,7 +88,7 @@ void TPZWaveguideModalAnalysis::SetPermeability(CSTATE ur)
     fUr = {ur,ur,ur};
 }
 
-void TPZWaveguideModalAnalysis::SetPermeability(const TPZVec<CSTATE>& ur)
+void TPZWgma::SetPermeability(const TPZVec<CSTATE>& ur)
 {
     if(ur.size()!=3){
         PZError<<__PRETTY_FUNCTION__;
@@ -104,7 +104,7 @@ void TPZWaveguideModalAnalysis::SetPermeability(const TPZVec<CSTATE>& ur)
     }
     fUr = ur;
 }
-void TPZWaveguideModalAnalysis::SetPermittivity(CSTATE er)
+void TPZWgma::SetPermittivity(CSTATE er)
 {
     if (std::real(er) <0){
         PZError<<__PRETTY_FUNCTION__;
@@ -114,7 +114,7 @@ void TPZWaveguideModalAnalysis::SetPermittivity(CSTATE er)
     fEr = {er,er,er};
 }
 
-void TPZWaveguideModalAnalysis::SetPermittivity(const TPZVec<CSTATE>&er)
+void TPZWgma::SetPermittivity(const TPZVec<CSTATE>&er)
 {
     if(er.size()!=3){
         PZError<<__PRETTY_FUNCTION__;
@@ -131,7 +131,7 @@ void TPZWaveguideModalAnalysis::SetPermittivity(const TPZVec<CSTATE>&er)
     fEr = er;
 }
 
-void TPZWaveguideModalAnalysis::SetMatrixA()
+void TPZWgma::SetMatrixA()
 {
     TPZMatGeneralisedEigenVal::SetMatrixA();
     fCurrentContribute = [this](const auto &arg1, auto arg2, auto &arg3,
@@ -143,7 +143,7 @@ void TPZWaveguideModalAnalysis::SetMatrixA()
         this->ContributeBCA(arg1,arg2,arg3,arg4,arg5);
     };
 }
-void TPZWaveguideModalAnalysis::SetMatrixB()
+void TPZWgma::SetMatrixB()
 {
     TPZMatGeneralisedEigenVal::SetMatrixB();
     fCurrentContribute = [this](const auto &arg1, auto arg2, auto &arg3,
@@ -156,20 +156,20 @@ void TPZWaveguideModalAnalysis::SetMatrixB()
     };
 }
 
-void TPZWaveguideModalAnalysis::GetPermittivity(
+void TPZWgma::GetPermittivity(
   [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &er) const
 {
     er = fEr;
 }
 
-void TPZWaveguideModalAnalysis::GetPermeability(
+void TPZWgma::GetPermeability(
   [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &ur) const
 {
     ur = fUr;
 }
 
 void
-TPZWaveguideModalAnalysis::Contribute(
+TPZWgma::Contribute(
     const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
     REAL weight,
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef)
@@ -180,7 +180,7 @@ TPZWaveguideModalAnalysis::Contribute(
     fCurrentContribute(datavec,weight,ek,ef,er,ur);
 }
 
-void TPZWaveguideModalAnalysis::ContributeBC(
+void TPZWgma::ContributeBC(
     const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
     REAL weight,
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
@@ -190,7 +190,7 @@ void TPZWaveguideModalAnalysis::ContributeBC(
 }
 
 void
-TPZWaveguideModalAnalysis::ContributeA(
+TPZWgma::ContributeA(
     const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
     REAL weight,
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
@@ -228,7 +228,7 @@ TPZWaveguideModalAnalysis::ContributeA(
 }
 
 void
-TPZWaveguideModalAnalysis::ContributeB(
+TPZWgma::ContributeB(
     const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
     REAL weight,
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
@@ -302,7 +302,7 @@ TPZWaveguideModalAnalysis::ContributeB(
 }
 
 
-void TPZWaveguideModalAnalysis::ContributeBCA(
+void TPZWgma::ContributeBCA(
     const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
     REAL weight,
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
@@ -359,37 +359,42 @@ void TPZWaveguideModalAnalysis::ContributeBCA(
     }
 }
 
-void TPZWaveguideModalAnalysis::ContributeBCB(
+void TPZWgma::ContributeBCB(
     const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
     REAL weight,
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
     TPZBndCondT<CSTATE> &bc)
 {}
 
-int TPZWaveguideModalAnalysis::VariableIndex(const std::string &name) const
+int TPZWgma::VariableIndex(const std::string &name) const
 {
-    if( strcmp(name.c_str(), "Et") == 0) return 0;
-    if( strcmp(name.c_str(), "Ez") == 0) return 1;
-    if( strcmp(name.c_str(), "Material") == 0) return 2;
-    if( strcmp(name.c_str(), "POrderH1") == 0) return 3;
-    if( strcmp(name.c_str(), "POrderHCurl") == 0) return 4;
+    if( strcmp(name.c_str(), "Et_real") == 0) return 0;
+    if( strcmp(name.c_str(), "Ez_real") == 0) return 1;
+    if( strcmp(name.c_str(), "Et_abs") == 0) return 2;
+    if( strcmp(name.c_str(), "Ez_abs") == 0) return 3;
+    if( strcmp(name.c_str(), "Material") == 0) return 4;
+    if( strcmp(name.c_str(), "P_H1") == 0) return 5;
+    if( strcmp(name.c_str(), "P_HCurl") == 0) return 6;
     DebugStop();
     return 1;
 }
 
-int TPZWaveguideModalAnalysis::NSolutionVariables(int var) const
+int TPZWgma::NSolutionVariables(int var) const
 {
     switch (var) {
-        case 0: //Et
+        case 0: //Et_real
             return 2;
-            break;
-        case 1://Ez
+        case 1://Ez_real
             return 1;
-        case 2://material
+        case 2: //Et_abs
             return 2;
-        case 3://pOrderH1
+        case 3://Ez_abs
             return 1;
-        case 4://pOrderHCurl
+        case 4://material
+            return 2;
+        case 5://pOrderH1
+            return 1;
+        case 6://pOrderHCurl
             return 1;
         default:
             DebugStop();
@@ -399,7 +404,7 @@ int TPZWaveguideModalAnalysis::NSolutionVariables(int var) const
 }
 
 /** @brief Returns the solution associated with the var index based on the finite element approximation */
-void TPZWaveguideModalAnalysis::Solution(
+void TPZWgma::Solution(
     const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
     int var,
     TPZVec<CSTATE> &solout)
@@ -422,40 +427,57 @@ void TPZWaveguideModalAnalysis::Solution(
     ez = datavec[ fH1MeshIndex ].sol[0];
 
     switch (var) {
-        case 0:{//et
-            for (int i = 0; i < et.size(); ++i) {
-                et[i] /= fKz;
-                et[i] = fPrintFieldRealPart ? std::real(et[i]) : std::abs(et[i]);
-            }
-            solout = et;
-            break;
+    case 0:{//et_real
+        for (int i = 0; i < et.size(); ++i) {
+            et[i] /= fKz;
+            et[i] = std::real(et[i]);
         }
-        case 1:{//ez
-            for (int i = 0; i < ez.size(); ++i) {
-                ez[i] *= 1.0i;
-                ez[i] = fPrintFieldRealPart ? std::real(ez[i]) : std::abs(ez[i]);
-            }
-            solout = ez;
-            break;
+        solout = et;
+        break;
+    }
+    case 1:{//ez_real
+        for (int i = 0; i < ez.size(); ++i) {
+            ez[i] *= 1.0i;
+            ez[i] = std::real(ez[i]);
         }
-
-        case 2:{//material
-            solout[0] = exx;
-            solout[1] = eyy;
-            break;
+        solout = ez;
+        break;
+    }
+    case 2:{//et_abs
+        for (int i = 0; i < et.size(); ++i) {
+            et[i] /= fKz;
+            et[i] = std::abs(et[i]);
         }
-        case 3:{//pOrder
-            solout.Resize(1);
-            solout[0] = datavec[fH1MeshIndex].p;
-            break;
+        solout = et;
+        break;
+    }
+    case 3:{//ez_abs
+        for (int i = 0; i < ez.size(); ++i) {
+            ez[i] *= 1.0i;
+            ez[i] = std::abs(ez[i]);
         }
-        case 4:{//pOrder
-            solout.Resize(1);
-            solout[0] = datavec[fHCurlMeshIndex].p;
-            break;
-        }
-        default:
-            DebugStop();
-            break;
+        solout = ez;
+        break;
+    }
+    case 4:{//material
+        solout[0] = exx;
+        solout[1] = eyy;
+        break;
+    }
+    case 5:{//pOrder
+        solout.Resize(1);
+        solout[0] = datavec[fH1MeshIndex].p;
+        break;
+    }
+    case 6:{//pOrder
+        solout.Resize(1);
+        solout[0] = datavec[fHCurlMeshIndex].p;
+        break;
+    }
+    default:
+        DebugStop();
+        break;
     }
 }
+#include "TPZMatPML.h"
+template class TPZCombinedSpacesPML<TPZWgma>;
