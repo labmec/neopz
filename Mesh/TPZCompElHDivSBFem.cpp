@@ -14,7 +14,7 @@
 #include "TPZMaterialDataT.h"
 #include "pzelchdiv.h"
 #include "pzvec_extras.h"
-
+#include "TPZShapeH1.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivSBFem"));
@@ -299,9 +299,11 @@ void TPZCompElHDivSBFem<TSHAPE>::ExtendShapeFunctions(TPZMaterialDataT<STATE> &d
     {
         id[ic] = this->Reference()->Node(ic).Id();
     }
-
-    TSHAPE::Shape(data.xParametric, id, ord, philoc, dphiloc);
-
+    {
+        TPZShapeData dataloc;
+        TPZShapeH1<TSHAPE>::Initialize(id,ord,dataloc);
+        TPZShapeH1<TSHAPE>::Shape(data.xParametric, dataloc, philoc, dphiloc);
+    }
     TPZManVector<int,9> permutegather(TSHAPE::NSides);
     int transformid = TSHAPE::GetTransformId(id);
     TSHAPE::GetSideHDivPermutation(transformid, permutegather);
