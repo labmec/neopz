@@ -141,12 +141,12 @@ namespace pzshape {
             
             if constexpr (std::is_same_v<FADREAL, T>)
             {
-                TPZShapeLinear::FADfOrthogonal(x[0],order-2,phi0,dphi0);
-                TPZShapeLinear::FADfOrthogonal(x[1],order-2,phi1,dphi1);
+                TPZShapeLinear::FADfOrthogonal(out[0],order-2,phi0,dphi0);
+                TPZShapeLinear::FADfOrthogonal(out[1],order-2,phi1,dphi1);
             }
             else{
-                TPZShapeLinear::fOrthogonal(x[0],order-2,phi0,dphi0);
-                TPZShapeLinear::fOrthogonal(x[1],order-2,phi1,dphi1);
+                TPZShapeLinear::fOrthogonal(out[0],order-2,phi0,dphi0);
+                TPZShapeLinear::fOrthogonal(out[1],order-2,phi1,dphi1);
             }
             int index = 0;
             int i;
