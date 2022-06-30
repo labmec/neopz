@@ -266,6 +266,10 @@ namespace pztopology {
         static void ComputeConstantHDiv(const TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div){
             DebugStop();
         };
+        static void ComputeConstantHDiv(const TPZVec<Fad<REAL>> &point, TPZFMatrix<Fad<REAL>> &vecDiv, TPZVec<Fad<REAL>> &div){
+            DebugStop();
+        };
+
         static void ComputeConstantHCurl(const TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds){
             DebugStop();
         };
