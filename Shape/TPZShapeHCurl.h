@@ -36,6 +36,8 @@ struct TPZShapeHCurl
      */
     static void Shape(const TPZVec<REAL> &pt, TPZShapeData &data,
                       TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &curlphi);
+    static void Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data,
+                      TPZFMatrix<Fad<REAL>> &phi, TPZFMatrix<Fad<REAL>> &curlphi);
 
     /**
     * @brief Returns a matrix index of the shape and vector  associate to element
