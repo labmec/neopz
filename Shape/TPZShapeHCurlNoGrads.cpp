@@ -105,6 +105,76 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &d
 
 
 template<class TSHAPE>
+void TPZShapeHCurlNoGrads<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data, TPZFMatrix<Fad<REAL>> &phi, TPZFMatrix<Fad<REAL>> &curlphi)
+{
+
+    constexpr int ncorner = TSHAPE::NCornerNodes;
+    constexpr int nsides = TSHAPE::NSides;
+    constexpr int ncon = nsides - ncorner;
+    constexpr int dim = TSHAPE::Dimension;
+    constexpr int curldim = [dim](){
+        if constexpr (dim == 1) return 1;
+        else{
+            return 2*dim - 3;//1 for 2D 3 for 3D
+        }
+    }();
+    const int nedges = TSHAPE::NumSides(1);
+    
+    //calculates # of unfiltered hcurl functions
+    const auto &connectorders = data.fHDivConnectOrders;
+    //first_hcurl_side[i] is the index of the first shape function associated with side i
+    TPZManVector<int,ncon> first_hcurl_side(ncon,0);
+    //total number of unfiltered funcs
+    int n_unfilt = 0;
+
+    {
+      n_unfilt += TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(0,connectorders[0]);
+      for (int i = 1; i < ncon; i++){
+        first_hcurl_side[i] = n_unfilt;
+        n_unfilt += TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(i,connectorders[i]);
+      }
+    }
+    
+    //computes  unfiltered hcurl funcs
+    TPZFNMatrix<9,Fad<REAL>> phi_unfilt(dim,n_unfilt), curlphi_unfilt(curldim,n_unfilt);
+    TPZShapeHCurl<TSHAPE>::Shape(pt, data, phi_unfilt, curlphi_unfilt);
+
+    //now we filter the functions
+    int fcount = 0;
+    //edges: we sum the lowest order functions on the edge
+    for(auto ie = 0; ie < nedges; ie++){
+      //fss = first side shape
+      const auto fss = first_hcurl_side[ie];
+      for(auto x = 0; x < dim; x++){
+        phi(x,fcount) = phi_unfilt(x,fss) + phi_unfilt(x,fss+1);
+      }
+      for(auto x = 0; x < curldim; x++){
+        curlphi(x,fcount) = curlphi_unfilt(x,fss) + curlphi_unfilt(x,fss+1);
+      }
+      fcount++;
+    }
+    if constexpr (dim < 2) return;
+
+    TPZVec<int> filtVecShape;
+    HighOrderFunctionsFilter(first_hcurl_side, connectorders,filtVecShape);
+
+    const auto newfuncs = filtVecShape.size();
+    
+    for(int ifunc = 0; ifunc < newfuncs; ifunc++){
+      const auto fi = filtVecShape[ifunc];
+      for(auto x = 0; x < curldim; x++){
+        curlphi(x,fcount) = curlphi_unfilt(x,fi);
+      }
+      for(auto x = 0; x < dim; x++){
+        phi(x,fcount) = phi_unfilt(x,fi);
+      }
+      fcount++;
+    } 
+    
+    
+}
+
+template<class TSHAPE>
 int TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(const int icon, const int order)
 
 {
