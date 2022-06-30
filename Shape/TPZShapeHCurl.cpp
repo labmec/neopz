@@ -131,7 +131,7 @@ int TPZShapeHCurl<TSHAPE>::NHCurlShapeF(const TPZShapeData &data)
     
 
 template<class TSHAPE>
-void TPZShapeHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &curlphi)
+void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &curlphi)
 {
 
     constexpr int ncorner = TSHAPE::NCornerNodes;

@@ -25,7 +25,9 @@ struct TPZShapeHDivConstant : public TPZShapeHCurlNoGrads<TSHAPE>
     
     static int NHDivShapeF(TPZShapeData &data);
 
-    static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
+    static void Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
+
+    static void Shape(TPZVec<Fad<REAL>> &pt, TPZShapeData &data, TPZFMatrix<Fad<REAL>> &phi, TPZFMatrix<Fad<REAL>> &divphi);
     
     static int ComputeNConnectShapeF(int connect, int order);
     

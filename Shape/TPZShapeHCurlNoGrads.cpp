@@ -34,7 +34,7 @@ int TPZShapeHCurlNoGrads<TSHAPE>::NHCurlShapeF(const TPZShapeData &data)
     
 
 template<class TSHAPE>
-void TPZShapeHCurlNoGrads<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &curlphi)
+void TPZShapeHCurlNoGrads<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &curlphi)
 {
 
     constexpr int ncorner = TSHAPE::NCornerNodes;
