@@ -1365,9 +1365,8 @@ void TPZSubCompMesh::SetAnalysisFStruct(int numThreads)
 }
 
 
-void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned){
 	fAnalysis = new TPZSubMeshAnalysis(this);
-	fAnalysis->SetGuiInterface(guiInterface);
 	TPZAutoPointer<TPZStructMatrix> str = NULL;
 	str = new TPZSkylineStructMatrix<STATE>(this);
 	if(numThreads > 0){
@@ -1998,6 +1997,7 @@ bool TPZSubCompMesh::NeedsComputing(const std::set<int> &matids)
 		}
 	}
 #ifdef PZ_LOG
+    if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Material ids contained in the mesh ";

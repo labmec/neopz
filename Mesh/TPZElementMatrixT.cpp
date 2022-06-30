@@ -467,8 +467,10 @@ void TPZElementMatrixT<TVar>::PermuteGather(TPZVec<int64_t> &permute)
             int64_t iblsize = fBlock.Size(ibl);
             int64_t jblsize = fMat.Cols();
             for (int64_t idf=0; idf<iblsize; ++idf) {
+                int64_t fromindex = fBlock.Index(ibl,idf);
+                int64_t toindex = cp.fBlock.Index(permute[ibl],idf);
                 for (int64_t jdf=0; jdf<jblsize; ++jdf) {
-                    fMat.at(fBlock.at(ibl,0,idf,jdf)) = cp.fMat.at(cp.fBlock.at(permute[ibl],0,idf,jdf));
+                    fMat(fromindex,jdf) = cp.fMat(toindex,jdf);
                 }
             }
         }

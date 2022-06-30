@@ -1271,9 +1271,11 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
             if(ell != elj) *elj /= *ell;
             else if(IsZero(*elj)) {
 #ifdef PZ_LOG
-                std::stringstream sout;
-                sout << "col = " << j << " diagonal " << *elj;
-                LOGPZ_DEBUG(logger,sout.str())
+                if(logger.isErrorEnabled()){
+                    std::stringstream sout;
+                    sout << "col = " << j << " diagonal " << *elj;
+                    LOGPZ_ERROR(logger,sout.str())
+                }
 #endif
                 
                 *diagptr = *elj;
