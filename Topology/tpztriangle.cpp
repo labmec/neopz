@@ -30,10 +30,10 @@ REAL TPZTriangle::gTrans2dT[6][2][2] = {//s* , t*
     { {-1.,-1.},{ 1., 0.} },
     { { 1., 0.},{-1.,-1.} }
 };
+    
 
 REAL TPZTriangle::gVet2dT[6][2] = {  {0.,0.},{0.,0.},{0.,1.},{1.,0.},{1.,0.},{0.,1.} };
-
-
+    
     template<class T>
     inline void TPZTriangle::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T qsi = loc[0], eta = loc[1];
@@ -633,6 +633,7 @@ REAL TPZTriangle::gVet2dT[6][2] = {  {0.,0.},{0.,0.},{0.,1.},{1.,0.},{1.,0.},{0.
 		return 0;
 
 	}
+
 TPZTransform<REAL>  TPZTriangle::ParametricTransform(int trans_id){
     TPZTransform<REAL> trans(2,2);
     trans.Mult()(0,0) = gTrans2dT[trans_id][0][0];
@@ -644,7 +645,6 @@ TPZTransform<REAL>  TPZTriangle::ParametricTransform(int trans_id){
     return trans;
     
 }
-
 
 	/**
 	 * Method which identifies the transformation of a side based on the IDs

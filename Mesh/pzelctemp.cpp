@@ -275,6 +275,5 @@ template class TPZIntelGen<TPZShapeQuad>;
 template class TPZIntelGen<TPZShapeTetra>;
 template class TPZIntelGen<TPZShapePrism>;
 template class TPZIntelGen<TPZShapePiram>;
-template class TPZIntelGen<TPZShapePiramHdiv>;
 template class TPZIntelGen<TPZShapeCube>;
 

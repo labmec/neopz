@@ -1389,13 +1389,13 @@ void CheckDRhamFacePermutations(MElementType eltype)
             // verify the tranformation ids of all faces, starting with side
             int transid = 0;
             if (ncorner == 4) {
-                transid = TPZShapeQuad::GetTransformId2dQ(nodesperm);
+                transid = TPZShapeQuad::GetTransformId(nodesperm);
             }
             else if (ncorner == 3) {
-                transid = TPZShapeTriang::GetTransformId2dT(nodesperm);
+                transid = TPZShapeTriang::GetTransformId(nodesperm);
             }
             else if (ncorner == 2) {
-                transid = TPZShapeLinear::GetTransformId1d(nodesperm);
+                transid = TPZShapeLinear::GetTransformId(nodesperm);
             }
             else
             {
@@ -1418,17 +1418,17 @@ void CheckDRhamFacePermutations(MElementType eltype)
                     cornids[ic] = gel->NodePtr(locid)->Id();
                 }
                 if (nc == 4) {
-                    int transid = TPZShapeQuad::GetTransformId2dQ(cornids);
+                    int transid = TPZShapeQuad::GetTransformId(cornids);
                     verifiedperms[is].insert(transid);
                 }
                 else if(nc == 3)
                 {
-                    int transid = TPZShapeTriang::GetTransformId2dT(cornids);
+                    int transid = TPZShapeTriang::GetTransformId(cornids);
                     verifiedperms[is].insert(transid);
                 }
                 else if(nc == 2)
                 {
-                    int transid = TPZShapeLinear::GetTransformId1d(cornids);
+                    int transid = TPZShapeLinear::GetTransformId(cornids);
                     verifiedperms[is].insert(transid);
                 }
                 else
