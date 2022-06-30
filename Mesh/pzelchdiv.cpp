@@ -1102,7 +1102,6 @@ int TPZCompElHDiv<TSHAPE>::MaxOrder(){
 #include "pzshapetetra.h"
 #include "pzreftetrahedra.h"
 #include "pzgeotetrahedra.h"
-#include "pzshapepiram.h"
 #include "pzrefpyram.h"
 #include "pzgeopyramid.h"
 #include "pzrefpoint.h"
@@ -1185,7 +1184,6 @@ template class TPZRestoreClass< TPZCompElHDiv<TPZShapeQuad>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapeCube>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapeTetra>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapePrism>>;
-// template class TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>>;
 
 
 template class TPZCompElHDiv<TPZShapeLinear>;
@@ -1193,7 +1191,6 @@ template class TPZCompElHDiv<TPZShapeTriang>;
 template class TPZCompElHDiv<TPZShapeQuad>;
 template class TPZCompElHDiv<TPZShapeTetra>;
 template class TPZCompElHDiv<TPZShapePrism>;
-// template class TPZCompElHDiv<TPZShapePiram>;
 template class TPZCompElHDiv<TPZShapeCube>;
 
 
@@ -1232,10 +1229,6 @@ TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily h
 TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
 	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel,hdivfam);
 }
-
-// TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
-// 	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,hdivfam);
-// }
 
 TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
 	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel,hdivfam);

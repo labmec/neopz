@@ -43,6 +43,19 @@ namespace pztopology {
     static constexpr int64_t NFacets = 4;
     static constexpr int64_t NPermutations = 8;
       
+        /**Transformation of the point within a quadrilateral face */
+        constexpr static const REAL gTrans2dQ[8][2][2] = {//s* , t*
+            { { 1., 0.},{ 0., 1.} },
+            { { 0., 1.},{ 1., 0.} },
+            { { 0., 1.},{-1., 0.} },
+            { {-1., 0.},{ 0., 1.} },
+            { {-1., 0.},{ 0.,-1.} },//s* = -s   t* = -t  , etc
+            { { 0.,-1.},{-1., 0.} },
+            { { 0.,-1.},{ 1., 0.} },
+            { { 1., 0.},{ 0.,-1.} }
+        };
+        
+
     int ClassId() const override;
     void Read(TPZStream &buf, void *context) override;
     void Write(TPZStream &buf, int withclassid) const override;
@@ -197,7 +210,8 @@ namespace pztopology {
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */
 		static int GetTransformId(const TPZVec<int64_t> &id);
-		
+        static TPZTransform<REAL> ParametricTransform(int trans_id);
+        
 		/**
 		 * @brief Method which identifies the transformation of a side based on the IDs
 		 * of the corner nodes

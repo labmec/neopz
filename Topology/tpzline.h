@@ -188,6 +188,7 @@ namespace pztopology {
 		 */
 		static int GetTransformId(const TPZVec<int64_t> &id);
         
+        static TPZTransform<REAL> ParametricTransform(int transid);
 
         
 		/**

@@ -117,21 +117,7 @@ namespace pzshape {
 		
 public:
 		
-		/**
-		 * @brief Functions which computes the shapefunctions of a one-d element
-		 * @param pt coordinate of the point
-		 * @param order order of the shape functions to be computed 0<= order
-		 * @param phi shapefunction values
-		 * @param dphi values of the derivatives of the shape functions
-		 * @param id determines the orientation of the shape functions
-		 */
-		/**
-		 * The orientation of the shapefunctions depend on the order of the id parameters
-		 * if \f$ id[0] < id[1] \f$ the shapefunctions are unchanged
-		 * if \f$ id[0] > id[1] \f$ the odd ordered shapefunctions are inverted
-		 */
-		static void Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-        
+
         template<class T>
         static void ShapeCorner(const TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
             phi(0,0) = (1-pt[0])/2.;
@@ -141,8 +127,6 @@ public:
         }
 
 		
-		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-        
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
          */
@@ -170,38 +154,20 @@ public:
 		 * The shape1dInternal function is extensively used by the shapefunction computation of
 		 * the other elements
 		 */
-		static void ShapeInternal(TPZVec<REAL> &x,int ord,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,int transformation_index);
-        
-        /**
-         * @brief Computes the values of the orthogonal shapefunctions before multiplying them by the
-         * corner shapefunctions
-         * @param x coordinate of the point
-         * @param ord order of the shape functions to be computed 0<= order
-         * @param phi shapefunction values
-         * @param dphi values of the derivatives of the shape functions
-         * @param transformation_index = 0;
-         * functions. \n This parameter is computed by the GetTransformId1d method
-         * @see GetTransformId1d
-         */
-        /**
-         * The shape1dInternal function is extensively used by the shapefunction computation of
-         * the other elements
-         */
-        static void ShapeInternal(TPZVec<REAL> &x,int ord,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
+        template<class T>
+        static void ShapeInternal(TPZVec<T> &x,int ord,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
         {    //versao nova-> o ponto vem transformado
             // Quadratic or higher shape functions
             int num = ord-1;
             if(num <= 0) return;
             REAL y;
-            fOrthogonal(x[0],num,phi,dphi);
-        }
-        static void ShapeInternal(TPZVec<Fad<REAL>> &x,int ord,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi)
-        {    //versao nova-> o ponto vem transformado
-            // Quadratic or higher shape functions
-            int num = ord-1;
-            if(num <= 0) return;
-            REAL y;
-            FADfOrthogonal(x[0],num,phi,dphi);
+            if constexpr (std::is_same_v<FADREAL, T>)
+            {
+                TPZShapeLinear::FADfOrthogonal(x[0],num,phi,dphi);
+            }
+            else{
+                TPZShapeLinear::fOrthogonal(x[0],num,phi,dphi);
+            }
         }
 
             
@@ -222,75 +188,6 @@ public:
                 
         }
 
-        /**
-         * @brief Computes the generating shape functions for a quadrilateral element
-         * @param pt (input) point where the shape function is computed
-         * @param phi (input/output) value of the  shape functions
-         * @param dphi (input/output) value of the derivatives of the shape functions holding the derivatives in a column
-         */
-        static void ShapeGenerating(const TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
-        {
-            ShapeGenerating(pt, phi, dphi);
-        }
-
-		/**
-		 * @brief Computes the values of the orthogonal shapefunctions before multiplying them by the
-		 * corner shapefunctions
-		 * @param x coordinate of the point (with derivative already setup)
-		 * @param num number of shape functions to be computed
-		 * @param phi shapefunction values and derivatives
-		 * @param transformation_index determines the transformation applied to the internal shape
-		 * functions. \n This parameter is computed by the GetTransformId1d method
-		 * @see GetTransformId1d
-		 * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
-		 */
-		/**
-		 * The shape1dInternal function is extensively used by the shapefunction computation of the other elements
-		 */
-		static void ShapeInternal(FADREAL & x,int num,TPZFMatrix<FADREAL> & phi,int transformation_index);
-
-		/**
-		 * @brief Computes the transformation applied to the variational parameter of the one-d element
-		 * @param transid identifier of the transformation of the one-d element as obtained by the GetTransformId1d method
-		 * @param in coordinate of the variational parameter
-		 * @param out transformed parameter
-		 */
-		/**
-		 * The transformation applied to compensate for odd/even brokerage between elements can also
-		 * be viewed by the transformation of a variational parameter.
-		 */
-		static void TransformPoint1d(int transid,REAL in,REAL &out);
-		/**
-		 * @brief Computes the transformation applied to the variational parameter of the one-d element
-		 * @param transid identifier of the transformation of the one-d element as obtained by the GetTransformId1d method
-		 * @param in coordinate of the variational parameter (with derivatives)
-		 * @param out transformed parameter (with derivatives)
-		 * @note REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
-		 */
-		/*
-		 * The transformation applied to compensate for odd/even brokerage between elements can also
-		 * be viewed by the transformation of a variational parameter.
-		 */
-		static void TransformPoint1d(int transid,FADREAL & in,FADREAL &out);
-		/**
-		 * @brief Applies the transformation on the values of the derivatives of the shape functions of the
-		 * internal shape functions
-		 * @param transid identifier of the transformation of the one-d element as obtained by the GetTransformId1d method
-		 * @param num number of shapefunctions needed to transform
-		 * @param in matrix containing the values of the derivatives of the shapefunctions as a row vector \n
-		 * the values of the derivatives contained in this matrix are modified upon return
-		 */
-		static void TransformDerivative1d(int transid,int num,TPZFMatrix<REAL> &in);
-
-		/**
-		 * @brief Computes the id of the transformation which will be applied on the parameter of the element\n
-		 * @param id contains two distinct integer numbers which determine the orientation of the element
-		 * @return index of the tranformation
-		 */
-		/**
-		 * The return value is used in several methods of this class
-		 */
-		static int GetTransformId1d(TPZVec<int64_t> &id);
 
 		/**
 		 * @brief Number of shapefunctions of the connect associated with the side, considering the order
@@ -308,28 +205,7 @@ public:
 		 * @return number of shape functions
 		 */
 		static int NShapeF(const TPZVec<int> &order);
-        static void TransformPoint1d(int transid,double &val) ;
-        static TPZTransform<REAL> ParametricTransform(int transid);
         
-        // compute internal shape function of the side, x was already projected
-        static void ShapeInternal(int side, TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
-        {
-            if (side != 2) {
-                phi(0,0) = 1.;
-                return;
-            }
-            ShapeInternal(x, order, phi, dphi);
-        }
-        static void ShapeInternal(int side, TPZVec<FADREAL> &x, int order,TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi)
-        {
-            if (side != 2) {
-                phi(0,0) = 1.;
-                return;
-            }
-            ShapeInternal(x, order, phi, dphi);
-        }
-
-		
 	};
 	
 };

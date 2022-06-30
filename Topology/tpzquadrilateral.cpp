@@ -616,7 +616,15 @@ namespace pztopology {
 		return 0;
 
 	}
-    
+TPZTransform<REAL> TPZQuadrilateral::ParametricTransform(int trans_id){
+    TPZTransform<REAL> trans(2,2);
+    trans.Mult()(0,0) = gTrans2dQ[trans_id][0][0];
+    trans.Mult()(0,1) = gTrans2dQ[trans_id][0][1];
+    trans.Mult()(1,0) = gTrans2dQ[trans_id][1][0];
+    trans.Mult()(1,1) = gTrans2dQ[trans_id][1][1];
+    return trans;
+}
+
     /**
      * @brief return the vector which permutes the connects according to the transformation id
      */

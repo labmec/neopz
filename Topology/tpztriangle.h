@@ -41,6 +41,12 @@ namespace pztopology {
     static constexpr int64_t NFacets = 3;
     static constexpr int64_t NPermutations = 6;
     
+        
+    /** @brief Data structure which defines the triangle transformations*/
+    static REAL gTrans2dT[6][2][2];
+    /** @brief Data structure which defines the triangle transformations*/
+    static REAL gVet2dT[6][2];
+
     int ClassId() const override;
     void Read(TPZStream &buf, void *context) override;
     void Write(TPZStream &buf, int withclassid) const override;
@@ -193,6 +199,8 @@ namespace pztopology {
 		 */
 		static int GetTransformId(const TPZVec<int64_t> &id);
 		
+        static TPZTransform<REAL>  ParametricTransform(int trans_id);
+
 		/**
 		 * @brief Method which identifies the transformation of a side based on the IDs of the corner nodes
 		 * @param id Indexes of the corner nodes

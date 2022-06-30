@@ -399,6 +399,13 @@ namespace pztopology {
 		return id[0] < id[1] ? 0 : 1;
 	}
 	
+TPZTransform<REAL> TPZLine::ParametricTransform(int transid) {
+    TPZTransform<REAL> trans(1,1);
+    if (!transid) trans.Mult()(0,0) =  1;
+    else          trans.Mult()(0,0) = -1;
+    return trans;
+}
+
 	/**
 	 * Method which identifies the transformation of a side based on the IDs
 	 * of the corner nodes
