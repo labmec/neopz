@@ -1760,6 +1760,43 @@ namespace pztopology {
         div[3] = 2. / scale;
     }
 
+    /// Compute the directions of the HDiv vectors
+    // template <class TVar>
+    void TPZPrism::ComputeConstantHDiv(const TPZVec<Fad<REAL>> &point, TPZFMatrix<Fad<REAL>> &RT0function, TPZVec<Fad<REAL>> &div)
+    {
+        FADREAL scale;        
+        
+        FADREAL qsi = point[0];
+        FADREAL eta = point[1];
+        FADREAL zeta = point[2];
+
+        //Face functions
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
+
+        // Top and bottom is the same as cube
+        scale = 0.5;
+        RT0function(2,0) = -0.5 * (1. - zeta) / scale;
+        RT0function(2,4) = 0.5 * (1. + zeta) / scale;
+        div[0] = 0.5 / scale;
+        div[4] = 0.5 / scale;
+
+        //Faces are the same as triangles
+        scale = 2.;
+        RT0function(0,1) = qsi / scale;
+        RT0function(1,1) = (eta - 1.) / scale;   
+        div[1] = 2./scale;
+
+        scale = M_SQRT2 * 2.;
+        RT0function(0,2) = M_SQRT2 * qsi / scale;
+        RT0function(1,2) = M_SQRT2 * eta / scale;
+        div[2] = 2.* M_SQRT2 / scale;
+
+        scale = 2.;
+        RT0function(0,3) = (qsi - 1.) / scale;
+        RT0function(1,3) = eta / scale;
+        div[3] = 2. / scale;
+    }
+
     /// Compute the directions of the HCurl vectors
     // template <class TVar>
     void TPZPrism::ComputeConstantHCurl(const TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)

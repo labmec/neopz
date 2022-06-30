@@ -1174,6 +1174,31 @@ TPZTransform<REAL> TPZQuadrilateral::ParametricTransform(int trans_id){
         
     }
 
+    /// Compute the directions of the HDiv vectors
+    // template <class TVar>
+    void TPZQuadrilateral::ComputeConstantHDiv(const TPZVec<Fad<REAL>> &point, TPZFMatrix<Fad<REAL>> &RT0function, TPZVec<Fad<REAL>> &div)
+    {
+        FADREAL scale = 2.;
+        FADREAL qsi = point[0];
+        FADREAL eta = point[1];
+        RT0function.Zero();
+
+        //Face functions
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
+        RT0function(1,0) = -0.5 * (1. - eta) / scale;
+        div[0] = 0.5 / scale;
+
+        RT0function(0,1) = 0.5 * (1. + qsi) / scale;
+        div[1] = 0.5 / scale;
+
+        RT0function(1,2) = 0.5 * (1. + eta) / scale;
+        div[2] = 0.5 / scale;
+
+        RT0function(0,3) = -0.5 * (1. - qsi) / scale;
+        div[3] = 0.5 / scale; 
+        
+    }
+
     // template <class TVar>
     void TPZQuadrilateral::ComputeConstantHCurl(const TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
     {
