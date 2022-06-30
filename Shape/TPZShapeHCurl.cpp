@@ -185,6 +185,63 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TP
     }
 }
 
+template<class TSHAPE>
+void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data, TPZFMatrix<Fad<REAL>> &phi, TPZFMatrix<Fad<REAL>> &curlphi)
+{
+
+    constexpr int ncorner = TSHAPE::NCornerNodes;
+    constexpr int nsides = TSHAPE::NSides;
+    constexpr int dim = TSHAPE::Dimension;
+    constexpr int curldim = [dim](){
+        if constexpr (dim == 1) return 1;
+        else{
+            return 2*dim - 3;//1 for 2D 3 for 3D
+        }
+    }();
+    
+    TPZFNMatrix<9,Fad<REAL>> locphi(data.fPhi.Rows(),data.fPhi.Cols()),dphi(data.fDPhi.Rows(),data.fDPhi.Cols());
+    TPZShapeH1<TSHAPE>::Shape(pt,data, locphi, dphi);
+    
+    for(int i = 0; i< data.fSDVecShapeIndex.size(); i++)
+    {
+        const auto &it = data.fSDVecShapeIndex[i];
+        const int vecindex = it.first;
+        const int scalindex = it.second;
+        
+        for(int d = 0; d<TSHAPE::Dimension; d++)
+        {
+            phi(d,i) = locphi(scalindex,0)*data.fMasterDirections(d,vecindex);
+        }
+
+        if constexpr (dim==1){
+            curlphi(0,i) =
+                dphi.GetVal( 0,vecindex) *
+                data.fMasterDirections.GetVal(0,vecindex);
+        }else if constexpr (dim==2){
+            curlphi(0,i) =
+                dphi.GetVal(0,scalindex) *
+                data.fMasterDirections.GetVal(1,vecindex) -
+                dphi.GetVal(1,scalindex) *
+                data.fMasterDirections.GetVal(0,vecindex);
+            }
+        else if constexpr(dim==3){
+            for(auto d = 0; d < dim; d++) {
+                const auto di = (d+1)%dim;
+                const auto dj = (d+2)%dim;
+                curlphi(d,i) =
+                    dphi.GetVal(di,scalindex) *
+                    data.fMasterDirections.GetVal(dj,vecindex)-
+                    dphi.GetVal(dj,scalindex) *
+                    data.fMasterDirections.GetVal(di,vecindex);
+            }
+        }else{
+            if constexpr (std::is_same_v<TSHAPE,TSHAPE>){
+                static_assert(!sizeof(TSHAPE),"Invalid curl dimension");
+            }
+        }        
+    }
+}
+
 
 template<class TSHAPE>
 int TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(const int icon, const int order)
