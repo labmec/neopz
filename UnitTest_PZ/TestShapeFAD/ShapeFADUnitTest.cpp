@@ -31,9 +31,9 @@ static TPZLogger logger("pz.mesh.testgeom");
 
 #include<catch2/catch.hpp>
 
-#define SHAPEFAD_VERBOSE //outputs x and grad comparisons
-#define SHAPEFAD_OUTPUT_TXT//prints all elements in .txt format
-#define SHAPEFAD_OUTPUT_VTK//prints all elements in .vtk format
+//#define SHAPEFAD_VERBOSE //outputs x and grad comparisons
+//#define SHAPEFAD_OUTPUT_TXT//prints all elements in .txt format
+//#define SHAPEFAD_OUTPUT_VTK//prints all elements in .vtk format
 
 namespace shapetest{
 const int pOrder = 3;
@@ -71,7 +71,7 @@ TEST_CASE("shapefad_tests","[shape_tests]") {
     gRefDBase.InitializeUniformRefPattern(EPrisma);
     gRefDBase.InitializeUniformRefPattern(ECube);
     {
-        const int nDiv = 2;
+        const int nDiv = 0;
         auto gmesh = TPZGenSpecialGrid::CreateGeoMesh3D_DividedSphere(0);        
         shapetest::TestMesh<pzshape::TPZShapeTetra>(gmesh, nDiv);
         shapetest::TestMesh<pzshape::TPZShapeCube>(gmesh, nDiv);
@@ -80,7 +80,7 @@ TEST_CASE("shapefad_tests","[shape_tests]") {
         delete gmesh;
     }
     {
-        const int nDiv = 4;
+        const int nDiv = 0;
         auto gmesh = TPZGenSpecialGrid::CreateGeoMesh2D_Circle(0);
         
         shapetest::TestMesh<pzshape::TPZShapeQuad>(gmesh,nDiv);
@@ -192,11 +192,11 @@ void TestMesh(TPZGeoMesh *gmesh, int nDiv)
                     
                     VerifyDivergenceCompatibility<TSHAPE>(qsifad, gradXFAD, nodeids, divphi, divphiFad);
 
-                    divphi.Print("divphi master",std::cout);
-    
-                    divphiFad.Print("divphi deformed", std::cout);
-                    TPZFMatrix<REAL> diff = divphi-divphiFad;
-                    diff.Print("diff ", std::cout);
+//                    divphi.Print("divphi master",std::cout);
+//
+//                    divphiFad.Print("divphi deformed", std::cout);
+//                    TPZFMatrix<REAL> diff = divphi-divphiFad;
+//                    diff.Print("diff ", std::cout);
                     
                     hasAnErrorOccurred = shapetest::CheckMatrices(divphi,"hdivphi",divphiFad,"hdivphiFAD",shapetest::tol);
                     REQUIRE(!hasAnErrorOccurred);
