@@ -1151,7 +1151,7 @@ TPZTransform<REAL> TPZQuadrilateral::ParametricTransform(int trans_id){
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZQuadrilateral::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
+    void TPZQuadrilateral::ComputeConstantHDiv(const TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
         REAL scale = 2.;
         REAL qsi = point[0];
@@ -1175,7 +1175,7 @@ TPZTransform<REAL> TPZQuadrilateral::ParametricTransform(int trans_id){
     }
 
     // template <class TVar>
-    void TPZQuadrilateral::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
+    void TPZQuadrilateral::ComputeConstantHCurl(const TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
     {
         REAL scale = 2.;
         REAL qsi = point[0];
