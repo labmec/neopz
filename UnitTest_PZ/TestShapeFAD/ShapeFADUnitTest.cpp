@@ -457,6 +457,7 @@ T DetJac(const TPZFMatrix<T> &mat)
 
     }
     DebugStop();
+    return T(0);
 }
 
 template<class TSHAPE>
