@@ -19,6 +19,7 @@
 #include "pzvec.h"            // for TPZVec
 #include "tpzautopointer.h"   // for TPZAutoPointer
 #include "pzadmchunk.h"       // for TPZAdmChunkVector
+#include "TPZMatrixSolver.h"
 class TPZCompEl;
 class TPZCompMesh;
 class TPZConnect;
