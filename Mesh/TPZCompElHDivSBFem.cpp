@@ -301,7 +301,8 @@ void TPZCompElHDivSBFem<TSHAPE>::ExtendShapeFunctions(TPZMaterialDataT<STATE> &d
     }
     {
         TPZShapeData dataloc;
-        TPZShapeH1<TSHAPE>::Initialize(id,ord,dataloc);
+        TPZManVector<int,9> ord1D(1,ord[0]);
+        TPZShapeH1<TSHAPE>::Initialize(id,ord1D,dataloc);
         TPZShapeH1<TSHAPE>::Shape(data.xParametric, dataloc, philoc, dphiloc);
     }
     TPZManVector<int,9> permutegather(TSHAPE::NSides);
