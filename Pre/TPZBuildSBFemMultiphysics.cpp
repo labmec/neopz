@@ -390,18 +390,18 @@ void TPZBuildSBFemMultiphysics::CreateCompElPressure(TPZCompMesh &cmeshpressure,
     map<int, TPZMaterial*> matveccopy;
     for (auto const& [key, val] : matvec)
     {
-        auto valbndcnd = dynamic_cast<TPZMaterial *>(val);
+        auto valbndcnd = dynamic_cast<TPZBndCondT<STATE> *>(val);
         if(!valbndcnd)
         {
             matveccopy[key] = val->NewMaterial();
         } else 
         {
-            map<int, TPZMaterial*> bnd;
-            valbndcnd->Clone(bnd);
-            for (auto const& [keybnd, valbnd] : bnd)
-            {
-                matveccopy[keybnd] = valbnd;
-            }
+//            map<int, TPZMaterial*> bnd;
+            val->Clone(matveccopy);
+//            for (auto const& [keybnd, valbnd] : bnd)
+//            {
+//                matveccopy[keybnd] = valbnd;
+//            }
         }
     }
 
