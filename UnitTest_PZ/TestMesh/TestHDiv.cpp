@@ -241,7 +241,7 @@ TEST_CASE("drham_permute_check","[hdiv_mesh_tests]")
     CheckDRhamFacePermutations(ECube);
     CheckDRhamPermutations(EQuadrilateral);
     CheckDRhamPermutations(ETriangle);
-    std::cout << "Leaving  DRham consistency under permutation check\n";
+//    std::cout << "Leaving  DRham consistency under permutation check\n";
 }
 
 
@@ -863,37 +863,40 @@ static void CheckDRham(TPZCompEl *cel)
     TPZAutoPointer<TPZMatrix<STATE> > L2 = new TPZFMatrix<STATE>;
     GenerateProjectionMatrix(cel, L2, inner);
     int porder = cel->GetgOrder();
-    std::string filename;
+    if(0)
     {
-        std::stringstream sout;
-        sout << "../matrices" << porder << ".nb";
-        filename = sout.str();
+        std::string filename;
+        {
+            std::stringstream sout;
+            sout << "../matrices" << porder << ".nb";
+            filename = sout.str();
+        }
+        
+        std::ofstream output(filename.c_str());
+        {
+            std::stringstream sout;
+            sout << "L2" << porder << " = ";
+            filename = sout.str();
+        }
+        L2->Print(filename.c_str(),output, EMathematicaInput);
+        {
+            std::stringstream sout;
+            sout << "PressHDiv" << porder << " = ";
+            filename = sout.str();
+        }
+        inner.Print(filename.c_str(),output,EMathematicaInput);
     }
-    
-    std::ofstream output(filename.c_str());
-    {
-        std::stringstream sout;
-        sout << "L2" << porder << " = ";
-        filename = sout.str();
-    }
-    L2->Print(filename.c_str(),output, EMathematicaInput);
-    {
-        std::stringstream sout;
-        sout << "PressHDiv" << porder << " = ";
-        filename = sout.str();
-    }
-    inner.Print(filename.c_str(),output,EMathematicaInput);
     TPZStepSolver<STATE> step(L2);
     step.SetDirect(ELU);
     step.Solve(inner,multiplier);
-    {
-        std::stringstream sout;
-        sout << "multipl" << porder << " = ";
-        filename = sout.str();
-    }
-
-    multiplier.Print(filename.c_str(),output,EMathematicaInput);
-    output.close();
+//    {
+//        std::stringstream sout;
+//        sout << "multipl" << porder << " = ";
+//        filename = sout.str();
+//    }
+//
+//    multiplier.Print(filename.c_str(),output,EMathematicaInput);
+//    output.close();
     int nwrong = 0;
     nwrong = VerifyProjection(cel, multiplier);
     if(nwrong)
@@ -978,7 +981,9 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
     intel->InitMaterialData(dataA);
     intelP->InitMaterialData(dataB);
     int dim = intel->Reference()->Dimension();
-    const TPZIntPoints &intrule = intel->GetIntegrationRule();
+    TPZGeoEl *gel = cel->Reference();
+    TPZAutoPointer<TPZIntPoints> intruleptr = gel->CreateSideIntegrationRule(gel->NSides()-1, 4);
+    const TPZIntPoints &intrule = intruleptr;
     int np = intrule.NPoints();
     int npressure = dataB.phi.Rows();
     int nflux = dataA.fVecShapeIndex.NElements();
@@ -1324,7 +1329,7 @@ void VectorDirections()
 void CheckDRhamFacePermutations(MElementType eltype)
 {
     TPZVec<TPZCompMesh *>  meshvec(2);
-    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype,3,4,0);
+    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype,3,3,0);
     TPZGeoMesh *gmesh = cmesh->Reference();
     int meshdim = cmesh->Dimension();
 
@@ -1359,6 +1364,7 @@ void CheckDRhamFacePermutations(MElementType eltype)
     TPZManVector<std::set<int>, 27> verifiedperms(nsides);
     
     int64_t permcounter = 0;
+    int64_t nchecked = 0;
     for (int side = 0; side < nsides; side++) {
         if (gel->SideDimension(side) != dimension-1) {
             continue;
@@ -1380,7 +1386,7 @@ void CheckDRhamFacePermutations(MElementType eltype)
                 int id = nodesperm[locindex];
                 gel->NodePtr(locindex)->SetNodeId(id);
             }
-            
+            nchecked++;
             // verify the tranformation ids of all faces, starting with side
             int transid = 0;
             if (ncorner == 4) {
@@ -1440,8 +1446,9 @@ void CheckDRhamFacePermutations(MElementType eltype)
             // compare
             perm++;
             permcounter++;
-        } while (!perm.IsFirst() && permcounter < 150);
+        } while (!perm.IsFirst() && permcounter < 10);
     }
+    std::cout << "permcounter " << permcounter << " nchecked " << nchecked << std::endl;
 }
 
 void CheckDRhamPermutations(MElementType eltype)
