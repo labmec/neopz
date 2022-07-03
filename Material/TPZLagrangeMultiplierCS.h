@@ -62,8 +62,8 @@ class TPZLagrangeMultiplierCS :
     {return "TPZLagrangeMultiplierCS";}
     
     void ContributeInterface(const TPZMaterialDataT<TVar> &data,
-                             const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
-                             const std::map<int, TPZMaterialDataT<TVar>> &dataright,
+                             std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                             std::map<int, TPZMaterialDataT<TVar>> &dataright,
                              REAL weight,
                              TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef) override;
 
@@ -88,7 +88,7 @@ class TPZLagrangeMultiplierCS :
                   int var, TPZVec<TVar> &sol) override
     {}
     void ContributeBCInterface(const TPZMaterialDataT<TVar> &data,
-                               const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                               std::map<int, TPZMaterialDataT<TVar>> &dataleft,
                                REAL weight,
                                TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef,
                                TPZBndCondT<TVar> &bc) override
