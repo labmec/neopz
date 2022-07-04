@@ -76,18 +76,46 @@ void TPZEigenAnalysis::SetSolver(const TPZSolver &solver)
 
 void TPZEigenAnalysis::Assemble()
 {
-  if(fSolType == EReal)
-    AssembleT<STATE>();
-  else
-    AssembleT<CSTATE>();
+  if(fSolType == EReal){
+    if(!fIsSetUp){ConfigAssemble<STATE>();}
+    AssembleT<STATE,TPZEigenAnalysis::Mat::A>();
+    auto *eigSolver = &(this->EigenSolver<STATE>());
+    if(eigSolver->IsGeneralised()){
+      AssembleT<STATE,TPZEigenAnalysis::Mat::B>();
+    }
+  }
+  else{
+    if(!fIsSetUp){ConfigAssemble<CSTATE>();}
+    AssembleT<CSTATE,TPZEigenAnalysis::Mat::A>();
+    auto *eigSolver = &(this->EigenSolver<CSTATE>());
+    if(eigSolver->IsGeneralised()){
+      AssembleT<CSTATE,TPZEigenAnalysis::Mat::B>();
+    }
+  }
 }
 
+void TPZEigenAnalysis::AssembleMat(const TPZEigenAnalysis::Mat mat){
+  if(fSolType == EReal){
+    if(!fIsSetUp){ConfigAssemble<STATE>();}
+    if(mat == TPZEigenAnalysis::Mat::A){
+      AssembleT<STATE,TPZEigenAnalysis::Mat::A>();
+    }else{
+      AssembleT<STATE,TPZEigenAnalysis::Mat::B>();
+    }
+  }
+  else{
+    if(!fIsSetUp){ConfigAssemble<CSTATE>();}
+    if(mat == TPZEigenAnalysis::Mat::A){
+      AssembleT<CSTATE,TPZEigenAnalysis::Mat::A>();
+    }else{
+      AssembleT<CSTATE,TPZEigenAnalysis::Mat::B>();
+    }
+  }
+}
+
+
 template<class TVar>
-void TPZEigenAnalysis::AssembleT()
-{
-  
-  //it wont be resized or anything.
-  TPZFMatrix<TVar> dummyRhs;
+void TPZEigenAnalysis::ConfigAssemble(){
   if (!fCompMesh) {
     std::stringstream sout;
     sout << __PRETTY_FUNCTION__;
@@ -99,6 +127,7 @@ void TPZEigenAnalysis::AssembleT()
 #endif
     return;
   }
+  
   if (!this->fStructMatrix) {
 #ifdef USING_MKL
     std::cout << "Setting default struct matrix: sparse(non-symmetric)"
@@ -111,35 +140,53 @@ void TPZEigenAnalysis::AssembleT()
 #endif
     this->SetStructuralMatrix(defaultMatrix);
   }
-  
   fStructMatrix->SetComputeRhs(false);
-  
-  {
-    auto *eigSolver = &(this->EigenSolver<TVar>()); 
-    if (!eigSolver) {
-      std::cout << "Setting default solver: Krylov" << std::endl;
-      constexpr int nev{10};
-      constexpr int dimKrylov{100};
-      TPZKrylovEigenSolver<TVar> defaultSolver;
-      defaultSolver.SetNEigenpairs(nev);
-      defaultSolver.SetKrylovDim(dimKrylov);
-      std::cout << "Setting nev: " << nev << std::endl;
-      std::cout << "Setting krylov dim: " << dimKrylov << std::endl;
-      this->SetSolver(defaultSolver);
-    }
+  auto *eigSolver = &(this->EigenSolver<TVar>());
+  if (!eigSolver) {
+    std::cout << "Setting default solver: Krylov" << std::endl;
+    constexpr int nev{10};
+    constexpr int dimKrylov{100};
+    TPZKrylovEigenSolver<TVar> defaultSolver;
+    defaultSolver.SetNEigenpairs(nev);
+    defaultSolver.SetKrylovDim(dimKrylov);
+    std::cout << "Setting nev: " << nev << std::endl;
+    std::cout << "Setting krylov dim: " << dimKrylov << std::endl;
+    this->SetSolver(defaultSolver);
   }
-  
+  fIsSetUp = true;
+}
+
+template<class TVar, TPZEigenAnalysis::Mat MAT>
+void TPZEigenAnalysis::AssembleT()
+{
+  //it wont be resized or anything.
+  TPZFMatrix<TVar> dummyRhs;
   const auto sz = fStructMatrix->EquationFilter().NActiveEquations();
   auto &eigSolver = this->EigenSolver<TVar>();
+
+  //this doesnt make sense if not generalised
+  if constexpr (MAT==TPZEigenAnalysis::Mat::B){
+    if (!eigSolver.IsGeneralised()) {
+      PZError << __PRETTY_FUNCTION__;
+      PZError << "\nERROR: assembling matrix B but solver is not\n"
+              << "configured for GEVP\n"
+              << "Aborting...\n";
+      DebugStop();
+    }
+  }
+
   if (eigSolver.IsGeneralised()) {
-    
-    
     auto &materialVec = fCompMesh->MaterialVec();
     for (auto &&item : materialVec) {
       auto mat = (item.second);
       auto eigmat = dynamic_cast<TPZMatGeneralisedEigenVal *>(mat);
-      if (eigmat)
-        eigmat->SetMatrixA();
+      if (eigmat){
+        if constexpr (MAT==TPZEigenAnalysis::Mat::A){
+          eigmat->SetMatrixA();
+        }else{
+          eigmat->SetMatrixB();
+        }
+      }
       else {
         PZError << __PRETTY_FUNCTION__;
         PZError << "\nERROR: cannot solve generalised EVP if\n"
@@ -150,42 +197,28 @@ void TPZEigenAnalysis::AssembleT()
       }
     }
   }
-  auto matA = eigSolver.MatrixA();
-  if (matA && matA->Rows() == sz) {
-    matA->Zero();
-    fStructMatrix->Assemble(*matA, dummyRhs, fGuiInterface);
+
+
+  
+  auto mat = [&eigSolver](){
+    if constexpr (MAT==TPZEigenAnalysis::Mat::A){
+      return eigSolver.MatrixA();
+    }else{
+      return eigSolver.MatrixB();
+    }
+  }();
+    
+  if (mat && mat->Rows() == sz) {
+    mat->Zero();
+    fStructMatrix->Assemble(*mat, dummyRhs, fGuiInterface);
   } else {
     TPZAutoPointer<TPZMatrix<TVar>> mat =
       dynamic_cast<TPZMatrix<TVar>*>(
           fStructMatrix->CreateAssemble(dummyRhs, fGuiInterface));
-    eigSolver.SetMatrixA(mat);
-  }
-
-  // fSolver->UpdateFrom(fSolver->MatrixA());
-  if (eigSolver.IsGeneralised()) {
-    auto &materialVec = fCompMesh->MaterialVec();
-    for (auto &&item : materialVec) {
-      auto mat = (item.second);
-      auto eigmat = dynamic_cast<TPZMatGeneralisedEigenVal *>(mat);
-      if (eigmat)
-        eigmat->SetMatrixB();
-      else {
-        PZError << __PRETTY_FUNCTION__;
-        PZError << "\nERROR: cannot solve generalised EVP if\n"
-                << "the materials do not have the interface:\n"
-                << "TPZMatGeneralisedEigenVal\n"
-                << "Aborting...\n";
-        DebugStop();
-      }
-    }
-    auto matB = eigSolver.MatrixB();
-    if (matB && matB->Rows() == sz) {
-      matB->Zero();
-      fStructMatrix->Assemble(*matB, dummyRhs, fGuiInterface);
-    } else {
-      TPZAutoPointer<TPZMatrix<TVar>> mat =
-        dynamic_cast<TPZMatrix<TVar>*>(
-          fStructMatrix->CreateAssemble(dummyRhs, fGuiInterface));
+    
+    if constexpr (MAT==TPZEigenAnalysis::Mat::A){
+      eigSolver.SetMatrixA(mat);
+    }else{
       eigSolver.SetMatrixB(mat);
     }
   }

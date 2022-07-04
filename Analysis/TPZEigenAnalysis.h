@@ -17,6 +17,7 @@ class TPZEigenSolver;
  */
 class TPZEigenAnalysis : public TPZAnalysis{
 public:
+    enum class Mat{A,B};//< Which matrix should be assembled
     /** @name Constructors*/
     /** @{ */
     /** @brief Create an empty TPZEigenAnalysis object*/
@@ -37,6 +38,8 @@ public:
     void SetSolver(const TPZSolver &solver) override;
     /** @brief Assemble the matrices associated with the EVP*/
     void Assemble() override;
+    /** @brief Assemble one of the matrices associated with the EVP*/
+    void AssembleMat(const TPZEigenAnalysis::Mat mat);
     /** @brief Solve the EVP problem*/
     void Solve() override;
     /** @brief Gets the eigenvectors calculated by the Solve method*/
@@ -75,10 +78,13 @@ private:
     using TPZAnalysis::PostProcessError;
     using TPZAnalysis::PostProcessErrorSerial;
     using TPZAnalysis::PostProcessErrorParallel;
-    template<class TVar>
+    template<class TVar, Mat MAT>
     void AssembleT();
     template<class TVar>
     void SolveT();
+    template<class TVar>
+    void ConfigAssemble();
+    bool fIsSetUp{false};
 };
 
 
