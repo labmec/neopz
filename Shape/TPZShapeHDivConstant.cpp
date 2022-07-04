@@ -171,7 +171,7 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
             count++;
         
             //Kernel HDiv functions
-            for (int k = 0; k < data.fHDivNumConnectShape[nEdges]; k++){
+            for (int k = 0; k < data.fHDivNumConnectShape[nEdges+i]; k++){
                 for(auto d = 0; d < dim; d++) {
                     phi(d,count) = curlPhiAux(d,countKernel);               
                 }
