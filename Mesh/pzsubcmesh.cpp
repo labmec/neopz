@@ -1955,6 +1955,30 @@ void TPZSubCompMesh::CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimens
 	}
 }
 
+int TPZSubCompMesh::NumberOfCompElementsInsideThisCompEl()
+{
+  int nel = 0;
+  for(auto cel : fElementVec){
+    if(cel){
+      nel += cel->NumberOfCompElementsInsideThisCompEl();
+    }
+  }
+  return nel;
+}
+
+TPZVec<TPZCompEl*> TPZSubCompMesh::GetCompElList(){
+  TPZVec<TPZCompEl*> elvec(this->NumberOfCompElementsInsideThisCompEl());
+  int count = 0;
+  for(auto cel : fElementVec){
+    if(cel){
+      for(auto ccel : cel->GetCompElList()){
+        elvec[count++] = cel;
+      }
+    }
+  }
+  return elvec;
+}
+
 /**
  * Verifies if any element needs to be computed corresponding to the material ids
  */

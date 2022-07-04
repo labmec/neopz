@@ -82,7 +82,7 @@ void TPZGeoNode::SetCoord(int i,REAL coord) {
 }
 
 // fill the coordinates of the node
-void TPZGeoNode::GetCoordinates(TPZVec<REAL> &co)
+void TPZGeoNode::GetCoordinates(TPZVec<REAL> &co) const
 {
 	for(int i=0; i<3; i++) co[i] = fCoord[i];
 }

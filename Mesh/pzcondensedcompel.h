@@ -214,7 +214,11 @@ public:
     {
         fReferenceCompEl->CreateGraphicalElement(graphmesh, dimension);
     }
-    
+
+
+    //! Gets the i-th element for being post-processed
+  TPZVec<TPZCompEl *>GetCompElList() override
+    { return {fReferenceCompEl};}
 
     int ComputeIntegrationOrder() const override {
         std::cout << "This method should not be called. " << __PRETTY_FUNCTION__ << std::endl;

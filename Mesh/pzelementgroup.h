@@ -234,7 +234,30 @@ public:
 									std::map<int64_t,int64_t> & gl2lcElMap) const override;
 
 public:
+
+
+    TPZVec<TPZCompEl*> GetCompElList() override
+    {
     
+        TPZVec<TPZCompEl*> elvec(this->NumberOfCompElementsInsideThisCompEl());
+        int count = 0;
+        for(auto cel : fElGroup){
+            if(cel){
+                for(auto ccel : cel->GetCompElList()){
+                    elvec[count++] = cel;
+                }
+            }
+        }
+        return elvec;
+    }
+
+    int NumberOfCompElementsInsideThisCompEl() override{
+        int nel  = 0;
+        for (auto fg : fElGroup){
+            nel += fg->NumberOfCompElementsInsideThisCompEl();
+        }
+        return nel;
+    }
     /**
 	 * @brief Creates corresponding graphical element(s) if the dimension matches
 	 * graphical elements are used to generate output files

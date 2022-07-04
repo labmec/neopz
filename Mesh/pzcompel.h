@@ -364,7 +364,10 @@ public:
 	virtual void ComputeError(int errorid, TPZVec<REAL> &error){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented.\n";
 	}
-	
+
+  //! Gets the i-th element for being post-processed
+  virtual TPZVec<TPZCompEl *>GetCompElList()
+  {return {this};}
 	/**
 	 * @brief Creates corresponding graphical element(s) if the dimension matches
 	 * graphical elements are used to generate output files

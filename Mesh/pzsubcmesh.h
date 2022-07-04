@@ -340,6 +340,11 @@ public:
 	 */
 	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension) override;
 
+
+  int NumberOfCompElementsInsideThisCompEl() override;
+
+  //! Gets the i-th element for being post-processed
+  TPZVec<TPZCompEl*>GetCompElList() override;
 	/** @brief Returns the connection index i. */
 	virtual int64_t ConnectIndex(int i) const override;
 	
