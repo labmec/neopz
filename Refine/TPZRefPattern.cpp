@@ -1187,6 +1187,7 @@ void TPZRefPattern::ReadAndCreateRefinementPattern(std::istream &pattern){
         if(el > 0)
         {
             subel->SetFather(father);
+            father->SetSubElement(el-1, subel);
             subel->SetFatherIndex(father->Index());
         }
     }
