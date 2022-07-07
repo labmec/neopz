@@ -46,8 +46,14 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
     TPZMaterial * material = TBASE::Material();
     auto * matWithMem =
         dynamic_cast<TPZMatWithMemBase *>(material);
-    if(!material || !matWithMem){
-        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+    if(!material)
+    {
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " material == NULL\n";
+        DebugStop();
+        return;
+    }
+    if(!matWithMem){
+        PZError << "Matid = " << material->Id() << " at " << __FUNCTION__ << " has no memory\n";
         return;
     }
     
