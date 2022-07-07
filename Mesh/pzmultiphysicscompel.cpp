@@ -1181,9 +1181,9 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool
       return;
   }
   if(!matError){
-      PZError << __PRETTY_FUNCTION__;
-      PZError<<" no error interface for this element.\n";
-      PZError<<"See TPZMatErrorCombinedSpaces\n";
+//      PZError << __PRETTY_FUNCTION__;
+//      PZError<<" no error interface for this element.\n";
+//      PZError<<"See TPZMatErrorCombinedSpaces\n";
       return;
   }
       
@@ -1218,7 +1218,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool
   values.Fill(0.0);
   REAL weight;
 
-  TPZManVector<TPZMaterialDataT<TVar>, 5> datavec;
+  TPZManVector<TPZMaterialDataT<TVar>, 6> datavec;
   const int64_t nref = fElementVec.size();
   datavec.resize(nref);
   InitMaterialData(datavec);
