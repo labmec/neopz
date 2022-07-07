@@ -291,7 +291,7 @@ inline int64_t TPZCompElWithMem<TBASE>::GetGlobalIntegrationPointIndex(TPZMateri
     int64_t glIntegralPt = -1;
     auto np = fIntPtIndices.size();
 #ifdef PZDEBUG
-    if(fIntPtIndices.size()==0 && data.intLocPtIndex)
+    if(fIntPtIndices.size()==0 && data.intLocPtIndex >= 0)
     {
         std::cout << __PRETTY_FUNCTION__ << "\nInconsistent data structure intLocPtIndex "
         << data.intLocPtIndex << " no point indices ";
