@@ -703,8 +703,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
     }
 
     if (data.fNeedsDeformedDirectionsFad) {
-        // Needs to be rethought
-        DebugStop();
         for (int e = 0; e < normvecRows; e++) {
             for (int s = 0; s < normvecCols; s++) {
                 Normalvec(e,s)=data.fDeformedDirectionsFad(e,s).val();
@@ -729,9 +727,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
     }
 
     TPZBlock &block =this->Mesh()->Block();
-    int ishape=0,ivec=0,counter=0;
+    int ivec=0;
 
-    int nshapeV = data.fVecShapeIndex.NElements();
 
     for(int in=0; in<ncon; in++)
     {
@@ -749,7 +746,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
                 for(int idf=0; idf<nstate; idf++)
                 {
                     TVar meshsol = MeshSol(pos+ish*nstate+idf,is);
-                    REAL phival = data.phi(ishape,0);
                     TPZManVector<REAL,3> normal(3);
 
                     for (int i=0; i<3; i++)
@@ -765,8 +761,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
                     if(logger.isDebugEnabled() && abs(meshsol) > 1.e-6)
                     {
                         std::stringstream sout;
-                        sout << "meshsol = " << meshsol << " ivec " << ivec << " ishape " << ishape << " x " << data.x << std::endl;
-                        sout << " phi = " << data.phi(ishape,0)  << std::endl;
+                        sout << "meshsol = " << meshsol << " ivec " << ivec <<  " x " << data.x << std::endl;
                         sout << "normal = " << normal << std::endl;
 //                        sout << "GradOfPhiHdiv " << GradOfPhiHdiv << std::endl;
                         sout << "GradNormalVec " << GradNormalvec[ivec] << std::endl;
@@ -774,23 +769,18 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
                     }
 #endif
 
-                    data.divsol[is][idf] += data.divphi(counter,0)*meshsol;
+                    data.divsol[is][idf] += data.divphi(ivec,0)*meshsol;
                     for (int ilinha=0; ilinha<dim; ilinha++) {
-                        data.sol[is][ilinha+dim*idf] += normal[ilinha]*phival*meshsol;
+                        data.sol[is][ilinha+dim*idf] += normal[ilinha]*meshsol;
                         for (int kdim = 0 ; kdim < dim; kdim++) {
-                            data.dsol[is](ilinha+dim*idf,kdim)+= meshsol * GradOfPhiHdiv(ilinha,kdim);
                             if(data.fNeedsDeformedDirectionsFad){
-                                data.dsol[is](ilinha+dim*idf,kdim)+=meshsol *GradNormalvec[ivec](ilinha,kdim)*data.phi(ishape,0);
+                                data.dsol[is](ilinha+dim*idf,kdim)+=meshsol *GradNormalvec[ivec](ilinha,kdim);
                             }
                         }
-
                     }
-
                 }
             }
-            counter++;
             ivec++;
-            ishape++;
         }
     }
 
@@ -1004,7 +994,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
         }
         Fad<REAL> detjacFad;
         this->Reference()->ComputeDetjac(gradxfad,detjacFad);
-        gradxfad.MultAdd(phiMasterFad,data.fDeformedDirectionsFad,data.fDeformedDirectionsFad,1./fabs(detjacFad));
+        gradxfad.MultAdd(phiMasterFad,data.fDeformedDirectionsFad,data.fDeformedDirectionsFad,1./abs(detjacFad));
     }
     gradx.MultAdd(phiMaster,data.fDeformedDirections,data.fDeformedDirections,1./fabs(data.detjac));
     data.divphi *= 1/fabs(data.detjac);
