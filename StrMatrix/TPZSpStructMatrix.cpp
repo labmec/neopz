@@ -33,8 +33,7 @@ template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::Create(){
     int64_t neq = this->fMesh->NEquations();
     if(this->fMesh->FatherMesh()) {
-		PZError << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
-		DebugStop();
+//		PZError << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
     }
 	
     /**
