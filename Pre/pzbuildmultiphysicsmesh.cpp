@@ -963,10 +963,10 @@ static void FillAtomic(TPZMultiphysicsInterfaceElement *intface, TPZVec<atomic_i
         TPZCompEl *cel = mphysleft->Element(imesh);
         if(!cel) continue;
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-        int nside_connects = intel->NSideConnects(leftside.Side());
-        for(int ic=0; ic<nside_connects; ic++)
+        int nconnects = intel->NConnects();
+        for(int ic=0; ic<nconnects; ic++)
         {
-            int64_t atomic_conindex = intel->SideConnectIndex(ic, leftside.Side());
+            int64_t atomic_conindex = intel->ConnectIndex(ic);
             int64_t mphys_index = intface->ConnectIndex(count);
             indexes[mphys_index] = atomic_index(cel->Mesh(),atomic_conindex);
             count++;
@@ -978,10 +978,10 @@ static void FillAtomic(TPZMultiphysicsInterfaceElement *intface, TPZVec<atomic_i
         TPZCompEl *cel = mphysright->Element(imesh);
         if(!cel) continue;
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-        int nside_connects = intel->NSideConnects(rightside.Side());
-        for(int ic=0; ic<nside_connects; ic++)
+        int nconnects = intel->NConnects();
+        for(int ic=0; ic<nconnects; ic++)
         {
-            int64_t atomic_conindex = intel->SideConnectIndex(ic, rightside.Side());
+            int64_t atomic_conindex = intel->ConnectIndex(ic);
             int64_t mphys_index = intface->ConnectIndex(count);
             indexes[mphys_index] = atomic_index(cel->Mesh(),atomic_conindex);
             count++;
