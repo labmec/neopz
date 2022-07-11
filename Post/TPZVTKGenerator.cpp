@@ -9,6 +9,17 @@
 #include "TPZMaterialDataT.h"
 #include "pzmultiphysicselement.h"
 
+#include "TPZRefPatternDataBase.h"
+
+
+#include "tpzline.h"
+#include "tpztriangle.h"
+#include "tpzquadrilateral.h"
+#include "tpztetrahedron.h"
+#include "tpzcube.h"
+#include "tpzprism.h"
+#include "tpzpyramid.h"
+
 /*********************************************************************/
 /* File:   TPZVTKGenerator.cpp                                       */
 /* Author: Francisco Orlandini                                       */
@@ -33,7 +44,7 @@ private:
 
 template<class TVar>
 void ComputeFieldAtEl(TPZCompEl *cel,
-                      const TPZVec<std::array<REAL,3>> &ref_vertices,
+                      const TPZVec<TPZManVector<REAL,3>> &ref_vertices,
                       TPZVec<TPZAutoPointer<TPZVTKField>>& fields){
   TPZManVector<TVar,9> sol;
 
@@ -41,17 +52,14 @@ void ComputeFieldAtEl(TPZCompEl *cel,
 
   TPZPostProcEl<TVar> graphel(cel);
   graphel.InitData();
-  TPZManVector<REAL,3> qsi(celdim,0);
-  for (const auto &ip : ref_vertices){
-    //copy to tpzvec with appropriate size
-    for(int ix = 0; ix < celdim; ix++){qsi[ix] = ip[ix];}
-
-    graphel.ComputeRequiredData(qsi);
+  for (auto &ip : ref_vertices){
+    ip.Resize(celdim);
+    graphel.ComputeRequiredData(ip);
     for (int i = 0; i < fields.size(); i++){
       auto &field = *(fields[i]);
       auto fdim = field.Dimension();
       sol.Resize(fdim);
-      graphel.Solution(qsi, field.Id(), sol);
+      graphel.Solution(ip, field.Id(), sol);
       const auto sz = sol.size();
       if constexpr (std::is_same_v<TVar,CSTATE>){
         for (int d = 0; d < sz; ++d){
@@ -128,270 +136,64 @@ void TPZVTKGenerator::ResetArrays()
   }
 }
 
+template <class TOPOL>
+void TPZVTKGenerator::FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
+                                      TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems){
+  if(fSubdivision == 0)
+  {
+    static constexpr auto nnodes = TOPOL::NCornerNodes;
+    ref_coords.Resize(nnodes,{0,0,0});
+    //create array with all entries = nnodes
+    AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS+2>{});
+    ref_elems[0][0] = TPZVTK::CellType(TOPOL::Type());
+    ref_elems[0][1] = nnodes;
+    for(int i = 0; i < nnodes; i++){
+      TOPOL::ParametricDomainNodeCoord(i,ref_coords[i]);
+      ref_elems[0][i+2] = i;
+    }
+  }else
+  {
+    auto refp = gRefDBase.GetUniformRefPattern(TOPOL::Type());
+    auto refpmesh = refp->RefPatternMesh();
 
-void TPZVTKGenerator::FillReferenceLine(TPZVec<std::array<REAL,3>> &ref_coords, TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems)
-{
-  const int r = 1 << fSubdivision;
 
-  const REAL h = 2.0 / r;
-  constexpr REAL init = -1;
-  for (int i = 0; i <= r; ++i){
-    AppendToVec(ref_coords,std::array<REAL,3>{init + i * h, 0});
-    AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(EOned), 2, i, i+1});
-  }
-}
+    const int nrefs = fSubdivision - 1;
 
-
-void TPZVTKGenerator::FillReferenceTrig(TPZVec<std::array<REAL,3>> &ref_coords, TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems)
-{
-  if (fSubdivision == 0){
-    AppendToVec(ref_coords,std::array<REAL,3>{0.0, 0.0, 0.0});
-    AppendToVec(ref_coords,std::array<REAL,3>{1.0, 0.0, 0.0});
-    AppendToVec(ref_coords,std::array<REAL,3>{0.0, 1.0, 0.0});
-    AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(ETriangle),3, 0, 1, 2});
-  }
-  else{
-    const int r = 1 << fSubdivision;
-    const int s = r + 1;
-
-    const REAL h = 1.0 / r;
-
-    int pidx = 0;
-    for (int i = 0; i <= r; ++i)
-      for (int j = 0; i + j <= r; ++j){
-        AppendToVec(ref_coords,std::array<REAL,3>{j * h, i * h});
-      }
-
-    pidx = 0;
-
-    for (int i = 0; i <= r; ++i)
-      for (int j = 0; i + j <= r; ++j, pidx++)
-      {
-        // int pidx_curr = pidx;
-        if (i + j == r)
-          continue;
-        int pidx_incr_i = pidx + 1;
-        int pidx_incr_j = pidx + s - i;
-
-        AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(ETriangle), 3, pidx, pidx_incr_i, pidx_incr_j});
-        int pidx_incr_ij = pidx_incr_j + 1;
-
-        if (i + j + 1 < r){
-          AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(ETriangle), 3, pidx_incr_i, pidx_incr_ij, pidx_incr_j});
+    TPZManVector<TPZGeoEl*,TPZVTK::MAX_SUBEL> sons(TPZVTK::MAX_SUBEL);
+    for(int i = 0; i < nrefs; i++){
+      for(auto gel : refpmesh.ElementVec()){
+        if(gel->HasSubElement()==false){
+          gel->Divide(sons);
         }
       }
-  }
-}
-/// Fill principil lattices (points and connections on subdivided reference simplex) in 2D
-void TPZVTKGenerator::FillReferenceQuad(TPZVec<std::array<REAL,3>> &ref_coords, TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems)
-{
-  if (fSubdivision == 0)
-    {
-      AppendToVec(ref_coords,std::array<REAL,3>{-1.0, -1.0, 0.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{ 1.0, -1.0, 0.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{ 1.0,  1.0, 0.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{-1.0,  1.0, 0.0});
-      AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS+2>{TPZVTK::CellType(EQuadrilateral), 4, 0, 1, 2, 3});
     }
-  else
-    {
-      const int r = 1 << fSubdivision;
-      // const int s = r + 1;
+    
+    
+    //fill nodesg
+    const auto nnodes = refpmesh.NNodes();
+    ref_coords.Resize(nnodes,{0,0,0});
+    for(auto in = 0; in < nnodes; in++){
+      auto &node = refpmesh.NodeVec()[in];
+      node.GetCoordinates(ref_coords[in]);
+    }
 
-      const REAL h = 2.0 / r;
-      constexpr REAL init{-1};
-      int pidx = 0;
-      for (int i = 0; i <= r; ++i)
-        for (int j = 0; j <= r; ++j)
-          {
-            AppendToVec(ref_coords,std::array<REAL,3>{init + j * h, init + i * h});
-          }
 
-      for (int i = 0; i < r; ++i)
-        {
-          int incr_i = r + 1;
-          pidx = i * incr_i;
-          for (int j = 0; j < r; ++j, pidx++)
-            {
-              AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(EQuadrilateral),4, pidx, pidx + 1, pidx + incr_i + 1, pidx + incr_i});
-            }
+    //fill cells
+    int ic = 0;//i-th cell
+    for(TPZGeoEl* gel : refpmesh.ElementVec()){
+      if(gel->HasSubElement()==false){
+        const int gnnodes = gel->NNodes();
+        AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS+2>{});
+        ref_elems[ic][0] = TPZVTK::CellType(gel->Type());
+        ref_elems[ic][1] = gnnodes;
+        for(int in = 0; in < gnnodes; in++){
+          ref_elems[ic][in+2] = gel->NodeIndex(in);
         }
-    }
-}
-
-/// Fill principil lattices (points and connections on subdivided reference simplex) in 3D
-void TPZVTKGenerator::FillReferenceTet(TPZVec<std::array<REAL,3>> &ref_coords, TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems)
-{
-  if (fSubdivision == 0)
-    {
-      AppendToVec(ref_coords,std::array<REAL,3>{0.0, 0.0, 0.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{1.0, 0.0, 0.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{0.0, 1.0, 0.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{0.0, 0.0, 1.0});
-      AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(ETetraedro),4, 0, 1, 2, 3});
-    }
-  else
-    {
-      const int r = 1 << fSubdivision;
-      const int s = r + 1;
-
-      const REAL h = 1.0 / r;
-
-      int pidx = 0;
-      for (int i = 0; i <= r; ++i)
-        for (int j = 0; i + j <= r; ++j)
-          for (int k = 0; i + j + k <= r; ++k)
-            {
-              AppendToVec(ref_coords,std::array<REAL,3>{i * h, j * h, k * h});
-            }
-
-      for (int i = 0; i <= r; ++i)
-        for (int j = 0; i + j <= r; ++j)
-          for (int k = 0; i + j + k <= r; ++k, pidx++)
-            {
-              if (i + j + k == r)
-                continue;
-              // int pidx_curr = pidx;
-              int pidx_incr_k = pidx + 1;
-              int pidx_incr_j = pidx + s - i - j;
-              int pidx_incr_i = pidx + (s - i) * (s + 1 - i) / 2 - j;
-
-              int pidx_incr_kj = pidx_incr_j + 1;
-
-              int pidx_incr_ij = pidx + (s - i) * (s + 1 - i) / 2 - j + s - (i + 1) - j;
-              int pidx_incr_ki = pidx + (s - i) * (s + 1 - i) / 2 - j + 1;
-              int pidx_incr_kij = pidx + (s - i) * (s + 1 - i) / 2 - j + s - (i + 1) - j + 1;
-
-              AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(ETetraedro), 4, pidx, pidx_incr_k, pidx_incr_j, pidx_incr_i});
-              if (i + j + k + 1 == r)
-                continue;
-
-              AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(ETetraedro), 4, pidx_incr_k, pidx_incr_kj, pidx_incr_j, pidx_incr_i});
-              AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(ETetraedro), 4, pidx_incr_k, pidx_incr_kj, pidx_incr_ki, pidx_incr_i});
-
-              AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(ETetraedro), 4, pidx_incr_j, pidx_incr_i, pidx_incr_kj, pidx_incr_ij});
-              AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(ETetraedro), 4, pidx_incr_i, pidx_incr_kj, pidx_incr_ij, pidx_incr_ki});
-
-              if (i + j + k + 2 != r)
-                AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(ETetraedro), 4, pidx_incr_kj, pidx_incr_ij, pidx_incr_ki, pidx_incr_kij});
-            }
-    }
-}
-
-/// Fill principil lattices (points and connections on subdivided reference hexahedron) in 3D
-void TPZVTKGenerator::FillReferenceHex(TPZVec<std::array<REAL,3>> &ref_coords, TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems)
-{
-  if (fSubdivision == 0)
-    {
-      AppendToVec(ref_coords,std::array<REAL,3>{-1.0, -1.0, -1.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{ 1.0, -1.0, -1.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{ 1.0,  1.0, -1.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{-1.0,  1.0, -1.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{-1.0, -1.0,  1.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{ 1.0, -1.0,  1.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{ 1.0,  1.0,  1.0});
-      AppendToVec(ref_coords,std::array<REAL,3>{-1.0,  1.0,  1.0});
-      AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(ECube),8,0,1,2,3,4,5,6,7});
-    }
-  else
-    {
-      const int r = 1 << fSubdivision;
-      // const int s = r + 1;
-
-      const REAL h = 2.0 / r;
-      constexpr REAL init{-1};
-      int pidx = 0;
-      for (int i = 0; i <= r; ++i)
-        for (int j = 0; j <= r; ++j)
-          for (int k = 0; k <= r; ++k)
-            {
-              AppendToVec(ref_coords,std::array<REAL,3>{init + k * h,
-                                                        init + j * h,
-                                                        init + i * h});
-            }
-
-      for (int i = 0; i < r; ++i)
-        {
-          int incr_i = (r + 1) * (r + 1);
-          for (int j = 0; j < r; ++j)
-            {
-              int incr_j = r + 1;
-              pidx = i * incr_i + j * incr_j;
-              for (int k = 0; k < r; ++k, pidx++)
-                {
-                  AppendToVec(ref_elems,
-                              std::array<int,TPZVTK::MAX_PTS + 2>
-                              {TPZVTK::CellType(ECube), 8, pidx, pidx + 1, pidx + incr_j + 1, pidx + incr_j,
-                               pidx + incr_i, pidx + incr_i + 1, pidx + incr_i
-                               + incr_j + 1, pidx + incr_j + incr_i});
-                }
-            }
-        }
-    }
-}
-
-
-void TPZVTKGenerator::FillReferencePrism(TPZVec<std::array<REAL,3>> &ref_coords, TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems)
-{
-  if (fSubdivision == 0){
-    AppendToVec(ref_coords,std::array<REAL,3>{0.0, 0.0, -1.0});
-    AppendToVec(ref_coords,std::array<REAL,3>{1.0, 0.0, -1.0});
-    AppendToVec(ref_coords,std::array<REAL,3>{0.0, 1.0, -1.0});
-    AppendToVec(ref_coords,std::array<REAL,3>{0.0, 0.0,  1.0});
-    AppendToVec(ref_coords,std::array<REAL,3>{1.0, 0.0,  1.0});
-    AppendToVec(ref_coords,std::array<REAL,3>{0.0, 1.0,  1.0});
-    std::array<int,TPZVTK::MAX_PTS + 2> elem;
-    elem[0] = TPZVTK::CellType(EPrisma);
-    elem[1] = 6;
-    for (int i = 0; i < MElementType_NNodes(EPrisma); i++){
-      elem[i + 2] = i;
-    }
-    AppendToVec(ref_elems,elem);
-  }
-  else{
-    const int r = 1 << fSubdivision;
-    const int s = r + 1;
-
-    const REAL h = 1.0 / r;
-    const REAL hz = 2.0 /r;
-    constexpr REAL initz = -1;
-    int pidx = 0;
-    for (int k = 0; k <= r; k++)
-      for (int i = 0; i <= r; ++i)
-        for (int j = 0; i + j <= r; ++j)
-          {
-            AppendToVec(ref_coords,std::array<REAL,3>{j * h,
-                                                      i * h,
-                                                      initz + k * hz});
-          }
-
-    pidx = 0;
-    for (int k = 0; k < r; k++)
-      {
-        int incr_k = (r + 2) * (r + 1) / 2;
-        pidx = k * incr_k;
-        for (int i = 0; i <= r; ++i)
-          for (int j = 0; i + j <= r; ++j, pidx++)
-            {
-              // int pidx_curr = pidx;
-              if (i + j == r)
-                continue;
-              int pidx_incr_i = pidx + 1;
-              int pidx_incr_j = pidx + s - i;
-
-              AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(EPrisma), 6,
-                                                                        pidx, pidx_incr_i, pidx_incr_j, pidx + incr_k, pidx_incr_i + incr_k, pidx_incr_j + incr_k, 0, 0});
-
-              int pidx_incr_ij = pidx_incr_j + 1;
-
-              if (i + j + 1 < r)
-                AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS + 2>{TPZVTK::CellType(EPrisma), 6,
-                                                                          pidx_incr_i, pidx_incr_ij, pidx_incr_j, pidx_incr_i + incr_k, pidx_incr_ij + incr_k, pidx_incr_j + incr_k, 0, 0});
-            }
+        ic++;
       }
+    }
   }
 }
-
 
 void TPZVTKGenerator::PrintPointsLegacy()
 {
@@ -481,12 +283,7 @@ bool TPZVTKGenerator::IsValidEl(TPZCompEl *cel)
   const auto meshdim = gel->Mesh()->Dimension();
   if(geldim != meshdim){return false;}
   if(gel->HasSubElement()){return false;}
-  if(gel->Type() == EPiramide){
-    std::cout<<__PRETTY_FUNCTION__
-             <<"\n pyramid element not supported yet! Aborting..."
-             <<std::endl;
-    DebugStop();
-  }
+
   switch (gel->Type()){
     case EPoint:
     case EOned:
@@ -544,36 +341,48 @@ void TPZVTKGenerator::Do(REAL time)
       fTimes[0] = time;
     }
   }
-  fOutputCount++;
 
   fFileout = new std::ofstream(filenamefinal.str());
 
   ResetArrays();
 
-  TPZManVector<std::array<REAL, 3>,200> ref_vertices_line(0),
-    ref_vertices_trig(0), ref_vertices_quad(0),
-    ref_vertices_tet(0),  ref_vertices_hex(0),
-    ref_vertices_prism(0);
+  TPZManVector<TPZManVector<REAL, 3>,200> ref_vertices_line(0),
+    ref_vertices_trig(0), ref_vertices_quad(0),ref_vertices_tet(0),
+    ref_vertices_prism(0), ref_vertices_hex(0), ref_vertices_pyr(0) ;
 
-  TPZVec<std::array<int, TPZVTK::MAX_PTS + 2>> ref_lines,
-    ref_trigs, ref_quads, ref_tets, ref_hexes, ref_prisms;
+  TPZVec<std::array<int, TPZVTK::MAX_PTS + 2>> ref_lines, ref_trigs,
+    ref_quads, ref_tets, ref_prisms, ref_hexes, ref_pyrs;
 
-  TPZManVector<std::array<REAL, 3>,200> ref_vertices;
+  TPZManVector<TPZManVector<REAL, 3>,200> ref_vertices;
   TPZVec<std::array<int, TPZVTK::MAX_PTS + 2>> ref_elems;
 
 
   const auto meshdim = fCMesh->Dimension();
   {
     TPZSimpleTimer timer("FillRefEls");
-    if(meshdim == 3){
-      FillReferenceTet(ref_vertices_tet, ref_tets);
-      FillReferenceHex(ref_vertices_hex, ref_hexes);
-      FillReferencePrism(ref_vertices_prism, ref_prisms);
-    }else if(meshdim == 2){
-      FillReferenceTrig(ref_vertices_trig, ref_trigs);
-      FillReferenceQuad(ref_vertices_quad, ref_quads);
+    if(fSubdivision && !fOutputCount){//just need to do it once
+      TPZManVector<TPZManVector<MElementType,3>,4> eltypes{
+        {},
+        {EOned},
+        {ETriangle, EQuadrilateral},
+        {ETetraedro, EPrisma, ECube, EPiramide}
+      };
+      for( auto type : eltypes[meshdim]){
+        auto refp = gRefDBase.GetUniformRefPattern(type);
+        if(!refp){gRefDBase.InitializeUniformRefPattern(type);}
+      }
+    }
+    if (meshdim == 3){
+      FillReferenceEl<pztopology::TPZPyramid>(ref_vertices_pyr, ref_pyrs);
+      FillReferenceEl<pztopology::TPZTetrahedron>(ref_vertices_tet, ref_tets);
+      FillReferenceEl<pztopology::TPZCube>(ref_vertices_hex, ref_hexes);
+      FillReferenceEl<pztopology::TPZPrism>(ref_vertices_prism, ref_prisms);
+    }
+    else if (meshdim == 2){
+      FillReferenceEl<pztopology::TPZTriangle>(ref_vertices_trig, ref_trigs);
+      FillReferenceEl<pztopology::TPZQuadrilateral>(ref_vertices_quad, ref_quads);
     }else{
-      FillReferenceLine(ref_vertices_line, ref_lines);
+      FillReferenceEl<pztopology::TPZLine>(ref_vertices_line, ref_lines);
     }
   }
 
@@ -590,10 +399,6 @@ void TPZVTKGenerator::Do(REAL time)
     const auto eltype = cel->Reference()->Type();
 
     switch (eltype) {
-    case EOned:
-      ref_vertices = ref_vertices_line;
-      ref_elems = ref_lines;
-      break;
     case ETriangle:
       ref_vertices = ref_vertices_trig;
       ref_elems = ref_trigs;
@@ -622,18 +427,10 @@ void TPZVTKGenerator::Do(REAL time)
 
     const int offset = fPoints.size();
     const int eldim = cel->Dimension();
-    TPZManVector<REAL, 3> qsi(eldim, 0), pt(3, 0.);
-    std::array<REAL, 3> ptx;
-    for (const auto &ip : ref_vertices) {
-      for (auto x = 0; x < eldim; x++) {
-        qsi[x] = ip[x];
-      }
-      cel->Reference()->X(qsi, pt);
-      for (auto x = 0; x < 3; x++) {
-        ptx[x] = pt[x];
-      }
-      AppendToVec(fPoints, ptx);
-      // does it make a difference if printBound?
+    TPZManVector<REAL, 3> pt(3, 0.);
+    for (auto &ip : ref_vertices) {
+      cel->Reference()->X(ip, pt);
+      AppendToVec(fPoints, pt);
     }
 
     if (isCplxMesh) {
@@ -644,8 +441,9 @@ void TPZVTKGenerator::Do(REAL time)
 
     for (const auto &elem : ref_elems) {
       std::array<int, TPZVTK::MAX_PTS + 2> new_elem = elem;
-      for (int i = 2; i <= new_elem[0]; ++i)
-        new_elem[i] += offset;
+      const int npts = new_elem[1];
+      for (int i = 0; i <= npts; ++i)
+        new_elem[i+2] += offset;
       AppendToVec(fCells, new_elem);
     }
   }
@@ -655,8 +453,9 @@ void TPZVTKGenerator::Do(REAL time)
   PrintCellTypesLegacy(meshdim);
   PrintFieldDataLegacy();
 
-  
+  fOutputCount++;
   std::cout << " Done." << std::endl;
+
 }
 
 
@@ -714,3 +513,16 @@ void TPZPostProcEl<TVar>::Solution(const TPZVec<REAL> &qsi, const int id, TPZVec
     matSingle->Solution(fMatdata,id,sol);
   }
 }
+
+
+#define FILLREF(T)\
+  template \
+  void TPZVTKGenerator::FillReferenceEl<T>(TPZVec<TPZManVector<REAL,3>> &, \
+                                           TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &);
+
+FILLREF(pztopology::TPZTriangle)
+FILLREF(pztopology::TPZQuadrilateral)
+FILLREF(pztopology::TPZTetrahedron)
+FILLREF(pztopology::TPZCube)
+FILLREF(pztopology::TPZPrism)
+#undef FILLREF

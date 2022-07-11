@@ -88,8 +88,8 @@ protected:
   std::string fFilename = "";
   int fSubdivision{0};
   TPZVec<TPZAutoPointer<TPZVTKField>> fFields;
-  TPZVec<std::array<REAL,3>> fPoints;
-  int fNPtsPerPt = fPoints.size() * 5;
+
+  TPZVec<TPZManVector<REAL,3>> fPoints;
   TPZVec<std::array<int,TPZVTK::MAX_PTS+2>> fCells;//max 
 
   int fOutputCount = 0;
@@ -100,13 +100,9 @@ protected:
   //! Resets fFields, fPoints, fCells
   void ResetArrays();
 
-  void FillReferenceLine(TPZVec<std::array<REAL,3>> &ref_coords, TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems);
-  void FillReferenceTrig(TPZVec<std::array<REAL,3>> &ref_coords, TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems);
-  void FillReferenceQuad(TPZVec<std::array<REAL,3>> &ref_coords, TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems);
-  void FillReferenceTet(TPZVec<std::array<REAL,3>> &ref_coords, TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems);
-  void FillReferenceHex(TPZVec<std::array<REAL,3>> &ref_coords, TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems);
-  void FillReferencePrism(TPZVec<std::array<REAL,3>> &ref_coords, TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems);
-  
+  template<class TOPOL>
+  void FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
+                       TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems);
   //! Print all points in VTK Legacy format
   void PrintPointsLegacy();
   //! Print all cells in VTK Legacy format

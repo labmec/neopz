@@ -17,7 +17,6 @@
 #include "tpzprism.h"
 #include "tpzpyramid.h"
 
-#include "TPZVTKGeoMesh.h"
 #include <stdio.h>
 #include <iostream>
 #include<catch2/catch.hpp>
@@ -58,7 +57,7 @@ namespace refinementtests{
     template<class TTopology>
     void TestingUniformRefinements(bool RefFromDatabase){
 
-        auto* gmesh = new TPZGeoMesh;
+        TPZGeoMesh* gmesh = new TPZGeoMesh;
         // using TTopology pztopology::TTopology;
 
         // Create nodes
@@ -87,13 +86,11 @@ namespace refinementtests{
 
         // Check determinant of jacobian matrix
         TestJacobian(gmesh);
-
-        std::string plotname = "test_"+MElementType_Name(TTopology::Type())+".vtk";
-        std::ofstream plotfile(plotname);
-        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, plotfile);
+        
         /** Suggestions for future tests to add:
          * - Initialize and test ALL refinement patterns from the database
         */
+
 
         delete gmesh;
     }
