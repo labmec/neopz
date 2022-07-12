@@ -206,34 +206,46 @@ void TPZVTKGenerator::ComputePoints()
 {
   fPoints.resize(0);
   fElementVec.resize(0);
-  for (auto cel : fCMesh->ElementVec()) {
-    if (! IsValidEl(cel)){continue;}
-    const auto type = cel->Reference()->Type();
-    //add to valid elements for post-processing
+  TPZManVector<TPZCompEl*,10> compelvec;
+  for (auto orig_cel : fCMesh->ElementVec()) {
+    if(!orig_cel){continue;}
+    /**
+       orig_cel might be a TPZSubCompMesh, TPZElementGroup, etc.
+       So we need to check exactly how many computational elements are "inside" it.
+       note: the same logic does not apply for multiphysics elements, 
+       where post-processing each element individually wouldn't make sense.
+    */
+    TPZStack<TPZCompEl*> cellist;
+    orig_cel->GetCompElList(cellist);
+    for(auto cel : cellist){
+      if (! IsValidEl(cel)){continue;}
+      const auto type = cel->Reference()->Type();
+      //add to valid elements for post-processing
 
-    const int offset = fPoints.size();
-    AppendToVec(fElementVec,std::make_pair(cel,offset));
-    const int eldim = cel->Dimension();
-    TPZManVector<REAL, 3> pt(3, 0.);
-    for (auto &ip : fRefVertices[type]) {
-      cel->Reference()->X(ip, pt);
-      AppendToVec(fPoints, pt);
+      const int offset = fPoints.size();
+      AppendToVec(fElementVec,std::make_pair(cel,offset));
+      const int eldim = cel->Dimension();
+      TPZManVector<REAL, 3> pt(3, 0.);
+      for (auto &ip : fRefVertices[type]) {
+        cel->Reference()->X(ip, pt);
+        AppendToVec(fPoints, pt);
+      }
+      for (const auto &elem : fRefEls[type]) {
+        std::array<int, TPZVTK::MAX_PTS + 2> new_elem = elem;
+        const int npts = new_elem[1];
+        for (int i = 0; i <= npts; ++i)
+          new_elem[i+2] += offset;
+        AppendToVec(fCells, new_elem);
+      }
     }
-    for (const auto &elem : fRefEls[type]) {
-      std::array<int, TPZVTK::MAX_PTS + 2> new_elem = elem;
-      const int npts = new_elem[1];
-      for (int i = 0; i <= npts; ++i)
-        new_elem[i+2] += offset;
-      AppendToVec(fCells, new_elem);
+    //at this point we know how many points there are
+    const int npts = fPoints.size();
+    for(auto &f : fFields){
+      f->Resize(0);
+      const int fdim = f->Dimension();
+      f->Resize(npts*fdim);
+      //we first resize to zero to ensure that we allocate the exact size
     }
-  }
-  //at this point we know how many points there are
-  const int npts = fPoints.size();
-  for(auto &f : fFields){
-    f->Resize(0);
-    const int fdim = f->Dimension();
-    f->Resize(npts*fdim);
-    //we first resize to zero to ensure that we allocate the exact size
   }
 }
 
