@@ -5,6 +5,7 @@
 #include "tpzautopointer.h"
 #include "pzeltype.h"
 #include <iostream>
+#include <map>
 
 class TPZCompMesh;
 
@@ -83,7 +84,7 @@ private:
 
 class TPZVTKGenerator{
 protected:
-  TPZAutoPointer<TPZCompMesh> fCMesh = nullptr;
+  TPZCompMesh* fCMesh = nullptr;
 
   std::string fFilename = "";
   int fSubdivision{0};
@@ -97,12 +98,16 @@ protected:
   TPZAutoPointer<std::ofstream> fFileout{nullptr};
   std::string fLastOutputName = "";
 
-  //! Resets fFields, fPoints, fCells
-  void ResetArrays();
+  std::map<MElementType,TPZVec<TPZManVector<REAL,3>>> fRefVertices;
+  std::map<MElementType,TPZVec<std::array<int,TPZVTK::MAX_PTS+2>>> fRefEls;
+  //! (el,first pos) list of elements and the initial position of their solution in the field vec
+  TPZVec<std::pair<TPZCompEl*,int>> fElementVec;
 
   template<class TOPOL>
   void FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
                        TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems);
+
+  void FillRefEls(const int meshdim);
   //! Print all points in VTK Legacy format
   void PrintPointsLegacy();
   //! Print all cells in VTK Legacy format
@@ -113,14 +118,37 @@ protected:
   void PrintFieldDataLegacy();
   //! Check if element should be processed
   bool IsValidEl(TPZCompEl *el);
+  //! Compute all post-processing points and create list of valid elements
+  void ComputePoints();
 public:
-  //! Creates instance for generating .vtk results for a given mesh
+  /**
+     @brief Creates instance for generating .vtk results for a given mesh
+     @param[in] cmesh Computational mesh
+     @param[in] fields names of fields to be post-processed
+     @param[in] filename filename without extension
+     @param[in] vtkres resolution of vtk post-processing (number of el subdivision)
+  */
+  TPZVTKGenerator(TPZCompMesh* cmesh,
+                  const TPZVec<std::string> fields,
+                  std::string filename,
+                  int vtkres);
+  /**
+     @brief Creates instance for generating .vtk results for a given mesh
+     @param[in] cmesh Computational mesh
+     @param[in] fields names of fields to be post-processed
+     @param[in] filename filename without extension
+     @param[in] vtkres resolution of vtk post-processing (number of el subdivision)
+  */
   TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
                   const TPZVec<std::string> fields,
                   std::string filename,
                   int vtkres);
   //!Generates .vtk file for a given current solution of the mesh
   void Do(REAL time = -1);
+
+  /** @brief Resets post-processing data structure. Call this function if
+   the mesh has had changes between Do() calls (refinement, etc)*/
+  void ResetArrays();
 };
 
 #endif /* _TPZVTKGENERATOR_H_ */

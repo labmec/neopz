@@ -45,38 +45,44 @@ private:
 template<class TVar>
 void ComputeFieldAtEl(TPZCompEl *cel,
                       const TPZVec<TPZManVector<REAL,3>> &ref_vertices,
-                      TPZVec<TPZAutoPointer<TPZVTKField>>& fields){
+                      TPZVec<TPZAutoPointer<TPZVTKField>>& fields,
+                      const TPZVec<int> &init_pos){
   TPZManVector<TVar,9> sol;
 
   const auto celdim = cel->Dimension();
 
   TPZPostProcEl<TVar> graphel(cel);
   graphel.InitData();
+
+  int iv = 0;
   for (auto &ip : ref_vertices){
     ip.Resize(celdim);
     graphel.ComputeRequiredData(ip);
-    for (int i = 0; i < fields.size(); i++){
+    const int nfields = fields.size();
+    for (int i = 0; i < nfields; i++){
       auto &field = *(fields[i]);
       auto fdim = field.Dimension();
+      auto pos = init_pos[i] + fdim*iv;
       sol.Resize(fdim);
       graphel.Solution(ip, field.Id(), sol);
       const auto sz = sol.size();
       if constexpr (std::is_same_v<TVar,CSTATE>){
         for (int d = 0; d < sz; ++d){
-          AppendToVec(field, std::real(sol[d]));
+          field[pos++] =  std::real(sol[d]);
         }
         for (int d = sz; d < fdim; ++d){
-          AppendToVec(field, 0.0);
+          field[pos++] =  0.0;
         }
       }else{
         for (int d = 0; d < fdim; ++d){
-          AppendToVec(field, sol[d]);
+          field[pos++] = sol[d];
         }
         for (int d = sz; d < fdim; ++d){
-          AppendToVec(field, 0.0);
+          field[pos++] = sol[d];
         }
       }
     }
+    iv++;
   }
 }
 
@@ -84,11 +90,20 @@ void ComputeFieldAtEl(TPZCompEl *cel,
 TPZVTKField::TPZVTKField(TPZVTKField::Type type, int id, std::string aname) :
   fType( type), fId(id), fName(aname) { ; }
 
-
 TPZVTKGenerator::TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
-                                    const TPZVec<std::string> fields,
-                                    std::string filename,
-                                    int vtkres)
+                                 const TPZVec<std::string> fields,
+                                 std::string filename,
+                                 int vtkres)
+  : TPZVTKGenerator(cmesh.operator->(),fields,filename,vtkres)//delegates to other ctor
+{
+}
+
+
+
+TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
+                                 const TPZVec<std::string> fields,
+                                 std::string filename,
+                                 int vtkres)
   : fCMesh(cmesh), fFilename(filename), fSubdivision(vtkres)
 {
 
@@ -124,11 +139,108 @@ TPZVTKGenerator::TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
     }();
     fFields[i] = new TPZVTKField(type,index,name);
   }
+  const int meshdim = fCMesh->Dimension();
+  FillRefEls(meshdim);
+  ComputePoints();
+}
+
+void TPZVTKGenerator::FillRefEls(const int meshdim)
+{
+  TPZSimpleTimer timer("FillRefEls");
+  
+  TPZManVector<TPZManVector<MElementType,3>,4> eltypes{
+    {},
+    {EOned},
+    {ETriangle, EQuadrilateral},
+    {ETetraedro, EPrisma, ECube, EPiramide}
+  };
+
+  for( auto type : eltypes[meshdim]){
+    auto refp = gRefDBase.GetUniformRefPattern(type);
+    if(!refp){gRefDBase.InitializeUniformRefPattern(type);}
+    TPZVec<TPZManVector<REAL,3>> ref_coords;
+    TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> ref_elems;
+    switch(type){
+    case EOned:
+      FillReferenceEl<pztopology::TPZLine>(ref_coords, ref_elems);
+      fRefEls[type] = std::move(ref_elems);
+      fRefVertices[type] = std::move(ref_coords);
+      break;
+    case ETriangle:
+      FillReferenceEl<pztopology::TPZTriangle>(ref_coords, ref_elems);
+      fRefEls[type] = std::move(ref_elems);
+      fRefVertices[type] = std::move(ref_coords);
+      break;
+    case EQuadrilateral:
+      FillReferenceEl<pztopology::TPZQuadrilateral>(ref_coords, ref_elems);
+      fRefEls[type] = std::move(ref_elems);
+      fRefVertices[type] = std::move(ref_coords);
+      break;
+    case ETetraedro:
+      FillReferenceEl<pztopology::TPZTetrahedron>(ref_coords, ref_elems);
+      fRefEls[type] = std::move(ref_elems);
+      fRefVertices[type] = std::move(ref_coords);
+      break;
+    case EPrisma:
+      FillReferenceEl<pztopology::TPZPrism>(ref_coords, ref_elems);
+      fRefEls[type] = std::move(ref_elems);
+      fRefVertices[type] = std::move(ref_coords);
+      break;
+    case ECube:
+      FillReferenceEl<pztopology::TPZCube>(ref_coords, ref_elems);
+      fRefEls[type] = std::move(ref_elems);
+      fRefVertices[type] = std::move(ref_coords);
+      break;
+    case EPiramide:
+      FillReferenceEl<pztopology::TPZPyramid>(ref_coords, ref_elems);
+      fRefEls[type] = std::move(ref_elems);
+      fRefVertices[type] = std::move(ref_coords);
+      break;
+    default:
+      unreachable();
+    }
+  }
+}
+
+void TPZVTKGenerator::ComputePoints()
+{
+  fPoints.resize(0);
+  fElementVec.resize(0);
+  for (auto cel : fCMesh->ElementVec()) {
+    if (! IsValidEl(cel)){continue;}
+    const auto type = cel->Reference()->Type();
+    //add to valid elements for post-processing
+
+    const int offset = fPoints.size();
+    AppendToVec(fElementVec,std::make_pair(cel,offset));
+    const int eldim = cel->Dimension();
+    TPZManVector<REAL, 3> pt(3, 0.);
+    for (auto &ip : fRefVertices[type]) {
+      cel->Reference()->X(ip, pt);
+      AppendToVec(fPoints, pt);
+    }
+    for (const auto &elem : fRefEls[type]) {
+      std::array<int, TPZVTK::MAX_PTS + 2> new_elem = elem;
+      const int npts = new_elem[1];
+      for (int i = 0; i <= npts; ++i)
+        new_elem[i+2] += offset;
+      AppendToVec(fCells, new_elem);
+    }
+  }
+  //at this point we know how many points there are
+  const int npts = fPoints.size();
+  for(auto &f : fFields){
+    f->Resize(0);
+    const int fdim = f->Dimension();
+    f->Resize(npts*fdim);
+    //we first resize to zero to ensure that we allocate the exact size
+  }
 }
 
 /// Empty all fields, points and cells
 void TPZVTKGenerator::ResetArrays()
 {
+  fElementVec.Resize(0);
   fPoints.Resize(0);
   fCells.Resize(0);
   for(auto field : fFields){
@@ -344,47 +456,12 @@ void TPZVTKGenerator::Do(REAL time)
 
   fFileout = new std::ofstream(filenamefinal.str());
 
-  ResetArrays();
-
-  TPZManVector<TPZManVector<REAL, 3>,200> ref_vertices_line(0),
-    ref_vertices_trig(0), ref_vertices_quad(0),ref_vertices_tet(0),
-    ref_vertices_prism(0), ref_vertices_hex(0), ref_vertices_pyr(0) ;
-
-  TPZVec<std::array<int, TPZVTK::MAX_PTS + 2>> ref_lines, ref_trigs,
-    ref_quads, ref_tets, ref_prisms, ref_hexes, ref_pyrs;
-
-  TPZManVector<TPZManVector<REAL, 3>,200> ref_vertices;
-  TPZVec<std::array<int, TPZVTK::MAX_PTS + 2>> ref_elems;
-
+  if(fPoints.size() == 0){
+    //perhaps the mesh has changed
+    ComputePoints();
+  }
 
   const auto meshdim = fCMesh->Dimension();
-  {
-    TPZSimpleTimer timer("FillRefEls");
-    if(fSubdivision && !fOutputCount){//just need to do it once
-      TPZManVector<TPZManVector<MElementType,3>,4> eltypes{
-        {},
-        {EOned},
-        {ETriangle, EQuadrilateral},
-        {ETetraedro, EPrisma, ECube, EPiramide}
-      };
-      for( auto type : eltypes[meshdim]){
-        auto refp = gRefDBase.GetUniformRefPattern(type);
-        if(!refp){gRefDBase.InitializeUniformRefPattern(type);}
-      }
-    }
-    if (meshdim == 3){
-      FillReferenceEl<pztopology::TPZPyramid>(ref_vertices_pyr, ref_pyrs);
-      FillReferenceEl<pztopology::TPZTetrahedron>(ref_vertices_tet, ref_tets);
-      FillReferenceEl<pztopology::TPZCube>(ref_vertices_hex, ref_hexes);
-      FillReferenceEl<pztopology::TPZPrism>(ref_vertices_prism, ref_prisms);
-    }
-    else if (meshdim == 2){
-      FillReferenceEl<pztopology::TPZTriangle>(ref_vertices_trig, ref_trigs);
-      FillReferenceEl<pztopology::TPZQuadrilateral>(ref_vertices_quad, ref_quads);
-    }else{
-      FillReferenceEl<pztopology::TPZLine>(ref_vertices_line, ref_lines);
-    }
-  }
 
   // header:
   *fFileout << "# vtk DataFile Version 3.0" << std::endl;
@@ -392,59 +469,19 @@ void TPZVTKGenerator::Do(REAL time)
   *fFileout << "ASCII" << std::endl;
   *fFileout << "DATASET UNSTRUCTURED_GRID" << std::endl;
 
+  const int nfields = fFields.size();
+  TPZVec<int> posvec(nfields);
   
-  
-  for (auto cel : fCMesh->ElementVec()) {
-    if (! IsValidEl(cel)){continue;}
+  for (auto [cel,pos] : fElementVec) {
     const auto eltype = cel->Reference()->Type();
 
-    switch (eltype) {
-    case ETriangle:
-      ref_vertices = ref_vertices_trig;
-      ref_elems = ref_trigs;
-      break;
-    case EQuadrilateral:
-      ref_vertices = ref_vertices_quad;
-      ref_elems = ref_quads;
-      break;
-    case ETetraedro:
-      ref_vertices = ref_vertices_tet;
-      ref_elems = ref_tets;
-      break;
-    case ECube:
-      ref_vertices = ref_vertices_hex;
-      ref_elems = ref_hexes;
-      break;
-    case EPrisma:
-      ref_vertices = ref_vertices_prism;
-      ref_elems = ref_prisms;
-      break;
-    default:
-      PZError << "VTK output for element type" << MElementType_Name(eltype)
-              << "not supported";
-      DebugStop();
+    for(auto f = 0; f < nfields; f++){
+      posvec[f] = pos * fFields[f]->Dimension();
     }
-
-    const int offset = fPoints.size();
-    const int eldim = cel->Dimension();
-    TPZManVector<REAL, 3> pt(3, 0.);
-    for (auto &ip : ref_vertices) {
-      cel->Reference()->X(ip, pt);
-      AppendToVec(fPoints, pt);
-    }
-
     if (isCplxMesh) {
-      ComputeFieldAtEl<CSTATE>(cel, ref_vertices, fFields);
+      ComputeFieldAtEl<CSTATE>(cel, fRefVertices[eltype], fFields,posvec);
     } else {
-      ComputeFieldAtEl<STATE>(cel, ref_vertices, fFields);
-    }
-
-    for (const auto &elem : ref_elems) {
-      std::array<int, TPZVTK::MAX_PTS + 2> new_elem = elem;
-      const int npts = new_elem[1];
-      for (int i = 0; i <= npts; ++i)
-        new_elem[i+2] += offset;
-      AppendToVec(fCells, new_elem);
+      ComputeFieldAtEl<STATE>(cel, fRefVertices[eltype], fFields,posvec);
     }
   }
 
