@@ -235,6 +235,14 @@ public:
 
 public:
     
+
+    int NumberOfCompElementsInsideThisCompEl() override{
+        int nel  = 0;
+        for (auto fg : fElGroup){
+            nel += fg->NumberOfCompElementsInsideThisCompEl();
+        }
+        return nel;
+    }
     /**
 	 * @brief Creates corresponding graphical element(s) if the dimension matches
 	 * graphical elements are used to generate output files
