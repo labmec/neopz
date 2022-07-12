@@ -1964,6 +1964,15 @@ int TPZSubCompMesh::NumberOfCompElementsInsideThisCompEl()
   }
   return nel;
 }
+
+void TPZSubCompMesh::GetCompElList(TPZStack<TPZCompEl*> &stck){
+  for(auto cel : fElementVec){
+    if(cel){
+      cel->GetCompElList(stck);
+    }
+  }
+}
+
 /**
  * Verifies if any element needs to be computed corresponding to the material ids
  */

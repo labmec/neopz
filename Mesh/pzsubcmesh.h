@@ -340,6 +340,9 @@ public:
 
 
   int NumberOfCompElementsInsideThisCompEl() override;
+
+  //! Gets the list of elements for post-processing
+  void GetCompElList(TPZStack<TPZCompEl*> &stack) override;
 	/** @brief Returns the connection index i. */
 	virtual int64_t ConnectIndex(int i) const override;
 	

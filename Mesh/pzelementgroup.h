@@ -234,7 +234,15 @@ public:
 									std::map<int64_t,int64_t> & gl2lcElMap) const override;
 
 public:
-    
+
+    void GetCompElList(TPZStack<TPZCompEl*> &stck) override
+    {
+        for(auto cel : fElGroup){
+            if(cel){
+                cel->GetCompElList(stck);
+            }
+        }
+    }
 
     int NumberOfCompElementsInsideThisCompEl() override{
         int nel  = 0;
