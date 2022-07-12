@@ -48,6 +48,11 @@ public:
     {
         fMatIdTranslation = matidtranslation;
     }
+
+    TPZAutoPointer<TPZGeoMesh> GetGMesh()
+    {
+        return fGMesh;
+    }
     
     /// standard configuration means each element is a partition and a center node is created
     void StandardConfiguration();

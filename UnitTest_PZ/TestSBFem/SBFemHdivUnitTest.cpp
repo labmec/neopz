@@ -94,7 +94,7 @@ TPZCompMesh * SBFemTest::CreateCMeshPressure(TPZAutoPointer<TPZGeoMesh> & gmesh)
   TPZManVector<STATE> val2(2,0.);
   {
       auto bcond = mat->CreateBC(mat, SBFemTest::EBc1, 0, val1, val2);
-      bcond->SetForcingFunctionBC(LaplaceExact.ExactSolution(),3);
+      bcond->SetForcingFunctionBC(LaplaceExact.ExactSolution(),7);
       cmesh->InsertMaterialObject(bcond);
   }
   {
@@ -147,13 +147,13 @@ TPZMultiphysicsCompMesh * SBFemTest::CreateCMeshMultiphysics(TPZAutoPointer<TPZG
   mat->TPZIsotropicPermeability::SetConstantPermeability(1.);
   cmesh->InsertMaterialObject(mat);
 
-  mat->SetBigNumber(1e12);
+  mat->SetBigNumber(1e16);
 
   TPZFMatrix<STATE> val1(2,2,0.);
   TPZManVector<STATE> val2(2,0.);
   {
       auto bcond = mat->CreateBC(mat, SBFemTest::EBc1, 0, val1, val2);
-      bcond->SetForcingFunctionBC(LaplaceExact.ExactSolution(),3);
+      bcond->SetForcingFunctionBC(LaplaceExact.ExactSolution(),7);
       cmesh->InsertMaterialObject(bcond);
   }
   {
@@ -202,15 +202,18 @@ void SBFemTest::SBFemHdivDarcy2D(const int nThreads){
   constexpr int dim{2};
 
   TPZAutoPointer<TPZGeoMesh> gMesh = CreateGMesh(nelx);
+  std::map<int,int> matmap;
+  matmap[SBFemTest::EGroup] = SBFemTest::EMat1;
+  TPZBuildSBFemMultiphysics build(gMesh, SBFemTest::ESkeleton, matmap);
+  build.StandardConfiguration();
+  build.DivideSkeleton(0);
+
   auto *cmeshp = CreateCMeshPressure(gMesh);
+  cmeshp->LoadReferences();
   auto *cmeshf = CreateCMeshFlux(gMesh);
   auto *cmeshm = CreateCMeshMultiphysics(gMesh, cmeshp, cmeshf);
   
-  std::map<int,int> matmap;
-  matmap[SBFemTest::EGroup] = SBFemTest::EMat1;
 
-  TPZBuildSBFemMultiphysics build(gMesh, SBFemTest::ESkeleton, matmap);
-  build.StandardConfiguration();
   build.BuildMultiphysicsCompMesh(*cmeshm);
 
   TPZLinearAnalysis an(cmeshm, false);

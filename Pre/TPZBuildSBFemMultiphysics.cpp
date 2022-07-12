@@ -211,7 +211,7 @@ void TPZBuildSBFemMultiphysics::CreateCollapsedGeoEls(TPZCompMesh & cmeshpressur
     auto gmeshpressure = cmeshpressure.Reference();
     auto dim = gmeshpressure->Dimension();
 
-    for (auto gelpressure : gmeshpressure->ElementVec())
+    for (auto gelpressure : fGMesh->ElementVec())
     {
         if (!gelpressure || gelpressure->HasSubElement())
         {
@@ -235,54 +235,44 @@ void TPZBuildSBFemMultiphysics::CreateCollapsedGeoEls(TPZCompMesh & cmeshpressur
             if (gelpressure->SideDimension(is) != dim-1)
             {
                 continue;
-            }
-            // TPZStack<TPZCompElSide> celstack;
+            }            
+            TPZStack<TPZCompElSide> celstack;
             TPZGeoElSide gelside(gelpressure,is);
-
-            auto subgelside = gelside.Neighbour();
-            auto it = matids1d.find(subgelside.Element()->MaterialId());
-            while (subgelside != gelside)
-            {
-                if (it != matids1d.end()) break;
-                subgelside = subgelside.Neighbour();
-                it = matids1d.find(subgelside.Element()->MaterialId());
-            }
-            
-            // Creating Duffy elements:
-            {
-                int64_t index;
-                if (subgelside.Dimension() != dim-1)
-                {
+            int onlyinterpolated = false;
+            int removeduplicates = true;
+            // we identify all computational elements connected to this element side
+            gelside.EqualorHigherCompElementList2(celstack, onlyinterpolated, removeduplicates);
+            // we create a volume element based on all smaller elements linked to this side
+            int ncelstack = celstack.NElements();
+            for (int icel=0; icel<ncelstack; icel++) {
+                TPZGeoElSide subgelside = celstack[icel].Reference();
+                // we are only interested in faces
+                if (subgelside.Dimension() != dim-1) {
                     continue;
                 }
-                auto nnodes = subgelside.NSideNodes();
+                int nnodes = subgelside.NSideNodes();
                 TPZManVector<int64_t,8> Nodes(nnodes*2,-1);
-                for (int in=0; in<nnodes; in++)
-                {
-                    Nodes[in] = subgelside.SideNodeIndex(in); // Boundary nodes
+                int matid = fMatIdTranslation[gelpressure->MaterialId()];
+                int64_t index;
+                for (int in=0; in<nnodes; in++) {
+                    Nodes[in] = subgelside.SideNodeIndex(in);
                 }
                 int elpartition = fElementPartition[el];
-                for (int in=nnodes; in < 2*nnodes; in++)
-                {
-                    Nodes[in] = fPartitionCenterNode[elpartition]; // Scaling center nodes
+                for (int in=nnodes; in < 2*nnodes; in++) {
+                    Nodes[in] = fPartitionCenterNode[elpartition];
                 }
-                auto matid = fMatIdTranslation[gelpressure->MaterialId()];
-
-                // Then, the collapsed volumetric elements will be created in the multiphysics gmesh
                 if (subgelside.IsLinearMapping())
                 {
                     switch(nnodes)
                     {
                         case 2:
-                            fGMesh->CreateGeoElement(EQuadrilateral, Nodes, matid, index);
+                            gmeshpressure->CreateGeoElement(EQuadrilateral, Nodes, matid, index);
                             break;
                         case 4:
-                            fGMesh->CreateGeoElement(ECube, Nodes, matid, index);
-                            DebugStop();
+                            gmeshpressure->CreateGeoElement(ECube, Nodes, matid, index);
                             break;
                         case 3:
-                            fGMesh->CreateGeoElement(EPrisma, Nodes, matid, index);
-                            DebugStop();
+                            gmeshpressure->CreateGeoElement(EPrisma, Nodes, matid, index);
                             break;
                         default:
                             std::cout << "Don't understand the number of nodes per side : nnodes " << nnodes << std::endl;
@@ -292,17 +282,17 @@ void TPZBuildSBFemMultiphysics::CreateCollapsedGeoEls(TPZCompMesh & cmeshpressur
                 }
                 else
                 {
-                    int64_t elementid = fGMesh->NElements()+1;
+                    int64_t elementid = gmeshpressure->NElements()+1;
                     switch(nnodes)
                     {
                         case 2:
-                            new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > (Nodes, matid, *fGMesh,index);
+                            new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > (Nodes, matid, *gmeshpressure,index);
                             break;
                         case 4:
-                            new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> > (Nodes, matid, *fGMesh,index);
+                            new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> > (Nodes, matid, *gmeshpressure,index);
                             break;
                         case 3:
-                            fGMesh->CreateGeoElement(EPrisma, Nodes, matid, index);
+                            gmeshpressure->CreateGeoElement(EPrisma, Nodes, matid, index);
                             break;
                         default:
                             std::cout << "Don't understand the number of nodes per side : nnodes " << nnodes << std::endl;
@@ -321,9 +311,7 @@ void TPZBuildSBFemMultiphysics::CreateCollapsedGeoEls(TPZCompMesh & cmeshpressur
                     gel->SetNodeIndex(0,Nodes[1]);
                     gel->SetNodeIndex(1,Nodes[0]);
                 }
-                
-                if (index >= fElementPartition.size())
-                {
+                if (index >= fElementPartition.size()) {
                     fElementPartition.resize(index+1);
                 }
                 fElementPartition[index] = elpartition;
@@ -337,6 +325,9 @@ void TPZBuildSBFemMultiphysics::CreateCollapsedGeoEls(TPZCompMesh & cmeshpressur
     {
         ofstream gout("gmeshwithvol.txt");
         fGMesh->Print(gout);
+        std::ofstream outvtk("GeometrySBFEM.vtk");
+        TPZVTKGeoMesh vtk;
+        vtk.PrintGMeshVTK(fGMesh, outvtk, true);
     }
 #endif
 }
