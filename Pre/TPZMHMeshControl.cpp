@@ -504,6 +504,13 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
                 if (neighbour.Element()->Dimension() == dim-1) {
                     bcids.insert(neighbour.Element()->MaterialId());
                 }
+                if (neighbour.Element()->Dimension() == dim) {
+                    int neighmatid = neighbour.Element()->MaterialId();
+                    if(materialid != neighmatid && materialid < neighmatid) {
+                        fGMesh->AddInterfaceMaterial(materialid, neighmatid, materialid);
+                        fGMesh->AddInterfaceMaterial(neighmatid, materialid, materialid);
+                    }
+                }
                 neighbour = neighbour.Neighbour();
             }
         }
