@@ -234,7 +234,7 @@ void TPZPardisoSolver<TVar>::Decompose(TPZMatrix<TVar> *mat)
         DebugStop();
     }
 #ifdef PZDEBUG
-    std::cout << "Pardiso:: decomposition complete. \n";
+//    std::cout << "Pardiso:: decomposition complete. \n";
 #endif
     fDecomposed = true;
 #endif
@@ -363,9 +363,9 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
         DebugStop();
     }
     
-#ifdef PZDEBUG
-    std::cout << "Pardiso:: linear solve complete. \n";
-#endif
+//#ifdef PZDEBUG
+//    std::cout << "Pardiso:: linear solve complete. \n";
+//#endif
     
 #endif//USING_MKL
 }
