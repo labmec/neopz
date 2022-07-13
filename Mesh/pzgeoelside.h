@@ -294,6 +294,9 @@ public:
 	
 	TPZTransform<REAL> NeighbourSideTransform(const TPZGeoElSide &neighbour);
 	
+    /// Compute if the neighbour along a face has normal pointing outward
+    bool IsNeighbourCounterClockWise(TPZGeoElSide &neighbour);
+    
 	/** 
 	 * @brief Compute the transformation between the master element space of one side
 	 * of an element to the master element space of a higher dimension side

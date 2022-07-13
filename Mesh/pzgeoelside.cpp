@@ -608,7 +608,7 @@ TPZTransform<> TPZGeoElSide::NeighbourSideTransform(const TPZGeoElSide &neighbou
 		case 2://transformacoes entre faces viz
 			int i;
 			//TPZCompEl *cel = Element()->Reference();
-			TPZVec<int> idto(0),idfrom(0);
+			TPZVec<int64_t> idto(0),idfrom(0);
 			if(Element()->NSideNodes(Side()) == 4) {//faces quadrilaterais
 				idto.Resize(4);
 				idfrom.Resize(4);
@@ -1460,4 +1460,37 @@ TPZGeoElSide TPZGeoElSide::HasLowerLevelNeighbour(int materialid) const
         lower = lower.LowerLevelSide();
     }
     return lower;
+}
+
+/// Compute if the neighbour along a face has normal pointing outward
+bool TPZGeoElSide::IsNeighbourCounterClockWise(TPZGeoElSide &neighbour)
+{
+#ifdef PZDEBUG
+    // the side must have dimension dim-1
+    if(!fGeoEl) DebugStop();
+    if(Dimension() != fGeoEl->Dimension()-1) DebugStop();
+    if(!IsNeighbour(neighbour)) DebugStop();
+    if(neighbour.Side() != neighbour.Element()->NSides()-1) DebugStop();
+#endif
+    int nnodes = fGeoEl->NSideNodes(fSide);
+    TPZManVector<int64_t> thisids(nnodes),neighids(nnodes);
+    for(int in = 0; in<nnodes; in++) {
+        thisids[in] = fGeoEl->SideNodeIndex(fSide, in);
+        neighids = neighbour.Element()->SideNodeIndex(neighbour.Side(), in);
+    }
+    int trid = 0;
+    if(nnodes == 2)
+    {
+        trid = thisids[0] == neighids[0] ? 0 : 1;
+    } else if (nnodes == 3) {
+        trid = Element()->GetTransformId2dT(thisids,neighids) %2;
+    } else if (nnodes == 4) {
+        trid = Element()->GetTransformId2dQ(thisids,neighids) %2;
+    } else {
+        DebugStop();
+    }
+    int face = fSide-fGeoEl->FirstSide(2);
+    int faceorient = fGeoEl->GetSideOrientation(face);
+    if(faceorient == -1) trid = (trid+1)%2;
+    return trid == 0;
 }
