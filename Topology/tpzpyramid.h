@@ -88,6 +88,10 @@ namespace pztopology {
 		/** @brief Returns the local connect number of the connect "c" along side "side" */
 		static int ContainedSideLocId(int side, int c);
 
+        static int GetSideOrient(const int &face) {
+            DebugStop();
+            return 1;
+        }
 
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
