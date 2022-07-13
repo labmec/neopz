@@ -148,6 +148,9 @@ class TPZGmshReader{
     /// Number of points
     int m_n_point_els = 0;
     
+    /// verbosity of output
+    int m_verbose = 0;
+    
     /// Convert a Gmsh *.msh file with format 4 to a TPZGeoMesh object
     TPZGeoMesh * GeometricGmshMesh4(const std::string &file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
 
@@ -185,6 +188,12 @@ private:
     /// Default destructor
     ~TPZGmshReader() = default;
     
+    /// setting copy constructor to default
+    TPZGmshReader(const TPZGmshReader &copy) = default;
+    
+    /// setting = operator to default
+    TPZGmshReader &operator=(const TPZGmshReader &copy) = default;
+    
     /// Convert Gmsh msh files in a TPZGeoMesh object, detecting .msh version
     TPZGeoMesh * GeometricGmshMesh(const std::string &file_name, TPZGeoMesh *gmesh = NULL, bool addNonAssignedEls = true);
 
@@ -194,6 +203,11 @@ private:
     
     /// Print the partition summary after the reading process
     void PrintPartitionSummary(std::ostream & out);
+    
+    /// set the verbose output level (0 -> minimum output)
+    void SetVerbose(int verbose) {
+        m_verbose = verbose;
+    }
 
     void InsertElement(TPZGeoMesh *gmesh, const int physical_identifier,
                        const int el_type, const int el_identifier,

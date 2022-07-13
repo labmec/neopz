@@ -106,13 +106,17 @@ void TPZGmshReader::ReadPhysicalProperties4(std::istream &read)
               m_dim_name_and_physical_tag[dimension].end()) {
             if (!m_read_undefined_physical_tag_elements)
               continue;
-            std::cout << "Automatically associating " << name
+              if(m_verbose) {
+                  std::cout << "Automatically associating " << name
                       << " with material id " << id << std::endl;
+              }
             m_dim_name_and_physical_tag[dimension][name] = id;
           } else {
             int pzmatid = m_dim_name_and_physical_tag[dimension][name];
-            std::cout << "Associating " << name << " with material id " << id
+              if(m_verbose) {
+                  std::cout << "Associating " << name << " with material id " << id
                       << " with pz material id " << pzmatid << std::endl;
+              }
           }
           m_dim_physical_tag_and_name[dimension][id] = name;
           m_dim_physical_tag_and_physical_tag[dimension][id] =
