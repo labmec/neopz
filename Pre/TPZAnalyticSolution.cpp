@@ -2384,7 +2384,7 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
             p += (1./2.)*(flux[0]*flux[0]+flux[1]*flux[1]);
             break;
         case EPconst:
-            p = 0;
+            p = 1;
             break;
         default:
             DebugStop();
@@ -2446,7 +2446,7 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
             p += (1./2.)*(flux[0]*flux[0]+flux[1]*flux[1]);
             break;
         case EPconst:
-            p = 0;
+            p = 1;
             break;
         default:
             DebugStop();
