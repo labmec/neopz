@@ -326,7 +326,7 @@ int TPZGeoEl::Level() {
 }
 
 
-int TPZGeoEl::GetTransformId2dQ(TPZVec<int> &idfrom,TPZVec<int> &idto) {
+int TPZGeoEl::GetTransformId2dQ(TPZVec<int64_t> &idfrom,TPZVec<int64_t> &idto) {
 	
 	if(idfrom[0]==idto[0] && idfrom[1]==idto[1]) return 0;//sentido horario     : 0123
 	if(idfrom[0]==idto[0] && idfrom[1]==idto[3]) return 1;//sentido antihorario : 0321
@@ -343,7 +343,7 @@ int TPZGeoEl::GetTransformId2dQ(TPZVec<int> &idfrom,TPZVec<int> &idto) {
 	return 0;
 }
 
-int TPZGeoEl::GetTransformId2dT(TPZVec<int> &idfrom,TPZVec<int> &idto) {
+int TPZGeoEl::GetTransformId2dT(TPZVec<int64_t> &idfrom,TPZVec<int64_t> &idto) {
 	//REVISAR
 	if(idto[0]==idfrom[0] && idto[1]==idfrom[1]) return 0;//sentido horario
 	if(idto[0]==idfrom[0] && idto[1]==idfrom[2]) return 1;//sentido antihorario

@@ -220,7 +220,13 @@ TPZGeoElRefLess<TGeo>::NSideSubElements(int side) const {
 	return 0;
 }
 
+/// return the orientation of a face +1: counterclockwise -1:clockwise
 
+template<class TGeo>
+int TPZGeoElRefLess<TGeo>::GetSideOrientation(int face) const
+{
+    return TGeo::GetSideOrient(face);
+}
 
 template<class TGeo>
 TPZGeoEl *

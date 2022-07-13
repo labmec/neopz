@@ -248,6 +248,9 @@ virtual int ClassId() const override;
 	/** @brief Returns the number of subelements of the same dimension of the element at the side*/
 	virtual  int NSideSubElements(int side) const override;
 	
+    /// return the orientation of a face +1: counterclockwise -1:clockwise
+    virtual int GetSideOrientation(int face) const override;
+    
 	/**
 	 * @brief Method which creates a computational boundary condition element based
 	 * on the current geometric element, a side and a boundary condition number

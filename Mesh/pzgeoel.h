@@ -470,12 +470,15 @@ public:
     {
         fId = elId;
     }
+    
+    /// return the orientation of a face +1: counterclockwise -1:clockwise
+    virtual int GetSideOrientation(int face) const = 0;
 	
 	/** @brief Get the transform id the face to face*/
-	int GetTransformId2dQ(TPZVec<int> &idfrom,TPZVec<int> &idto);
+	int GetTransformId2dQ(TPZVec<int64_t> &idfrom,TPZVec<int64_t> &idto);
 	
 	/** @brief Get the transform id the face to face*/
-	int GetTransformId2dT(TPZVec<int> &idfrom,TPZVec<int> &idto);
+	int GetTransformId2dT(TPZVec<int64_t> &idfrom,TPZVec<int64_t> &idto);
 	
 	virtual	TPZTransform<REAL> GetTransform(int side,int son) = 0;
 
