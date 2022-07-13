@@ -719,9 +719,9 @@ void TPZInterpolationSpace::CreateInterfaces(bool BetweenContinuous) {
 		TPZStack<TPZCompElSide> highlist;
 		thisside.HigherLevelElementList(highlist,0,1);
 		//a interface se cria uma vez so quando existem ambos
-		//elementos esquerdo e direito (compu tacionais)
+		//elementos esquerdo e direito (computacionais)
 		if(!highlist.NElements()) {
-			this->CreateInterface(side, BetweenContinuous);//s�tem iguais ou grande => pode criar a interface
+			this->CreateInterface(side, BetweenContinuous);//se tem iguais ou grande => pode criar a interface
 		} else {
 			int64_t ns = highlist.NElements();
 			int64_t is;
