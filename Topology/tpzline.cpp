@@ -421,6 +421,13 @@ namespace pztopology {
 		return -1;
 	}
     
+TPZTransform<REAL> TPZLine::ParametricTransform(int transid) {
+    TPZTransform<REAL> trans(1,1);
+    if (!transid) trans.Mult()(0,0) =  1;
+    else          trans.Mult()(0,0) = -1;
+    return trans;
+}
+
     
 	/**
 	 * Identifies the permutation of the nodes needed to make neighbouring elements compatible 

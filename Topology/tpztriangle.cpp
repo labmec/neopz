@@ -21,6 +21,19 @@ using namespace std;
 
 namespace pztopology {
 
+/**Transformation of the point within a triangular face */
+REAL TPZTriangle::gTrans2dT[6][2][2] = {//s* , t*
+    { { 1., 0.},{ 0., 1.} },
+    { { 0., 1.},{ 1., 0.} },
+    { { 0., 1.},{-1.,-1.} },//s* = t   t* = -s-t-1 ,  etc
+    { {-1.,-1.},{ 0., 1.} },
+    { {-1.,-1.},{ 1., 0.} },
+    { { 1., 0.},{-1.,-1.} }
+};
+
+REAL TPZTriangle::gVet2dT[6][2] = {  {0.,0.},{0.,0.},{0.,1.},{1.,0.},{1.,0.},{0.,1.} };
+
+
     template<class T>
     inline void TPZTriangle::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T qsi = loc[0], eta = loc[1];
@@ -620,6 +633,19 @@ namespace pztopology {
 		return 0;
 
 	}
+TPZTransform<REAL>  TPZTriangle::ParametricTransform(int trans_id){
+    TPZTransform<REAL> trans(2,2);
+    trans.Mult()(0,0) = gTrans2dT[trans_id][0][0];
+    trans.Mult()(0,1) = gTrans2dT[trans_id][0][1];
+    trans.Mult()(1,0) = gTrans2dT[trans_id][1][0];
+    trans.Mult()(1,1) = gTrans2dT[trans_id][1][1];
+    trans.Sum()(0,0) =gVet2dT[trans_id][0];
+    trans.Sum()(1,0) =gVet2dT[trans_id][1];
+    return trans;
+    
+}
+
+
 	/**
 	 * Method which identifies the transformation of a side based on the IDs
 	 * of the corner nodes

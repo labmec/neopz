@@ -110,6 +110,10 @@ namespace pztopology {
 		/** @brief Returns the local connect number of the connect "c" along side "side" */
 		static int ContainedSideLocId(int side, int c);
 		
+        static int GetSideOrient(const int &face) {
+            return 1;
+        }
+
 		/** @} */
 		
 		/** @name About points at the parametric spaces
@@ -188,6 +192,7 @@ namespace pztopology {
 		 */
 		static int GetTransformId(const TPZVec<int64_t> &id);
         
+        static TPZTransform<REAL> ParametricTransform(int transid);
 
         
 		/**
