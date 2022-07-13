@@ -1013,6 +1013,11 @@ static void FillAtomic(TPZCompEl *cel, TPZVec<atomic_index> &indexes)
     TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
     TPZCondensedCompEl *condense = dynamic_cast<TPZCondensedCompEl *>(cel);
     TPZMultiphysicsInterfaceElement *intface = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
+    if(!mphys && !elgr && !condense && !intface)
+    {
+        std::cout << "Element not handled \n";
+        cel->Print();
+    }
     if(mphys)
     {
         FillAtomic(mphys, indexes);
@@ -1041,8 +1046,21 @@ void TPZBuildMultiphysicsMesh::ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<at
     int64_t nel = mesh->NElements();
     atomic_index def(0,-1);
     indexes.Resize(ncon, def);
+    // the values of the connects of submeshes will be transferred by the elements of the submeshes
+    std::set<int64_t> noworries;
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = mesh->Element(el);
+        TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *>(cel);
+        if(submesh)
+        {
+            int ncon = submesh->NConnects();
+            for(int ic=0; ic<ncon; ic++)
+            {
+                int64_t cindex = submesh->ConnectIndex(ic);
+                noworries.insert(cindex);
+            }
+            continue;
+        }
         if(cel)
         {
             FillAtomic(cel, indexes);
@@ -1051,13 +1069,20 @@ void TPZBuildMultiphysicsMesh::ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<at
 #ifdef PZDEBUG
     {
         int notfound = 0;
+        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(mesh);
         for (int64_t i=0; i<indexes.size(); i++) {
             if(mesh->ConnectVec()[i].SequenceNumber() < 0) continue;
-            if(indexes[i].first == 0) notfound++;
+            if(subcmesh && subcmesh->IsExternal(i)) continue;
+            if(noworries.find(i) != noworries.end()) continue;
+            if(indexes[i].first == 0){
+                notfound++;
+                std::cout << "index " << i << std::endl;
+            }
         }
         if(notfound)
         {
             std::cout << __PRETTY_FUNCTION__ << " number of missing connects " << notfound << std::endl;
+            mesh->Print();
         }
     }
 #endif
