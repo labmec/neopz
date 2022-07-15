@@ -74,11 +74,11 @@ void ComputeFieldAtEl(TPZCompEl *cel,
           field[pos++] =  0.0;
         }
       }else{
-        for (int d = 0; d < fdim; ++d){
+        for (int d = 0; d < sz; ++d){
           field[pos++] = sol[d];
         }
         for (int d = sz; d < fdim; ++d){
-          field[pos++] = sol[d];
+          field[pos++] = 0.0;
         }
       }
     }
