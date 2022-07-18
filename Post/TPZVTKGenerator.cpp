@@ -125,8 +125,8 @@ TPZVTKField::TPZVTKField(TPZVTKField::Type type, int id, std::string aname) :
 TPZVTKGenerator::TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
                                  const TPZVec<std::string> &fields,
                                  std::string filename,
-                                 int vtkres)
-  : TPZVTKGenerator(cmesh.operator->(),fields,filename,vtkres)//delegates to other ctor
+                                 int vtkres, int dim)
+  : TPZVTKGenerator(cmesh.operator->(),fields,filename,vtkres,dim)//delegates to other ctor
 {
 }
 
@@ -135,10 +135,14 @@ TPZVTKGenerator::TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
 TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
                                  const TPZVec<std::string> &fields,
                                  std::string filename,
-                                 int vtkres)
-  : fCMesh(cmesh), fFilename(filename), fSubdivision(vtkres)
+                                 int vtkres, int dim)
+  : fCMesh(cmesh), fFilename(filename), fSubdivision(vtkres),
+    fPostProcDim(cmesh->Dimension())
 {
-
+  if(dim > 0) {
+    fPostProcDim = dim;
+  }
+  
   const int nvars = fields.size();
   
   //let us check for valid post-processing matials
@@ -150,7 +154,7 @@ TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
       bool foundAllVars{true};
       for(int i = 0; (i < nvars) && foundAllVars; i++){
         const auto &name = fields[i];
-        if(matp->Dimension() != cmesh->Dimension()) {continue;}
+        if(matp->Dimension() != fPostProcDim) {continue;}
         const auto index = matp->VariableIndex(name);
         foundAllVars = foundAllVars && (index > -1) ;
       }
@@ -167,9 +171,8 @@ TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
 #endif
   InitFields(fields);
   
-  const int meshdim = fCMesh->Dimension();
   //computes all points in the relevant reference element
-  FillRefEls(meshdim);
+  FillRefEls();
   /**computes all mapped points in the domain and resize all arrays
      to appropriate size*/
   ComputePointsAndCells();
@@ -189,13 +192,27 @@ TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
                                  const TPZVec<std::string> &fields,
                                  std::string filename,
                                  int vtkres)
-  : fCMesh(cmesh), fFilename(filename), fSubdivision(vtkres), fPostProcMats(mats)
+  : fCMesh(cmesh), fFilename(filename), fSubdivision(vtkres),
+    fPostProcMats(std::move(mats))
 {
+
+  //checks post-processing dimension from given materials
+  {
+    const auto id = *(fPostProcMats.begin());
+    auto *matp = cmesh->FindMaterial(id);
+    if(!matp){
+      PZError<<__PRETTY_FUNCTION__
+             <<"\nError: material id "<<id<<" is not valid."
+             <<std::endl;
+      DebugStop();
+    }
+    fPostProcDim = matp->Dimension();
+  }
+  
   InitFields(fields);
   
-  const int meshdim = fCMesh->Dimension();
   //computes all points in the relevant reference element
-  FillRefEls(meshdim);
+  FillRefEls();
   /**computes all mapped points in the domain and resize all arrays
      to appropriate size*/
   ComputePointsAndCells();
@@ -236,8 +253,9 @@ void TPZVTKGenerator::InitFields(const TPZVec<std::string> &fields)
   }
 }
 
-void TPZVTKGenerator::FillRefEls(const int meshdim)
+void TPZVTKGenerator::FillRefEls()
 {
+  const auto &dim = fPostProcDim;
 
   /**
      Uniform refinement patterns are used in order to compute
@@ -255,7 +273,7 @@ void TPZVTKGenerator::FillRefEls(const int meshdim)
     {ETetraedro, EPrisma, ECube, EPiramide}
   };
 
-  for( auto type : eltypes[meshdim]){
+  for( auto type : eltypes[dim]){
     auto refp = gRefDBase.GetUniformRefPattern(type);
     if(!refp){gRefDBase.InitializeUniformRefPattern(type);}
     TPZVec<TPZManVector<REAL,3>> ref_coords;
@@ -546,8 +564,7 @@ bool TPZVTKGenerator::IsValidEl(TPZCompEl *cel)
   //checks dimension and whether the element has been refined
   const auto gel = cel->Reference();
   const auto geldim = gel->Dimension();
-  const auto meshdim = gel->Mesh()->Dimension();
-  if(geldim != meshdim){return false;}
+  if(geldim != fPostProcDim){return false;}
   //only its children elements will be post-processed
   if(gel->HasSubElement()){return false;}
 
@@ -625,8 +642,6 @@ void TPZVTKGenerator::Do(REAL time)
        arrays must be resized accordingly*/
     ComputePointsAndCells();
   }
-
-  const auto meshdim = fCMesh->Dimension();
 
   // header:
   *fFileout << "# vtk DataFile Version 3.0" << std::endl;

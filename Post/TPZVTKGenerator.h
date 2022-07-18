@@ -100,6 +100,8 @@ protected:
   TPZCompMesh* fCMesh = nullptr;
   //! Set of materials in which post-processing will take place
   std::set<int> fPostProcMats;
+  //! Post-processing dimension
+  int fPostProcDim{-1};
   //! File name (no extension)
   std::string fFilename = "";
   //! Number of subdivisions of each geometric element
@@ -132,7 +134,7 @@ protected:
   void FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
                        TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems);
   //! Calls FillReferenceEl to fill fRefVertices and fRefEls for all relevant topologies
-  void FillRefEls(const int meshdim);
+  void FillRefEls();
   //! Print all points in VTK Legacy format
   void PrintPointsLegacy();
   //! Print all cells in VTK Legacy format
@@ -155,22 +157,26 @@ public:
      @param[in] fields names of fields to be post-processed
      @param[in] filename filename (without extension)
      @param[in] vtkres resolution of vtk post-processing (number of el subdivision)
+     @param[in] dim Post-processing dimension (defaults to dimension of mesh)
   */
   TPZVTKGenerator(TPZCompMesh* cmesh,
                   const TPZVec<std::string> &fields,
                   std::string filename,
-                  int vtkres);
+                  int vtkres,
+                  int dim = -1);
   /**
      @brief Creates instance for generating .vtk results for a given mesh
      @param[in] cmesh Computational mesh
      @param[in] fields names of fields to be post-processed
      @param[in] filename filename without extension
      @param[in] vtkres resolution of vtk post-processing (number of el subdivision)
+     @param[in] dim Post-processing dimension (defaults to dimension of mesh)
   */
   TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
                   const TPZVec<std::string> &fields,
                   std::string filename,
-                  int vtkres);
+                  int vtkres,
+                  int dim = -1);
 
   /**
      @brief Creates instance for generating .vtk results for given materials in a given mesh
