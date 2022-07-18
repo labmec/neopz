@@ -1,3 +1,9 @@
+/*********************************************************************/
+/* File:   TPZVTKGenerator.cpp                                       */
+/* Author: Francisco Orlandini                                       */
+/* Date:   5. July 2022                                              */
+/* Adapted from: NGSolve's vtkoutput.hpp                             */
+/*********************************************************************/
 #include "TPZVTKGenerator.h"
 #include "pzcmesh.h"
 #include "pzvec_extras.h"
@@ -20,20 +26,28 @@
 #include "tpzprism.h"
 #include "tpzpyramid.h"
 
-/*********************************************************************/
-/* File:   TPZVTKGenerator.cpp                                       */
-/* Author: Francisco Orlandini                                       */
-/* Date:   5. July 2022                                              */
-/* Adapted from: NGSolve's vtkoutput.hpp                             */
-/*********************************************************************/
 
 
+/**
+@brief Auxiliary class for evaluating fields at computational elements.
+Provides an abstraction of compel type (multiphysics or not). 
+Template argument referes to solution type (real/complex).
+This class allows for efficient computation of the fields by avoiding
+repeated calls to InitMaterialData and ComputeRequiredData. Also,
+it stores both TPZMaterialData<TVar> and a statically allocated 
+vector of TPZMaterialDataT<TVar> in order to minimize dinamic allocation.
+
+Whenever possible, the logic in this class prefers stack allocation.
+*/
 template<class TVar>
 class TPZPostProcEl{
 public:
   TPZPostProcEl(TPZCompEl *cel);
+  //! Iniatilizes data for the computational element
   void InitData();
+  //! Initializes data need at each integration point
   void ComputeRequiredData(TPZVec<REAL> &qsi);
+  //! Evalutes the field id at the point qsi and stores result in sol
   void Solution(const TPZVec<REAL> &qsi, const int id, TPZVec<TVar> &sol);
 private:
   bool fIsMultiphysics{false};
@@ -42,11 +56,19 @@ private:
   TPZManVector<TPZMaterialDataT<TVar>,10> fDatavec; 
 };
 
+/**
+   @brief Computes all relevant fields for a given computational element
+   @param[in] cel Computational element
+   @param[in] ref_vertices points (at reference el) to evaluate the fields
+   @param[in] fields quantities to be evaluated
+   @param[out]  initial position to store the results in the fields array
+*/
 template<class TVar>
 void ComputeFieldAtEl(TPZCompEl *cel,
                       const TPZVec<TPZManVector<REAL,3>> &ref_vertices,
                       TPZVec<TPZAutoPointer<TPZVTKField>>& fields,
                       const TPZVec<int> &init_pos){
+  // maximum size is 9 (3x3 tensor variable)
   TPZManVector<TVar,9> sol;
 
   const auto celdim = cel->Dimension();
@@ -54,17 +76,26 @@ void ComputeFieldAtEl(TPZCompEl *cel,
   TPZPostProcEl<TVar> graphel(cel);
   graphel.InitData();
 
+  //vertex counter
   int iv = 0;
+  //iterate through points in the reference element
   for (auto &ip : ref_vertices){
+    
     ip.Resize(celdim);
+    //computes all relevant data for a given integration point
     graphel.ComputeRequiredData(ip);
     const int nfields = fields.size();
     for (int i = 0; i < nfields; i++){
       auto &field = *(fields[i]);
       auto fdim = field.Dimension();
+      //position will change depending on field dimension
       auto pos = init_pos[i] + fdim*iv;
       sol.Resize(fdim);
       graphel.Solution(ip, field.Id(), sol);
+
+      /**TPZPostProcEl<TVar>::Solution might resize the sol array
+         (i.e., 2d vectors). We thus make sure that we don't read
+         out of bounds quantities and fill with zero if needed*/
       const auto sz = sol.size();
       if constexpr (std::is_same_v<TVar,CSTATE>){
         for (int d = 0; d < sz; ++d){
@@ -91,7 +122,7 @@ TPZVTKField::TPZVTKField(TPZVTKField::Type type, int id, std::string aname) :
   fType( type), fId(id), fName(aname) { ; }
 
 TPZVTKGenerator::TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
-                                 const TPZVec<std::string> fields,
+                                 const TPZVec<std::string> &fields,
                                  std::string filename,
                                  int vtkres)
   : TPZVTKGenerator(cmesh.operator->(),fields,filename,vtkres)//delegates to other ctor
@@ -101,7 +132,7 @@ TPZVTKGenerator::TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
 
 
 TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
-                                 const TPZVec<std::string> fields,
+                                 const TPZVec<std::string> &fields,
                                  std::string filename,
                                  int vtkres)
   : fCMesh(cmesh), fFilename(filename), fSubdivision(vtkres)
@@ -140,12 +171,23 @@ TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
     fFields[i] = new TPZVTKField(type,index,name);
   }
   const int meshdim = fCMesh->Dimension();
+  //computes all points in the relevant reference element
   FillRefEls(meshdim);
-  ComputePoints();
+  /**computes all mapped points in the domain and resize all arrays
+     to appropriate size*/
+  ComputePointsAndCells();
 }
 
 void TPZVTKGenerator::FillRefEls(const int meshdim)
 {
+
+  /**
+     Uniform refinement patterns are used in order to compute
+     the resulting points after the reference element has been divided
+     fSubdivision times.
+
+     The points are computed only for elements of correct dimension.
+   */
   TPZSimpleTimer timer("FillRefEls");
   
   TPZManVector<TPZManVector<MElementType,3>,4> eltypes{
@@ -202,11 +244,24 @@ void TPZVTKGenerator::FillRefEls(const int meshdim)
   }
 }
 
-void TPZVTKGenerator::ComputePoints()
+void TPZVTKGenerator::ComputePointsAndCells()
 {
+
+  /*
+    Computes a list of mapped points in which the quantities will be evaluated.
+    It also computes the resulting triangulation of the domain after the
+    subdivisions were performed (vtk CELLS).
+    After the points are computed, the fFields arrays are resized accordingly.
+  **/
   fPoints.resize(0);
+
+  /*
+    vector of pairs of (compel,pos), where 
+    - compel is a computational element apt for post-processing
+    - pos is the position of its first post-processing node in the fPoints vector
+  */
   fElementVec.resize(0);
-  TPZManVector<TPZCompEl*,10> compelvec;
+  
   for (auto orig_cel : fCMesh->ElementVec()) {
     if(!orig_cel){continue;}
     /**
@@ -219,32 +274,42 @@ void TPZVTKGenerator::ComputePoints()
     orig_cel->GetCompElList(cellist);
     for(auto cel : cellist){
       if (! IsValidEl(cel)){continue;}
-      const auto type = cel->Reference()->Type();
-      //add to valid elements for post-processing
+      //we need to add to valid elements for post-processing
 
+      //we take note of the position of the first node
       const int offset = fPoints.size();
       AppendToVec(fElementVec,std::make_pair(cel,offset));
-      const int eldim = cel->Dimension();
+      
+      const auto type = cel->Reference()->Type();
       TPZManVector<REAL, 3> pt(3, 0.);
+      //append every post-processing node to fPoints vec
       for (auto &ip : fRefVertices[type]) {
         cel->Reference()->X(ip, pt);
         AppendToVec(fPoints, pt);
       }
+      /*
+        append every VTK cell corresponding to cel
+        0-th position = element type
+        1-th position = nnodes
+        2--(nnodes+2) positions = node indexes
+      */
       for (const auto &elem : fRefEls[type]) {
         std::array<int, TPZVTK::MAX_PTS + 2> new_elem = elem;
+        
         const int npts = new_elem[1];
         for (int i = 0; i <= npts; ++i)
           new_elem[i+2] += offset;
         AppendToVec(fCells, new_elem);
       }
     }
-    //at this point we know how many points there are
+    /**at this point we know how many post processing nodes are there, 
+       so we can allocate memory just once.*/
     const int npts = fPoints.size();
     for(auto &f : fFields){
+      //we first resize to zero to ensure that we allocate the exact size
       f->Resize(0);
       const int fdim = f->Dimension();
       f->Resize(npts*fdim);
-      //we first resize to zero to ensure that we allocate the exact size
     }
   }
 }
@@ -263,8 +328,14 @@ void TPZVTKGenerator::ResetArrays()
 template <class TOPOL>
 void TPZVTKGenerator::FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
                                       TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems){
+  /*
+    Computes every post-processing node at the REFERENCE element along with
+    the VTK cells resulting from its subdivision
+   */
   if(fSubdivision == 0)
   {
+    //vertices of the reference element
+    
     static constexpr auto nnodes = TOPOL::NCornerNodes;
     ref_coords.Resize(nnodes,{0,0,0});
     //create array with all entries = nnodes
@@ -277,10 +348,12 @@ void TPZVTKGenerator::FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
     }
   }else
   {
+    //this refinement pattern is expected to have been initialised in FillRefEls
     auto refp = gRefDBase.GetUniformRefPattern(TOPOL::Type());
     auto refpmesh = refp->RefPatternMesh();
 
 
+    //the refinement pattern is already the first subdivision
     const int nrefs = fSubdivision - 1;
 
     TPZManVector<TPZGeoEl*,TPZVTK::MAX_SUBEL> sons(TPZVTK::MAX_SUBEL);
@@ -293,7 +366,7 @@ void TPZVTKGenerator::FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
     }
     
     
-    //fill nodesg
+    //fill nodes in the divided reference element
     const auto nnodes = refpmesh.NNodes();
     ref_coords.Resize(nnodes,{0,0,0});
     for(auto in = 0; in < nnodes; in++){
@@ -302,14 +375,17 @@ void TPZVTKGenerator::FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
     }
 
 
-    //fill cells
+    //fill cells in the divided reference element
     int ic = 0;//i-th cell
     for(TPZGeoEl* gel : refpmesh.ElementVec()){
       if(gel->HasSubElement()==false){
         const int gnnodes = gel->NNodes();
         AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS+2>{});
+        //cell type
         ref_elems[ic][0] = TPZVTK::CellType(gel->Type());
+        //nnodes
         ref_elems[ic][1] = gnnodes;
+        //node indexes (reference element)
         for(int in = 0; in < gnnodes; in++){
           ref_elems[ic][in+2] = gel->NodeIndex(in);
         }
@@ -321,6 +397,7 @@ void TPZVTKGenerator::FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
 
 void TPZVTKGenerator::PrintPointsLegacy()
 {
+  /*print all post-processing nodes in legacy .VTK format*/
   TPZSimpleTimer timer("PrintPts");
   
   (*fFileout) << "POINTS " << fPoints.size() << " float" << std::endl;
@@ -332,9 +409,10 @@ void TPZVTKGenerator::PrintPointsLegacy()
   }
 }
 
-/// output of cells in form vertices
+
 void TPZVTKGenerator::PrintCellsLegacy()
 {
+  /*print all resulting post-processing cells in legacy .VTK format*/
   TPZSimpleTimer timer("PrintCells");
   
   // count number of data for cells, one + number of vertices
@@ -345,7 +423,7 @@ void TPZVTKGenerator::PrintCellsLegacy()
   }
   *fFileout << "CELLS " << fCells.size() << " " << ndata << std::endl;
   for (const auto &c : fCells){
-    const int nv = c[1];
+    const int nv = c[1];//n nodes
     *fFileout << nv << '\t';
     for (int i = 0; i < nv; i++)
       *fFileout << c[i + 2] << '\t';
@@ -353,9 +431,10 @@ void TPZVTKGenerator::PrintCellsLegacy()
   }
 }
 
-/// output of cell types
-void TPZVTKGenerator::PrintCellTypesLegacy(int meshdim)
+
+void TPZVTKGenerator::PrintCellTypesLegacy()
 {
+  /*print all cell type info in legacy .VTK format*/
   TPZSimpleTimer timer("PrintCellTypes");
   
   *fFileout << "CELL_TYPES " << fCells.size() << std::endl;
@@ -367,9 +446,10 @@ void TPZVTKGenerator::PrintCellTypesLegacy(int meshdim)
   *fFileout << "POINT_DATA " << fPoints.size() << std::endl;
 }
 
-/// output of field data (coefficient values)
+
 void TPZVTKGenerator::PrintFieldDataLegacy()
 {
+  /*print all post-processed quantities in legacy .VTK format*/
   TPZSimpleTimer timer("PrintField");
   
   for (auto field : fFields){
@@ -400,12 +480,14 @@ void TPZVTKGenerator::PrintFieldDataLegacy()
 
 bool TPZVTKGenerator::IsValidEl(TPZCompEl *cel)
 {
+  /*checks whether a given computational element should be post-processed.*/
   if(!cel || ! cel->Reference()){return false;}
   
   const auto gel = cel->Reference();
   const auto geldim = gel->Dimension();
   const auto meshdim = gel->Mesh()->Dimension();
   if(geldim != meshdim){return false;}
+  //only its children elements will be post-processed
   if(gel->HasSubElement()){return false;}
 
   switch (gel->Type()){
@@ -418,6 +500,7 @@ bool TPZVTKGenerator::IsValidEl(TPZCompEl *cel)
     case EPrisma:
     case ECube:
       return true;
+    //it should really not reach any other type, but let us be on the safe side
     case EPolygonal: /*8*/	
     case EInterface: /*9*/	
     case EInterfacePoint: /*10*/	
@@ -434,6 +517,13 @@ bool TPZVTKGenerator::IsValidEl(TPZCompEl *cel)
 
 void TPZVTKGenerator::Do(REAL time)
 {
+  /*
+    Main function for exporting one .VTK file.
+    May be called repeatedly if the solution associated with 
+    the computational mesh has changed. 
+    NOTE: if the mesh has changed (i.e., geometric refinement), 
+    ResetArrays() must be called.
+*/
   TPZSimpleTimer timer("Do");
 
   const bool isCplxMesh = fCMesh->GetSolType() == ESolType::EComplex;
@@ -442,7 +532,7 @@ void TPZVTKGenerator::Do(REAL time)
   std::stringstream appended;
   std::vector<int> datalength;
   int offs = 0;
-
+  // create name of the current .vtk file
   filenamefinal << fFilename;
   filenamefinal << "_step" << std::setw(5) << std::setfill('0')
                   << fOutputCount;
@@ -469,8 +559,10 @@ void TPZVTKGenerator::Do(REAL time)
   fFileout = new std::ofstream(filenamefinal.str());
 
   if(fPoints.size() == 0){
-    //perhaps the mesh has changed
-    ComputePoints();
+    /* A call to ResetArrays has been made. 
+       Therefore all post-processing nodes must be recomputed and fFields
+       arrays must be resized accordingly*/
+    ComputePointsAndCells();
   }
 
   const auto meshdim = fCMesh->Dimension();
@@ -487,6 +579,11 @@ void TPZVTKGenerator::Do(REAL time)
   for (auto [cel,pos] : fElementVec) {
     const auto eltype = cel->Reference()->Type();
 
+    /*
+      pos is the index of the first post-processing node of the element.
+      To find the position in the fFields[i] vec, one must take into account
+      the dimension of the each field.
+     */
     for(auto f = 0; f < nfields; f++){
       posvec[f] = pos * fFields[f]->Dimension();
     }
@@ -497,9 +594,11 @@ void TPZVTKGenerator::Do(REAL time)
     }
   }
 
+
+  //write everything to file
   PrintPointsLegacy();
   PrintCellsLegacy();
-  PrintCellTypesLegacy(meshdim);
+  PrintCellTypesLegacy();
   PrintFieldDataLegacy();
 
   fOutputCount++;
