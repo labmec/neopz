@@ -13,6 +13,7 @@
 #include "pzeltype.h"
 #include <iostream>
 #include <map>
+#include <set>
 
 class TPZCompMesh;
 
@@ -97,6 +98,8 @@ class TPZVTKGenerator{
 protected:
   //! Computational mesh
   TPZCompMesh* fCMesh = nullptr;
+  //! Set of materials in which post-processing will take place
+  std::set<int> fPostProcMats;
   //! File name (no extension)
   std::string fFilename = "";
   //! Number of subdivisions of each geometric element
@@ -140,6 +143,8 @@ protected:
   void PrintFieldDataLegacy();
   //! Check if element should be processed
   bool IsValidEl(TPZCompEl *el);
+  //! Initializes field data
+  void InitFields(const TPZVec<std::string> &fields);
   /**@brief Compute all post-processing points and vtk cells. 
      It also creates list of valid computational elements for post-processing.*/
   void ComputePointsAndCells();
@@ -163,6 +168,35 @@ public:
      @param[in] vtkres resolution of vtk post-processing (number of el subdivision)
   */
   TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
+                  const TPZVec<std::string> &fields,
+                  std::string filename,
+                  int vtkres);
+
+  /**
+     @brief Creates instance for generating .vtk results for given materials in a given mesh
+     @param[in] cmesh Computational mesh
+     @param[in] mats identifiers of materials to be post-processed
+     @param[in] fields names of fields to be post-processed
+     @param[in] filename filename (without extension)
+     @param[in] vtkres resolution of vtk post-processing (number of el subdivision)
+     @note All materials should have the same dimension
+  */
+  TPZVTKGenerator(TPZCompMesh* cmesh,
+                  std::set<int> mats,
+                  const TPZVec<std::string> &fields,
+                  std::string filename,
+                  int vtkres);
+  /**
+     @brief Creates instance for generating .vtk results for given materials in a given mesh
+     @param[in] cmesh Computational mesh
+     @param[in] mats identifiers of materials to be post-processed
+     @param[in] fields names of fields to be post-processed
+     @param[in] filename filename without extension
+     @param[in] vtkres resolution of vtk post-processing (number of el subdivision)
+     @note All materials should have the same dimension
+  */
+  TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
+                  std::set<int> mats,
                   const TPZVec<std::string> &fields,
                   std::string filename,
                   int vtkres);

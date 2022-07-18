@@ -8,6 +8,7 @@
 #include "pzcmesh.h"
 #include "pzvec_extras.h"
 #include "TPZMaterial.h"
+#include "TPZBndCond.h"
 #include "TPZSimpleTimer.h"
 #include "pzinterpolationspace.h"
 #include "TPZMatSingleSpace.h"
@@ -138,12 +139,75 @@ TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
   : fCMesh(cmesh), fFilename(filename), fSubdivision(vtkres)
 {
 
-  //let us init the field ids
   const int nvars = fields.size();
+  
+  //let us check for valid post-processing matials
+  for(auto [id,matp] : cmesh->MaterialVec()){
+    auto bnd =
+      dynamic_cast<TPZBndCond *>(matp);
+    //we skip boundary materials
+    if(matp && !bnd){
+      bool foundAllVars{true};
+      for(int i = 0; (i < nvars) && foundAllVars; i++){
+        const auto &name = fields[i];
+        if(matp->Dimension() != cmesh->Dimension()) {continue;}
+        const auto index = matp->VariableIndex(name);
+        foundAllVars = foundAllVars && (index > -1) ;
+      }
+      if(foundAllVars){
+        fPostProcMats.insert(id);
+      }
+    }
+  }
+  
+#ifdef PZDEBUG
+  std::cout<<"The following materials will be post-processed:";
+  for(auto id : fPostProcMats){std::cout<<" "<<id;}
+  std::cout<<std::endl;
+#endif
+  InitFields(fields);
+  
+  const int meshdim = fCMesh->Dimension();
+  //computes all points in the relevant reference element
+  FillRefEls(meshdim);
+  /**computes all mapped points in the domain and resize all arrays
+     to appropriate size*/
+  ComputePointsAndCells();
+}
 
+TPZVTKGenerator::TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
+                                 std::set<int> mats,
+                                 const TPZVec<std::string> &fields,
+                                 std::string filename,
+                                 int vtkres)
+  : TPZVTKGenerator(cmesh.operator->(),mats, fields,filename,vtkres)//delegates to other ctor
+{
+}
+
+TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
+                                 std::set<int> mats,
+                                 const TPZVec<std::string> &fields,
+                                 std::string filename,
+                                 int vtkres)
+  : fCMesh(cmesh), fFilename(filename), fSubdivision(vtkres), fPostProcMats(mats)
+{
+  InitFields(fields);
+  
+  const int meshdim = fCMesh->Dimension();
+  //computes all points in the relevant reference element
+  FillRefEls(meshdim);
+  /**computes all mapped points in the domain and resize all arrays
+     to appropriate size*/
+  ComputePointsAndCells();
+}
+
+
+void TPZVTKGenerator::InitFields(const TPZVec<std::string> &fields)
+{
+  const int nvars = fields.size();
   fFields.resize(nvars);
-  auto * matp = (fCMesh->MaterialVec().begin())->second;
 
+  auto * matp = fCMesh->FindMaterial(*(fPostProcMats.begin()));
   for(int i = 0; i < nvars; i++){
     const auto &name = fields[i];
     const auto index = matp->VariableIndex(name);
@@ -170,12 +234,6 @@ TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
     }();
     fFields[i] = new TPZVTKField(type,index,name);
   }
-  const int meshdim = fCMesh->Dimension();
-  //computes all points in the relevant reference element
-  FillRefEls(meshdim);
-  /**computes all mapped points in the domain and resize all arrays
-     to appropriate size*/
-  ComputePointsAndCells();
 }
 
 void TPZVTKGenerator::FillRefEls(const int meshdim)
@@ -482,7 +540,10 @@ bool TPZVTKGenerator::IsValidEl(TPZCompEl *cel)
 {
   /*checks whether a given computational element should be post-processed.*/
   if(!cel || ! cel->Reference()){return false;}
-  
+
+  //check if element has an appropriate material
+  if(fPostProcMats.count(cel->Material()->Id()) == 0) {return false;}
+  //checks dimension and whether the element has been refined
   const auto gel = cel->Reference();
   const auto geldim = gel->Dimension();
   const auto meshdim = gel->Mesh()->Dimension();
