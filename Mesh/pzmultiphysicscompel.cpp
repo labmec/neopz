@@ -1010,7 +1010,7 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
     
     TPZMultiphysicsCompEl<TGeometry> *thisnonconst = (TPZMultiphysicsCompEl<TGeometry> *) this;
     
-    TPZManVector<TPZMaterialDataT<STATE>,3> datavec;
+    TPZManVector<TPZMaterialDataT<STATE>,4> datavec;
     const int64_t nref = fElementVec.size();
     datavec.resize(nref);
     thisnonconst->InitMaterialData(datavec);
@@ -1019,41 +1019,53 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
     AffineTransform(trvec);
     
     int dim = Dimension();
-    TPZAutoPointer<TPZIntPoints> intrule;
     
+    const TPZIntPoints &intrule = GetIntegrationRule();
     TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
     REAL weight = 0.;
-    
-    TPZManVector<int,3> ordervec;
-    //ordervec.resize(nref);
-    for (int64_t iref=0;  iref<nref; iref++)
+    const TPZCompElWithMem<TPZMultiphysicsCompEl<TGeometry>> *CompElWithMem = dynamic_cast<const TPZCompElWithMem<TPZMultiphysicsCompEl<TGeometry>> *>(this);
+    TPZManVector<int64_t> intpoint_indices;
+    if(CompElWithMem)
     {
-        datavec[iref].fNeedsSol = true;
-        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
-        int svec;
-        if(msp)
-        {
-            ordervec.Resize(ordervec.size()+1);
-            svec = ordervec.size();
-        }
-        else
-        {
-            continue;
-        }
-        datavec[iref].p = msp->MaxOrder();
-        ordervec[svec-1] = datavec[iref].p;
+        CompElWithMem->GetMemoryIndices(intpoint_indices);
+#ifdef PZDEBUG
+        if(intrule.NPoints() != intpoint_indices.size()) DebugStop();
+#endif
     }
-    int order = matCombined->IntegrationRuleOrder(ordervec);
-    
+    //    int intrulepoints = intrule->NPoints();
+
+//    TPZManVector<int,3> ordervec;
+//    //ordervec.resize(nref);
+//    for (int64_t iref=0;  iref<nref; iref++)
+//    {
+//        datavec[iref].fNeedsSol = true;
+//        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+//        int svec;
+//        if(msp)
+//        {
+//            ordervec.Resize(ordervec.size()+1);
+//            svec = ordervec.size();
+//        }
+//        else
+//        {
+//            continue;
+//        }
+//        datavec[iref].p = msp->MaxOrder();
+//        ordervec[svec-1] = datavec[iref].p;
+//    }
+//    int order = matCombined->IntegrationRuleOrder(ordervec);
+//
+//    TPZGeoEl *ref = this->Reference();
+//    intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
+//
+//    TPZManVector<int,3> intorder(dim,order);
+//    intrule->SetOrder(intorder);
+//    int intrulepoints = intrule->NPoints();
+//    if(intrulepoints > 1000) {
+//        DebugStop();
+//    }
     TPZGeoEl *ref = this->Reference();
-    intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
-    
-    TPZManVector<int,3> intorder(dim,order);
-    intrule->SetOrder(intorder);
-    int intrulepoints = intrule->NPoints();
-    if(intrulepoints > 1000) {
-        DebugStop();
-    }
+    int intrulepoints = intrule.NPoints();
     int nvar = material->NSolutionVariables(var);
     TPZManVector<STATE> solout(var);
     result.Resize(nvar, 0.);
@@ -1062,7 +1074,7 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
     REAL detJac;
     for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
     {
-        intrule->Point(int_ind,intpointtemp,weight);
+        intrule.Point(int_ind,intpointtemp,weight);
         ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
         weight *= fabs(detJac);
         datavec[0].intLocPtIndex = int_ind;
@@ -1070,7 +1082,9 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
         
         
         thisnonconst->ComputeRequiredData(intpointtemp,trvec,datavec);
-        
+        if(CompElWithMem) {
+            datavec[0].intGlobPtIndex = intpoint_indices[int_ind];
+        }
         matCombined->Solution(datavec, var, solout);
         
         for (int iv=0; iv<nvar; iv++) {
