@@ -39,6 +39,10 @@ public:
 	 * @param sol constant solution. Ignored if a forcing function is set.
 	 */
 	TPZL2ProjectionCS(int id, int dim, int nstate, const TPZVec<TVar> &sol);
+        
+        TPZL2ProjectionCS(const TPZL2ProjectionCS &copy) = default;
+        
+        TPZL2ProjectionCS &operator=(const TPZL2ProjectionCS &copy) = default;
 
     std::string Name() const override { return "TPZL2ProjectionCS"; }
 	
@@ -55,6 +59,12 @@ public:
     [[nodiscard]] REAL ScaleFactor() const
     {return fScale;}
 
+        /// modifying the behavior of needing the solution
+        void SetNeedSol(int need) {
+            fNeedsSol = need;
+        }
+        
+        
 	int Dimension() const  override { return this->fDim; }
     
     /** @brief Sets problem dimension */
@@ -87,6 +97,14 @@ public:
                 TPZVec<REAL> &errors) override;
     
     virtual int ClassId() const override;
+        
+        /**
+         * @brief Fill material data parameter with necessary requirements for the
+         * Contribute method. Here, in base class, all requirements are considered
+         * as not necessary.
+         */
+        virtual void FillDataRequirements(TPZVec<TPZMaterialDataT<TVar>> &datavec) const override ;
+
 protected:
 	
 	/** @brief Problem dimension */
@@ -100,6 +118,9 @@ protected:
     
     /** @brief Scale factor applied to the stiffness matrix and right hand side */
     REAL fScale{1};
+        
+    /// Variable indicating whether the material will compute the residual or not
+    int fNeedsSol = 0;
 };
 
 

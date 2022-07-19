@@ -34,10 +34,26 @@ void TPZL2ProjectionCS<TVar>::Contribute(const TPZVec<TPZMaterialDataT<TVar>> &d
                                        REAL weight,
                                        TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef){
 	
-    TPZMaterialDataT<TVar>  data = datavec[0];
-	const int nshape =ek.Rows();// data.phi.Rows();
+    int nspace = datavec.size();
+    int active = -1;
+    int numactive = 0;
+    for(int ispace = 0; ispace < nspace; ispace++) {
+        if(datavec[ispace].fShapeType != TPZShapeData::EEmpty) {
+            numactive++;
+            active = ispace;
+        }
+    }
+    if(numactive != 1 || datavec[active].fShapeType != TPZShapeData::EScalarShape) DebugStop();
+    TPZMaterialDataT<TVar>  &data = datavec[active];
+	const int nshape = data.phi.Rows();// data.phi.Rows();
+    if(nshape*fNStateVars != ek.Rows()) DebugStop();
     const int nvars = fNStateVars;
     TPZManVector<TVar,10> solLoc(fSol);
+    if(data.fNeedsSol) {
+        for (int ivi=0; ivi<nvars; ivi++) {
+            solLoc[ivi] -= data.sol[0][ivi];
+        }
+    }
     if(this->HasForcingFunction()){
         this->fForcingFunction(data.x,solLoc);
     }
@@ -45,7 +61,7 @@ void TPZL2ProjectionCS<TVar>::Contribute(const TPZVec<TPZMaterialDataT<TVar>> &d
 	for(int i = 0; i < nshape; i++){
 		for(int j = 0; j < nshape; j++){
             const STATE phiIphiJ = phi.GetVal(i,0) * phi.GetVal(j,0);
-			for(int ivi = 0; ivi < nvars; ivi++){
+            for(int ivi = 0; ivi < nvars; ivi++){
                 const int posI = nvars*i+ivi;
                 const int posJ = nvars*j+ivi;
                 ek(posI, posJ) += weight*fScale*phiIphiJ;
@@ -223,6 +239,22 @@ void TPZL2ProjectionCS<TVar>::Errors(const TPZVec<TPZMaterialDataT<TVar>> &datav
 template<class TVar>
 int TPZL2ProjectionCS<TVar>::ClassId() const{
     return Hash("TPZL2ProjectionCS") ^ TBase::ClassId() << 1;
+}
+
+/**
+ * @brief Fill material data parameter with necessary requirements for the
+ * Contribute method. Here, in base class, all requirements are considered
+ * as not necessary.
+ */
+template<class TVar>
+void TPZL2ProjectionCS<TVar>::FillDataRequirements(TPZVec<TPZMaterialDataT<TVar>> &datavec) const {
+    TPZMatCombinedSpacesT<TVar>::FillDataRequirements(datavec);
+    int nsp = datavec.size();
+    for (int i=0; i<nsp; i++) {
+        if(datavec[i].fShapeType == TPZShapeData::EScalarShape) {
+            datavec[i].fNeedsSol = true;
+        }
+    }
 }
 
 
