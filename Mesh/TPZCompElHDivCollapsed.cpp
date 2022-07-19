@@ -409,6 +409,72 @@ static void ExpandAxes(TPZFMatrix<REAL> &axinput, TPZMatrix<REAL> &axout)
     }
 }
 
+template<class TSHAPE>
+template<class TVar>
+void TPZCompElHDivCollapsed<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data) {
+    TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(data);
+    const int dim = 3; // Hdiv vectors are always in R3
+    const int nstate = this->Material()->NStateVariables();
+    const int ncon = this->NConnects();
+
+    TPZFMatrix<TVar> &MeshSol = this->Mesh()->Solution();
+
+    int64_t numbersol = MeshSol.Cols();
+
+    if(numbersol != 1)
+    {
+        DebugStop();
+    }
+
+    for(int i=0; i<numbersol; i++) {
+        data.divsol[i].Resize(2*nstate);
+        for(int idf=0; idf<nstate; idf++) {
+            data.divsol[i][idf+nstate] = 0.;
+        }
+    }
+    TPZBlock &block =this->Mesh()->Block();
+    int counter=0;
+
+    int nshapeV = data.fVecShapeIndex.NElements();
+
+    // we loop only over the connects related to the tangent flux
+    for(int in=0; in<ncon-2; in++)
+    {
+        TPZConnect *df = &this->Connect(in);
+        int64_t dfseq = df->SequenceNumber();
+        int dfvar = block.Size(dfseq);
+        // pos : position of the block in the solution matrix
+        int64_t pos = block.Position(dfseq);
+
+        /// ish loops of the number of shape functions associated with the block
+        for(int ish=0; ish<dfvar/nstate; ish++)
+        {
+            for (int64_t is=0; is<numbersol; is++)
+            {
+                for(int idf=0; idf<nstate; idf++)
+                {
+                    TVar meshsol = MeshSol(pos+ish*nstate+idf,is);
+#ifdef PZ_LOG
+                    if(logger.isDebugEnabled() && abs(meshsol) > 1.e-6)
+                    {
+                        std::stringstream sout;
+                        sout << "meshsol = " << meshsol << " x " << data.x << std::endl;
+                        LOGPZ_DEBUG(logger,sout.str())
+                    }
+#endif
+
+                    data.divsol[is][nstate+idf] += data.divphi(counter,0)*meshsol;
+                }
+            }
+            counter++;
+        }
+    }
+
+
+
+}
+
+
 /*
 template<class TSHAPE>
 template<class TVar>
