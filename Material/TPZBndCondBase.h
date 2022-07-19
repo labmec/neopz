@@ -47,6 +47,15 @@ class TPZBndCondBase :
     [[nodiscard]] TPZMaterial* NewMaterial() const override {
         return new TPZBndCondBase(*this);
     }
+        
+        virtual int VariableIndex(const std::string &varname) const override{
+            return this->fMaterial->VariableIndex(varname);
+        }
+        
+        virtual int NSolutionVariables(int varindex) const override {
+            return this->fMaterial->NSolutionVariables(varindex);
+        }
+
 };
 
 template<class TVar, class...Interfaces>

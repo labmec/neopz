@@ -134,9 +134,9 @@ template<class TVar>
 void TPZMatCombinedSpacesBC<TVar>::Solution(const TPZVec<TPZMaterialDataT<TVar>> &datavec, int var,
               TPZVec<TVar> &sol)
 {
-    PZError<<__PRETTY_FUNCTION__;
-    PZError<< "should not be called! Aborting...\n";
-    DebugStop();
+    auto *tmp = dynamic_cast<TPZBndCondT<TVar>*>(this);
+    fMatCombinedSpaces->Solution(datavec,var,sol);
+
 }
 
 template<class TVar>
