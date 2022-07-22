@@ -244,38 +244,39 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
     
     // the side orientation will be +1 if the side is oriented counterclockwise
     // -1 if the side is clockwise
-    
-    
-    int faceSide = 0;
-    if (fGeo.Dimension == 2){
-        faceSide = side - TGeo::NCornerNodes;
-    } else if (fGeo.Dimension == 3){
-        faceSide = side - TGeo::NCornerNodes - TGeo::NumSides(1);
-    }
-
+    int sidedim = fGeo.SideDimension(side);
     int sideorient = 1;
-    switch (TGeo::Type())
-    {
-    case ETriangle:
-        sideorient = pztopology::TPZTriangle::GetSideOrient(faceSide);
-        break;
-    case EQuadrilateral:
-        sideorient = pztopology::TPZQuadrilateral::GetSideOrient(faceSide);
-        break;
-    case ETetraedro:
-        sideorient = pztopology::TPZTetrahedron::GetSideOrient(faceSide);
-        break;
-    case ECube:
-        sideorient = pztopology::TPZCube::GetSideOrient(faceSide);
-        break;
-    case EPrisma:
-        sideorient = pztopology::TPZPrism::GetSideOrient(faceSide);
-        break;
-    
-    default:
-        break;
+
+    if(sidedim == fGeo.Dimension-1) {
+        int faceSide = 0;
+        if (fGeo.Dimension == 2){
+            faceSide = side - TGeo::NCornerNodes;
+        } else if (fGeo.Dimension == 3){
+            faceSide = side - TGeo::NCornerNodes - TGeo::NumSides(1);
+        }
+
+        switch (TGeo::Type())
+        {
+        case ETriangle:
+            sideorient = pztopology::TPZTriangle::GetSideOrient(faceSide);
+            break;
+        case EQuadrilateral:
+            sideorient = pztopology::TPZQuadrilateral::GetSideOrient(faceSide);
+            break;
+        case ETetraedro:
+            sideorient = pztopology::TPZTetrahedron::GetSideOrient(faceSide);
+            break;
+        case ECube:
+            sideorient = pztopology::TPZCube::GetSideOrient(faceSide);
+            break;
+        case EPrisma:
+            sideorient = pztopology::TPZPrism::GetSideOrient(faceSide);
+            break;
+        
+        default:
+            break;
+        }
     }
-    
     
     // Build vector with node indices of element to be created
     MElementType sidetype = TGeo::Type(side);
