@@ -127,7 +127,7 @@ int TPZScalarField::NSolutionVariables(int var) const
   case 5://deriv (imag val)
   case 6://deriv (abs val)
   case 7://deriv (phase)
-    return 2;
+    return this->Dimension();
   default:
     return TPZMaterial::NSolutionVariables(var);
   }
@@ -137,10 +137,14 @@ void TPZScalarField::Solution(const TPZMaterialDataT<CSTATE> &data,
               int var, TPZVec<CSTATE> &solout)
 {
   TPZFNMatrix<3, CSTATE> dsolx(3, 1, 0.);
-  {
+  const auto dim = this->Dimension();//1 or 2
+  if(dim == 2){
     const TPZFMatrix<CSTATE> &dsoldaxes = data.dsol[0];
     TPZAxesTools<CSTATE>::Axes2XYZ(dsoldaxes, dsolx, data.axes);
+  }else{
+    dsolx = data.dsol[0];
   }
+  
   switch (var) {
   case 0:
     solout[0] = std::real(data.sol[0][0]);
@@ -155,20 +159,24 @@ void TPZScalarField::Solution(const TPZMaterialDataT<CSTATE> &data,
     solout[0] = std::arg(data.sol[0][0]);
     break;
   case 4:
-    solout[0] = std::real(dsolx.GetVal(0,0));
-    solout[1] = std::real(dsolx.GetVal(1,0));
+    for(int ix = 0; ix < dim; ix++){
+      solout[ix] = std::real(dsolx.GetVal(ix,0));
+    }
     break;
   case 5:
-    solout[0] = std::imag(dsolx.GetVal(0,0));
-    solout[1] = std::imag(dsolx.GetVal(1,0));
+    for(int ix = 0; ix < dim; ix++){
+      solout[ix] = std::imag(dsolx.GetVal(ix,0));
+    }
     break;
   case 6:
-    solout[0] = std::abs(dsolx.GetVal(0,0));
-    solout[1] = std::abs(dsolx.GetVal(1,0));
+    for(int ix = 0; ix < dim; ix++){
+      solout[ix] = std::abs(dsolx.GetVal(ix,0));
+    }
     break;
   case 7:
-    solout[0] = std::arg(dsolx.GetVal(0,0));
-    solout[1] = std::arg(dsolx.GetVal(1,0));
+    for(int ix = 0; ix < dim; ix++){
+      solout[ix] = std::arg(dsolx.GetVal(ix,0));
+    }
     break;
   default:
     TBase::Solution(data, var, solout);
