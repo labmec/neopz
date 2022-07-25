@@ -145,7 +145,7 @@ void TPZPeriodicWgma::ContributeBCInternalA(
 int TPZPeriodicWgma::ClassId() const
 {
   return Hash("TPZPeriodicWgma") ^
-    TPZPeriodicWgma::ClassId() << 1;
+    TPZScalarField::ClassId() << 1;
 }
 
 void TPZPeriodicWgma::Read(TPZStream& buf, void* context)
