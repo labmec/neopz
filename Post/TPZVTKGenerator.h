@@ -128,7 +128,8 @@ protected:
   std::map<MElementType,TPZVec<std::array<int,TPZVTK::MAX_PTS+2>>> fRefEls;
   //! (el,first pos) list of elements and the initial position of their solution in the field vec
   TPZVec<std::pair<TPZCompEl*,int>> fElementVec;
-
+  //! number of threads to be used for computing the fields
+  int fNThreads{4};
 
   //! Computes points (at reference element) for evaluating fields
   template<class TOPOL>
@@ -151,6 +152,8 @@ protected:
   /**@brief Compute all post-processing points and vtk cells. 
      It also creates list of valid computational elements for post-processing.*/
   void ComputePointsAndCells();
+  //!Compute fields for a range of elements
+  void ComputeFields(int first, int last);
 public:
   /**
      @brief Creates instance for generating .vtk results for a given mesh
@@ -213,6 +216,14 @@ public:
   /** @brief Resets post-processing data structure. Call this function if
    the mesh has had changes between Do() calls (refinement, etc)*/
   void ResetArrays();
+
+  //! Set number of threads to compute fields (0 for serial)
+  void SetNThreads(int nt) {
+    //let us avoid negative number of threads for the sake of it. 0 for serial
+    if(nt > -1 ){fNThreads = nt;}
+  }
+  //! Get number of threads to compute fields (0 for serial)
+  int NThreads() const {return fNThreads;} 
 };
 
 #endif /* _TPZVTKGENERATOR_H_ */

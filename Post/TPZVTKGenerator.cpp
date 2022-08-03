@@ -604,8 +604,6 @@ void TPZVTKGenerator::Do(REAL time)
 */
   TPZSimpleTimer timer("Do");
 
-  const bool isCplxMesh = fCMesh->GetSolType() == ESolType::EComplex;
-
   std::ostringstream filenamefinal;
   std::stringstream appended;
   std::vector<int> datalength;
@@ -649,10 +647,57 @@ void TPZVTKGenerator::Do(REAL time)
   *fFileout << "ASCII" << std::endl;
   *fFileout << "DATASET UNSTRUCTURED_GRID" << std::endl;
 
-  const int nfields = fFields.size();
-  TPZVec<int> posvec(nfields);
   
-  for (auto [cel,pos] : fElementVec) {
+  const int nel = fElementVec.size();
+
+  if(fNThreads == 0){
+    
+    ComputeFields(0,nel);
+  }else{
+    std::vector<std::thread> allthreads;
+    const int nt = NThreads();
+    //number of elements per thread (last one may have more elements)
+    const int threadnel = nel / nt;
+    for(int i = 0; i < nt; i++){
+      int firstel = threadnel*i;
+      int lastel = i == nt -1 ? nel : firstel + threadnel;
+      allthreads.push_back(
+        std::thread(
+          [this] (int f, int l){this->ComputeFields(f,l);},firstel,lastel));
+    }
+
+    for(int i = 0; i < nt; i++){
+      allthreads[i].join();
+    }
+  }
+
+  
+  
+  
+  //write everything to file
+  PrintPointsLegacy();
+  PrintCellsLegacy();
+  PrintCellTypesLegacy();
+  PrintFieldDataLegacy();
+
+  fOutputCount++;
+  std::cout << " Done." << std::endl;
+
+}
+
+void TPZVTKGenerator::ComputeFields(int first, int last)
+{
+
+  //whether the mesh has real or cplx dofs
+  const bool isCplxMesh = fCMesh->GetSolType() == ESolType::EComplex;
+
+  //number of fields to be computed
+  const int nfields = fFields.size();
+  TPZManVector<int> posvec(nfields);
+
+  //iterate through valid range
+  for (int i = first; i < last; i++){
+    auto [cel,pos] =  fElementVec[i];
     const auto eltype = cel->Reference()->Type();
 
     /*
@@ -669,17 +714,6 @@ void TPZVTKGenerator::Do(REAL time)
       ComputeFieldAtEl<STATE>(cel, fRefVertices[eltype], fFields,posvec);
     }
   }
-
-
-  //write everything to file
-  PrintPointsLegacy();
-  PrintCellsLegacy();
-  PrintCellTypesLegacy();
-  PrintFieldDataLegacy();
-
-  fOutputCount++;
-  std::cout << " Done." << std::endl;
-
 }
 
 
