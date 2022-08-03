@@ -38,9 +38,8 @@ void TPZPlanarWgScattSrc::FillDataRequirements(
 }
 
 //! Contribution to the integration point
-void TPZPlanarWgScattSrc::Contribute(
-  const TPZMaterialDataT<CSTATE> &data, REAL weight,
-  TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef)
+void TPZPlanarWgScattSrc::Contribute(const TPZMaterialDataT<CSTATE> &data,
+                                     REAL weight, TPZFMatrix<CSTATE> &ef)
 {
   //index of integration point
   const int gp_index = data.intGlobPtIndex;

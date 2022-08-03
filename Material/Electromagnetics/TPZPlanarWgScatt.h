@@ -33,7 +33,10 @@ public:
   */
   void Contribute(const TPZMaterialDataT<CSTATE> &data, REAL weight,
                   TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef) override;
-    
+
+  void Contribute(const TPZMaterialDataT<CSTATE> &data, REAL weight,
+                  TPZFMatrix<CSTATE> &ef) override {}//nothing to be done
+  
   void ContributeBC(const TPZMaterialDataT<CSTATE> &data, REAL weight,
                     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
                     TPZBndCondT<CSTATE> &bc) override;

@@ -38,9 +38,16 @@ class TPZPlanarWgScattSrc : public TPZPlanarWgScatt,
 public:
   //! All constructors from base class shall be available
   using TPZPlanarWgScatt::TPZPlanarWgScatt;
-  //! Contribution to the integration point
+  //! Contribution to the matrix and rhs at the integration point
   void Contribute(const TPZMaterialDataT<CSTATE> &data, REAL weight,
-                  TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef) override;
+                  TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef) override
+  {
+    Contribute(data,weight,ef);
+  }
+  //! Contribution to the rhs at the integration point
+  void Contribute(const TPZMaterialDataT<CSTATE> &data, REAL weight,
+                  TPZFMatrix<CSTATE> &ef) override;
+  
   void FillDataRequirements(TPZMaterialData &data) const override;
   //! Gets propagation constant associated with source
   [[nodiscard]] CSTATE Beta() const{return fBeta;}
