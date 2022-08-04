@@ -151,10 +151,10 @@ TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
       dynamic_cast<TPZBndCond *>(matp);
     //we skip boundary materials
     if(matp && !bnd){
+      if(matp->Dimension() != fPostProcDim) {continue;}
       bool foundAllVars{true};
       for(int i = 0; (i < nvars) && foundAllVars; i++){
-        const auto &name = fields[i];
-        if(matp->Dimension() != fPostProcDim) {continue;}
+        const auto &name = fields[i];        
         const auto index = matp->VariableIndex(name);
         foundAllVars = foundAllVars && (index > -1) ;
       }
