@@ -259,21 +259,6 @@ void TPZEigenAnalysis::SolveT()
     }
 }
 
-TPZFMatrix<CSTATE>
-TPZEigenAnalysis::GetEigenvectors() const {
-  if(!ComputeEigenvectors()){
-    std::cout<<__PRETTY_FUNCTION__
-             <<"\nWARNING:No eigenvectors were computed\n";
-  }
-  return fEigenvectors;
-}
-
-TPZVec<CSTATE>
-TPZEigenAnalysis::GetEigenvalues() const
-{
-    return fEigenvalues;
-}
-
 int TPZEigenAnalysis::ClassId() const
 {
   return Hash("TPZEigenAnalysis") ^

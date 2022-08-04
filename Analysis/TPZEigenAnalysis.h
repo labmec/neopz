@@ -43,9 +43,21 @@ public:
     /** @brief Solve the EVP problem*/
     void Solve() override;
     /** @brief Gets the eigenvectors calculated by the Solve method*/
-    TPZFMatrix<CSTATE> GetEigenvectors() const;
+    TPZFMatrix<CSTATE> &GetEigenvectors()
+    {return fEigenvectors;}
     /** @brief Gets the eigenvalues  by the Solve method*/
-    TPZVec<CSTATE> GetEigenvalues() const;
+    TPZVec<CSTATE> &GetEigenvalues()
+    {return fEigenvalues;}
+    /** @brief Gets the eigenvectors calculated by the Solve method*/
+    const TPZFMatrix<CSTATE> &GetEigenvectors() const
+    {return fEigenvectors;}
+    /** @brief Gets the eigenvalues  by the Solve method*/
+    const TPZVec<CSTATE> &GetEigenvalues() const
+    {return fEigenvalues;}
+    /** @brief Sets the eigenvectors*/
+    void SetEigenvectors(const TPZFMatrix<CSTATE> &ev){fEigenvectors = ev;}
+    /** @brief Sets the eigenvalues*/
+    void SetEigenvalues(const TPZVec<CSTATE> &ev){fEigenvalues = ev;}
     /** @brief Set to compute eigenvectors or just eigenvalues*/
     inline void SetComputeEigenvectors(const bool opt);
     /** @brief Whether to compute eigenvectors or just eigenvalues*/
