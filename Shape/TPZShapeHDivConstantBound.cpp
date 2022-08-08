@@ -30,7 +30,7 @@ void TPZShapeHDivConstantBound<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
     {
         TPZShapeH1<TSHAPE>::Initialize(ids,data.fH1ConnectOrders,data);
     } else if (TSHAPE::Dimension == 2){
-        const int nedges = TSHAPE::NSides-TSHAPE::NFacets-TSHAPE::NCornerNodes-1;
+        const int nedges = TSHAPE::NSides-TSHAPE::NCornerNodes-1;
         TPZManVector<int,15> locconorders(TSHAPE::NSides-TSHAPE::NCornerNodes,1);
         for(int ic = nedges; ic<TSHAPE::NSides-TSHAPE::NCornerNodes; ic++)
         {

@@ -467,6 +467,8 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
         //number of h1 face funcs
         const auto nH1FaceFuncs =
             TSHAPE::NConnectShapeF(iSide,h1FaceOrder);
+        //most logic below relies on nH1FaceFuncs > 0
+        if (!nH1FaceFuncs){continue;}
         
         const auto quadFace = TSHAPE::Type(iSide) == EQuadrilateral;
         

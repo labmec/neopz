@@ -239,6 +239,8 @@ void TPZShapeHCurlNoGrads<TSHAPE>::HighOrderFunctionsFilter(
       break;
     }
     case EQuadrilateral:{
+      // there are no face functions for k == 0
+      if (order == 0) break;
       /*
         from the 2k(k+1) functions, we filter out k^2 gradients of h1, thus
         there are k(k+2) remaining functions.
