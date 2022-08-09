@@ -219,14 +219,14 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const TPZVec<int
         
         if(!gel->Reference() && gel->NumInterfaces() == 0)
         {
-            CreateCompEl(gel,cmesh);
+            index = CreateCompEl(gel,cmesh)->Index();
             if (fCreateHybridMesh) {
                 cmesh.ElementVec()[index]->Reference()->ResetReference();
             }
 #ifdef PZ_LOG
             if (logger.isDebugEnabled())
             {
-
+                
                 std::stringstream sout;
                 if (index < 0) {
                     if(gel->Dimension() == 0){
