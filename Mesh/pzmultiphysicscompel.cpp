@@ -1036,9 +1036,9 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
 
 //    TPZManVector<int,3> ordervec;
 //    //ordervec.resize(nref);
-//    for (int64_t iref=0;  iref<nref; iref++)
-//    {
-//        datavec[iref].fNeedsSol = true;
+   for (int64_t iref=0;  iref<nref; iref++)
+   {
+       datavec[iref].fNeedsSol = true;
 //        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
 //        int svec;
 //        if(msp)
@@ -1052,7 +1052,7 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
 //        }
 //        datavec[iref].p = msp->MaxOrder();
 //        ordervec[svec-1] = datavec[iref].p;
-//    }
+   }
 //    int order = matCombined->IntegrationRuleOrder(ordervec);
 //
 //    TPZGeoEl *ref = this->Reference();
