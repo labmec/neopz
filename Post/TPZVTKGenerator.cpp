@@ -565,8 +565,15 @@ bool TPZVTKGenerator::IsValidEl(TPZCompEl *cel)
   const auto gel = cel->Reference();
   const auto geldim = gel->Dimension();
   if(geldim != fPostProcDim){return false;}
-  //only its children elements will be post-processed
-  if(gel->HasSubElement()){return false;}
+
+  
+  /* the condition below is not always applicable.
+     for instance, if one uses the same geometric mesh, 
+     with several refinements, but with one comp mesh for each
+     refinement level.
+     anyway, i will leave this here in case it provides a hint for debugging*/
+  
+  // if(gel->HasSubElement()){return false;}
 
   switch (gel->Type()){
     case EPoint:
