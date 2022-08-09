@@ -15,6 +15,16 @@
  * @{
  */
 
+
+//! Append to TPZVec
+template<class T, class R>//utility function
+void AppendToVec(TPZVec<T> &vec, R t){
+  static_assert(std::is_convertible_v<R, T>);
+  const auto sz = vec.size();
+  vec.Resize(sz+1);
+  vec[sz] = (T)t;
+}
+
 /**
  * @since Jan 9, 2002
  * @author Cantao!

@@ -476,21 +476,32 @@ void TPZVec<T>::Resize(const int64_t newsize) {
 	if(newsize == fNElements) return;
 	if (newsize == 0) {
 		fNElements = 0;
-        fNAlloc = 0;
+    fNAlloc = 0;
 		delete[] fStore;
 		fStore = nullptr;
 		return;
 	}
-	T *newstore = new T[newsize];
-	int64_t large = (fNElements < newsize) ? fNElements : newsize;
-	int64_t i;
-	for(i=0L; i<large; i++) {
-		newstore[i] = fStore[i];
-	}
-	if(fStore) delete[] fStore;
-	fStore = newstore;
-	fNElements = newsize;
-    fNAlloc = newsize;
+
+  /*
+    if needed to allocate, unless previous size was zero,
+    we allocate twice as much as requested. 
+    this aims to prevent repeated calls to new/delete
+    in operations such as appending to vector
+   */
+  if(newsize > this->fNAlloc){
+    const auto sz = fNAlloc == 0 ? newsize : 2*newsize;
+    T *newstore = new T[sz];
+    int64_t large = (fNElements < sz) ? fNElements : newsize;
+    int64_t i;
+    for(i=0L; i<large; i++) {
+      newstore[i] = fStore[i];
+    }
+    if(fStore) delete[] fStore;
+    fStore = newstore;
+    fNAlloc = sz;
+  }
+
+  fNElements = newsize;
 }
 
 template<class T>

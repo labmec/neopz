@@ -578,15 +578,20 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 }
 
 //.........................................................................................................................................
-void TPZRefPatternDataBase::InitializeAllUniformRefPatterns()
+void TPZRefPatternDataBase::InitializeAllUniformRefPatterns(int maxd)
 {
-	InitializeUniformRefPattern(EOned);
-	InitializeUniformRefPattern(ETriangle);
-	InitializeUniformRefPattern(EQuadrilateral);
-	InitializeUniformRefPattern(ETetraedro);
-	InitializeUniformRefPattern(EPiramide);
-	InitializeUniformRefPattern(EPrisma);
-	InitializeUniformRefPattern(ECube);
+	switch(maxd){
+	default:
+		InitializeUniformRefPattern(ETetraedro);
+		InitializeUniformRefPattern(EPiramide);
+		InitializeUniformRefPattern(EPrisma);
+		InitializeUniformRefPattern(ECube);
+	case 2:
+		InitializeUniformRefPattern(EQuadrilateral);
+		InitializeUniformRefPattern(ETriangle);
+	case 1:
+		InitializeUniformRefPattern(EOned);
+	}
 }
 
 //.........................................................................................................................................
