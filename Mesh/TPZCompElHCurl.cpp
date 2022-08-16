@@ -786,8 +786,10 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
             continue;
         }
         int64_t jnodindex = large->SideConnectIndex(jn, neighbourside);
-        TPZConnect::TPZDepend *depend = inod.AddDependency(inodindex, jnodindex, MSL, MBlocksmall.Position(in), MBlocklarge.Position(jn),
-                                                           MBlocksmall.Size(in), MBlocklarge.Size(jn));
+        TPZConnect::TPZDepend<STATE> *depend =
+            inod.AddDependency(inodindex, jnodindex, MSL,
+                               MBlocksmall.Position(in), MBlocklarge.Position(jn),
+                               MBlocksmall.Size(in), MBlocklarge.Size(jn));
         if (blocknorm(in, jn) < 1.e-8) {
             depend->fDepMatrix.Zero();
         }

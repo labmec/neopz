@@ -148,7 +148,7 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> &cmeshVec, TPZC
 			TPZConnect &cn = MFMesh->ConnectVec()[FirstConnect[imesh]+ic];
 			if (cn.HasDependency()) 
 			{
-				TPZConnect::TPZDepend *dep = cn.FirstDepend();
+				TPZConnect::TPZDependBase *dep = cn.FirstDepend();
 				while (dep) {
 					dep->fDepConnectIndex = dep->fDepConnectIndex+FirstConnect[imesh];
 					dep = dep->fNext;
@@ -229,7 +229,7 @@ void TPZBuildMultiphysicsMesh::AppendConnects(TPZCompMesh *cmesh, TPZCompMesh *M
         TPZConnect &cn = MFMesh->ConnectVec()[nconnects_old + ic];
         if (cn.HasDependency())
         {
-            TPZConnect::TPZDepend *dep = cn.FirstDepend();
+            TPZConnect::TPZDependBase *dep = cn.FirstDepend();
             while (dep)
             {
                 dep->fDepConnectIndex = dep->fDepConnectIndex + nconnects_old;

@@ -933,7 +933,7 @@ void TPZMHMixedMeshControl::HybridizeSkeleton(int skeletonmatid, int pressuremat
                 DebugStop();
             }
             TPZConnect &c = smallel->SideConnect(0, smallCompElSide.Side());
-            TPZConnect::TPZDepend *dep = c.FirstDepend();
+            TPZConnect::TPZDependBase *dep = c.FirstDepend();
             if(dep->fDepConnectIndex != origdepindex)
             {
                 DebugStop();

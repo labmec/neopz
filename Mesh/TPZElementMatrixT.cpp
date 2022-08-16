@@ -270,8 +270,11 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 			// insize : number of equations processed
 			
 			// loop over the nodes from which dfn depends
-			TPZConnect::TPZDepend *dep = dfn->FirstDepend();
+			TPZConnect::TPZDependBase *dep = dfn->FirstDepend();
+
+      TPZFNMatrix<50,TVar> depmat;
 			while(dep) {
+        dep->FillDepMatrix(depmat);
 				int64_t depnodeindex = dep->fDepConnectIndex;
 				// look for the index where depnode is found
 				int depindex=0;
@@ -289,12 +292,12 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 				int64_t send;
 				int64_t receive;
 				int ieq;
-				STATE coef;
+				TVar coef;
 				int idf;
 				int numstate = dfn->NState();
 				for(send=inpos; send<inpos+insize; send += numstate) {
 					for(receive=deppos; receive<deppos+depsize; receive += numstate) {
-						coef = dep->fDepMatrix((send-inpos)/numstate,(receive-deppos)/numstate);
+						coef = depmat((send-inpos)/numstate,(receive-deppos)/numstate);
 						if (this->fType == TPZElementMatrix::EK){
 							for(ieq=0; ieq<toteq; ieq++) for(idf=0; idf<numstate; idf++)  {
 								(this->fConstrMat)(receive+idf,ieq) += coef*(this->fConstrMat)(send+idf,ieq);
@@ -311,7 +314,7 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 				if (this->fType == TPZElementMatrix::EK){
 					for(send=inpos; send<inpos+insize; send += numstate) {
 						for(receive=deppos; receive<deppos+depsize; receive += numstate) {
-							coef = dep->fDepMatrix((send-inpos)/numstate,(receive-deppos)/numstate);
+							coef = depmat((send-inpos)/numstate,(receive-deppos)/numstate);
 							for(ieq=0; ieq<toteq; ieq++) for(idf=0; idf<numstate; idf++) {
 								(this->fConstrMat)(ieq,receive+idf) += coef*(this->fConstrMat)(ieq,send+idf);
 							}

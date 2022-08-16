@@ -360,7 +360,7 @@ void TPZMultiphysicsCompMesh::AddConnects(){
             TPZConnect &cn = ConnectVec()[FirstConnect[i_as]+ic];
             if (cn.HasDependency())
             {
-                TPZConnect::TPZDepend *dep = cn.FirstDepend();
+                TPZConnect::TPZDependBase *dep = cn.FirstDepend();
                 while (dep) {
                     dep->fDepConnectIndex = dep->fDepConnectIndex+FirstConnect[i_as];
                     dep = dep->fNext;

@@ -128,13 +128,13 @@ void TPZCheckRestraint::AddConnect(int connectindex) {
 			fRestraint(il,ic) = 1.;
 		}
 	} else {
-		TPZConnect::TPZDepend *depend = smallc.FirstDepend();
+		auto *depend = dynamic_cast<TPZConnect::TPZDepend<REAL>*>(smallc.FirstDepend());
 		if(!depend) {
 			cout << "TPZCheckRestraint::AddConnect data structure error 1\n";
 		}
 		while(depend) {
 			AddDependency(connectindex,depend->fDepConnectIndex,depend->fDepMatrix);
-			depend = depend->fNext;
+			depend = dynamic_cast<TPZConnect::TPZDepend<REAL>*>(depend->fNext);
 		}
 	}
 }
@@ -183,7 +183,7 @@ void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectind
 		}
 	} else {
 		TPZConnect &largec = fMesh->ConnectVec()[largeconnectindex];
-		TPZConnect::TPZDepend *depend = largec.FirstDepend();
+		auto depend = dynamic_cast<TPZConnect::TPZDepend<REAL> *>(largec.FirstDepend());
 		if(!depend) {
 			// recado de erro
 			cout << "TPZCheckRestraint::Error:\tLarge connect without dependency\n";
@@ -204,7 +204,7 @@ void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectind
 			
 			TPZFMatrix<REAL> depmat = dependmatrix * depend->fDepMatrix;
 			AddDependency(smallconnectindex,depend->fDepConnectIndex,depmat);
-			depend = depend->fNext;
+			depend = dynamic_cast<TPZConnect::TPZDepend<REAL> *>(depend->fNext);
 		}
 	}
 }

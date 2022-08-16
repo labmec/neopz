@@ -116,7 +116,7 @@ void TPZElementGroup::ReorderConnects()
     // this will be tracked by depreceive
     for (int ic=0; ic<nc; ic++) {
         TPZConnect &c = Connect(ic);
-        TPZConnect::TPZDepend * dep = c.FirstDepend();
+        TPZConnect::TPZDependBase * dep = c.FirstDepend();
         while (dep) {
             depreceive.insert(dep->fDepConnectIndex);
             dep = dep->fNext;

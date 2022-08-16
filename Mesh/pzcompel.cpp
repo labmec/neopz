@@ -243,10 +243,12 @@ void TPZCompEl::LoadSolutionInternal() {
             int nvar = block.Size(bl);
             int numstate = dfn->NState(); //numstate eh fornecida pelo connect
             //         int numshape = nvar/numstate;
-            TPZConnect::TPZDepend *dep = dfn->FirstDepend();
+            TPZConnect::TPZDependBase *dep = dfn->FirstDepend();
+            TPZFNMatrix<50,TVar> depmat;
             int64_t blpos = block.Position(bl);
             for(iv=0; iv<nvar; iv++) MeshSol(blpos+iv, 0) = 0.;
             while(dep) {
+                dep->FillDepMatrix(depmat);
                 int64_t depconindex = dep->fDepConnectIndex;
                 TPZConnect &depcon = Mesh()->ConnectVec()[depconindex];
                 int64_t depseq = depcon.SequenceNumber();
@@ -254,7 +256,7 @@ void TPZCompEl::LoadSolutionInternal() {
                 int64_t depseqpos = block.Position(depseq);
                 for(iv=0; iv<nvar; iv+=numstate) {
                     for(jv=0; jv<numdepvar; jv+=numstate) {
-                        coef = dep->fDepMatrix(iv/numstate,jv/numstate);
+                        coef = depmat(iv/numstate,jv/numstate);
                         for(idf=0; idf<numstate; idf++) MeshSol(blpos+iv+idf,0) += coef*MeshSol(depseqpos+jv+idf,0);
                     }
                 }
@@ -528,7 +530,7 @@ void TPZCompEl::BuildConnectList(TPZStack<int64_t> &connectlist) const {
     for(int64_t i = 0; i < nconloc; i++) {
         TPZConnect &c = Connect(i);
         if (c.HasDependency()) {
-            TPZConnect::TPZDepend * dep= c.FirstDepend();
+            TPZConnect::TPZDependBase * dep= c.FirstDepend();
             while(dep)
             {
                 buf2.insert(dep->fDepConnectIndex);
@@ -573,7 +575,7 @@ void TPZCompEl::BuildConnectList(std::set<int64_t> &connectlist) {
     for(std::set<int64_t>::iterator it=buf.begin(); it != buf.end(); it++) {
         TPZConnect &c = Mesh()->ConnectVec()[*it];
         if (c.HasDependency()) {
-            TPZConnect::TPZDepend * dep= c.FirstDepend();
+            TPZConnect::TPZDependBase * dep= c.FirstDepend();
             buf2.insert(dep->fDepConnectIndex);
         }
     }

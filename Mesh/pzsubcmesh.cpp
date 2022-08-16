@@ -295,21 +295,23 @@ void TPZSubCompMesh::MakeExternal(int64_t local){
 		//Allocate the selected local node in father mesh
         TPZConnect &c = fConnectVec[local];
 		extconnect = FatherMesh()->AllocateNewConnect(c);
+
+    FatherMesh()->ConnectVec()[extconnect] = c;
 		
 		fConnectIndex[lastext] = extconnect;
 		fExternalLocIndex[local] = lastext;
 		fFatherToLocal[extconnect] = local;
 		fLocalToFather[local] = extconnect;
-		TPZConnect::TPZDepend *listdepend = fConnectVec[local].FirstDepend();
+		TPZConnect::TPZDependBase *listdepend =
+      FatherMesh()->ConnectVec()[extconnect].FirstDepend();
 		while(listdepend) {
 			int64_t depindex = listdepend->fDepConnectIndex;
 			MakeExternal(listdepend->fDepConnectIndex);
+      
 			int64_t depextind = fConnectIndex[fExternalLocIndex[depindex]];
-			int64_t r = listdepend->fDepMatrix.Rows();
-			int64_t c = listdepend->fDepMatrix.Cols();
-			FatherMesh()->ConnectVec()[extconnect].AddDependency(extconnect,depextind,listdepend->fDepMatrix,0,0,r,c);
+      listdepend->fDepConnectIndex = depextind;
 			fConnectVec[local].RemoveDepend(local,depindex);
-			listdepend = fConnectVec[local].FirstDepend();
+			listdepend = listdepend->fNext;
 		}
 	} else {
 		if(fConnectVec[local].FirstDepend() ) {
@@ -411,15 +413,16 @@ void TPZSubCompMesh::TransferDependencies(int64_t local)
 		std::cout << "ERROR";
 	}
 #endif
-	TPZConnect::TPZDepend *listdepend = father->ConnectVec()[superind].FirstDepend();
+
+  ConnectVec()[local] = father->ConnectVec()[superind];
+
+  //now we adjust the indices of the dependencies
+	TPZConnect::TPZDependBase *listdepend = ConnectVec()[local].FirstDepend();
 	while(listdepend) {
 		int64_t depfatherindex = listdepend->fDepConnectIndex;
 		int64_t depindexlocal = GetFromSuperMesh(depfatherindex,father);
-		int64_t r = listdepend->fDepMatrix.Rows();
-		int64_t c = listdepend->fDepMatrix.Cols();
-		ConnectVec()[local].AddDependency(local,depindexlocal,listdepend->fDepMatrix,0,0,r,c);
-		//father->ConnectVec()[superind].RemoveDepend(superind,depfatherindex);
-        listdepend = listdepend->fNext;
+    listdepend->fDepConnectIndex = depindexlocal;		
+    listdepend = listdepend->fNext;
 	}
 }
 
@@ -454,7 +457,7 @@ static void GatherDependency(TPZCompMesh &cmesh, TPZConnect &start, std::set<int
     if (!start.HasDependency()) {
         return;
     }
-    TPZConnect::TPZDepend *depend = start.FirstDepend();
+    TPZConnect::TPZDependBase *depend = start.FirstDepend();
     while (depend) {
         dependency.insert(depend->fDepConnectIndex);
         TPZConnect &c = cmesh.ConnectVec()[depend->fDepConnectIndex];

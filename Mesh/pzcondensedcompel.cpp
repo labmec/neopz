@@ -259,7 +259,7 @@ void TPZCondensedCompElT<TVar>::Resequence()
     // this will be tracked by depreceive
     for (int ic=0; ic<ncon; ic++) {
         TPZConnect &c = fReferenceCompEl->Connect(ic);
-        TPZConnect::TPZDepend * dep = c.FirstDepend();
+        TPZConnect::TPZDependBase * dep = c.FirstDepend();
         while (dep) {
             depreceive.insert(dep->fDepConnectIndex);
             dep = dep->fNext;
