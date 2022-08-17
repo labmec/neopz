@@ -77,7 +77,7 @@ void TPZMatPML<TMAT>::SetAttZ(const REAL pmlBegin,
 template<class TMAT>
 TPZMatPML<TMAT> * TPZMatPML<TMAT>::NewMaterial() const
 {
-  return new TPZMatPML<TMAT>;
+  return new TPZMatPML<TMAT>(*this);
 }
 
 template<class TMAT>
