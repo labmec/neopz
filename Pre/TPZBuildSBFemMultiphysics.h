@@ -52,9 +52,13 @@ public:
 
     int GetSideCollapsedEl(TPZGeoEl * gel);
 
+    void BuildComputationalMeshFromSkeleton(TPZMultiphysicsCompMesh &cmesh);
+
     void BuildMultiphysicsCompMesh(TPZMultiphysicsCompMesh &cmesh);
 
     void CreateExternalElements(TPZAutoPointer<TPZGeoMesh> & gmesh, set<int> & matidtarget, set <int> & matids1d);
+
+    void CreateVolumetricElementsFromSkeleton(TPZCompMesh &cmesh, set<int> & matidstarget, set <int> & matids1d);
 
     void CreateCollapsedGeoEls(TPZCompMesh & cmeshpressure, set<int> & matidstarget, set<int> & matids1d);
 
@@ -79,7 +83,4 @@ public:
     void StandardConfigurationHdiv();
 
     void AddInternalElements();
-
-// NOT READY YET
-    void BuildMultiphysicsCompMeshfromSkeleton(TPZCompMesh &cmesh);
 };

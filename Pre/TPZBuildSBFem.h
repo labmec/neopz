@@ -94,7 +94,7 @@ public:
     /// Divide the skeleton elements - elements of dimension dim-1 which are not in volmatids
     void DivideSkeleton(int nref, const std::set<int> &volmatids);
 
-private:
+protected:
     /// create the geometric skeleton elements
     void AddSkeletonElements();
     

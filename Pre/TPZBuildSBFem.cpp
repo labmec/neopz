@@ -729,6 +729,11 @@ void TPZBuildSBFem::CreateElementGroups(TPZCompMesh &cmesh)
             }
             femvol->SetElementGroupIndex(index);
         }
+        if (nsub == 0)
+        {
+            delete sbfemgroup;
+        }
+        
     }
 
     if (TPZSBFemElementGroup::gDefaultPolynomialOrder != 0)
