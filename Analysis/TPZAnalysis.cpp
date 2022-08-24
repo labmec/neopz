@@ -553,7 +553,7 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
 
 
   {
-      TPZSimpleTimer t("ThreadWork");
+      TPZSimpleTimer t("ThreadWork",true);
   
       for(int itr=0; itr<numthreads; itr++)
           {
@@ -754,7 +754,7 @@ void TPZAnalysis::Run(std::ostream &out)
     }
 
     {
-        TPZSimpleTimer t("Time for assembly");
+        TPZSimpleTimer t("Time for assembly",true);
         Assemble();
     }
     
@@ -765,7 +765,7 @@ void TPZAnalysis::Run(std::ostream &out)
     }
     
     {
-        TPZSimpleTimer t("Time for solving");
+        TPZSimpleTimer t("Time for solving",true);
         Solve();
     }
 }

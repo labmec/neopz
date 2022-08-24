@@ -264,7 +264,7 @@ void TPZVTKGenerator::FillRefEls()
 
      The points are computed only for elements of correct dimension.
    */
-  TPZSimpleTimer timer("FillRefEls");
+  TPZSimpleTimer timer("FillRefEls",true);
   
   TPZManVector<TPZManVector<MElementType,3>,4> eltypes{
     {},
@@ -474,7 +474,7 @@ void TPZVTKGenerator::FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
 void TPZVTKGenerator::PrintPointsLegacy()
 {
   /*print all post-processing nodes in legacy .VTK format*/
-  TPZSimpleTimer timer("PrintPts");
+  TPZSimpleTimer timer("PrintPts",true);
   
   (*fFileout) << "POINTS " << fPoints.size() << " float" << std::endl;
   for(const auto &p : fPoints){
@@ -489,7 +489,7 @@ void TPZVTKGenerator::PrintPointsLegacy()
 void TPZVTKGenerator::PrintCellsLegacy()
 {
   /*print all resulting post-processing cells in legacy .VTK format*/
-  TPZSimpleTimer timer("PrintCells");
+  TPZSimpleTimer timer("PrintCells",true);
   
   // count number of data for cells, one + number of vertices
   int ndata = 0;
@@ -511,7 +511,7 @@ void TPZVTKGenerator::PrintCellsLegacy()
 void TPZVTKGenerator::PrintCellTypesLegacy()
 {
   /*print all cell type info in legacy .VTK format*/
-  TPZSimpleTimer timer("PrintCellTypes");
+  TPZSimpleTimer timer("PrintCellTypes",true);
   
   *fFileout << "CELL_TYPES " << fCells.size() << std::endl;
 
@@ -526,7 +526,7 @@ void TPZVTKGenerator::PrintCellTypesLegacy()
 void TPZVTKGenerator::PrintFieldDataLegacy()
 {
   /*print all post-processed quantities in legacy .VTK format*/
-  TPZSimpleTimer timer("PrintField");
+  TPZSimpleTimer timer("PrintField",true);
   
   for (auto field : fFields){
     *fFileout << field->TypeName() <<' ' << field->Name()
@@ -609,7 +609,7 @@ void TPZVTKGenerator::Do(REAL time)
     NOTE: if the mesh has changed (i.e., geometric refinement), 
     ResetArrays() must be called.
 */
-  TPZSimpleTimer timer("Do");
+  TPZSimpleTimer timer("Do",true);
 
   std::ostringstream filenamefinal;
   std::stringstream appended;

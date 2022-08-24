@@ -39,10 +39,10 @@ TPZSimpleTimer::~TPZSimpleTimer()
             parent = parent->fParentTimer;
         }
         fParentTimer->fNestedTimersInfo.append(info.str());
-        if(fAlwaysPrint) std::cout<<info.str()<<std::endl;
-    }else{
-        std::cout<<info.str()<<std::endl;
     }
+    if(fAlwaysPrint)
+        std::cout<<info.str()<<std::endl;
+
     
 }
 

@@ -31,7 +31,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   PZError<<"\nERROR: NeoPZ was not linked against LAPACK. Aborting...\n";
   DebugStop();
 #endif
-  TPZSimpleTimer total("Arnoldi Solver");
+  TPZSimpleTimer total("Arnoldi Solver",true);
 
   
   const int nRows = this->MatrixA()->Rows();
@@ -41,7 +41,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   TPZAutoPointer<TPZMatrix<TVar>> arnoldiMat{nullptr};
   auto st = this->SpectralTransform();
   if(st){
-    TPZSimpleTimer calcMat("ST Calculating matrix");
+    TPZSimpleTimer calcMat("ST Calculating matrix",true);
     if(this->IsGeneralised())
       arnoldiMat = st->CalcMatrix(this->MatrixA(),this->MatrixB());
     else
@@ -49,7 +49,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   }else{
     arnoldiMat = this->MatrixA();
     if(this->IsGeneralised()){
-      TPZSimpleTimer binvert("invert B mat");
+      TPZSimpleTimer binvert("invert B mat",true);
       if (this->MatrixB()->IsSymmetric()) this->MatrixB()->Decompose_LDLt();
       else this->MatrixB()->Decompose_LU();
     }
@@ -73,7 +73,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
 
   auto lapackres = [&h,&w,&lapackEV]()
   {
-    TPZSimpleTimer lapacktimer("Hessenberg EVP");
+    TPZSimpleTimer lapacktimer("Hessenberg EVP",true);
     TPZLapackEigenSolver<TVar> lapack;
     return lapack.SolveHessenbergEigenProblem(h, w, lapackEV);
   }();
@@ -88,7 +88,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   if(!computeVectors) return lapackres;
   eigenVectors.Redim(nRows,n);
   {
-    TPZSimpleTimer evTimer("Computing eigenvectors");
+    TPZSimpleTimer evTimer("Computing eigenvectors",true);
     for (int i = 0; i< n; i++){//which eigenvector from A
       auto il = indices[i];
       for (int j = 0; j < krylovDim; j++){//which vector from Q
@@ -178,17 +178,17 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
   //initializing first vector
   *(Q[0]) = fKrylovVector * (TVar)(1./Norm(fKrylovVector));
   
-  TPZSimpleTimer arnoldiIteration("ArnoldiIteration");
+  TPZSimpleTimer arnoldiIteration("ArnoldiIteration",true);
   const auto &tol = Tolerance();
 
   for(auto k = 1; k < n+1; k++){
-    // TPZSimpleTimer arnoldiStep("step"+std::to_string(k));
+    // TPZSimpleTimer arnoldiStep("step"+std::to_string(k),true);
 
 
     //let us generate a first guess for w: w = A.q_{k-1}
     TPZFMatrix<TVar> w = [&A,&B,&Q,k,whichB]()
     {
-      // TPZSimpleTimer matMult("matmult");
+      // TPZSimpleTimer matMult("matmult",true);
       switch(whichB){
       case EWhichB::ENoB:
         return  A  * *(Q[k-1]);
