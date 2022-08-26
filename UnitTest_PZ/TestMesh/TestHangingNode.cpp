@@ -20,8 +20,9 @@ using namespace pzshape;
 #include <pzstepsolver.h>
 #include <pzgmesh.h> //for TPZGeoMesh
 #include <pzcmesh.h> //for TPZCompMesh
-#include "Projection/TPZL2Projection.h" //for BC in a single point
-#include "Projection/TPZL2ProjectionHDiv.h" //for BC in a single point
+#include "Projection/TPZL2Projection.h"
+#include "Projection/TPZL2ProjectionHDiv.h"
+#include "Projection/TPZL2ProjectionHCurl.h"
 #include "Projection/TPZL2ProjectionCS.h"
 #include <TPZGeoMeshTools.h>
 #include "TPZEnumApproxFamily.h"
@@ -33,11 +34,10 @@ using namespace pzshape;
 #include "pzlog.h"
 #include "TPZVTKGeoMesh.h"
 
-// #define USE_MAIN
+#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
-
 #endif
 
 /**
@@ -51,7 +51,7 @@ template<class tshape>
 TPZGeoMesh* CreateGeoMesh(const TPZVec<int> &nDivs, const int volId, const int bcId);
 
 
-enum SpaceType {EH1, EHDivConstant, EHDivKernel, EHDivStandard, EHCurl};
+enum SpaceType {EH1, EHDivConstant, EHDivKernel, EHDivStandard, EHCurl, EHCurlNoGrads};
 
 /*
     Test KernelHdiv problem
@@ -66,28 +66,31 @@ void Refinement(TPZGeoMesh *gmesh);
 TPZCompMesh * CreateCMeshH1(TPZGeoMesh* gmesh, int pOrder, const int volId);
 TPZCompMesh * CreateCMeshHDiv(TPZGeoMesh* gmesh, int pOrder, const int volId, HDivFamily hdivfam);
 TPZCompMesh * CreateCMeshHDiv2(TPZGeoMesh* gmesh, int pOrder, const int volId, HDivFamily hdivfam);
+TPZCompMesh * CreateCMeshHCurl(TPZGeoMesh* gmesh, int pOrder, const int volId, HCurlFamily hcurlfam);
 
 // Test Hanging Nodes: FOR DEBUGGING PURPOSES
 #ifndef USE_MAIN
 TEST_CASE("Constrained Space", "[constrained_space_test]") {
-  std::cout << "Testing Hanging Nodes \n";
-
-  const int xdiv = GENERATE(2);
-  const int pOrder = GENERATE(1);
-  SpaceType sType = GENERATE(EHDivConstant);
-
-//   TestConstrainedSpace<pzshape::TPZShapeTriang>(xdiv,pOrder,sType);
-  TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType);
-//   TestConstrainedSpace<pzshape::TPZShapeTetra>(xdiv,pOrder,sType);
-//   TestConstrainedSpace<pzshape::TPZShapeCube>(xdiv, pOrder, sType);
-  std::cout << "Finish test Constrained Space \n";
+    std::cout << "Testing Hanging Nodes \n";
+    
+    const int xdiv = GENERATE(2);
+    const int pOrder = GENERATE(1);
+    SpaceType sType = GENERATE(EHCurl);
+    
+    TestConstrainedSpace<pzshape::TPZShapeTriang>(xdiv,pOrder,sType);
+    TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType);
+    TestConstrainedSpace<pzshape::TPZShapeTetra>(xdiv,pOrder,sType);
+    TestConstrainedSpace<pzshape::TPZShapeCube>(xdiv, pOrder, sType);
+    std::cout << "Finish test Constrained Space \n";
 }
 #else
 int main(){
 
     const int xdiv = 2;
     const int pOrder = 1;
-    SpaceType sType = EHDivStandard;
+//    SpaceType sType = EHCurl;
+//    SpaceType sType = EHDivStandard;
+    SpaceType sType = EHCurlNoGrads;
 
     TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType);
 
@@ -95,7 +98,9 @@ int main(){
 }
 #endif
 
-//Create 
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+
 template<class tshape>
 TPZGeoMesh* CreateGeoMesh(const TPZVec<int> &nDivs, const int volId, const int bcId)
 {
@@ -136,8 +141,10 @@ TPZGeoMesh* CreateGeoMesh(const TPZVec<int> &nDivs, const int volId, const int b
                         matIds, nDivs, meshType,createBoundEls);
 
     return gmesh;
-    
 }
+
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 auto forcefunction = [](const TPZVec<REAL> &loc,
     TPZVec<STATE>&u){
@@ -147,6 +154,9 @@ auto forcefunction = [](const TPZVec<REAL> &loc,
 
     u[0] = 1.;
 };
+
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 template<class tshape>
 void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
@@ -173,7 +183,6 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
     std::ofstream vtkfile(vtk_name.c_str());
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
 
-
     TPZCompMesh *cmesh;
 
     switch (stype)
@@ -193,11 +202,20 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
     case EHDivKernel:
         cmesh = CreateCMeshHDiv2(gmesh,pOrder,volId,HDivFamily::EHDivKernel);
         break;
+            
+    case EHCurl:
+        cmesh = CreateCMeshHCurl(gmesh,pOrder,volId,HCurlFamily::EHCurlStandard);
+        break;
+
+    case EHCurlNoGrads:
+        cmesh = CreateCMeshHCurl(gmesh,pOrder,volId,HCurlFamily::EHCurlNoGrads);
+        break;
 
     default:
         break;
     };
     
+
     CheckSideOrientation(cmesh);
 
     TPZLinearAnalysis an(cmesh);
@@ -214,11 +232,13 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
     cmesh->LoadReferences(); // compute integral in the multiphysics mesh
     TPZVec<STATE> vecint = cmesh->Integrate(fields[0], matids);
 
-    std::cout << "Integral = " << vecint.size() <<  std::endl;
+    std::cout << "\n--------------- Integral of Solution --------------" <<  std::endl;
+    std::cout << "Number of components = " << vecint.size() <<  std::endl;
     for (int i = 0; i < vecint.size(); i++)
     {
-        std::cout << vecint[i] << std::endl;   
+        std::cout << "Integral(" << i << ") = "  << vecint[i] << std::endl;
     }
+    std::cout << std::endl;
     
     const std::string plotfile = "solution";//sem o .vtk no final
     constexpr int vtkRes{0};
@@ -231,8 +251,10 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
     REQUIRE(fabs(vecint[0]-1.)<tol);
 #endif
     
-
 }
+
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 
 void Refinement(TPZGeoMesh *gmesh){
@@ -240,10 +262,12 @@ void Refinement(TPZGeoMesh *gmesh){
     TPZManVector<TPZGeoEl*,10> children;
     gmesh->ElementVec()[0]->Divide(children);
 
-    // children[0]->Divide(children);
-    
+    children[0]->Divide(children);
 
 }
+
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 TPZCompMesh * CreateCMeshH1(TPZGeoMesh* gmesh, int pOrder, const int volId){
 
@@ -260,6 +284,8 @@ TPZCompMesh * CreateCMeshH1(TPZGeoMesh* gmesh, int pOrder, const int volId){
     return cmesh;
 }
 
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 TPZCompMesh * CreateCMeshHDiv(TPZGeoMesh* gmesh, int pOrder, const int volId, HDivFamily hdivfam){
     //Create flux mesh
@@ -320,10 +346,11 @@ TPZCompMesh * CreateCMeshHDiv(TPZGeoMesh* gmesh, int pOrder, const int volId, HD
     cmesh->SetAllCreateFunctionsMultiphysicElem();
     cmesh->BuildMultiphysicsSpace(active, meshvector);
     
-
     return cmesh;
-
 }
+
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 TPZCompMesh * CreateCMeshHDiv2(TPZGeoMesh* gmesh, int pOrder, const int volId, HDivFamily hdivfam){
     //Create flux mesh
@@ -340,8 +367,28 @@ TPZCompMesh * CreateCMeshHDiv2(TPZGeoMesh* gmesh, int pOrder, const int volId, H
     cmeshflux->AutoBuild();    
 
     return cmeshflux;
-
 }
+
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+
+TPZCompMesh * CreateCMeshHCurl(TPZGeoMesh* gmesh, int pOrder, const int volId, HCurlFamily hcurlfam){
+    //Create flux mesh
+    TPZCompMesh *cmeshflux = new TPZCompMesh(gmesh);
+    cmeshflux->SetDimModel(gmesh->Dimension());
+    cmeshflux->SetDefaultOrder(pOrder);
+    
+    TPZL2ProjectionHCurl<> *mat = new TPZL2ProjectionHCurl<>(volId,gmesh->Dimension());
+    mat->SetForcingFunction(forcefunction,4);
+    cmeshflux->InsertMaterialObject(mat);
+
+    cmeshflux->ApproxSpace().SetHCurlFamily(hcurlfam);
+    cmeshflux->ApproxSpace().SetAllCreateFunctionsHCurl(gmesh->Dimension());
+    cmeshflux->AutoBuild();
+
+    return cmeshflux;
+}
+
 
 void CheckSideOrientation(TPZCompMesh *cmesh){
 
