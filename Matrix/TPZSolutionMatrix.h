@@ -68,6 +68,7 @@ public:
   //! Conversion function to TPZBaseMatrix&
   operator TPZBaseMatrix& ();
 
+  const ESolType solType() const {return fSolType;}
 
   //@{
   //!Arithmetic operators. Throws error if incompatible.

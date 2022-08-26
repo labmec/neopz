@@ -52,12 +52,12 @@ void TPZShapeHDivConstantBound<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeDa
     TPZShapeH1<TSHAPE>::Shape(pt,data);
 
     if (dim == 1){
-        phi(0,0) = -0.5;
+        phi(0,0) = 0.5;
 
         int nshape = data.fPhi.Rows();
 
         for (int i = 0; i < nshape-ncorner; i++){
-            phi(i+1,0) = data.fDPhi(0,i+ncorner);
+            phi(i+1,0) = -data.fDPhi(0,i+ncorner);
         }
     } else if (dim == 2) {
         
