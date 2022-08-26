@@ -6,8 +6,6 @@
 //  Copyright 2022 UNICAMP. All rights reserved.
 //
 
-
-
 #include "pzshapecube.h"
 #include "pzshapelinear.h"
 #include "pzshapequad.h"
@@ -33,6 +31,7 @@ using namespace pzshape;
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZMultiphysicsCompMesh.h"
 #include "pzlog.h"
+#include "TPZVTKGeoMesh.h"
 
 // #define USE_MAIN
 
@@ -59,6 +58,8 @@ enum SpaceType {EH1, EHDivConstant, EHDivKernel, EHDivStandard, EHCurl};
 */
 template<class tshape>
 void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype);
+
+void CheckSideOrientation(TPZCompMesh *cmesh);
 
 void Refinement(TPZGeoMesh *gmesh);
 
@@ -160,12 +161,17 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
 
     TPZVec<int> nDivs;
 
-    if (DIM == 2) nDivs = {xdiv,xdiv};
+    if (DIM == 2) nDivs = {xdiv,1};
     if (DIM == 3) nDivs = {xdiv,xdiv,xdiv};
     
     auto gmesh = CreateGeoMesh<tshape>(nDivs, volId, bcId);
 
-    // Refinement(gmesh);
+    Refinement(gmesh);
+
+    //Prints gmesh mesh properties
+    std::string vtk_name = "geoMesh.vtk";
+    std::ofstream vtkfile(vtk_name.c_str());
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
 
 
     TPZCompMesh *cmesh;
@@ -192,7 +198,7 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
         break;
     };
     
-    
+    CheckSideOrientation(cmesh);
 
     TPZLinearAnalysis an(cmesh);
 
@@ -234,7 +240,7 @@ void Refinement(TPZGeoMesh *gmesh){
     TPZManVector<TPZGeoEl*,10> children;
     gmesh->ElementVec()[0]->Divide(children);
 
-    children[0]->Divide(children);
+    // children[0]->Divide(children);
     
 
 }
@@ -334,5 +340,48 @@ TPZCompMesh * CreateCMeshHDiv2(TPZGeoMesh* gmesh, int pOrder, const int volId, H
     cmeshflux->AutoBuild();    
 
     return cmeshflux;
+
+}
+
+void CheckSideOrientation(TPZCompMesh *cmesh){
+
+    TPZGeoMesh *gmesh = cmesh->Reference();
+    int fDim = cmesh->Dimension();
+
+    for (auto gel : gmesh->ElementVec()) {
+        if (!gel) continue;
+        if (gel->Dimension() != fDim) continue;
+
+        //Loop over all neighbours
+        int nSides = gel->NSides();
+        int nEdges = gel->NSides(fDim-1);
+        int nCorner = gel->NCornerNodes();
+        for (int iSide = 0; iSide < nEdges; iSide++){
+            TPZGeoElSide neigh = gel->Neighbour(nSides-1-nEdges+iSide);
+            TPZGeoElSide gelside(gel,nSides-1-nEdges+iSide);
+
+            if (neigh.Element()->Dimension() != fDim) continue;
+
+            std::cout << "Side Nodes = " ;
+            for (int i = 0; i < gelside.NSideNodes(); i++){
+                std::cout << gelside.SideNodeIndex(i) << " ";
+            }
+            std::cout << std::endl;
+
+            std::cout << "Neigh Nodes = " ;
+            for (int i = 0; i < neigh.NSideNodes(); i++){
+                std::cout << neigh.SideNodeIndex(i) << " ";
+            }
+            std::cout << std::endl;
+            std::cout << std::endl;
+
+            // std::cout << "Side = " << iSide << " " << gelside << std::endl;
+            // std::cout << "Neigh = " << iSide << " " << neigh << std::endl;
+        }
+        
+
+        
+    }
+    
 
 }
