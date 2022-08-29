@@ -144,6 +144,8 @@ public:
         fRestraints.clear();
     }
 
+    void RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) override;
+
     /**
      * @brief It returns the normal orientation of the reference element by the side.
      * Only side that has dimension larger than zero and smaller than me.

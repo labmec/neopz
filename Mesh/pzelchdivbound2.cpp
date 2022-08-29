@@ -501,7 +501,7 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
         id[ic] = gel->Node(ic).Id();
     }
     int connectorder = this->Connect(0).Order();
-    int sideorient = 1;
+    int sideorient = fSideOrient;
     // fill in the datastructures of shapedata
     shapehdiv.Initialize(id, connectorder, sideorient, shapedata);
     // compute the shape functions at the integration point

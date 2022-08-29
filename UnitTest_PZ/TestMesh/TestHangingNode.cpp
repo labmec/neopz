@@ -33,6 +33,7 @@ using namespace pzshape;
 #include "TPZMultiphysicsCompMesh.h"
 #include "pzlog.h"
 #include "TPZVTKGeoMesh.h"
+#include "pzcheckrestraint.h"
 
 #define USE_MAIN
 
@@ -59,9 +60,10 @@ enum SpaceType {EH1, EHDivConstant, EHDivKernel, EHDivStandard, EHCurl, EHCurlNo
 template<class tshape>
 void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype);
 
-void CheckSideOrientation(TPZCompMesh *cmesh);
+void CheckSideOrientation(TPZGeoElSide &side1, TPZGeoElSide &side2);
+void CheckElementInterfaces(TPZCompMesh *cmesh);
 
-void Refinement(TPZGeoMesh *gmesh);
+void Refinement(TPZGeoMesh *gmesh, SpaceType stype);
 
 TPZCompMesh * CreateCMeshH1(TPZGeoMesh* gmesh, int pOrder, const int volId);
 TPZCompMesh * CreateCMeshHDiv(TPZGeoMesh* gmesh, int pOrder, const int volId, HDivFamily hdivfam);
@@ -88,9 +90,10 @@ int main(){
 
     const int xdiv = 2;
     const int pOrder = 1;
-//    SpaceType sType = EHCurl;
-//    SpaceType sType = EHDivStandard;
-    SpaceType sType = EHCurlNoGrads;
+    // SpaceType sType = EHCurl;
+    // SpaceType sType = EHDivStandard;
+    // SpaceType sType = EHCurlNoGrads;
+    // SpaceType sType = EHDivConstant;
 
     TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType);
 
@@ -176,12 +179,14 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
     
     auto gmesh = CreateGeoMesh<tshape>(nDivs, volId, bcId);
 
-    Refinement(gmesh);
+    Refinement(gmesh, stype);
 
+#ifdef PZDEBUG
     //Prints gmesh mesh properties
     std::string vtk_name = "geoMesh.vtk";
     std::ofstream vtkfile(vtk_name.c_str());
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
+#endif
 
     TPZCompMesh *cmesh;
 
@@ -216,13 +221,12 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
     };
     
 
-    CheckSideOrientation(cmesh);
+    CheckElementInterfaces(cmesh);
 
     TPZLinearAnalysis an(cmesh);
 
     an.Assemble();
     an.Solve();
-    
 
     TPZVec<std::string> fields = {"Solution"};
 
@@ -239,15 +243,16 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
         std::cout << "Integral(" << i << ") = "  << vecint[i] << std::endl;
     }
     std::cout << std::endl;
-    
+
+#ifdef PZDEBUG
     const std::string plotfile = "solution";//sem o .vtk no final
     constexpr int vtkRes{0};
     auto vtk = TPZVTKGenerator(cmesh, fields, plotfile, vtkRes);
-
     vtk.Do();
+#endif
 
-    REAL tol = 1.e-10;
 #ifndef USE_MAIN
+    REAL tol = 1.e-10;
     REQUIRE(fabs(vecint[0]-1.)<tol);
 #endif
     
@@ -257,12 +262,16 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
 // ---------------------------------------------------------------------
 
 
-void Refinement(TPZGeoMesh *gmesh){
-
-    TPZManVector<TPZGeoEl*,10> children;
-    gmesh->ElementVec()[0]->Divide(children);
+void Refinement(TPZGeoMesh *gmesh, SpaceType stype){
 
     children[0]->Divide(children);
+
+    if (stype != EHCurlNoGrads) {
+        TPZManVector<TPZGeoEl*,10> children;
+        gmesh->ElementVec()[0]->Divide(children);
+        
+        children[0]->Divide(children);
+    }
 
 }
 
@@ -390,10 +399,15 @@ TPZCompMesh * CreateCMeshHCurl(TPZGeoMesh* gmesh, int pOrder, const int volId, H
 }
 
 
-void CheckSideOrientation(TPZCompMesh *cmesh){
+void CheckElementInterfaces(TPZCompMesh *cmesh){
 
     TPZGeoMesh *gmesh = cmesh->Reference();
     int fDim = cmesh->Dimension();
+    
+    //Prints computational mesh properties
+    std::string txt = "CMesh.txt";
+    std::ofstream myfile(txt);
+    cmesh->Print(myfile);
 
     for (auto gel : gmesh->ElementVec()) {
         if (!gel) continue;
@@ -409,18 +423,23 @@ void CheckSideOrientation(TPZCompMesh *cmesh){
 
             if (neigh.Element()->Dimension() != fDim) continue;
 
-            std::cout << "Side Nodes = " ;
-            for (int i = 0; i < gelside.NSideNodes(); i++){
-                std::cout << gelside.SideNodeIndex(i) << " ";
-            }
-            std::cout << std::endl;
+            // std::cout << "Side Nodes = " ;
+            // for (int i = 0; i < gelside.NSideNodes(); i++){
+            //     std::cout << gelside.SideNodeIndex(i) << " ";
+            // }
+            // std::cout << std::endl;
 
-            std::cout << "Neigh Nodes = " ;
-            for (int i = 0; i < neigh.NSideNodes(); i++){
-                std::cout << neigh.SideNodeIndex(i) << " ";
-            }
-            std::cout << std::endl;
-            std::cout << std::endl;
+            // std::cout << "Neigh Nodes = " ;
+            // for (int i = 0; i < neigh.NSideNodes(); i++){
+            //     std::cout << neigh.SideNodeIndex(i) << " ";
+            // }
+            // std::cout << std::endl;
+            // std::cout << std::endl;
+
+            CheckSideOrientation(gelside,neigh);
+            
+
+            // TPZCheckRestraint check = new TPZCheckRestraint(neigh.Reference(),gelside.Reference());
 
             // std::cout << "Side = " << iSide << " " << gelside << std::endl;
             // std::cout << "Neigh = " << iSide << " " << neigh << std::endl;
@@ -429,6 +448,57 @@ void CheckSideOrientation(TPZCompMesh *cmesh){
 
         
     }
-    
 
 }
+
+
+void CheckSideOrientation(TPZGeoElSide &thisGeoSide, TPZGeoElSide &largeGeoSide){
+
+    TPZManVector<int64_t> thisSideNodes(thisGeoSide.NSideNodes(),0);
+    TPZManVector<int64_t> largeSideNodes(largeGeoSide.NSideNodes(),0);
+    
+    // thisGeoSide.SideNodeIndex(i)
+    for (int i = 0; i < thisGeoSide.NSideNodes(); i++) thisSideNodes[i] = thisGeoSide.SideNodeIndex(i); 
+    for (int i = 0; i < largeGeoSide.NSideNodes(); i++) largeSideNodes[i] = largeGeoSide.SideNodeIndex(i); 
+
+    // REAL orient = 1.;
+    // if (largeGeoSide.NSideNodes() != thisGeoSide.NSideNodes()) DebugStop();
+    // for (int i = 0; i < thisGeoSide.NSideNodes(); i++)
+    // {
+    //     if (thisSideNodes[i] != largeSideNodes[i]){
+    //         orient = -1;
+    //         break;
+    //     }
+        
+    // }
+    std::cout << "thisGeoSide Nodes = " ;
+    for (int i = 0; i < thisGeoSide.NSideNodes(); i++){
+        std::cout << thisGeoSide.SideNodeIndex(i) << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "largeGeoSide Nodes = " ;
+    for (int i = 0; i < largeGeoSide.NSideNodes(); i++){
+        std::cout << largeGeoSide.SideNodeIndex(i) << " ";
+    }
+    std::cout << std::endl;
+
+    // TPZVec<REAL> normalLarge,normalThis;
+    auto neighTransf = thisGeoSide.NeighbourSideTransform(largeGeoSide);
+    // TPZManVector<REAL, 3> neighXi(largeGeoSide.Dimension(), 0);
+    // TPZManVector<REAL,3> xiSide(thisGeoSide.Dimension(),0);
+    // neighTransf.Apply(xiSide, neighXi);
+    // largeGeoSide.Normal(neighXi,normalLarge);
+    // thisGeoSide.Normal(xiSide,normalThis);
+    REAL det;
+    TPZFMatrix<REAL> inv;
+    neighTransf.Mult().DeterminantInverse(det,inv);
+
+    // std::cout << "Normal Large = " << normalLarge << std::endl;
+    // std::cout << "Normal This = " << normalThis << std::endl;
+    std::cout << "Determinant = " << det << std::endl << std::endl;
+}
+
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+
