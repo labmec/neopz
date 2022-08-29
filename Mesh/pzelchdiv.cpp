@@ -535,14 +535,14 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
         gelside.Jacobian(point, jac, axes, detjac, jacinv);
     }
     if(sidetype == ETriangle) detjac /= 6.;
-    for (int side=0; side < ncs; side++) {
-        int ifirst = FirstIndex[side];
-        int kfirst = FirstIndex[permutegather[side]];
-        int nshape = FirstIndex[side+1]-FirstIndex[side];
+    for (int iSide=0; iSide < ncs; iSide++) {
+        int ifirst = FirstIndex[iSide];
+        int kfirst = FirstIndex[permutegather[iSide]];
+        int nshape = FirstIndex[iSide+1]-FirstIndex[iSide];
         for (int i=0; i<nshape; i++) {
-            phi(ifirst+i,0) = philoc(kfirst+i,0)/detjac;
+            phi(ifirst+i,0) = philoc(kfirst+i,0)/detjac * (REAL)fSideOrient[connectlocid];
             for (int d=0; d< sidedimension; d++) {
-                dphi(d,ifirst+i) = dphiloc(d,kfirst+i)/detjac;
+                dphi(d,ifirst+i) = dphiloc(d,kfirst+i)/detjac * (REAL)fSideOrient[connectlocid];
             }
         }
     }
@@ -1043,6 +1043,61 @@ int TPZCompElHDiv<TSHAPE>::MaxOrder(){
     
     return maxorder+1;
 }
+
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) {
+    
+    //Calls father restrain side
+    TPZInterpolatedElement::RestrainSide(side,large,neighbourside);
+    
+    int locind = TPZInterpolatedElement::MidSideConnectLocId(side);
+    if (locind < 0) {
+        DebugStop();
+    }
+    TPZConnect &myconnect = this->Connect(locind);
+    
+    //Checks neighbours normal orientation and change signal if they have opposite directions
+    if (myconnect.HasDependency()) {
+        TPZCompElSide thisside(this, side);
+        TPZGeoElSide thisgeoside = thisside.Reference();
+        TPZCompElSide largecompside(large, neighbourside);
+        TPZGeoElSide largegeoside = largecompside.Reference();
+
+        TPZTransform<> t(thisgeoside.Dimension());
+        thisgeoside.SideTransform3(largegeoside, t);
+
+        REAL det;
+        TPZFMatrix<REAL> inv;
+        t.Mult().DeterminantInverse(det,inv);
+
+#ifdef PZDEBUG
+        TPZVec<REAL> normalLarge,normalThis;
+        TPZManVector<REAL, 3> neighXi(largegeoside.Dimension(), 0);
+        TPZManVector<REAL,3> xiSide(thisgeoside.Dimension(),0);
+        t.Apply(xiSide, neighXi);
+        largegeoside.Normal(neighXi,normalLarge);
+        thisgeoside.Normal(xiSide,normalThis);
+
+        std::cout << "Normal Large = " << normalLarge << std::endl;
+        std::cout << "Normal This = " << normalThis << std::endl;
+        std::cout << "Transformation determinant = " << det << std::endl;
+#endif
+
+        // Checking the normal orientation based on the transformation determinant:
+        // If negative, the element sides have opposite orientations and vice-versa.
+        if (det < 0) {
+            int numsidenodes_this = this->NSideConnects(side);
+            for (int jn = 0; jn < numsidenodes_this; jn++) {
+                TPZConnect::TPZDepend *depend = myconnect.FirstDepend();
+                depend->fDepMatrix.MultiplyByScalar(-1.,depend->fDepMatrix);
+            }
+        }
+    }
+
+    
+}
+
+
 
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
