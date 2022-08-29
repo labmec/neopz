@@ -22,7 +22,7 @@
 #include "TPZMatErrorCombinedSpaces.h"
 
 
-class TPZHybridDarcyFlow : public TPZMatCombinedSpacesT<STATE>, TPZMatErrorCombinedSpaces<STATE>, public TPZDarcyFlow {
+class TPZHybridDarcyFlow : public TPZMatCombinedSpacesT<STATE>,public TPZMatErrorCombinedSpaces<STATE>, public TPZDarcyFlow {
 
 
 public:
@@ -159,7 +159,7 @@ public:
                                         const TPZFMatrix<STATE> &val1,
                                         const TPZVec<STATE> &val2) override
     {
-        return new  TPZBndCondBase<STATE,TPZMatCombinedSpacesBC<STATE> >
+        return new  TPZBndCondBase<STATE,TPZMatCombinedSpacesBC<STATE>, TPZMatErrorCombinedSpacesBC<STATE> >
         (reference,id, type,val1,val2);
     }
 
