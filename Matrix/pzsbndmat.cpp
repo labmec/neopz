@@ -682,7 +682,10 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
             }
         }
         
-        if ( IsZero(GetVal(j,j)) )this->Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Zero on diagonal>" );
+        if ( IsZero(GetVal(j,j)) )
+        {
+            this->Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Zero on diagonal>" );
+        }
         end  = MIN( int64_t(j + fBand )+1, this->Dim() );
         //cout<<"end="<<end<<"\n";
         for( l=j+1; l<end;l++)
