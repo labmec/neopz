@@ -34,12 +34,20 @@ using namespace pzshape;
 #include "pzlog.h"
 #include "TPZVTKGeoMesh.h"
 #include "pzcheckrestraint.h"
+#include "TPZRefPatternDataBase.h"
+#include "TPZRefPattern.h"
+#include "pzreftetrahedra.h"
+#include "pzreftriangle.h"
+#include "pzrefquad.h"
+#include "TPZRefCube.h"
 
-#define USE_MAIN
+// #define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
 #endif
+
+using namespace pzrefine;
 
 /**
    @brief Creates a geometric mesh with elements of a given type on a unit square or cube (depending on the mesh dimension).
@@ -76,8 +84,9 @@ TEST_CASE("Constrained Space", "[constrained_space_test]") {
     std::cout << "Testing Hanging Nodes \n";
     
     const int xdiv = GENERATE(2);
-    const int pOrder = GENERATE(1);
-    SpaceType sType = GENERATE(EHCurl);
+    const int pOrder = GENERATE(1,2);
+    SpaceType sType = GENERATE(EHDivStandard);
+    // SpaceType sType = GENERATE(EHDivConstant);
     
     TestConstrainedSpace<pzshape::TPZShapeTriang>(xdiv,pOrder,sType);
     TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType);
@@ -172,6 +181,9 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
     constexpr int bcId{2};
     int DIM = tshape::Dimension;
 
+    // TPZRefPatternDataBase ref;
+    // ref.InitializeUniformRefPattern(tshape::Type());
+
     TPZVec<int> nDivs;
 
     if (DIM == 2) nDivs = {xdiv,1};
@@ -220,7 +232,6 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
         break;
     };
     
-
     CheckElementInterfaces(cmesh);
 
     TPZLinearAnalysis an(cmesh);
@@ -253,7 +264,7 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
 
 #ifndef USE_MAIN
     REAL tol = 1.e-10;
-    REQUIRE(fabs(vecint[0]-1.)<tol);
+    for (int i = 0; i < vecint.size(); i++) REQUIRE(fabs(vecint[i]-1.)<tol);
 #endif
     
 }
@@ -270,7 +281,7 @@ void Refinement(TPZGeoMesh *gmesh, SpaceType stype){
         TPZManVector<TPZGeoEl*,10> children;
         gmesh->ElementVec()[0]->Divide(children);
         
-        children[0]->Divide(children);
+        // children[0]->Divide(children); 
     }
 
 }
