@@ -249,6 +249,11 @@ public:
 	void Read(TPZStream &buf, void *context) override;
     /** @brief Refinement along the element */
     virtual void PRefine(int order) override;
+
+    //Checks the normal orientation of two neighbour GeoElSides; 
+    //Returns true if the sides have opposite normal vectors and false if they are equal. 
+    bool CheckRestrainedSideOrientation(TPZGeoElSide &thisGeoSide, TPZGeoElSide &largeGeoSide);
+
     
 protected:
     //@{

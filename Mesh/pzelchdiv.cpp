@@ -1063,39 +1063,113 @@ void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large
         TPZCompElSide largecompside(large, neighbourside);
         TPZGeoElSide largegeoside = largecompside.Reference();
 
-        TPZTransform<> t(thisgeoside.Dimension());
-        thisgeoside.SideTransform3(largegeoside, t);
-
-        REAL det;
-        TPZFMatrix<REAL> inv;
-        t.Mult().DeterminantInverse(det,inv);
+        bool orient = CheckRestrainedSideOrientation(thisgeoside,largegeoside);     
 
 #ifdef PZDEBUG
-        TPZVec<REAL> normalLarge,normalThis;
-        TPZManVector<REAL, 3> neighXi(largegeoside.Dimension(), 0);
-        TPZManVector<REAL,3> xiSide(thisgeoside.Dimension(),0);
-        t.Apply(xiSide, neighXi);
-        largegeoside.Normal(neighXi,normalLarge);
-        thisgeoside.Normal(xiSide,normalThis);
+        int cindex = SideConnectLocId(0, thisside.Side());
+        int sOrientThis = fSideOrient[cindex];
+        int sOrientLarge = large->GetSideOrient(neighbourside);
 
-        std::cout << "Normal Large = " << normalLarge << std::endl;
-        std::cout << "Normal This = " << normalThis << std::endl;
-        std::cout << "Transformation determinant = " << det << std::endl;
+        // ->GetSideOrient(neighbourside);
+
+        if (sOrientThis + sOrientLarge != 0){
+            std::cout << "The neighbour elements should have opposite side orients!" << std::endl;
+            //If this condition is not fulfilled, the H(div) space is not consistent.
+            DebugStop(); 
+        }
+        std::cout << "Side orient this = " << fSideOrient[cindex] << std::endl;
+        std::cout << "Side orient large = " << large->GetSideOrient(neighbourside) << std::endl;
 #endif
+
+        bool orient2 = false;
+        if (TSHAPE::Dimension == 3){
+            orient = false;
+            switch (TSHAPE::Type())
+            {
+            case ETetraedro:
+                if (side == 10 || side == 13 || neighbourside == 10 || neighbourside == 13) orient = true;
+                // if ((side == 10 || side == 13) && (neighbourside == 11 || neighbourside == 12)) orient = true;
+                // if ((side == 11 || side == 12) && (neighbourside == 10 || neighbourside == 13)) orient = true;
+                break;
+            case ECube:
+                if (side == 20 || side == 23 || side == 24 || neighbourside == 20 || neighbourside == 23 || neighbourside == 24) orient = true;
+                // if ((side == 20 || side == 23 || side == 24) && (neighbourside == 21 || neighbourside == 22 || neighbourside == 25)) orient = true;
+                // if ((side == 21 || side == 22 || side == 25) && (neighbourside == 20 || neighbourside == 23 || neighbourside == 24)) orient = true;
+                break;
+            
+            default:
+                break;
+            }
+        }
+
 
         // Checking the normal orientation based on the transformation determinant:
         // If negative, the element sides have opposite orientations and vice-versa.
-        if (det < 0) {
+        if (orient) {
             int numsidenodes_this = this->NSideConnects(side);
             for (int jn = 0; jn < numsidenodes_this; jn++) {
                 TPZConnect::TPZDepend *depend = myconnect.FirstDepend();
                 depend->fDepMatrix.MultiplyByScalar(-1.,depend->fDepMatrix);
+#ifdef PZDEBUG
+                std::cout << "Dependency matrix = " << depend->fDepMatrix << std::endl;
+#endif
             }
         }
     }
+}
+
+template<class TSHAPE>
+bool TPZCompElHDiv<TSHAPE>::CheckRestrainedSideOrientation(TPZGeoElSide &thisgeoside, TPZGeoElSide &largegeoside){
+
+    TPZTransform<> t(thisgeoside.Dimension());
+    thisgeoside.SideTransform3(largegeoside, t);
+
+    //The main orientation check is based on the transformation determinant, 
+    //as it represents a lower computational cost compared to compute the normal vectors;
+    REAL det;
+    TPZFMatrix<REAL> inv;
+    t.Mult().DeterminantInverse(det,inv);
+    
+    bool orient = det > 0 ? false : true;
+    
+#ifdef PZDEBUG
+
+    // int thisface = thisgeoside.Element()->side(0,thisgeoside.Side());
+    // int largface = largegeoside.Element()->SideConnectLocId(0,largegeoside.Side());    
+    
+    // std::cout << "Side Nodes = " ;
+    // for (int i = 0; i < thisgeoside.NSideNodes(); i++){
+    //     std::cout << thisgeoside.SideNodeIndex(i) << " ";
+    // }
+    // std::cout << std::endl;
+
+    // std::cout << "Neigh Nodes = " ;
+    // for (int i = 0; i < largegeoside.NSideNodes(); i++){
+    //     std::cout << largegeoside.SideNodeIndex(i) << " ";
+    // }
+    // std::cout << std::endl;
+    // std::cout << std::endl;
+
+
+    TPZVec<REAL> normalLarge,normalThis;
+    TPZManVector<REAL, 3> neighXi(largegeoside.Dimension(), 0);
+    TPZManVector<REAL,3> xiSide(thisgeoside.Dimension(),0);
+    t.Apply(xiSide, neighXi);
+    largegeoside.Normal(neighXi,normalLarge);
+    thisgeoside.Normal(xiSide,normalThis);
+
+    std::cout << "Normal Large = " << normalLarge << std::endl;
+    std::cout << "Normal This = " << normalThis << std::endl;
+    // std::cout << "Transformation matrix = " << t.Mult() << std::endl;
+    std::cout << "Transformation determinant = " << det << std::endl;
+#endif
 
     
+
+    return orient;
+    
 }
+
 
 
 
