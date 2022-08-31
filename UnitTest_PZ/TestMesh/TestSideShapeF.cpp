@@ -57,15 +57,15 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype);
 TEST_CASE("Side Shape Function", "[side_shape_test]") {
     std::cout << "Testing Side Shape Functions \n";
 
-    const int pOrder = GENERATE(1);
-    SpaceType sType = GENERATE(EHDivStandard);
-    // SpaceType sType = GENERATE(EHDivConstant);
+    const int pOrder = GENERATE(1,2);
+    // SpaceType sType = GENERATE(EHDivStandard);
+    SpaceType sType = GENERATE(EHDivConstant);
     // SpaceType sType = GENERATE(EHCurl);
     
-    TesteSideShapeFunction<pzshape::TPZShapeTriang>(pOrder,sType);
-    // TesteSideShapeFunction<pzshape::TPZShapeQuad>(pOrder,sType);
-    // TesteSideShapeFunction<pzshape::TPZShapeTetra>(pOrder,sType);
-    // TesteSideShapeFunction<pzshape::TPZShapeCube>(pOrder,sType);
+    TesteSideShapeFunction<TPZTriangle,pzshape::TPZShapeTriang>(pOrder,sType);
+    TesteSideShapeFunction<TPZQuadrilateral,pzshape::TPZShapeQuad>(pOrder,sType);
+    // TesteSideShapeFunction<TPZTetrahedron,pzshape::TPZShapeTetra>(pOrder,sType);
+    TesteSideShapeFunction<TPZCube,pzshape::TPZShapeCube>(pOrder,sType);
     std::cout << "Finish test Side Shape Functions \n";
 }
 #else
@@ -78,6 +78,9 @@ int main(){
     // SpaceType sType = EHDivConstant;
 
     TesteSideShapeFunction<TPZQuadrilateral,pzshape::TPZShapeQuad>(pOrder,sType);
+    TesteSideShapeFunction<TPZTriangle,pzshape::TPZShapeTriang>(pOrder,sType);
+    TesteSideShapeFunction<TPZTetrahedron,pzshape::TPZShapeTetra>(pOrder,sType);
+    TesteSideShapeFunction<TPZCube,pzshape::TPZShapeCube>(pOrder,sType);
 
     return 0;
 }
@@ -141,6 +144,7 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
         // break;
 
     default:
+        DebugStop();
         break;
     };
 
@@ -166,7 +170,7 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
         TPZGeoElSide largegeoside = largecompside.Reference();
 
         TPZTransform<> t = thisgeoside.SideToSideTransform(largegeoside);
-
+        
         for (auto ipt = 0; ipt < npts; ipt++) 
         {
             REAL w;
@@ -177,19 +181,54 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
             std::cout << "Node2 = " << nodeSide << std::endl;
 
             cel->ComputeRequiredData(data,node);
-            // int numshape = TPZShapeHDiv<tshape>::ComputeNConnectShapeF(iFace,pOrder);
+
             int numshapeSide = cel->NConnectShapeF(iFace-(nSides-nFaces-1),pOrder);
             TPZFNMatrix<100, REAL> phis(numshapeSide, 1), dphis(dim, numshapeSide);
             cel->SideShapeFunction(iFace,nodeSide,phis,dphis);
-
-            // int numshapeVol = cel->NConnectShapeF(nSides-1,pOrder);
-            // TPZFNMatrix<100, REAL> phiV(numshapeVol, dim), dphiV(dim, numshapeVol);
-            
             cel->ComputeShape(node,data);
+
+            TPZFNMatrix<100, REAL> phiV(numshapeSide, dim);
+            for (int k = 0; k < numshapeSide; k++)
+            {
+                for (int d = 0; d < dim; d++)
+                {
+                    phiV(k,d)=data.fDeformedDirections(d,numshapeSide*(iFace-nSides+nFaces+1)+k);
+                }
+            }
+            
+            
             // TPZShapeHDiv<tshape>::Shape(node, data, phiV, dphiV);
             std::cout << "PhiS = " << phis << std::endl;
             std::cout << "PhiV = " << data.fDeformedDirections << std::endl;
-            std::cout << "end! " << std::endl;
+            std::cout << "PhiV = " << phiV << std::endl;
+            TPZVec<REAL> normalSide;
+            thisgeoside.Normal(nodeSide,normalSide);
+
+            TPZManVector<REAL> res(numshapeSide,0.);
+            for (int i = 0; i < phiV.Rows(); i++){
+                for (int j = 0; j < phiV.Cols(); j++){
+                    res[i] += phiV(i,j)*normalSide[j];
+                }
+                
+            }
+        REAL tol = 1.e-8;
+#ifndef USE_MAIN
+        for (int i = 0; i < numshapeSide; i++)
+        {
+            REQUIRE(res[i]-phis(i,0) < tol);
+        }      
+#else
+        for (int i = 0; i < numshapeSide; i++)
+        {
+            if(res[i]-phis(i,0) > tol){
+                std::cout << "Problem!!\n";
+                std::cout << "Res = " << res << std::endl;
+                std::cout << "phis = " << phis << std::endl;
+                std::cout << "diff = " << res[i]-phis(i,0)<< std::endl;
+                DebugStop(); 
+            }
+        }      
+#endif
         }    
     }
     
