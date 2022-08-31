@@ -84,9 +84,10 @@ TEST_CASE("Constrained Space", "[constrained_space_test]") {
     std::cout << "Testing Hanging Nodes \n";
     
     const int xdiv = GENERATE(2);
-    const int pOrder = GENERATE(1,2);
-    SpaceType sType = GENERATE(EHDivStandard);
-    // SpaceType sType = GENERATE(EHDivConstant);
+    const int pOrder = GENERATE(1);
+    // SpaceType sType = GENERATE(EHDivStandard);
+    SpaceType sType = GENERATE(EHDivConstant);
+    // SpaceType sType = GENERATE(EHCurl);
     
     TestConstrainedSpace<pzshape::TPZShapeTriang>(xdiv,pOrder,sType);
     TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType);
@@ -102,7 +103,7 @@ int main(){
     // SpaceType sType = EHCurl;
     // SpaceType sType = EHDivStandard;
     // SpaceType sType = EHCurlNoGrads;
-    // SpaceType sType = EHDivConstant;
+    SpaceType sType = EHDivConstant;
 
     TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType);
 
@@ -281,7 +282,7 @@ void Refinement(TPZGeoMesh *gmesh, SpaceType stype){
         TPZManVector<TPZGeoEl*,10> children;
         gmesh->ElementVec()[0]->Divide(children);
         
-        // children[0]->Divide(children); 
+        children[0]->Divide(children); 
     }
 
 }
