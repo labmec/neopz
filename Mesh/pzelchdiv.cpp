@@ -5,6 +5,9 @@
 
 #include "pzcmesh.h"
 #include "pzelchdiv.h"
+#include "pzshapelinear.h"
+#include "pzshapetriang.h"
+#include "pzshapequad.h"
 #include "pzquad.h"
 #include "pzgeoel.h"
 #include "TPZMaterial.h"
@@ -21,6 +24,8 @@
 #include "TPZShapeH1.h"
 #include "TPZShapeHDivConstant.h"
 #include "TPZShapeHCurlNoGrads.h"
+#include "TPZShapeHDivBound.h"
+#include "TPZShapeHDivConstantBound.h"
 
 #include "pzshtmat.h"
 
@@ -465,68 +470,112 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
 	if(TSHAPE::SideDimension(side)!= TSHAPE::Dimension -1 ){
 		return ;
 	}
-    int ncontained = TSHAPE::NContainedSides(side);
-    int nsideshape = 0;
-    int connectlocid = SideConnectLocId(0, side);
-    int order = this->Connect(connectlocid).Order();
-    int is;
-    for (is=0; is<ncontained; is++) {
-        int ic = TSHAPE::ContainedSideLocId(side,is);
-        nsideshape += TSHAPE::NConnectShapeF(ic,order);
+    const MElementType sidetype = TSHAPE::Type(side);
+
+    const int connectlocid = SideConnectLocId(0, side);
+    const int connectOrder = this->Connect(connectlocid).Order();
+    const int nContainedSides = TSHAPE::NContainedSides(side);
+    const int nSideNodes = TSHAPE::NSideNodes(side);
+    const int nSideConnects = this->NSideConnects(side);
+    
+    TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(nSideNodes,0);
+    TPZGeoEl *ref = this->Reference();
+    for (auto is=0; is< nSideNodes; is++) {
+        const int subSide = TSHAPE::ContainedSideLocId(side,is);
+        ids[is] = ref->NodePtr(subSide)->Id();
     }
-#ifdef PZDEBUG
-    if (nsideshape != this->NSideShapeF(side)) {
+
+    TPZShapeData shapedata;
+
+    //Initialize the ShapeData structure for the proper HDivFamily and topology
+    int sidedimension{-1};
+    int nsideshape{-1};
+    switch(sidetype){
+    case EOned:
+        if (fhdivfam == HDivFamily::EHDivStandard){
+            TPZShapeHDivBound<pzshape::TPZShapeLinear>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
+            nsideshape = TPZShapeHDivBound<pzshape::TPZShapeLinear>::NShape(shapedata);
+        } else 
+        if (fhdivfam == HDivFamily::EHDivConstant){
+            TPZShapeHDivConstantBound<pzshape::TPZShapeLinear>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
+            nsideshape = TPZShapeHDivConstantBound<pzshape::TPZShapeLinear>::ComputeNConnectShapeF(0,connectOrder);
+        } else {
+            DebugStop();
+        }
+        sidedimension = 1;
+        break;
+    case ETriangle:
+        if (fhdivfam == HDivFamily::EHDivStandard){
+            TPZShapeHDivBound<pzshape::TPZShapeTriang>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
+            nsideshape = TPZShapeHDivBound<pzshape::TPZShapeTriang>::NShape(shapedata);
+        } else 
+        if (fhdivfam == HDivFamily::EHDivConstant){
+            TPZShapeHDivConstantBound<pzshape::TPZShapeTriang>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
+            nsideshape = TPZShapeHDivConstantBound<pzshape::TPZShapeTriang>::ComputeNConnectShapeF(0,connectOrder);
+        } else {
+            DebugStop();
+        }
+        sidedimension = 2;
+        break;
+    case EQuadrilateral:
+        if (fhdivfam == HDivFamily::EHDivStandard){
+            TPZShapeHDivBound<pzshape::TPZShapeQuad>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
+            nsideshape = TPZShapeHDivBound<pzshape::TPZShapeQuad>::NShape(shapedata);
+        } else 
+        if (fhdivfam == HDivFamily::EHDivConstant){
+            TPZShapeHDivConstantBound<pzshape::TPZShapeQuad>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
+            nsideshape = TPZShapeHDivConstantBound<pzshape::TPZShapeQuad>::ComputeNConnectShapeF(0,connectOrder);
+        } else {
+            DebugStop();
+        }
+        sidedimension = 2;
+        break;
+    default:
+        PZError<<__PRETTY_FUNCTION__
+               <<"\n invalid side type.Aborting...\n";
         DebugStop();
     }
-#endif
+
+    TPZFNMatrix<50,REAL> philoc(nsideshape,1),dphiloc(sidedimension,nsideshape);
+    //Compute the shape function
+    switch(sidetype){
+    case EOned:
+        if (fhdivfam == HDivFamily::EHDivStandard){
+            TPZShapeHDivBound<pzshape::TPZShapeLinear>::Shape(point, shapedata, philoc);
+        } else 
+        if (fhdivfam == HDivFamily::EHDivConstant){
+            TPZShapeHDivConstantBound<pzshape::TPZShapeLinear>::Shape(point, shapedata, philoc);
+        } else {
+            DebugStop();
+        }
+        break;
+    case ETriangle:
+        if (fhdivfam == HDivFamily::EHDivStandard){
+            TPZShapeHDivBound<pzshape::TPZShapeTriang>::Shape(point, shapedata, philoc);
+        } else 
+        if (fhdivfam == HDivFamily::EHDivConstant){
+            TPZShapeHDivConstantBound<pzshape::TPZShapeTriang>::Shape(point, shapedata, philoc);
+        } else {
+            DebugStop();
+        }
+        break;
+    case EQuadrilateral:
+        if (fhdivfam == HDivFamily::EHDivStandard){
+            TPZShapeHDivBound<pzshape::TPZShapeQuad>::Shape(point, shapedata, philoc);
+        } else 
+        if (fhdivfam == HDivFamily::EHDivConstant){
+            TPZShapeHDivConstantBound<pzshape::TPZShapeQuad>::Shape(point, shapedata, philoc);
+        } else {
+            DebugStop();
+        }
+        break;
+    default:
+        PZError<<__PRETTY_FUNCTION__
+               <<"\n invalid side type.Aborting...\n";
+        DebugStop();
+    }
 
     TPZGeoEl *gel = this->Reference();
-    //int nc = gel->NCornerNodes();
-    int nsn = TSHAPE::NSideNodes(side);
-    TPZManVector<int64_t,8> id(nsn);
-    for (int ic=0; ic<nsn; ic++) {
-        int locid = TSHAPE::SideNodeLocId(side,ic);
-        id[ic] = gel->Node(locid).Id();
-    }
-
-    //int idsize = id.size();
-    TPZManVector<int,9> permutegather(ncontained);
-    int transformid;
-
-
-    MElementType sidetype = TSHAPE::Type(side);
-    switch (sidetype) {
-        case EOned:
-            transformid = pztopology::TPZLine::GetTransformId(id);
-            pztopology::TPZLine::GetSideHDivPermutation(transformid, permutegather);
-            break;
-        case EQuadrilateral:
-            transformid = pztopology::TPZQuadrilateral::GetTransformId(id);
-            pztopology::TPZQuadrilateral::GetSideHDivPermutation(transformid, permutegather);
-            break;
-        case ETriangle:
-            transformid = pztopology::TPZTriangle::GetTransformId(id);
-            pztopology::TPZTriangle::GetSideHDivPermutation(transformid, permutegather);
-            break;
-        default:
-            DebugStop();
-            break;
-    }
-
-    TPZManVector<int,TSHAPE::NSides> ord(TSHAPE::NSides,order);
-
-    int sidedimension = TSHAPE::SideDimension(side);
-    TPZFNMatrix<50,REAL> philoc(nsideshape,1),dphiloc(sidedimension,nsideshape);
-
-    TSHAPE::SideShape(side,point,id,ord,philoc,dphiloc);
-
-    int ncs = TSHAPE::NContainedSides(side);
-    TPZManVector<int64_t,28> FirstIndex(ncs+1,0);
-    for (int ls=0; ls<ncs; ls++) {
-        int localside = TSHAPE::ContainedSideLocId(side,ls);
-        FirstIndex[ls+1] = FirstIndex[ls]+TSHAPE::NConnectShapeF(localside,order);
-    }
-
     REAL detjac = 1.;
     {
         TPZGeoElSide gelside = TPZGeoElSide(this->Reference(),side);
@@ -535,17 +584,13 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
         gelside.Jacobian(point, jac, axes, detjac, jacinv);
     }
     if(sidetype == ETriangle) detjac /= 6.;
-    for (int iSide=0; iSide < ncs; iSide++) {
-        int ifirst = FirstIndex[iSide];
-        int kfirst = FirstIndex[permutegather[iSide]];
-        int nshape = FirstIndex[iSide+1]-FirstIndex[iSide];
-        for (int i=0; i<nshape; i++) {
-            phi(ifirst+i,0) = philoc(kfirst+i,0)/detjac * (REAL)fSideOrient[connectlocid];
-            for (int d=0; d< sidedimension; d++) {
-                dphi(d,ifirst+i) = dphiloc(d,kfirst+i)/detjac * (REAL)fSideOrient[connectlocid];
-            }
-        }
-    }
+
+    
+    for (int64_t i = 0; i < nsideshape; i++)
+    {
+        phi(i,0) = philoc(i,0)/detjac;
+    }   
+    dphi.Zero();
 
 }
 
@@ -848,6 +893,15 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
 }
 
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::InitSideMaterialData(int side, TPZMaterialData &data)
+{
+
+
+
+
+}
+
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) {
@@ -1075,10 +1129,11 @@ void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large
         if (sOrientThis + sOrientLarge != 0){
             std::cout << "The neighbour elements should have opposite side orients!" << std::endl;
             //If this condition is not fulfilled, the H(div) space is not consistent.
+            std::cout << "Side orient this = " << fSideOrient[cindex] << std::endl;
+            std::cout << "Side orient large = " << large->GetSideOrient(neighbourside) << std::endl;
             DebugStop(); 
         }
-        std::cout << "Side orient this = " << fSideOrient[cindex] << std::endl;
-        std::cout << "Side orient large = " << large->GetSideOrient(neighbourside) << std::endl;
+        
 #endif
 
         bool orient2 = false;
@@ -1110,12 +1165,10 @@ void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large
             for (int jn = 0; jn < numsidenodes_this; jn++) {
                 TPZConnect::TPZDepend *depend = myconnect.FirstDepend();
                 depend->fDepMatrix.MultiplyByScalar(-1.,depend->fDepMatrix);
-#ifdef PZDEBUG
-                std::cout << "Dependency matrix = " << depend->fDepMatrix << std::endl;
-#endif
             }
         }
-    }
+    }  
+
 }
 
 template<class TSHAPE>
@@ -1134,37 +1187,19 @@ bool TPZCompElHDiv<TSHAPE>::CheckRestrainedSideOrientation(TPZGeoElSide &thisgeo
     
 #ifdef PZDEBUG
 
-    // int thisface = thisgeoside.Element()->side(0,thisgeoside.Side());
-    // int largface = largegeoside.Element()->SideConnectLocId(0,largegeoside.Side());    
+    // TPZVec<REAL> normalLarge,normalThis;
+    // TPZManVector<REAL, 3> neighXi(largegeoside.Dimension(), 0);
+    // TPZManVector<REAL,3> xiSide(thisgeoside.Dimension(),0);
+    // t.Apply(xiSide, neighXi);
+    // largegeoside.Normal(neighXi,normalLarge);
+    // thisgeoside.Normal(xiSide,normalThis);
+
+    // std::cout << "Normal Large = " << normalLarge << std::endl;
+    // std::cout << "Normal This = " << normalThis << std::endl;
+    // // std::cout << "Transformation matrix = " << t.Mult() << std::endl;
+    // std::cout << "Transformation determinant = " << det << std::endl;
     
-    // std::cout << "Side Nodes = " ;
-    // for (int i = 0; i < thisgeoside.NSideNodes(); i++){
-    //     std::cout << thisgeoside.SideNodeIndex(i) << " ";
-    // }
-    // std::cout << std::endl;
-
-    // std::cout << "Neigh Nodes = " ;
-    // for (int i = 0; i < largegeoside.NSideNodes(); i++){
-    //     std::cout << largegeoside.SideNodeIndex(i) << " ";
-    // }
-    // std::cout << std::endl;
-    // std::cout << std::endl;
-
-
-    TPZVec<REAL> normalLarge,normalThis;
-    TPZManVector<REAL, 3> neighXi(largegeoside.Dimension(), 0);
-    TPZManVector<REAL,3> xiSide(thisgeoside.Dimension(),0);
-    t.Apply(xiSide, neighXi);
-    largegeoside.Normal(neighXi,normalLarge);
-    thisgeoside.Normal(xiSide,normalThis);
-
-    std::cout << "Normal Large = " << normalLarge << std::endl;
-    std::cout << "Normal This = " << normalThis << std::endl;
-    // std::cout << "Transformation matrix = " << t.Mult() << std::endl;
-    std::cout << "Transformation determinant = " << det << std::endl;
 #endif
-
-    
 
     return orient;
     
