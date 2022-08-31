@@ -894,16 +894,6 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::InitSideMaterialData(int side, TPZMaterialData &data)
-{
-
-
-
-
-}
-
-
-template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) {
 
     constexpr int dim = TSHAPE::Dimension;
