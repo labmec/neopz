@@ -2768,6 +2768,43 @@ void TPZCompMesh::SaddlePermute2()
 
 }
 
+void TPZCompMesh::GetEquationSetByMat(std::set<int64_t>& matidset, std::set<int64_t>& eqset) {
+    
+    if (!matidset.size()) {
+        DebugStop();
+    }
+    
+    for (TPZCompEl* cel : this->ElementVec()) {
+        if(!cel) continue;
+        
+        TPZGeoEl* gel = cel->Reference();
+        if(!gel) continue; // It skips SubCompMeshes, ElementGroups, and CondensedElements with this check
+                
+        const int64_t gelmatid = gel->MaterialId();
+        if(matidset.find(gelmatid) == matidset.end()) continue;
+        
+        const int ncon = cel->NConnects();
+        for(int ic = 0 ; ic < ncon ; ic++){
+            TPZConnect& con = cel->Connect(0);
+//            if(con.HasDependency() || con.IsCondensed()) continue; //CHECAR COM PHIL
+            const int64_t seqnum = con.SequenceNumber();
+            if(seqnum < 0) DebugStop();
+            const int64_t firsteq = this->Block().Position(seqnum);
+            const int64_t blocksize = this->Block().Size(seqnum);
+            const int64_t lasteq = firsteq + blocksize;
+            for (int i = 0; i < blocksize; i++) {
+                eqset.insert(firsteq+i);
+            }
+        }
+    }
+    
+    if(!eqset.size()){
+        std::cout << "\n\n\t===> Warning! TPZCompMesh::GetEquationSetByMat() did not find any equations for the material set provided" << std::endl;
+        std::cout << "matidset = ";
+        for(auto const& id : matidset) std::cout << id << " ";
+    }
+}
+
 /// Modify the permute vector swapping the lagrangeq with maxeq and shifting the intermediate equations
 void TPZCompMesh::ModifyPermute(TPZVec<int64_t> &permute, int64_t lagrangeq, int64_t maxeq)
 {
