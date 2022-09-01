@@ -591,6 +591,12 @@ public:
 	/** @brief Will build the list of element boundary conditions build the list of connect boundary conditions. */
 	/** Put material pointers into the elements. Check on the number of dof of the connects */
 	int Consolidate();
+    
+    
+    /// Returns all the equatios associated to the materials in matidset
+    /// @param mat set with matids to search for their equations
+    /// @param eqset set of equations associated with the materials in matidset (set holdss unique values)
+    void GetEquationSetByMat(std::set<int64_t>& matidset, std::set<int64_t>& eqset);
 	
 	/**
 	 * ??
