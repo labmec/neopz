@@ -71,6 +71,22 @@ public:
       this->SetActiveEquations( activeEquations );
     }
 
+    void ExcludeEquations(std::set<int64_t> &filteredeq)
+    {
+        // Activating filter
+        fIsActive = true;
+        
+        // Create set with all the equations of the problemn
+        std::set<int64_t> alleqset;
+        int i = 0;
+        std::generate_n(std::inserter(alleqset, alleqset.begin()), fNumEq, [&i](){ return i++; }); // alleqset = 1,2,3,4,...,fNumEq-1
+        
+        // Removed the filtered equations from alleqset and put on set activeset
+        std::set<int64_t> activeset;
+        std::set_difference(alleqset.begin(), alleqset.end(), filteredeq.begin(), filteredeq.end(), std::inserter(activeset,activeset.begin()));
+        BuildActEqsAndDestIndDataStructure(activeset);
+    }
+    
     ///Define as equacoes ativas
     void SetActiveEquations(TPZVec<int64_t> &active)
     {
@@ -83,14 +99,18 @@ public:
         if (neq) {
             activeset.insert(&active[0], &active[neq-1]+1);
         }
-#ifdef PZDEBUG       
+        BuildActEqsAndDestIndDataStructure(activeset);
+    }
+    
+    void BuildActEqsAndDestIndDataStructure(std::set<int64_t>& activeset) {
+#ifdef PZDEBUG
         if (activeset.size() > fNumEq){
-            std::cout << "active set with size = " << activeset.size() << 
+            std::cout << "active set with size = " << activeset.size() <<
                          " should be greater than the number of equations " << fNumEq << std::endl;
             DebugStop();
         }
         if (*activeset.rbegin() > fNumEq){
-            std::cout << "active set rbegin = " << *activeset.rbegin() << 
+            std::cout << "active set rbegin = " << *activeset.rbegin() <<
                          " cannot be greater than the number of equations " << fNumEq << std::endl;
             DebugStop();
         }
