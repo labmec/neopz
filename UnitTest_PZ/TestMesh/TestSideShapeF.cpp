@@ -73,14 +73,14 @@ int main(){
 
     const int pOrder = 1;
     // SpaceType sType = EHCurl;
-    SpaceType sType = EHDivStandard;
+    // SpaceType sType = EHDivStandard;
     // SpaceType sType = EHCurlNoGrads;
-    // SpaceType sType = EHDivConstant;
+    SpaceType sType = EHDivConstant;
 
-    TesteSideShapeFunction<TPZQuadrilateral,pzshape::TPZShapeQuad>(pOrder,sType);
-    TesteSideShapeFunction<TPZTriangle,pzshape::TPZShapeTriang>(pOrder,sType);
+    // TesteSideShapeFunction<TPZQuadrilateral,pzshape::TPZShapeQuad>(pOrder,sType);
+    // TesteSideShapeFunction<TPZTriangle,pzshape::TPZShapeTriang>(pOrder,sType);
     TesteSideShapeFunction<TPZTetrahedron,pzshape::TPZShapeTetra>(pOrder,sType);
-    TesteSideShapeFunction<TPZCube,pzshape::TPZShapeCube>(pOrder,sType);
+    // TesteSideShapeFunction<TPZCube,pzshape::TPZShapeCube>(pOrder,sType);
 
     return 0;
 }
@@ -197,10 +197,7 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
             }
             
             
-            // TPZShapeHDiv<tshape>::Shape(node, data, phiV, dphiV);
-            std::cout << "PhiS = " << phis << std::endl;
-            std::cout << "PhiV = " << data.fDeformedDirections << std::endl;
-            std::cout << "PhiV = " << phiV << std::endl;
+
             TPZVec<REAL> normalSide;
             thisgeoside.Normal(nodeSide,normalSide);
 
@@ -211,16 +208,22 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
                 }
                 
             }
+            std::cout << "PhiS = " << phis << std::endl;
+            // std::cout << "PhiV = " << data.fDeformedDirections << std::endl;
+            std::cout << "PhiV = " << phiV << std::endl;
+            std::cout << "res = " << res << std::endl;
         REAL tol = 1.e-8;
+        REAL jac = 1.;
+        if (type == ETetraedro) jac = 6.;
 #ifndef USE_MAIN
         for (int i = 0; i < numshapeSide; i++)
         {
-            REQUIRE(res[i]-phis(i,0) < tol);
+            REQUIRE(res[i]-phis(i,0)/jac < tol);
         }      
 #else
         for (int i = 0; i < numshapeSide; i++)
         {
-            if(res[i]-phis(i,0) > tol){
+            if(fabs(res[i]-phis(i,0)/jac) > tol){
                 std::cout << "Problem!!\n";
                 std::cout << "Res = " << res << std::endl;
                 std::cout << "phis = " << phis << std::endl;
