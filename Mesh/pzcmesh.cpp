@@ -2785,7 +2785,7 @@ void TPZCompMesh::GetEquationSetByMat(std::set<int64_t>& matidset, std::set<int6
         
         const int ncon = cel->NConnects();
         for(int ic = 0 ; ic < ncon ; ic++){
-            TPZConnect& con = cel->Connect(0);
+            TPZConnect& con = cel->Connect(ic);
 //            if(con.HasDependency() || con.IsCondensed()) continue; //CHECAR COM PHIL
             const int64_t seqnum = con.SequenceNumber();
             if(seqnum < 0) DebugStop();
