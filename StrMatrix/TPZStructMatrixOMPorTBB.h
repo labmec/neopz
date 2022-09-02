@@ -27,7 +27,6 @@ synchronized.
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 
-//class TPZStructMatrixOMPorTBB;
 #include "TPZStrMatParInterface.h"
 
 /**
