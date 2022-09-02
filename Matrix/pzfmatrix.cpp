@@ -315,6 +315,22 @@ void TPZFMatrix<float>::AddFel(TPZFMatrix<float> &rhs,TPZVec<int64_t> &source, T
     }
 }
 
+template<class TVar>
+void TPZFMatrix<TVar>::AddFelNonAtomic(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination) {
+    if(rhs.Cols() != this->Cols() && source.NElements()) {
+        PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
+        DebugStop();
+        return;
+    }
+    int64_t ncol = this->Cols();
+    int64_t nrow = source.NElements();
+    int64_t i,j;
+    for(j=0; j<ncol; j++) {
+        for(i=0; i<nrow; i++) {
+            operator()(destination[i],j) += rhs(source[i],j);
+        }
+    }
+}
 
 
 /*******************************/
