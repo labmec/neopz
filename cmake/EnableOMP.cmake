@@ -1,7 +1,5 @@
 function(enable_omp target)
     find_package(OpenMP REQUIRED)
-    include_directories(/usr/local/include)
-    link_directories(/usr/local/lib)
     if (NOT OpenMP_FOUND)
         message(FATAL_ERROR "Could not find OpenMP. If OpenMP is not needed, "
                 "configure the project with -DUSING_OMP=OFF")
