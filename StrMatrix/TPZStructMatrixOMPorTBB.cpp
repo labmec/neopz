@@ -414,7 +414,6 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingOMPbutNotColoring(TPZBaseMatr
     const int nthread = this->fNumThreads;
 
     omp_set_num_threads(nthread);
-    omp_set_nested(true);
     #pragma omp parallel for schedule(dynamic,1)
     for (int64_t iel = 0; iel < nelem; iel++){
         {
