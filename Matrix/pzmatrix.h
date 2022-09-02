@@ -378,6 +378,13 @@ public:
 	 */
 	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex);
 
+    /**
+     * @brief Similar to Addkel, but uses atomic add instead of regular sum
+     */
+    virtual  void AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex){
+        DebugStop();
+    };
+
 	/**
 	 * @name Inquire
 	 * @brief Returns information of the current object
