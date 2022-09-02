@@ -439,9 +439,9 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
             "4 4 4  1  7  9 " 
             "4 4 7  2  5  8 " 
             "4 4 6  9  8  3 " 
-            "4 4 4  9  6  5 " 
+            "4 4 4  9  5  6 " 
             "4 4 5  8  6  9 " 
-            "4 4 7  8  9  5 "
+            "4 4 7  8  5  9 "
             "4 4 4  7  5  9 ";
 			std::istringstream str(buf);
 			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(str);
