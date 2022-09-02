@@ -76,11 +76,12 @@ int main(){
     // SpaceType sType = EHDivStandard;
     // SpaceType sType = EHCurlNoGrads;
     SpaceType sType = EHDivConstant;
+    // SpaceType sType = EH1;
 
-    // TesteSideShapeFunction<TPZQuadrilateral,pzshape::TPZShapeQuad>(pOrder,sType);
-    // TesteSideShapeFunction<TPZTriangle,pzshape::TPZShapeTriang>(pOrder,sType);
+    TesteSideShapeFunction<TPZQuadrilateral,pzshape::TPZShapeQuad>(pOrder,sType);
+    TesteSideShapeFunction<TPZTriangle,pzshape::TPZShapeTriang>(pOrder,sType);
     TesteSideShapeFunction<TPZTetrahedron,pzshape::TPZShapeTetra>(pOrder,sType);
-    // TesteSideShapeFunction<TPZCube,pzshape::TPZShapeCube>(pOrder,sType);
+    TesteSideShapeFunction<TPZCube,pzshape::TPZShapeCube>(pOrder,sType);
 
     return 0;
 }
@@ -116,19 +117,23 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
 
 
     TPZCompMesh *cmesh;
+    TPZIntelGen<tshape> *cel;
 
     switch (stype)
     {
     case EH1:
         cmesh = CreateCMeshH1(gmesh, pOrder, volId);
+        cel = dynamic_cast<TPZIntelGen<tshape> *>(cmesh->ElementVec()[0]);
         break;
 
     case EHDivStandard:
         cmesh = CreateCMeshHDiv(gmesh,pOrder,volId,HDivFamily::EHDivStandard);
+        cel = dynamic_cast<TPZCompElHDiv<tshape> *>(cmesh->ElementVec()[0]);
         break;
 
     case EHDivConstant:
         cmesh = CreateCMeshHDiv(gmesh,pOrder,volId,HDivFamily::EHDivConstant);
+        cel = dynamic_cast<TPZCompElHDiv<tshape> *>(cmesh->ElementVec()[0]);
         break;
 
     case EHDivKernel:
@@ -148,8 +153,9 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
         break;
     };
 
+    
 
-    TPZCompElHDiv<tshape> *cel = dynamic_cast<TPZCompElHDiv<tshape> *>(cmesh->ElementVec()[0]);
+    
     TPZMaterialDataT<STATE> data; 
     cel->InitMaterialData(data);
     
@@ -177,8 +183,8 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
             intRule->Point(ipt, nodeSide, w);
             
             t.Apply(nodeSide, node);
-            std::cout << "Node = " << node << std::endl;
-            std::cout << "Node2 = " << nodeSide << std::endl;
+            // std::cout << "Node = " << node << std::endl;
+            // std::cout << "Node2 = " << nodeSide << std::endl;
 
             cel->ComputeRequiredData(data,node);
 
@@ -188,14 +194,18 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
             cel->ComputeShape(node,data);
 
             TPZFNMatrix<100, REAL> phiV(numshapeSide, dim);
-            for (int k = 0; k < numshapeSide; k++)
-            {
-                for (int d = 0; d < dim; d++)
+            if (stype == EHDivConstant || stype == EHDivStandard){
+                for (int k = 0; k < numshapeSide; k++)
                 {
-                    phiV(k,d)=data.fDeformedDirections(d,numshapeSide*(iFace-nSides+nFaces+1)+k);
+                    for (int d = 0; d < dim; d++)
+                    {
+                        phiV(k,d)=data.fDeformedDirections(d,numshapeSide*(iFace-nSides+nFaces+1)+k);
+                    }
                 }
+            } else {
+                std::cout << "Test not implemented for this space \n";
+                DebugStop();
             }
-            
             
 
             TPZVec<REAL> normalSide;
@@ -205,25 +215,42 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
             for (int i = 0; i < phiV.Rows(); i++){
                 for (int j = 0; j < phiV.Cols(); j++){
                     res[i] += phiV(i,j)*normalSide[j];
+                }   
+            }
+            
+            if (dim == 3 && stype == EHDivConstant){
+                bool orient = false;
+                switch (type)
+                {
+                case ETetraedro:
+                    if (iFace == 10 || iFace == 13) orient = true;
+                    break;
+                case ECube:
+                    if (iFace == 20 || iFace == 23 || iFace == 24) orient = true;
+                    break;
+                
+                default:
+                    break;
+                }
+                if (orient){
+                    for (int i = 1; i < phiV.Rows(); i++) res[i] *= -1.;
                 }
                 
             }
-            std::cout << "PhiS = " << phis << std::endl;
+            // std::cout << "PhiS = " << phis << std::endl;
             // std::cout << "PhiV = " << data.fDeformedDirections << std::endl;
-            std::cout << "PhiV = " << phiV << std::endl;
-            std::cout << "res = " << res << std::endl;
+            // std::cout << "PhiV = " << phiV << std::endl;
+            // std::cout << "res = " << res << std::endl;
         REAL tol = 1.e-8;
-        REAL jac = 1.;
-        if (type == ETetraedro) jac = 6.;
 #ifndef USE_MAIN
         for (int i = 0; i < numshapeSide; i++)
         {
-            REQUIRE(res[i]-phis(i,0)/jac < tol);
+            REQUIRE(res[i]-phis(i,0) < tol);
         }      
 #else
         for (int i = 0; i < numshapeSide; i++)
         {
-            if(fabs(res[i]-phis(i,0)/jac) > tol){
+            if(fabs(res[i]-phis(i,0)) > tol){
                 std::cout << "Problem!!\n";
                 std::cout << "Res = " << res << std::endl;
                 std::cout << "phis = " << phis << std::endl;

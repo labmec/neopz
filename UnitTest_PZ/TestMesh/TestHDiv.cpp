@@ -641,6 +641,7 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
     int nwrong = 0;
     int npoints = intrule->NPoints();
     int ip;
+
     for (ip=0; ip<npoints; ip++) {
         TPZManVector<REAL,3> pointA(gelsideA.Dimension()),pointB(gelsideB.Dimension());
         REAL weight;
@@ -652,6 +653,10 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         interB->SideShapeFunction(sideB, pointB, phiB, dphiB);
         int nshapeA = phiA.Rows();
         int nshapeB = phiB.Rows();
+
+        phiA *= (REAL)interA->GetSideOrient(sideA);
+        phiB *= (REAL)interB->GetSideOrient(sideB);
+
         REQUIRE(nshapeA==nshapeB);
         int ish;
         for (ish=0; ish<nshapeA; ish++) {

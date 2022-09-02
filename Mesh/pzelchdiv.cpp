@@ -583,7 +583,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
         TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
         gelside.Jacobian(point, jac, axes, detjac, jacinv);
     }
-    if(sidetype == ETriangle) detjac /= 6.;
+    // if(sidetype == ETriangle) detjac /= 6.;
 
     
     for (int64_t i = 0; i < nsideshape; i++)
