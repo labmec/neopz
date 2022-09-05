@@ -2791,7 +2791,6 @@ void TPZCompMesh::GetEquationSetByMat(std::set<int64_t>& matidset, std::set<int6
             if(seqnum < 0) DebugStop();
             const int64_t firsteq = this->Block().Position(seqnum);
             const int64_t blocksize = this->Block().Size(seqnum);
-            const int64_t lasteq = firsteq + blocksize;
             for (int i = 0; i < blocksize; i++) {
                 eqset.insert(firsteq+i);
             }
