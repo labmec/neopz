@@ -1109,22 +1109,21 @@ void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large
 
         bool orient = CheckRestrainedSideOrientation(thisgeoside,largegeoside);     
 
-#ifdef PZDEBUG
+        //Checks sideOrient
         int cindex = SideConnectLocId(0, thisside.Side());
         int sOrientThis = fSideOrient[cindex];
         int sOrientLarge = large->GetSideOrient(neighbourside);
 
-        // ->GetSideOrient(neighbourside);
 
         if (sOrientThis + sOrientLarge != 0){
-            std::cout << "The neighbour elements should have opposite side orients!" << std::endl;
-            //If this condition is not fulfilled, the H(div) space is not consistent.
-            std::cout << "Side orient this = " << fSideOrient[cindex] << std::endl;
-            std::cout << "Side orient large = " << large->GetSideOrient(neighbourside) << std::endl;
-            DebugStop(); 
+            TPZGeoElSide neigh = thisgeoside.Neighbour();
+            int sideNeigh = neigh.Side();
+
+            if (neigh.Element()->GetSideOrientation(sideNeigh) == sOrientThis){
+                TPZInterpolatedElement *neighintel = dynamic_cast<TPZInterpolatedElement *>(neigh.Element());
+                neighintel->SetSideOrient(sideNeigh,-sOrientThis);
+            }
         }
-        
-#endif
 
         bool orient2 = false;
         if (TSHAPE::Dimension == 3){
