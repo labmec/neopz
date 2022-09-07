@@ -340,6 +340,15 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
         fPressureFineMesh->Print(out);
     }
 
+    {
+        int64_t nel = cmeshPressure->NElements();
+        for (int64_t el = 0; el < nel ; el++) {
+            TPZCompEl *cel = cmeshPressure->Element(el);
+            TPZGeoEl *gel = cel->Reference();
+            int64_t dom = fGeoToMHMDomain[gel->Index()];
+            SetSubdomain(cel, dom);
+        }
+    }
     
 #ifdef PZDEBUG
     // a very strange check!! Why does material id 1 need to be volumetric?
@@ -358,8 +367,16 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
     
     // the lagrange multiplier level is set to one
     int64_t nc = cmeshPressure->NConnects();
+    std::set<int64_t> domainhandled;
     for (int64_t ic=nskeletonconnects; ic<nc; ic++) {
-        cmeshPressure->ConnectVec()[ic].SetLagrangeMultiplier(1);
+        auto &vec = fConnectToSubDomainIdentifier[cmeshPressure];
+        int64_t domain = vec[ic];
+        if(domainhandled.find(domain) == domainhandled.end()) {
+            domainhandled.insert(domain);
+            cmeshPressure->ConnectVec()[ic].SetLagrangeMultiplier(2);
+        } else {
+            cmeshPressure->ConnectVec()[ic].SetLagrangeMultiplier(1);
+        }
     }
     // associate the connects with the proper subdomain
     gmesh->ResetReference();
@@ -1112,6 +1129,8 @@ void TPZMHMixedMeshControl::CreateSkeleton()
                 if (!intelsub) {
                     DebugStop();
                 }
+                int64_t cindex = intelsub->SideConnectIndex(0, its->Side());
+                SetSubdomain(fFluxMesh.operator->(), cindex, -1);
                 intelsub->RestrainSide(its->Side(), intel, side);
             }
         }
