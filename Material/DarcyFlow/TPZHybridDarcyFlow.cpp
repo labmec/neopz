@@ -182,6 +182,7 @@ void TPZHybridDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datav
         for (int in =0; in < phr; in++) {
             ek(phr,in) += weight*phi(in,0);//lambda*phi
             ek(in,phr) += weight*phi(in,0);
+        }
     }
 #endif
     //equacoes de restricao de pressao media
