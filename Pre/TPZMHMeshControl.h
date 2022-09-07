@@ -308,7 +308,7 @@ public:
         return result;
     }
 
-    TPZManVector<int64_t> GetGeoToMHMDomain() {
+    TPZVec<int64_t> &GetGeoToMHMDomain() {
         return fGeoToMHMDomain;
     }
 
