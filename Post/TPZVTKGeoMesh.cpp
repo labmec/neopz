@@ -1098,7 +1098,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<int64_t> & elInde
     file.clear();
     int64_t nelements = gmesh->NElements();
 
-    std::stringstream node, connectivity, type, material;
+    std::stringstream node, connectivity, type, elementindex, material, geldim;
 
     //Header
     file << "# vtk DataFile Version 3.0" << std::endl;
@@ -1144,7 +1144,11 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<int64_t> & elInde
         int elType = TPZVTKGeoMesh::GetVTK_ElType(gmesh->ElementVec()[el]);
         type << elType << std::endl;
 
-        material << el << std::endl;
+        elementindex << el << std::endl;
+        
+        material << gel->MaterialId() << std::endl;
+        
+        geldim << gel->Dimension() << std::endl;
 
         nVALIDelements++;
     }
@@ -1161,11 +1165,19 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<int64_t> & elInde
     file << type.str() << std::endl;
 
     file << "CELL_DATA" << " " << nVALIDelements << std::endl;
-    file << "FIELD FieldData 1" << std::endl;
+    file << "FIELD FieldData 3" << std::endl;
 
     file << "elIndex 1 " << nVALIDelements << " int" << std::endl;
 
+    file << elementindex.str();
+
+    file << "material 1 " << nVALIDelements << " int" << std::endl;
+
     file << material.str();
+
+    file << "dimension 1 " << nVALIDelements << " int" << std::endl;
+
+    file << geldim.str();
 
     file.close();
 }
