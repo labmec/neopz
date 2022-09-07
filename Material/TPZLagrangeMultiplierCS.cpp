@@ -1,6 +1,8 @@
 #include "TPZLagrangeMultiplierCS.h"
 #include "pzaxestools.h"
-
+#ifdef USING_MKL
+#include "mkl.h"
+#endif
 
 template<class TVar>
 void TPZLagrangeMultiplierCS<TVar>::ContributeInterface(
@@ -53,8 +55,115 @@ void TPZLagrangeMultiplierCS<TVar>::ContributeInterface(
             }
         }
     }
-
 }
+
+template<>
+void TPZLagrangeMultiplierCS<STATE>::ContributeInterface(
+        const TPZMaterialDataT<STATE> &data,
+        const std::map<int, TPZMaterialDataT<STATE>> &dataleft,
+        const std::map<int, TPZMaterialDataT<STATE>> &dataright,
+        REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+    {
+
+#ifdef PZDEBUG
+        if(dataleft.size() != 1 || dataright.size() != 1)
+            DebugStop();
+#endif
+
+        //const TPZFMatrix<REAL> *phiL = &(dataleft.begin()->second.phi);
+        TPZFMatrix<REAL> phiLdummy = dataleft.begin()->second.phi;
+        TPZFMatrix<REAL> *phiL = &phiLdummy;
+
+        TPZFMatrix<REAL> phiRdummy = dataright.begin()->second.phi;
+        TPZFMatrix<REAL> *phiR = &phiRdummy;
+
+        int nrowl = phiL->Rows();
+        int nrowr = phiR->Rows();
+        static int count  = 0;
+
+        if((nrowl+nrowr)*fNStateVariables != ek.Rows() && count < 20)
+        {
+            std::cout<<"ek.Rows() "<< ek.Rows()<<
+                     " nrowl " << nrowl <<
+                     " nrowr " << nrowr << " may give wrong result "<< "fNStateVariables\t"<< fNStateVariables << "count " << count  << std::endl;
+            count++;
+        }
+
+#ifdef USING_MKL
+        {
+        double *A, *B, *C;
+        double alpha, beta;
+        int m,n,k,phrL,phrR;
+        phrL = phiL->Rows();
+        phrR = phiR->Rows();
+        m = phrL;
+        n = phrR;
+        k = 1;
+        alpha = weight * fMultiplier ;
+        beta = 1.0;
+        int LDA,LDB,LDC;
+        LDC = phrL+phrR;
+        LDA = phiL->Rows();
+        LDB = 1;
+        C = &ek(0,phrL);
+        A = &phiLdummy(0,0);
+        B = &phiRdummy(0,0);
+        //cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,                       m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
+        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
+                    m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
+    }
+    {
+      double *A, *B, *C;
+        double alpha, beta;
+        int m,n,k,phrL,phrR;
+        phrL = phiL->Rows();
+        phrR = phiR->Rows();
+        m = phrR;
+        n = phrL;
+        k = 1;
+        alpha = weight * fMultiplier ;
+        beta = 1.0;
+        int LDA,LDB,LDC;
+        LDC = phrL+phrR;
+        LDA = phiR->Rows();
+        LDB = 1;
+        C = &ek(phrL,0);
+        B = &phiLdummy(0,0);
+        A = &phiRdummy(0,0);
+        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
+                       m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
+    }
+
+#else
+
+        int secondblock = ek.Rows()-phiR->Rows()*fNStateVariables;
+        int il,jl,ir,jr;
+
+        // 3) phi_I_left, phi_J_right
+        for(il=0; il<nrowl; il++) {
+            for(jr=0; jr<nrowr; jr++) {
+                for (int ist=0; ist<fNStateVariables; ist++) {
+                    double L = *(&phiLdummy(0,0)+il);
+                    double R = *(&phiRdummy(0,0)+jr);
+                    ek(fNStateVariables*il+ist,fNStateVariables*jr+ist+secondblock) += weight * fMultiplier * L * R;
+                }
+            }
+        }
+
+        //	// 4) phi_I_right, phi_J_left
+        for(ir=0; ir<nrowr; ir++) {
+            for(jl=0; jl<nrowl; jl++) {
+                for (int ist=0; ist<fNStateVariables; ist++) {
+                    double L = *(&phiLdummy(0,0)+jl);
+                    double R = *(&phiRdummy(0,0)+ir);
+                    ek(ir*fNStateVariables+ist+secondblock,jl*fNStateVariables+ist) += weight * fMultiplier * (R * L);
+
+                }
+            }
+        }
+#endif
+}
+
 
 template<class TVar>
 void TPZLagrangeMultiplierCS<TVar>::FillDataRequirementsInterface(
