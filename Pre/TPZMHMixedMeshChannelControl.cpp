@@ -101,6 +101,8 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
     {
         std::ofstream out("Friendly.txt");
         PrintFriendly(out);
+        std::ofstream out2("GeoMHMDomain.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(fGMesh.operator->(), out2, fGeoToMHMDomain);
     }
     CheckMeshConsistency();
 #endif
@@ -109,7 +111,7 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
         HideTheElements();
     }
     fNumeq = fCMesh->NEquations();
-#ifdef PZDEBUG2
+#ifdef PZDEBUG
     {
         int64_t nel = fCMesh->NElements();
         for(int64_t el = 0; el<nel; el++)
@@ -144,9 +146,9 @@ TPZMHMixedMeshControl::TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, s
 
 void TPZMHMixedMeshChannelControl::HideTheElements()
 {
-    bool KeepOneLagrangian = true;
+    int KeepOneLagrangian = 2;
     if (fHybridize) {
-        KeepOneLagrangian = false;
+        KeepOneLagrangian = 0;
     }
     typedef std::set<int64_t> TCompIndexes;
     std::map<int64_t, TCompIndexes> ElementGroups;
@@ -157,7 +159,11 @@ void TPZMHMixedMeshChannelControl::HideTheElements()
     int64_t nel = fCMesh->NElements();
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fCMesh->Element(el);
+        TPZGeoEl *gel = cel->Reference();
         int64_t domain = WhichSubdomain(cel);
+        if(gel->Dimension() == dim && domain == -1) {
+            DebugStop();
+        }
         if (domain == -1) {
             continue;
         }
@@ -203,6 +209,16 @@ void TPZMHMixedMeshChannelControl::HideTheElements()
 
 int64_t TPZMHMixedMeshChannelControl::WhichSubdomain(TPZCompEl *cel)
 {
+    TPZGeoEl *gel = cel->Reference();
+
+    if(gel) {
+        int64_t geldomain = fGeoToMHMDomain[gel->Index()];
+        if(geldomain != -1) return geldomain;
+    }
+    else
+    {
+        DebugStop();
+    }
     int ncon = cel->NConnects();
     std::set<int64_t> domains;
     TPZCompMesh *cmesh = cel->Mesh();
