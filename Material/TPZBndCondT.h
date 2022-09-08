@@ -58,6 +58,9 @@ public:
     }
     //@}
 
+    //! Prints data associated with the material.
+    void Print(std::ostream &out = std::cout) const override;
+
     /** @name ReadWrite */
 	/** @{ */
     int ClassId() const override;

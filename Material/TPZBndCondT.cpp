@@ -14,6 +14,16 @@ TPZBndCondT<TVar>::TPZBndCondT(int type,
 {
 
 }
+template<class TVar>
+void TPZBndCondT<TVar>::Print(std::ostream &out) const
+{
+    TPZBndCond::Print(out);
+    fBCVal1.Print("val 1", out);
+    out<<"val 2:";
+    for(auto v : fBCVal2){out<<' '<<v;}
+    out<<'\n';
+    out<<"Has forcing function: "<<HasForcingFunctionBC()<<std::endl;
+}
 
 template<class TVar>
 int TPZBndCondT<TVar>::ClassId() const{

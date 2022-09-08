@@ -40,7 +40,8 @@ public :
     [[nodiscard]] int ClassId() const override;
     //! Whether the boundary condition has a forcing function
     [[nodiscard]] virtual bool HasForcingFunctionBC() const = 0;
-    void Print(std::ostream &out = std::cout) const;
+  
+    virtual void Print(std::ostream &out = std::cout) const;
     
     void Read(TPZStream& buf, void* context) override;
 
