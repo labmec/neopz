@@ -33,6 +33,9 @@ class TPZBndCondBase :
     void Read(TPZStream &buf, void*context) override;
     void Write(TPZStream &buf, int withclassid) const override;
 
+
+    void Print(std::ostream &out) const override;
+    
     void SetMaterial(TPZMaterial *) final;
     
     [[nodiscard]] int Dimension() const final
@@ -82,6 +85,21 @@ void TPZBndCondBase<TVar, Interfaces...>::SetMaterial(TPZMaterial *mat){
     // it is called a fold expression (from c++17 on)
     // https://en.cppreference.com/w/cpp/language/fold
     (Interfaces::SetMaterialImpl(mat),...);
+}
+
+
+template<class TVar, class...Interfaces>
+void TPZBndCondBase<TVar, Interfaces...>::Print(
+  std::ostream &out) const
+{
+    TPZMaterialT<TVar>::Print(out);
+    TPZBndCondT<TVar>::Print(out);
+    if(this->fMaterial){
+        out<<"Associated with mat id: "<<this->fMaterial->Id()<<std::endl;
+    }
+    /* The following will perform calls to all the Read methods of the interfaces. 
+       This is a c++17 addition called fold expressions.*/
+//    (Interfaces::Print(out),...);
 }
 
 
