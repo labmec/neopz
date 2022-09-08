@@ -22,9 +22,16 @@
  * Iterative template routine -- CG \n
  * CG follows the algorithm described on p. 15 in the SIAM Templates book.
  */
+#define TEST
 #ifdef TEST
 #include <list> 
+#include <fstream>
+#include "TPZLapackEigenSolver.h"
+#include "pzreal.h"
 #endif
+#include <iostream>
+#include "pzreal.h"
+#include "pzextractval.h"
 
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int
@@ -40,9 +47,10 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	Vector *res = residual;
 	
 #ifdef TEST
-	std::list< TPZFMatrix<REAL> > plist,qlist;
-	std::list< TPZFMatrix<REAL> >::iterator jt;
-	std::list< TPZFMatrix<REAL> >::iterator kt;
+	std::list< Vector > plist,qlist;
+    std::list< Real > betalist, reslist;
+	typename std::list<Vector>::iterator jt;
+	typename std::list<Vector>::iterator kt;
 	Vector Au;
 #endif
 	
@@ -60,7 +68,10 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	
 	if (normb == 0.0)
 		normb = 1.0;
-	
+#ifdef TEST
+        reslist.push_back(1./(TPZExtractVal::val(Norm(r))));
+#endif
+
     if ((resid = (TPZExtractVal::val( Norm(r) ) ) / normb) <= tol) {
 		tol = resid;
 		max_iter = 0;
@@ -68,7 +79,7 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	}
 	int64_t i;
 	for (i = 1; i <= max_iter; i++) {
-		M.Solve(r,z);
+        M.Solve(r,z);
         rho = TPZExtractVal::val(Dot(r, z));
 		
 		if (i == 1)
@@ -78,8 +89,8 @@ CG( Matrix &A, Vector &x, const Vector &b,
 			p.TimesBetaPlusZ(beta,z);
 		}
 #ifdef TEST
-		
 		plist.push_back(p);
+        betalist.push_back(beta);
 #endif	 
 		
 		A.Multiply(p,q);
@@ -103,12 +114,85 @@ CG( Matrix &A, Vector &x, const Vector &b,
 #ifdef PZDEBUG
 			std::cout << "cg iter = " << i <<  " res = " << resid << std::endl;
 #endif
+
+#ifdef TEST    
+    reslist.push_back(1./(TPZExtractVal::val(Norm(r))));
+    // Real CN=ConditionNumber();
+    //Structure to compute the condition number via Lanczos connection. See https://doi.org/10.1371/journal.pone.0130920 for further details
+    TPZFMatrix<Real> B(i,i,0.),L(i,i,0.),D(i,i,0.);
+    TPZAutoPointer<TPZFMatrix<Real>> T = new TPZFMatrix<Real>;
+    T->AutoFill(i,i,true);
+    Vector aux(i,1,0.);
+    B.Identity();
+    D.PutVal(0,0,*std::next(reslist.begin(),0));
+    //Assemble the diagonal entries of Lambda matrix
+    A.MultAdd(*plist.begin(),*plist.begin(),aux,1.,0.);
+    L.PutVal(0,0,Dot(*plist.begin(),aux));
+    for (int k = 1; k < i; k++)
+    {
+        D.PutVal(k,k,*std::next(reslist.begin(),k));
+        B.PutVal(k-1,k,*std::next(betalist.begin(),k));
+        aux.Zero();
+        A.MultAdd(*std::next(plist.begin(),k),*std::next(plist.begin(),k),aux,1.,0.);
+        L.PutVal(k,k,Dot(*std::next(plist.begin(),k),aux));
+    }
+
+    //Compute the tridiagonal Matrix
+    B.Multiply(D,T);
+    L.Multiply(T,T);
+    B.Transpose();
+    B.Multiply(T,T);
+    D.Multiply(T,T);
+
+    TPZAutoPointer<TPZFMatrix<Real>> T1,T2,T3;
+    T1=T;
+    T2=T;
+    T3=T;
+    
+    std::ofstream rprint0,rprint1,rprint2,rprint3,rprint4;
+    rprint0.open("condition_number0.txt",std::ios_base::app);
+    rprint1.open("condition_number1.txt",std::ios_base::app);
+    rprint2.open("condition_number2.txt",std::ios_base::app);
+    rprint3.open("All_eigenvalues.txt",std::ios_base::app);
+    rprint4.open("MaxMin_eigenvalues.txt",std::ios_base::app);
+    rprint0 << T1->ConditionNumber(0) << "\n";
+    rprint1 << T2->ConditionNumber(1) << "\n";
+    rprint2 << T3->ConditionNumber(2) << "\n";
+
+    TPZLapackEigenSolver<Real> eigSolver;
+    
+    TPZVec<std::complex<double>> eigenvalues;
+    eigSolver.SetMatrixA(T);
+    auto a1 = eigSolver.SolveEigenProblem(eigenvalues);
+
+    Real maxEig = 0.;
+    Real minEig = 1e3;
+    Real minAbs = 1e3;
+    Real maxAbs = 0.;
+    for (int i = 0; i < eigenvalues.size(); i++)
+    {
+        rprint3 << eigenvalues[i].real() << std::endl;
+        if (eigenvalues[i].real() > maxEig) maxEig = eigenvalues[i].real();
+        if (eigenvalues[i].real() < minEig) minEig = eigenvalues[i].real();
+        if (fabs(eigenvalues[i].real()) < minAbs) minAbs = fabs(eigenvalues[i].real());
+        if (fabs(eigenvalues[i].real()) > maxAbs) maxAbs = fabs(eigenvalues[i].real());
+    }
+    rprint3 << std::endl;
+
+    rprint4 << maxEig << " " << minEig << " " << maxAbs << " " << minAbs << std::endl;
+
+    
+    // std::cout << "Eigenvalues = " << eigenvalues << std::endl;
+
+#endif
 			return 0;
 		}
 #ifdef PZDEBUG
 		std::cout << "cg iter = " << i <<  " res = " << resid /*<< " energy " << energy */ << std::endl;
 #endif
 #ifdef TEST
+        
+        reslist.push_back(1./(TPZExtractVal::val(Norm(r))));
 		std::cout << " energy " << energy << std::endl;
 		TPZFMatrix<REAL> inner(plist.size(),plist.size(),0.);
 		{
@@ -121,12 +205,15 @@ CG( Matrix &A, Vector &x, const Vector &b,
 				}
 			}
 		}
-		inner.Print("Inner product of search directions");
+		// inner.Print("Inner product of search directions");
 #endif
 		rho_1 = rho;
-	}
+
+	}//CG Iterative process
 	
 	tol = resid;
 	std::cout << "cg iter = " << i <<  " res = " << resid << std::endl;
+    //END OF CG
+
 	return 1;
 }

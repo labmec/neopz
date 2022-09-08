@@ -17,9 +17,12 @@ set(headers
     qmr.h
     )
 
+set(sources
+    cg.cpp
+)
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Solvers/LinearSolvers)
 
-target_sources(pz PRIVATE ${headers})
+target_sources(pz PRIVATE ${headers} ${sources})
 #for doxygen
 foreach(header ${headers})
     list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
