@@ -40,6 +40,11 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
     InsertPeriferalMaterialObjects();
     CreateHDivMHMMesh();
     
+    {
+        std::ofstream out("BeforeOpeningChannel.txt");
+        FluxMesh()->ComputeNodElCon();
+        FluxMesh()->Print(out);
+    }
     if(OpenChannel==true){
         for(auto it:oppen_channel){
             fGMesh->ResetReference();
@@ -70,8 +75,23 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
             cto.RemoveDepend();
     //        FluxMesh()->Element(c_from_index)->Connect(connec_from_index).RemoveDepend();
     //        FluxMesh()->Element(c_to_index)->Connect(connec_to_index).RemoveDepend();
-            auto conenec_from_to = cel_from->ConnectIndex(connec_from_index);
-            cel_to->SetConnectIndex(connec_to_index, conenec_from_to);
+            cel_to->SetConnectIndex(connec_to_index, cfrom_index);
+            TPZGeoElSide gelfromside(gel_from,side_from);
+            for (auto gelside = gelfromside.Neighbour(); gelside != gelfromside; gelside++) {
+                int matid = gelside.Element()->MaterialId();
+                if(!fFluxMesh->FindMaterial(matid)) {
+                    continue;
+                }
+                auto *intel = dynamic_cast<TPZInterpolatedElement *>(gelside.Element()->Reference());
+                if(!intel) DebugStop();
+                int64_t cindex = intel->SideConnectIndex(0, gelside.Side());
+                int locindex = intel->SideConnectLocId(0, gelside.Side());
+                if(cindex == cto_index) {
+                    intel->SetConnectIndex(locindex, cfrom_index);
+                } else if(cindex != cfrom_index) {
+                    DebugStop();
+                }
+            }
         }
     }
     
@@ -103,6 +123,9 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
         PrintFriendly(out);
         std::ofstream out2("GeoMHMDomain.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(fGMesh.operator->(), out2, fGeoToMHMDomain);
+        fCMesh->ComputeNodElCon();
+        std::ofstream out3("BeforeSubstruct.txt");
+        fCMesh->Print(out3);
     }
     CheckMeshConsistency();
 #endif
@@ -201,6 +224,11 @@ void TPZMHMixedMeshChannelControl::HideTheElements()
         }
     }
     fCMesh->CleanUpUnconnectedNodes();
+    
+    {
+        std::ofstream out("BeforeCondensing.txt");
+        fCMesh->Print(out);
+    }
     
     GroupandCondenseElements();
     
