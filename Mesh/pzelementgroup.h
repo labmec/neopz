@@ -23,7 +23,6 @@ class TPZElementGroup : public TPZCompEl
 protected:
     TPZStack<TPZCompEl *,10> fElGroup;
     TPZManVector<int64_t,27> fConnectIndexes;
-    std::map<int64_t,TPZOneShapeRestraint> fRestraints;
 
 public:
     
@@ -88,7 +87,7 @@ public:
     /// Reorder the connects in increasing number of elements connected
     void ReorderConnects();
 
-    void ReorderConnects(TPZManVector<int64_t> &connects);
+    void ReorderConnects(TPZVec<int64_t> &connects);
     
     const TPZVec<TPZCompEl *> &GetElGroup(){
         return fElGroup;
