@@ -66,11 +66,6 @@ void TPZElementGroup::AddElement(TPZCompEl *cel)
     }
     int64_t elindex = cel->Index();
     Mesh()->ElementVec()[elindex] = 0;
-    std::list<TPZOneShapeRestraint> ellist = cel->GetShapeRestraints();
-    for (std::list<TPZOneShapeRestraint>::iterator it=ellist.begin(); it != ellist.end(); it++) {
-        int64_t cindex = it->fFaces[0].first;
-        fRestraints[cindex] = *it;
-    }
 #ifdef PZ_LOG2
     if (logger.isDebugEnabled())
     {
@@ -139,10 +134,11 @@ void TPZElementGroup::ReorderConnects()
     for(int ic=0; ic<nc; ic++) fConnectIndexes[ic] = orderedindexes[ic].second;
 }
 
-void TPZElementGroup::ReorderConnects(TPZManVector<int64_t> &connects)
+void TPZElementGroup::ReorderConnects(TPZVec<int64_t> &connects)
 {
     int64_t nc = connects.size();
 
+    if(nc > fConnectIndexes.size()) fConnectIndexes.Resize(nc, -1);
     // TPZManVector<std::pair<int,int64_t>, 100 > orderedindexes(connects.size());
     for (int ic=0; ic<nc; ic++)
     {
@@ -181,11 +177,6 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
     ek.Matrix().Redim(rows, rows);
     ek.fType = TPZElementMatrix::EK;
     InitializeElementMatrix(ef);
-    std::map<int64_t,TPZOneShapeRestraint>::const_iterator it;
-    for (it = fRestraints.begin(); it != fRestraints.end(); it++) {
-        ek.fOneRestraints.push_back(it->second);
-        ef.fOneRestraints.push_back(it->second);
-    }
 }//void
 
 void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
@@ -206,10 +197,6 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
 	for(int i=0; i<ncon; i++){
 		(ef.fConnect)[i] = ConnectIndex(i);
 	}
-    std::map<int64_t,TPZOneShapeRestraint>::const_iterator it;
-    for (it = fRestraints.begin(); it != fRestraints.end(); it++) {
-        ef.fOneRestraints.push_back(it->second);
-    }
 }//void
 
 
