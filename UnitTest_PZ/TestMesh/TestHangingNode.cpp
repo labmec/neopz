@@ -276,7 +276,7 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
 
 void Refinement(TPZGeoMesh *gmesh, SpaceType stype){
 
-    children[0]->Divide(children);
+    // children[0]->Divide(children);
 
     if (stype != EHCurlNoGrads) {
         TPZManVector<TPZGeoEl*,10> children;
