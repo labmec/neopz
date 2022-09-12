@@ -597,6 +597,12 @@ public:
     /// @param mat set with matids to search for their equations
     /// @param eqset set of equations associated with the materials in matidset (set holdss unique values)
     void GetEquationSetByMat(std::set<int64_t>& matidset, std::set<int64_t>& eqset);
+    
+    
+    /// Adds the equations related to connect con to the set eqset
+    /// @param con connect with equations to be added
+    /// @param eqset set with equations
+    void AddConnectEquationsToSet(TPZConnect& con, std::set<int64_t>& eqset);
 	
 	/**
 	 * ??

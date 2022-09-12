@@ -11,13 +11,13 @@ public:
 
     TPZEquationFilter() {} 
     
-    TPZEquationFilter(int64_t numeq) : fNumEq(numeq), fIsActive(false), fActiveEqs(), fDestIndices()
+    TPZEquationFilter(int64_t numeq) : fNumEq(numeq), fIsActive(false), fActiveEqs(), fExcludedEqs(), fDestIndices()
     {
 
     }
 
     TPZEquationFilter(const TPZEquationFilter&cp):fNumEq(cp.fNumEq),fIsActive(cp.fIsActive),
-           fActiveEqs(cp.fActiveEqs),fDestIndices(cp.fDestIndices)
+           fActiveEqs(cp.fActiveEqs),fExcludedEqs(cp.fExcludedEqs),fDestIndices(cp.fDestIndices)
     {
       ///nothing here
     }
@@ -32,6 +32,7 @@ public:
         this->fNumEq = cp.fNumEq;
         this->fIsActive = cp.fIsActive;
         this->fActiveEqs = cp.fActiveEqs;
+        this->fExcludedEqs = cp.fExcludedEqs;
         this->fDestIndices = cp.fDestIndices;
         return *this;
     }
@@ -44,6 +45,7 @@ public:
         buf.Read(&fNumEq);
         buf.Read(fIsActive);
         buf.Read(fActiveEqs);
+        buf.Read(fExcludedEqs);
         buf.Read(fDestIndices);
     }
     
@@ -51,6 +53,7 @@ public:
         buf.Write(&fNumEq);
         buf.Write(fIsActive);
         buf.Write(fActiveEqs);
+        buf.Write(fExcludedEqs);
         buf.Write(fDestIndices);
     }
 
@@ -123,6 +126,19 @@ public:
             fActiveEqs[count] = *it;
             fDestIndices[*it] = count++;
         }
+        
+        // Builds excluded equations sets
+        const int nexcluded = fNumEq - activeset.size();
+        fExcludedEqs.Resize(nexcluded);
+        count = 0;
+        for(int i = 0 ; i < fDestIndices.size() ; i++){
+            if(fDestIndices[i] == -1){
+                fExcludedEqs[count++] = i;
+            }
+        }
+        if(count != nexcluded) {
+            DebugStop();
+        }
     }
 
     /// Reset method
@@ -130,8 +146,11 @@ public:
     {
         fIsActive = false;
         fActiveEqs.Resize(0);
+        fExcludedEqs.Resize(0);
         fDestIndices.Resize(0);
     }
+    
+    
 
     /** Filtra as equações:
      * @param orig [in][out] - remove de orig equacoes nao ativas
@@ -190,6 +209,18 @@ public:
         }
     }
 
+    ///Retorna o numero de equacoes excluidas do sistema
+    int64_t NExcludedEquations() const
+    {
+        if (IsActive()) {
+            return fExcludedEqs.size();
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    
     ///Retorna o numero de equacoes do sistema original
     int64_t NEqExpand() const
     {
@@ -262,7 +293,19 @@ public:
     void SetNumEq(const int64_t numEq){
         fNumEq = numEq;
     }
+    
+    // get active equations
+    const TPZVec<int64_t>& GetActiveEquations() const {return fActiveEqs;}
+    TPZVec<int64_t>& GetActiveEquations() {return fActiveEqs;}
 
+    // get excluded equations
+    const TPZVec<int64_t>& GetExcludedEquations() const {return fExcludedEqs;}
+    TPZVec<int64_t>& GetExcludedEquations() {return fExcludedEqs;}
+
+    // get destination indices
+    const TPZVec<int64_t>& GetDestIndices() const {return fDestIndices;}
+    TPZVec<int64_t>& GetDestIndices() {return fDestIndices;}
+    
 private:
 
     /// Numero de equacoes do sistema original
@@ -274,6 +317,9 @@ private:
     /// Equacoes ativas
     TPZVec<int64_t> fActiveEqs;
 
+    /// Equacoes inativas
+    TPZVec<int64_t> fExcludedEqs;
+    
     /// Posicao das equacoes originais no sistema reduzido
     TPZVec<int64_t> fDestIndices;
 
