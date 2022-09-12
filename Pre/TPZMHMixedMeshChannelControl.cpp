@@ -86,7 +86,7 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
                 if(!intel) DebugStop();
                 int64_t cindex = intel->SideConnectIndex(0, gelside.Side());
                 int locindex = intel->SideConnectLocId(0, gelside.Side());
-                if(cindex == cto_index) {
+                if(cindex == cto_index || matid == fSkeletonMatId) {
                     intel->SetConnectIndex(locindex, cfrom_index);
                 } else if(cindex != cfrom_index) {
                     DebugStop();
