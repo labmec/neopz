@@ -70,16 +70,37 @@ void TPZSubMeshAnalysis::AssembleInternal()
     {
         fReducableStiff = new TPZMatRed<TVar, TPZFMatrix<TVar> > ();
     }
-	fReducableStiff->Redim(numeq,numinternal);
 	TPZMatRed<TVar, TPZFMatrix<TVar> > *matred = dynamic_cast<TPZMatRed<TVar, TPZFMatrix<TVar> > *> (fReducableStiff.operator->());
     if(!mySolver.Matrix())
     {
         if (fStructMatrix->HasRange()) {
-            DebugStop();
+            const int64_t nintactiveeq = fStructMatrix->EquationFilter().NActiveEquations();
+            const int64_t nexteq = numeq - numinternal;
+            const int64_t neqfiltered = nintactiveeq + nexteq;
+            fReducableStiff->Redim(neqfiltered,nintactiveeq);
+            
+            // Creates the sparse structure with only the active equations of the internal dofs
+            mySolver.SetMatrix(fStructMatrix->Create());
+            
+            // Adding external equations to active equations of filter
+            TPZVec<int64_t> active(neqfiltered);
+            int count = 0;
+            for (auto eq : fStructMatrix->EquationFilter().GetActiveEquations()) {
+                active[count++] = eq;
+            }
+            for (int ieq = numinternal; ieq < numeq ; ieq++) {
+                active[count++] = ieq;
+            }
+            fStructMatrix->EquationFilter().Reset();
+            fStructMatrix->EquationFilter().SetActiveEquations(active);
+            fStructMatrix->EquationFilter().SetNumEq(numeq); // it does not hurt to set it again in case it was forgotten after condensing...
         }
-        fStructMatrix->SetEquationRange(0, numinternal);
-        mySolver.SetMatrix(fStructMatrix->Create());	
-        fStructMatrix->EquationFilter().Reset();
+        else{
+            fReducableStiff->Redim(numeq,numinternal);
+            fStructMatrix->SetEquationRange(0, numinternal);
+            mySolver.SetMatrix(fStructMatrix->Create());
+            fStructMatrix->EquationFilter().Reset();
+        }
     }
     matred->SetMaxNumberRigidBodyModes(fMesh->NumberRigidBodyModes());
 	//	fReducableStiff.SetK00(fSolver->Matrix());
@@ -177,7 +198,16 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
     if(fReducableStiff)
     {
         TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (fReducableStiff.operator->());
-        matred->UGlobal(soltemp,uglobal);        
+        if(this->StructMatrix()->EquationFilter().IsActive()){
+            // If there is equations filter we need to scatter the solution to the "complete" solution vector
+            TPZFMatrix<STATE> uglobaltemp(numeq,1,0.);
+            matred->UGlobal(soltemp,uglobaltemp);
+            this->StructMatrix()->EquationFilter().Scatter(uglobaltemp, uglobal);
+        }
+        else{
+            matred->UGlobal(soltemp,uglobal);
+        }
+                
         fSolution = fReferenceSolution + uglobal;
     }
 #ifdef PZ_LOG

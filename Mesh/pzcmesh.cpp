@@ -2771,7 +2771,8 @@ void TPZCompMesh::SaddlePermute2()
 void TPZCompMesh::GetEquationSetByMat(std::set<int64_t>& matidset, std::set<int64_t>& eqset) {
     
     if (!matidset.size()) {
-        DebugStop();
+        std::cout << "\nNo materials provided to TPZCompMesh::GetEquationSetByMat(). Returning..." << std::endl;
+        return;
     }
     
     for (TPZCompEl* cel : this->ElementVec()) {
@@ -2787,20 +2788,27 @@ void TPZCompMesh::GetEquationSetByMat(std::set<int64_t>& matidset, std::set<int6
         for(int ic = 0 ; ic < ncon ; ic++){
             TPZConnect& con = cel->Connect(ic);
 //            if(con.HasDependency() || con.IsCondensed()) continue; //CHECAR COM PHIL
-            const int64_t seqnum = con.SequenceNumber();
-            if(seqnum < 0) DebugStop();
-            const int64_t firsteq = this->Block().Position(seqnum);
-            const int64_t blocksize = this->Block().Size(seqnum);
-            for (int i = 0; i < blocksize; i++) {
-                eqset.insert(firsteq+i);
-            }
+            AddConnectEquationsToSet(con, eqset);
         }
     }
     
+#ifdef PZDEBUG
     if(!eqset.size()){
-        std::cout << "\n\n\t===> Warning! TPZCompMesh::GetEquationSetByMat() did not find any equations for the material set provided" << std::endl;
+        std::cout << "\n\n\t===> Warning! TPZCompMesh::GetEquationSetByMat() did not find any equations for the material set provided | ";
         std::cout << "matidset = ";
         for(auto const& id : matidset) std::cout << id << " ";
+        std::cout << std::endl;
+    }
+#endif
+}
+
+void TPZCompMesh::AddConnectEquationsToSet(TPZConnect& con, std::set<int64_t>& eqset){
+    const int64_t seqnum = con.SequenceNumber();
+    if(seqnum < 0) DebugStop();
+    const int64_t firsteq = this->Block().Position(seqnum);
+    const int64_t blocksize = this->Block().Size(seqnum);
+    for (int i = 0; i < blocksize; i++) {
+        eqset.insert(firsteq+i);
     }
 }
 
