@@ -461,7 +461,8 @@ void TPZCondensedCompEl::CalcStiffInternal(TPZElementMatrixT<TVar> &ekglob,TPZEl
     {
         REAL normk01 = Norm(fCondensed.K01());
         REAL normf0 = Norm(fCondensed.F0());
-        if(std::isnan(normk01) || std::isnan(normf0))
+        REAL normK11 = Norm(K11);
+        if(std::isnan(normk01) || std::isnan(normf0) || std::isnan(normK11))
         {
             Print();
             DebugStop();
