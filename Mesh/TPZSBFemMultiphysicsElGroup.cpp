@@ -514,12 +514,6 @@ void TPZSBFemMultiphysicsElGroup::InitializeElementMatrix(TPZElementMatrixT<STAT
 		(ef.fConnect)[i] = ConnectIndex(i);
 		(ek.fConnect)[i] = ConnectIndex(i);
 	}
-    std::map<int64_t,TPZOneShapeRestraint>::const_iterator it;
-    for (it = fRestraints.begin(); it != fRestraints.end(); it++) 
-    {
-        ef.fOneRestraints.push_back(it->second);
-        ek.fOneRestraints.push_back(it->second);
-    }
 }//void
 
 void TPZSBFemMultiphysicsElGroup::LoadSolution()
