@@ -286,7 +286,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialDataT(TPZMaterialDataT<TVar> &d
     // Node ids of geoel
     TPZGeoEl *gel = this->Reference();
     TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes);
-    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
+    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->Node(i).Id();
     
     // Init shape data
     TPZShapeHDivCollapsed<TSHAPE>::Initialize(ids, connectorders, sideorient, shapedata);

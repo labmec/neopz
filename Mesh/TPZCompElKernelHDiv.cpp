@@ -60,7 +60,7 @@ void TPZCompElKernelHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     TPZManVector<int,TSHAPE::NSides> orders(TSHAPE::NSides-TSHAPE::NCornerNodes);
     TPZManVector<int,TSHAPE::NFacets> sideorient(TSHAPE::NFacets,0);
     TPZGeoEl *gel = this->Reference();
-    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
+    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->Node(i).Id();
     for(int i=TSHAPE::NCornerNodes; i<TSHAPE::NSides; i++) orders[i-TSHAPE::NCornerNodes] = this->Connect(i).Order()+1;
     if (TSHAPE::Type() == ETriangle){
         orders[TSHAPE::NSides-TSHAPE::NCornerNodes-1]++;
