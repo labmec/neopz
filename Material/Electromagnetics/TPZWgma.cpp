@@ -351,6 +351,9 @@ void TPZWgma::ContributeBCA(
         ///PMC condition just adds zero to both matrices. nothing to do here....
         break;
     case 2:
+        /// periodic conditions are treated at a mesh level
+        break;
+    default:
         PZError<<__PRETTY_FUNCTION__;
         PZError<<"\nThis module supports only dirichlet and neumann boundary conditions.\n";
         PZError<<"Stopping now..."<<std::endl;
