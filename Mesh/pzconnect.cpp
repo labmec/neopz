@@ -78,13 +78,13 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
       const TPZFMatrix<STATE> &meshSol = mesh.Solution();
       for(auto ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
         {
-          out << meshSol.at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
+            out << meshSol.at({mesh.Block().Index(fSequenceNumber,ieq),0}) << ' ';
         }
     }else{
       const TPZFMatrix<CSTATE> &meshSol = mesh.Solution();
       for(auto ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
         {
-          out << meshSol.at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
+            out << meshSol.at({mesh.Block().Index(fSequenceNumber,ieq),0}) << ' ';
         }
     }
 	}
