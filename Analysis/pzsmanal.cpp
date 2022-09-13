@@ -70,6 +70,9 @@ void TPZSubMeshAnalysis::AssembleInternal()
     {
         fReducableStiff = new TPZMatRed<TVar, TPZFMatrix<TVar> > ();
     }
+    if(!fStructMatrix->HasRange()){
+        fReducableStiff->Redim(numeq,numinternal);
+    }
 	TPZMatRed<TVar, TPZFMatrix<TVar> > *matred = dynamic_cast<TPZMatRed<TVar, TPZFMatrix<TVar> > *> (fReducableStiff.operator->());
     if(!mySolver.Matrix())
     {
@@ -96,7 +99,7 @@ void TPZSubMeshAnalysis::AssembleInternal()
             fStructMatrix->EquationFilter().SetNumEq(numeq); // it does not hurt to set it again in case it was forgotten after condensing...
         }
         else{
-            fReducableStiff->Redim(numeq,numinternal);
+            // fReducableStiff->Redim(numeq,numinternal);
             fStructMatrix->SetEquationRange(0, numinternal);
             mySolver.SetMatrix(fStructMatrix->Create());
             fStructMatrix->EquationFilter().Reset();
