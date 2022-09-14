@@ -93,13 +93,31 @@ TPZMatrix<TVar>( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
 
 template<class TVar>
 TPZFMatrix<TVar>::TPZFMatrix(TPZFMatrix<TVar> &&A)
-    : TPZMatrix<TVar>(A), fElem(A.fElem),
-      fGiven(A.fGiven),fSize(A.fSize),
-      fPivot(A.fPivot), fWork(A.fWork)
-{
-    A.fElem=nullptr;
-    A.fGiven=nullptr;
-    A.fSize=0;
+: TPZMatrix<TVar>(A){
+    
+    if(A.fGiven == A.fElem){
+        int64_t size = this->fRow * this->fCol;
+        if(!size) return;
+        fElem = new TVar[ size ] ;
+    #ifdef PZDEBUG2
+        if ( size && fElem == NULL ) Error( "Constructor <memory allocation error>." );
+    #endif
+        // Copia a matriz
+        TVar * src = A.fElem;
+        TVar * p = fElem;
+        memcpy((void *)(p),(void *)(src),(size_t)size*sizeof(TVar));
+    }
+    else{
+        fElem = A.fElem;
+        fGiven = A.fGiven;
+        fSize = A.fSize;
+        fPivot = A.fPivot;
+        fWork = A.fWork;
+        A.fElem=nullptr;
+        A.fGiven=nullptr;
+        A.fSize=0;
+    }
+    
 }
 
 /********************************/
