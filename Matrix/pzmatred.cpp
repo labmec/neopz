@@ -167,6 +167,9 @@ TPZMatRed<TVar, TSideMatrix>::SetK00(TPZAutoPointer<TPZMatrix<TVar> > K00)
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar,TSideMatrix>::SetF(const TPZFMatrix<TVar> & F)
 {
+    if(F.Rows() != fDim0+fDim1){
+        DebugStop();
+    }
 	
 	int64_t FCols=F.Cols(),c,r,r1;
 	

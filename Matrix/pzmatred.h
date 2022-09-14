@@ -89,6 +89,12 @@ public:
 		fIsReduced = 1;
 	}
 	
+    void ResetReduced()
+    {
+        TPZMatrix<TVar>::Resize(fDim0+fDim1, fDim0+fDim1);
+        fIsReduced = 0;
+    }
+    
     void ReallocSolver() {
         fSolver->ReallocMatrix();
     }
