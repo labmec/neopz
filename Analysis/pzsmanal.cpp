@@ -113,7 +113,14 @@ void TPZSubMeshAnalysis::AssembleInternal()
 //	time_t before = time (NULL);
 	fStructMatrix->Assemble(fReducableStiff,fRhs,fGuiInterface);
     
-    matred->SetF(fRhs);
+    if (fStructMatrix->HasRange()) {
+        TPZFMatrix<TVar> rhsloc(fStructMatrix->EquationFilter().NActiveEquations(),fRhs.Cols(),0.);
+        fStructMatrix->EquationFilter().Gather(fRhs, rhsloc);
+        matred->SetF(rhsloc);
+    }
+    else{
+        matred->SetF(fRhs);
+    }
 //	time_t after = time(NULL);
 //	double diff = difftime(after, before);
 //	std::cout << __PRETTY_FUNCTION__ << " tempo " << diff << std::endl;
