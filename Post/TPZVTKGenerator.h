@@ -116,8 +116,8 @@ protected:
   TPZVec<std::array<int,TPZVTK::MAX_PTS+2>> fCells;//max 
   //! Used for exporting .VTK series (time-steps, different modes, etc)
   int fOutputCount = 0;
-  //! Used for associating each .VTK file with a given time value
-  TPZVec<REAL> fTimes = {0};
+  //! Used for manually setting the step value (fOutputCount is ignored if fStep>0)
+  int fStep = -1;
   //! Current file in which .VTK data will be written
   TPZAutoPointer<std::ofstream> fFileout{nullptr};
   //! Name (no extension) of last output file
@@ -223,7 +223,11 @@ public:
     if(nt > -1 ){fNThreads = nt;}
   }
   //! Get number of threads to compute fields (0 for serial)
-  int NThreads() const {return fNThreads;} 
+  int NThreads() const {return fNThreads;}
+  //! Sets manually the step of next post-processing round (must be >0)
+  void SetStep(int st){fStep = st;}
+  //! Gets the current step of next post-rpocessing round (if <0, fOutputCount is used)
+  int Step() const {return fStep;}
 };
 
 #endif /* _TPZVTKGENERATOR_H_ */
