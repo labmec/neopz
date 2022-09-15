@@ -616,28 +616,16 @@ void TPZVTKGenerator::Do(REAL time)
   std::vector<int> datalength;
   int offs = 0;
   // create name of the current .vtk file
-  filenamefinal << fFilename;
-  filenamefinal << "_step" << std::setw(5) << std::setfill('0')
-                  << fOutputCount;
+  filenamefinal << fFilename << '.';
+  if(fStep > -1){
+    filenamefinal << fStep;
+  }else{
+    filenamefinal << fOutputCount;
+  }
 
   fLastOutputName = filenamefinal.str();
 
   filenamefinal << ".vtk";
-  
-  if (fOutputCount > 0) {
-    // cout << IM(4) << " ( " << fOutputCount << " )";
-    const auto currt = fTimes.size();
-    fTimes.resize(currt + 1);
-    if (time == -1) {
-      AppendToVec(fTimes, fOutputCount);
-    } else {
-      AppendToVec(fTimes, time);
-    }
-  } else {
-    if (time != -1) {
-      fTimes[0] = time;
-    }
-  }
 
   fFileout = new std::ofstream(filenamefinal.str());
 
