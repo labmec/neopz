@@ -70,7 +70,7 @@ public:
     void ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek,
                       TPZFMatrix<STATE> &ef, TPZBndCondT<STATE> &bc) override;
 
-    void Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZVec<REAL> &errors);
+    void Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZVec<REAL> &errors) override;
 
 };
 
