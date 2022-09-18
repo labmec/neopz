@@ -462,7 +462,7 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
 
     for(int i = 0 ; i < dim ; i ++){
       if( IsZero(beta[i])){
-        DebugStop(); //fran: i really dont know what to do with this result
+//        DebugStop(); //fran: i really dont know what to do with this result
       }
       else{
         eigenValues[i] = (realeigen[i] + (CTVar)1i*imageigen[i]) / beta[i];
