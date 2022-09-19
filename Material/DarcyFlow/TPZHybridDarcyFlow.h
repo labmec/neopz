@@ -56,8 +56,6 @@ public:
 	 */
     [[nodiscard]] std::string Name() const override { return "TPZHybridDarcyFlow"; }
 
-    virtual int NEvalErrors()  const override {return 4;}
-
     /** @name Contribute */
     /** @{ */
     /**
@@ -88,7 +86,7 @@ public:
     virtual void ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
                               REAL weight, TPZFMatrix<STATE> &ek,
                               TPZFMatrix<STATE> &ef,
-                              TPZBndCondT<STATE> &bc) override;
+                              TPZBndCondT<STATE> &bc) override {}
 
     /**@}*/
     /** @brief Returns the solution associated with a given index
@@ -119,7 +117,7 @@ public:
       \param[out] errors The calculated errors.
      */
     virtual void Errors(const TPZVec<TPZMaterialDataT<STATE>> &data,
-                        TPZVec<REAL> &errors) override;
+                        TPZVec<REAL> &errors) override {}
 
     /**
      * @brief Returns an unique class identifier

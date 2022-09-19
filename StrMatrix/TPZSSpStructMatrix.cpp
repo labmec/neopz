@@ -213,14 +213,11 @@ void TPZSSpStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid) const
 
 #include "pzstrmatrixot.h"
 #include "pzstrmatrixflowtbb.h"
-#include "TPZStructMatrixOMPorTBB.h"
 
 template class TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
 template class TPZSSpStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
 template class TPZSSpStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
-template class TPZSSpStructMatrix<STATE,TPZStructMatrixOMPorTBB<STATE>>;
 
 template class TPZSSpStructMatrix<CSTATE,TPZStructMatrixOR<CSTATE>>;
 template class TPZSSpStructMatrix<CSTATE,TPZStructMatrixOT<CSTATE>>;
 template class TPZSSpStructMatrix<CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
-template class TPZSSpStructMatrix<CSTATE,TPZStructMatrixOMPorTBB<CSTATE>>;

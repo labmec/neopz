@@ -1331,23 +1331,6 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             disp[0] = B*temp;
         }
             break;
-
-        case ESteepWave:
-        {
-            TPZManVector<TVar,3> x0;
-            x0.resize(fDimension);
-            TVar r2Circle = TVar(0);
-            TVar r0 = TVar(0.7);
-            TVar alpha = TVar(100);
-
-            for (int i=0; i<fDimension; i++) {
-                x0[i] = TVar(-0.05);
-                r2Circle += (xloc[i]-x0[i])*(xloc[i]-x0[i]);
-            }
-            TVar rCircle = sqrt(r2Circle);
-            disp[0] = atan(alpha*(rCircle-r0));
-        }
-            break;
             
             //----
         case ESinMark://(r^(2/3)-r^2)sin(20/3) para homogeneo dirichlet e r^(2/3)sin(20/3) para f=0
@@ -1670,24 +1653,6 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
             disp[0] = B*temp;
         }
             break;
-
-        case ESteepWave:
-        {
-            TPZManVector<TVar,3> x0;
-            x0.resize(fDimension);
-            TVar r2Circle = TVar(0);
-            TVar r0 = TVar(0.7);
-            TVar alpha = TVar(100);
-
-            for (int i=0; i<fDimension; i++) {
-                x0[i] = TVar(-0.05);
-                r2Circle += (xloc[i]-x0[i])*(xloc[i]-x0[i]);
-            }
-            TVar rCircle = FADsqrt(r2Circle);
-            disp[0] = FADatan(alpha*(rCircle-r0));
-        }
-            break;
-
         case ESinSinDirNonHom: //sin(2pi x)sin(2pi y)+1/(x+y+1)
         {
             

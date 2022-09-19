@@ -196,9 +196,6 @@ public:
      * @param destination Destine index on current matrix
      */
     void AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination);
-
-    ///Idem AddFel, but uses Non Atomic sum
-    void AddFelNonAtomic(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination);
     
     
     /**
