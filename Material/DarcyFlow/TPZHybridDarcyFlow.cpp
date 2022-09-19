@@ -135,7 +135,7 @@ void TPZHybridDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datav
         LDA = dphi.Rows();
         LDB = dphi.Rows();
         LDC = ek.Rows();
-        if(LDC != phr+2)
+        if(LDC != phr+2 && datavec.size() ==4)
             DebugStop();
         A = &dphi(0,0);
         B = &dphi(0,0);
