@@ -149,6 +149,13 @@ if(USING_TBB)
 	enable_tbb(pz)
 endif()
 
+#enabling OMP library
+option(USING_OMP "Whether the TBB library will be linked in" OFF)
+if(USING_OMP)
+    include(cmake/EnableOMP.cmake)
+    enable_omp(pz)
+endif()
+
 #enabling LIKWID library
 option(USING_LIKWID "Whether the likwid library will be linked in" OFF)
 if(USING_LIKWID)
