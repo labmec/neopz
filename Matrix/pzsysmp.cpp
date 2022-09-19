@@ -8,6 +8,7 @@
 #include "pzsysmp.h"
 #include "pzfmatrix.h"
 #include "pzstack.h"
+#include "TPZParallelUtils.h"
 // ****************************************************************************
 // 
 // Constructors and the destructor
@@ -408,6 +409,49 @@ void TPZSYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & so
 				if(!flag) std::cout << "TPZSYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << std::endl;         }
 		}
 	}
+}
+
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex){
+
+    int64_t nelem = sourceindex.NElements();
+    int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
+    double prevval;
+    int64_t row, col;
+
+    for(icoef=0; icoef<nelem; icoef++) {
+        ieq = destinationindex[icoef];
+        ieqs = sourceindex[icoef];
+        for(jcoef=icoef; jcoef<nelem; jcoef++) {
+            jeq = destinationindex[jcoef];
+            jeqs = sourceindex[jcoef];
+            {
+                row = ieq; col = jeq;
+                if (row > col) {
+                    int64_t temp = row;
+                    row = col;
+                    col = temp;
+                }
+                int ic;
+                for(ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
+                    if ( fJA[ic] == col )
+                    {
+                        pzutils::AtomicAdd(fA[ic],elmat(ieqs,jeqs));
+                        break;
+                    }
+                }
+                if (ic == fIA[row+1]) {
+                    if (elmat(ieqs,jeqs) != (TVar(0.))){
+                        DebugStop();
+
+                    }
+
+                }
+            }
+
+        }
+
+    }
 }
 
 template<class TVar>

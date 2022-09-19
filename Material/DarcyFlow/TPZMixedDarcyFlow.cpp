@@ -550,16 +550,16 @@ void TPZMixedDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZV
     TPZManVector<STATE, 3> gradpressurefem(3, 0.);
     this->Solution(data, VariableIndex("GradPressure"), gradpressurefem);
 
-    TPZManVector<STATE, 3> fluxexactneg(3, 0);
+    TPZManVector<STATE, 3> fluxexact(3, 0);
     TPZManVector<STATE, 3> gradpressure(3, 0);
     for (int i = 0; i < 3; i++) {
         gradpressure[i] = du_exact[i];
-        fluxexactneg[i] = -perm * gradpressure[i];
+        fluxexact[i] = -perm * gradpressure[i];
     }
 
     REAL L2flux = 0., L2grad = 0.;
     for (int i = 0; i < 3; i++) {
-        L2flux += (fluxfem[i] + fluxexactneg[i]) * inv_perm * (fluxfem[i] + fluxexactneg[i]);
+        L2flux += (fluxfem[i] - fluxexact[i]) * inv_perm * (fluxfem[i] - fluxexact[i]);
         L2grad += (du_exact[i] - gradpressurefem[i]) * (du_exact[i] - gradpressurefem[i]);
     }
     errors[0] = (pressurefem[0] - u_exact[0]) * (pressurefem[0] - u_exact[0]);//L2 error for pressure

@@ -50,17 +50,17 @@ static void computeStiffnessH1(TPZFMatrix<STATE> &ek)
 static void computeStiffnessHybrid(TPZFMatrix<STATE> &ek)
 {
     ek.Zero();
-    TPZVec<TPZMaterialDataT<STATE>> DataVec(3);
+    TPZVec<TPZMaterialDataT<STATE>> DataVec(4);
     TPZManVector<int64_t> ids = {0,1,2,3};
     TPZManVector<int> connectorders = {1,1,1,1,1};
     
-    TPZShapeH1<pzshape::TPZShapeQuad>::Initialize(ids,connectorders,DataVec[0]);
-    int64_t nshape = DataVec[0].fPhi.Rows();
+    TPZShapeH1<pzshape::TPZShapeQuad>::Initialize(ids,connectorders,DataVec[1]);
+    int64_t nshape = DataVec[1].fPhi.Rows();
     int order = 0;
     int dimension = 2;
     pzshape::TPZShapeDisc::MShapeType shtype = pzshape::TPZShapeDisc::ETensorial;
-    pzshape::TPZShapeDisc::Initialize(order,dimension,shtype,DataVec[1]);
     pzshape::TPZShapeDisc::Initialize(order,dimension,shtype,DataVec[2]);
+    pzshape::TPZShapeDisc::Initialize(order,dimension,shtype,DataVec[3]);
     TPZHybridDarcyFlow material(1, 2);
     pzshape::TPZShapeQuad::IntruleType integrule(2);
     ek.Redim(nshape+2,nshape+2);
@@ -71,11 +71,12 @@ static void computeStiffnessHybrid(TPZFMatrix<STATE> &ek)
     {
         REAL weight;
         integrule.Point(p, pt, weight);
-        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[0]);
+        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[1]);
         int degree = 0;
-        pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[1].fPhi,DataVec[1].fDPhi,shtype);
         pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[2].fPhi,DataVec[2].fDPhi,shtype);
-        DataVec[0].dphix = DataVec[0].fDPhi;
+        pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[3].fPhi,DataVec[3].fDPhi,shtype);
+        DataVec[1].dphix = DataVec[1].fDPhi;
+        DataVec[1].phi = DataVec[1].fPhi;
         material.Contribute(DataVec, weight, ek, ef);
     }
 }

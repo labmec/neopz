@@ -68,7 +68,6 @@ class TPZLagrangeMultiplierCS :
                              TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef) override;
 
     
-    
     void FillDataRequirementsInterface(TPZMaterialDataT<TVar> &data,
                                        std::map<int, TPZMaterialDataT<TVar>> &datavec_left,
                                        std::map<int, TPZMaterialDataT<TVar>> &datavec_right) override;
@@ -132,7 +131,4 @@ protected:
     TVar fMultiplier{1.};
 };
 
-
-extern template class TPZLagrangeMultiplierCS<STATE>;
-extern template class TPZLagrangeMultiplierCS<CSTATE>;
 #endif /* defined(__PZ__TPZLagrangeMultiplier__) */

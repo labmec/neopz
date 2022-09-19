@@ -13,6 +13,7 @@ set(public_headers
     pzstrmatrixor.h
     pzstrmatrixot.h
     pzstrmatrixflowtbb.h
+    TPZStructMatrixOMPorTBB.h
     #matrix storage format
     #full
     pzfstrmatrix.h
@@ -44,6 +45,7 @@ set(headers
     pzstrmatrixor.h
     pzstrmatrixot.h
     pzstrmatrixflowtbb.h
+    TPZStructMatrixOMPorTBB.cpp
     #matrix storage format
     #full
     pzfstrmatrix.h
