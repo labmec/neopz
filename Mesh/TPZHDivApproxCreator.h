@@ -17,7 +17,7 @@ class TPZHDivApproxCreator
 {
 protected:
     
-    HDivFamily fHDivFam;
+    HDivFamily fHDivFam = HDivFamily::EHDivStandard;
     
     HybridizationType fHybridType = HybridizationType::ENone;
     
@@ -31,6 +31,10 @@ protected:
     
     /// @brief This sets hdiv+/hdiv++ internal/bubble POrder: 0- hdiv, 1- hdiv+, 2- hdiv++
     int fExtraInternalPOrder = 0; 
+
+    int fNumMeshes = 2;
+
+    bool fIsEnhancedSpaces = false;
 
 public:
     TPZHDivApproxCreator() = default;
@@ -66,13 +70,18 @@ public:
 
     TPZMultiphysicsCompMesh *CreateApproximationSpace();
 
+    bool &EnhancedSpaces(){return fIsEnhancedSpaces;}
+    const bool &EnhancedSpaces() const {return fIsEnhancedSpaces;}
+
 private:
 
     TPZCompMesh * CreateHDivSpace();
 
-    TPZCompMesh * CreateL2Space(const int lagLevel);
+    TPZCompMesh * CreateL2Space(const int pOrder,const int lagLevel);
 
-    TPZCompMesh * CreateConstantSpace();
+    TPZMultiphysicsCompMesh * CreateMultiphysicsSpace(TPZManVector<TPZCompMesh*> meshvector);
+
+    TPZCompMesh * CreateRotationSpace();
    
 
 };

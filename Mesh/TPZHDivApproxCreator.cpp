@@ -4,6 +4,10 @@
 #include "pzcmesh.h"
 #include "TPZBndCond.h"
 #include "TPZNullMaterial.h"
+#include "TPZMultiphysicsCompMesh.h"
+
+#include <DarcyFlow/TPZMixedDarcyFlow.h>
+#include "TPZBndCondT.h"
 
 TPZHDivApproxCreator::TPZHDivApproxCreator(TPZGeoMesh *gmesh) : fGeoMesh(gmesh)
 { 
@@ -46,14 +50,41 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
         std::cout << "You have to set a Material!\n";
         DebugStop();
     }
+ 
+    if (fIsEnhancedSpaces && fHDivFam == HDivFamily::EHDivKernel){
+        std::cout << "Are you sure about this?\n";
+        DebugStop();
+    }
 
-    std::cout << "Hello, Jeferson!\n";
-    TPZManVector<TPZCompMesh*,7> meshvec(2);
+    bool isElastic = fProbType == ProblemType::EElastic;
+    bool isDarcy = fProbType == ProblemType::EDarcy;
+    if (isElastic){
+        fNumMeshes = 3;
+    } else if (isDarcy) {
+        fNumMeshes = 2;
+    } else {
+        DebugStop();
+    }
+    if (fIsEnhancedSpaces) fNumMeshes += 2;
 
-    meshvec[0] = CreateHDivSpace();
-    meshvec[1] = CreateL2Space(1);
+    TPZManVector<TPZCompMesh*,7> meshvec(fNumMeshes);
+    int countMesh = 0;
+    meshvec[countMesh++] = CreateHDivSpace();
+    int lagLevelCounter = 1;
+    meshvec[countMesh++] = CreateL2Space(fDefaultPOrder,lagLevelCounter++);
+    if (isElastic){
+        meshvec[countMesh++] = CreateRotationSpace();
+    }
+    if (fIsEnhancedSpaces){
+        meshvec[countMesh++] = CreateL2Space(0,lagLevelCounter++);
+        meshvec[countMesh++] = CreateL2Space(0,lagLevelCounter++);
+    }
+
+    if (countMesh != fNumMeshes) DebugStop();
+
+    TPZMultiphysicsCompMesh *cmeshmulti = CreateMultiphysicsSpace(meshvec);
     
-    return nullptr;
+    return cmeshmulti;
 }
 
 TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
@@ -72,7 +103,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
             TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),dim,mat->NStateVariables());
             cmesh->InsertMaterialObject(nullmat);
         } else {
-            if (mat->Dimension() != dim-1) DebugStop();
+            // if (bnd->Dimension() != dim-1) DebugStop();
             TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),dim-1,mat->NStateVariables());
             cmesh->InsertMaterialObject(nullmat);
         }
@@ -86,32 +117,35 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     return cmesh;
 }
 
-TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int lagLevel){
-    
+TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int pOrder, const int lagLevel){
+
     fGeoMesh->ResetReference();
     int dim = fGeoMesh->Dimension();
     TPZCompMesh *cmesh = new TPZCompMesh(fGeoMesh);
     cmesh->SetDimModel(dim);
 
-    for (TPZMaterial* mat:fMaterialVec)
-    {
-        TPZBndCond *bnd = dynamic_cast<TPZBndCond *> (mat);
-        if (!bnd){
-            if (mat->Dimension() != dim) DebugStop();
-            TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),dim,mat->NStateVariables());
-            cmesh->InsertMaterialObject(nullmat);
-        } 
+    if (fHDivFam != HDivFamily::EHDivKernel){
+        for (TPZMaterial* mat:fMaterialVec)
+        {
+            TPZBndCond *bnd = dynamic_cast<TPZBndCond *> (mat);
+            if (!bnd){
+                if (mat->Dimension() != dim) DebugStop();
+                TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),dim,mat->NStateVariables());
+                cmesh->InsertMaterialObject(nullmat);
+            } 
+        }
     }
-   
+
     //Creates computational elements
     switch (fHDivFam)
     {
     case HDivFamily::EHDivStandard:
-        cmesh->SetDefaultOrder(fDefaultPOrder);
-        if (fDefaultPOrder > 0){
+        if (pOrder > 0){
+            cmesh->SetDefaultOrder(pOrder);
             cmesh->SetAllCreateFunctionsContinuous();
             cmesh->ApproxSpace().CreateDisconnectedElements(true);
         } else {
+            cmesh->SetDefaultOrder(0);
             cmesh->SetAllCreateFunctionsDiscontinuous();
         }
         break;
@@ -119,6 +153,10 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int lagLevel){
     case HDivFamily::EHDivConstant:
         cmesh->SetDefaultOrder(0);
         cmesh->SetAllCreateFunctionsDiscontinuous();
+        break;
+
+    case HDivFamily::EHDivKernel:
+        
         break;
 
     default:
@@ -139,7 +177,33 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int lagLevel){
 }
 
 
-TPZCompMesh * TPZHDivApproxCreator::CreateConstantSpace(){
-    return nullptr;
+TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateMultiphysicsSpace(TPZManVector<TPZCompMesh *> meshvec){
+    
+    int dim = fGeoMesh->Dimension();
+    auto cmesh = new TPZMultiphysicsCompMesh(fGeoMesh);
+    cmesh->SetDefaultOrder(fDefaultPOrder);
+    cmesh->SetDimModel(dim);
+    
+    for (TPZMaterial* mat:fMaterialVec)
+    {
+        TPZBndCondT<STATE> *bnd = dynamic_cast<TPZBndCondT<STATE> *> (mat);
+        if (!bnd){
+            cmesh->InsertMaterialObject(mat);
+        } else {
+            cmesh->InsertMaterialObject(bnd);
+        }
+    }
+
+    TPZManVector<int> active(fNumMeshes,1);
+    cmesh->ApproxSpace().Style() = TPZCreateApproximationSpace::EMultiphysics;
+    cmesh->BuildMultiphysicsSpace(active, meshvec);
+    
+    return cmesh;
 }
 
+
+TPZCompMesh * TPZHDivApproxCreator::CreateRotationSpace(){
+
+   
+
+}
