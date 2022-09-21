@@ -13,7 +13,7 @@
 
 namespace pzgeom {
     
-    
+    constexpr REAL tol = std::numeric_limits<REAL>::epsilon()*1000;
     /// axis direction with the vertical axis
     template<class TGeo>
     void TPZCylinderMap<TGeo>::SetCylinderAxis(const TPZVec<REAL> &axis)
@@ -38,7 +38,6 @@ namespace pzgeom {
         //Let us compute the cross product between x and y
         Cross(x,y,z);
 
-        constexpr REAL tol = std::numeric_limits<REAL>::epsilon()*1000;
         if(fabs(z[0]) < tol && fabs(z[1]) < tol && fabs(z[2]) < tol){
             //x and y are aligned
             //let us compute the inner product
@@ -87,11 +86,20 @@ namespace pzgeom {
             for (int i=0; i<3; i++) {
                 localco[i] = 0.;
                 for (int j=0; j<3; j++) {
-                    localco[i] += fRotation(i,j)*co[i]-fOrigin[i];
+                    localco[i] += fRotation(j,i)*(co[i]-fOrigin[i]);
                 }
             }
             REAL radius = sqrt(localco[0]*localco[0]+localco[1]*localco[1]);
-            if(fabs(radius-fRadius) > 1.e-6) DebugStop();
+            if(fabs(radius-fRadius) > tol) {
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\nError:"
+                       <<"coordinates "<< co
+                       <<"\nlocal coordinates: "<<localco
+                       <<"\nradius: "<<fRadius
+                       <<"\ncomputed radius: "<<radius
+                       <<"Aborting..."<<std::endl;
+                DebugStop();
+            }
             REAL theta = atan2(localco[1],localco[0]);
             REAL z = localco[2];
             fCornerCo(0,in) = theta;
@@ -103,7 +111,7 @@ namespace pzgeom {
     template<class TGeo>
     void TPZCylinderMap<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size){
         TPZManVector<int64_t, TGeo::NNodes> nodeind(TGeo::NNodes,-1);
-        TPZManVector<REAL,3> x(TGeo::Dimension,0);
+        TPZManVector<REAL,3> x(3,0);
 
         auto CalcX = [&lowercorner](int i, TPZVec<REAL> &x){
             switch(i){
@@ -137,19 +145,11 @@ namespace pzgeom {
         auto *gel = new TPZGeoElRefPattern<TPZCylinderMap<TGeo>> (nodeind,matid,gmesh);
 
         constexpr REAL radius{1};
-        gel->Geom().SetOrigin({0,0,0}, radius);
+        gel->Geom().SetOrigin(lowercorner, radius);
         gel->Geom().SetCylinderAxis({0,0,1});
         gel->Geom().ComputeCornerCoordinates(gmesh);
         
-        if constexpr (std::is_same_v<TGeo,TPZGeoTriangle>){
-            size[0] = size[1] = 1;
-        }else if constexpr (std::is_same_v<TGeo,TPZGeoQuad>){
-            size[0] = size[1] = 2;
-        }else{
-            PZError<<__PRETTY_FUNCTION__
-                   <<"\ninvalid element type!Aborting...\n";
-            DebugStop();
-        }
+        size[0] = size[1] = 1;
     }
 
 

@@ -125,7 +125,7 @@ namespace pzgeom {
                 for (int64_t j=0; j<2; j++) {
                     gradx(i,j) = 0.;
                     for (int64_t k=0; k<3; k++) {
-                        gradx(i,j) += fRotation.GetVal(k,i)*gradxloc(k,j);
+                        gradx(i,j) += fRotation.GetVal(i,k)*gradxloc(k,j);
                     }
                 }
             }
@@ -145,7 +145,7 @@ namespace pzgeom {
             for (int64_t i=0; i<3; i++) {
                 result[i] = fOrigin[i];
                 for (int64_t j=0; j<3; j++) {
-                    result[i] += fRotation.GetVal(j,i)*localcartesian[j];
+                    result[i] += fRotation.GetVal(i,j)*localcartesian[j];
                 }
             }
         }
