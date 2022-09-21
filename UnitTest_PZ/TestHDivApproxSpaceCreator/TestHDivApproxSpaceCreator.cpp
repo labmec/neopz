@@ -24,7 +24,7 @@
 #include<catch2/catch.hpp>
 #endif
 
-
+/// Creates a simple mesh used for testing
 TPZGeoMesh *Create2DGeoMesh();
 
 void InsertMaterials(TPZHDivApproxCreator &approxCreator);
