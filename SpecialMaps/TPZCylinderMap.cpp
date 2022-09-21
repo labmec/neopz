@@ -8,8 +8,11 @@
 #include "TPZCylinderMap.h"
 #include "pzvec_extras.h"
 #include "tpzgeoelmapped.h"
+#include "pzgeoquad.h"
 
 namespace pzgeom {
+    
+    
     /// axis direction with the vertical axis
     template<class TGeo>
     void TPZCylinderMap<TGeo>::SetCylinderAxis(const TPZVec<REAL> &axis)
@@ -61,6 +64,70 @@ namespace pzgeom {
     }
     
     
-    
+    template<class TGeo>
+    void TPZCylinderMap<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size){
+        TPZManVector<int64_t, TGeo::NNodes> nodeind(TGeo::NNodes,-1);
+        TPZManVector<REAL,3> x(TGeo::Dimension,0);
+
+        auto CalcX = [&lowercorner](int i, TPZVec<REAL> &x){
+            switch(i){
+            case 0:
+                x = {1,0,0};
+                break;
+            case 1:
+                x = {0,1,0};
+                break;
+            case 2:
+                x = {0,1,1};
+                break;
+            case 3://only for quads
+                x = {1,0,1};
+                break;
+            default:
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\n invalid number of nodes!\n";
+                DebugStop();
+            }
+            for(int i = 0; i < 3; i++) {x[i] += lowercorner[i];}
+        };
+
+        
+        for(auto in = 0; in < TGeo::NNodes; in++){
+            CalcX(in,x);
+            nodeind[in] = gmesh.NodeVec().AllocateNewElement();
+            gmesh.NodeVec()[nodeind[in]].Initialize(x,gmesh);
+
+        }
+        auto *gel = new TPZGeoElRefPattern<TPZCylinderMap<TGeo>> (nodeind,matid,gmesh);
+
+        constexpr REAL radius{1};
+        gel->Geom().SetOrigin({0,0,0}, radius);
+        gel->Geom().SetCylinderAxis({0,0,1});
+        gel->Geom().ComputeCornerCoordinates(gmesh);
+        
+        if constexpr (std::is_same_v<TGeo,TPZGeoTriangle>){
+            size[0] = size[1] = 1;
+        }else if constexpr (std::is_same_v<TGeo,TPZGeoQuad>){
+            size[0] = size[1] = 2;
+        }else{
+            PZError<<__PRETTY_FUNCTION__
+                   <<"\ninvalid element type!Aborting...\n";
+            DebugStop();
+        }
+    }
+
 
 };
+
+#include "pzgeoelrefless.h"
+#include "tpzgeoelrefpattern.h"
+
+#define IMPLEMENTCYLINDERMAP(TGEO)                                    \
+    template class pzgeom::TPZCylinderMap<TGEO>;                      \
+    template class TPZGeoElRefLess<pzgeom::TPZCylinderMap<TGEO> >;    \
+    template class TPZGeoElRefPattern<pzgeom::TPZCylinderMap<TGEO> >;
+
+IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoTriangle)
+IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoQuad)
+
+#undef IMPLEMENTCYLINDERMAP

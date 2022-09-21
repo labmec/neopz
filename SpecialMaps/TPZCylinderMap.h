@@ -31,19 +31,33 @@ namespace pzgeom {
         
     public:
         
-        TPZCylinderMap() : TGeo(), fCornerCo(2*TGeo::NNodes,-1), fOrigin(3,0.), fRadius(0.), fRotation(3,3,0.)
+        TPZCylinderMap() : TGeo(), fCornerCo(2,TGeo::NNodes,-1), fOrigin(3,0.), fRadius(0.), fRotation(3,3,0.)
         {
             fRotation.Identity();
         }
         
-        TPZCylinderMap(TPZVec<int64_t> &nodeindices) : TGeo(nodeindices), fCornerCo(2*TGeo::NNodes,-1), fOrigin(3,0.), fRadius(0.), fRotation(3,3,0.)
+        TPZCylinderMap(TPZVec<int64_t> &nodeindices) : TGeo(nodeindices), fCornerCo(2,TGeo::NNodes,-1), fOrigin(3,0.), fRadius(0.), fRotation(3,3,0.)
         {
             fRotation.Identity();
         }
         
-        TPZCylinderMap(const TPZCylinderMap &cp) : TGeo(cp), fCornerCo(cp.fCor), fRadius(cp.fRadius), fRotation(cp.fRotation)
+        TPZCylinderMap(const TPZCylinderMap &cp) : TGeo(cp), fCornerCo(cp.fCornerCo), fRadius(cp.fRadius), fRotation(cp.fRotation)
         {
         }
+
+        /** @brief Copy constructor for another mesh*/
+        TPZCylinderMap(const TPZCylinderMap &cp,
+                       TPZGeoMesh &destmesh) : TGeo(cp,destmesh), fCornerCo(cp.fCornerCo),
+                                               fOrigin(cp.fOrigin), fRadius(cp.fRadius),
+                                               fRotation(cp.fRotation)
+        {}
+
+        /** @brief Copy constructor with node map*/
+        TPZCylinderMap(const TPZCylinderMap &cp,
+                       std::map<int64_t,int64_t> & gl2lcNdMap) : TGeo(cp,gl2lcNdMap), fCornerCo(cp.fCornerCo),
+                                                                 fOrigin(cp.fOrigin), fRadius(cp.fRadius),
+                                                                 fRotation(cp.fRotation)
+        {}
         
         TPZCylinderMap &operator=(const TPZCylinderMap &cp)
         {
@@ -54,8 +68,13 @@ namespace pzgeom {
             fRotation = cp.fRotation;
             return *this;
         }
+
+        static bool IsLinearMapping(int side)
+        {
+            return false;
+        }
         
-        void SetOrigin(TPZVec<REAL> &origin, REAL radius)
+        void SetOrigin(const TPZVec<REAL> &origin, REAL radius)
         {
             fOrigin = origin;
             fRadius = radius;
@@ -80,7 +99,7 @@ namespace pzgeom {
         }
         
         template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        void GradX(const TPZFMatrix<REAL> &nodes, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
             
             
