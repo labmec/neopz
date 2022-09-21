@@ -61,6 +61,7 @@ set(headers
   TPZCompElKernelHDiv3D.h
   TPZHCurlEquationFilter.h
   TPZHDivApproxCreator.h
+  TPZApproxCreator.h
 )
 
 set(sources
@@ -114,6 +115,7 @@ set(sources
   TPZCompElKernelHDiv3D.cpp
   TPZHCurlEquationFilter.cpp
   TPZHDivApproxCreator.cpp
+  TPZApproxCreator.cpp
 )
 
 if(USING_MKL)
