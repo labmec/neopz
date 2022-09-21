@@ -117,7 +117,7 @@ if(USING_BOOST)
 endif()
 
 #enabling to use LOG4CXX library
-option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
+option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" ON)
 if(USING_LOG4CXX)
   #this is the definition used in pz lib
   include(cmake/EnableLog4cxx.cmake)
@@ -171,7 +171,7 @@ if(USING_LIBNUMA)
 endif()
 
 #enabling MKL library
-option(USING_MKL "Whether the MKL library will be linked in" OFF)
+option(USING_MKL "Whether the MKL library will be linked in" ON)
 if(USING_MKL)
     include(cmake/EnableMKL.cmake)
     enable_mkl(pz)
@@ -325,6 +325,7 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "C:/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
   else()
     set(CMAKE_INSTALL_PREFIX "/opt/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/../neopz_install" CACHE PATH "Directory where PZ will be installed" FORCE)
   endif()
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
