@@ -22,15 +22,12 @@ protected:
 
     /// Sets what type of hybridization should be used between elements, if any
     HybridizationType fHybridType = HybridizationType::ENone;
-    
+
     /// Variable controling the problem (Darcy, elasticity, etc.). This may influence the number of compmeshes
     ProblemType fProbType = ProblemType::ENone;
 
     /// Vector of materials. Will be used to to create the compmeshes
-    TPZStack<std::pair<int, TPZMaterial * > > fMaterialVec;
-
-    /// Vector of bc materials. Will be used to to create the compmeshes. TODO: Not needed. Delete me?)
-    TPZStack<std::pair<int, TPZBndCond * > > fBCMaterialVec;
+    std::set<std::pair<int, TPZMaterial * > > fMaterialVec;
 
     /// Pointer to geomesh
     TPZGeoMesh *fGeoMesh = nullptr;
@@ -49,7 +46,7 @@ protected:
 
     /// Enhances space with constant fields that allow for the condensation of internal degrees of freedom
     bool fIsEnhancedSpaces = false;
-    
+
     /// Struct with all the data regarding hybridization between elements
     struct HybridizationData{
         /// Matid of element at the border or higher domain element
@@ -64,18 +61,24 @@ protected:
         /// Material ids generated due second hybridization
         int fSecondInterfaceMatId;
 
-        /// TODO
+        /// Matid of second lagrange multiplier, useful in double hybridizations
         int fSecondLagrangeMatId;
 
         /// indicates whether the boundary conditions should be hybridized and how many times it should be
         int fHybridizeBCLevel = 0;
+
+        /// Interface material object;
+        TPZMaterial *fInterfaceMaterialObject = NULL;
+
+        /// Second interface material object;
+        TPZMaterial *fSecondInterfaceMaterialObject = NULL;
     };
 
     /// Attribute of struct with all the data regarding hybridization between elements
     HybridizationData fHybridizationData;
 
 public:
-    
+
     /// Default constructor
     TPZApproxCreator() = default;
 
@@ -89,8 +92,7 @@ public:
     /// @param mat pointer to materials to be added
     int InsertMaterialObject(int matid, TPZMaterial * mat);
 
-    // TODO: Delete me?
-    int InsertBCMaterialObject(int matid, TPZBndCond * mat);
+    int InsertMaterialObject(int matid, TPZBndCond * mat);
 
     /// Get/Set GeoMesh
     TPZGeoMesh *GeoMesh(){return fGeoMesh;}
@@ -101,7 +103,7 @@ public:
     HybridizationType &HybridType(){return fHybridType;}
     /// Get Hybridization type
     const HybridizationType &HybridType() const {return fHybridType;}
-    
+
     /// Get/Set Enhanced spaces
     bool &EnhancedSpaces(){return fIsEnhancedSpaces;}
     /// Get Enhanced spaces
@@ -124,6 +126,9 @@ public:
         fExtraInternalPOrder = ord;
     }
 
+    /// Get extra internal porder
+    int &GetExtraInternalOrder(){return fExtraInternalPOrder;}
+
     /// Set if should condense internal equations
     void SetShouldCondense( bool isCondensed){
         fShouldCondense = isCondensed;
@@ -134,8 +139,15 @@ public:
         return fShouldCondense;
     }
 
-    /// Get extra internal porder
-    int &GetExtraInternalOrder(){return fExtraInternalPOrder;}
+    /// Set interface material object
+    void SetInterfaceMaterial(TPZMaterial *mat){
+        fHybridizationData.fInterfaceMaterialObject = mat;
+    }
+
+    /// Set second interface material object
+    void SetSecondInterfaceMaterial(TPZMaterial *mat){
+        fHybridizationData.fSecondInterfaceMaterialObject = mat;
+    }
 
     /// Driver function. Will create the atomic meshes (HDiv, L2, etc.) and an associate multiphysics mesh. Should be implemented in son classes
     virtual TPZMultiphysicsCompMesh *CreateApproximationSpace() = 0;
@@ -152,6 +164,15 @@ protected:
 
     ///This method checks if the current configuration is valid
     virtual void CheckSetupConsistency() = 0;
+
+    ///Get set with BC material ids
+    std::set<int> GetBCMatIds();
+
+    /// Insert periferal material objects related to geometric. objects created during hybridization (for wrap and lagrange objects)
+    void InsertWrapAndLagrangeMaterialObjects(TPZMultiphysicsCompMesh *mphys);
+
+    /// Insert interface periferal material objects related to geometric objects created during hybridization
+    void InsertInterfaceMaterialObjects(TPZMultiphysicsCompMesh *mphys);
 };
 
 
