@@ -26,7 +26,13 @@ namespace pzgeom {
         /// radius of the cylinder
         REAL fRadius;
         
-        /// rotation matrix
+        /**
+           @brief Computes the rotation matrix of the cylinder.
+           The reference cylinder has axis {0,0,1}. 
+           This matrix is such that 
+              fRotation . {0,0,1}
+           equals to the  axis of the deformed cylinder.
+         */
         TPZFNMatrix<9,REAL> fRotation;
         
     public:
