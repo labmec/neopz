@@ -5,7 +5,7 @@
 //  Created by Philippe Devloo on 04/05/18.
 //
 
-#include "TPZCylinder.h"
+#include "TPZCylinderMap.h"
 #include "pzvec_extras.h"
 #include "tpzgeoelmapped.h"
 
