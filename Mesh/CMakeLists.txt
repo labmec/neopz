@@ -62,6 +62,7 @@ set(headers
   TPZHCurlEquationFilter.h
   TPZHDivApproxCreator.h
   TPZApproxCreator.h
+  TPZH1ApproxCreator.h
 )
 
 set(sources
@@ -116,6 +117,7 @@ set(sources
   TPZHCurlEquationFilter.cpp
   TPZHDivApproxCreator.cpp
   TPZApproxCreator.cpp
+  TPZH1ApproxCreator.cpp
 )
 
 if(USING_MKL)

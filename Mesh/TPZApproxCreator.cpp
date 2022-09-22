@@ -220,7 +220,6 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
     }
 }
 
-//TODO @AskPhil, is there any case where nstate != 1?
 void TPZApproxCreator::InsertWrapAndLagrangeMaterialObjects(TPZMultiphysicsCompMesh *mphys){
     int periphelDim = mphys->Dimension()-1;
     int nstate = 1;
@@ -245,43 +244,21 @@ void TPZApproxCreator::InsertWrapAndLagrangeMaterialObjects(TPZMultiphysicsCompM
     }
 }
 
-//TODO: should user do this?
 void TPZApproxCreator::InsertInterfaceMaterialObjects(TPZMultiphysicsCompMesh *mphys){
     if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared) {
-        if (fHybridizationData.fInterfaceMaterialObject == NULL) {
-            DebugStop();
-        }
-        TPZMaterial *interface = fHybridizationData.fInterfaceMaterialObject;
-        interface->SetId(fHybridizationData.fInterfaceMatId);
 
-        TPZLagrangeMultiplier<STATE> *lagmult = dynamic_cast<TPZLagrangeMultiplier<STATE>*>(interface);
-        TPZLagrangeMultiplier<CSTATE> *clagmult = dynamic_cast<TPZLagrangeMultiplier<CSTATE>*>(interface);
-        if(lagmult || clagmult){
-            lagmult->SetMultiplier(-1.);
-        }
-        else{
-            std::cout << __PRETTY_FUNCTION__ << "Is it really an interface material object?\n";
-        }
-
+        //TODO Should we support more general interface classes? Support CSTATE?
+        TPZLagrangeMultiplier<STATE> *interface = new TPZLagrangeMultiplier<STATE>(fHybridizationData.fInterfaceMatId, fGeoMesh->Dimension()-1, 1);
+        interface->SetMultiplier(-1.);
         mphys->InsertMaterialObject(interface);
 
         if (fHybridType == HybridizationType::EStandardSquared) {
-            if (fHybridizationData.fSecondInterfaceMaterialObject == NULL) {
-                DebugStop();
-            }
-            TPZMaterial *secondInterface = fHybridizationData.fSecondInterfaceMaterialObject;
-            secondInterface->SetId(fHybridizationData.fSecondInterfaceMatId);
 
-            TPZLagrangeMultiplier<STATE> *secondlagmult = dynamic_cast<TPZLagrangeMultiplier<STATE>*>(secondInterface);
-            TPZLagrangeMultiplier<CSTATE> *secondclagmult = dynamic_cast<TPZLagrangeMultiplier<CSTATE>*>(secondInterface);
-            if(secondlagmult || secondclagmult){
-                lagmult->SetMultiplier(-1.);
-            }
-            else{
-                std::cout << __PRETTY_FUNCTION__ << "Is it really an interface material object?\n";
-            }
+            //TODO Should we support more general interface classes? Support CSTATE?
+            TPZLagrangeMultiplier<STATE> *secondInterface = new TPZLagrangeMultiplier<STATE>(fHybridizationData.fSecondInterfaceMatId, fGeoMesh->Dimension()-1, 1);
+            secondInterface->SetMultiplier(-1.);
+            mphys->InsertMaterialObject(secondInterface);
 
-            mphys->InsertMaterialObject(interface);
         }
     }
     else{
@@ -299,6 +276,17 @@ std::set<int> TPZApproxCreator::GetBCMatIds(){
         }
     }
     return bcMatIdsVec;
+}
+
+std::set<int> TPZApproxCreator::GetVolumeMatIds(){
+    std::set<int> volumeMatIds;
+    for(std::pair<int,TPZMaterial*> mat: fMaterialVec){
+        TPZBndCond *bcmat = dynamic_cast<TPZBndCond*>(mat.second);
+        if(!bcmat){
+            volumeMatIds.insert(mat.first);
+        }
+    }
+    return volumeMatIds;
 }
 
 void TPZApproxCreator::Print(std::ostream &ofs){

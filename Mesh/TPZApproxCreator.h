@@ -66,12 +66,6 @@ protected:
 
         /// indicates whether the boundary conditions should be hybridized and how many times it should be
         int fHybridizeBCLevel = 0;
-
-        /// Interface material object;
-        TPZMaterial *fInterfaceMaterialObject = NULL;
-
-        /// Second interface material object;
-        TPZMaterial *fSecondInterfaceMaterialObject = NULL;
     };
 
     /// Attribute of struct with all the data regarding hybridization between elements
@@ -139,16 +133,6 @@ public:
         return fShouldCondense;
     }
 
-    /// Set interface material object
-    void SetInterfaceMaterial(TPZMaterial *mat){
-        fHybridizationData.fInterfaceMaterialObject = mat;
-    }
-
-    /// Set second interface material object
-    void SetSecondInterfaceMaterial(TPZMaterial *mat){
-        fHybridizationData.fSecondInterfaceMaterialObject = mat;
-    }
-
     /// Driver function. Will create the atomic meshes (HDiv, L2, etc.) and an associate multiphysics mesh. Should be implemented in son classes
     virtual TPZMultiphysicsCompMesh *CreateApproximationSpace() = 0;
 
@@ -165,8 +149,11 @@ protected:
     ///This method checks if the current configuration is valid
     virtual void CheckSetupConsistency() = 0;
 
-    ///Get set with BC material ids
+    ///Get BC material ids
     std::set<int> GetBCMatIds();
+
+    ///Get material ids from which has the same dimension as the mesh
+    std::set<int> GetVolumeMatIds();
 
     /// Insert periferal material objects related to geometric. objects created during hybridization (for wrap and lagrange objects)
     void InsertWrapAndLagrangeMaterialObjects(TPZMultiphysicsCompMesh *mphys);
