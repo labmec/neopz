@@ -66,9 +66,16 @@ private:
         DebugStop();
     }
 
-    void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh){
-        DebugStop();
-    }
+    /// Group and condense computational elements
+    void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) override;
+
+    /// Associate elements with a volumetric element in hybridized spaces;
+    /// Groups volumetric, wrap and interface elements in standard hybridizations;
+    /// Groups volumetric, wrap, interface, lagrange, second interface and bc elements belonging to HDiv spaces for squared hybridizations
+    /// Is useless for non-hybridized meshes
+    /// Does not (yet?) support semi hybridizations
+    /// @param elementgroup maps some comp. elements to a certain volumetric element to be grouped up;
+    void AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &elementgroup);
 };
 
 #endif

@@ -8,6 +8,8 @@
 #include "TPZNullMaterial.h"
 #include "pzintel.h"
 #include "TPZMultiphysicsCompMesh.h"
+#include "pzelementgroup.h"
+#include "pzcondensedcompel.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("H1ApproxCreator"));
@@ -60,7 +62,6 @@ void TPZH1ApproxCreator::CheckSetupConsistency(){
 }
 
 TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateApproximationSpace(){
-
 
     CheckSetupConsistency();
 
@@ -384,7 +385,7 @@ void TPZH1ApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsCompMe
                         lagrangeCandidate = gelsideflux.HasLowerLevelNeighbour(fHybridizationData.fLagrangeMatId);
                         DebugStop();
                     }
-#ifdef FEMCOMPARISON_DEBUG
+#ifdef PZDEBUG
                     if(lagrangeCandidate == gelsideflux)
                     {
                         DebugStop();
@@ -543,4 +544,122 @@ void TPZH1ApproxCreator::InsertL2MaterialObjects(TPZCompMesh * L2Mesh){
     {
         insertMat(fHybridizationData.fSecondLagrangeMatId,dim-1,L2Mesh);
     }
+}
+
+void TPZH1ApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh){
+    /// same procedure as hybridize hdiv
+    int64_t nel = mcmesh->NElements();
+    TPZVec<int64_t> groupnumber(nel,-1);
+    /// compute a groupnumber associated with each element
+    if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared)
+        AssociateElements(mcmesh, groupnumber);
+
+    std::map<int64_t, TPZElementGroup *> groupmap;
+    //    std::cout << "Groups of connects " << groupindex << std::endl;
+    for (int64_t el = 0; el<nel; el++) {
+        int64_t groupnum = groupnumber[el];
+        if(groupnum == -1) continue;
+        auto iter = groupmap.find(groupnum);
+        if (groupmap.find(groupnum) == groupmap.end()) {
+            int64_t index;
+            TPZElementGroup *elgr = new TPZElementGroup(*mcmesh);
+            groupmap[groupnum] = elgr;
+            elgr->AddElement(mcmesh->Element(el));
+        }
+        else
+        {
+            iter->second->AddElement(mcmesh->Element(el));
+        }
+    }
+    mcmesh->ComputeNodElCon();
+    if(fHybridType == HybridizationType::EStandard)
+    {
+        int lagCTEspace2 = 4;
+        int64_t nconnects = mcmesh->NConnects();
+        for (int64_t ic = 0; ic<nconnects; ic++) {
+            TPZConnect &c = mcmesh->ConnectVec()[ic];
+            if(c.LagrangeMultiplier() == lagCTEspace2) c.IncrementElConnected();
+        }
+    }
+    nel = mcmesh->NElements();
+    for (int64_t el = 0; el < nel; el++) {
+        TPZCompEl *cel = mcmesh->Element(el);
+        TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *> (cel);
+        if (elgr) {
+            TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+            cond->SetKeepMatrix(false);
+        }
+    }
+}
+
+void TPZH1ApproxCreator::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &elementgroup)
+{
+    int64_t nel = cmesh->NElements();
+    elementgroup.Resize(nel, -1);
+    elementgroup.Fill(-1);
+    int64_t nconnects = cmesh->NConnects();
+    TPZVec<int64_t> groupindex(nconnects, -1);
+    int dim = cmesh->Dimension();
+    //The group index of connects belonging to volumetric elements equals its index.
+    for (TPZCompEl *cel : cmesh->ElementVec()) {
+        if (!cel || !cel->Reference() || cel->Reference()->Dimension() != dim) {
+            continue;
+        }
+        elementgroup[cel->Index()] = cel->Index();
+        TPZStack<int64_t> connectlist;
+        cel->BuildConnectList(connectlist);
+        for (auto cindex : connectlist) {
+#ifdef PZDEBUG
+            if (groupindex[cindex] != -1) {
+                DebugStop();
+            }
+#endif
+            groupindex[cindex] = cel->Index();
+        }
+    }
+
+    int numloops = 1;
+    if( fHybridType == HybridizationType::EStandardSquared) numloops = 2;
+    // this loop will associate a first layer of interface elements to the group
+    // this loop will associate the wrap elements with the group
+    // if HybridSquared the connects of interface elements with matid fLagrangeMatId will be added to the group
+    //    in the second pass :
+    //    incorporate the HDiv lagrange elements in the group
+    //    incorporate boundary HDiv elements
+    //    incorporate the interface elements to the pressure lagrange DOFs in the group
+    for (int iloop = 0; iloop < numloops; iloop++) for (TPZCompEl *cel : cmesh->ElementVec())
+        {
+            if (!cel || !cel->Reference()) {
+                continue;
+            }
+            TPZStack<int64_t> connectlist;
+            cel->BuildConnectList(connectlist);
+            int matid = cel->Reference()->MaterialId();
+            int64_t celindex = cel->Index();
+
+            TPZVec<int> connectgroup(connectlist.size());
+            for(int i=0; i<connectlist.size(); i++) connectgroup[i] = groupindex[connectlist[i]];
+            int64_t groupfound = -1;
+            for (auto cindex : connectlist) {
+                if (groupindex[cindex] != -1) {
+                    elementgroup[celindex] = groupindex[cindex];
+                    //two connects in the same element can't belong to different computational element groups,
+                    //but in interface elements, some connects might belong to a certain element group, while others might not be initialized.
+                    if(groupfound != -1 && groupfound != groupindex[cindex])
+                    {
+                        DebugStop();
+                    }
+                    groupfound = groupindex[cindex];
+                }
+            }
+            //Before this step, the connects that interface elements share with wrap elements, belong to an element group,
+            //While connects shared with lagrange elements, belongs to no group.
+            if(fHybridType == HybridizationType::EStandardSquared && matid == fHybridizationData.fInterfaceMatId)
+            {
+                for(auto cindex : connectlist)
+                {
+                    groupindex[cindex] = groupfound;
+                }
+            }
+        }
 }

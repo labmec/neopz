@@ -160,6 +160,8 @@ protected:
 
     /// Insert interface periferal material objects related to geometric objects created during hybridization
     void InsertInterfaceMaterialObjects(TPZMultiphysicsCompMesh *mphys);
+
+    virtual void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) =0;
 };
 
 
