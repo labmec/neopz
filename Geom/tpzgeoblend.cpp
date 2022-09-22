@@ -82,8 +82,14 @@ void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, 
         {
         
             std::stringstream mess;
-            mess << "Trying to SetNeighbourInfo for an already set element\n";
-            mess << "* this * = " << __PRETTY_FUNCTION__ << "\n";
+            mess << __PRETTY_FUNCTION__
+                 << "\nTrying to SetNeighbourInfo for an already set element\n"
+                 << "\tmy id: "<<this->fGeoEl->Id()<<" my side "<<side
+                 <<" my old neigh "<<fNeighbours[side-TGeo::NNodes].ElementIndex()
+                 <<" my new neigh "<<neigh.Element()->Index()
+                 <<'\n';
+                
+            mess << "* this * = \n";
             this->Print(mess);
             mess << "* neigh * = \n";
             neigh.Element()->Print(mess);
