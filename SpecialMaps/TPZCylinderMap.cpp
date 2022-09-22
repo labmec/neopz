@@ -48,6 +48,13 @@ namespace pzgeom {
                 fRotation(i,i) = sign;
             }
         }else{
+            //we first normalise the z vector
+            {
+                REAL normz{0};
+                for(auto &zx : z) {normz += zx*zx;}
+                normz = sqrt(normz);
+                for(auto &zx : z) {zx /= normz;}
+            }
             //now we build a 9x9 matrix to find the rotation matrix
             TPZFNMatrix<81,REAL> M(9,9,0.), b(9,1,0.);
             for(int c = 0; c < 3; c++){
