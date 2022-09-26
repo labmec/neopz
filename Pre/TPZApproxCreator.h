@@ -27,7 +27,7 @@ protected:
     ProblemType fProbType = ProblemType::ENone;
 
     /// Vector of materials. Will be used to to create the compmeshes
-    std::set<std::pair<int, TPZMaterial * > > fMaterialVec;
+    std::map<int,TPZMaterial *> fMaterialVec;
 
     /// Pointer to geomesh
     TPZGeoMesh *fGeoMesh = nullptr;
@@ -84,11 +84,11 @@ public:
 
     /// Inserts a domain material to the vector of materials of this class. These are used to build the cmeshes
     /// @param mat pointer to materials to be added
-    int InsertMaterialObject(int matid, TPZMaterial * mat);
+    int InsertMaterialObject(TPZMaterial * mat);
 
     /// Inserts a bc material to the vector of materials of this class. These are used to build the cmeshes
     /// @param mat boundary condition material to be added
-    int InsertMaterialObject(int matid, TPZBndCond * mat);
+    int InsertMaterialObject(TPZBndCond * mat);
 
     /// Get/Set GeoMesh
     TPZGeoMesh *GeoMesh(){return fGeoMesh;}
