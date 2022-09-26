@@ -1159,6 +1159,7 @@ void TPZMixedElasticityND::Solution(const TPZVec<TPZMaterialDataT<STATE>> &data,
     sigmah(2, 2) += Pressure;
     // Displacement
     if (var == 9) {
+        Solout[2] = 0.;
         for(int idf = 0; idf < dim; idf++)
         {
             Solout[idf] = disp[idf];

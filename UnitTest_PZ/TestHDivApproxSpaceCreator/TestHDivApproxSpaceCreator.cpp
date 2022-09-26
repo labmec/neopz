@@ -20,7 +20,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-//#define USE_MAIN
+#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -29,7 +29,7 @@
 using namespace std;
 
 /// Creates a simple mesh used for testing
-TPZGeoMesh *Create2DGeoMesh();
+TPZGeoMesh *Create2DGeoMesh(ProblemType& pType);
 
 void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype);
 
@@ -37,7 +37,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam);
 
-enum MaterialIds {EDomain,EBCDirichlet,EBCNeumann};
+enum MaterialIds {EDomain,EBCDirichlet,EBCNeumann,EBCDisplacementLeft,EBCDisplacementRight};
 
 
 #ifndef USE_MAIN
@@ -62,9 +62,10 @@ int main(){
     TPZLogger::InitializePZLOG();
 #endif
     HDivFamily sType = HDivFamily::EHDivStandard;
+//    HDivFamily sType = HDivFamily::EHDivConstant;
     ProblemType pType = ProblemType::EElastic;
     const int pord = 1;
-    const bool isRBSpaces = false;
+    const bool isRBSpaces = true;
     TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces);
     
     return 0;
@@ -72,7 +73,7 @@ int main(){
 #endif
 
 
-TPZGeoMesh *Create2DGeoMesh() {
+TPZGeoMesh *Create2DGeoMesh(ProblemType& pType) {
     
     // ----- Create Geo Mesh -----
     const TPZManVector<REAL,2> minX = {-1.,-1.};
@@ -84,10 +85,21 @@ TPZGeoMesh *Create2DGeoMesh() {
     TPZGeoMesh* gmesh = new TPZGeoMesh;
     gen2d.Read(gmesh,EDomain);
 
-    gen2d.SetBC(gmesh, 4, EBCDirichlet);
-    gen2d.SetBC(gmesh, 5, EBCDirichlet);
-    gen2d.SetBC(gmesh, 6, EBCDirichlet);
-    gen2d.SetBC(gmesh, 7, EBCDirichlet);    
+    if(pType == ProblemType::EDarcy){
+        gen2d.SetBC(gmesh, 4, EBCDirichlet);
+        gen2d.SetBC(gmesh, 5, EBCDirichlet);
+        gen2d.SetBC(gmesh, 6, EBCDirichlet);
+        gen2d.SetBC(gmesh, 7, EBCDirichlet);
+    }
+    else if (pType == ProblemType::EElastic){
+        gen2d.SetBC(gmesh, 4, EBCNeumann);
+        gen2d.SetBC(gmesh, 5, EBCDisplacementRight);
+        gen2d.SetBC(gmesh, 6, EBCNeumann);
+        gen2d.SetBC(gmesh, 7, EBCDisplacementLeft);
+    }
+    
+    std::ofstream out("GeoMesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
     
     return gmesh;
 }
@@ -111,8 +123,8 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
         mat = matdarcy;
     }
     else if (ptype == ProblemType::EElastic){
-        REAL E = 20.59, nu = 0., fx = 0., fy = 0.;
-        const int plain = 1.; //* @param plainstress = 1 \f$ indicates use of plainstress
+        REAL E = 1., nu = 0., fx = 0., fy = 0.;
+        const int plain = 0.; //* @param plainstress = 1 \f$ indicates use of plainstress
         matelas = new TPZMixedElasticityND(EDomain, E, nu, fx, fy, plain, dim);
         mat = matelas;
     }
@@ -122,10 +134,10 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
     // ========> Boundary Conditions
     // -----------------------------
     
-    TPZBndCondT<STATE> *BCond1 = nullptr, *BCond2 = nullptr;
+    TPZBndCondT<STATE> *BCond1 = nullptr, *BCond2 = nullptr, *BCond3 = nullptr;
     const int dirType = 0, neuType = 1;
     if (ptype == ProblemType::EDarcy) {
-        TPZFMatrix<STATE> val1(1,1,1.);
+        TPZFMatrix<STATE> val1(1,1,0.);
         TPZManVector<STATE> val2(1,1.);
         BCond1 = matdarcy->CreateBC(matdarcy, EBCDirichlet, dirType, val1, val2);
         val2[0] = 0.;
@@ -133,18 +145,22 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
     }
     else if (ptype == ProblemType::EElastic){
         TPZFMatrix<STATE> val1(2,2,0.);
-        TPZManVector<STATE> val2(2,1.);
+        TPZManVector<STATE> val2(2,0.);
 
-        BCond1 = matelas->CreateBC(matelas, EBCDirichlet, dirType, val1, val2);
         val2[0] = 0.;
-        BCond2 = matelas->CreateBC(matelas, EBCNeumann, neuType, val1, val2);
+        BCond1 = matelas->CreateBC(matelas, EBCNeumann, neuType, val1, val2);
+        val2[0] = 1.;
+        BCond2 = matelas->CreateBC(matelas, EBCDisplacementRight, dirType, val1, val2);
+        val2[0] = 0.;
+        BCond3 = matelas->CreateBC(matelas, EBCDisplacementLeft, dirType, val1, val2);
     }
     else{
         DebugStop(); // yet not supported material
     }
     
-    approxCreator.InsertMaterialObject(BCond1);
-    approxCreator.InsertMaterialObject(BCond2);
+    if(BCond1) approxCreator.InsertMaterialObject(BCond1);
+    if(BCond2) approxCreator.InsertMaterialObject(BCond2);
+    if(BCond3) approxCreator.InsertMaterialObject(BCond3);
 }
 
 
@@ -160,7 +176,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
         return;
     }
 
-    TPZGeoMesh *gmesh = Create2DGeoMesh();
+    TPZGeoMesh *gmesh = Create2DGeoMesh(probType);
 
     TPZHDivApproxCreator hdivCreator(gmesh);
 
