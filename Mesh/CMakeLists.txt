@@ -60,9 +60,6 @@ set(headers
   TPZCompElKernelHDiv.h
   TPZCompElKernelHDiv3D.h
   TPZHCurlEquationFilter.h
-  TPZHDivApproxCreator.h
-  TPZApproxCreator.h
-  TPZH1ApproxCreator.h
 )
 
 set(sources
@@ -115,9 +112,6 @@ set(sources
   TPZCompElKernelHDiv.cpp
   TPZCompElKernelHDiv3D.cpp
   TPZHCurlEquationFilter.cpp
-  TPZHDivApproxCreator.cpp
-  TPZApproxCreator.cpp
-  TPZH1ApproxCreator.cpp
 )
 
 if(USING_LAPACK)
