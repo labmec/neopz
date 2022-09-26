@@ -13,7 +13,6 @@ set(headers
   TPZCompMeshTools.h
   TPZGeoMeshTools.h
   pzcheckgeom.h
-  pzcreateapproxspace.h
   pzgeoel.h
   pzintel.h  
   TPZGeoElement.h
@@ -101,7 +100,6 @@ set(sources
   pzmultiphysicscompel.cpp
   TPZCompElDisc.cpp
   tpzgeoelrefpattern.cpp
-  pzcreateapproxspace.cpp
   pzgeoelrefless.cpp
   pzmultiphysicselement.cpp
   TPZCompElHCurl.cpp

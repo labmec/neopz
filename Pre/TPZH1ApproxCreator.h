@@ -30,7 +30,7 @@ public:
     ~TPZH1ApproxCreator();
 
     /// Driver function. Will create the atomic meshes (HDiv, L2, etc.) and an associate multiphysics mesh
-    TPZMultiphysicsCompMesh *CreateApproximationSpace();
+    TPZMultiphysicsCompMesh *CreateApproximationSpace() override;
 
 private:
 
