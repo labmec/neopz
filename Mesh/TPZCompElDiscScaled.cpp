@@ -6,7 +6,7 @@
 //
 
 #include "pzlog.h"
-#include "TPZCompelDiscScaled.h"
+#include "TPZCompElDiscScaled.h"
 #include <math.h>
 
 
