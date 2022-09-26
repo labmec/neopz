@@ -78,7 +78,7 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateApproximationSpace(){
     } else {
         DebugStop();
     }
-    if (fIsEnhancedSpaces) fNumMeshes += 2;
+    if (fIsRBSpaces) fNumMeshes += 2;
 
     TPZManVector<TPZCompMesh*,7> meshvec(fNumMeshes);
     int countMesh = 0;
@@ -88,7 +88,7 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateApproximationSpace(){
     if (isElastic){
         meshvec[countMesh++] = CreateRotationSpace();
     }
-    if (fIsEnhancedSpaces){
+    if (fIsRBSpaces){
         int lagMult1 = 2, lagMult2 = 4;
         meshvec[countMesh++] = CreateConstantSpace(lagMult1);
         meshvec[countMesh++] = CreateConstantSpace(lagMult2);

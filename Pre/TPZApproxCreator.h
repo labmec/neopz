@@ -45,7 +45,7 @@ protected:
     bool fShouldCondense = 1;
 
     /// Enhances space with constant fields that allow for the condensation of internal degrees of freedom
-    bool fIsEnhancedSpaces = false;
+    bool fIsRBSpaces = false;
 
     /// Struct with all the data regarding hybridization between elements
     struct HybridizationData{
@@ -101,9 +101,9 @@ public:
     const HybridizationType &HybridType() const {return fHybridType;}
 
     /// Get/Set Enhanced spaces
-    bool &EnhancedSpaces(){return fIsEnhancedSpaces;}
+    bool &IsRigidBodySpaces(){return fIsRBSpaces;}
     /// Get Enhanced spaces
-    const bool &EnhancedSpaces() const {return fIsEnhancedSpaces;}
+    const bool &IsRigidBodySpaces() const {return fIsRBSpaces;}
 
     /// Get/Set Problem type
     ProblemType &ProbType(){return fProbType;}
@@ -142,6 +142,7 @@ public:
     void Print(std::ostream &out = std::cout);
 
 protected:
+    
     /// Compute Periferal Material ids for additional elements generated during hybridization
     void ComputePeriferalMaterialIds(int base = 10);
 

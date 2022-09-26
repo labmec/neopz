@@ -59,6 +59,7 @@ set(headers
   TPZCompElKernelHDiv.h
   TPZCompElKernelHDiv3D.h
   TPZHCurlEquationFilter.h
+  TPZCompelDiscScaled.h
 )
 
 set(sources
@@ -110,6 +111,7 @@ set(sources
   TPZCompElKernelHDiv.cpp
   TPZCompElKernelHDiv3D.cpp
   TPZHCurlEquationFilter.cpp
+  TPZCompelDiscScaled.cpp
 )
 
 if(USING_MKL)
