@@ -23,7 +23,7 @@ namespace pzgeom {
 
         //let us normalize axis
         REAL normaxis = 0;
-        for(int ix = 0; ix < axis.size(); ix++){normaxis += axis[ix]*axis[ix];}
+        for(const auto &ax : axis){normaxis += ax*ax;}
         normaxis = sqrt(normaxis);
         /*
           We know three things about this rotation matrix:
@@ -77,7 +77,6 @@ namespace pzgeom {
                 fRotation(r,c) = b(i,0);
             }
         }
-        fRotation.Print(std::cout);
     }
     
     /// compute the corner coordinates of the corner nodes
@@ -88,7 +87,7 @@ namespace pzgeom {
         //atan2 returns in the range -pi,pi
         REAL mintheta{2*M_PI}, maxtheta{-2*M_PI};
         for (int in=0; in<nnodes; in++) {
-            int64_t nodeindex = TGeo::fNodeIndexes[in];
+            const int64_t nodeindex = TGeo::fNodeIndexes[in];
             TPZManVector<REAL,3> co(3);
             gmesh.NodeVec()[nodeindex].GetCoordinates(co);
             TPZManVector<REAL,3> localco(3);
@@ -98,7 +97,7 @@ namespace pzgeom {
                     localco[i] += fRotation(j,i)*(co[i]-fOrigin[i]);
                 }
             }
-            REAL radius = sqrt(localco[0]*localco[0]+localco[1]*localco[1]);
+            const REAL radius = sqrt(localco[0]*localco[0]+localco[1]*localco[1]);
             if(fabs(radius-fRadius) > tol) {
                 PZError<<__PRETTY_FUNCTION__
                        <<"\nError:"
@@ -109,10 +108,10 @@ namespace pzgeom {
                        <<"Aborting..."<<std::endl;
                 DebugStop();
             }
-            REAL theta = atan2(localco[1],localco[0]);
-            REAL z = localco[2];
-            fCornerCo(0,in) = theta;
-            fCornerCo(1,in) = z;
+            const REAL theta = atan2(localco[1],localco[0]);
+            const REAL z = localco[2];
+            fCylindricalCo(0,in) = theta;
+            fCylindricalCo(1,in) = z;
             if(theta > maxtheta) {maxtheta = theta;}
             if(theta < mintheta) {mintheta = theta;}
         }
@@ -137,8 +136,8 @@ namespace pzgeom {
             mintheta = 2*M_PI;
             maxtheta = -mintheta;
             for(auto in = 0 ; in < nnodes ; in++){
-                const REAL theta = std::fmod((fCornerCo(0,in)+2*M_PI),2*M_PI); 
-                fCornerCo(0,in) = theta;
+                const REAL theta = std::fmod((fCylindricalCo(0,in)+2*M_PI),2*M_PI); 
+                fCylindricalCo(0,in) = theta;
                 if(theta > maxtheta) {maxtheta = theta;}
                 if(theta < mintheta) {mintheta = theta;}
             }
@@ -155,13 +154,33 @@ namespace pzgeom {
                            <<"\n\t\tcartesian:";
                     for(int ix = 0; ix < 3; ix++){PZError<<' '<<co[ix];}
                     PZError<<"\n\t\tcylindrical:";
-                    for(int ix = 0; ix < 2; ix++){PZError<<' '<<fCornerCo(ix,in);}
+                    for(int ix = 0; ix < 2; ix++){PZError<<' '<<fCylindricalCo(ix,in);}
                 }
                 PZError<<"\nWith computed radius: "<<fRadius
                        <<"\nAborting...";
                 DebugStop();
             }
         }
+    }
+
+    template<class TGeo>
+    void TPZCylinderMap<TGeo>::Read(TPZStream& buf, void* context)
+    {
+        TGeo::Read(buf,0);
+        fCylindricalCo.Read(buf,0);
+        buf.Read(fOrigin);
+        buf.Read(&fRadius);
+        fRotation.Read(buf, 0);
+    }
+        
+    template<class TGeo>
+    void TPZCylinderMap<TGeo>::Write(TPZStream &buf, int withclassid) const
+    {
+        TGeo::Write(buf, withclassid);
+        fCylindricalCo.Write(buf,0);
+        buf.Write(fOrigin);
+        buf.Write(fRadius);
+        fRotation.Write(buf, withclassid);
     }
     
     
