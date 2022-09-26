@@ -32,6 +32,9 @@ set(headers
     TPZMHMixedMeshControl.h
     pzdatafi.h
     pzreadmesh.h
+    TPZHDivApproxCreator.h
+    TPZApproxCreator.h
+    TPZH1ApproxCreator.h
     )
 
 set(sources
@@ -57,6 +60,9 @@ set(sources
     TPZMHMixedMeshControl.cpp
     pzidentifyrefpattern.cpp
     tpzhierarquicalgrid.cpp
+    TPZHDivApproxCreator.cpp
+    TPZApproxCreator.cpp
+    TPZH1ApproxCreator.cpp
     )
 
 if (USING_MKL)
