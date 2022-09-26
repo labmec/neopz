@@ -84,7 +84,9 @@ namespace pzgeom {
     template<class TGeo>
     void TPZCylinderMap<TGeo>::ComputeCornerCoordinates(TPZGeoMesh &gmesh)
     {
-        int nnodes = TGeo::NNodes;
+        constexpr int nnodes = TGeo::NNodes;
+        //atan2 returns in the range -pi,pi
+        REAL mintheta{2*M_PI}, maxtheta{-2*M_PI};
         for (int in=0; in<nnodes; in++) {
             int64_t nodeindex = TGeo::fNodeIndexes[in];
             TPZManVector<REAL,3> co(3);
@@ -111,6 +113,54 @@ namespace pzgeom {
             REAL z = localco[2];
             fCornerCo(0,in) = theta;
             fCornerCo(1,in) = z;
+            if(theta > maxtheta) {maxtheta = theta;}
+            if(theta < mintheta) {mintheta = theta;}
+        }
+
+
+        /*
+          now we need choose a proper range for theta. all angles
+          should be no further spaced than pi.
+          
+          examples of possible mistakes:
+          range: -pi, pi (the one from atan2)
+          angles: -3pi/4, 3pi/4
+          computed average: 0
+          desired average: -pi or pi
+
+          range: 0, 2pi
+          angles: pi/4, 7pi/4
+          computed average: pi
+          desired average: 0 or 2pi
+         */
+        if(maxtheta - mintheta > M_PI){
+            mintheta = 2*M_PI;
+            maxtheta = -mintheta;
+            for(auto in = 0 ; in < nnodes ; in++){
+                const REAL theta = std::fmod((fCornerCo(0,in)+2*M_PI),2*M_PI); 
+                fCornerCo(0,in) = theta;
+                if(theta > maxtheta) {maxtheta = theta;}
+                if(theta < mintheta) {mintheta = theta;}
+            }
+            if(maxtheta - mintheta > M_PI){
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\nUnable to find suitable range for converting "
+                       <<"this element's corner nodes to cylindrical coordinates.\n"
+                       <<"Computed coordinates were:\n";
+                TPZManVector<REAL,3> co(3);
+                for(auto in = 0 ; in < nnodes ; in++){
+                    const int64_t nodeindex = TGeo::fNodeIndexes[in];
+                    gmesh.NodeVec()[nodeindex].GetCoordinates(co);
+                    PZError<<"\tnode "<<in
+                           <<"\n\t\tcartesian:";
+                    for(int ix = 0; ix < 3; ix++){PZError<<' '<<co[ix];}
+                    PZError<<"\n\t\tcylindrical:";
+                    for(int ix = 0; ix < 2; ix++){PZError<<' '<<fCornerCo(ix,in);}
+                }
+                PZError<<"\nWith computed radius: "<<fRadius
+                       <<"\nAborting...";
+                DebugStop();
+            }
         }
     }
     
