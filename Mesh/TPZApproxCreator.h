@@ -86,6 +86,8 @@ public:
     /// @param mat pointer to materials to be added
     int InsertMaterialObject(int matid, TPZMaterial * mat);
 
+    /// Inserts a bc material to the vector of materials of this class. These are used to build the cmeshes
+    /// @param mat boundary condition material to be added
     int InsertMaterialObject(int matid, TPZBndCond * mat);
 
     /// Get/Set GeoMesh
@@ -161,7 +163,8 @@ protected:
     /// Insert interface periferal material objects related to geometric objects created during hybridization
     void InsertInterfaceMaterialObjects(TPZMultiphysicsCompMesh *mphys);
 
-    virtual void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) =0;
+    /// Groups elements to be condensed
+    virtual void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) = 0;
 };
 
 
