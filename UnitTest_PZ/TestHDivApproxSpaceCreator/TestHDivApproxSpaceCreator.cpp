@@ -92,7 +92,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator){
     TPZMixedDarcyFlow *mat = new TPZMixedDarcyFlow(EDomain,2);
     mat->SetConstantPermeability(1.);
     // mat->SetForcingFunction()
-    approxCreator.InsertMaterialObject(mat);
+    approxCreator.InsertMaterialObject(mat->Id(),mat);
 
     //Boundary Conditions
     TPZFMatrix<STATE> val1(1,1,1.);
@@ -101,12 +101,12 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator){
     //Dirichlet Boundary Conditions
     TPZBndCondT<STATE> * BCond1 = mat->CreateBC(mat, EBCDirichlet, 0, val1, val2);
     // BCond->SetForcingFunctionBC(exactSol,4);
-    approxCreator.InsertMaterialObject(BCond1);
+    approxCreator.InsertMaterialObject(BCond1->Id(),BCond1);
 
     val2[0] = 0.;
     TPZBndCondT<STATE> * BCond2 = mat->CreateBC(mat, EBCNeumann, 1, val1, val2);
     // BCond->SetForcingFunctionBC(exactSol,4);
-    approxCreator.InsertMaterialObject(BCond2);
+    approxCreator.InsertMaterialObject(BCond2->Id(),BCond2);
     
 }
 

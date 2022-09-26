@@ -9,7 +9,7 @@
 #include <DarcyFlow/TPZMixedDarcyFlow.h>
 #include "TPZBndCondT.h"
 
-TPZHDivApproxCreator::TPZHDivApproxCreator(TPZGeoMesh *gmesh) : fGeoMesh(gmesh)
+TPZHDivApproxCreator::TPZHDivApproxCreator(TPZGeoMesh *gmesh) : TPZApproxCreator(gmesh)
 { 
 }
 
@@ -17,25 +17,8 @@ TPZHDivApproxCreator::~TPZHDivApproxCreator()
 {
 }
 
-
-/**Insert a material object in the datastructure*/
-int TPZHDivApproxCreator::InsertMaterialObject(TPZMaterial * mat) {
-	if(!mat) DebugStop();
-	fMaterialVec.Push(mat); 
-	return fMaterialVec.size();
-}
-
-/*Due to the TPZMaterialRefactor, the type TPZBndCond
-  no longer inherits from TPZMaterial. But every possible instance
-  will be a TPZMaterial, so this dynamic_cast is not expected
-  to fail
-*/
-int TPZHDivApproxCreator::InsertMaterialObject(TPZBndCond * mat) {
-    return InsertMaterialObject(dynamic_cast<TPZMaterial*>(mat));
-}
-
-TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
-
+void TPZHDivApproxCreator::CheckSetupConsistency() {
+    
     if (fProbType == ProblemType::ENone) {
         std::cout << "You have to set a proper problem type!\n";
         DebugStop();
@@ -55,6 +38,11 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
         std::cout << "Are you sure about this?\n";
         DebugStop();
     }
+}
+
+TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
+
+    CheckSetupConsistency();
 
     bool isElastic = fProbType == ProblemType::EElastic;
     bool isDarcy = fProbType == ProblemType::EDarcy;
@@ -95,8 +83,8 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     cmesh->SetDefaultOrder(fDefaultPOrder);
     cmesh->SetDimModel(dim);
 
-    for (TPZMaterial* mat:fMaterialVec)
-    {
+    for (std::pair<int,TPZMaterial*> matpair : fMaterialVec) {
+        TPZMaterial* mat = matpair.second;
         TPZBndCond *bnd = dynamic_cast<TPZBndCond *> (mat);
         if (!bnd){
             if (mat->Dimension() != dim) DebugStop();
@@ -125,8 +113,8 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int pOrder, const int la
     cmesh->SetDimModel(dim);
 
     if (fHDivFam != HDivFamily::EHDivKernel){
-        for (TPZMaterial* mat:fMaterialVec)
-        {
+        for (std::pair<int,TPZMaterial*> matpair : fMaterialVec) {
+            TPZMaterial* mat = matpair.second;
             TPZBndCond *bnd = dynamic_cast<TPZBndCond *> (mat);
             if (!bnd){
                 if (mat->Dimension() != dim) DebugStop();
@@ -184,8 +172,8 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateMultiphysicsSpace(TPZManVe
     cmesh->SetDefaultOrder(fDefaultPOrder);
     cmesh->SetDimModel(dim);
     
-    for (TPZMaterial* mat:fMaterialVec)
-    {
+    for (std::pair<int,TPZMaterial*> matpair : fMaterialVec) {
+        TPZMaterial* mat = matpair.second;
         TPZBndCondT<STATE> *bnd = dynamic_cast<TPZBndCondT<STATE> *> (mat);
         if (!bnd){
             cmesh->InsertMaterialObject(mat);
@@ -203,7 +191,9 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateMultiphysicsSpace(TPZManVe
 
 
 TPZCompMesh * TPZHDivApproxCreator::CreateRotationSpace(){
+    DebugStop(); // Implement me for mixed elasticity
+}
 
-   
-
+void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) {
+    DebugStop(); // Implement me if needed
 }
