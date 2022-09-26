@@ -117,7 +117,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
         mat = matelas;
     }
 
-    approxCreator.InsertMaterialObject(mat->Id(),mat);
+    approxCreator.InsertMaterialObject(mat);
 
     // ========> Boundary Conditions
     // -----------------------------
@@ -143,8 +143,8 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
         DebugStop(); // yet not supported material
     }
     
-    approxCreator.InsertMaterialObject(BCond1->Id(),BCond1);
-    approxCreator.InsertMaterialObject(BCond2->Id(),BCond2);
+    approxCreator.InsertMaterialObject(BCond1);
+    approxCreator.InsertMaterialObject(BCond2);
 }
 
 
