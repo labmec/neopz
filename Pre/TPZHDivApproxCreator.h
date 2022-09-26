@@ -35,9 +35,12 @@ public:
     TPZMultiphysicsCompMesh *CreateApproximationSpace() override;
 
 protected:
-    
+
+    /// Checks if the parameters provided do not violate any condition for mesh generation
     void CheckSetupConsistency() override;
-    
+        
+    /// Groups the elements in data structure to be condensed
+    /// @param mcmesh multiphysics compmesh with elements to be condensed
     void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) override;
     
 private:
@@ -49,20 +52,14 @@ private:
     /// @param pOrder polynomial order of the space
     /// @param lagLevel lagrange multiplier level for factorization
     TPZCompMesh * CreateL2Space(const int pOrder,const int lagLevel);
-
     
     /// Creates the multiphysics compmesh based on the vector of atomic meshes
     /// @param meshvector vector of atomic meshes. For instance HDiv and L2 for Darcy problem
     TPZMultiphysicsCompMesh * CreateMultiphysicsSpace(TPZManVector<TPZCompMesh*> meshvector);
-
     
     /// Creates the rotation space for elasticity problems
-    TPZCompMesh * CreateRotationSpace();
-   
-
+    TPZCompMesh * CreateRotationSpace(const int pOrder, const int lagLevel);
 };
-
-
 
 
 #endif

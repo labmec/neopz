@@ -335,7 +335,7 @@ void TPZApproxCreator::Print(std::ostream &ofs){
         ss << "\nfHybridizeBCLevel: " << fHybridizationData.fHybridizeBCLevel;
     }
     ss << "\nfShouldCondense:\t" << fShouldCondense;
-    ss << "\nfIsEnhancedSpaces" << fIsEnhancedSpaces;
+    ss << "\nfIsRBSpaces" << fIsRBSpaces;
     ss << "\n\nmatids:\n\t{";
     for(auto it : fMaterialVec){
         ss << it.first <<", ";

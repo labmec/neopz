@@ -9,8 +9,10 @@
 #include <TPZLinearAnalysis.h>
 #include <pzskylstrmatrix.h>
 #include <pzfstrmatrix.h>
+#include "TPZEnumApproxFamily.h"
 
 #include <DarcyFlow/TPZMixedDarcyFlow.h>
+#include <Elasticity/TPZMixedElasticityND.h>
 #include "TPZHDivApproxCreator.h"
 #include "TPZVTKGenerator.h"
 #include "pzbuildmultiphysicsmesh.h"
@@ -18,21 +20,22 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-// #define USE_MAIN
+//#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
 #endif
 
+using namespace std;
+
 /// Creates a simple mesh used for testing
 TPZGeoMesh *Create2DGeoMesh();
 
-void InsertMaterials(TPZHDivApproxCreator &approxCreator);
+void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype);
 
-void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isEnhancedSpaces);
+void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces);
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam);
-
 
 enum MaterialIds {EDomain,EBCDirichlet,EBCNeumann};
 
@@ -44,12 +47,12 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     HDivFamily sType = GENERATE(HDivFamily::EHDivKernel,HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
     ProblemType pType = GENERATE(ProblemType::EDarcy);
     int pOrder = GENERATE(1,2,3,4);
-    bool isEnhanced = GENERATE(true,false);
+    bool isRBSpaces = GENERATE(true,false);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    TestHdivApproxSpaceCreator(sType,pType,pOrder,isEnhanced);
+    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces);
     std::cout << "Finish test HDiv Approx Space Creator \n";
 }
 #else
@@ -58,7 +61,11 @@ int main(){
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    TestHdivApproxSpaceCreator(HDivFamily::EHDivStandard,ProblemType::EDarcy, 1, true);
+    HDivFamily sType = HDivFamily::EHDivStandard;
+    ProblemType pType = ProblemType::EElastic;
+    const int pord = 1;
+    const bool isRBSpaces = false;
+    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces);
     
     return 0;
 }
@@ -85,35 +92,70 @@ TPZGeoMesh *Create2DGeoMesh() {
     return gmesh;
 }
 
-void InsertMaterials(TPZHDivApproxCreator &approxCreator){
+void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
+    
+    if (!approxCreator.GeoMesh()) {
+        cout << "\nError! Please set the geomesh before inserting materials" << endl;
+        DebugStop();
+    }
+    const int dim = approxCreator.GeoMesh()->Dimension();
 
-    approxCreator.ProbType() = ProblemType::EDarcy;
+    approxCreator.ProbType() = ptype;
 
-    TPZMixedDarcyFlow *mat = new TPZMixedDarcyFlow(EDomain,2);
-    mat->SetConstantPermeability(1.);
-    // mat->SetForcingFunction()
+    TPZMaterial *mat = nullptr;
+    TPZMixedDarcyFlow* matdarcy = nullptr;
+    TPZMixedElasticityND* matelas = nullptr;
+    if (ptype == ProblemType::EDarcy) {
+        matdarcy = new TPZMixedDarcyFlow(EDomain,2);
+        matdarcy->SetConstantPermeability(1.);
+        mat = matdarcy;
+    }
+    else if (ptype == ProblemType::EElastic){
+        REAL E = 20.59, nu = 0., fx = 0., fy = 0.;
+        const int plain = 1.; //* @param plainstress = 1 \f$ indicates use of plainstress
+        matelas = new TPZMixedElasticityND(EDomain, E, nu, fx, fy, plain, dim);
+        mat = matelas;
+    }
+
     approxCreator.InsertMaterialObject(mat->Id(),mat);
 
-    //Boundary Conditions
-    TPZFMatrix<STATE> val1(1,1,1.);
-    TPZManVector<STATE> val2(1,1.);
-
-    //Dirichlet Boundary Conditions
-    TPZBndCondT<STATE> * BCond1 = mat->CreateBC(mat, EBCDirichlet, 0, val1, val2);
-    // BCond->SetForcingFunctionBC(exactSol,4);
-    approxCreator.InsertMaterialObject(BCond1->Id(),BCond1);
-
-    val2[0] = 0.;
-    TPZBndCondT<STATE> * BCond2 = mat->CreateBC(mat, EBCNeumann, 1, val1, val2);
-    // BCond->SetForcingFunctionBC(exactSol,4);
-    approxCreator.InsertMaterialObject(BCond2->Id(),BCond2);
+    // ========> Boundary Conditions
+    // -----------------------------
     
+    TPZBndCondT<STATE> *BCond1 = nullptr, *BCond2 = nullptr;
+    const int dirType = 0, neuType = 1;
+    if (ptype == ProblemType::EDarcy) {
+        TPZFMatrix<STATE> val1(1,1,1.);
+        TPZManVector<STATE> val2(1,1.);
+        BCond1 = matdarcy->CreateBC(matdarcy, EBCDirichlet, dirType, val1, val2);
+        val2[0] = 0.;
+        BCond2 = matdarcy->CreateBC(matdarcy, EBCNeumann, neuType, val1, val2);
+    }
+    else if (ptype == ProblemType::EElastic){
+        TPZFMatrix<STATE> val1(2,2,0.);
+        TPZManVector<STATE> val2(2,1.);
+
+        BCond1 = matelas->CreateBC(matelas, EBCDirichlet, dirType, val1, val2);
+        val2[0] = 0.;
+        BCond2 = matelas->CreateBC(matelas, EBCNeumann, neuType, val1, val2);
+    }
+    else{
+        DebugStop(); // yet not supported material
+    }
+    
+    approxCreator.InsertMaterialObject(BCond1->Id(),BCond1);
+    approxCreator.InsertMaterialObject(BCond2->Id(),BCond2);
 }
 
 
-void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isEnhancedSpaces){
+void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces){
 
-    if (hdivFam == HDivFamily::EHDivKernel && isEnhancedSpaces) {
+    cout << "\n------------------ Starting test ------------------" << endl;
+    cout << "HdivFam = " << static_cast<std::underlying_type<HDivFamily>::type>(hdivFam) <<
+    "\nProblemType = " << static_cast<std::underlying_type<ProblemType>::type>(probType) <<
+    "\npOrder = " << pOrder << "\nisRBSpaces = " << isRigidBodySpaces << endl << endl;
+    
+    if (hdivFam == HDivFamily::EHDivKernel && isRigidBodySpaces) {
         //Hdiv kernel currently does not support enhanced spaces 
         return;
     }
@@ -124,9 +166,9 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
 
     hdivCreator.HdivFamily() = hdivFam;
     hdivCreator.ProbType() = probType;
-    hdivCreator.EnhancedSpaces() = isEnhancedSpaces;
+    hdivCreator.IsRigidBodySpaces() = isRigidBodySpaces;
     hdivCreator.SetDefaultOrder(pOrder);
-    InsertMaterials(hdivCreator);
+    InsertMaterials(hdivCreator,probType);
 
     TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace(); 
 
@@ -145,15 +187,17 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
         const std::string plotfile = "myfile";//sem o .vtk no final
         constexpr int vtkRes{0};    
 
-        TPZVec<std::string> fields = {
-        "Flux",
-        "Pressure"};
+        TPZManVector<std::string,2> fields = {"Flux","Pressure"};
+        if(probType == ProblemType::EElastic){
+            fields[0] = "SigmaX";
+            fields[1] = "Displacement";
+        }
         auto vtk = TPZVTKGenerator(cmesh, fields, plotfile, vtkRes);
 
         vtk.Do();
     }
 
-
+    cout << "\n------------------ Test ended with serious errors ------------------" << endl << endl;
 }
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam){
@@ -191,7 +235,7 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamil
 
     if (hdivfam != HDivFamily::EHDivKernel){
         TPZVec<STATE> vecintp = cmesh->Integrate(fields[1], matids);
-        std::cout << "\n--------------- Integral of Pressure --------------" <<  std::endl;
+        std::cout << "\n--------------- Integral of State Var --------------" <<  std::endl;
         std::cout << "Number of components = " << vecintp.size() <<  std::endl;
         for (int i = 0; i < vecintp.size(); i++)
         {
