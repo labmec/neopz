@@ -166,6 +166,9 @@ protected:
 
     /// Groups elements to be condensed
     virtual void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) = 0;
+
+    /// Changes the internal order of the volumetric connect of all CompEls in a given CMesh
+    void ChangeInternalOrder(TPZCompMesh *cmesh, int pOrder) const;
 };
 
 

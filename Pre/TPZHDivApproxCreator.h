@@ -59,6 +59,8 @@ private:
     
     /// Creates the rotation space for elasticity problems
     TPZCompMesh * CreateRotationSpace(const int pOrder, const int lagLevel);
+
+    
 };
 
 

@@ -9,6 +9,7 @@
 #include "TPZNullMaterialCS.h"
 #include "TPZMultiphysicsCompMesh.h"
 #include "TPZLagrangeMultiplier.h"
+#include "pzintel.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("CreateMultiphysicsSpace"));
@@ -358,4 +359,41 @@ void TPZApproxCreator::Print(std::ostream &ofs){
     ss <<"\n";
 
     ofs << ss.str();
+}
+
+void TPZApproxCreator::ChangeInternalOrder(TPZCompMesh *cmesh, int pOrder) const {
+    
+    int64_t nel = cmesh->NElements();
+    for (int64_t el = 0; el < nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        if (!cel) continue;
+
+        TPZGeoEl *gel = cel->Reference();
+        if (gel->Dimension() != cmesh->Dimension()) {//Only elements with the same dimension of the mesh
+            continue;
+        }
+        int nc = cel->NConnects();
+        //Gets the volumetric connect
+        int64_t conIndex = cel->ConnectIndex(nc-1);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cel);
+        if (!intel) DebugStop();
+
+        TPZConnect &c = cmesh->ConnectVec()[conIndex];
+        int64_t index;
+        //Sets the new connect order
+        c.SetOrder(pOrder,index);
+
+        //Gets connect information to update block size (stiffness matrix data structure)
+        int64_t seqnum = c.SequenceNumber();
+        int nvar = 1;
+        TPZMaterial * mat = cel->Material();
+        if (mat) nvar = mat->NStateVariables();
+        int nshape = intel->NConnectShapeF(nc-1,pOrder);
+        c.SetNShape(nshape);
+        // c.SetNState(nvar);
+        cmesh->Block().Set(seqnum, nvar * nshape);
+        
+        cel->SetIntegrationRule(2*pOrder);
+    }
+    cmesh->InitializeBlock();
 }
