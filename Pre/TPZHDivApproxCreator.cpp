@@ -45,6 +45,12 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
                      "need to be checked. Its implementation is not the same as \n" <<
                      "HDivStandard and HDivConstant spaces!!!! \n";
     }
+
+    if (fExtraInternalPOrder < 0 || fExtraInternalPOrder > 2){
+        std::cout << "Extra internal pOrder can only be 0, 1 or 2.\n";
+        DebugStop();
+    }
+
 }
 
 TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
@@ -109,11 +115,15 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
             cmesh->InsertMaterialObject(nullmat);
         }
     }
-   
+    
     //Creates computational elements       
     cmesh->ApproxSpace().SetHDivFamily(fHDivFam);
     cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(dim);
     cmesh->AutoBuild();
+
+    if (fExtraInternalPOrder > 0){
+        ChangeInternalOrder(cmesh,fDefaultPOrder+fExtraInternalPOrder);
+    }
 
     return cmesh;
 }
@@ -285,6 +295,12 @@ TPZCompMesh * TPZHDivApproxCreator::CreateRotationSpace(const int pOrder, const 
     return cmesh;
 }
 
+
+
+
 void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) {
     DebugStop(); // Implement me if needed
 }
+
+
+

@@ -58,7 +58,7 @@ void TPZShapeHDivConstant<TSHAPE>::Initialize(TPZVec<int64_t> &ids,
         }
 
         const int nedges = TSHAPE::NSides-TSHAPE::NFacets-TSHAPE::NCornerNodes-1;
-        TPZManVector<int,15> locconorders(TSHAPE::NSides-TSHAPE::NCornerNodes,1);
+        TPZManVector<int,19> locconorders(TSHAPE::NSides-TSHAPE::NCornerNodes,1);
         for(int ic = nedges; ic<TSHAPE::NSides-TSHAPE::NCornerNodes; ic++)
         {
             locconorders[ic] = connectorders[ic-nedges];

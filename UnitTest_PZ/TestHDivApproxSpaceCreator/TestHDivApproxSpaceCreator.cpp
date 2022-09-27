@@ -16,6 +16,8 @@
 #include "TPZHDivApproxCreator.h"
 #include "TPZVTKGenerator.h"
 #include "pzbuildmultiphysicsmesh.h"
+#include "TPZSSpStructMatrix.h"
+#include "pzstepsolver.h"
 
 #include <pzlog.h>
 
@@ -34,9 +36,11 @@ TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType);
 
 void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype);
 
-void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType);
+void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType, int extrapOrder);
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam);
+
+void Refinement(TPZGeoMesh *gmesh);
 
 enum MaterialIds {EDomain,EBCDirichlet,EBCNeumann,EBCDisplacementLeft,EBCDisplacementRight};
 
@@ -45,6 +49,15 @@ constexpr const char* HDivFamilyToChar(HDivFamily hdivfam) {
         case HDivFamily::EHDivStandard: return "EHDivStandard";
         case HDivFamily::EHDivConstant: return "EHDivConstant";
         case HDivFamily::EHDivKernel: return "EHDivKernel";
+        default: std::invalid_argument("Unimplemented item");
+    }
+}
+constexpr const char* ProblemTypeToChar(ProblemType ptype) {
+    switch (ptype){
+        case ProblemType::EDarcy: return "EDarcy";
+        case ProblemType::EElastic: return "EElastic";
+        case ProblemType::EStokes: return "EStokes";
+        case ProblemType::ENone: return "ENone";
         default: std::invalid_argument("Unimplemented item");
     }
 }
@@ -58,13 +71,14 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     HDivFamily sType = GENERATE(HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
     ProblemType pType = GENERATE(ProblemType::EDarcy);
     int pOrder = GENERATE(1,2,3,4);
-    bool isRBSpaces = GENERATE(true,false);
+    bool isRBSpaces = GENERATE(false);
     MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
+    int extraporder = GENERATE(0,1,2);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces,mType);
+    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces,mType,extraporder);
     std::cout << "Finish test HDiv Approx Space Creator \n";
 }
 #else
@@ -73,18 +87,19 @@ int main(){
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    HDivFamily sType = HDivFamily::EHDivStandard;
+    // HDivFamily sType = HDivFamily::EHDivStandard;
     // HDivFamily sType = HDivFamily::EHDivKernel;
-    // HDivFamily sType = HDivFamily::EHDivConstant;
-    ProblemType pType = ProblemType::EElastic;
-    // ProblemType pType = ProblemType::EDarcy;
-    const int pord = 1;
+    HDivFamily sType = HDivFamily::EHDivConstant;
+    // ProblemType pType = ProblemType::EElastic;
+    ProblemType pType = ProblemType::EDarcy;
+    const int pord = 2;
     const bool isRBSpaces = false;
     // MMeshType mType = MMeshType::EQuadrilateral;
     // MMeshType mType = MMeshType::ETriangular;
     MMeshType mType = MMeshType::EHexahedral;
     // MMeshType mType = MMeshType::ETetrahedral;
-    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType);
+    int extraporder = 1;
+    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder);
     
     return 0;
 }
@@ -115,8 +130,6 @@ TPZGeoMesh *Create2DGeoMesh(ProblemType& pType, MMeshType &mType) {
         gen2d.SetBC(gmesh, 7, EBCDisplacementLeft);
     }
     
-    std::ofstream out("GeoMesh.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
     
     return gmesh;
 }
@@ -138,8 +151,7 @@ TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType) {
         gmesh = gen3d.BuildBoundaryElements(EBCNeumann,EBCDisplacementLeft,EBCNeumann,EBCDisplacementRight,EBCNeumann,EBCNeumann);
     }
     
-    std::ofstream out("GeoMesh.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+    
     
     return gmesh;
 }
@@ -204,12 +216,13 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
 }
 
 
-void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType){
+void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType, int extrapOrder){
 
     cout << "\n------------------ Starting test ------------------" << endl;
     cout << "HdivFam = " << HDivFamilyToChar(hdivFam) <<
-    "\nProblemType = " << static_cast<std::underlying_type<ProblemType>::type>(probType) <<
-    "\npOrder = " << pOrder << "\nisRBSpaces = " << isRigidBodySpaces <<"\nMeshType = " << mType << endl << endl;
+    "\nProblemType = " << ProblemTypeToChar(probType) <<
+    "\npOrder = " << pOrder << "\nisRBSpaces = " << std::boolalpha << isRigidBodySpaces << 
+    "\nMeshType = " << mType << "\nExtra POrder = " << extrapOrder << endl << endl;
     
     if (hdivFam == HDivFamily::EHDivKernel && isRigidBodySpaces) {
         std::cout << " Hdiv kernel currently does not support enhanced spaces \n";
@@ -226,6 +239,10 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
         DebugStop();
     }
      
+    // Refinement(gmesh);
+
+    std::ofstream out("GeoMesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
 
     TPZHDivApproxCreator hdivCreator(gmesh);
 
@@ -233,6 +250,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     hdivCreator.ProbType() = probType;
     hdivCreator.IsRigidBodySpaces() = isRigidBodySpaces;
     hdivCreator.SetDefaultOrder(pOrder);
+    hdivCreator.SetExtraInternalOrder(extrapOrder);
     InsertMaterials(hdivCreator,probType);
 
     TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace(); 
@@ -241,26 +259,37 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     std::ofstream myfile(txt);
     cmesh->Print(myfile);
 
+    constexpr int nThreads{0};
+    TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>> matsp(cmesh);
+    matsp.SetNumThreads(nThreads);
+
     std::cout << "Number of equations = " << cmesh->NEquations() << std::endl;
     TPZLinearAnalysis an(cmesh,true);
+
+    an.SetStructuralMatrix(matsp);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    an.SetSolver(step);
     an.Run();
 
     CheckIntegralOverDomain(cmesh,probType,hdivFam);
 
-    {
-        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(cmesh->MeshVector(), cmesh);
-        const std::string plotfile = "myfile";//sem o .vtk no final
-        constexpr int vtkRes{0};    
+#ifdef USE_MAIN
+    
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(cmesh->MeshVector(), cmesh);
+    const std::string plotfile = "myfile";//sem o .vtk no final
+    constexpr int vtkRes{0};    
 
-        TPZManVector<std::string,2> fields = {"Flux","Pressure"};
-        if(probType == ProblemType::EElastic){
-            fields[0] = "SigmaX";
-            fields[1] = "Displacement";
-        }
-        auto vtk = TPZVTKGenerator(cmesh, fields, plotfile, vtkRes);
-
-        vtk.Do();
+    TPZManVector<std::string,2> fields = {"Flux","Pressure"};
+    if(probType == ProblemType::EElastic){
+        fields[0] = "SigmaX";
+        fields[1] = "Displacement";
     }
+    auto vtk = TPZVTKGenerator(cmesh, fields, plotfile, vtkRes);
+
+    vtk.Do();
+    
+#endif
 
     cout << "\n------------------ Test ended with serious errors ------------------" << endl << endl;
 }
@@ -331,4 +360,14 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamil
         }
 #endif
     }
+}
+
+
+void Refinement(TPZGeoMesh *gmesh){
+    // children[0]->Divide(children);
+
+    TPZManVector<TPZGeoEl*,10> children;
+    gmesh->ElementVec()[0]->Divide(children);
+    
+    children[0]->Divide(children); 
 }
