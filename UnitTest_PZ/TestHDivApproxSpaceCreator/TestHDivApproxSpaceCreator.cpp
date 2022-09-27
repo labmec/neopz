@@ -29,30 +29,42 @@
 using namespace std;
 
 /// Creates a simple mesh used for testing
-TPZGeoMesh *Create2DGeoMesh(ProblemType& pType);
+TPZGeoMesh *Create2DGeoMesh(ProblemType& pType, MMeshType &mType);
+TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType);
 
 void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype);
 
-void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces);
+void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType);
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam);
 
 enum MaterialIds {EDomain,EBCDirichlet,EBCNeumann,EBCDisplacementLeft,EBCDisplacementRight};
+
+constexpr const char* HDivFamilyToChar(HDivFamily hdivfam) {
+    switch (hdivfam){
+        case HDivFamily::EHDivStandard: return "EHDivStandard";
+        case HDivFamily::EHDivConstant: return "EHDivConstant";
+        case HDivFamily::EHDivKernel: return "EHDivKernel";
+        default: std::invalid_argument("Unimplemented item");
+    }
+}
 
 
 #ifndef USE_MAIN
 TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     std::cout << "Testing HDiv Approx Space Creator \n";
     
-    HDivFamily sType = GENERATE(HDivFamily::EHDivKernel,HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
+    // HDivFamily sType = GENERATE(HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
+    HDivFamily sType = GENERATE(HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
     ProblemType pType = GENERATE(ProblemType::EDarcy);
     int pOrder = GENERATE(1,2,3,4);
     bool isRBSpaces = GENERATE(true,false);
+    MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces);
+    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces,mType);
     std::cout << "Finish test HDiv Approx Space Creator \n";
 }
 #else
@@ -62,26 +74,31 @@ int main(){
     TPZLogger::InitializePZLOG();
 #endif
     HDivFamily sType = HDivFamily::EHDivStandard;
-//    HDivFamily sType = HDivFamily::EHDivConstant;
+    // HDivFamily sType = HDivFamily::EHDivKernel;
+    // HDivFamily sType = HDivFamily::EHDivConstant;
     ProblemType pType = ProblemType::EElastic;
+    // ProblemType pType = ProblemType::EDarcy;
     const int pord = 1;
-    const bool isRBSpaces = true;
-    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces);
+    const bool isRBSpaces = false;
+    // MMeshType mType = MMeshType::EQuadrilateral;
+    // MMeshType mType = MMeshType::ETriangular;
+    MMeshType mType = MMeshType::EHexahedral;
+    // MMeshType mType = MMeshType::ETetrahedral;
+    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType);
     
     return 0;
 }
 #endif
 
 
-TPZGeoMesh *Create2DGeoMesh(ProblemType& pType) {
+TPZGeoMesh *Create2DGeoMesh(ProblemType& pType, MMeshType &mType) {
     
     // ----- Create Geo Mesh -----
     const TPZManVector<REAL,2> minX = {-1.,-1.};
     const TPZManVector<REAL,2> maxX = {1.,1.};
     const TPZManVector<int,2> nelDiv = {2,2};
     TPZGenGrid2D gen2d(nelDiv,minX,maxX);
-    const MMeshType elType = MMeshType::EQuadrilateral;
-    gen2d.SetElementType(elType);
+    gen2d.SetElementType(mType);
     TPZGeoMesh* gmesh = new TPZGeoMesh;
     gen2d.Read(gmesh,EDomain);
 
@@ -104,6 +121,29 @@ TPZGeoMesh *Create2DGeoMesh(ProblemType& pType) {
     return gmesh;
 }
 
+TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType) {
+    
+    // ----- Create Geo Mesh -----
+    const TPZManVector<REAL,3> minX = {-1.,-1.,-1.};
+    const TPZManVector<REAL,3> maxX = {1.,1.,1.};
+    const TPZManVector<int,3> nelDiv = {2,2,2};
+    TPZGenGrid3D gen3d(minX,maxX,nelDiv,mType);
+    TPZGeoMesh* gmesh = new TPZGeoMesh;
+    gmesh = gen3d.BuildVolumetricElements(EDomain);
+
+    if(pType == ProblemType::EDarcy){
+        gmesh = gen3d.BuildBoundaryElements(EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet);
+    }
+    else if (pType == ProblemType::EElastic){
+        gmesh = gen3d.BuildBoundaryElements(EBCNeumann,EBCDisplacementLeft,EBCNeumann,EBCDisplacementRight,EBCNeumann,EBCNeumann);
+    }
+    
+    std::ofstream out("GeoMesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+    
+    return gmesh;
+}
+
 void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
     
     if (!approxCreator.GeoMesh()) {
@@ -118,7 +158,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
     TPZMixedDarcyFlow* matdarcy = nullptr;
     TPZMixedElasticityND* matelas = nullptr;
     if (ptype == ProblemType::EDarcy) {
-        matdarcy = new TPZMixedDarcyFlow(EDomain,2);
+        matdarcy = new TPZMixedDarcyFlow(EDomain,dim);
         matdarcy->SetConstantPermeability(1.);
         mat = matdarcy;
     }
@@ -144,8 +184,8 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
         BCond2 = matdarcy->CreateBC(matdarcy, EBCNeumann, neuType, val1, val2);
     }
     else if (ptype == ProblemType::EElastic){
-        TPZFMatrix<STATE> val1(2,2,0.);
-        TPZManVector<STATE> val2(2,0.);
+        TPZFMatrix<STATE> val1(dim,dim,0.);
+        TPZManVector<STATE> val2(dim,0.);
 
         val2[0] = 0.;
         BCond1 = matelas->CreateBC(matelas, EBCNeumann, neuType, val1, val2);
@@ -164,19 +204,28 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
 }
 
 
-void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces){
+void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType){
 
     cout << "\n------------------ Starting test ------------------" << endl;
-    cout << "HdivFam = " << static_cast<std::underlying_type<HDivFamily>::type>(hdivFam) <<
+    cout << "HdivFam = " << HDivFamilyToChar(hdivFam) <<
     "\nProblemType = " << static_cast<std::underlying_type<ProblemType>::type>(probType) <<
-    "\npOrder = " << pOrder << "\nisRBSpaces = " << isRigidBodySpaces << endl << endl;
+    "\npOrder = " << pOrder << "\nisRBSpaces = " << isRigidBodySpaces <<"\nMeshType = " << mType << endl << endl;
     
     if (hdivFam == HDivFamily::EHDivKernel && isRigidBodySpaces) {
-        //Hdiv kernel currently does not support enhanced spaces 
+        std::cout << " Hdiv kernel currently does not support enhanced spaces \n";
         return;
     }
 
-    TPZGeoMesh *gmesh = Create2DGeoMesh(probType);
+
+    TPZGeoMesh *gmesh;
+    if (mType == MMeshType::EQuadrilateral || mType == MMeshType::ETriangular){
+        gmesh = Create2DGeoMesh(probType,mType);
+    } else if (mType == MMeshType::EHexahedral || mType == MMeshType::ETetrahedral){
+        gmesh = Create3DGeoMesh(probType,mType);
+    } else {
+        DebugStop();
+    }
+     
 
     TPZHDivApproxCreator hdivCreator(gmesh);
 
@@ -218,6 +267,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam){
 
+    int dim = cmesh -> Dimension();
     TPZVec<std::string> fields(2);
     switch (probType){
     case ProblemType::EDarcy:
@@ -244,11 +294,19 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamil
     {
         std::cout << "Integral(" << i << ") = "  << vecint[i] << std::endl;
 #ifndef USE_MAIN
-        REQUIRE(fabs(vecint[i]) < 1.e-10);
+        if (probType == ProblemType::EDarcy){
+            REQUIRE(fabs(vecint[i]) < 1.e-10);
+        }        
 #endif
     }
     std::cout << std::endl;
-
+#ifndef USE_MAIN
+    if (probType == ProblemType::EElastic){
+        if (dim == 2) REQUIRE(fabs(vecint[0]) == Approx( 2.0 ));
+        if (dim == 3) REQUIRE(fabs(vecint[0]) == Approx( 4.0 ));
+        for (int i = 1; i < vecint.size(); i++) REQUIRE(fabs(vecint[i]) < 1.e-10);
+    }   
+#endif
     if (hdivfam != HDivFamily::EHDivKernel){
         TPZVec<STATE> vecintp = cmesh->Integrate(fields[1], matids);
         std::cout << "\n--------------- Integral of State Var --------------" <<  std::endl;
@@ -257,9 +315,20 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamil
         {
             std::cout << "Integral(" << i << ") = "  << vecintp[i] << std::endl;
 #ifndef USE_MAIN
-            REQUIRE(fabs(vecintp[i]) == Approx( 4.0 ));
+            if (probType == ProblemType::EDarcy){
+                if (dim == 2) REQUIRE(fabs(vecintp[i]) == Approx( 4.0 ));
+                if (dim == 3) REQUIRE(fabs(vecintp[i]) == Approx( 8.0 ));
+            }
 #endif
         }
         std::cout << std::endl;
+#ifndef USE_MAIN
+        if (probType == ProblemType::EElastic){
+            if (dim == 2) REQUIRE(fabs(vecintp[0]) == Approx( 2.0 ));
+            if (dim == 3) REQUIRE(fabs(vecintp[0]) == Approx( 4.0 ));
+            REQUIRE(fabs(vecintp[1]) < 1.e-10);
+            REQUIRE(fabs(vecintp[2]) < 1.e-10);
+        }
+#endif
     }
 }

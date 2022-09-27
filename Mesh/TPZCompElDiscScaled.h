@@ -52,13 +52,13 @@ public:
     }
     
     /** @brief Compute shape functions multiplied by scale value*/
-    virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
+    void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
                                      TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
                                      REAL &detjac, TPZFMatrix<REAL> &jacinv,
-                              TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphix);    
+                              TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphix) override;    
 
     
-    virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+    TPZCompEl *Clone(TPZCompMesh &mesh) const override {
             return new TPZCompElDiscScaled(mesh,*this);
     }
     
