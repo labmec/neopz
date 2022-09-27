@@ -39,6 +39,12 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
         std::cout << "Are you sure about this?\n";
         DebugStop();
     }
+
+    if (fHDivFam == HDivFamily::EHDivKernel){
+        std::cout << "Pay attention to your material, the boundary conditions \n" <<
+                     "need to be checked. Its implementation is not the same as \n" <<
+                     "HDivStandard and HDivConstant spaces!!!! \n";
+    }
 }
 
 TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
@@ -205,7 +211,14 @@ TPZCompMesh * TPZHDivApproxCreator::CreateRotationSpace(const int pOrder, const 
     const int dim = fGeoMesh->Dimension();
     //Criando malha computacional:
     TPZCompMesh * cmesh = new TPZCompMesh(fGeoMesh);
-    cmesh->SetDefaultOrder(pOrder); //Insere ordem polimonial de aproximação
+    //Insere ordem polimonial de aproximação
+    if (fHDivFam == HDivFamily::EHDivConstant){
+        cmesh->SetDefaultOrder(0);
+    } else if (fHDivFam == HDivFamily::EHDivStandard){
+        cmesh->SetDefaultOrder(pOrder);
+    }else {
+        DebugStop();
+    }
     cmesh->SetDimModel(dim); //Insere dimensão do modelo
 
     cmesh->SetAllCreateFunctionsDiscontinuous();

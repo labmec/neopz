@@ -1089,9 +1089,12 @@ void TPZMixedElasticityND::Solution(const TPZVec<TPZMaterialDataT<STATE>> &data,
         }
     }
     TPZManVector<STATE, 3> disp(dim);
-    for (int i = 0; i < dim; i++) {
-        disp[i] = data[1].sol[0][i];
+    if ( var == 9 && data[1].sol[0].size() != 0){
+        for (int i = 0; i < dim; i++) {
+            disp[i] = data[1].sol[0][i];
+        }
     }
+    
     TPZFNMatrix<9, STATE> antisym(dim, dim, 0.);
     antisym(0, 1) = data[2].sol[0][0];
     antisym(1, 0) = -antisym(0, 1);
