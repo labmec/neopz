@@ -36,7 +36,7 @@ TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType);
 
 void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype);
 
-void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType, int extrapOrder);
+void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType, int extrapOrder, bool isCondensed);
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam);
 
@@ -71,14 +71,15 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     HDivFamily sType = GENERATE(HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
     ProblemType pType = GENERATE(ProblemType::EDarcy);
     int pOrder = GENERATE(1,2,3,4);
-    bool isRBSpaces = GENERATE(false);
+    bool isRBSpaces = GENERATE(false,true);
     MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
     int extraporder = GENERATE(0,1,2);
+    bool isCondensed = GENERATE(true,false);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces,mType,extraporder);
+    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces,mType,extraporder,isCondensed);
     std::cout << "Finish test HDiv Approx Space Creator \n";
 }
 #else
@@ -98,8 +99,9 @@ int main(){
     // MMeshType mType = MMeshType::ETriangular;
     MMeshType mType = MMeshType::EHexahedral;
     // MMeshType mType = MMeshType::ETetrahedral;
-    int extraporder = 1;
-    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder);
+    int extraporder = 0;
+    bool isCondensed = true;
+    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed);
     
     return 0;
 }
@@ -216,7 +218,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
 }
 
 
-void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType, int extrapOrder){
+void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType, int extrapOrder, bool isCondensed){
 
     cout << "\n------------------ Starting test ------------------" << endl;
     cout << "HdivFam = " << HDivFamilyToChar(hdivFam) <<
@@ -251,6 +253,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     hdivCreator.IsRigidBodySpaces() = isRigidBodySpaces;
     hdivCreator.SetDefaultOrder(pOrder);
     hdivCreator.SetExtraInternalOrder(extrapOrder);
+    hdivCreator.SetShouldCondense(isCondensed);
     InsertMaterials(hdivCreator,probType);
 
     TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace(); 
