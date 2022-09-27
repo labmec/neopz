@@ -1120,7 +1120,7 @@ void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large
             int sideNeigh = neigh.Side();
 
             if (neigh.Element()->GetSideOrientation(sideNeigh) == sOrientThis){
-                TPZInterpolatedElement *neighintel = dynamic_cast<TPZInterpolatedElement *>(neigh.Element());
+                TPZInterpolatedElement *neighintel = dynamic_cast<TPZInterpolatedElement *>(neigh.Element()->Reference());
                 neighintel->SetSideOrient(sideNeigh,-sOrientThis);
             }
         }
