@@ -57,8 +57,12 @@ void TPZL2ProjectionHDiv<TVar>::Contribute(const TPZMaterialDataT<TVar> &data,
     }
 
     for (int iq = 0; iq < phrq; iq++) {
-        ef(iq, 0) +=  solLoc[0] * (data.fDeformedDirections(0, iq) + data.fDeformedDirections(1, iq) + data.fDeformedDirections(2, iq)) * weight;
+        for (int idim = 0; idim < this->fDim; idim++) {
+            ef(iq, 0) +=  solLoc[0] * data.fDeformedDirections(idim, iq) * weight;
+        }
     }
+
+
 }
 
 

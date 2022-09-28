@@ -33,7 +33,9 @@ void TPZL2ProjectionHCurl<TVar>::Contribute(const TPZMaterialDataT<TVar> &data,
     }
 
     for (int iq = 0; iq < phrq; iq++) {
-        ef(iq, 0) +=  solLoc[0] * (phi(iq, 0) + phi(iq, 1) + phi(iq, 2)) * weight;
+        for (int idim = 0; idim < this->fDim; idim++) {
+            ef(iq, 0) +=  solLoc[0] * phi(iq, idim) * weight;
+        }
     }
 }
 

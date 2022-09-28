@@ -13,6 +13,7 @@
 #include "pzshapetriang.h"
 #include "pzshapetetra.h"
 #include "pzshapeprism.h"
+#include "pzvec_extras.h"
 
 using namespace pzshape;
 
@@ -41,7 +42,7 @@ using namespace pzshape;
 #include "pzrefquad.h"
 #include "TPZRefCube.h"
 
-// #define USE_MAIN
+#undef USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -67,7 +68,7 @@ enum SpaceType {EH1, EHDivConstant, EHDivKernel, EHDivStandard, EHCurl, EHCurlNo
 */
 template<class tshape>
 void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype);
-
+MMeshType GetMeshType(const MElementType elType);
 void CheckSideOrientation(TPZGeoElSide &side1, TPZGeoElSide &side2);
 void CheckElementInterfaces(TPZCompMesh *cmesh);
 
@@ -78,16 +79,28 @@ TPZCompMesh * CreateCMeshHDiv(TPZGeoMesh* gmesh, int pOrder, const int volId, HD
 TPZCompMesh * CreateCMeshHDiv2(TPZGeoMesh* gmesh, int pOrder, const int volId, HDivFamily hdivfam);
 TPZCompMesh * CreateCMeshHCurl(TPZGeoMesh* gmesh, int pOrder, const int volId, HCurlFamily hcurlfam);
 
+constexpr const char* STypeToChar(SpaceType stype) {
+  switch (stype){
+    case SpaceType::EHDivStandard: return "EHDivStandard";
+    case SpaceType::EHDivConstant: return "EHDivConstant";
+    case SpaceType::EHDivKernel: return "EHDivKernel";
+    case SpaceType::EH1: return "EH1";
+    case SpaceType::EHCurl: return "EHCurl";
+    case SpaceType::EHCurlNoGrads: return "EHCurlNoGrads";
+    default: std::invalid_argument("Unimplemented item");
+  }
+}
+
 // Test Hanging Nodes: FOR DEBUGGING PURPOSES
 #ifndef USE_MAIN
 TEST_CASE("Constrained Space", "[constrained_space_test]") {
     std::cout << "Testing Hanging Nodes \n";
     
     const int xdiv = GENERATE(2);
-    const int pOrder = GENERATE(1);
-    // SpaceType sType = GENERATE(EHDivStandard);
-    SpaceType sType = GENERATE(EHDivConstant);
-    // SpaceType sType = GENERATE(EHCurl);
+    const int pOrder = GENERATE(1,2);
+    SpaceType sType = GENERATE(EHDivConstant,EHDivStandard,
+                               // EHCurl,
+                               EH1);
     
     TestConstrainedSpace<pzshape::TPZShapeTriang>(xdiv,pOrder,sType);
     TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType);
@@ -100,26 +113,21 @@ int main(){
 
     const int xdiv = 2;
     const int pOrder = 1;
-    // SpaceType sType = EHCurl;
+    SpaceType sType = EHCurl;
     // SpaceType sType = EHDivStandard;
     // SpaceType sType = EHCurlNoGrads;
-    SpaceType sType = EHDivConstant;
+    // SpaceType sType = EHDivConstant;
 
-    TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType);
+    TestConstrainedSpace<pzshape::TPZShapeCube>(xdiv,pOrder,sType);
 
     return 0;
 }
 #endif
 
-// ---------------------------------------------------------------------
-// ---------------------------------------------------------------------
-
-template<class tshape>
-TPZGeoMesh* CreateGeoMesh(const TPZVec<int> &nDivs, const int volId, const int bcId)
-{
+MMeshType GetMeshType(const MElementType elType){
     MMeshType meshType;
 
-    switch (tshape::Type())
+    switch (elType)
     {
     case ETriangle:
         meshType = MMeshType::ETriangular;
@@ -140,6 +148,17 @@ TPZGeoMesh* CreateGeoMesh(const TPZVec<int> &nDivs, const int volId, const int b
         DebugStop();
     }
 
+    return meshType;
+}
+
+
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+
+template<class tshape>
+TPZGeoMesh* CreateGeoMesh(const TPZVec<int> &nDivs, const int volId, const int bcId)
+{
+    MMeshType meshType = GetMeshType(tshape::Type());
 
     TPZManVector<REAL,3> minX = {0,0,0};
     TPZManVector<REAL,3> maxX = {1,1,1};
@@ -173,6 +192,14 @@ auto forcefunction = [](const TPZVec<REAL> &loc,
 
 template<class tshape>
 void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
+
+    MMeshType type = GetMeshType(tshape::Type());
+    static int globcount = 0;
+    std::cout << "\n------------------ Starting test " << globcount++ << " ------------------" << std::endl;
+    std::cout << "SpaceType = " << STypeToChar(stype) <<
+    "\nxdiv = " << xdiv <<
+    "\nTopology = " << type <<
+    "\npOrder = " << pOrder << std::endl << std::endl;
 
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
@@ -483,32 +510,32 @@ void CheckSideOrientation(TPZGeoElSide &thisGeoSide, TPZGeoElSide &largeGeoSide)
     //     }
         
     // }
-    std::cout << "thisGeoSide Nodes = " ;
-    for (int i = 0; i < thisGeoSide.NSideNodes(); i++){
-        std::cout << thisGeoSide.SideNodeIndex(i) << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "thisGeoSide Nodes = " ;
+    // for (int i = 0; i < thisGeoSide.NSideNodes(); i++){
+    //     std::cout << thisGeoSide.SideNodeIndex(i) << " ";
+    // }
+    // std::cout << std::endl;
 
-    std::cout << "largeGeoSide Nodes = " ;
-    for (int i = 0; i < largeGeoSide.NSideNodes(); i++){
-        std::cout << largeGeoSide.SideNodeIndex(i) << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "largeGeoSide Nodes = " ;
+    // for (int i = 0; i < largeGeoSide.NSideNodes(); i++){
+    //     std::cout << largeGeoSide.SideNodeIndex(i) << " ";
+    // }
+    // std::cout << std::endl;
 
-    // TPZVec<REAL> normalLarge,normalThis;
+    TPZVec<REAL> normalLarge,normalThis;
     auto neighTransf = thisGeoSide.NeighbourSideTransform(largeGeoSide);
-    // TPZManVector<REAL, 3> neighXi(largeGeoSide.Dimension(), 0);
-    // TPZManVector<REAL,3> xiSide(thisGeoSide.Dimension(),0);
-    // neighTransf.Apply(xiSide, neighXi);
-    // largeGeoSide.Normal(neighXi,normalLarge);
-    // thisGeoSide.Normal(xiSide,normalThis);
+    TPZManVector<REAL, 3> neighXi(largeGeoSide.Dimension(), 0);
+    TPZManVector<REAL,3> xiSide(thisGeoSide.Dimension(),0);
+    neighTransf.Apply(xiSide, neighXi);
+    largeGeoSide.Normal(neighXi,normalLarge);
+    thisGeoSide.Normal(xiSide,normalThis);
     REAL det;
     TPZFMatrix<REAL> inv;
     neighTransf.Mult().DeterminantInverse(det,inv);
 
     // std::cout << "Normal Large = " << normalLarge << std::endl;
     // std::cout << "Normal This = " << normalThis << std::endl;
-    std::cout << "Determinant = " << det << std::endl << std::endl;
+    // std::cout << "Determinant = " << det << std::endl << std::endl;
 }
 
 // ---------------------------------------------------------------------

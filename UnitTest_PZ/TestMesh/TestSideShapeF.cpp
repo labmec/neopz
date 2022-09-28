@@ -57,10 +57,8 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype);
 TEST_CASE("Side Shape Function", "[side_shape_test]") {
     std::cout << "Testing Side Shape Functions \n";
 
-    const int pOrder = GENERATE(1,2);
-    // SpaceType sType = GENERATE(EHDivStandard);
+    const int pOrder = GENERATE(1,2,3);
     SpaceType sType = GENERATE(EHDivConstant,EHDivStandard);
-    // SpaceType sType = GENERATE(EHCurl);
     
     TesteSideShapeFunction<pzshape::TPZShapeTriang>(pOrder,sType);
     TesteSideShapeFunction<pzshape::TPZShapeQuad>(pOrder,sType);
