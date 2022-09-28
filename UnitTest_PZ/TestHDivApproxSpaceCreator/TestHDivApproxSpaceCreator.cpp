@@ -22,7 +22,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-//#define USE_MAIN
+#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -36,7 +36,9 @@ TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType);
 
 void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype);
 
-void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType, int extrapOrder, bool isCondensed);
+void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder,
+                                bool isRigidBodySpaces, MMeshType mType, int extrapOrder,
+                                bool isCondensed, HybridizationType hType);
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam);
 
@@ -51,6 +53,15 @@ constexpr const char* HDivFamilyToChar(HDivFamily hdivfam) {
         case HDivFamily::EHDivStandard: return "EHDivStandard";
         case HDivFamily::EHDivConstant: return "EHDivConstant";
         case HDivFamily::EHDivKernel: return "EHDivKernel";
+        default: std::invalid_argument("Unimplemented item");
+    }
+}
+constexpr const char* HybridizationTypeToChar(HybridizationType hType) {
+    switch (hType){
+        case HybridizationType::ENone: return "ENone";
+        case HybridizationType::EStandard: return "EStandard";
+        case HybridizationType::EStandardSquared: return "EStandardSquared";
+        case HybridizationType::ESemi: return "ESemi";
         default: std::invalid_argument("Unimplemented item");
     }
 }
@@ -103,11 +114,12 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
     int extraporder = GENERATE(0,1,2);
     bool isCondensed = GENERATE(true,false);
+    HybridizationType hType = GENERATE(HybridizationType::ENone);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces,mType,extraporder,isCondensed);
+    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces,mType,extraporder,isCondensed,hType);
     std::cout << "Finish test HDiv Approx Space Creator \n";
 }
 #else
@@ -133,7 +145,9 @@ int main(){
     
     int extraporder = 0;
     bool isCondensed = true;
-    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed);
+    HybridizationType hType = HybridizationType::EStandard;
+    
+    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed,hType);
     
     return 0;
 }
@@ -145,7 +159,7 @@ TPZGeoMesh *Create2DGeoMesh(ProblemType& pType, MMeshType &mType) {
     // ----- Create Geo Mesh -----
     const TPZManVector<REAL,2> minX = {-1.,-1.};
     const TPZManVector<REAL,2> maxX = {1.,1.};
-    const TPZManVector<int,2> nelDiv = {2,2};
+    const TPZManVector<int,2> nelDiv = {2,1};
     TPZGenGrid2D gen2d(nelDiv,minX,maxX);
     gen2d.SetElementType(mType);
     TPZGeoMesh* gmesh = new TPZGeoMesh;
@@ -252,7 +266,9 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
 }
 
 
-void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType, int extrapOrder, bool isCondensed){
+void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder,
+                                bool isRigidBodySpaces, MMeshType mType, int extrapOrder,
+                                bool isCondensed, HybridizationType hType){
 
     static int globcount = 0;
     cout << "\n------------------ Starting test " << globcount++ << " ------------------" << endl;
@@ -260,7 +276,8 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     "\nProblemType = " << ProblemTypeToChar(probType) <<
     "\npOrder = " << pOrder << "\nisRBSpaces = " << std::boolalpha << isRigidBodySpaces << 
     "\nMeshType = " << mType << "\nExtra POrder = " << extrapOrder <<
-    "\nisCondensed = " << std::boolalpha << isCondensed << endl << endl;
+    "\nisCondensed = " << std::boolalpha << isCondensed <<
+    "\nHybridization type = " << HybridizationTypeToChar(hType) << endl << endl;
     
     // TODO: WARNING!!!! Things to be fixed and for now we are skipping
     if(isRigidBodySpaces && hdivFam == HDivFamily::EHDivConstant){
@@ -271,13 +288,10 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
         cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
         return;
     }
-
-    
     if (hdivFam == HDivFamily::EHDivKernel && isRigidBodySpaces) {
         std::cout << " Hdiv kernel currently does not support enhanced spaces \n";
         return;
     }
-
 
     TPZGeoMesh *gmesh;
     if (mType == MMeshType::EQuadrilateral || mType == MMeshType::ETriangular){
@@ -301,7 +315,8 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     hdivCreator.SetDefaultOrder(pOrder);
     hdivCreator.SetExtraInternalOrder(extrapOrder);
     hdivCreator.SetShouldCondense(isCondensed);
-    hdivCreator.HybridType() = HybridizationType::EStandard;
+    hdivCreator.HybridType() = hType;
+//    hdivCreator.SetHybridizeBoundary();
     InsertMaterials(hdivCreator,probType);
 
     TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace(); 

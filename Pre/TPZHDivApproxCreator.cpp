@@ -5,6 +5,7 @@
 #include "TPZBndCond.h"
 #include "TPZNullMaterial.h"
 #include "TPZMultiphysicsCompMesh.h"
+#include "TPZNullMaterialCS.h"
 
 #include <DarcyFlow/TPZMixedDarcyFlow.h>
 #include "TPZBndCondT.h"
@@ -60,6 +61,7 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
     CheckSetupConsistency();
 
     if (fHybridType != HybridizationType::ENone){
+        ComputePeriferalMaterialIds();
         AddHybridizationGeoElements();
         std::ofstream out("GeoMeshHybrid.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh, out);
@@ -120,11 +122,13 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     
     cmesh->SetDimModel(dim);
 
+    int nstate = 0;
     for (std::pair<int,TPZMaterial*> matpair : fMaterialVec) {
         TPZMaterial* mat = matpair.second;
         TPZBndCond *bnd = dynamic_cast<TPZBndCond *> (mat);
         if (!bnd){
             if (mat->Dimension() != dim) DebugStop();
+            nstate = mat->NStateVariables(); // here we assume that all materials have same nstatevars
             TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),dim,mat->NStateVariables());
             cmesh->InsertMaterialObject(nullmat);
         } else {
@@ -132,6 +136,15 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
             TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),dim-1,mat->NStateVariables());
             cmesh->InsertMaterialObject(nullmat);
         }
+    }
+    
+    if(nstate < 1) DebugStop();
+    
+    if(fHybridType != HybridizationType::ENone){
+        // Then we insert the hdiv wrap materials
+        const int wrapmatid = fHybridizationData.fWrapMatId;
+        TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(wrapmatid,dim-1,nstate);
+        cmesh->InsertMaterialObject(nullmat);
     }
     
     //Creates computational elements       
@@ -153,12 +166,14 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int pOrder, const int la
     TPZCompMesh *cmesh = new TPZCompMesh(fGeoMesh);
     cmesh->SetDimModel(dim);
 
+    int nstate = 0;
     if (fHDivFam != HDivFamily::EHDivKernel){
         for (std::pair<int,TPZMaterial*> matpair : fMaterialVec) {
             TPZMaterial* mat = matpair.second;
             TPZBndCond *bnd = dynamic_cast<TPZBndCond *> (mat);
             if (!bnd){
                 if (mat->Dimension() != dim) DebugStop();
+                nstate = mat->NStateVariables();
                 TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),dim,mat->NStateVariables());
                 cmesh->InsertMaterialObject(nullmat);
                 if(fProbType == ProblemType::EElastic && fIsRBSpaces && lagLevel > 2){
@@ -168,6 +183,8 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int pOrder, const int la
             } 
         }
     }
+    
+    if(nstate < 1) DebugStop();
 
     //Creates computational elements
     switch (fHDivFam)
@@ -198,6 +215,28 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int pOrder, const int la
     }
         
     cmesh->AutoBuild();
+    
+    if(fHybridType == HybridizationType::EStandard){
+        // Then we insert the lagrange materials into this l2 space cmesh
+        const int lagmatid = fHybridizationData.fLagrangeMatId;
+        TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(lagmatid,dim-1,nstate);
+        cmesh->InsertMaterialObject(nullmat);
+        
+        const int lagpord = pOrder - 1;
+        if (lagpord > 0){
+            cmesh->SetDefaultOrder(lagpord);
+            cmesh->SetAllCreateFunctionsContinuous();
+            cmesh->ApproxSpace().CreateDisconnectedElements(true);
+        } else {
+            cmesh->SetDefaultOrder(0);
+            cmesh->SetAllCreateFunctionsDiscontinuous();
+        }
+        
+        // Now we only autobuild the langrange materials
+        std::set<int> matidtobuild;
+        matidtobuild.insert(lagmatid);
+        cmesh->AutoBuild(matidtobuild);
+    }
 
     int ncon = cmesh->NConnects();
     for(int i=0; i<ncon; i++)
@@ -217,19 +256,35 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateMultiphysicsSpace(TPZManVe
     cmesh->SetDefaultOrder(fDefaultPOrder);
     cmesh->SetDimModel(dim);
     
+    int nstate = 0;
     for (std::pair<int,TPZMaterial*> matpair : fMaterialVec) {
         TPZMaterial* mat = matpair.second;
         TPZBndCondT<STATE> *bnd = dynamic_cast<TPZBndCondT<STATE> *> (mat);
         if (!bnd){
+            nstate = mat->NStateVariables();
             cmesh->InsertMaterialObject(mat);
         } else {
             cmesh->InsertMaterialObject(bnd);
         }
     }
+    
+    if(nstate < 1) DebugStop();
+    
+    if(fHybridType != HybridizationType::ENone){
+        auto * nullmatWrap = new TPZNullMaterialCS<>(fHybridizationData.fWrapMatId,dim-1,nstate);
+        cmesh->InsertMaterialObject(nullmatWrap);
+
+        auto * nullmatLag = new TPZNullMaterialCS<>(fHybridizationData.fLagrangeMatId,dim-1,nstate);
+        cmesh->InsertMaterialObject(nullmatLag);
+    }
 
     TPZManVector<int> active(fNumMeshes,1);
     cmesh->ApproxSpace().Style() = TPZCreateApproximationSpace::EMultiphysics;
     cmesh->BuildMultiphysicsSpace(active, meshvec);
+    
+    if(fHybridType != HybridizationType::ENone){
+        InsertInterfaceMaterialObjects(cmesh);
+    }
     
     return cmesh;
 }
