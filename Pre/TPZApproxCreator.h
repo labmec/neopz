@@ -142,7 +142,7 @@ public:
     void Print(std::ostream &out = std::cout);
 
 protected:
-    
+
     /// Compute Periferal Material ids for additional elements generated during hybridization
     void ComputePeriferalMaterialIds(int base = 10);
 
@@ -156,7 +156,7 @@ protected:
     std::set<int> GetBCMatIds();
 
     ///Get material ids from which has the same dimension as the mesh
-    std::set<int> GetVolumeMatIds();
+    std::set<int> GetVolumetricMatIds();
 
     /// Insert periferal material objects related to geometric. objects created during hybridization (for wrap and lagrange objects)
     void InsertWrapAndLagrangeMaterialObjects(TPZMultiphysicsCompMesh *mphys);

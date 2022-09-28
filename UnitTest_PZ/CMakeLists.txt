@@ -34,6 +34,7 @@ add_subdirectory(TestShape)
 add_subdirectory(TestMultithreading)
 add_subdirectory(TestHDivCollapsed)
 add_subdirectory(TestHDivApproxSpaceCreator)
+add_subdirectory(TestH1ApproxSpaceCreator)
 
 if(USING_MKL)
   add_subdirectory(TestSBFem)

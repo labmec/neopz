@@ -8,8 +8,8 @@
 #include "TPZGeoElSidePartition.h"
 #include "TPZNullMaterialCS.h"
 #include "TPZMultiphysicsCompMesh.h"
-#include "TPZLagrangeMultiplier.h"
 #include "pzintel.h"
+#include "TPZLagrangeMultiplierCS.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("CreateMultiphysicsSpace"));
@@ -145,7 +145,7 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
         // do not create the wrap layers
         int neighmat = neighbour.Element()->MaterialId();
         bool HasBCNeighbour = (bcMatIds.find(neighmat) != bcMatIds.end());
-        
+
         int interface = fHybridizationData.fInterfaceMatId;
         bool isinterface = (matid == interface);
         bool islag = (matid == fHybridizationData.fLagrangeMatId);
@@ -181,7 +181,7 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
             TPZGeoElSide neighbour = gelside.Neighbour();
             int neighmat = neighbour.Element()->MaterialId();
             bool HasBCNeighbour = (bcMatIds.find(neighmat) != bcMatIds.end());
-            
+
             TPZGeoElBC gbc1(gelside, fHybridizationData.fSecondInterfaceMatId);
             // if the flux is neighbour, the interface will be between lag and the
             // boundary condition
@@ -213,7 +213,7 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    
+
 }
 
 void TPZApproxCreator::InsertWrapAndLagrangeMaterialObjects(TPZMultiphysicsCompMesh *mphys){
@@ -244,14 +244,14 @@ void TPZApproxCreator::InsertInterfaceMaterialObjects(TPZMultiphysicsCompMesh *m
     if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared) {
 
         //TODO Should we support more general interface classes? Support CSTATE?
-        TPZLagrangeMultiplier<STATE> *interface = new TPZLagrangeMultiplier<STATE>(fHybridizationData.fInterfaceMatId, fGeoMesh->Dimension()-1, 1);
+        TPZLagrangeMultiplierCS<STATE> *interface = new TPZLagrangeMultiplierCS<STATE>(fHybridizationData.fInterfaceMatId, fGeoMesh->Dimension()-1, 1);
         interface->SetMultiplier(-1.);
         mphys->InsertMaterialObject(interface);
 
         if (fHybridType == HybridizationType::EStandardSquared) {
 
             //TODO Should we support more general interface classes? Support CSTATE?
-            TPZLagrangeMultiplier<STATE> *secondInterface = new TPZLagrangeMultiplier<STATE>(fHybridizationData.fSecondInterfaceMatId, fGeoMesh->Dimension()-1, 1);
+            TPZLagrangeMultiplierCS<STATE> *secondInterface = new TPZLagrangeMultiplierCS<STATE>(fHybridizationData.fSecondInterfaceMatId, fGeoMesh->Dimension()-1, 1);
             secondInterface->SetMultiplier(-1.);
             mphys->InsertMaterialObject(secondInterface);
 
@@ -274,7 +274,7 @@ std::set<int> TPZApproxCreator::GetBCMatIds(){
     return bcMatIdsVec;
 }
 
-std::set<int> TPZApproxCreator::GetVolumeMatIds(){
+std::set<int> TPZApproxCreator::GetVolumetricMatIds(){
     std::set<int> volumeMatIds;
     for(std::pair<int,TPZMaterial*> mat: fMaterialVec){
         TPZBndCond *bcmat = dynamic_cast<TPZBndCond*>(mat.second);
@@ -362,7 +362,7 @@ void TPZApproxCreator::Print(std::ostream &ofs){
 }
 
 void TPZApproxCreator::ChangeInternalOrder(TPZCompMesh *cmesh, int pOrder) const {
-    
+
     int64_t nel = cmesh->NElements();
     for (int64_t el = 0; el < nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
@@ -392,7 +392,7 @@ void TPZApproxCreator::ChangeInternalOrder(TPZCompMesh *cmesh, int pOrder) const
         c.SetNShape(nshape);
         // c.SetNState(nvar);
         cmesh->Block().Set(seqnum, nvar * nshape);
-        
+
         cel->SetIntegrationRule(2*pOrder);
     }
     cmesh->InitializeBlock();
