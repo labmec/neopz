@@ -32,7 +32,7 @@ using namespace pzshape;
 #include "TPZVTKGeoMesh.h"
 #include "TPZMaterialDataT.h"
 
-#define USE_MAIN
+// #define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -49,7 +49,7 @@ TPZCompMesh * CreateCMeshHDiv(TPZGeoMesh* gmesh, int pOrder, const int volId, HD
 /*
     Test SideShapeFunction problem
 */
-template<class top, class tshape>
+template<class tshape>
 void TesteSideShapeFunction(const int &pOrder, SpaceType stype);
 
 // Test Hanging Nodes: FOR DEBUGGING PURPOSES
@@ -59,13 +59,13 @@ TEST_CASE("Side Shape Function", "[side_shape_test]") {
 
     const int pOrder = GENERATE(1,2);
     // SpaceType sType = GENERATE(EHDivStandard);
-    SpaceType sType = GENERATE(EHDivConstant);
+    SpaceType sType = GENERATE(EHDivConstant,EHDivStandard);
     // SpaceType sType = GENERATE(EHCurl);
     
-    TesteSideShapeFunction<TPZTriangle,pzshape::TPZShapeTriang>(pOrder,sType);
-    TesteSideShapeFunction<TPZQuadrilateral,pzshape::TPZShapeQuad>(pOrder,sType);
-    // TesteSideShapeFunction<TPZTetrahedron,pzshape::TPZShapeTetra>(pOrder,sType);
-    TesteSideShapeFunction<TPZCube,pzshape::TPZShapeCube>(pOrder,sType);
+    TesteSideShapeFunction<pzshape::TPZShapeTriang>(pOrder,sType);
+    TesteSideShapeFunction<pzshape::TPZShapeQuad>(pOrder,sType);
+    TesteSideShapeFunction<pzshape::TPZShapeTetra>(pOrder,sType);
+    TesteSideShapeFunction<pzshape::TPZShapeCube>(pOrder,sType);
     std::cout << "Finish test Side Shape Functions \n";
 }
 #else
@@ -78,10 +78,10 @@ int main(){
     SpaceType sType = EHDivConstant;
     // SpaceType sType = EH1;
 
-    TesteSideShapeFunction<TPZQuadrilateral,pzshape::TPZShapeQuad>(pOrder,sType);
-    TesteSideShapeFunction<TPZTriangle,pzshape::TPZShapeTriang>(pOrder,sType);
-    TesteSideShapeFunction<TPZTetrahedron,pzshape::TPZShapeTetra>(pOrder,sType);
-    TesteSideShapeFunction<TPZCube,pzshape::TPZShapeCube>(pOrder,sType);
+    TesteSideShapeFunction<pzshape::TPZShapeQuad>(pOrder,sType);
+    TesteSideShapeFunction<pzshape::TPZShapeTriang>(pOrder,sType);
+    TesteSideShapeFunction<pzshape::TPZShapeTetra>(pOrder,sType);
+    TesteSideShapeFunction<pzshape::TPZShapeCube>(pOrder,sType);
 
     return 0;
 }
@@ -90,7 +90,7 @@ int main(){
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
 
-template<class top, class tshape>
+template<class tshape>
 void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
 
 #ifdef PZ_LOG
@@ -98,15 +98,33 @@ void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
 #endif
 
     const  int64_t pOrderIntRule = 5;
-    const auto nSides = top::NSides;
-    const auto nCorner = top::NCornerNodes;
-    const auto dim = top::Dimension;
-    const auto nFaces = top::NFacets;
-    auto type = top::Type();
+    const auto nSides = tshape::NSides;
+    const auto nCorner = tshape::NCornerNodes;
+    const auto dim = tshape::Dimension;
+    const auto nFaces = tshape::NFacets;
+    auto type = tshape::Type();
+    MMeshType meshtype;
+    switch (type){
+    case ETriangle: 
+        meshtype = MMeshType::ETriangular;
+        break;
+    case EQuadrilateral: 
+        meshtype = MMeshType::EQuadrilateral;
+        break;
+    case ETetraedro: 
+        meshtype = MMeshType::ETetrahedral;
+        break;
+    case ECube: 
+        meshtype = MMeshType::EHexahedral;
+        break;
+    
+    default:
+        break;
+    }
     const REAL tol = 1.e-6;
     const int volId = 1;
     const int BCId = 2;
-    TPZGeoMesh *gmesh = TPZGeoMeshTools::CreateGeoMeshSingleElT<top>(volId,true,BCId);
+    TPZGeoMesh *gmesh = TPZGeoMeshTools::CreateGeoMeshSingleEl(meshtype,volId,true,BCId);
 
 #ifdef PZDEBUG
     //Prints gmesh mesh properties
