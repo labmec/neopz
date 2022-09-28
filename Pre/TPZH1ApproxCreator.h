@@ -27,10 +27,13 @@ public:
     TPZH1ApproxCreator(TPZGeoMesh * gmesh);
 
     /// Default destructor
-    ~TPZH1ApproxCreator();
+    ~TPZH1ApproxCreator() = default;
 
     /// Driver function. Will create the atomic meshes (HDiv, L2, etc.) and an associate multiphysics mesh
     TPZMultiphysicsCompMesh *CreateApproximationSpace() override;
+
+    /// Driver function. Will create the atomic meshes (HDiv, L2, etc.) and an associate multiphysics mesh
+    TPZCompMesh *CreateClassicH1ApproximationSpace();
 
 private:
 
@@ -67,7 +70,7 @@ private:
     }
 
     /// Group and condense computational elements
-    void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) override;
+    void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh);
 
     /// Associate elements with a volumetric element in hybridized spaces;
     /// Groups volumetric, wrap and interface elements in standard hybridizations;

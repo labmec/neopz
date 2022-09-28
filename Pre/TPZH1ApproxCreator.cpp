@@ -10,6 +10,7 @@
 #include "TPZMultiphysicsCompMesh.h"
 #include "pzelementgroup.h"
 #include "pzcondensedcompel.h"
+#include "TPZCompMeshTools.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("H1ApproxCreator"));
@@ -25,7 +26,7 @@ void TPZH1ApproxCreator::CheckSetupConsistency(){
         std::cout << "You have to set a proper problem type!\n";
         DebugStop();
     }
-    else if (fProbType != ProblemType::EDarcy || fHybridType != HybridizationType::ESemi){
+    else if (fProbType != ProblemType::EDarcy || fHybridType == HybridizationType::ESemi){
         std::cout <<"Case not yet implemented.\n";
         DebugStop();
     }
@@ -50,12 +51,21 @@ void TPZH1ApproxCreator::CheckSetupConsistency(){
             DebugStop();
         }
     }
-    else if(fHybridType == HybridizationType::ENone || fHybridizationData.fHybridizeBCLevel > 0){
-        std::cout << "You can't hybridize the boundary of this space";
-        DebugStop();
+    else if(fHybridType == HybridizationType::ENone){
+        if(fHybridizationData.fHybridizeBCLevel > 0) {
+            std::cout << "You can't hybridize the boundary of this space";
+            DebugStop();
+        } else if(fIsRBSpaces){
+            std::cout << "Currently, there is no support for enhanced spaces on classic H1 approximations.\n\tSetting fIsEnhancedSpaces = 0.\n";
+            fIsRBSpaces = 0;
+        }
+        else if(fExtraInternalPOrder){
+            std::cout << "Defining extra polynomial orders for classic H1 spaces makes little sense.\n\tSetting fExtraInternalPOrder = 0.\n";
+            fExtraInternalPOrder = 0;
+        }
     }
 
-    if(fHybridType == HybridizationType::EStandard || fHybridizationData.fHybridizeBCLevel > 1){
+    if(fHybridType == HybridizationType::EStandard && fHybridizationData.fHybridizeBCLevel > 1){
         std::cout << "You can't hybridize twice the boundary of this space";
         DebugStop();
     }
@@ -65,29 +75,32 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateApproximationSpace(){
 
     CheckSetupConsistency();
 
-    if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared)
+    if(fHybridType == HybridizationType::ENone){
+        std::cout << __PRETTY_FUNCTION__ << "Perhaps TPZH1ApproxCreator::CreateClassicH1ApproximationSpace is more suited for your needs\n.";
+        DebugStop();
+    }
+
+    if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared) {
         ComputePeriferalMaterialIds();
+        AddHybridizationGeoElements();
+    }
 
 
-    bool isElastic = fProbType == ProblemType::EElastic;
     bool isDarcy = fProbType == ProblemType::EDarcy;
-    if (isElastic){
-        fNumMeshes = 3;
-    } else if (isDarcy) {
-        fNumMeshes = 2;
-    } else {
+    if (isDarcy) {
+            fNumMeshes = 2;
+    }
+    else {
         DebugStop();
     }
     if (fIsRBSpaces) fNumMeshes += 2;
 
     TPZManVector<TPZCompMesh*,7> meshvec(fNumMeshes);
     int countMesh = 0;
-    meshvec[countMesh++] = CreateBoundaryHDivSpace();
-    int lagLevelCounter = 1;
+    if(HybridType() != HybridizationType::ENone)
+        meshvec[countMesh++] = CreateBoundaryHDivSpace();
     meshvec[countMesh++] = CreateL2Space();
-    if (isElastic){
-        meshvec[countMesh++] = CreateRotationSpace();
-    }
+
     if (fIsRBSpaces){
         int lagMult1 = 2, lagMult2 = 4;
         meshvec[countMesh++] = CreateConstantSpace(lagMult1);
@@ -99,6 +112,31 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateApproximationSpace(){
     TPZMultiphysicsCompMesh *cmeshmulti = CreateMultiphysicsSpace(meshvec);
 
     return cmeshmulti;
+}
+
+TPZCompMesh * TPZH1ApproxCreator::CreateClassicH1ApproximationSpace() {
+
+    CheckSetupConsistency();
+
+    if(fHybridType != HybridizationType::ENone){
+        std::cout << __PRETTY_FUNCTION__ << "Perhaps TPZH1ApproxCreator::CreateApproximationSpace is more suited for your needs\n.";
+        DebugStop();
+    }
+
+    bool isDarcy = fProbType == ProblemType::EDarcy;
+    if (!isDarcy)
+        DebugStop();
+
+
+    TPZCompMesh *H1mesh = CreateL2Space();
+
+    if(fShouldCondense) {
+        //GroupAndCondenseElements(H1mesh);
+        //TPZCompMeshTools::CondenseElements(H1mesh,0,false);
+        TPZCompMeshTools::CreatedCondensedElements(H1mesh,0,false);
+
+    }
+    return H1mesh;
 }
 
 TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateMultiphysicsSpace(TPZManVector<TPZCompMesh *> meshvec){
@@ -145,7 +183,7 @@ TPZCompMesh* TPZH1ApproxCreator::CreateConstantSpace(const int &lagMult){
     constMesh->SetDefaultOrder(0);
 
     int meshDim = fGeoMesh->Dimension();
-    std::set<int> volumetricMatIds = GetVolumeMatIds();
+    std::set<int> volumetricMatIds = GetVolumetricMatIds();
     for(auto it : volumetricMatIds){
         TPZNullMaterial<STATE> *mat = new TPZNullMaterial<STATE>(it,meshDim);
         constMesh->InsertMaterialObject(mat);
@@ -172,15 +210,17 @@ TPZCompMesh *TPZH1ApproxCreator::CreateL2Space()
 
     L2mesh->SetDefaultOrder(L2Order);
 
-    std::set<int> volumeMatIds = GetVolumeMatIds();
+    std::set<int> volumeMatIds = GetVolumetricMatIds();
     std::set<int> bcMatIds = GetBCMatIds();
     L2mesh->AutoBuild(volumeMatIds);
 
     int lagMult1 = 1, lagMult2 =1;
-    if(fShouldCondense == false){
+    if(fShouldCondense && !fIsRBSpaces){
         lagMult2 = 3;
+        if(fHybridType == HybridizationType::ENone) {
+            lagMult1 = lagMult2 =  0;
+        }
     }
-
 
     int64_t nelem = L2mesh->NElements();
     for (int64_t el = 0; el<nelem; el++) {
@@ -201,20 +241,21 @@ TPZCompMesh *TPZH1ApproxCreator::CreateL2Space()
         }
     #endif
     // se nao condensar tem que mudar o nivel de lagrange multiplier de um connect
-    if(fHybridType == HybridizationType::EStandardSquared || fHybridType == HybridizationType::ENone)
+    if(fHybridType == HybridizationType::EStandardSquared || fHybridizationData.fHybridizeBCLevel == 0)
     {
         std::set<int> matids;
         std::set<int> bcMatIds = GetBCMatIds();
-        if(fHybridizationData.fHybridizeBCLevel == 2 || fHybridType == HybridizationType::ENone)
+        if(fHybridizationData.fHybridizeBCLevel == 2 || fHybridizationData.fHybridizeBCLevel == 0)
             matids = bcMatIds;
-        matids.insert(fHybridizationData.fSecondLagrangeMatId);
+        if(fHybridizationData.fHybridizeBCLevel == 2 )
+            matids.insert(fHybridizationData.fSecondLagrangeMatId);
         L2mesh->SetDefaultOrder(fDefaultPOrder);
         L2mesh->AutoBuild(matids);
     }
 
     int lagMult3 = 5;
     if (fHybridType == HybridizationType::ENone){
-        lagMult3 = lagMult1;
+        return L2mesh;
     }
     int64_t nelem_big = L2mesh->NElements();
     for (int64_t el = nelem; el<nelem_big; el++) {
@@ -236,7 +277,7 @@ TPZCompMesh *TPZH1ApproxCreator::CreateL2Space()
 
     //Wrap creation. Its connects are contained in the volumetric element, and since the H1 space is broken,
     //it requires special attention.
-    if (fHybridType != HybridizationType::ENone ||  fHybridType != HybridizationType::ESemi) {
+    if (fHybridType == HybridizationType::EStandard ||  fHybridType == HybridizationType::EStandardSquared) {
 
 #ifdef LOG4CXX
         std::map<int,int> numcreated;
@@ -527,22 +568,30 @@ void TPZH1ApproxCreator::InsertL2MaterialObjects(TPZCompMesh * L2Mesh){
         nullmat->SetNStateVariables(1);
         cmesh->InsertMaterialObject(nullmat);
     };
-    for (auto matid:fMaterialVec) {
-        insertMat(matid.first,dim,L2Mesh);
-    }
-    if((fHybridizationData.fHybridizeBCLevel == 2) || (fHybridizationData.fHybridizeBCLevel == 0))
-    {
-        std::set<int> bcMatIds = GetBCMatIds();
-        for (auto matid:bcMatIds) {
-            insertMat(matid,dim-1,L2Mesh);
+    if(fHybridType == HybridizationType::ENone){
+        for (auto matpair:fMaterialVec) {
+            auto *mat = matpair.second;
+            L2Mesh->InsertMaterialObject(mat);
         }
     }
-    if(fHybridType!= HybridizationType::ENone){
-        insertMat(fHybridizationData.fWrapMatId,dim-1,L2Mesh);
-    }
-    if(fHybridType!= HybridizationType::EStandardSquared)
-    {
-        insertMat(fHybridizationData.fSecondLagrangeMatId,dim-1,L2Mesh);
+    else {
+        std::set<int> volMatIds = GetVolumetricMatIds();
+
+        for (auto matid:volMatIds) {
+            insertMat(matid, dim, L2Mesh);
+        }
+        if ((fHybridizationData.fHybridizeBCLevel == 2) || (fHybridizationData.fHybridizeBCLevel == 0)) {
+            std::set<int> bcMatIds = GetBCMatIds();
+            for (auto matid:bcMatIds) {
+                insertMat(matid, dim - 1, L2Mesh);
+            }
+        }
+        if (fHybridType != HybridizationType::ENone) {
+            insertMat(fHybridizationData.fWrapMatId, dim - 1, L2Mesh);
+        }
+        if (fHybridType == HybridizationType::EStandardSquared) {
+            insertMat(fHybridizationData.fSecondLagrangeMatId, dim - 1, L2Mesh);
+        }
     }
 }
 
