@@ -50,19 +50,19 @@ protected:
     /// Struct with all the data regarding hybridization between elements
     struct HybridizationData{
         /// Matid of element at the border or higher domain element
-        int fWrapMatId;
+        int fWrapMatId = 51;
 
         /// Matid of element at the interface between elements
-        int fInterfaceMatId;
+        int fInterfaceMatId = 52;
 
         /// Matid of lagrange multiplier element
-        int fLagrangeMatId;
+        int fLagrangeMatId = 53;
 
         /// Material ids generated due second hybridization
-        int fSecondInterfaceMatId;
+        int fSecondInterfaceMatId = 54;
 
         /// Matid of second lagrange multiplier, useful in double hybridizations
-        int fSecondLagrangeMatId;
+        int fSecondLagrangeMatId = 55;
 
         /// indicates whether the boundary conditions should be hybridized and how many times it should be
         int fHybridizeBCLevel = 0;

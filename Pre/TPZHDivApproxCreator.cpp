@@ -10,6 +10,7 @@
 #include "TPZBndCondT.h"
 #include "TPZCompElDiscScaled.h"
 #include "TPZCompMeshTools.h"
+#include "TPZVTKGeoMesh.h"
 
 TPZHDivApproxCreator::TPZHDivApproxCreator(TPZGeoMesh *gmesh) : TPZApproxCreator(gmesh)
 { 
@@ -57,6 +58,12 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
 TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
 
     CheckSetupConsistency();
+
+    if (fHybridType != HybridizationType::ENone){
+        AddHybridizationGeoElements();
+        std::ofstream out("GeoMeshHybrid.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh, out);
+    }
 
     bool isElastic = fProbType == ProblemType::EElastic;
     bool isDarcy = fProbType == ProblemType::EDarcy;
