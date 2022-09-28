@@ -40,6 +40,8 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam);
 
+void CheckError(TPZCompMesh *cmesh, TPZVec<REAL> &error);
+
 void Refinement(TPZGeoMesh *gmesh);
 
 enum MaterialIds {EDomain,EBCDirichlet,EBCNeumann,EBCDisplacementLeft,EBCDisplacementRight};
@@ -61,6 +63,28 @@ constexpr const char* ProblemTypeToChar(ProblemType ptype) {
         default: std::invalid_argument("Unimplemented item");
     }
 }
+
+auto exactSolDarcy = [](const TPZVec<REAL> &loc,
+    TPZVec<STATE>&u,
+    TPZFMatrix<STATE>&gradU){
+    const auto &x=loc[0];
+    const auto &y=loc[1];
+    const auto &z=loc[2];
+
+    u[0] = 1.;
+    gradU(0,0) = 0.;
+    gradU(1,0) = 0.;
+};
+
+auto exactSolElastic = [](const TPZVec<REAL> &loc,
+    TPZVec<STATE>&disp){
+    const auto &x=loc[0];
+    const auto &y=loc[1];
+    const auto &z=loc[2];
+
+    disp[0] = 1.;
+    
+};
 
 
 #ifndef USE_MAIN
@@ -88,16 +112,16 @@ int main(){
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    // HDivFamily sType = HDivFamily::EHDivStandard;
+    HDivFamily sType = HDivFamily::EHDivStandard;
     // HDivFamily sType = HDivFamily::EHDivKernel;
-    HDivFamily sType = HDivFamily::EHDivConstant;
-    // ProblemType pType = ProblemType::EElastic;
-    ProblemType pType = ProblemType::EDarcy;
-    const int pord = 2;
+    // HDivFamily sType = HDivFamily::EHDivConstant;
+    ProblemType pType = ProblemType::EElastic;
+    // ProblemType pType = ProblemType::EDarcy;
+    const int pord = 1;
     const bool isRBSpaces = false;
-    // MMeshType mType = MMeshType::EQuadrilateral;
+    MMeshType mType = MMeshType::EQuadrilateral;
     // MMeshType mType = MMeshType::ETriangular;
-    MMeshType mType = MMeshType::EHexahedral;
+    // MMeshType mType = MMeshType::EHexahedral;
     // MMeshType mType = MMeshType::ETetrahedral;
     int extraporder = 0;
     bool isCondensed = true;
@@ -174,6 +198,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
     if (ptype == ProblemType::EDarcy) {
         matdarcy = new TPZMixedDarcyFlow(EDomain,dim);
         matdarcy->SetConstantPermeability(1.);
+        matdarcy->SetExactSol(exactSolDarcy,1);
         mat = matdarcy;
     }
     else if (ptype == ProblemType::EElastic){
@@ -254,6 +279,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     hdivCreator.SetDefaultOrder(pOrder);
     hdivCreator.SetExtraInternalOrder(extrapOrder);
     hdivCreator.SetShouldCondense(isCondensed);
+    hdivCreator.HybridType() = HybridizationType::EStandard;
     InsertMaterials(hdivCreator,probType);
 
     TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace(); 
@@ -294,7 +320,10 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     
 #endif
 
-    cout << "\n------------------ Test ended with serious errors ------------------" << endl << endl;
+    TPZManVector<REAL,5> error;
+    CheckError(cmesh,error);
+
+    cout << "\n------------------ Test ended without errors ------------------" << endl << endl;
 }
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam){
@@ -373,4 +402,23 @@ void Refinement(TPZGeoMesh *gmesh){
     gmesh->ElementVec()[0]->Divide(children);
     
     children[0]->Divide(children); 
+}
+
+void CheckError(TPZCompMesh *cmesh, TPZVec<REAL> &error){
+
+    
+    cmesh->EvaluateError(false,error);
+
+    std::cout << "Error = \n";
+    for (const auto &er : error )
+    {
+        std::cout << er <<"\n";
+#ifndef USE_MAIN
+        REQUIRE(fabs(er) < 1.e-10);
+#endif
+    }
+    std::cout << std::endl;
+
+
+
 }
