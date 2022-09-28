@@ -33,6 +33,8 @@ int TPZApproxCreator::InsertMaterialObject(TPZBndCond *mat)  {
 }
 
 void TPZApproxCreator::ComputePeriferalMaterialIds(int base) {
+    
+    // TODO: Victor. Please explain the logic here. For instance, why is base by default 10 and if base < 2 then base = 2? Also, why aren't the matids in order of +1?
     if(base < 2) base = 2;
     int max_matid = 0;
     int64_t nel = fGeoMesh->NElements();
@@ -42,7 +44,7 @@ void TPZApproxCreator::ComputePeriferalMaterialIds(int base) {
         max_matid = std::max(max_matid,gel->MaterialId());
     }
     int remain = max_matid % base;
-    int matid_base = max_matid-remain + base;
+    int matid_base = max_matid - remain + base;
     fHybridizationData.fWrapMatId = matid_base;
     fHybridizationData.fInterfaceMatId = matid_base+base;
     fHybridizationData.fLagrangeMatId = matid_base + 2*base;
@@ -57,6 +59,12 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
     /// geometric elements are created;
     ///     BC can be hybridized 0, 1 or 2 times in this set up;
     /// fHybridType == HybridizationType::Semi has yet to be implemented.
+
+    if(fHybridizationData.fWrapMatId == -123456){
+        std::cout << "\nERROR! Please call TPZApproxCreator::ComputePeriferalMaterialIds() before TPZApproxCreator::AddHybridizationGeoElements()" << std::endl;
+        DebugStop();
+    }
+
 #ifdef LOG4CXX
     std::map<int,int> numcreated;
 #endif

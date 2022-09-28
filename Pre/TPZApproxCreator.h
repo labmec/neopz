@@ -50,19 +50,19 @@ protected:
     /// Struct with all the data regarding hybridization between elements
     struct HybridizationData{
         /// Matid of element at the border or higher domain element
-        int fWrapMatId = 51;
+        int fWrapMatId = -123456; // to check if it has been initialized
 
         /// Matid of element at the interface between elements
-        int fInterfaceMatId = 52;
+        int fInterfaceMatId;
 
         /// Matid of lagrange multiplier element
-        int fLagrangeMatId = 53;
+        int fLagrangeMatId;
 
         /// Material ids generated due second hybridization
-        int fSecondInterfaceMatId = 54;
+        int fSecondInterfaceMatId;
 
         /// Matid of second lagrange multiplier, useful in double hybridizations
-        int fSecondLagrangeMatId = 55;
+        int fSecondLagrangeMatId;
 
         /// indicates whether the boundary conditions should be hybridized and how many times it should be
         int fHybridizeBCLevel = 0;
@@ -140,6 +140,16 @@ public:
 
     /// Print attributes of class
     void Print(std::ostream &out = std::cout);
+    
+    /// Sets if should hybridize boundary
+    void SetHybridizeBoundary() {
+        if(fHybridType == HybridizationType::EStandardSquared) fHybridizationData.fHybridizeBCLevel = 2;
+        else if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::ESemi) fHybridizationData.fHybridizeBCLevel = 1;
+        else{
+            std::cout << "ERROR! Please set a hybridization type before calling SetToHybridizeBoundary()" << std::endl;
+            DebugStop();
+        }
+    }
 
 protected:
 
