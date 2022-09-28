@@ -673,10 +673,10 @@ public:
     TPZVec<STATE> Integrate(const std::string &varname, const std::set<int> &matids);
 
 
-    void EvaluateError(bool store_error,
-					   TPZVec<REAL> &errorSum);
+    void EvaluateError(bool store_error, TPZVec<REAL> &errorSum, std::set<int>& matset);
 	/** @} */
 	
+    void EvaluateError(bool store_error, TPZVec<REAL> &errorSum);
 	
 	/** @brief Clone this mesh */
 	TPZCompMesh * Clone() const;

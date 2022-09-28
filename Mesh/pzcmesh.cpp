@@ -1494,8 +1494,27 @@ void TPZCompMesh::ConnectSolution(std::ostream & out) {
             ConnectSolutionInternal<CSTATE>(out,fSolution);
     
 }
+
+
 void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
+    std::set<int> matset;
+    for(auto matpair : this->MaterialVec()){
+        TPZMaterial* mat = matpair.second;
+        if(!mat) DebugStop();
+        if(mat->Dimension() == this->Dimension()){
+            TPZBndCond* bnd = dynamic_cast<TPZBndCond*>(mat);
+            if(!bnd){
+                matset.insert(mat->Id());
+            }
+        }
+    }
+    this->EvaluateError(store_error, errorSum, matset);
+}
+
+void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum, std::set<int> &matset) {
 	
+    if(!matset.size()) DebugStop();
+    
 	errorSum.Resize(3);
 	errorSum.Fill(0.);
 	
@@ -1509,8 +1528,11 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
 	//soma de erros sobre os elementos
 	for(int64_t el=0;el< fElementVec.NElements();el++) {
         cel = fElementVec[el];
-
         if (!cel) continue;
+        
+        // Skipping cels that are not included in the set of materials to compute error
+        const int celmatid = cel->Reference()->MaterialId();
+        if(matset.find(celmatid) == matset.end()) continue;
         
         cel->EvaluateError(true_error, store_error);
 

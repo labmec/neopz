@@ -527,9 +527,9 @@ void TPZMixedDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZV
 
     auto dsol = data[1].dsol;
 
-    TPZVec<STATE> divsigma(1);
+    TPZManVector<STATE,1> divsigma(1,0.);
 
-    TPZVec<STATE> u_exact(1, 0);
+    TPZManVector<STATE,1> u_exact(1, 0);
     TPZFMatrix<STATE> du_exact(3, 1, 0);
     if (this->fExactSol) {
         this->fExactSol(data[0].x, u_exact, du_exact);
