@@ -144,6 +144,8 @@ public:
         fRestraints.clear();
     }
 
+    void RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) override;
+
     /**
      * @brief It returns the normal orientation of the reference element by the side.
      * Only side that has dimension larger than zero and smaller than me.
@@ -247,6 +249,11 @@ public:
 	void Read(TPZStream &buf, void *context) override;
     /** @brief Refinement along the element */
     virtual void PRefine(int order) override;
+
+    //Checks the normal orientation of two neighbour GeoElSides; 
+    //Returns true if the sides have opposite normal vectors and false if they are equal. 
+    bool CheckRestrainedSideOrientation(TPZGeoElSide &thisGeoSide, TPZGeoElSide &largeGeoSide);
+
     
 protected:
     //@{
