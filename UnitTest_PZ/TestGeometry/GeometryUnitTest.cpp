@@ -32,6 +32,7 @@
 #include "tpzellipse3d.h"
 #include "TPZQuadSphere.h"
 #include "TPZTriangleSphere.h"
+#include "TPZCylinderMap.h"
 
 #include "TPZCurve.h"
 #include "TPZSurface.h"
@@ -100,6 +101,9 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     
     AddElement<TPZArc3D >(mesh,lowercorner,size);
     AddElement<TPZEllipse3D >(mesh,lowercorner,size);
+
+    AddElement<TPZCylinderMap<TPZGeoTriangle>>(mesh,lowercorner,size);
+    AddElement<TPZCylinderMap<TPZGeoQuad>>(mesh,lowercorner,size);
 //    AddElement<TPZWavyLine>(mesh,lowercorner,size);
 //    AddElement<TPZQuadTorus>(mesh,lowercorner,size);
 //    AddElement<TPZTriangleTorus>(mesh,lowercorner,size);
