@@ -33,6 +33,13 @@ public:
     
     /// Driver function. Will create the atomic meshes (HDiv, L2, etc.) and an associate multiphysics mesh
     TPZMultiphysicsCompMesh *CreateApproximationSpace() override;
+    
+    /// Create interface elements on hybridizes spaces
+    /// @param mphys multiphysics compmesh
+    void AddInterfaceComputationalElements(TPZMultiphysicsCompMesh *mphys);
+
+    /// Function used for debugging
+    void PrintMeshElementsConnectInfo(TPZCompMesh* cmesh);
 
 protected:
 
@@ -43,6 +50,11 @@ protected:
     /// @param mcmesh multiphysics compmesh with elements to be condensed
     void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) override;
     
+    
+    /// Fix the side orient of neighboring elements to be +1
+    /// @param cmesh cmesh to fix side orient
+    void FixSideOrientHydridMesh(TPZCompMesh* cmesh);
+        
 private:
 
     /// Creates and HDiv approximation space/cmesh
@@ -53,12 +65,21 @@ private:
     /// @param lagLevel lagrange multiplier level for factorization
     TPZCompMesh * CreateL2Space(const int pOrder,const int lagLevel);
     
+    
+    /// Creates a constant L2 space (order 0). Used for extra spaces related to fIsRBSpaces flag
+    /// @param lagLevel lagrange multiplier level for factorization
+    TPZCompMesh * CreateConstantSpace(const int lagLevel);
+    
     /// Creates the multiphysics compmesh based on the vector of atomic meshes
     /// @param meshvector vector of atomic meshes. For instance HDiv and L2 for Darcy problem
     TPZMultiphysicsCompMesh * CreateMultiphysicsSpace(TPZManVector<TPZCompMesh*> meshvector);
     
     /// Creates the rotation space for elasticity problems
     TPZCompMesh * CreateRotationSpace(const int pOrder, const int lagLevel);
+    
+    /// Changes the lag level of the lagrange elements connects so it won't be condensed
+    /// @param cmesh L2 compmesh with the lagrange multiplier
+    void ChangeLagLevel(TPZCompMesh* cmesh, const int newLagLevel);
 
     
 };

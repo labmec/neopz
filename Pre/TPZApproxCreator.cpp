@@ -251,15 +251,25 @@ void TPZApproxCreator::InsertWrapAndLagrangeMaterialObjects(TPZMultiphysicsCompM
 void TPZApproxCreator::InsertInterfaceMaterialObjects(TPZMultiphysicsCompMesh *mphys){
     if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared) {
 
+        int nstate = 0;
+        for (std::pair<int,TPZMaterial*> matpair : fMaterialVec) {
+            TPZMaterial* mat = matpair.second;
+            TPZBndCond *bnd = dynamic_cast<TPZBndCond *> (mat);
+            if (!bnd){
+                nstate = mat->NStateVariables(); // here we assume that all materials have same nstatevars
+                break;
+            }
+        }
+        if(nstate < 1) DebugStop();
+                
         //TODO Should we support more general interface classes? Support CSTATE?
-        TPZLagrangeMultiplierCS<STATE> *interface = new TPZLagrangeMultiplierCS<STATE>(fHybridizationData.fInterfaceMatId, fGeoMesh->Dimension()-1, 1);
-        interface->SetMultiplier(-1.);
+        TPZLagrangeMultiplierCS<STATE> *interface = new TPZLagrangeMultiplierCS<STATE>(fHybridizationData.fInterfaceMatId, fGeoMesh->Dimension()-1, nstate);
         mphys->InsertMaterialObject(interface);
 
         if (fHybridType == HybridizationType::EStandardSquared) {
 
             //TODO Should we support more general interface classes? Support CSTATE?
-            TPZLagrangeMultiplierCS<STATE> *secondInterface = new TPZLagrangeMultiplierCS<STATE>(fHybridizationData.fSecondInterfaceMatId, fGeoMesh->Dimension()-1, 1);
+            TPZLagrangeMultiplierCS<STATE> *secondInterface = new TPZLagrangeMultiplierCS<STATE>(fHybridizationData.fSecondInterfaceMatId, fGeoMesh->Dimension()-1, nstate);
             secondInterface->SetMultiplier(-1.);
             mphys->InsertMaterialObject(secondInterface);
 
@@ -283,10 +293,12 @@ std::set<int> TPZApproxCreator::GetBCMatIds(){
 }
 
 std::set<int> TPZApproxCreator::GetVolumetricMatIds(){
+    const int domaindim = fGeoMesh->Dimension();
     std::set<int> volumeMatIds;
     for(std::pair<int,TPZMaterial*> mat: fMaterialVec){
+        const int matdim = mat.second->Dimension();
         TPZBndCond *bcmat = dynamic_cast<TPZBndCond*>(mat.second);
-        if(!bcmat){
+        if(!bcmat && domaindim == matdim){
             volumeMatIds.insert(mat.first);
         }
     }

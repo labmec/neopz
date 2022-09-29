@@ -22,7 +22,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-#define USE_MAIN
+//#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -45,6 +45,8 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamil
 void CheckError(TPZMultiphysicsCompMesh *cmesh, TPZVec<REAL> &error, ProblemType pType);
 
 void Refinement(TPZGeoMesh *gmesh);
+
+void TestKnownSol(TPZLinearAnalysis& an, const REAL cteSol, TPZMultiphysicsCompMesh* mpcmesh);
 
 enum MaterialIds {EDomain,EBCDirichlet,EBCNeumann,EBCDisplacementLeft,EBCDisplacementRight};
 
@@ -113,8 +115,9 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     bool isRBSpaces = GENERATE(false,true);
     MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
     int extraporder = GENERATE(0,1,2);
-    bool isCondensed = GENERATE(true,false);
+    bool isCondensed = GENERATE(false,true);
     HybridizationType hType = GENERATE(HybridizationType::ENone);
+//    HybridizationType hType = GENERATE(HybridizationType::EStandard);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
@@ -128,9 +131,9 @@ int main(){
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    HDivFamily sType = HDivFamily::EHDivStandard;
-    // HDivFamily sType = HDivFamily::EHDivKernel;
-//     HDivFamily sType = HDivFamily::EHDivConstant;
+//    HDivFamily sType = HDivFamily::EHDivStandard;
+//    HDivFamily sType = HDivFamily::EHDivKernel;
+    HDivFamily sType = HDivFamily::EHDivConstant;
     
 //    ProblemType pType = ProblemType::EElastic;
     ProblemType pType = ProblemType::EDarcy;
@@ -146,6 +149,7 @@ int main(){
     int extraporder = 0;
     bool isCondensed = true;
     HybridizationType hType = HybridizationType::EStandard;
+//    HybridizationType hType = HybridizationType::ENone;
     
     TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed,hType);
     
@@ -172,10 +176,19 @@ TPZGeoMesh *Create2DGeoMesh(ProblemType& pType, MMeshType &mType) {
         gen2d.SetBC(gmesh, 7, EBCDirichlet);
     }
     else if (pType == ProblemType::EElastic){
-        gen2d.SetBC(gmesh, 4, EBCNeumann);
-        gen2d.SetBC(gmesh, 5, EBCDisplacementRight);
-        gen2d.SetBC(gmesh, 6, EBCNeumann);
-        gen2d.SetBC(gmesh, 7, EBCDisplacementLeft);
+        const bool isrbmProb = false;
+        if(isrbmProb){
+            gen2d.SetBC(gmesh, 4, EBCDirichlet);
+            gen2d.SetBC(gmesh, 5, EBCDirichlet);
+            gen2d.SetBC(gmesh, 6, EBCDirichlet);
+            gen2d.SetBC(gmesh, 7, EBCDirichlet);
+        }
+        else{
+            gen2d.SetBC(gmesh, 4, EBCNeumann);
+            gen2d.SetBC(gmesh, 5, EBCDisplacementRight);
+            gen2d.SetBC(gmesh, 6, EBCNeumann);
+            gen2d.SetBC(gmesh, 7, EBCDisplacementLeft);
+        }
     }
     
     
@@ -187,7 +200,7 @@ TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType) {
     // ----- Create Geo Mesh -----
     const TPZManVector<REAL,3> minX = {-1.,-1.,-1.};
     const TPZManVector<REAL,3> maxX = {1.,1.,1.};
-    const TPZManVector<int,3> nelDiv = {2,2,2};
+    const TPZManVector<int,3> nelDiv = {2,1,1};
     TPZGenGrid3D gen3d(minX,maxX,nelDiv,mType);
     TPZGeoMesh* gmesh = new TPZGeoMesh;
     gmesh = gen3d.BuildVolumetricElements(EDomain);
@@ -236,7 +249,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
     // ========> Boundary Conditions
     // -----------------------------
     
-    TPZBndCondT<STATE> *BCond1 = nullptr, *BCond2 = nullptr, *BCond3 = nullptr;
+    TPZBndCondT<STATE> *BCond1 = nullptr, *BCond2 = nullptr, *BCond3 = nullptr, *BCond4 = nullptr;
     const int dirType = 0, neuType = 1;
     if (ptype == ProblemType::EDarcy) {
         TPZFMatrix<STATE> val1(1,1,0.);
@@ -255,6 +268,9 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
         BCond2 = matelas->CreateBC(matelas, EBCDisplacementRight, dirType, val1, val2);
         val2[0] = 0.;
         BCond3 = matelas->CreateBC(matelas, EBCDisplacementLeft, dirType, val1, val2);
+        val2[0] = 1.;
+        val2[1] = 1.;
+        BCond4 = matelas->CreateBC(matelas, EBCDirichlet, dirType, val1, val2);
     }
     else{
         DebugStop(); // yet not supported material
@@ -263,6 +279,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
     if(BCond1) approxCreator.InsertMaterialObject(BCond1);
     if(BCond2) approxCreator.InsertMaterialObject(BCond2);
     if(BCond3) approxCreator.InsertMaterialObject(BCond3);
+    if(BCond4) approxCreator.InsertMaterialObject(BCond4);
 }
 
 
@@ -319,13 +336,19 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
 //    hdivCreator.SetHybridizeBoundary();
     InsertMaterials(hdivCreator,probType);
 
-    TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace(); 
+    TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace();
+    
+//    hdivCreator.PrintMeshElementsConnectInfo(cmesh);
 
     std::string txt = "cmesh.txt";
     std::ofstream myfile(txt);
     cmesh->Print(myfile);
 
+#ifdef USE_MAIN
+    constexpr int nThreads{0};
+#else
     constexpr int nThreads{12};
+#endif
     TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>> matsp(cmesh);
     matsp.SetNumThreads(nThreads);
 
@@ -336,7 +359,15 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     an.SetSolver(step);
-    an.Run();
+    
+    const bool isTestKnownSol = false;
+    if(isTestKnownSol){
+        TestKnownSol(an,1.,cmesh);
+        return;
+    }
+    else{
+        an.Run();
+    }
 
     CheckIntegralOverDomain(cmesh,probType,hdivFam);
 
@@ -443,6 +474,7 @@ void Refinement(TPZGeoMesh *gmesh){
 
 void CheckError(TPZMultiphysicsCompMesh *cmesh, TPZVec<REAL> &error, ProblemType pType){
 
+    cmesh->LoadReferences();
     cmesh->EvaluateError(false,error);
     const int dim = cmesh->Dimension();
 
@@ -470,4 +502,44 @@ void CheckError(TPZMultiphysicsCompMesh *cmesh, TPZVec<REAL> &error, ProblemType
 #endif
     }
     std::cout << std::endl;
+}
+
+void TestKnownSol(TPZLinearAnalysis& an, const REAL cteSol, TPZMultiphysicsCompMesh* mpcmesh) {
+    
+    // Assemble matrix and rhs
+    an.Assemble();
+    
+    // Fill the connects related with displacement with solution cteSol
+    int64_t nc = mpcmesh->NConnects();
+    TPZFMatrix<STATE> &sol = mpcmesh->Solution();
+    for (int64_t ic = 0; ic<nc; ic++) {
+        TPZConnect &c = mpcmesh->ConnectVec()[ic];
+        int64_t seqnum = c.SequenceNumber();
+        if(seqnum < 0) continue;
+        unsigned char lagrange = c.LagrangeMultiplier();
+        STATE fill = 0.;
+        if(lagrange == 1)
+        {
+            fill = cteSol;
+        }
+        int ndof = c.NShape() * c.NState();
+        for (int idf = 0; idf < ndof ; idf++) {
+            int64_t index = mpcmesh->Block().Index(seqnum, idf);
+            sol(index,0) = fill;
+        }
+    }
+    
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(mpcmesh->MeshVector(), mpcmesh);
+    
+    // Get Matrix
+    TPZMatrix<STATE>* mat = an.MatrixSolver<STATE>().Matrix().operator->();
+    
+    // Multiply matrix by known solution vector
+    const int neq = mpcmesh->NEquations();
+    TPZFMatrix<STATE> res(neq,1,0.);
+    mat->Multiply(mpcmesh->Solution(), res);
+    res = res - an.Rhs();
+    std::ofstream out("problematicElsGlob.txt");
+    an.PrintVectorByElement(out, res, 1.e-6);
+
 }
