@@ -1007,21 +1007,23 @@ int TPZFYsmpMatrix<TVar>::Decompose_LU()
     if (this->IsDecomposed() != ENoDecompose) {
         DebugStop();
     }
-	typename TPZPardisoSolver<TVar>::MStructure str =
+		if(!fPardisoControl.HasCustomSettings()){
+			typename TPZPardisoSolver<TVar>::MStructure str =
         this->IsSymmetric() ?
-		TPZPardisoSolver<TVar>::MStructure::ESymmetric:
-		TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
-	typename TPZPardisoSolver<TVar>::MSystemType sysType =
-		this->IsSymmetric() ?
-		TPZPardisoSolver<TVar>::MSystemType::ESymmetric:
-		TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
-	typename TPZPardisoSolver<TVar>::MProperty prop =
-		this->IsDefPositive() ?
-		TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
-		TPZPardisoSolver<TVar>::MProperty::EIndefinite;
-	fPardisoControl.SetStructure(str);
-	fPardisoControl.SetMatrixType(sysType,prop);
-    fPardisoControl.Decompose(this);
+				TPZPardisoSolver<TVar>::MStructure::ESymmetric:
+				TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
+			typename TPZPardisoSolver<TVar>::MSystemType sysType =
+				this->IsSymmetric() ?
+				TPZPardisoSolver<TVar>::MSystemType::ESymmetric:
+				TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
+			typename TPZPardisoSolver<TVar>::MProperty prop =
+				this->IsDefPositive() ?
+				TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
+				TPZPardisoSolver<TVar>::MProperty::EIndefinite;
+			fPardisoControl.SetStructure(str);
+			fPardisoControl.SetMatrixType(sysType,prop);
+		}
+		fPardisoControl.Decompose(this);
     this->SetIsDecomposed(ELU);
     return 1;
 #endif

@@ -184,46 +184,48 @@ void TPZPardisoSolver<TVar>::Decompose(TPZMatrix<TVar> *mat)
     }
     perm = &fPermutation[0];
 
-    /*@orlandini: most values were taken from eigen PardisoSupport.
-      There are other values being set at:
-      TPZPardisoSolver<TVar>::MatrixType()
-     */
+    if(!fCustomSettings){
+        /*@orlandini: most values were taken from eigen PardisoSupport.
+          There are other values being set at:
+          TPZPardisoSolver<TVar>::MatrixType()
+        */
 
     
-    //fParam[0] No default values
-    fParam[0] = 1;
-    //fParam[1]  use Metis for the ordering
-    fParam[1] = 2;
-    /*fParam[3]  Preconditioned CGS/CG. 
-       0 = // No iterative-direct algorithm
-       10*L+K
-       L = stoppping criterion: 10^-L
-       K = 
+        //fParam[0] No default values
+        fParam[0] = 1;
+        //fParam[1]  use Metis for the ordering
+        fParam[1] = 2;
+        /*fParam[3]  Preconditioned CGS/CG. 
+          0 = // No iterative-direct algorithm
+          10*L+K
+          L = stoppping criterion: 10^-L
+          K = 
           0: The factorization is always computed as required by phase
           1: CGS iteration replaces the computation of LU. 
-             The preconditioner is LU that was computed at a previous step
-             (the first step or last step with a failure) in a sequence of
-             solutions needed for identical sparsity patterns.
+          The preconditioner is LU that was computed at a previous step
+          (the first step or last step with a failure) in a sequence of
+          solutions needed for identical sparsity patterns.
           2: CGS iteration for symmetric positive definite matrices
-             Replaces the computation of LLt. The preconditioner is LLT
-             that was computed at a previous step
-             (the first step or last step with a failure)
-             in a sequence of solutions needed for identical sparsity patterns. 
-     */
-    //fParam[4]  No user fill-in reducing permutation
-    if constexpr (!is_complex<TVar>::value){
-        fParam[3] = fSystemType == MSystemType::ESymmetric ? 10*6+2 : 10*6+1;
-        if(fProperty == MProperty::EIndefinite) fParam[4] =1;
-    }else{
-        fParam[3] = 0;
-        fParam[4] = 0;
+          Replaces the computation of LLt. The preconditioner is LLT
+          that was computed at a previous step
+          (the first step or last step with a failure)
+          in a sequence of solutions needed for identical sparsity patterns. 
+        */
+        //fParam[4]  No user fill-in reducing permutation
+        if constexpr (!is_complex<TVar>::value){
+            fParam[3] = fSystemType == MSystemType::ESymmetric ? 10*6+2 : 10*6+1;
+            if(fProperty == MProperty::EIndefinite) fParam[4] =1;
+        }else{
+            fParam[3] = 0;
+            fParam[4] = 0;
+        }
+        //fParam[9]  Perturb the pivot elements with 1E-fParam[9]
+        fParam[9] = 13;
+        //fParam[26] Whether to check matrix data
+        fParam[26] = 1;
+        //fParam[59]  Do not use OOC
+        fParam[59] = 0;
     }
-    //fParam[9]  Perturb the pivot elements with 1E-fParam[9]
-    fParam[9] = 13;
-    //fParam[26] Whether to check matrix data
-    fParam[26] = 1;
-    //fParam[59]  Do not use OOC
-    fParam[59] = 0;
     
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
@@ -379,6 +381,27 @@ TPZPardisoSolver<TVar> *TPZPardisoSolver<TVar>::Clone() const{
     return new TPZPardisoSolver<TVar>(*this);
 }
 
+
+template<class TVar>
+void TPZPardisoSolver<TVar>::SetParam(const TPZVec<long long> &p){
+    if(p.size() != fParam.size()){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nIncorrect size of PARDISO param array!"
+               <<"\nExpected "<<fParam.size()<<" and got "<<p.size()
+               <<"\nAborting..."<<std::endl;
+        DebugStop();
+    }
+    fParam = p;
+    fCustomSettings = true;
+}
+
+template<class TVar>
+void TPZPardisoSolver<TVar>::ResetParam(){
+    //will setup param with info regarding matrix' structure
+    this->MatrixType();
+    fCustomSettings = false;
+}
+
 template<class TVar>
 void TPZPardisoSolver<TVar>::SetMatrixType(MSystemType systemtype, MProperty prop)
 {
@@ -397,6 +420,7 @@ void TPZPardisoSolver<TVar>::SetMatrixType(MSystemType systemtype, MProperty pro
 template<class TVar>
 long long TPZPardisoSolver<TVar>::MatrixType()
 {
+    
     if (fStructure == MStructure::ENonSymmetric){
         if(fSystemType == MSystemType::ESymmetric){
             if constexpr (is_complex<TVar>::value){
@@ -433,13 +457,13 @@ long long TPZPardisoSolver<TVar>::MatrixType()
             }
         }
     }
-    
+
+    if(fCustomSettings){return fMatrixType;}
+#ifdef USING_MKL
     int param[64] = {0};
     int matrixtype = fMatrixType;
-#ifdef USING_MKL
     pardisoinit(fHandle,&matrixtype,param);
     fPardisoInitialized = true;
-#endif
     for (int i=0; i<64; i++) {
         fParam[i] = param[i];
     }
@@ -453,6 +477,7 @@ long long TPZPardisoSolver<TVar>::MatrixType()
     fParam[34] = 1;
     //Use CSR
     fParam[36] = 0;
+#endif
     return fMatrixType;
 }
 

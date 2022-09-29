@@ -81,9 +81,20 @@ public:
     void SetStructure(MStructure str){
         fStructure = str;
     }
-    //! Gets reference to pardiso fParam array
-    inline TPZVec<long long> & GetParam()
+    /** @brief Gets copy of Pardiso param array
+        @note It is strongly suggested to call SetStructure and SetMatrixType before
+        customising the param array.*/
+    [[nodiscard]] inline TPZVec<long long> GetParam() const
     {return fParam;}
+
+    /** @brief Sets custom values to Pardiso param array.*/
+    void SetParam(const TPZVec<long long> & p);
+
+    /** @brief Resets custom values of Pardiso param array
+     @note This function should only be called if SetParam has been previously called.*/
+    void ResetParam();
+    //! Whether the param array has been set manually.
+    [[nodiscard]] bool HasCustomSettings() const {return fCustomSettings;}
 protected:
     /// Compute the `mtype` parameter of the pardiso_64 call
     long long MatrixType();
@@ -133,6 +144,8 @@ protected:
     bool fDecomposed{false};
     /// whether pardisoinit has been called
     bool fPardisoInitialized{false};
+    /// whether a custom param array has been set
+    bool fCustomSettings{false};
 };
 
 #endif /* TPZPARDISOSOLVER_H */
