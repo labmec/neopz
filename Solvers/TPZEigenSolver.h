@@ -21,6 +21,10 @@ enum class TPZEigenSort{
   TargetMagnitude/*!< Magnitude closest to target*/
 };
 
+
+template <class T>
+class TPZPardisoSolver;
+
 /**
 * @ingroup solver
 * @brief  Defines an interface for  eigenvalue problems solvers.
@@ -138,7 +142,18 @@ public:
   int ClassId() const override;
   //! Resets Matrices
   void ResetMatrix() override;
+  //!Gets PARDISO control of Matrix A
+  //!Returns nullptr if not applicable (non-sparse matrix or matrix not set)
+  virtual TPZPardisoSolver<TVar> *GetPardisoControlA(){
+    return GetPardisoControl(fMatrixA);
+  }
+  //!Gets PARDISO control of Matrix A
+  //!Returns nullptr if not applicable (non-sparse matrix or matrix not set)
+  virtual TPZPardisoSolver<TVar> *GetPardisoControlB(){
+    return GetPardisoControl(fMatrixB);
+  }
 protected:
+  TPZPardisoSolver<TVar> *GetPardisoControl(TPZAutoPointer<TPZMatrix<TVar>> mat);
   /**
      @brief Sort the calculated eigenvalues and return a vector with
      size given by the NEigenvalues() method
