@@ -46,7 +46,7 @@ void CheckError(TPZMultiphysicsCompMesh *cmesh, TPZVec<REAL> &error, ProblemType
 
 void Refinement(TPZGeoMesh *gmesh);
 
-void SolveSystem(TPZMultiphysicsCompMesh* cmesh);
+void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol);
 
 void TestKnownSol(TPZLinearAnalysis& an, const REAL cteSol, TPZMultiphysicsCompMesh* mpcmesh);
 
@@ -352,7 +352,9 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     
     // ==========> Solving problem <==========
     // =======================================
-    SolveSystem(cmesh);
+    const bool isTestKnownSol = true;
+    SolveSystem(cmesh,isTestKnownSol);
+    if(isTestKnownSol) return;
     
     // ==========> Post processing <==========
     // =======================================
@@ -371,7 +373,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     cout << "\n------------------ Test ended without crashing ------------------" << endl << endl;
 }
 
-void SolveSystem(TPZMultiphysicsCompMesh* cmesh) {
+void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol) {
 #ifdef USE_MAIN
     constexpr int nThreads{0};
 #else
@@ -387,11 +389,9 @@ void SolveSystem(TPZMultiphysicsCompMesh* cmesh) {
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     an.SetSolver(step);
-    
-    const bool isTestKnownSol = false;
+        
     if(isTestKnownSol){
         TestKnownSol(an,1.,cmesh);
-        return;
     }
     else{
         an.Run();
