@@ -264,6 +264,9 @@ void TPZApproxCreator::InsertInterfaceMaterialObjects(TPZMultiphysicsCompMesh *m
                 
         //TODO Should we support more general interface classes? Support CSTATE?
         TPZLagrangeMultiplierCS<STATE> *interface = new TPZLagrangeMultiplierCS<STATE>(fHybridizationData.fInterfaceMatId, fGeoMesh->Dimension()-1, nstate);
+        if(fProbType == ProblemType::EElastic){
+            interface->SetMultiplier(-1.);
+        }
         mphys->InsertMaterialObject(interface);
 
         if (fHybridType == HybridizationType::EStandardSquared) {
