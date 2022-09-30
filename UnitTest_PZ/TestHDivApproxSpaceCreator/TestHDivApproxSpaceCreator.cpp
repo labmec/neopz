@@ -114,15 +114,16 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     
     // HDivFamily sType = GENERATE(HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
     HDivFamily sType = GENERATE(HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
-    ProblemType pType = GENERATE(ProblemType::EDarcy,ProblemType::EElastic);
-//    ProblemType pType = GENERATE(ProblemType::EDarcy);
+//    ProblemType pType = GENERATE(ProblemType::EDarcy,ProblemType::EElastic);
+    ProblemType pType = GENERATE(ProblemType::EElastic);
     int pOrder = GENERATE(1);
     bool isRBSpaces = GENERATE(false,true);
     MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
     int extraporder = GENERATE(0,1,2);
-    bool isCondensed = GENERATE(false,true);
-    HybridizationType hType = GENERATE(HybridizationType::ENone);
-//    HybridizationType hType = GENERATE(HybridizationType::EStandard);
+//    bool isCondensed = GENERATE(false,true);
+    bool isCondensed = GENERATE(false);
+//    HybridizationType hType = GENERATE(HybridizationType::ENone);
+    HybridizationType hType = GENERATE(HybridizationType::EStandard);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
@@ -136,12 +137,12 @@ int main(){
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-//    HDivFamily sType = HDivFamily::EHDivStandard;
+    HDivFamily sType = HDivFamily::EHDivStandard;
 //    HDivFamily sType = HDivFamily::EHDivKernel;
-    HDivFamily sType = HDivFamily::EHDivConstant;
+//    HDivFamily sType = HDivFamily::EHDivConstant;
     
-    ProblemType pType = ProblemType::EElastic;
-//    ProblemType pType = ProblemType::EDarcy;
+//    ProblemType pType = ProblemType::EElastic;
+    ProblemType pType = ProblemType::EDarcy;
     
     const int pord = 1;
     const bool isRBSpaces = false;
@@ -352,9 +353,9 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     
     // ==========> Solving problem <==========
     // =======================================
-    const bool isTestKnownSol = true;
+    const bool isTestKnownSol = false;
     SolveSystem(cmesh,isTestKnownSol);
-    if(isTestKnownSol) return;
+    if(isTestKnownSol) return; // do not perform checks if just testing known sol
     
     // ==========> Post processing <==========
     // =======================================
@@ -368,7 +369,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     CheckIntegralOverDomain(cmesh,probType,hdivFam);
     // Checks if error with respect to exact solution is close to 0
     TPZManVector<REAL,5> error;
-    CheckError(cmesh,error,probType);
+//    CheckError(cmesh,error,probType);
     
     cout << "\n------------------ Test ended without crashing ------------------" << endl << endl;
 }
@@ -383,7 +384,11 @@ void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol) {
     matsp.SetNumThreads(nThreads);
 
     std::cout << "Number of equations = " << cmesh->NEquations() << std::endl;
+#ifdef USE_MAIN
+    TPZLinearAnalysis an(cmesh,false);
+#else
     TPZLinearAnalysis an(cmesh,true);
+#endif
 
     an.SetStructuralMatrix(matsp);
     TPZStepSolver<STATE> step;
@@ -561,5 +566,10 @@ void TestKnownSol(TPZLinearAnalysis& an, const REAL cteSol, TPZMultiphysicsCompM
     res = res - an.Rhs();
     std::ofstream out("problematicElsGlob.txt");
     an.PrintVectorByElement(out, res, 1.e-6);
-
+        
+    for(int i = 0 ; i < mpcmesh->MeshVector().size() ; i++){
+        std::string name = "Mesh_" + to_string(i) + ".txt";
+        std::ofstream outmesh(name);
+        mpcmesh->MeshVector()[i]->Print(outmesh);
+    }
 }

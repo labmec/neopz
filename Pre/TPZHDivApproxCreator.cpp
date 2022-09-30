@@ -134,7 +134,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     int dim = fGeoMesh->Dimension();
     TPZCompMesh *cmesh = new TPZCompMesh(fGeoMesh);
     if (fProbType == ProblemType::EElastic) {
-        cmesh->SetDefaultOrder(fDefaultPOrder+1);
+        cmesh->SetDefaultOrder(fDefaultPOrder);
     }
     else if (fProbType == ProblemType::EDarcy){
         cmesh->SetDefaultOrder(fDefaultPOrder);
@@ -348,7 +348,8 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int pOrder, const int la
         TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(lagmatid,dim-1,nstate);
         cmesh->InsertMaterialObject(nullmat);
         
-        const int lagpord = pOrder - 1;
+        int lagpord = pOrder - 1;
+        if(fProbType == ProblemType::EElastic) lagpord++;
         if (lagpord > 0){
             cmesh->SetDefaultOrder(lagpord);
             cmesh->SetAllCreateFunctionsContinuous();

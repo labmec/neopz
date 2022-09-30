@@ -29,15 +29,15 @@ void TPZLagrangeMultiplierCS<TVar>::ContributeInterface(
     const TPZFMatrix<REAL> &phiR = *phiRPtr;
     
     
-    int nrowl = phiL.Rows();
-    int nrowr = phiR.Rows();
+    int nphil = phiL.Rows();
+    int nphir = phiR.Rows();
     static int count  = 0;
 
-    if((nrowl+nrowr)*fNStateVariables != ek.Rows() && count < 20)
+    if((nphil+nphir)*fNStateVariables != ek.Rows() && count < 20)
     {
         std::cout<<"ek.Rows() "<< ek.Rows()<<
-        " nrowl " << nrowl <<
-        " nrowr " << nrowr << " may give wrong result " << std::endl;
+        " nphil " << nphil <<
+        " nphir " << nphir << " may give wrong result " << std::endl;
         count++;
     }
 
@@ -111,34 +111,29 @@ void TPZLagrangeMultiplierCS<STATE>::ContributeInterface(
         {
         double *A, *B, *C;
         double alpha, beta;
-        int m,n,k,phrL,phrR;
-        phrL = phiL->Rows();
-        phrR = phiR->Rows();
-        m = phrL;
-        n = phrR;
-        k = 1;
-        alpha = weight * fMultiplier ;
+        int m,n,k;
+        m = phiLBlas.Cols(); // number of rows of mat op(A)
+        n = phiRBlas.Cols(); // number of cols of mat op(B)
+        k = phiLBlas.Rows(); // number of cols of mat op(A)
+        alpha = weight * fMultiplier;
         beta = 1.0;
         int LDA,LDB,LDC;
-        LDC = phrL+phrR;
-        LDA = phiL->Rows();
-        LDB = 1;
-        C = &ek(0,phrL);
-        A = &phiLdummy(0,0);
-        B = &phiRdummy(0,0);
-        //cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,                       m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
-        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
+        LDC = nphil*fNStateVariables+nphir*fNStateVariables; // first dimension of C
+        LDA = k; // if not transpose max( 1, m ), otherwise max( 1, k ).
+        LDB = k; // if not transpose max( 1, k ), otherwise max( 1, n ).
+        C = &ek(0,nphil*fNStateVariables);
+        A = &phiLBlas(0,0);
+        B = &phiRBlas(0,0);
+        cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
                     m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
     }
     {
         double *A, *B, *C;
         double alpha, beta;
-        int m,n,k,phrL,phrR;
-        phrL = phiL->Rows();
-        phrR = phiR->Rows();
-        m = phrR;
-        n = phrL;
-        k = 1;
+        int m,n,k;
+        m = phiRBlas.Cols(); // number of rows of mat op(A)
+        n = phiLBlas.Cols(); // number of cols of mat op(B)
+        k = phiRBlas.Rows(); // number of cols of mat op(A)
         alpha = weight * fMultiplier ;
         beta = 1.0;
         int LDA,LDB,LDC;
@@ -242,4 +237,3 @@ void TPZLagrangeMultiplierCS<TVar>::Read(TPZStream &buf, void *context)
 
 template class TPZLagrangeMultiplierCS<STATE>;
 template class TPZLagrangeMultiplierCS<CSTATE>;
-
