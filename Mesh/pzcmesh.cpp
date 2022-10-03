@@ -1574,21 +1574,20 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum, std::s
         
         TPZCondensedCompEl* condcompel = dynamic_cast<TPZCondensedCompEl*>(cel);
         if(condcompel) {
-            // loop over elements in the condensed element and account for the error of each one
             TPZElementGroup* elgr = dynamic_cast<TPZElementGroup*>(condcompel->ReferenceCompEl());
-            if(elgr){
+            if(elgr){ // loop over elements in the condensed element and account for the error of each one
                 for(auto celgr : elgr->GetElGroup()){
                     if(!celgr) continue;
                     AccountForElementError(celgr,store_error,true_error,errorSum,matset);
                 }
             }
-            else{
+            else{ // condcompel->ReferenceCompEl() is a single element
                 AccountForElementError(condcompel->ReferenceCompEl(),store_error,true_error,errorSum,matset);
             }
 
         }
-        else{
-            AccountForElementError(cel,store_error,true_error,errorSum,matset); // just account for the element error
+        else{ // It is a normal compel. Just account for the element error
+            AccountForElementError(cel,store_error,true_error,errorSum,matset);
         }
 	}
 	
