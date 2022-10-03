@@ -114,7 +114,7 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
                 DebugStop();
             }
 #endif
-            if(fHybridType == HybridizationType::EStandard)
+            if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::ESemi)
             {
                 // then, depending on orientation fH1Hybrid.fLagrangeMatid.first or second
                 int dir = gel->NormalOrientation(side);
@@ -157,7 +157,7 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
         int interface = fHybridizationData.fInterfaceMatId;
         bool isinterface = (matid == interface);
         bool islag = (matid == fHybridizationData.fLagrangeMatId);
-        if(fHybridType == HybridizationType::EStandard && isinterface)
+        if((fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::ESemi) && isinterface)
         {
             bool ShouldCreateLag =  !HasBCNeighbour;
             if(gelside.HasLowerLevelNeighbour(fHybridizationData.fLagrangeMatId))
@@ -236,7 +236,7 @@ void TPZApproxCreator::InsertWrapAndLagrangeMaterialObjects(TPZMultiphysicsCompM
         cmesh->InsertMaterialObject(nullmat);
     };
 
-    if(fHybridType == HybridizationType::EStandard)
+    if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::ESemi)
     {
         Fwd(fHybridizationData.fLagrangeMatId,periphelDim,nstate,mphys);
         Fwd(fHybridizationData.fWrapMatId,periphelDim,nstate,mphys);
@@ -249,7 +249,7 @@ void TPZApproxCreator::InsertWrapAndLagrangeMaterialObjects(TPZMultiphysicsCompM
 }
 
 void TPZApproxCreator::InsertInterfaceMaterialObjects(TPZMultiphysicsCompMesh *mphys){
-    if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared) {
+    if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared  || fHybridType == HybridizationType::ESemi) {
 
         int nstate = 0;
         for (std::pair<int,TPZMaterial*> matpair : fMaterialVec) {

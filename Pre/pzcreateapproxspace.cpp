@@ -443,6 +443,8 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
 #include "pzelchdivbound2.h"
 #include "TPZCompElKernelHDiv3D.h"
 #include "TPZCompElKernelHDiv.h"
+#include "TPZCompElHDivDuplConnects.h"
+#include "TPZCompElHDivDuplConnectsBound.h"
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
 
@@ -528,6 +530,54 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
      pzgeom::TPZGeoPyramid::fp = CreateHDivPyramEl;
      pzgeom::TPZGeoCube::fp = CreateHDivCubeEl;
      */
+}
+
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivDuplConnects(int dimension){
+
+    fStyle = EHDiv;
+    const HDivFamily &hdivfam = this->fhdivfam;
+
+    if (hdivfam != HDivFamily::EHDivConstant){
+        std::cout << "HDiv Dupl Connects not implemented yet for this HDiv family!" << std::endl;
+        DebugStop();
+    }
+
+    switch (dimension) {
+        case 1:
+            fp[EPoint] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivDuplConnectsBoundPointEl(gel,mesh,hdivfam);};
+            fp[EOned] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivDuplConnectsLinearEl(gel,mesh,hdivfam);};
+            fp[ETriangle] = CreateNoElement;
+            fp[EQuadrilateral] = CreateNoElement;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 2:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivDuplConnectsBoundLinearEl(gel,mesh,hdivfam);};
+            fp[ETriangle] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivDuplConnectsTriangleEl(gel,mesh,hdivfam);};
+            fp[EQuadrilateral] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivDuplConnectsQuadEl(gel,mesh,hdivfam);};
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 3:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = CreateNoElement;
+            fp[ETriangle] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivDuplConnectsBoundTriangEl(gel,mesh,hdivfam);};
+            fp[EQuadrilateral] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivDuplConnectsBoundQuadEl(gel,mesh,hdivfam);};
+            fp[ETetraedro] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivDuplConnectsTetraEl(gel,mesh,hdivfam);};
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = [hdivfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHDivDuplConnectsCubeEl(gel,mesh,hdivfam);};
+            break;
+        default:
+            DebugStop();
+            break;
+    }
+
 }
 
 #include <TPZCompElHCurl.h>

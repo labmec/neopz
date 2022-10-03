@@ -115,15 +115,15 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     // HDivFamily sType = GENERATE(HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
     HDivFamily sType = GENERATE(HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
     ProblemType pType = GENERATE(ProblemType::EDarcy,ProblemType::EElastic);
-//    ProblemType pType = GENERATE(ProblemType::EElastic);
+    // ProblemType pType = GENERATE(ProblemType::EElastic);
     int pOrder = GENERATE(1);
     bool isRBSpaces = GENERATE(false,true);
     MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
     int extraporder = GENERATE(0,1,2);
 //    bool isCondensed = GENERATE(false,true);
-    bool isCondensed = GENERATE(false);
+    bool isCondensed = GENERATE(false,true);
 //    HybridizationType hType = GENERATE(HybridizationType::ENone);
-    HybridizationType hType = GENERATE(HybridizationType::EStandard);
+    HybridizationType hType = GENERATE(HybridizationType::ESemi);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
@@ -137,17 +137,17 @@ int main(){
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    HDivFamily sType = HDivFamily::EHDivStandard;
+    // HDivFamily sType = HDivFamily::EHDivStandard;
 //    HDivFamily sType = HDivFamily::EHDivKernel;
-//    HDivFamily sType = HDivFamily::EHDivConstant;
+   HDivFamily sType = HDivFamily::EHDivConstant;
     
-    ProblemType pType = ProblemType::EElastic;
-//    ProblemType pType = ProblemType::EDarcy;
+   ProblemType pType = ProblemType::EElastic;
+    // ProblemType pType = ProblemType::EDarcy;
     
     const int pord = 1;
     const bool isRBSpaces = false;
     
-//    MMeshType mType = MMeshType::EQuadrilateral;
+    MMeshType mType = MMeshType::EQuadrilateral;
 //    MMeshType mType = MMeshType::ETriangular;
 //    MMeshType mType = MMeshType::EHexahedral;
     MMeshType mType = MMeshType::ETetrahedral;
@@ -318,6 +318,10 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
         std::cout << " Hdiv kernel currently does not support rigid body spaces \n";
         return;
     }
+    if (hdivFam != HDivFamily::EHDivConstant && hType == HybridizationType::ESemi) {
+        std::cout << " The only HDiv space with available Semi hybridization is HDivConstant \n";
+        return;
+    }
     
     // ==========> Creating GeoMesh <==========
     // ========================================
@@ -378,7 +382,7 @@ void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol) {
 #ifdef USE_MAIN
     constexpr int nThreads{0};
 #else
-    constexpr int nThreads{12};
+    constexpr int nThreads{0};
 #endif
     TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>> matsp(cmesh);
     matsp.SetNumThreads(nThreads);

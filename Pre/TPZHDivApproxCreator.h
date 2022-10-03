@@ -14,6 +14,9 @@ protected:
     
     /// Type of HDiv family to be used. Some of the options are HDivStandard, HDivKernel, and HDivConstant
     HDivFamily fHDivFam = HDivFamily::EHDivStandard;
+
+    /// A map relating the duplicated connect and its pair
+    std::map<int64_t,int64_t> fConnDuplicated;
     
 public:
     
@@ -81,6 +84,12 @@ private:
     /// @param cmesh L2 compmesh with the lagrange multiplier
     void ChangeLagLevel(TPZCompMesh* cmesh, const int newLagLevel);
 
+    /// @brief If the semi-hybridization is chosen, the following methods allows activate or disable the duplicated connects
+    /// @param cmesh 
+    void ActivateDuplicatedConnects(TPZCompMesh *cmesh);
+    void PartitionDependMatrix(TPZCompMesh *cmesh);
+    void DisableDuplicatedConnects(TPZCompMesh *cmesh);
+    void GroupDependMatrix(TPZCompMesh *cmesh);
     
 };
 

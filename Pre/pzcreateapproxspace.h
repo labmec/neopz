@@ -117,6 +117,8 @@ public:
     void SetAllCreateFunctionsHCurl(int meshdim);
     /** @brief Create an approximation space with HCurl elements */
     void SetAllCreateFunctionsHCurlWithMem(int meshdim);
+    /** @brief Create an approximation space with HDiv elements with duplicated connects per facet */
+	void SetAllCreateFunctionsHDivDuplConnects(int meshdim);
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
 //    void SetAllCreateFunctionsHDivFull(int meshdim);
     
