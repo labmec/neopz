@@ -22,7 +22,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-//#define USE_MAIN
+#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -114,8 +114,8 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     
     // HDivFamily sType = GENERATE(HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
     HDivFamily sType = GENERATE(HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
-//    ProblemType pType = GENERATE(ProblemType::EDarcy,ProblemType::EElastic);
-    ProblemType pType = GENERATE(ProblemType::EElastic);
+    ProblemType pType = GENERATE(ProblemType::EDarcy,ProblemType::EElastic);
+//    ProblemType pType = GENERATE(ProblemType::EElastic);
     int pOrder = GENERATE(1);
     bool isRBSpaces = GENERATE(false,true);
     MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
@@ -147,14 +147,14 @@ int main(){
     const int pord = 1;
     const bool isRBSpaces = false;
     
-    MMeshType mType = MMeshType::EQuadrilateral;
+//    MMeshType mType = MMeshType::EQuadrilateral;
 //    MMeshType mType = MMeshType::ETriangular;
 //    MMeshType mType = MMeshType::EHexahedral;
-//    MMeshType mType = MMeshType::ETetrahedral;
+    MMeshType mType = MMeshType::ETetrahedral;
     
     int extraporder = 0;
-//    bool isCondensed = true;
-    bool isCondensed = false;
+    bool isCondensed = true;
+//    bool isCondensed = false;
     HybridizationType hType = HybridizationType::EStandard;
 //    HybridizationType hType = HybridizationType::ENone;
     
@@ -369,7 +369,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     CheckIntegralOverDomain(cmesh,probType,hdivFam);
     // Checks if error with respect to exact solution is close to 0
     TPZManVector<REAL,5> error;
-//    CheckError(cmesh,error,probType);
+    CheckError(cmesh,error,probType);
     
     cout << "\n------------------ Test ended without crashing ------------------" << endl << endl;
 }
