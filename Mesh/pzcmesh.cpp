@@ -1511,6 +1511,48 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
     this->EvaluateError(store_error, errorSum, matset);
 }
 
+void TPZCompMesh::AccountForElementError(TPZCompEl* cel, bool store_error, TPZManVector<REAL,3>& true_error,
+                                         TPZVec<REAL>& errorSum, std::set<int> &matset) {
+    
+    // Skipping cels that are not included in the set of materials to compute error
+    const int celmatid = cel->Reference()->MaterialId();
+    if(matset.find(celmatid) == matset.end()) return;
+    
+    cel->EvaluateError(true_error, store_error);
+
+    int64_t nerrors = true_error.NElements();
+    errorSum.Resize(nerrors, 0.);
+    for (int64_t ii = 0; ii < nerrors; ii++)
+        errorSum[ii] += true_error[ii] * true_error[ii];
+
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "true_errors: ";
+        for (int ierr = 0; ierr < nerrors; ierr++) {
+            sout << true_error[ierr] << " ";
+        }
+        sout << "\n";
+        sout << "acc_errors^2: ";
+        for (int ierr = 0; ierr < nerrors; ierr++) {
+            sout << errorSum[ierr] << " ";
+        }
+        sout << "\n";
+        sout << "GelID: ";
+        if (cel->Reference()) {
+            sout << cel->Reference()->Index();
+            TPZGeoElSide side(cel->Reference());
+            TPZManVector<REAL> coord(3);
+            side.CenterX(coord);
+            sout << " CenterCoord: " << coord;
+            sout << " MatID: " << cel->Material()->Id();
+        }
+        sout << "\n";
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+}
+
 void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum, std::set<int> &matset) {
 	
     if(!matset.size()) DebugStop();
@@ -1530,43 +1572,18 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum, std::s
         cel = fElementVec[el];
         if (!cel) continue;
         
-        // Skipping cels that are not included in the set of materials to compute error
-        const int celmatid = cel->Reference()->MaterialId();
-        if(matset.find(celmatid) == matset.end()) continue;
-        
-        cel->EvaluateError(true_error, store_error);
-
-        int64_t nerrors = true_error.NElements();
-        errorSum.Resize(nerrors, 0.);
-        for (int64_t ii = 0; ii < nerrors; ii++)
-            errorSum[ii] += true_error[ii] * true_error[ii];
-
-#ifdef PZ_LOG
-		if (logger.isDebugEnabled()) {
-			std::stringstream sout;
-			sout << "true_errors: ";
-			for (int ierr = 0; ierr < nerrors; ierr++) {
-				sout << true_error[ierr] << " ";
-			}
-			sout << "\n";
-			sout << "acc_errors^2: ";
-			for (int ierr = 0; ierr < nerrors; ierr++) {
-				sout << errorSum[ierr] << " ";
-			}
-			sout << "\n";
-			sout << "GelID: ";
-			if (cel->Reference()) {
-				sout << cel->Reference()->Index();
-				TPZGeoElSide side(cel->Reference());
-				TPZManVector<REAL> coord(3);
-				side.CenterX(coord);
-				sout << " CenterCoord: " << coord;
-				sout << " MatID: " << cel->Material()->Id();
-			}
-			sout << "\n";
-			LOGPZ_DEBUG(logger, sout.str())
-		}
-#endif
+        TPZCondensedCompEl* condcompel = dynamic_cast<TPZCondensedCompEl*>(cel);
+        if(condcompel) {
+            // loop over elements in the condensed element and account for the error of each one
+            TPZElementGroup* elgr = dynamic_cast<TPZElementGroup*>(condcompel->ReferenceCompEl());
+            for(auto celgr : elgr->GetElGroup()){
+                if(!celgr) continue;
+                AccountForElementError(celgr,store_error,true_error,errorSum,matset);
+            }
+        }
+        else{
+            AccountForElementError(cel,store_error,true_error,errorSum,matset); // just account for the element error
+        }
 	}
 	
 	int64_t nerrors = errorSum.NElements();

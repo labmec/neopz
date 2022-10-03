@@ -486,6 +486,16 @@ public:
 	
 private:
 	
+    
+    /// Accounts for a compel error to the errorSum variable
+    /// @param cel compel to compute error
+    /// @param store_error bool if should store error
+    /// @param true_error true_error of element
+    /// @param errorSum sum of all errors of all compels
+    /// @param matset set with matids to compute error
+    void AccountForElementError(TPZCompEl* cel, bool store_error, TPZManVector<REAL,3>& true_error,
+                                TPZVec<REAL>& errorSum, std::set<int> &matset);
+    
 	/** @brief Creates the computational elements, and the degree of freedom nodes */ 
 	/** If MaterialIDs is passed, only element of material id in the set<int> will be created */
 	virtual void AutoBuild(const std::set<int> *MaterialIDs);
