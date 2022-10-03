@@ -60,6 +60,9 @@ set(headers
   TPZCompElKernelHDiv3D.h
   TPZHCurlEquationFilter.h
   TPZCompElDiscScaled.h
+  TPZCompElHDivDuplConnects.h
+  TPZCompElHDivDuplConnectsBound.h
+  TPZCompElUnitaryLagrange.h
 )
 
 set(sources
@@ -112,6 +115,9 @@ set(sources
   TPZCompElKernelHDiv3D.cpp
   TPZHCurlEquationFilter.cpp
   TPZCompElDiscScaled.cpp
+  TPZCompElHDivDuplConnects.cpp
+  TPZCompElHDivDuplConnectsBound.cpp
+  TPZCompElUnitaryLagrange.cpp
 )
 
 if(USING_MKL)
