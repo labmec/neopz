@@ -141,8 +141,8 @@ int main(){
 //    HDivFamily sType = HDivFamily::EHDivKernel;
 //    HDivFamily sType = HDivFamily::EHDivConstant;
     
-//    ProblemType pType = ProblemType::EElastic;
-    ProblemType pType = ProblemType::EDarcy;
+    ProblemType pType = ProblemType::EElastic;
+//    ProblemType pType = ProblemType::EDarcy;
     
     const int pord = 1;
     const bool isRBSpaces = false;
