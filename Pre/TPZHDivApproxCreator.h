@@ -62,6 +62,10 @@ private:
 
     /// Creates and HDiv approximation space/cmesh
     TPZCompMesh * CreateHDivSpace();
+        
+    /// Creates the hybridized mesh for the flux
+    /// @param compmesh to be created with hybrid data structure
+    void CreateHybridHDivMesh(TPZCompMesh* cmesh);
     
     /// Creates an L2 approximation space/cmesh
     /// @param pOrder polynomial order of the space
@@ -87,9 +91,22 @@ private:
     /// @brief If the semi-hybridization is chosen, the following methods allows activate or disable the duplicated connects
     /// @param cmesh 
     void ActivateDuplicatedConnects(TPZCompMesh *cmesh);
+        
+    /// COMENTAR
+    /// @param cmesh COMENTAR
     void PartitionDependMatrix(TPZCompMesh *cmesh);
+        
+    /// COMENTAR
+    /// @param cmesh COMENTAR
     void DisableDuplicatedConnects(TPZCompMesh *cmesh);
+    
+    /// COMENTAR
+    /// @param cmesh COMENTAR
     void GroupDependMatrix(TPZCompMesh *cmesh);
+    
+    /// Semi hybridizes the compmesh
+    /// @param cmesh compmesh to semi hybridize
+    void SemiHybridizeDuplConnects(TPZCompMesh *cmesh);
     
 };
 
