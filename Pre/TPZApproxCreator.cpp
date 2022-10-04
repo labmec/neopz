@@ -141,6 +141,8 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
             }
         }
     }
+    
+    // Creates the interface elements
     nel = fGeoMesh->NElements();
     for(int64_t el = 0; el<nel; el++)
     {
@@ -221,7 +223,51 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
+#ifdef PZDEBUG
+    // Check if neighborhood is correct
+    CheckNeighborhoodHybridization();
+#endif
+}
 
+void TPZApproxCreator::CheckNeighborhoodHybridization() const {
+    const int dim = fGeoMesh->Dimension();
+    for(auto gel : fGeoMesh->ElementVec()) {
+        if(gel->Dimension() != dim) continue;
+        
+        const int firstFace = gel->FirstSide(dim-1);
+        for (int iside = firstFace; iside < gel->NSides()-1; iside++) {
+            TPZGeoElSide gelside(gel,iside);
+            if (!gelside.HasNeighbour(fHybridizationData.fWrapMatId)) continue;
+            
+            TPZGeoEl* gelWrap = gelside.Neighbour().Element();
+            if (gelWrap->MaterialId() != fHybridizationData.fWrapMatId) {
+                DebugStop(); // Wrap has to be the first neighbor
+            }
+            
+            TPZGeoEl* gelInter = gelside.Neighbour().Neighbour().Element();
+            if (gelInter->MaterialId() != fHybridizationData.fInterfaceMatId) {
+                DebugStop(); // Wrap has to be the first neighbor
+            }
+            
+            // Now check if the wrap is the correct first neighbor by checking if the wrap nodes are contained in the element itself
+            std::set<int> wrapNodes,geoNodes;
+            const int gelWrapNSideNodes = gelWrap->NSideNodes(gelWrap->NSides()-1),
+                gelSideNSideNodes = gel->NSideNodes(iside);
+            
+            if(gelWrapNSideNodes != gelSideNSideNodes) DebugStop();
+            
+            for(int in = 0 ; in < gelWrap->NSideNodes(gelWrap->NSides()-1) ; in++) {
+                wrapNodes.insert(gelWrap->SideNodeIndex(gelWrap->NSides()-1, in));
+                geoNodes.insert(gel->SideNodeIndex(iside, in));
+            }
+            std::set<int> diffset;
+            std::set_difference(wrapNodes.begin(), wrapNodes.end(), geoNodes.begin(), geoNodes.end(),inserter(diffset,diffset.begin()));
+            
+            if(diffset.size()) DebugStop();
+            
+        }
+    }
+//    std::cout << "\nElement index " << neighgel->Reference()->Index() << " matid " << neighgel->MaterialId();
 }
 
 void TPZApproxCreator::InsertWrapAndLagrangeMaterialObjects(TPZMultiphysicsCompMesh *mphys){

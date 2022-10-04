@@ -152,6 +152,9 @@ public:
     }
 
 protected:
+    
+    /// Checks if the hybridization neighborhood is correct
+    void CheckNeighborhoodHybridization() const;
 
     /// Compute Periferal Material ids for additional elements generated during hybridization
     void ComputePeriferalMaterialIds(int base = 10);
