@@ -22,7 +22,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-#define USE_MAIN
+//#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -119,11 +119,12 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     int pOrder = GENERATE(1);
     bool isRBSpaces = GENERATE(false,true);
     MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
-    int extraporder = GENERATE(0,1,2);
+    int extraporder = GENERATE(0,1);
 //    bool isCondensed = GENERATE(false,true);
     bool isCondensed = GENERATE(false,true);
 //    HybridizationType hType = GENERATE(HybridizationType::ENone);
-    HybridizationType hType = GENERATE(HybridizationType::ESemi);
+//    HybridizationType hType = GENERATE(HybridizationType::ESemi);
+    HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ENone);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
@@ -137,17 +138,17 @@ int main(){
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    // HDivFamily sType = HDivFamily::EHDivStandard;
+//    HDivFamily sType = HDivFamily::EHDivStandard;
 //    HDivFamily sType = HDivFamily::EHDivKernel;
-   HDivFamily sType = HDivFamily::EHDivConstant;
+    HDivFamily sType = HDivFamily::EHDivConstant;
     
-   ProblemType pType = ProblemType::EElastic;
-    // ProblemType pType = ProblemType::EDarcy;
+//   ProblemType pType = ProblemType::EElastic;
+    ProblemType pType = ProblemType::EDarcy;
     
     const int pord = 1;
     const bool isRBSpaces = false;
     
-    MMeshType mType = MMeshType::EQuadrilateral;
+//    MMeshType mType = MMeshType::EQuadrilateral;
 //    MMeshType mType = MMeshType::ETriangular;
 //    MMeshType mType = MMeshType::EHexahedral;
     MMeshType mType = MMeshType::ETetrahedral;

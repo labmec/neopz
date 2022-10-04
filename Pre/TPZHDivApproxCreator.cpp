@@ -79,8 +79,10 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
     if (fHybridType != HybridizationType::ENone){
         ComputePeriferalMaterialIds();
         AddHybridizationGeoElements();
-        std::ofstream out("GeoMeshHybrid.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh, out);
+//        std::ofstream out("GeoMeshHybrid.vtk");
+//        TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh, out);
+//        std::ofstream outtxt("geomesh.txt");
+//        fGeoMesh->Print(outtxt);
     }
 
     bool isElastic = fProbType == ProblemType::EElastic;
@@ -126,6 +128,7 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
 
     TPZMultiphysicsCompMesh *cmeshmulti = CreateMultiphysicsSpace(meshvec);
 
+//    PrintMeshElementsConnectInfo(cmeshmulti);
     if (fShouldCondense){  
         if (isElastic && !fIsRBSpaces){ 
             // In this case, the third (corresponding to the laglevCounter - 1) is the rotation mesh, whose can be condensed.
@@ -140,6 +143,14 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
             }
         }
     }
+    
+//    for(int i = 0 ; i < meshvec.size() ; i++) {
+//        std::string str = "mesh_" + std::to_string(i) + ".txt";
+//        std::ofstream out(str);
+//        meshvec[i]->Print(out);
+//        PrintMeshElementsConnectInfo(meshvec[i]);
+//    }
+//    PrintMeshElementsConnectInfo(cmeshmulti);
     
     return cmeshmulti;
 }
@@ -187,16 +198,38 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     cmesh->ApproxSpace().SetHDivFamily(fHDivFam);
     
     if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared) {
+        // First only build the vol compels disconnected
         cmesh->ApproxSpace().CreateDisconnectedElements(true);
         cmesh->SetDimModel(dim);
         cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(dim);
         std::set<int> volmatids = GetVolumetricMatIds();
         cmesh->AutoBuild(volmatids);
+        
+        // Now, just the bcs but connected to the volumetric elements (therefore we do LoadReferences())
         cmesh->ApproxSpace().CreateDisconnectedElements(false);
         std::set<int> bcmatids = GetBCMatIds();
-        bcmatids.insert(fHybridizationData.fWrapMatId);
         cmesh->LoadReferences(); // So the bcs can see the volumetric elements during their creation
         cmesh->AutoBuild(bcmatids);
+        
+        // Last, we create the wraps
+        fGeoMesh->ResetReference();
+        for(auto cel : cmesh->ElementVec()) {
+            if(!cel) DebugStop();
+            TPZGeoEl* gel = cel->Reference();
+            if(gel->Dimension() != dim) continue;
+            const int firstSide = gel->FirstSide(dim-1);
+            for(int is = firstSide ; is < gel->NSides()-1 ; is++) {
+                TPZGeoElSide gelside(gel,is);
+                if(gelside.HasNeighbour(bcmatids)) continue;
+                cel->LoadElementReference();
+                TPZGeoElSide neig = gelside.Neighbour();
+                if(neig.Element()->MaterialId() != fHybridizationData.fWrapMatId) DebugStop();
+                auto *celwrap = cmesh->CreateCompEl(neig.Element());
+                neig.Element()->ResetReference();
+                gel->ResetReference();
+            }
+        }
+        
         FixSideOrientHydridMesh(cmesh);
     }
     else if (fHybridType == HybridizationType::ESemi){
@@ -373,8 +406,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int pOrder, const int la
         TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(lagmatid,dim-1,nstate);
         cmesh->InsertMaterialObject(nullmat);
         
-        int lagpord = pOrder - 1;
-        if(fProbType == ProblemType::EElastic) lagpord++;
+        int lagpord = pOrder;
         if (fHybridType == HybridizationType::ESemi) lagpord = 0;
         if (lagpord > 0){
             cmesh->SetDefaultOrder(lagpord);
@@ -539,7 +571,7 @@ void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *cme
     
     TPZCompEl *cel;
     TPZGeoEl *gel;
-    TPZGeoElSide *gelside;
+    TPZGeoElSide gelside;
     TPZGeoElSide neigh;
     TPZCompEl *celTarget;
     
@@ -576,16 +608,25 @@ void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *cme
         
         elgr->AddElement(cel);
         for (int iside = firstSide; iside < gel->NSides() - 1; iside++) {
-            gelside = new TPZGeoElSide(gel, iside);
-            neigh = *gelside;
-            if(gelside->HasNeighbour(bcmatids)){
-                neigh = gelside->Neighbour();
+            gelside = TPZGeoElSide(gel, iside);
+            neigh = gelside;
+            if(gelside.HasNeighbour(bcmatids)){
+                neigh = gelside.Neighbour();
                 if(bcmatids.find(neigh.Element()->MaterialId()) != bcmatids.end()){
                     celTarget = neigh.Element()->Reference();
                     elgr->AddElement(celTarget);
                 }
+                else{
+                    DebugStop(); // can this happen?
+                }
             } else{
-                neigh = gelside->Neighbour();
+                
+                // TODO: Jeferson Nathan this methodology wont work for meshes with space restriction
+                // Another ideia is to create a vector of ints with the size of nconnects of the mesh
+                // and for each position we put the group to which that connect belongs
+                // Then, we use this information to group the connects!
+                
+                neigh = gelside.Neighbour();
                 std::vector<int> targetMatIds= {fHybridizationData.fWrapMatId,fHybridizationData.fInterfaceMatId};
                 for (int ineigh = 0; ineigh < 2; ineigh++) {
                     if (neigh.Element()->MaterialId() != targetMatIds[ineigh]) {
@@ -596,7 +637,6 @@ void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *cme
                     neigh = neigh.Neighbour();
                 }
             }
-            gelside = NULL;
         }
     }
     cmesh->ComputeNodElCon();
