@@ -198,46 +198,13 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     cmesh->ApproxSpace().SetHDivFamily(fHDivFam);
     
     if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared) {
-        // First only build the vol compels disconnected
-        cmesh->ApproxSpace().CreateDisconnectedElements(true);
-        cmesh->SetDimModel(dim);
-        cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(dim);
-        std::set<int> volmatids = GetVolumetricMatIds();
-        cmesh->AutoBuild(volmatids);
-        
-        // Now, just the bcs but connected to the volumetric elements (therefore we do LoadReferences())
-        cmesh->ApproxSpace().CreateDisconnectedElements(false);
-        std::set<int> bcmatids = GetBCMatIds();
-        cmesh->LoadReferences(); // So the bcs can see the volumetric elements during their creation
-        cmesh->AutoBuild(bcmatids);
-        
-        // Last, we create the wraps
-        fGeoMesh->ResetReference();
-        for(auto cel : cmesh->ElementVec()) {
-            if(!cel) DebugStop();
-            TPZGeoEl* gel = cel->Reference();
-            if(gel->Dimension() != dim) continue;
-            const int firstSide = gel->FirstSide(dim-1);
-            for(int is = firstSide ; is < gel->NSides()-1 ; is++) {
-                TPZGeoElSide gelside(gel,is);
-                if(gelside.HasNeighbour(bcmatids)) continue;
-                cel->LoadElementReference();
-                TPZGeoElSide neig = gelside.Neighbour();
-                if(neig.Element()->MaterialId() != fHybridizationData.fWrapMatId) DebugStop();
-                auto *celwrap = cmesh->CreateCompEl(neig.Element());
-                neig.Element()->ResetReference();
-                gel->ResetReference();
-            }
-        }
-        
-        FixSideOrientHydridMesh(cmesh);
+        CreateHybridHDivMesh(cmesh);
     }
     else if (fHybridType == HybridizationType::ESemi){
         cmesh->ApproxSpace().SetAllCreateFunctionsHDivDuplConnects(dim);
         cmesh->AutoBuild();
-        // ActivateDuplicatedConnects(cmesh);
-        // DisableDuplicatedConnects(cmesh);
-        // ActivateDuplicatedConnects(cmesh);
+        ActivateDuplicatedConnects(cmesh);
+        SemiHybridizeDuplConnects(cmesh);
     }else {
         cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(dim);
         cmesh->AutoBuild();
@@ -257,6 +224,43 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
 #endif
 
     return cmesh;
+}
+
+void TPZHDivApproxCreator::CreateHybridHDivMesh(TPZCompMesh* cmesh) {
+    const int dim = cmesh->Dimension();
+    // First only build the vol compels disconnected
+    cmesh->ApproxSpace().CreateDisconnectedElements(true);
+    cmesh->SetDimModel(dim);
+    cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(dim);
+    std::set<int> volmatids = GetVolumetricMatIds();
+    cmesh->AutoBuild(volmatids);
+    
+    // Now, just the bcs but connected to the volumetric elements (therefore we do LoadReferences())
+    cmesh->ApproxSpace().CreateDisconnectedElements(false);
+    std::set<int> bcmatids = GetBCMatIds();
+    cmesh->LoadReferences(); // So the bcs can see the volumetric elements during their creation
+    cmesh->AutoBuild(bcmatids);
+
+    // Last, we create the wraps
+    fGeoMesh->ResetReference();
+    for(auto cel : cmesh->ElementVec()) {
+        if(!cel) DebugStop();
+        TPZGeoEl* gel = cel->Reference();
+        if(gel->Dimension() != dim) continue;
+        const int firstSide = gel->FirstSide(dim-1);
+        for(int is = firstSide ; is < gel->NSides()-1 ; is++) {
+            TPZGeoElSide gelside(gel,is);
+            if(gelside.HasNeighbour(bcmatids)) continue;
+            cel->LoadElementReference();
+            TPZGeoElSide neig = gelside.Neighbour();
+            if(neig.Element()->MaterialId() != fHybridizationData.fWrapMatId) DebugStop();
+            auto *celwrap = cmesh->CreateCompEl(neig.Element());
+            neig.Element()->ResetReference();
+            gel->ResetReference();
+        }
+    }
+    
+    FixSideOrientHydridMesh(cmesh);
 }
 
 void TPZHDivApproxCreator::FixSideOrientHydridMesh(TPZCompMesh* cmesh) {
@@ -1019,4 +1023,56 @@ void TPZHDivApproxCreator::GroupDependMatrix(TPZCompMesh *cmesh){
 
 }
 
+void TPZHDivApproxCreator::SemiHybridizeDuplConnects(TPZCompMesh *cmesh) {
+    int dim = cmesh->Dimension();
+    int nel = cmesh->NElements();
+    std::set<int> matBCId = GetBCMatIds();
+    for (int64_t el = 0; el < nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZGeoEl *gel = cel->Reference();
+        int64_t index;
 
+        if (cel->Dimension() != dim) continue;
+        TPZInterpolatedElement *eldc = dynamic_cast<TPZInterpolatedElement *> (cel);
+
+        auto nsides = gel->NSides();
+        int nfacets = cel->Reference()->NSides(cel->Dimension()-1);
+        int nEdges = 0;
+        if (cmesh->Dimension() == 3){
+            nEdges = gel->NSides(1);
+        }
+
+        for (int iface = 0; iface < nfacets; iface++)
+        {
+            int cIndex = 2*iface;
+            int ncorner = cel->Reference()->NCornerNodes();
+            // if (gel->SideDimension(side) != dim-1) continue;
+            TPZGeoElSide gelside(gel,iface+ncorner+nEdges);
+            // if (gelside.HasNeighbour(matBCId)) continue;
+            
+            
+            TPZGeoElSide neighbour = gelside.Neighbour();
+            
+            int sideOrient = eldc->GetSideOrient(iface+ncorner+nEdges);
+        
+            // std::cout << "Element = " << el << ",iface = " << iface << " Neigh matid - " << neighbour.Element()->MaterialId() << ", side orient - " << sideOrient << std::endl;
+            if (sideOrient == -1){
+                TPZConnect &c = cel->Connect(cIndex);
+                auto pOrder = cmesh->GetDefaultOrder();
+                int nshape = c.NShape();//It is updated in the next loop
+                int nstate = c.NState();//It can possibly change
+                int64_t newConnect = cmesh->AllocateNewConnect(nshape,nstate,pOrder);
+                cel->SetConnectIndex(2*iface,newConnect);
+               
+                if (neighbour.Element()->MaterialId() == fHybridizationData.fWrapMatId){
+                    neighbour.Element()->Reference()->SetConnectIndex(0,newConnect);
+                } else {
+                    DebugStop();
+                }
+            }
+        }
+    }
+
+    cmesh->ExpandSolution();
+
+}

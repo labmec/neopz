@@ -38,7 +38,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype);
 
 void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder,
                                 bool isRigidBodySpaces, MMeshType mType, int extrapOrder,
-                                bool isCondensed, HybridizationType hType);
+                                bool isCondensed, HybridizationType hType, bool isRef);
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam);
 
@@ -124,12 +124,13 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     bool isCondensed = GENERATE(false,true);
 //    HybridizationType hType = GENERATE(HybridizationType::ENone);
 //    HybridizationType hType = GENERATE(HybridizationType::ESemi);
-    HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ENone);
+    HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ESemi,HybridizationType::ENone);
+    bool isRef = GENERATE(false);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces,mType,extraporder,isCondensed,hType);
+    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces,mType,extraporder,isCondensed,hType,isRef);
     std::cout << "Finish test HDiv Approx Space Creator \n";
 }
 #else
@@ -148,18 +149,21 @@ int main(){
     const int pord = 1;
     const bool isRBSpaces = false;
     
-//    MMeshType mType = MMeshType::EQuadrilateral;
+    MMeshType mType = MMeshType::EQuadrilateral;
 //    MMeshType mType = MMeshType::ETriangular;
 //    MMeshType mType = MMeshType::EHexahedral;
-    MMeshType mType = MMeshType::ETetrahedral;
+//    MMeshType mType = MMeshType::ETetrahedral;
     
     int extraporder = 0;
-    bool isCondensed = true;
+    bool isCondensed = false;
 //    bool isCondensed = false;
-    HybridizationType hType = HybridizationType::EStandard;
+//    HybridizationType hType = HybridizationType::EStandard;
+    HybridizationType hType = HybridizationType::ESemi;
 //    HybridizationType hType = HybridizationType::ENone;
     
-    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed,hType);
+    bool isRef = false;
+    
+    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed,hType,isRef);
     
     return 0;
 }
@@ -293,7 +297,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
 
 void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder,
                                 bool isRigidBodySpaces, MMeshType mType, int extrapOrder,
-                                bool isCondensed, HybridizationType hType){
+                                bool isCondensed, HybridizationType hType, bool isRef){
 
     // ==========> Initial headers <==========
     // =======================================
@@ -334,7 +338,9 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     } else {
         DebugStop();
     }
-    // Refinement(gmesh);
+    
+    if(isRef) Refinement(gmesh);
+    
     std::ofstream out("GeoMesh.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
 
