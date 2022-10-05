@@ -155,6 +155,18 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
     return cmeshmulti;
 }
 
+void TPZHDivApproxCreator::PrintAllMeshes(TPZMultiphysicsCompMesh* mpcmesh){
+    TPZVec<TPZCompMesh*>& meshvec = mpcmesh->MeshVector();
+    for(int i = 0 ; i < meshvec.size() ; i++) {
+        std::string str = "atomic_mesh_" + std::to_string(i) + ".txt";
+        std::ofstream out(str);
+        meshvec[i]->Print(out);
+    }
+    std::string str = "multiphysics_mesh.txt";
+    std::ofstream out(str);
+    mpcmesh->Print(out);
+}
+
 TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     
     fGeoMesh->ResetReference();
@@ -218,8 +230,8 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     }
     
 #ifdef PZDEBUG
-    std::ofstream out("fluxmesh.txt");
-    cmesh->Print(out);
+//    std::ofstream out("fluxmesh_at_CreateHDivSpace.txt");
+//    cmesh->Print(out);
 //    PrintMeshElementsConnectInfo(cmesh);
 #endif
 
