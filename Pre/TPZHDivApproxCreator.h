@@ -41,8 +41,12 @@ public:
     /// @param mphys multiphysics compmesh
     void AddInterfaceComputationalElements(TPZMultiphysicsCompMesh *mphys);
 
-    /// Function used for debugging
+    /// Function used for debugging. Prints the elements and their connects
     void PrintMeshElementsConnectInfo(TPZCompMesh* cmesh);
+    
+    /// Function used for debugging. Prints the meshes in txt format
+    /// @param mpcmesh Multiphysics compmesh
+    static void PrintAllMeshes(TPZMultiphysicsCompMesh* mpcmesh);
 
 protected:
 

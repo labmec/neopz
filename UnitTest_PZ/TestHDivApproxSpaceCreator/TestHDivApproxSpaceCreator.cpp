@@ -22,7 +22,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-//#define USE_MAIN
+#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -139,9 +139,9 @@ int main(){
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-//    HDivFamily sType = HDivFamily::EHDivStandard;
+    HDivFamily sType = HDivFamily::EHDivStandard;
 //    HDivFamily sType = HDivFamily::EHDivKernel;
-    HDivFamily sType = HDivFamily::EHDivConstant;
+//    HDivFamily sType = HDivFamily::EHDivConstant;
     
 //   ProblemType pType = ProblemType::EElastic;
     ProblemType pType = ProblemType::EDarcy;
@@ -158,10 +158,10 @@ int main(){
     bool isCondensed = false;
 //    bool isCondensed = false;
 //    HybridizationType hType = HybridizationType::EStandard;
-    HybridizationType hType = HybridizationType::ESemi;
-//    HybridizationType hType = HybridizationType::ENone;
+//    HybridizationType hType = HybridizationType::ESemi;
+    HybridizationType hType = HybridizationType::ENone;
     
-    bool isRef = false;
+    bool isRef = true;
     
     TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed,hType,isRef);
     
@@ -357,10 +357,11 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
 //    hdivCreator.SetHybridizeBoundary();
     InsertMaterials(hdivCreator,probType);
     TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace();
+    
+#ifdef PZDEBUG
 //    hdivCreator.PrintMeshElementsConnectInfo(cmesh);
-    std::string txt = "cmesh.txt";
-    std::ofstream myfile(txt);
-    cmesh->Print(myfile);
+    hdivCreator.PrintAllMeshes(cmesh);
+#endif
     
     // ==========> Solving problem <==========
     // =======================================
@@ -505,7 +506,7 @@ void Refinement(TPZGeoMesh *gmesh){
     TPZManVector<TPZGeoEl*,10> children;
     gmesh->ElementVec()[0]->Divide(children);
     
-    children[0]->Divide(children); 
+//    children[0]->Divide(children);
 }
 
 void CheckError(TPZMultiphysicsCompMesh *cmesh, TPZVec<REAL> &error, ProblemType pType){
