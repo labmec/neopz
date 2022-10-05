@@ -22,7 +22,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-#define USE_MAIN
+//#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -51,6 +51,10 @@ void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol);
 void TestKnownSol(TPZLinearAnalysis& an, const REAL cteSol, TPZMultiphysicsCompMesh* mpcmesh);
 
 void PostProcessVTK(TPZMultiphysicsCompMesh* cmesh, ProblemType probType);
+
+void CheckNEqCondensedProb(TPZMultiphysicsCompMesh* mpcmesh,
+                           TPZHDivApproxCreator& hdivcreator,
+                           MMeshType& elType);
 
 enum MaterialIds {EDomain,EBCDirichlet,EBCNeumann,EBCDisplacementLeft,EBCDisplacementRight};
 
@@ -149,19 +153,19 @@ int main(){
     const int pord = 1;
     const bool isRBSpaces = false;
     
-    MMeshType mType = MMeshType::EQuadrilateral;
+//    MMeshType mType = MMeshType::EQuadrilateral;
 //    MMeshType mType = MMeshType::ETriangular;
-//    MMeshType mType = MMeshType::EHexahedral;
+    MMeshType mType = MMeshType::EHexahedral;
 //    MMeshType mType = MMeshType::ETetrahedral;
     
     int extraporder = 0;
-    bool isCondensed = false;
+    bool isCondensed = true;
 //    bool isCondensed = false;
-//    HybridizationType hType = HybridizationType::EStandard;
+    HybridizationType hType = HybridizationType::EStandard;
 //    HybridizationType hType = HybridizationType::ESemi;
-    HybridizationType hType = HybridizationType::ENone;
+//    HybridizationType hType = HybridizationType::ENone;
     
-    bool isRef = true;
+    bool isRef = false;
     
     TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed,hType,isRef);
     
@@ -202,8 +206,7 @@ TPZGeoMesh *Create2DGeoMesh(ProblemType& pType, MMeshType &mType) {
             gen2d.SetBC(gmesh, 7, EBCDisplacementLeft);
         }
     }
-    
-    
+
     return gmesh;
 }
 
@@ -223,8 +226,6 @@ TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType) {
     else if (pType == ProblemType::EElastic){
         gmesh = gen3d.BuildBoundaryElements(EBCNeumann,EBCDisplacementLeft,EBCNeumann,EBCDisplacementRight,EBCNeumann,EBCNeumann);
     }
-    
-    
     
     return gmesh;
 }
@@ -308,7 +309,8 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     "\npOrder = " << pOrder << "\nisRBSpaces = " << std::boolalpha << isRigidBodySpaces << 
     "\nMeshType = " << mType << "\nExtra POrder = " << extrapOrder <<
     "\nisCondensed = " << std::boolalpha << isCondensed <<
-    "\nHybridization type = " << HybridizationTypeToChar(hType) << endl << endl;
+    "\nHybridization type = " << HybridizationTypeToChar(hType) <<
+    "\nisRef = " << std::boolalpha << isRef << endl << endl;
     
     // TODO: WARNING!!!! Things to be fixed and for now we are skipping
     if(isRigidBodySpaces && hdivFam == HDivFamily::EHDivConstant){
@@ -357,6 +359,12 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
 //    hdivCreator.SetHybridizeBoundary();
     InsertMaterials(hdivCreator,probType);
     TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace();
+    
+    // ==========> Check number of equations for condensed problems <==========
+    // ========================================================================
+    if(isCondensed && hType != HybridizationType::ENone) {
+        CheckNEqCondensedProb(cmesh,hdivCreator,mType);
+    }
     
 #ifdef PZDEBUG
 //    hdivCreator.PrintMeshElementsConnectInfo(cmesh);
@@ -584,4 +592,52 @@ void TestKnownSol(TPZLinearAnalysis& an, const REAL cteSol, TPZMultiphysicsCompM
         std::ofstream outmesh(name);
         mpcmesh->MeshVector()[i]->Print(outmesh);
     }
+}
+
+void CheckNEqCondensedProb(TPZMultiphysicsCompMesh* mpcmesh,
+                           TPZHDivApproxCreator& hdivcreator,
+                           MMeshType& elType) {
+    
+    std::cout << "\n--------------- Checking number of equations --------------" <<  std::endl;
+    TPZCompMesh* pmesh = mpcmesh->MeshVector()[1];
+    const int lagmatid = hdivcreator.HybridData().fLagrangeMatId;
+    const int dim = mpcmesh->Dimension();
+    
+    int nlag = 0;
+    for(auto cel : pmesh->ElementVec()) {
+        if(!cel) continue;
+        TPZGeoEl* gel = cel->Reference();
+        if(!gel) DebugStop();
+        const int gelmatid = gel->MaterialId();
+        if (gelmatid == lagmatid) {
+            ++nlag;
+        }
+    }
+    
+    const int nEquations = mpcmesh->NEquations();
+    const int pOrder = mpcmesh->GetDefaultOrder();
+    
+    int nstate = 0;
+    if (hdivcreator.ProbType()==ProblemType::EDarcy){
+        nstate = 1;
+    } else if (hdivcreator.ProbType()==ProblemType::EElastic) {
+        nstate = dim;
+    } else {
+        DebugStop();
+    }
+    
+    int expNEquations = nlag * (pOrder+1) * nstate;
+    if(elType == MMeshType::ETetrahedral){
+        expNEquations = nstate * nlag * (pOrder+1) * (pOrder+2) / 2;
+    }
+    if(elType == MMeshType::EHexahedral) {
+        expNEquations = nstate * nlag * (pOrder+1) * (pOrder+1);
+    }
+    
+    std::cout << "Expected equations: " << expNEquations << std::endl;
+    std::cout << "Mesh equations: " << nEquations << std::endl;
+
+#ifndef USE_MAIN
+    REQUIRE(nEquations == expNEquations);
+#endif
 }
