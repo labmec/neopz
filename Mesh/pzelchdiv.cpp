@@ -1183,12 +1183,11 @@ void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large
         int sOrientLarge = large->GetSideOrient(neighbourside);
 
 
-        if (sOrientThis + sOrientLarge != 0){
-            TPZGeoElSide neigh = thisgeoside.Neighbour();
-            int sideNeigh = neigh.Side();
+        if (orient && sOrientThis + sOrientLarge != 0){
+            int sideNeigh = neighbourside;
 
-            if (neigh.Element()->GetSideOrientation(sideNeigh) == sOrientThis){
-                TPZInterpolatedElement *neighintel = dynamic_cast<TPZInterpolatedElement *>(neigh.Element()->Reference());
+            if (large->Reference()->GetSideOrientation(sideNeigh) == sOrientThis){
+                TPZInterpolatedElement *neighintel = dynamic_cast<TPZInterpolatedElement *>(large);
                 neighintel->SetSideOrient(sideNeigh,-sOrientThis);
             }
         }
