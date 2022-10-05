@@ -698,12 +698,13 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
             continue;
         }
         TPZGeoElSide gelside(gel);
+        TPZGeoElSide LargeNeigh = gelside.HasLowerLevelNeighbour(fHybridizationData.fWrapMatId);
         TPZGeoElSide neighLag = gelside.HasNeighbour(fHybridizationData.fLagrangeMatId);
         if(!neighLag){
-            DebugStop();
+            continue;
         }
         TPZCompElSide celside = gelside.Reference();
-        TPZCompElSide cneigh = neighLag.Reference();
+        TPZCompElSide cLagrange = neighLag.Reference();
 
         TPZGeoElSide ginterface = gelside.Neighbour();
         if(ginterface.Element()->MaterialId() != fHybridizationData.fInterfaceMatId){
@@ -714,25 +715,40 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
 //        std::cout << "===> Connecting elements with matids: " << celside.Element()->Reference()->MaterialId() << "\t" << cneigh.Element()->Reference()->MaterialId() << std::endl;
 //        std::cout << "===> And indexes: " << celside.Element()->Reference()->Index() << "\t" << cneigh.Element()->Reference()->Index() << std::endl;
 #endif
+        // @TODO perguntar para Jeferson???
+        
         if (fHybridType == HybridizationType::ESemi){
             auto cel = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element());
             cel->SetConnectIndex(1,celside.Element()->ConnectIndex(0));
-            cel->SetConnectIndex(0,cneigh.Element()->ConnectIndex(0));
+            cel->SetConnectIndex(0,cLagrange.Element()->ConnectIndex(0));
             
             // std::cout << "Interface element connect = " << celneigh.Element()->ConnectIndex(0) << " " << celside.Element()->ConnectIndex(0) << std::endl;
 
             //Sets the sideOrient-the first side is set as negative and the second as positive (could be the opposite, doesn't matter)
-            if (sideOrient[cneigh.Element()->ConnectIndex(0)]){
+            if (sideOrient[cLagrange.Element()->ConnectIndex(0)]){
                 cel->SetSideOrient(1);
             } else {
-                sideOrient[cneigh.Element()->ConnectIndex(0)] = true;
+                sideOrient[cLagrange.Element()->ConnectIndex(0)] = true;
                 cel->SetSideOrient(-1);
             }
         } else {
-            TPZMultiphysicsInterfaceElement *interface = new TPZMultiphysicsInterfaceElement(*mphys,ginterface.Element(),celside,cneigh);
+            TPZMultiphysicsInterfaceElement *interface = new TPZMultiphysicsInterfaceElement(*mphys,ginterface.Element(),celside,cLagrange);
         }
         
-        
+        if(LargeNeigh) {
+            // create another interface
+            TPZGeoElSide ginterface = neighLag.Neighbour();
+            TPZCompElSide cLarge = LargeNeigh.Reference();
+#ifdef PZDEBUG
+            if(ginterface.Element()->MaterialId() != fHybridizationData.fInterfaceMatId) DebugStop();
+#endif
+            if (fHybridType == HybridizationType::ESemi){
+                DebugStop();
+            } else {
+                TPZMultiphysicsInterfaceElement *interface = new TPZMultiphysicsInterfaceElement(*mphys,ginterface.Element(),cLarge,cLagrange);
+
+            }
+        }
     }
 }
 
