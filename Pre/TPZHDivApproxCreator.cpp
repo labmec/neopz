@@ -130,7 +130,7 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
 
 //    PrintMeshElementsConnectInfo(cmeshmulti);
     if (fShouldCondense){  
-        if (isElastic && !fIsRBSpaces){ 
+        if (isElastic && !fIsRBSpaces && fHybridType == HybridizationType::ENone){ 
             // In this case, the third (corresponding to the laglevCounter - 1) is the rotation mesh, whose can be condensed.
             // Displacements should be kept uncondensed
             TPZCompMeshTools::CondenseElements(cmeshmulti,lagLevelCounter-2,false);
