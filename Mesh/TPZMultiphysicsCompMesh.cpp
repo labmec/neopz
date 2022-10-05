@@ -69,7 +69,7 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & me
     BuildMultiphysicsSpace(active,mesh_vector);
 }
 
-void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector){
+void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, const TPZVec<TPZCompMesh * > & mesh_vector){
 
     m_active_approx_spaces = active_approx_spaces;
     m_mesh_vector          = mesh_vector;
@@ -99,6 +99,8 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx
     AddElements();
     AddConnects();
     LoadSolutionFromMeshes();
+    // reorder the connect sequence numbers in case there are hanging nodes
+    CleanUpUnconnectedNodes();
 }
 
 void TPZMultiphysicsCompMesh::BuildMultiphysicsSpaceWithMemory(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector){
