@@ -83,7 +83,7 @@ private:
     
     /// Creates the multiphysics compmesh based on the vector of atomic meshes
     /// @param meshvector vector of atomic meshes. For instance HDiv and L2 for Darcy problem
-    TPZMultiphysicsCompMesh * CreateMultiphysicsSpace(TPZManVector<TPZCompMesh*> meshvector);
+    TPZMultiphysicsCompMesh * CreateMultiphysicsSpace(const TPZVec<TPZCompMesh*> &meshvector);
     
     /// Creates the rotation space for elasticity problems
     TPZCompMesh * CreateRotationSpace(const int pOrder, const int lagLevel);

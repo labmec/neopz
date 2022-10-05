@@ -455,7 +455,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int pOrder, const int la
 }
 
 
-TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateMultiphysicsSpace(TPZManVector<TPZCompMesh *> meshvec){
+TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateMultiphysicsSpace(const TPZVec<TPZCompMesh *> &meshvec){
     
     int dim = fGeoMesh->Dimension();
     auto cmesh = new TPZMultiphysicsCompMesh(fGeoMesh);
