@@ -72,7 +72,7 @@ protected:
     HybridizationData fHybridizationData;
 
 public:
-
+    
     /// Default constructor
     TPZApproxCreator() = default;
 
@@ -104,6 +104,9 @@ public:
     bool &IsRigidBodySpaces(){return fIsRBSpaces;}
     /// Get Enhanced spaces
     const bool &IsRigidBodySpaces() const {return fIsRBSpaces;}
+    
+    HybridizationData& HybridData() {return fHybridizationData;}
+    const HybridizationData& HybridData() const {return fHybridizationData;}
 
     /// Get/Set Problem type
     ProblemType &ProbType(){return fProbType;}
