@@ -24,7 +24,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-//#define USE_MAIN
+#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -155,14 +155,14 @@ int main(){
     const int pord = 1;
     const bool isRBSpaces = false;
     
-//    MMeshType mType = MMeshType::EQuadrilateral;
+    MMeshType mType = MMeshType::EQuadrilateral;
 //    MMeshType mType = MMeshType::ETriangular;
-    MMeshType mType = MMeshType::EHexahedral;
+//    MMeshType mType = MMeshType::EHexahedral;
 //    MMeshType mType = MMeshType::ETetrahedral;
     
     int extraporder = 0;
-    bool isCondensed = true;
-//    bool isCondensed = false;
+//    bool isCondensed = true;
+    bool isCondensed = false;
     HybridizationType hType = HybridizationType::EStandard;
 //    HybridizationType hType = HybridizationType::ESemi;
 //    HybridizationType hType = HybridizationType::ENone;

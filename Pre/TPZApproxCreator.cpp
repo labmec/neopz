@@ -143,13 +143,13 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
         bool hasLagrangeElement = gelside.HasNeighbour(fHybridizationData.fLagrangeMatId);
         
         bool hasLargeElementNeighbour = gelside.HasLowerLevelNeighbour(fHybridizationData.fWrapMatId);
-        TPZGeoElSide wrapNeighbour = gelside.HasNeighbour(fHybridizationData.fWrapMatId);
+        TPZGeoElSide wrapNeighbour = neighbour.HasNeighbour(fHybridizationData.fWrapMatId);
         bool haswrapNeighbour = (wrapNeighbour != gelside);
         // if there is no equal level neighbour and no large element, do not create interface elements
         if(!haswrapNeighbour && !hasLargeElementNeighbour) continue;
         
         // we create the interface geometric element (necessarily)
-        TPZGeoElBC(gelside,fHybridizationData.fInterfaceMatId);
+        TPZGeoElBC gbc(gelside,fHybridizationData.fInterfaceMatId);
 #ifdef PZ_LOG
         {
             numcreated[fHybridizationData.fInterfaceMatId]++;
@@ -159,7 +159,7 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
         if(!hasLagrangeElement)
         {
             // we create the lagrange geometric element (necessarily)
-            TPZGeoElBC(gelside,fHybridizationData.fLagrangeMatId);
+            TPZGeoElBC gbcLagrange(gbc.CreatedElement(),fHybridizationData.fLagrangeMatId);
 #ifdef PZ_LOG
         {
             numcreated[fHybridizationData.fLagrangeMatId]++;
@@ -168,7 +168,7 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
 
             if(hasLargeElementNeighbour) {
                 // we create the lagrange geometric element (necessarily)
-                TPZGeoElBC(gelside,fHybridizationData.fInterfaceMatId);
+                TPZGeoElBC(gbcLagrange.CreatedElement(),fHybridizationData.fInterfaceMatId);
 #ifdef PZ_LOG
                 {
                     numcreated[fHybridizationData.fInterfaceMatId]++;
