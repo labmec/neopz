@@ -18,6 +18,8 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSSpStructMatrix.h"
 #include "pzstepsolver.h"
+#include "pzcheckgeom.h"
+#include "pzcheckmesh.h"
 
 #include <pzlog.h>
 
@@ -165,7 +167,8 @@ int main(){
 //    HybridizationType hType = HybridizationType::ESemi;
 //    HybridizationType hType = HybridizationType::ENone;
     
-    bool isRef = false;
+    // this will create a mesh with hanging nodes
+    bool isRef = true;
     
     TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed,hType,isRef);
     
@@ -511,8 +514,21 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamil
 void Refinement(TPZGeoMesh *gmesh){
     // children[0]->Divide(children);
 
+    int dim = gmesh->Dimension();
     TPZManVector<TPZGeoEl*,10> children;
     gmesh->ElementVec()[0]->Divide(children);
+    int64_t nel = gmesh->NElements();
+    for(int64_t el = 0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if(gel->Dimension() != dim-1) continue;
+        if(gel->HasSubElement()) continue;
+        TPZGeoElSide gelside(gel);
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        if(neighbour.HasSubElement()) {
+            TPZManVector<TPZGeoEl*,10> children;
+            gel->Divide(children);
+        }
+    }
     
 //    children[0]->Divide(children);
 }
