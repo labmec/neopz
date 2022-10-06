@@ -19,6 +19,14 @@
 #include "TPZCompElHDivDuplConnects.h"
 #include "TPZCompElHDivDuplConnectsBound.h"
 
+#include "pzshapepoint.h"
+#include "pzshapelinear.h"
+#include "pzshapequad.h"
+#include "pzshapetetra.h"
+#include "pzshapecube.h"
+#include "pzshapetriang.h"
+using namespace pzshape;
+
 TPZHDivApproxCreator::TPZHDivApproxCreator(TPZGeoMesh *gmesh) : TPZApproxCreator(gmesh)
 { 
 }
@@ -79,8 +87,8 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
     if (fHybridType != HybridizationType::ENone){
         ComputePeriferalMaterialIds();
         AddHybridizationGeoElements();
-//        std::ofstream out("GeoMeshHybrid.vtk");
-//        TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh, out);
+       std::ofstream out("GeoMeshHybrid.vtk");
+       TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh, out);
 //        std::ofstream outtxt("geomesh.txt");
 //        fGeoMesh->Print(outtxt);
     }
@@ -583,7 +591,12 @@ void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcm
     const int dim = mcmesh->Dimension();
     
     TPZVec<int64_t> elementgroup; // it is resized inside AssociateElements()
-    AssociateElements(mcmesh, elementgroup);
+    if (fHybridType == HybridizationType::ESemi){
+        AssociateElementsDuplConnects(mcmesh,elementgroup);
+    } else {
+        AssociateElements(mcmesh, elementgroup);
+    }
+
     int64_t nel = elementgroup.size();
 
     std::map<int64_t, TPZElementGroup *> groupmap;
@@ -719,7 +732,6 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
     auto fGeoMesh = mphys->Reference();
     fGeoMesh->ResetReference();
     mphys->LoadReferences();
-    std::map<int,bool> sideOrient;
 
     for(int iel = 0; iel < numEl; iel++){
         TPZCompEl *cel = mphys->Element(iel);
@@ -750,21 +762,16 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
 //        std::cout << "===> And indexes: " << celside.Element()->Reference()->Index() << "\t" << cneigh.Element()->Reference()->Index() << std::endl;
 #endif
         // @TODO perguntar para Jeferson???
-        
         if (fHybridType == HybridizationType::ESemi){
-            auto cel = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element());
-            cel->SetConnectIndex(1,celside.Element()->ConnectIndex(0));
-            cel->SetConnectIndex(0,cLagrange.Element()->ConnectIndex(0));
+            auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element());
+            celint->SetConnectIndex(1,celside.Element()->ConnectIndex(0));
+            celint->SetConnectIndex(0,cLagrange.Element()->ConnectIndex(0));
             
-            // std::cout << "Interface element connect = " << celneigh.Element()->ConnectIndex(0) << " " << celside.Element()->ConnectIndex(0) << std::endl;
-
-            //Sets the sideOrient-the first side is set as negative and the second as positive (could be the opposite, doesn't matter)
-            if (sideOrient[cLagrange.Element()->ConnectIndex(0)]){
-                cel->SetSideOrient(1);
-            } else {
-                sideOrient[cLagrange.Element()->ConnectIndex(0)] = true;
-                cel->SetSideOrient(-1);
-            }
+            TPZGeoElSide volside = gelside.operator--();
+            TPZCompElSide cvolside = volside.Reference();
+            TPZCompEl *celvol = cvolside.Element();            
+            auto sOrient = celvol->Reference()->NormalOrientation(volside.Side());
+            celint->SetSideOrient(sOrient);
         } else {
             TPZMultiphysicsInterfaceElement *interface = new TPZMultiphysicsInterfaceElement(*mphys,ginterface.Element(),celside,cLagrange);
         }
@@ -778,13 +785,21 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
 #endif
             if (fHybridType == HybridizationType::ESemi){
                 DebugStop();
+                auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element());
+                celint->SetConnectIndex(1,cLarge.Element()->ConnectIndex(0));
+                celint->SetConnectIndex(0,cLagrange.Element()->ConnectIndex(0));
+                
+                TPZGeoElSide volside = LargeNeigh.operator--();
+                TPZCompElSide cvolside = volside.Reference();
+                TPZCompEl *celvol = cvolside.Element();            
+                auto sOrient = celvol->Reference()->NormalOrientation(volside.Side());
+                celint->SetSideOrient(sOrient);                
             } else {
                 TPZMultiphysicsInterfaceElement *interface = new TPZMultiphysicsInterfaceElement(*mphys,ginterface.Element(),cLarge,cLagrange);
-
             }
         }
     }
-}
+} 
 
 void TPZHDivApproxCreator::ChangeLagLevel(TPZCompMesh* cmesh, const int newLagLevel) {
     if(cmesh->ApproxSpace().Style() != TPZCreateApproximationSpace::MApproximationStyle::EDiscontinuous &&
@@ -805,13 +820,7 @@ void TPZHDivApproxCreator::ChangeLagLevel(TPZCompMesh* cmesh, const int newLagLe
     }
 }
 
-#include "pzshapepoint.h"
-#include "pzshapelinear.h"
-#include "pzshapequad.h"
-#include "pzshapetetra.h"
-#include "pzshapecube.h"
-#include "pzshapetriang.h"
-using namespace pzshape;
+
 
 void TPZHDivApproxCreator::ActivateDuplicatedConnects(TPZCompMesh *cmesh){
 
@@ -1190,4 +1199,90 @@ void TPZHDivApproxCreator::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t>
             }
         }
     }
+}
+
+void TPZHDivApproxCreator::AssociateElementsDuplConnects(TPZCompMesh *cmesh, TPZVec<int64_t> &elementgroup)
+{
+    
+    int64_t nel = cmesh->NElements();
+    elementgroup.Resize(nel, -1);
+    elementgroup.Fill(-1);
+
+    int64_t nconnects = cmesh->NConnects();
+    TPZVec<int64_t> groupindex(nconnects, -1);
+    int dim = cmesh->Dimension();
+    for (TPZCompEl *cel : cmesh->ElementVec()) {
+        cel->LoadElementReference();
+        if (!cel || !cel->Reference() || cel->Reference()->Dimension() != dim) {
+            continue;
+        }
+        
+        TPZStack<int64_t> connectlist;
+        cel->BuildConnectList(connectlist);
+        int nconnects = connectlist.size();
+
+        int nfacets = cel->Reference()->NSides(cel->Dimension()-1);
+        // //Condense internal connects
+        int index = connectlist[2*nfacets];
+        groupindex[index] = cel->Index();
+        
+        int k = -1;
+        bool prevConnect = false;
+
+        for (int i=0; i<2*nfacets; i++) {
+            int cindex = connectlist[i];
+
+            if (i % 2 == 1) {
+                if (prevConnect){
+                    if (groupindex[cindex] == -1) {
+                        groupindex[cindex] = cel->Index();
+                    }
+                }
+                prevConnect=false;
+                continue;
+            }
+            k++;
+            auto gel = cel->Reference();
+            auto nnodes = gel->NCornerNodes();
+            auto nsides = gel->NSides();
+            TPZGeoElSide geoside(gel,nsides-nfacets-1+k);
+            auto neig = geoside.Neighbour(); 
+            if (!neig.Element()) continue;
+            int neigMatId = neig.Element()->MaterialId();
+
+            // if (matId.find(neigMatId) == matId.end()) {
+            //     continue;
+            // }
+            prevConnect = true;
+            
+            if (groupindex[cindex] == -1) {
+                groupindex[cindex] = cel->Index();
+            }
+        }
+        auto &c = cel->Connect(nconnects-1);
+        c.SetCondensed(false);
+    }
+
+    for (TPZCompEl *cel : cmesh->ElementVec()) {
+        if (!cel || !cel->Reference()) {
+            continue;
+        }
+        TPZStack<int64_t> connectlist;
+        cel->BuildConnectList(connectlist);
+        int64_t groupfound = -1;
+        int k = -1;
+        for (auto cindex : connectlist) {          
+            if (groupindex[cindex] != -1) {
+                // assign the element to the group
+                if(groupfound != -1 && groupfound != groupindex[cindex])
+                {
+                    //Do nothing
+                }else{
+                    elementgroup[cel->Index()] = groupindex[cindex];
+                    groupfound = groupindex[cindex];
+                }
+            }
+        }
+    }
+    // cmesh->CleanUpUnconnectedNodes();
 }
