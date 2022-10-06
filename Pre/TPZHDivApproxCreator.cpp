@@ -578,104 +578,138 @@ TPZCompMesh * TPZHDivApproxCreator::CreateRotationSpace(const int pOrder, const 
     return cmesh;
 }
 
-void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *cmesh) {
+void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) {
+        
+    const int dim = mcmesh->Dimension();
     
-    const int dim = cmesh->Dimension();
-    
-    int64_t nel = cmesh->NElements();
-    cmesh->LoadReferences();
-    
-    TPZCompEl *cel;
-    TPZGeoEl *gel;
-    TPZGeoElSide gelside;
-    TPZGeoElSide neigh;
-    TPZCompEl *celTarget;
-    
-    std::set<int64_t> targetMatIds;
-    targetMatIds.insert(fHybridizationData.fWrapMatId);
-    targetMatIds.insert(fHybridizationData.fInterfaceMatId);
-    std::set<int> bcmatids = GetBCMatIds();
-    for(auto it : bcmatids){
-        targetMatIds.insert(it);
-    }
-    
-//    std::ofstream ofs1("checkGelmesh.vtk");
-//    TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh,ofs1);
-    
+    TPZVec<int64_t> elementgroup; // it is resized inside AssociateElements()
+    AssociateElements(mcmesh, elementgroup);
+    int64_t nel = elementgroup.size();
+
+    std::map<int64_t, TPZElementGroup *> groupmap;
     //    std::cout << "Groups of connects " << groupindex << std::endl;
     for (int64_t el = 0; el<nel; el++) {
-        cel = cmesh->Element(el);
-        if(!cel){
-            continue;
+        int64_t groupnum = elementgroup[el];
+        if(groupnum == -1) continue;
+        auto iter = groupmap.find(groupnum);
+        if (groupmap.find(groupnum) == groupmap.end()) {
+            int64_t index;
+            TPZElementGroup *elgr = new TPZElementGroup(*mcmesh);
+            groupmap[groupnum] = elgr;
+            elgr->AddElement(mcmesh->Element(el));
         }
-        if (cmesh->Element(el)->Dimension() != dim) {
-            continue;
-        }
-        TPZElementGroup *elgr = new TPZElementGroup(*cmesh);
-        
-        gel = cel->Reference();
-        
-        int firstSide;
-        if (gel->Dimension() >= 0) {
-            firstSide = gel->FirstSide(gel->Dimension() - 1);
-        } else {
-            DebugStop();
-        }
-        
-        elgr->AddElement(cel);
-        for (int iside = firstSide; iside < gel->NSides() - 1; iside++) {
-            gelside = TPZGeoElSide(gel, iside);
-            neigh = gelside;
-            if(gelside.HasNeighbour(bcmatids)){
-                neigh = gelside.Neighbour();
-                if(bcmatids.find(neigh.Element()->MaterialId()) != bcmatids.end()){
-                    celTarget = neigh.Element()->Reference();
-                    elgr->AddElement(celTarget);
-                }
-                else{
-                    DebugStop(); // can this happen?
-                }
-            } else{
-                
-                // TODO: Jeferson Nathan this methodology wont work for meshes with space restriction
-                // Another ideia is to create a vector of ints with the size of nconnects of the mesh
-                // and for each position we put the group to which that connect belongs
-                // Then, we use this information to group the connects!
-                
-                neigh = gelside.Neighbour();
-                std::vector<int> targetMatIds= {fHybridizationData.fWrapMatId,fHybridizationData.fInterfaceMatId};
-                for (int ineigh = 0; ineigh < 2; ineigh++) {
-                    if (neigh.Element()->MaterialId() != targetMatIds[ineigh]) {
-                        DebugStop();
-                    }
-                    celTarget = neigh.Element()->Reference();
-                    elgr->AddElement(celTarget);
-                    neigh = neigh.Neighbour();
-                }
-            }
+        else
+        {
+            iter->second->AddElement(mcmesh->Element(el));
         }
     }
-    cmesh->ComputeNodElCon();
-    /*if(fSpaceType == EHybridizedMixed)
-     {
-     int64_t nconnects = cmesh->NConnects();
-     for (int64_t ic = 0; ic<nconnects; ic++) {
-     TPZConnect &c = cmesh->ConnectVec()[ic];
-     if(c.LagrangeMultiplier() == fConfigHybridizedMixed.lagavg) c.IncrementElConnected();
-     }
-     }*/
-    int neoNel = cmesh->NElements();
-    for (int64_t el = nel; el < neoNel; el++) {
-        TPZCompEl *cel = cmesh->Element(el);
+    mcmesh->ComputeNodElCon();
+//    if(fHybridType == HybridizationType::EStandard)
+//    {
+//        int lagCTEspace2 = 4;
+//        int64_t nconnects = mcmesh->NConnects();
+//        for (int64_t ic = 0; ic<nconnects; ic++) {
+//            TPZConnect &c = mcmesh->ConnectVec()[ic];
+//            if(c.LagrangeMultiplier() == lagCTEspace2) c.IncrementElConnected();
+//        }
+//    }
+    nel = mcmesh->NElements();
+    for (int64_t el = 0; el < nel; el++) {
+        TPZCompEl *cel = mcmesh->Element(el);
         TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *> (cel);
-        if (!elgr) {
-            DebugStop();
+        if (elgr) {
+            TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+            cond->SetKeepMatrix(false);
         }
-        TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
-        cond->SetKeepMatrix(false);
     }
+    mcmesh->CleanUpUnconnectedNodes();
     
-    cmesh->CleanUpUnconnectedNodes();
+    
+//    int64_t nel = mcmesh->NElements();
+//    mcmesh->LoadReferences();
+//
+//    TPZCompEl *cel;
+//    TPZGeoEl *gel;
+//    TPZGeoElSide gelside;
+//    TPZGeoElSide neigh;
+//    TPZCompEl *celTarget;
+//
+//    std::set<int64_t> targetMatIds;
+//    targetMatIds.insert(fHybridizationData.fWrapMatId);
+//    targetMatIds.insert(fHybridizationData.fInterfaceMatId);
+//    std::set<int> bcmatids = GetBCMatIds();
+//    for(auto it : bcmatids){
+//        targetMatIds.insert(it);
+//    }
+//
+//    //    std::cout << "Groups of connects " << groupindex << std::endl;
+//    for (int64_t el = 0; el<nel; el++) {
+//        cel = mcmesh->Element(el);
+//        if(!cel){
+//            continue;
+//        }
+//        if (mcmesh->Element(el)->Dimension() != dim) {
+//            continue;
+//        }
+//        TPZElementGroup *elgr = new TPZElementGroup(*mcmesh);
+//
+//        gel = cel->Reference();
+//
+//        int firstSide;
+//        if (gel->Dimension() >= 0) {
+//            firstSide = gel->FirstSide(gel->Dimension() - 1);
+//        } else {
+//            DebugStop();
+//        }
+//
+//        elgr->AddElement(cel);
+//        for (int iside = firstSide; iside < gel->NSides() - 1; iside++) {
+//            gelside = TPZGeoElSide(gel, iside);
+//            neigh = gelside;
+//            if(gelside.HasNeighbour(bcmatids)){
+//                neigh = gelside.Neighbour();
+//                if(bcmatids.find(neigh.Element()->MaterialId()) != bcmatids.end()){
+//                    celTarget = neigh.Element()->Reference();
+//                    elgr->AddElement(celTarget);
+//                }
+//                else{
+//                    DebugStop(); // can this happen?
+//                }
+//            } else{
+//
+//                // TODO: Jeferson Nathan this methodology wont work for meshes with space restriction
+//                // Another ideia is to create a vector of ints with the size of nconnects of the mesh
+//                // and for each position we put the group to which that connect belongs
+//                // Then, we use this information to group the connects!
+//
+//
+//                neigh = gelside.Neighbour();
+//                std::vector<int> targetMatIds= {fHybridizationData.fWrapMatId,fHybridizationData.fInterfaceMatId};
+//                for (int ineigh = 0; ineigh < 2; ineigh++) {
+//                    if (neigh.Element()->MaterialId() != targetMatIds[ineigh]) {
+//                        DebugStop();
+//                    }
+//                    celTarget = neigh.Element()->Reference();
+//                    elgr->AddElement(celTarget);
+//                    neigh = neigh.Neighbour();
+//                }
+//
+//            }
+//        }
+//    }
+//    mcmesh->ComputeNodElCon();
+//    int neoNel = mcmesh->NElements();
+//    for (int64_t el = nel; el < neoNel; el++) {
+//        TPZCompEl *cel = mcmesh->Element(el);
+//        TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *> (cel);
+//        if (!elgr) {
+//            DebugStop();
+//        }
+//        TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+//        cond->SetKeepMatrix(false);
+//    }
+//
+//    mcmesh->CleanUpUnconnectedNodes();
     
 }
 
@@ -1103,4 +1137,57 @@ void TPZHDivApproxCreator::SemiHybridizeDuplConnects(TPZCompMesh *cmesh) {
 
     cmesh->ExpandSolution();
 
+}
+
+void TPZHDivApproxCreator::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &elementgroup) {
+    
+    // First, associate all the connects of a certain element to its index
+    int64_t nel = cmesh->NElements();
+    elementgroup.Resize(nel, -1);
+    elementgroup.Fill(-1);
+    int64_t nconnects = cmesh->NConnects();
+    TPZVec<int64_t> groupindex(nconnects, -1);
+    int dim = cmesh->Dimension();
+    //The group index of connects belonging to volumetric elements equals its index.
+    for (TPZCompEl *cel : cmesh->ElementVec()) {
+        if (!cel || !cel->Reference() || cel->Reference()->Dimension() != dim) {
+            continue;
+        }
+        elementgroup[cel->Index()] = cel->Index();
+        TPZStack<int64_t> connectlist;
+        cel->BuildConnectList(connectlist);
+        for (auto cindex : connectlist) {
+#ifdef PZDEBUG
+            if (groupindex[cindex] != -1) {
+                DebugStop();
+            }
+#endif
+            groupindex[cindex] = cel->Index();
+        }
+    }
+
+    for (TPZCompEl *cel : cmesh->ElementVec()) {
+        if (!cel || !cel->Reference()) {
+            continue;
+        }
+        TPZStack<int64_t> connectlist;
+        cel->BuildConnectList(connectlist);
+        int64_t celindex = cel->Index();
+        
+        TPZVec<int> connectgroup(connectlist.size());
+        for(int i=0; i<connectlist.size(); i++) connectgroup[i] = groupindex[connectlist[i]];
+        int64_t groupfound = -1;
+        for (auto cindex : connectlist) {
+            if (groupindex[cindex] != -1) {
+                elementgroup[celindex] = groupindex[cindex];
+                //two connects in the same element can't belong to different computational element groups,
+                //but in interface elements, some connects might belong to a certain element group, while others might not be initialized.
+                if(groupfound != -1 && groupfound != groupindex[cindex])
+                {
+                    DebugStop();
+                }
+                groupfound = groupindex[cindex];
+            }
+        }
+    }
 }
