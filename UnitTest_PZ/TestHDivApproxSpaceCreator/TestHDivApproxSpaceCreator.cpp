@@ -126,12 +126,14 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     bool isRBSpaces = GENERATE(false,true);
     MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
     int extraporder = GENERATE(0,1);
+    bool isCondensed = GENERATE(true);
 //    bool isCondensed = GENERATE(false,true);
-    bool isCondensed = GENERATE(false,true);
 //    HybridizationType hType = GENERATE(HybridizationType::ENone);
 //    HybridizationType hType = GENERATE(HybridizationType::ESemi);
-    HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ESemi,HybridizationType::ENone);
-    bool isRef = GENERATE(false);
+//    HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ESemi,HybridizationType::ENone);
+    HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ENone);
+//    bool isRef = GENERATE(true,false);
+    bool isRef = GENERATE(false,true);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
@@ -145,9 +147,9 @@ int main(){
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    HDivFamily sType = HDivFamily::EHDivStandard;
+//    HDivFamily sType = HDivFamily::EHDivStandard;
 //    HDivFamily sType = HDivFamily::EHDivKernel;
-//    HDivFamily sType = HDivFamily::EHDivConstant;
+    HDivFamily sType = HDivFamily::EHDivConstant;
     
 //   ProblemType pType = ProblemType::EElastic;
     ProblemType pType = ProblemType::EDarcy;
@@ -155,14 +157,14 @@ int main(){
     const int pord = 1;
     const bool isRBSpaces = false;
     
-    MMeshType mType = MMeshType::EQuadrilateral;
+//    MMeshType mType = MMeshType::EQuadrilateral;
 //    MMeshType mType = MMeshType::ETriangular;
 //    MMeshType mType = MMeshType::EHexahedral;
-//    MMeshType mType = MMeshType::ETetrahedral;
+    MMeshType mType = MMeshType::ETetrahedral;
     
     int extraporder = 0;
 //    bool isCondensed = true;
-    bool isCondensed = false;
+    bool isCondensed = true;
     HybridizationType hType = HybridizationType::EStandard;
 //    HybridizationType hType = HybridizationType::ESemi;
 //    HybridizationType hType = HybridizationType::ENone;
@@ -227,7 +229,13 @@ TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType) {
         gmesh = gen3d.BuildBoundaryElements(EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet);
     }
     else if (pType == ProblemType::EElastic){
-        gmesh = gen3d.BuildBoundaryElements(EBCNeumann,EBCDisplacementLeft,EBCNeumann,EBCDisplacementRight,EBCNeumann,EBCNeumann);
+        const bool isrbmProb = false;
+        if(isrbmProb){
+            gmesh = gen3d.BuildBoundaryElements(EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet);
+        }
+        else {
+            gmesh = gen3d.BuildBoundaryElements(EBCNeumann,EBCDisplacementLeft,EBCNeumann,EBCDisplacementRight,EBCNeumann,EBCNeumann);
+        }
     }
     
     return gmesh;
@@ -406,7 +414,7 @@ void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol) {
     TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>> matsp(cmesh);
     matsp.SetNumThreads(nThreads);
 
-    std::cout << "Number of equations = " << cmesh->NEquations() << std::endl;
+    std::cout << "\n=====> Number of equations = " << cmesh->NEquations() << std::endl << std::endl;
 #ifdef USE_MAIN
     TPZLinearAnalysis an(cmesh,false);
 #else

@@ -111,6 +111,11 @@ private:
     /// Semi hybridizes the compmesh
     /// @param cmesh compmesh to semi hybridize
     void SemiHybridizeDuplConnects(TPZCompMesh *cmesh);
+        
+    /// Creates a vector with the size of nelements with the group to which each element belongs for condensations
+    /// @param cmesh computational mesh
+    /// @param elementgroup vector with groups by element
+    void AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &elementgroup);
     
 };
 
