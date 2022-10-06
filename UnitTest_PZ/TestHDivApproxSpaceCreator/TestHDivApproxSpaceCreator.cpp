@@ -157,20 +157,21 @@ int main(){
     const int pord = 1;
     const bool isRBSpaces = false;
     
-//    MMeshType mType = MMeshType::EQuadrilateral;
+   MMeshType mType = MMeshType::EQuadrilateral;
 //    MMeshType mType = MMeshType::ETriangular;
 //    MMeshType mType = MMeshType::EHexahedral;
-    MMeshType mType = MMeshType::ETetrahedral;
+    // MMeshType mType = MMeshType::ETetrahedral;
     
     int extraporder = 0;
-//    bool isCondensed = true;
-    bool isCondensed = true;
-    HybridizationType hType = HybridizationType::EStandard;
-//    HybridizationType hType = HybridizationType::ESemi;
+   bool isCondensed = true;
+    // bool isCondensed = false;
+    // HybridizationType hType = HybridizationType::EStandard;
+   HybridizationType hType = HybridizationType::ESemi;
 //    HybridizationType hType = HybridizationType::ENone;
     
     // this will create a mesh with hanging nodes
     bool isRef = true;
+    // bool isRef = false;
     
     TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed,hType,isRef);
     

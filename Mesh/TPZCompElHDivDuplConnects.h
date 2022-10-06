@@ -20,9 +20,6 @@
 template<class TSHAPE>
 class TPZCompElHDivDuplConnects : public TPZCompElHDiv<TSHAPE> {
 
-    /// vector which defines whether the normal is outward or not
-    TPZManVector<int, TSHAPE::NFacets> fSideOrient;
-
     bool fDuplicationActive = false;
 
 public:
