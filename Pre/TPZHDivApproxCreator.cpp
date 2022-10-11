@@ -734,7 +734,7 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
     mphys->LoadReferences();
 
     for(int iel = 0; iel < numEl; iel++){
-        TPZCompEl *cel = mphys->Element(iel);
+        TPZCompEl *cel = mphys->ElementVec()[iel];
         if(!cel || !cel->Reference()){
             DebugStop();
         }
@@ -761,17 +761,8 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
 //        std::cout << "===> Connecting elements with matids: " << celside.Element()->Reference()->MaterialId() << "\t" << cneigh.Element()->Reference()->MaterialId() << std::endl;
 //        std::cout << "===> And indexes: " << celside.Element()->Reference()->Index() << "\t" << cneigh.Element()->Reference()->Index() << std::endl;
 #endif
-        // @TODO perguntar para Jeferson???
         if (fHybridType == HybridizationType::ESemi){
-            auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element());
-            celint->SetConnectIndex(1,celside.Element()->ConnectIndex(0));
-            celint->SetConnectIndex(0,cLagrange.Element()->ConnectIndex(0));
-            
-            TPZGeoElSide volside = gelside.operator--();
-            TPZCompElSide cvolside = volside.Reference();
-            TPZCompEl *celvol = cvolside.Element();            
-            auto sOrient = celvol->Reference()->NormalOrientation(volside.Side());
-            celint->SetSideOrient(sOrient);
+            auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),celside,cLagrange);
         } else {
             TPZMultiphysicsInterfaceElement *interface = new TPZMultiphysicsInterfaceElement(*mphys,ginterface.Element(),celside,cLagrange);
         }
@@ -784,16 +775,7 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
             if(ginterface.Element()->MaterialId() != fHybridizationData.fInterfaceMatId) DebugStop();
 #endif
             if (fHybridType == HybridizationType::ESemi){
-                DebugStop();
-                auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element());
-                celint->SetConnectIndex(1,cLarge.Element()->ConnectIndex(0));
-                celint->SetConnectIndex(0,cLagrange.Element()->ConnectIndex(0));
-                
-                TPZGeoElSide volside = LargeNeigh.operator--();
-                TPZCompElSide cvolside = volside.Reference();
-                TPZCompEl *celvol = cvolside.Element();            
-                auto sOrient = celvol->Reference()->NormalOrientation(volside.Side());
-                celint->SetSideOrient(sOrient);                
+                auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),cLarge,cLagrange);         
             } else {
                 TPZMultiphysicsInterfaceElement *interface = new TPZMultiphysicsInterfaceElement(*mphys,ginterface.Element(),cLarge,cLagrange);
             }
@@ -1225,42 +1207,22 @@ void TPZHDivApproxCreator::AssociateElementsDuplConnects(TPZCompMesh *cmesh, TPZ
         // //Condense internal connects
         int index = connectlist[2*nfacets];
         groupindex[index] = cel->Index();
-        
-        int k = -1;
+
         bool prevConnect = false;
 
         for (int i=0; i<2*nfacets; i++) {
             int cindex = connectlist[i];
 
             if (i % 2 == 1) {
-                if (prevConnect){
-                    if (groupindex[cindex] == -1) {
-                        groupindex[cindex] = cel->Index();
-                    }
+                if (groupindex[cindex] == -1) {
+                    groupindex[cindex] = cel->Index();
                 }
-                prevConnect=false;
-                continue;
-            }
-            k++;
-            auto gel = cel->Reference();
-            auto nnodes = gel->NCornerNodes();
-            auto nsides = gel->NSides();
-            TPZGeoElSide geoside(gel,nsides-nfacets-1+k);
-            auto neig = geoside.Neighbour(); 
-            if (!neig.Element()) continue;
-            int neigMatId = neig.Element()->MaterialId();
-
-            // if (matId.find(neigMatId) == matId.end()) {
-            //     continue;
-            // }
-            prevConnect = true;
-            
-            if (groupindex[cindex] == -1) {
-                groupindex[cindex] = cel->Index();
+            } else {
+                if (groupindex[cindex] == -1) {
+                    groupindex[cindex] = cel->Index();
+                }
             }
         }
-        auto &c = cel->Connect(nconnects-1);
-        c.SetCondensed(false);
     }
 
     for (TPZCompEl *cel : cmesh->ElementVec()) {
@@ -1277,6 +1239,7 @@ void TPZHDivApproxCreator::AssociateElementsDuplConnects(TPZCompMesh *cmesh, TPZ
                 if(groupfound != -1 && groupfound != groupindex[cindex])
                 {
                     //Do nothing
+                    // int a=1;
                 }else{
                     elementgroup[cel->Index()] = groupindex[cindex];
                     groupfound = groupindex[cindex];
@@ -1284,5 +1247,4 @@ void TPZHDivApproxCreator::AssociateElementsDuplConnects(TPZCompMesh *cmesh, TPZ
             }
         }
     }
-    // cmesh->CleanUpUnconnectedNodes();
 }

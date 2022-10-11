@@ -18,8 +18,13 @@
 class TPZCompElUnitaryLagrange : public TPZCompElDisc{
 
 public:
-
-    TPZCompElUnitaryLagrange(TPZCompMesh &mesh, TPZGeoEl *reference);
+    /// @brief CompElUnitaryLagrange constructor - Consists in a simplified interface element
+    /// with constant flux, currently used for CompElHDivDuplConnects semi-hybridization
+    /// @param mesh Computational mesh
+    /// @param reference Interface GeoElement
+    /// @param wrapSide Wrap neighbour CompElSide 
+    /// @param lagrangeSide Lagrange neighbour CompElSide
+    TPZCompElUnitaryLagrange(TPZCompMesh &mesh, TPZGeoEl *reference, TPZCompElSide &wrapSide, TPZCompElSide &lagrangeSide);
 
     void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override{
         CalcStiffInternal(ek,ef);
@@ -57,7 +62,11 @@ protected:
 	/** @brief It preserves index of connect associated to the element */
 	TPZManVector<int64_t,2> fConnectIndexes;
 
+    // side orientation factor
     int fSideOrient = 1;
+
+    // Connect dependency matrix - used when the connect is restrained
+    TPZFMatrix<REAL> fDepMatrix;
 
     template<class TVar>
     void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
