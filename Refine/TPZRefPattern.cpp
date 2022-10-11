@@ -1167,6 +1167,8 @@ void TPZRefPattern::ReadAndCreateRefinementPattern(std::istream &pattern){
     TPZGeoEl *father = 0;
     //criacao dos elementos geometricos que definem a particao
     int ntype, nummat, naorners, incid, el;
+    
+    fNSubEl = nElems - 1;
     for(el=0; el<nElems; el++)//os sub-elementos podem nao ter de uma mesma geometria
     {
         pattern >> ntype >> nummat;
@@ -1178,7 +1180,7 @@ void TPZRefPattern::ReadAndCreateRefinementPattern(std::istream &pattern){
             pattern >> nodes[incid];
         }
         int64_t index;
-        TPZGeoEl *subel = fRefPatternMesh.CreateGeoElement(etype, nodes, nummat, index, 0);
+        TPZGeoEl *subel = fRefPatternMesh.CreateGeoElement(etype, nodes, nummat, index, 1);
         if(el == 0)
         {
             father = subel;
@@ -1187,7 +1189,6 @@ void TPZRefPattern::ReadAndCreateRefinementPattern(std::istream &pattern){
         if(el > 0)
         {
             subel->SetFather(father);
-            father->SetSubElement(el-1, subel);
             subel->SetFatherIndex(father->Index());
         }
     }
