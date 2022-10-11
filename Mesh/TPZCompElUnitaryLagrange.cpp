@@ -3,9 +3,42 @@
 #include "pzcmesh.h"
 #include "TPZElementMatrixT.h"
 
-TPZCompElUnitaryLagrange::TPZCompElUnitaryLagrange(TPZCompMesh &mesh, TPZGeoEl *reference) :
+#include "pzmultiphysicselement.h"
+
+TPZCompElUnitaryLagrange::TPZCompElUnitaryLagrange(TPZCompMesh &mesh, TPZGeoEl *reference, TPZCompElSide &wrapSide, TPZCompElSide &lagrangeSide) :
     TPZCompElDisc(mesh, reference) {
     this->fConnectIndexes.resize(2);
+
+    //Initializes the connect indexes structure - set the first connect as the same as Lagrange element and the second as the wrap element
+    fConnectIndexes[0] = lagrangeSide.Element()-> ConnectIndex(0);
+    fConnectIndexes[1] = wrapSide.Element()-> ConnectIndex(0);
+    //Resize the dependency matrix and set as identity. Its size is always 1x1 since the semi-hybridization corresponds to the constant flux,
+    //i.e., a connect with only one function.
+    fDepMatrix.Resize(1,1);
+    fDepMatrix(0,0) = 1.;
+
+    //Gets the side orient from the wrap's volumetric element neighbour
+    TPZGeoElSide volside = wrapSide.Reference().operator--();
+    TPZCompElSide cvolside = volside.Reference();
+    TPZCompEl *celvol = cvolside.Element();
+
+    //Sets the side orient
+    TPZMultiphysicsElement *celmulti = dynamic_cast<TPZMultiphysicsElement *> (celvol); 
+    TPZInterpolationSpace *celv = dynamic_cast<TPZInterpolationSpace *> (celmulti->Element(0)); 
+    fSideOrient = celv->GetSideOrient(cvolside.Side());
+
+    //Gets the correct dependency matrix if the wrap element has dependency
+    TPZConnect &c = wrapSide.Element()->Connect(0);
+    if (c.HasDependency()){
+        auto *ptr = c.FirstDepend();
+        int count = 0;
+        while(ptr){
+            // std::cout << "Dependency matrix = " << ptr->fDepMatrix << std::endl;
+            if (count == 1) fDepMatrix = ptr->fDepMatrix;
+            count++;
+            ptr = ptr->fNext;
+        }
+    }
 }
 
 int TPZCompElUnitaryLagrange::NConnects() const {
@@ -64,17 +97,15 @@ template<class TVar>
 void TPZCompElUnitaryLagrange::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZElementMatrixT<TVar> &ef){
     InitializeElementMatrix(ek, ef);
 
-    // ek.fMat(0,1) = TVar(fSideOrient);
-    // ek.fMat(1,0) = TVar(fSideOrient);
-
+    //Compute the stiffness matrix (constant Lagrange multiplier), scaled by the dependency matrix.
+    //In this case it corresponds to a scalar relating the areas of the wrap and large elements
     int fSize = ek.fMat.Rows();
     int nvar = fSize/2;
     for (int i = 0; i < nvar; i++){
-        ek.fMat(i,nvar + i) = TVar(fSideOrient);
-        ek.fMat(nvar + i,i) = TVar(fSideOrient);
+        ek.fMat(i,nvar + i) = TVar(fSideOrient) / fDepMatrix(0,0);
+        ek.fMat(nvar + i,i) = TVar(fSideOrient) / fDepMatrix(0,0);
     }
-    // std::cout << "FmAT = " << ek.fMat << std::endl;
-    
+
     ef.fMat.Zero();
 }
 

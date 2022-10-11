@@ -154,7 +154,7 @@ int main(){
 //   ProblemType pType = ProblemType::EElastic;
     ProblemType pType = ProblemType::EDarcy;
     
-    const int pord = 1;
+    const int pord = 2;
     const bool isRBSpaces = false;
     
    MMeshType mType = MMeshType::EQuadrilateral;
@@ -164,7 +164,7 @@ int main(){
     
     int extraporder = 0;
    bool isCondensed = true;
-    // bool isCondensed = false;
+    // bool isCondensed = false;  
     // HybridizationType hType = HybridizationType::EStandard;
    HybridizationType hType = HybridizationType::ESemi;
 //    HybridizationType hType = HybridizationType::ENone;

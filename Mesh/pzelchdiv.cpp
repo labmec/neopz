@@ -1182,34 +1182,17 @@ void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large
         int sOrientThis = fSideOrient[cindex];
         int sOrientLarge = large->GetSideOrient(neighbourside);
 
-
-        if (orient && sOrientThis + sOrientLarge != 0){
-            int sideNeigh = neighbourside;
-
-            if (large->Reference()->GetSideOrientation(sideNeigh) == sOrientThis){
-                TPZInterpolatedElement *neighintel = dynamic_cast<TPZInterpolatedElement *>(large);
-                neighintel->SetSideOrient(sideNeigh,-sOrientThis);
-            }
-        }
-
         bool orient2 = false;
+        
+
         if (TSHAPE::Dimension == 3){
             orient = false;
-            switch (TSHAPE::Type())
-            {
-            case ETetraedro:
-                if (side == 10 || side == 13 || neighbourside == 10 || neighbourside == 13) orient = true;
-                // if ((side == 10 || side == 13) && (neighbourside == 11 || neighbourside == 12)) orient = true;
-                // if ((side == 11 || side == 12) && (neighbourside == 10 || neighbourside == 13)) orient = true;
-                break;
-            case ECube:
-                if (side == 20 || side == 23 || side == 24 || neighbourside == 20 || neighbourside == 23 || neighbourside == 24) orient = true;
-                // if ((side == 20 || side == 23 || side == 24) && (neighbourside == 21 || neighbourside == 22 || neighbourside == 25)) orient = true;
-                // if ((side == 21 || side == 22 || side == 25) && (neighbourside == 20 || neighbourside == 23 || neighbourside == 24)) orient = true;
-                break;
-            
-            default:
-                break;
+            int nedgesThis = thisgeoside.Element()->FirstSide(2);
+            int nedgesLarge = largegeoside.Element()->FirstSide(2);
+
+            //Properly orients the elements with side orientation counter clock-wise
+            if (thisgeoside.Element()->GetSideOrientation(side-nedgesThis) == -1 || largegeoside.Element()->GetSideOrientation(neighbourside-nedgesLarge) == -1) {
+                orient = true;
             }
         }
 
