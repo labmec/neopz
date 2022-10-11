@@ -24,7 +24,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-//#define USE_MAIN
+#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -147,27 +147,27 @@ int main(){
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    HDivFamily sType = HDivFamily::EHDivStandard;
+//    HDivFamily sType = HDivFamily::EHDivStandard;
 //    HDivFamily sType = HDivFamily::EHDivKernel;
-//    HDivFamily sType = HDivFamily::EHDivConstant;
+    HDivFamily sType = HDivFamily::EHDivConstant;
     
-//   ProblemType pType = ProblemType::EElastic;
-    ProblemType pType = ProblemType::EDarcy;
+   ProblemType pType = ProblemType::EElastic;
+//    ProblemType pType = ProblemType::EDarcy;
     
-    const int pord = 2;
+    const int pord = 1;
     const bool isRBSpaces = false;
     
-   MMeshType mType = MMeshType::EQuadrilateral;
+//   MMeshType mType = MMeshType::EQuadrilateral;
 //    MMeshType mType = MMeshType::ETriangular;
 //    MMeshType mType = MMeshType::EHexahedral;
-    // MMeshType mType = MMeshType::ETetrahedral;
+    MMeshType mType = MMeshType::ETetrahedral;
     
     int extraporder = 0;
-   bool isCondensed = true;
-    // bool isCondensed = false;  
-    // HybridizationType hType = HybridizationType::EStandard;
-   HybridizationType hType = HybridizationType::ESemi;
-//    HybridizationType hType = HybridizationType::ENone;
+//    bool isCondensed = true;
+    bool isCondensed = false;
+//    HybridizationType hType = HybridizationType::EStandard;
+//    HybridizationType hType = HybridizationType::ESemi;
+    HybridizationType hType = HybridizationType::ENone;
     
     // this will create a mesh with hanging nodes
     bool isRef = true;
@@ -295,6 +295,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
         BCond3 = matelas->CreateBC(matelas, EBCDisplacementLeft, dirType, val1, val2);
         val2[0] = 1.;
         val2[1] = 1.;
+        if(dim == 3) val2[2] = 1.;
         BCond4 = matelas->CreateBC(matelas, EBCDirichlet, dirType, val1, val2);
     }
     else{
@@ -371,6 +372,8 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
 //    hdivCreator.SetHybridizeBoundary();
     InsertMaterials(hdivCreator,probType);
     TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace();
+    std::ofstream outtxt("geomeshmodified.txt");
+    gmesh->Print(outtxt);
     
     // ==========> Check number of equations for condensed problems <==========
     // ========================================================================
