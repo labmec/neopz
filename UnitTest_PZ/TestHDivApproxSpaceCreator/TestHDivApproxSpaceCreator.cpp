@@ -24,7 +24,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-#define USE_MAIN
+//#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -126,14 +126,14 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     bool isRBSpaces = GENERATE(false,true);
     MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
     int extraporder = GENERATE(0,1);
-    bool isCondensed = GENERATE(true);
-//    bool isCondensed = GENERATE(false,true);
+//    bool isCondensed = GENERATE(true);
+    bool isCondensed = GENERATE(false,true);
 //    HybridizationType hType = GENERATE(HybridizationType::ENone);
 //    HybridizationType hType = GENERATE(HybridizationType::ESemi);
 //    HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ESemi,HybridizationType::ENone);
     HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ENone);
 //    bool isRef = GENERATE(true,false);
-    bool isRef = GENERATE(false,true);
+    bool isRef = GENERATE(true);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
@@ -147,9 +147,9 @@ int main(){
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-//    HDivFamily sType = HDivFamily::EHDivStandard;
+    HDivFamily sType = HDivFamily::EHDivStandard;
 //    HDivFamily sType = HDivFamily::EHDivKernel;
-    HDivFamily sType = HDivFamily::EHDivConstant;
+//    HDivFamily sType = HDivFamily::EHDivConstant;
     
 //   ProblemType pType = ProblemType::EElastic;
     ProblemType pType = ProblemType::EDarcy;
