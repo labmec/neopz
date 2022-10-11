@@ -87,10 +87,8 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
     if (fHybridType != HybridizationType::ENone){
         ComputePeriferalMaterialIds();
         AddHybridizationGeoElements();
-       std::ofstream out("GeoMeshHybrid.vtk");
-       TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh, out);
-//        std::ofstream outtxt("geomesh.txt");
-//        fGeoMesh->Print(outtxt);
+        std::ofstream out("GeoMeshHybrid.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh, out);
     }
 
     bool isElastic = fProbType == ProblemType::EElastic;
