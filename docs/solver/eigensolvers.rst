@@ -22,7 +22,7 @@ Further documentation on TPZEigenSolver
 
 .. doxygenclass:: TPZEigenSolver
    :members:
-   :membergroups: Eigen
+   :membergroups: Eigen Pardiso
 
 .. _section-lapackeigensolver:
                   

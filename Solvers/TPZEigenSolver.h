@@ -142,6 +142,8 @@ public:
   int ClassId() const override;
   //! Resets Matrices
   void ResetMatrix() override;
+  /** @name Pardiso*/
+  /** @{*/
   //!Gets PARDISO control of Matrix A
   //!Returns nullptr if not applicable (non-sparse matrix or matrix not set)
   virtual TPZPardisoSolver<TVar> *GetPardisoControlA(){
@@ -152,6 +154,7 @@ public:
   virtual TPZPardisoSolver<TVar> *GetPardisoControlB(){
     return GetPardisoControl(fMatrixB);
   }
+  /** @}*/
 protected:
   TPZPardisoSolver<TVar> *GetPardisoControl(TPZAutoPointer<TPZMatrix<TVar>> mat);
   /**
