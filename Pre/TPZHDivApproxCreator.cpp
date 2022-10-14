@@ -82,6 +82,7 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
 
 TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
 
+    std::cout << "\n---------------- Creating Space -----------------" << std::endl;
     CheckSetupConsistency();
 
     if (fHybridType != HybridizationType::ENone){
@@ -157,6 +158,8 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
 //        PrintMeshElementsConnectInfo(meshvec[i]);
 //    }
 //    PrintMeshElementsConnectInfo(cmeshmulti);
+    
+    std::cout << "\n---------------- Finished Creating Space -----------------" << std::endl;
     
     return cmeshmulti;
 }

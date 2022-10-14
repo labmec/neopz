@@ -20,6 +20,9 @@
 #include "pzstepsolver.h"
 #include "pzcheckgeom.h"
 #include "pzcheckmesh.h"
+#include "TPZSimpleTimer.h"
+
+#include "pzsysmp.h"
 
 #include <pzlog.h>
 
@@ -145,11 +148,11 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
 int main(){
 
 #ifdef PZ_LOG
-    TPZLogger::InitializePZLOG();
+//    TPZLogger::InitializePZLOG();
 #endif
-//    HDivFamily sType = HDivFamily::EHDivStandard;
+    HDivFamily sType = HDivFamily::EHDivStandard;
 //    HDivFamily sType = HDivFamily::EHDivKernel;
-    HDivFamily sType = HDivFamily::EHDivConstant;
+//    HDivFamily sType = HDivFamily::EHDivConstant;
     
    ProblemType pType = ProblemType::EElastic;
 //    ProblemType pType = ProblemType::EDarcy;
@@ -164,13 +167,13 @@ int main(){
     
     int extraporder = 0;
 //    bool isCondensed = true;
-    bool isCondensed = false;
-//    HybridizationType hType = HybridizationType::EStandard;
+    bool isCondensed = true;
+    HybridizationType hType = HybridizationType::EStandard;
 //    HybridizationType hType = HybridizationType::ESemi;
-    HybridizationType hType = HybridizationType::ENone;
+//    HybridizationType hType = HybridizationType::ENone;
     
     // this will create a mesh with hanging nodes
-    bool isRef = true;
+    bool isRef = false;
     // bool isRef = false;
     
     TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed,hType,isRef);
@@ -219,9 +222,9 @@ TPZGeoMesh *Create2DGeoMesh(ProblemType& pType, MMeshType &mType) {
 TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType) {
     
     // ----- Create Geo Mesh -----
-    const TPZManVector<REAL,3> minX = {-1.,-1.,-1.};
-    const TPZManVector<REAL,3> maxX = {1.,1.,1.};
-    const TPZManVector<int,3> nelDiv = {2,1,1};
+    const TPZManVector<REAL,3> minX = {0.,0.,0.};
+    const TPZManVector<REAL,3> maxX = {10000.,10000.,5000.};
+    const TPZManVector<int,3> nelDiv = {16,16,8};
     TPZGenGrid3D gen3d(minX,maxX,nelDiv,mType);
     TPZGeoMesh* gmesh = new TPZGeoMesh;
     gmesh = gen3d.BuildVolumetricElements(EDomain);
@@ -235,7 +238,7 @@ TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType) {
             gmesh = gen3d.BuildBoundaryElements(EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet);
         }
         else {
-            gmesh = gen3d.BuildBoundaryElements(EBCNeumann,EBCDisplacementLeft,EBCNeumann,EBCDisplacementRight,EBCNeumann,EBCNeumann);
+            gmesh = gen3d.BuildBoundaryElements(EBCDisplacementLeft,EBCNeumann,EBCNeumann,EBCNeumann,EBCNeumann,EBCNeumann);
         }
     }
     
@@ -297,6 +300,50 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
         val2[1] = 1.;
         if(dim == 3) val2[2] = 1.;
         BCond4 = matelas->CreateBC(matelas, EBCDirichlet, dirType, val1, val2);
+        
+        matelas->SetBodyForce(0, 0, -9.81);
+        
+        // ----------------------- Getting E,nu data --------------------------
+        // --------------------------------------------------------------------
+        constexpr int nx{17};
+        constexpr int ny{17};
+        constexpr int nz{9};
+        constexpr REAL partsize{625.};
+        TPZManVector<TPZFMatrix<STATE>,ny> edata(ny), nudata(ny);
+        for (int iy = 0; iy < ny; iy++) {
+            edata[iy].Resize(nz, nx);
+            nudata[iy].Resize(nz, nx);
+        }
+        std::ifstream in("../mydata/e_1.txt");
+        REAL tempE = 0., tempNu = 0.;;
+        std::string basee = "../mydata/e_", basenu = "../mydata/nu_";
+        for (int iy = 0; iy < ny; iy++) {
+            std::string ename = basee + to_string(iy+1) + ".txt";
+            std::string nuname = basenu + to_string(iy+1) + ".txt";
+            std::ifstream inE(ename), inNu(nuname);
+            for(int iz = 0; iz < nz ; iz++) {
+                for(int ix = 0 ; ix < nx ; ix++){
+                    inE >> tempE;
+                    inNu >> tempNu;
+                    edata[iy](iz,ix) = tempE;
+                    nudata[iy](iz,ix) = tempNu;
+                }
+            }
+        }
+        
+        auto ConstLawFunctionLambda = [edata,nudata,partsize] (const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv) {
+            int rounded_x = static_cast<int>(floor(x[0]/partsize));
+            int rounded_y = static_cast<int>(floor(x[1]/partsize));
+            int rounded_z = static_cast<int>(floor(x[2]/partsize));
+            STATE eval = edata[rounded_y](rounded_z,rounded_x)/3.e9;
+            STATE nuval = nudata[rounded_y](rounded_z,rounded_x);
+            result[0] = eval;
+            result[1] = nuval;
+        };
+        
+        std::function<void(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> myfunc = ConstLawFunctionLambda;
+        
+        matelas->SetElasticityFunction(myfunc);
     }
     else{
         DebugStop(); // yet not supported material
@@ -313,6 +360,8 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
                                 bool isRigidBodySpaces, MMeshType mType, int extrapOrder,
                                 bool isCondensed, HybridizationType hType, bool isRef){
 
+    TPZSimpleTimer totaltime;
+    
     // ==========> Initial headers <==========
     // =======================================
     static int globcount = 0;
@@ -370,20 +419,20 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     hdivCreator.SetShouldCondense(isCondensed);
     hdivCreator.HybridType() = hType;
 //    hdivCreator.SetHybridizeBoundary();
-    InsertMaterials(hdivCreator,probType);
+    InsertMaterials(hdivCreator,probType);    
     TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace();
-    std::ofstream outtxt("geomeshmodified.txt");
-    gmesh->Print(outtxt);
+//    std::ofstream outtxt("geomeshmodified.txt");
+//    gmesh->Print(outtxt);
     
     // ==========> Check number of equations for condensed problems <==========
     // ========================================================================
-    if(isCondensed && hType != HybridizationType::ENone) {
-        CheckNEqCondensedProb(cmesh,hdivCreator,mType);
-    }
+//    if(isCondensed && hType != HybridizationType::ENone) {
+//        CheckNEqCondensedProb(cmesh,hdivCreator,mType);
+//    }
     
 #ifdef PZDEBUG
 //    hdivCreator.PrintMeshElementsConnectInfo(cmesh);
-    hdivCreator.PrintAllMeshes(cmesh);
+//    hdivCreator.PrintAllMeshes(cmesh);
 #endif
     
     // ==========> Solving problem <==========
@@ -401,19 +450,20 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     // ==========> Unit test checks <==========
     // ========================================
     // Checks if the integral over the domain is a known value (most of the cases a constant value so just the volume of the domain)
-    CheckIntegralOverDomain(cmesh,probType,hdivFam);
+//    CheckIntegralOverDomain(cmesh,probType,hdivFam);
     // Checks if error with respect to exact solution is close to 0
-    TPZManVector<REAL,5> error;
-    CheckError(cmesh,error,probType);
-    
-    cout << "\n------------------ Test ended without crashing ------------------" << endl << endl;
+//    TPZManVector<REAL,5> error;
+//    CheckError(cmesh,error,probType);
+        
+    cout << "\n------------------ Test ended without crashing ------------------" << endl;
+    std::cout << "==> Total time: " << totaltime.ReturnTimeDouble()/1000. << " seconds" << std::endl << endl;
 }
 
 void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol) {
 #ifdef USE_MAIN
-    constexpr int nThreads{0};
+    constexpr int nThreads{12};
 #else
-    constexpr int nThreads{0};
+    constexpr int nThreads{12};
 #endif
     TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>> matsp(cmesh);
     matsp.SetNumThreads(nThreads);
@@ -427,14 +477,40 @@ void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol) {
 
     an.SetStructuralMatrix(matsp);
     TPZStepSolver<STATE> step;
-    step.SetDirect(ELDLt);
+//    step.SetDirect(ELDLt);
+    step.SetDirect(ECholesky);
     an.SetSolver(step);
         
     if(isTestKnownSol){
         TestKnownSol(an,1.,cmesh);
     }
     else{
-        an.Run();
+        cout << "\n\n======> Assembling" << endl;
+        TPZSimpleTimer timerass;
+        an.Assemble();
+        std::cout << "==> Total assemble time: " << timerass.ReturnTimeDouble()/1000. << " seconds" << std::endl << endl;
+        
+        cout << "\n\n======> Changing mat" << endl;
+        TPZSimpleTimer timerchangemat;
+        // Multiply mat and rhs by -1 to make it positive definite
+        TPZMatrix<STATE>* mat = an.MatrixSolver<STATE>().Matrix().operator->();
+        TPZSYsmpMatrix<STATE>* spmat = dynamic_cast<TPZSYsmpMatrix<STATE>*>(mat);
+        const int nspel = spmat->A().size();
+        for (int isp = 0; isp < nspel; isp++) {
+            spmat->A()[isp] *= -1.;
+        }
+        const int neq = an.Rhs().Rows();
+        TPZMatrix<STATE>& rhsmat = an.Rhs();
+        for (int ieq = 0; ieq < neq; ieq++) {
+            rhsmat(ieq,0) *= -1.;
+        }
+        std::cout << "==> Total change mat time: " << timerchangemat.ReturnTimeDouble()/1000. << " seconds" << std::endl << endl;
+        
+        cout << "\n\n======> Solving" << endl;
+        TPZSimpleTimer timersolve;
+        an.Solve();
+        std::cout << "==> Total solve time: " << timersolve.ReturnTimeDouble()/1000. << " seconds" << std::endl << endl;
+//        an.Run();
     }
 }
 
