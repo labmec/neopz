@@ -168,6 +168,6 @@ TPZPeriodicWgma
 """"""""""""""""""""""""
 Implements the modal analysis of periodic planar waveguides :footcite:`koshiba02`.
 
-.. doxygenclass:: TPZPlanarWgScattPML
+.. doxygenclass:: TPZPeriodicWgma
    :members:
 .. footbibliography::
