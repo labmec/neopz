@@ -78,6 +78,11 @@ It is interesting to note that in this iteration, only the product :math:`A v_k`
    
 After the Arnoldi iteration is performed, an EVP for :math:`H` is then solved using LAPACK. Given that the dimensions of the Krylov subspace is :math:`m\ll n_{eq}`, where :math:`n_{eq}` is the original number of equations, using a dense matrix for :math:`H` does not represent a big impact.
 
+
+.. note::
+   The performance of the Krylov eigensolver will depend on the PARDISO settings.
+   See :ref:`section-pardiso-advanced` for how to set it up if needed.
+
 Further documentation on TPZKrylovEigenSolver
 =============================================
 
