@@ -134,7 +134,7 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
 
     TPZMultiphysicsCompMesh *cmeshmulti = CreateMultiphysicsSpace(meshvec);
 
-    // PrintMeshElementsConnectInfo(cmeshmulti);
+    PrintMeshElementsConnectInfo(cmeshmulti);
     if (fShouldCondense){  
         if (isElastic && !fIsRBSpaces && fHybridType == HybridizationType::ENone){ 
             // In this case, the third (corresponding to the laglevCounter - 1) is the rotation mesh, whose can be condensed.
@@ -597,6 +597,14 @@ void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcm
 
     int64_t nel = elementgroup.size();
 
+    for (int i = 0; i < nel; i++)
+    {
+        std::cout << "ElGroup[" << i << "] = " << elementgroup[i] << std::endl;
+    }
+    
+    
+    // elementgroup.Print();
+
     std::map<int64_t, TPZElementGroup *> groupmap;
     //    std::cout << "Groups of connects " << groupindex << std::endl;
     for (int64_t el = 0; el<nel; el++) {
@@ -763,8 +771,6 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
 //        std::cout << "===> Connecting elements with matids: " << celside.Element()->Reference()->MaterialId() << "\t" << cneigh.Element()->Reference()->MaterialId() << std::endl;
 //        std::cout << "===> And indexes: " << celside.Element()->Reference()->Index() << "\t" << cneigh.Element()->Reference()->Index() << std::endl;
 #endif
-        
-        
         if(LargeNeigh) {
             // create another interface
             TPZGeoElSide ginterface = neighLag.Neighbour();
@@ -773,25 +779,40 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
             if(ginterface.Element()->MaterialId() != fHybridizationData.fInterfaceMatId) DebugStop();
 #endif
             if (fHybridType == HybridizationType::ESemi){
-                if (!semiHybridInterface[cLagrange.Element()->Index()]){
-                    semiHybridInterface[cLagrange.Element()->Index()] = true;
-                    // cLarge.Element()->Print();
-                    auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),celside,cLagrange,cLarge);
-                }
+                auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),celside,cLagrange,semiHybridInterface[cLagrange.Element()->Index()]);
+                semiHybridInterface[cLagrange.Element()->Index()] = true;
+                
+                TPZGeoElSide volside = cLarge.Reference().operator--();
+                if (volside.Element()->Dimension() != cLarge.Element()->Dimension()+1) DebugStop();
+                TPZCompEl *celvol = volside.Element()->Reference();
+
+                //Sets the side orient
+                TPZMultiphysicsElement *celmulti = dynamic_cast<TPZMultiphysicsElement *> (celvol); 
+                TPZInterpolationSpace *celv = dynamic_cast<TPZInterpolationSpace *> (celmulti->Element(0)); 
+                celint->SetSideOrient(celv->GetSideOrient(volside.Side()));
             } else {
                 // cLarge.Element()->Print();
                 TPZMultiphysicsInterfaceElement *interface = new TPZMultiphysicsInterfaceElement(*mphys,ginterface.Element(),cLarge,cLagrange);
             }
         }
+
         if (fHybridType == HybridizationType::ESemi){
-            if (!semiHybridInterface[cLagrange.Element()->Index()]){
-                semiHybridInterface[cLagrange.Element()->Index()] = true;
-                TPZCompElSide cWrap2 = neighLag.HasNeighbour(fHybridizationData.fWrapMatId).Reference();
-                auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),celside,cLagrange,cWrap2);
-            }
+            auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),celside,cLagrange,semiHybridInterface[cLagrange.Element()->Index()]);
+            semiHybridInterface[cLagrange.Element()->Index()] = true;
+
+            TPZGeoElSide volside = celside.Reference().operator--();
+            if (volside.Element()->Dimension() != celside.Element()->Dimension()+1) DebugStop();
+            TPZCompEl *celvol = volside.Element()->Reference();
+
+            //Sets the side orient
+            TPZMultiphysicsElement *celmulti = dynamic_cast<TPZMultiphysicsElement *> (celvol); 
+            TPZInterpolationSpace *celv = dynamic_cast<TPZInterpolationSpace *> (celmulti->Element(0)); 
+            celint->SetSideOrient(celv->GetSideOrient(volside.Side()));
         } else {
             TPZMultiphysicsInterfaceElement *interface = new TPZMultiphysicsInterfaceElement(*mphys,ginterface.Element(),celside,cLagrange);
         }
+        
+        
     }
 } 
 
@@ -1209,6 +1230,7 @@ void TPZHDivApproxCreator::AssociateElementsDuplConnects(TPZCompMesh *cmesh, TPZ
     int64_t nel = cmesh->NElements();
     elementgroup.Resize(nel, -1);
     elementgroup.Fill(-1);
+    std::set<int> matBCId = GetBCMatIds();
 
     int64_t nconnects = cmesh->NConnects();
     TPZVec<int64_t> groupindex(nconnects, -1);
@@ -1225,17 +1247,21 @@ void TPZHDivApproxCreator::AssociateElementsDuplConnects(TPZCompMesh *cmesh, TPZ
 
         int nfacets = cel->Reference()->NSides(cel->Dimension()-1);
         // //Condense internal connects
-        int index = connectlist[2*nfacets];
-        groupindex[index] = cel->Index();
+        // int index = connectlist[2*nfacets];
+        // groupindex[index] = cel->Index();
 
-        bool prevConnect = false;
+        // index = connectlist[2*nfacets+1];
+        // groupindex[index] = cel->Index();
+
+        if (matBCId.find(cel->Reference()->MaterialId()) != matBCId.end()) continue;//Never associate a bc element with itself
 
         for (int i=0; i<2*nfacets; i++) {
             int cindex = connectlist[i];
+            auto celindex = cel->Index();
 
             // if (i % 2 == 1) {
                 if (groupindex[cindex] == -1) {
-                    groupindex[cindex] = cel->Index();
+                    groupindex[cindex] = celindex;
                 }
             // } else {
             //     if (groupindex[cindex] == -1) {

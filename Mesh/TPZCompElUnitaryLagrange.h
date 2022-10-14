@@ -24,7 +24,7 @@ public:
     /// @param reference Interface GeoElement
     /// @param wrapSide Wrap neighbour CompElSide 
     /// @param lagrangeSide Lagrange neighbour CompElSide
-    TPZCompElUnitaryLagrange(TPZCompMesh &mesh, TPZGeoEl *reference, TPZCompElSide &wrapSide, TPZCompElSide &lagrangeSide, TPZCompElSide &wrapLarge);
+    TPZCompElUnitaryLagrange(TPZCompMesh &mesh, TPZGeoEl *reference, TPZCompElSide &wrapSide, TPZCompElSide &lagrangeSide, bool allocateNewConnect);
 
     void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override{
         CalcStiffInternal(ek,ef);
@@ -48,13 +48,23 @@ public:
 	 **/
 	virtual int SideConnectLocId(int node, int side) const override;
     
-    void SetConnectIndex(int i, int64_t connectindex) override;    
+    void SetConnectIndex(int i, int64_t connectindex) override;
+    
+    void SetSideOrient(int sideorient){
+        fSideOrient = sideorient;
+    };
+
+    int GetSideOrient(){
+        return fSideOrient;
+    };
 
 
 protected:
 	
 	/** @brief It preserves index of connect associated to the element */
-	TPZManVector<int64_t,3> fConnectIndexes;
+	TPZManVector<int64_t,2> fConnectIndexes;
+
+    int fSideOrient = 1;
 
     template<class TVar>
     void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
