@@ -10,7 +10,8 @@
 #include "TPZSolver.h"
 #include "tpzautopointer.h"
 
-
+template<class T>
+class TPZPardisoSolver;
 
 /**
  * @ingroup solver
@@ -120,6 +121,9 @@ public:
     void Write(TPZStream &buf, int withclassid) const override;
     void Read(TPZStream &buf, void *context) override;
 
+    //!Returns nullptr if not applicable (non-sparse matrix or matrix not set)
+    virtual TPZPardisoSolver<TVar> *GetPardisoControl();
+  
 protected:
     /** @brief Reference matrix used to update the current matrix */
     TPZAutoPointer<TPZMatrix<TVar>> fReferenceMatrix;

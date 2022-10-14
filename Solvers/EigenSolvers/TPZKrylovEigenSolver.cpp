@@ -1,5 +1,6 @@
 #include "TPZKrylovEigenSolver.h"
 #include "TPZLapackEigenSolver.h"
+#include "TPZPardisoSolver.h"
 #include "TPZSimpleTimer.h"
 
 template<class TVar>
@@ -25,6 +26,55 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
                                           TPZFMatrix<CTVar> &eigenVectors,
                                           bool computeVectors)
 {
+
+  auto PardisoSetup = [](auto pardiso_control, auto sys, auto prop, auto str){
+    pardiso_control->SetStructure(str);
+    pardiso_control->SetMatrixType(sys,prop);
+    auto param = pardiso_control->GetParam();
+      //fParam[0] No default values
+    param[0] = 1;
+    //param[1]  use Metis for the ordering
+    param[1] = 2;
+    /*param[3]  Preconditioned CGS/CG. 
+      0 = // No iterative-direct algorithm
+      10*L+K
+      L = stoppping criterion: 10^-L
+      K = 
+      0: The factorization is always computed as required by phase
+      1: CGS iteration replaces the computation of LU. 
+      The preconditioner is LU that was computed at a previous step
+      (the first step or last step with a failure) in a sequence of
+      solutions needed for identical sparsity patterns.
+      2: CGS iteration for symmetric positive definite matrices
+      Replaces the computation of LLt. The preconditioner is LLT
+      that was computed at a previous step
+      (the first step or last step with a failure)
+      in a sequence of solutions needed for identical sparsity patterns. 
+    */
+    //param[4]  No user fill-in reducing permutation
+    param[3] = 0;
+    param[4] = 0;
+
+    //param[7]  Maximum number of iterative refinement steps that the solver performs when perturbed pivots are obtained during the numerical factorization. 
+    param[7] = 8;
+      	
+    //param[8]  Tolerance level for the relative residual in the iterative refinement process. (10^-{param[8]})
+    param[8] = 23;
+    //param[9]  Perturb the pivot elements with 1E-param[9]
+    param[9] = 23;
+    //param[10]  Use nonsymmetric permutation and scaling MPS
+    param[10] = 0;
+
+      
+    //param[12]  Maximum weighted matching algorithm is switched-off (default for symmetric).
+    param[12] = 0;
+    //param[26] Whether to check matrix data
+    param[26] = 1;
+    //param[59]  Do not use OOC
+    param[59] = 0;
+    pardiso_control->SetParam(param);
+  };
+
   if(this->NEigenpairs() < 1) SetNEigenpairs(1);
 #ifndef USING_LAPACK
   PZError<<__PRETTY_FUNCTION__;
@@ -42,6 +92,22 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   auto st = this->SpectralTransform();
   if(st){
     TPZSimpleTimer calcMat("ST Calculating matrix",true);
+    auto prdscfg = this->GetPardisoControlA();
+    if(prdscfg && !prdscfg->HasCustomSettings()){
+      const auto str =
+        this->MatrixA()->IsSymmetric() ?
+        TPZPardisoSolver<TVar>::MStructure::ESymmetric:
+        TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
+      const auto sys =
+        this->MatrixA()->IsSymmetric() ? 
+        TPZPardisoSolver<TVar>::MSystemType::ESymmetric:
+        TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
+      const auto prop =
+        this->MatrixA()->IsDefPositive() ?
+        TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
+        TPZPardisoSolver<TVar>::MProperty::EIndefinite;
+      PardisoSetup(prdscfg,sys,prop,str); 
+    }
     if(this->IsGeneralised())
       arnoldiMat = st->CalcMatrix(this->MatrixA(),this->MatrixB());
     else
@@ -50,6 +116,22 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
     arnoldiMat = this->MatrixA();
     if(this->IsGeneralised()){
       TPZSimpleTimer binvert("invert B mat",true);
+      auto prdscfg = this->GetPardisoControlB();
+      if(prdscfg && !prdscfg->HasCustomSettings()){
+        const auto str =
+        this->MatrixB()->IsSymmetric() ?
+        TPZPardisoSolver<TVar>::MStructure::ESymmetric:
+        TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
+      const auto sys =
+        this->MatrixB()->IsSymmetric() ? 
+        TPZPardisoSolver<TVar>::MSystemType::ESymmetric:
+        TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
+      const auto prop =
+        this->MatrixB()->IsDefPositive() ?
+        TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
+        TPZPardisoSolver<TVar>::MProperty::EIndefinite;
+        PardisoSetup(prdscfg,sys,prop,str); 
+      }
       if (this->MatrixB()->IsSymmetric()) this->MatrixB()->Decompose_LDLt();
       else this->MatrixB()->Decompose_LU();
     }
