@@ -20,11 +20,12 @@
 #include "pzstepsolver.h"
 #include "pzcheckgeom.h"
 #include "pzcheckmesh.h"
+#include "TPZAnalyticSolution.h"
 
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-#define USE_MAIN
+// #define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -130,8 +131,8 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     bool isCondensed = GENERATE(false,true);
 //    HybridizationType hType = GENERATE(HybridizationType::ENone);
 //    HybridizationType hType = GENERATE(HybridizationType::ESemi);
-//    HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ESemi,HybridizationType::ENone);
-    HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ENone);
+    HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ESemi,HybridizationType::ENone);
+    // HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ENone);
 //    bool isRef = GENERATE(true,false);
     bool isRef = GENERATE(true);
     
@@ -242,6 +243,25 @@ TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType) {
     return gmesh;
 }
 
+auto exactSol = [](const TPZVec<REAL> &loc,
+    TPZVec<STATE>&u,
+    TPZFMatrix<STATE>&gradU){
+    const auto &x=loc[0];
+    const auto &y=loc[1];
+    const auto &z=loc[2];
+
+    // REAL a1 = 1./4;
+    // REAL alpha = M_PI/2;
+    // u[0] = x*a1*cos(x*alpha)*cosh(y*alpha) + y*a1*sin(x*alpha)*sinh(y*alpha) + x*x - y*y;
+    // gradU(0,0) = -a1*(cosh(alpha*y)*(cos(alpha*x) - alpha*x*sin(alpha*x)) + alpha*y*cos(alpha*x)*sinh(alpha*y));
+    // gradU(1,0) = -a1*(alpha*y*cosh(alpha*y)*sin(alpha*x) + (alpha*x*cos(alpha*x) + sin(alpha*x))*sinh(alpha*y));
+
+    u[0] = x*x*x*y - y*y*y*x;
+    gradU(0,0) = (3.*x*x*y - y*y*y);
+    gradU(1,0) = (x*x*x - 3.*y*y*x);
+
+};
+
 void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
     
     if (!approxCreator.GeoMesh()) {
@@ -276,12 +296,18 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
     
     TPZBndCondT<STATE> *BCond1 = nullptr, *BCond2 = nullptr, *BCond3 = nullptr, *BCond4 = nullptr;
     const int dirType = 0, neuType = 1;
+
     if (ptype == ProblemType::EDarcy) {
+        
+        // matdarcy->SetExactSol(exactSol,4);
+
         TPZFMatrix<STATE> val1(1,1,0.);
         TPZManVector<STATE> val2(1,1.);
         BCond1 = matdarcy->CreateBC(matdarcy, EBCDirichlet, dirType, val1, val2);
+        // BCond1->SetForcingFunctionBC(exactSol,4);
         val2[0] = 0.;
         BCond2 = matdarcy->CreateBC(matdarcy, EBCNeumann, neuType, val1, val2);
+        // BCond2->SetForcingFunctionBC(exactSol,4);
     }
     else if (ptype == ProblemType::EElastic){
         TPZFMatrix<STATE> val1(dim,dim,0.);
@@ -374,7 +400,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace();
     std::ofstream outtxt("geomeshmodified.txt");
     gmesh->Print(outtxt);
-    
+
     // ==========> Check number of equations for condensed problems <==========
     // ========================================================================
     if(isCondensed && hType != HybridizationType::ENone) {

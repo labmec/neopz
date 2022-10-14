@@ -134,7 +134,7 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
 
     TPZMultiphysicsCompMesh *cmeshmulti = CreateMultiphysicsSpace(meshvec);
 
-//    PrintMeshElementsConnectInfo(cmeshmulti);
+    // PrintMeshElementsConnectInfo(cmeshmulti);
     if (fShouldCondense){  
         if (isElastic && !fIsRBSpaces && fHybridType == HybridizationType::ENone){ 
             // In this case, the third (corresponding to the laglevCounter - 1) is the rotation mesh, whose can be condensed.
@@ -455,7 +455,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int pOrder, const int la
         newnod.SetLagrangeMultiplier(lagLevel);
     }
     
-//    PrintMeshElementsConnectInfo(cmesh);
+    // PrintMeshElementsConnectInfo(cmesh);
 
     return cmesh;
 }
@@ -731,6 +731,10 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
     fGeoMesh->ResetReference();
     mphys->LoadReferences();
 
+    //In semi hybridization, only one interface compEl is required, but two interface CompEls are created in the Standard Hybridization
+    //This map avoids the creation of an interface element at the same position twice
+    std::map<int64_t,bool> semiHybridInterface;
+
     for(int iel = 0; iel < numEl; iel++){
         TPZCompEl *cel = mphys->ElementVec()[iel];
         if(!cel || !cel->Reference()){
@@ -759,11 +763,7 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
 //        std::cout << "===> Connecting elements with matids: " << celside.Element()->Reference()->MaterialId() << "\t" << cneigh.Element()->Reference()->MaterialId() << std::endl;
 //        std::cout << "===> And indexes: " << celside.Element()->Reference()->Index() << "\t" << cneigh.Element()->Reference()->Index() << std::endl;
 #endif
-        if (fHybridType == HybridizationType::ESemi){
-            auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),celside,cLagrange);
-        } else {
-            TPZMultiphysicsInterfaceElement *interface = new TPZMultiphysicsInterfaceElement(*mphys,ginterface.Element(),celside,cLagrange);
-        }
+        
         
         if(LargeNeigh) {
             // create another interface
@@ -773,10 +773,24 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
             if(ginterface.Element()->MaterialId() != fHybridizationData.fInterfaceMatId) DebugStop();
 #endif
             if (fHybridType == HybridizationType::ESemi){
-                auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),cLarge,cLagrange);         
+                if (!semiHybridInterface[cLagrange.Element()->Index()]){
+                    semiHybridInterface[cLagrange.Element()->Index()] = true;
+                    // cLarge.Element()->Print();
+                    auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),celside,cLagrange,cLarge);
+                }
             } else {
+                // cLarge.Element()->Print();
                 TPZMultiphysicsInterfaceElement *interface = new TPZMultiphysicsInterfaceElement(*mphys,ginterface.Element(),cLarge,cLagrange);
             }
+        }
+        if (fHybridType == HybridizationType::ESemi){
+            if (!semiHybridInterface[cLagrange.Element()->Index()]){
+                semiHybridInterface[cLagrange.Element()->Index()] = true;
+                TPZCompElSide cWrap2 = neighLag.HasNeighbour(fHybridizationData.fWrapMatId).Reference();
+                auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),celside,cLagrange,cWrap2);
+            }
+        } else {
+            TPZMultiphysicsInterfaceElement *interface = new TPZMultiphysicsInterfaceElement(*mphys,ginterface.Element(),celside,cLagrange);
         }
     }
 } 
@@ -1078,6 +1092,9 @@ void TPZHDivApproxCreator::SemiHybridizeDuplConnects(TPZCompMesh *cmesh) {
     int dim = cmesh->Dimension();
     int nel = cmesh->NElements();
     std::set<int> matBCId = GetBCMatIds();
+
+    //For each element interface, duplicate a connect to hybridize the constant flux based on the side orientation
+    //Then sets the same connect indexes to the neighbour wrap element.S
     for (int64_t el = 0; el < nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZGeoEl *gel = cel->Reference();
@@ -1092,23 +1109,28 @@ void TPZHDivApproxCreator::SemiHybridizeDuplConnects(TPZCompMesh *cmesh) {
         if (cmesh->Dimension() == 3){
             nEdges = gel->NSides(1);
         }
+        int ncorner = cel->Reference()->NCornerNodes();
 
         for (int iface = 0; iface < nfacets; iface++)
         {
-            int cIndex = 2*iface;
-            int ncorner = cel->Reference()->NCornerNodes();
-            // if (gel->SideDimension(side) != dim-1) continue;
-            TPZGeoElSide gelside(gel,iface+ncorner+nEdges);
-            // if (gelside.HasNeighbour(matBCId)) continue;
-            
-            
+            TPZGeoElSide gelside(gel,iface+ncorner+nEdges);            
             TPZGeoElSide neighbour = gelside.Neighbour();
-            
+            if (matBCId.find(neighbour.Element()->MaterialId())!=matBCId.end()) continue;//Ignore the elements with BC neighbours
+
             int sideOrient = eldc->GetSideOrient(iface+ncorner+nEdges);
-        
+
             // std::cout << "Element = " << el << ",iface = " << iface << " Neigh matid - " << neighbour.Element()->MaterialId() << ", side orient - " << sideOrient << std::endl;
             if (sideOrient == -1){
-                TPZConnect &c = cel->Connect(cIndex);
+                TPZConnect &c = cel->Connect(2*iface);
+
+                // We do not need to explicitly hybridize if the element is a sub-element
+                if (c.HasDependency()) continue;
+
+                // If the side has hanging nodes, we do not need to explicitly hybridize the connect
+                TPZStack<TPZCompElSide > compElConnected;
+                gelside.ConnectedCompElementList(compElConnected,1,1);
+                if (compElConnected.size() > 2) continue;
+
                 auto pOrder = cmesh->GetDefaultOrder();
                 int nshape = c.NShape();//It is updated in the next loop
                 int nstate = c.NState();//It can possibly change
@@ -1211,15 +1233,15 @@ void TPZHDivApproxCreator::AssociateElementsDuplConnects(TPZCompMesh *cmesh, TPZ
         for (int i=0; i<2*nfacets; i++) {
             int cindex = connectlist[i];
 
-            if (i % 2 == 1) {
+            // if (i % 2 == 1) {
                 if (groupindex[cindex] == -1) {
                     groupindex[cindex] = cel->Index();
                 }
-            } else {
-                if (groupindex[cindex] == -1) {
-                    groupindex[cindex] = cel->Index();
-                }
-            }
+            // } else {
+            //     if (groupindex[cindex] == -1) {
+            //         groupindex[cindex] = cel->Index();
+            //     }
+            // }
         }
     }
 
