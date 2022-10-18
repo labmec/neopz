@@ -134,7 +134,7 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
 
     TPZMultiphysicsCompMesh *cmeshmulti = CreateMultiphysicsSpace(meshvec);
 
-    PrintMeshElementsConnectInfo(cmeshmulti);
+    // PrintMeshElementsConnectInfo(cmeshmulti);
     if (fShouldCondense){  
         if (isElastic && !fIsRBSpaces && fHybridType == HybridizationType::ENone){ 
             // In this case, the third (corresponding to the laglevCounter - 1) is the rotation mesh, whose can be condensed.
@@ -178,11 +178,10 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     fGeoMesh->ResetReference();
     int dim = fGeoMesh->Dimension();
     TPZCompMesh *cmesh = new TPZCompMesh(fGeoMesh);
-    if (fProbType == ProblemType::EElastic) {
+    if (fProbType == ProblemType::EElastic || fProbType == ProblemType::EDarcy) {
         cmesh->SetDefaultOrder(fDefaultPOrder);
-    }
-    else if (fProbType == ProblemType::EDarcy){
-        cmesh->SetDefaultOrder(fDefaultPOrder);
+    } else {
+        DebugStop();
     }
     
     cmesh->SetDimModel(dim);
@@ -191,12 +190,11 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     for (std::pair<int,TPZMaterial*> matpair : fMaterialVec) {
         TPZMaterial* mat = matpair.second;
         TPZBndCond *bnd = dynamic_cast<TPZBndCond *> (mat);
-        if (!bnd){
-            if (mat->Dimension() != dim) DebugStop();
+        if (!bnd && mat->Dimension() == dim){
             nstate = mat->NStateVariables(); // here we assume that all materials have same nstatevars
-            TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),dim,mat->NStateVariables());
+            TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),mat->Dimension(),mat->NStateVariables());
             cmesh->InsertMaterialObject(nullmat);
-        } else {
+        } else if (bnd){
             // if (bnd->Dimension() != dim-1) DebugStop();
             TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),dim-1,mat->NStateVariables());
             cmesh->InsertMaterialObject(nullmat);
@@ -223,7 +221,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
         cmesh->AutoBuild();
         ActivateDuplicatedConnects(cmesh);
         SemiHybridizeDuplConnects(cmesh);
-    }else {
+    } else {
         cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(dim);
         cmesh->AutoBuild();
     }
@@ -334,7 +332,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateConstantSpace(const int lagLevel) {
             TPZMaterial* mat = matpair.second;
             TPZBndCond *bnd = dynamic_cast<TPZBndCond *> (mat);
             if (!bnd){
-                if (mat->Dimension() != dim) DebugStop();
+                if (mat->Dimension() != dim) continue;
                 nstate = mat->NStateVariables();
                 TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),dim,mat->NStateVariables());
                 cmesh->InsertMaterialObject(nullmat);
@@ -376,7 +374,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int pOrder, const int la
             TPZMaterial* mat = matpair.second;
             TPZBndCond *bnd = dynamic_cast<TPZBndCond *> (mat);
             if (!bnd){
-                if (mat->Dimension() != dim) DebugStop();
+                if (mat->Dimension() != dim) continue;
                 nstate = mat->NStateVariables();
                 TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),dim,mat->NStateVariables());
                 cmesh->InsertMaterialObject(nullmat);
@@ -490,7 +488,7 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateMultiphysicsSpace(const TP
         cmesh->InsertMaterialObject(nullmatLag);
     }
 
-    TPZManVector<int> active(fNumMeshes,1);
+    TPZManVector<int> active(meshvec.size(),1);
     cmesh->ApproxSpace().Style() = TPZCreateApproximationSpace::EMultiphysics;
     cmesh->BuildMultiphysicsSpace(active, meshvec);
     
@@ -597,10 +595,10 @@ void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcm
 
     int64_t nel = elementgroup.size();
 
-    for (int i = 0; i < nel; i++)
-    {
-        std::cout << "ElGroup[" << i << "] = " << elementgroup[i] << std::endl;
-    }
+    // for (int i = 0; i < nel; i++)
+    // {
+    //     std::cout << "ElGroup[" << i << "] = " << elementgroup[i] << std::endl;
+    // }
     
     
     // elementgroup.Print();

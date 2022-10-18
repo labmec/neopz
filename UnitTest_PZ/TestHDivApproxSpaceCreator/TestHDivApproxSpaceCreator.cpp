@@ -25,7 +25,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-// #define USE_MAIN
+#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -152,23 +152,23 @@ int main(){
 //    HDivFamily sType = HDivFamily::EHDivKernel;
     HDivFamily sType = HDivFamily::EHDivConstant;
     
-   ProblemType pType = ProblemType::EElastic;
-//    ProblemType pType = ProblemType::EDarcy;
+//    ProblemType pType = ProblemType::EElastic;
+   ProblemType pType = ProblemType::EDarcy;
     
     const int pord = 1;
     const bool isRBSpaces = false;
     
 //   MMeshType mType = MMeshType::EQuadrilateral;
-//    MMeshType mType = MMeshType::ETriangular;
+   MMeshType mType = MMeshType::ETriangular;
 //    MMeshType mType = MMeshType::EHexahedral;
-    MMeshType mType = MMeshType::ETetrahedral;
+    // MMeshType mType = MMeshType::ETetrahedral;
     
     int extraporder = 0;
-//    bool isCondensed = true;
-    bool isCondensed = false;
+   bool isCondensed = true;
+    // bool isCondensed = false;
 //    HybridizationType hType = HybridizationType::EStandard;
-//    HybridizationType hType = HybridizationType::ESemi;
-    HybridizationType hType = HybridizationType::ENone;
+   HybridizationType hType = HybridizationType::ESemi;
+    // HybridizationType hType = HybridizationType::ENone;
     
     // this will create a mesh with hanging nodes
     bool isRef = true;
@@ -186,7 +186,7 @@ TPZGeoMesh *Create2DGeoMesh(ProblemType& pType, MMeshType &mType) {
     // ----- Create Geo Mesh -----
     const TPZManVector<REAL,2> minX = {-1.,-1.};
     const TPZManVector<REAL,2> maxX = {1.,1.};
-    const TPZManVector<int,2> nelDiv = {2,1};
+    const TPZManVector<int,2> nelDiv = {1,1};
     TPZGenGrid2D gen2d(nelDiv,minX,maxX);
     gen2d.SetElementType(mType);
     TPZGeoMesh* gmesh = new TPZGeoMesh;

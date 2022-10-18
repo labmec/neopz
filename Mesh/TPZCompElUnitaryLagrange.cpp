@@ -75,7 +75,7 @@ void TPZCompElUnitaryLagrange::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZ
         ek.fMat(nvar + i,i) = (TVar)fSideOrient;
     }
 
-    std::cout << "Unitary Lagrange Matrix = " << ek.fMat << std::endl;
+    // std::cout << "Unitary Lagrange Matrix = " << ek.fMat << std::endl;
 
     ef.fMat.Zero();
 }
