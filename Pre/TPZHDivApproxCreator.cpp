@@ -595,14 +595,6 @@ void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcm
 
     int64_t nel = elementgroup.size();
 
-    // for (int i = 0; i < nel; i++)
-    // {
-    //     std::cout << "ElGroup[" << i << "] = " << elementgroup[i] << std::endl;
-    // }
-    
-    
-    // elementgroup.Print();
-
     std::map<int64_t, TPZElementGroup *> groupmap;
     //    std::cout << "Groups of connects " << groupindex << std::endl;
     for (int64_t el = 0; el<nel; el++) {
@@ -1238,34 +1230,17 @@ void TPZHDivApproxCreator::AssociateElementsDuplConnects(TPZCompMesh *cmesh, TPZ
         if (!cel || !cel->Reference() || cel->Reference()->Dimension() != dim) {
             continue;
         }
-        
+        elementgroup[cel->Index()] = cel->Index();
         TPZStack<int64_t> connectlist;
         cel->BuildConnectList(connectlist);
-        int nconnects = connectlist.size();
-
-        int nfacets = cel->Reference()->NSides(cel->Dimension()-1);
-        // //Condense internal connects
-        // int index = connectlist[2*nfacets];
-        // groupindex[index] = cel->Index();
-
-        // index = connectlist[2*nfacets+1];
-        // groupindex[index] = cel->Index();
-
-        if (matBCId.find(cel->Reference()->MaterialId()) != matBCId.end()) continue;//Never associate a bc element with itself
-
-        for (int i=0; i<2*nfacets; i++) {
-            int cindex = connectlist[i];
-            auto celindex = cel->Index();
-
-            // if (i % 2 == 1) {
-                if (groupindex[cindex] == -1) {
-                    groupindex[cindex] = celindex;
-                }
-            // } else {
-            //     if (groupindex[cindex] == -1) {
-            //         groupindex[cindex] = cel->Index();
-            //     }
-            // }
+        for (auto cindex : connectlist) {
+#ifdef PZDEBUG
+            if (groupindex[cindex] != -1) {
+                continue;
+                // DebugStop();
+            }
+#endif
+            groupindex[cindex] = cel->Index();
         }
     }
 
@@ -1275,19 +1250,24 @@ void TPZHDivApproxCreator::AssociateElementsDuplConnects(TPZCompMesh *cmesh, TPZ
         }
         TPZStack<int64_t> connectlist;
         cel->BuildConnectList(connectlist);
+        int64_t celindex = cel->Index();
+        
+        TPZVec<int> connectgroup(connectlist.size());
+        for(int i=0; i<connectlist.size(); i++) connectgroup[i] = groupindex[connectlist[i]];
         int64_t groupfound = -1;
-        int k = -1;
-        for (auto cindex : connectlist) {          
-            if (groupindex[cindex] != -1) {
-                // assign the element to the group
+        //Already sets the element group to the volumetric elemet
+        if (cel->Dimension() == dim) elementgroup[celindex] = celindex; 
+        for (auto cindex : connectlist) {
+            //Gets only the first connect to avoid trouble with the duplicated connect
+            if (groupindex[cindex] != -1 && elementgroup[celindex] == -1) {
+                elementgroup[celindex] = groupindex[cindex];
+                //two connects in the same element can't belong to different computational element groups,
+                //but in interface elements, some connects might belong to a certain element group, while others might not be initialized.
                 if(groupfound != -1 && groupfound != groupindex[cindex])
                 {
-                    //Do nothing
-                    // int a=1;
-                }else{
-                    elementgroup[cel->Index()] = groupindex[cindex];
-                    groupfound = groupindex[cindex];
+                    // DebugStop();
                 }
+                groupfound = groupindex[cindex];
             }
         }
     }

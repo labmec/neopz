@@ -186,7 +186,7 @@ TPZGeoMesh *Create2DGeoMesh(ProblemType& pType, MMeshType &mType) {
     // ----- Create Geo Mesh -----
     const TPZManVector<REAL,2> minX = {-1.,-1.};
     const TPZManVector<REAL,2> maxX = {1.,1.};
-    const TPZManVector<int,2> nelDiv = {1,1};
+    const TPZManVector<int,2> nelDiv = {2,1};
     TPZGenGrid2D gen2d(nelDiv,minX,maxX);
     gen2d.SetElementType(mType);
     TPZGeoMesh* gmesh = new TPZGeoMesh;

@@ -140,13 +140,13 @@ void TPZCompElHDivDuplConnectsBound<TSHAPE>::SetConnectIndex(int i, int64_t conn
 template<class TSHAPE>
 void TPZCompElHDivDuplConnectsBound<TSHAPE>::ActiveDuplConnects(std::map<int64_t,int64_t> &fConnDuplicated){
 
+    if (fDuplicationActive == true) return;
+    
     int conOrder = this->ConnectOrder(0);
 
     fDuplicationActive = true;
 
     this->fConnectIndexes.Resize(2);
-
-
 
     auto nFacets = this->Reference()->NSides(this->Dimension());
     //Loop over the element facets - which are the connects the be duplicated (edges in 2D and faces in 3D)
@@ -192,6 +192,8 @@ void TPZCompElHDivDuplConnectsBound<TSHAPE>::ActiveDuplConnects(std::map<int64_t
 
 template<class TSHAPE>
 void TPZCompElHDivDuplConnectsBound<TSHAPE>::InactiveDuplConnects(){
+
+    if (fDuplicationActive == false) return;
 
     TPZConnect &c2 = this->Connect(1);
     c2.SetNShape(0);
