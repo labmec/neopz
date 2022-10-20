@@ -166,11 +166,11 @@ int main(){
     MMeshType mType = MMeshType::ETetrahedral;
     
     int extraporder = 0;
+    bool isCondensed = false;
 //    bool isCondensed = true;
-    bool isCondensed = true;
-    HybridizationType hType = HybridizationType::EStandard;
+//    HybridizationType hType = HybridizationType::EStandard;
 //    HybridizationType hType = HybridizationType::ESemi;
-//    HybridizationType hType = HybridizationType::ENone;
+    HybridizationType hType = HybridizationType::ENone;
     
     // this will create a mesh with hanging nodes
     bool isRef = false;
@@ -224,7 +224,7 @@ TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType) {
     // ----- Create Geo Mesh -----
     const TPZManVector<REAL,3> minX = {0.,0.,0.};
     const TPZManVector<REAL,3> maxX = {10000.,10000.,5000.};
-    const TPZManVector<int,3> nelDiv = {16,16,8};
+    const TPZManVector<int,3> nelDiv = {4,4,2};
     TPZGenGrid3D gen3d(minX,maxX,nelDiv,mType);
     TPZGeoMesh* gmesh = new TPZGeoMesh;
     gmesh = gen3d.BuildVolumetricElements(EDomain);
@@ -241,6 +241,10 @@ TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType) {
             gmesh = gen3d.BuildBoundaryElements(EBCDisplacementLeft,EBCNeumann,EBCNeumann,EBCNeumann,EBCNeumann,EBCNeumann);
         }
     }
+    
+    TPZCheckGeom check(gmesh);
+    check.UniformRefine(2);
+
     
     return gmesh;
 }
@@ -301,20 +305,19 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
         if(dim == 3) val2[2] = 1.;
         BCond4 = matelas->CreateBC(matelas, EBCDirichlet, dirType, val1, val2);
         
-        matelas->SetBodyForce(0, 0, -9.81);
+        matelas->SetBodyForce(0, 0, -9.81/1.e6);
         
         // ----------------------- Getting E,nu data --------------------------
         // --------------------------------------------------------------------
         constexpr int nx{17};
         constexpr int ny{17};
         constexpr int nz{9};
-        constexpr REAL partsize{625.};
+        constexpr REAL partsize{625};
         TPZManVector<TPZFMatrix<STATE>,ny> edata(ny), nudata(ny);
         for (int iy = 0; iy < ny; iy++) {
             edata[iy].Resize(nz, nx);
             nudata[iy].Resize(nz, nx);
         }
-        std::ifstream in("../mydata/e_1.txt");
         REAL tempE = 0., tempNu = 0.;;
         std::string basee = "../mydata/e_", basenu = "../mydata/nu_";
         for (int iy = 0; iy < ny; iy++) {
@@ -470,15 +473,15 @@ void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol) {
 
     std::cout << "\n=====> Number of equations = " << cmesh->NEquations() << std::endl << std::endl;
 #ifdef USE_MAIN
-    TPZLinearAnalysis an(cmesh,false);
+    TPZLinearAnalysis an(cmesh,true);
 #else
     TPZLinearAnalysis an(cmesh,true);
 #endif
 
     an.SetStructuralMatrix(matsp);
     TPZStepSolver<STATE> step;
-//    step.SetDirect(ELDLt);
-    step.SetDirect(ECholesky);
+    step.SetDirect(ELDLt);
+//    step.SetDirect(ECholesky);
     an.SetSolver(step);
         
     if(isTestKnownSol){
@@ -519,11 +522,12 @@ void PostProcessVTK(TPZMultiphysicsCompMesh* cmesh, ProblemType probType) {
     const std::string plotfile = "PostProcess"; //sem o .vtk no final
     constexpr int vtkRes{0};
 
-    TPZManVector<std::string,2> fields = {"Flux","Pressure"};
-    if(probType == ProblemType::EElastic){
-        fields[0] = "SigmaX";
-        fields[1] = "Displacement";
-    }
+//    TPZManVector<std::string,2> fields = {"Flux","Pressure"};
+//    if(probType == ProblemType::EElastic){
+//        fields[0] = "SigmaX";
+//        fields[1] = "Displacement";
+//    }
+    TPZManVector<std::string,6> fields = {"Displacement","SigmaX","SigmaY","TauXY","Young_Modulus","Poisson"};
     auto vtk = TPZVTKGenerator(cmesh, fields, plotfile, vtkRes);
 
     vtk.Do();
