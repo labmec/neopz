@@ -25,7 +25,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-#define USE_MAIN
+// #define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -133,8 +133,8 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
 //    HybridizationType hType = GENERATE(HybridizationType::ESemi);
     HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ESemi,HybridizationType::ENone);
     // HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ENone);
-//    bool isRef = GENERATE(true,false);
-    bool isRef = GENERATE(true);
+    bool isRef = GENERATE(true,false);
+    // bool isRef = GENERATE(true);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();

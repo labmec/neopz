@@ -36,6 +36,9 @@ set(headers
     TPZApproxCreator.h
     TPZH1ApproxCreator.h
     pzcreateapproxspace.h
+    TPZMHMApproxCreator.h
+    TPZMHMHDivApproxCreator.h
+    TPZMHMH1ApproxCreator.h
     )
 
 set(sources
@@ -65,6 +68,9 @@ set(sources
     TPZApproxCreator.cpp
     TPZH1ApproxCreator.cpp
     pzcreateapproxspace.cpp
+    TPZMHMApproxCreator.cpp
+    TPZMHMHDivApproxCreator.cpp
+    TPZMHMH1ApproxCreator.cpp
     )
 
 if (USING_LAPACK)
