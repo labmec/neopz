@@ -13,8 +13,11 @@
 #include "pzconnect.h"
 #include "TPZHDivApproxCreator.h"
 
-TPZMHMHDivApproxCreator::TPZMHMHDivApproxCreator(TPZAutoPointer<TPZGeoMesh> &gmesh, TPZVec<int64_t> elPartition) : TPZHDivApproxCreator(gmesh.operator->()) {
-    fElementPartition = elPartition;
+TPZMHMHDivApproxCreator::TPZMHMHDivApproxCreator(TPZGeoMesh* gmesh) : TPZHDivApproxCreator(gmesh), TPZMHMApproxCreator() {
+};
+
+
+TPZMHMHDivApproxCreator::TPZMHMHDivApproxCreator(TPZGeoMesh* gmesh, TPZVec<int64_t>& elPartition) : TPZHDivApproxCreator(gmesh), TPZMHMApproxCreator(elPartition) {
 };
 
 

@@ -14,13 +14,4 @@ public:
     ~TPZMHMH1ApproxCreator();
 };
 
-TPZMHMH1ApproxCreator::TPZMHMH1ApproxCreator(/* args */)
-{
-    DebugStop();
-}
-
-TPZMHMH1ApproxCreator::~TPZMHMH1ApproxCreator()
-{
-}
-
 #endif

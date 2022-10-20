@@ -48,6 +48,20 @@ public:
     /// @param mpcmesh Multiphysics compmesh
     static void PrintAllMeshes(TPZMultiphysicsCompMesh* mpcmesh);
 
+protected:
+
+    /// Checks if the parameters provided do not violate any condition for mesh generation
+    void CheckSetupConsistency() override;
+        
+    /// Groups the elements in data structure to be condensed
+    /// @param mcmesh multiphysics compmesh with elements to be condensed
+    void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) override;
+    
+    
+    /// Fix the side orient of neighboring elements to be +1
+    /// @param cmesh cmesh to fix side orient
+    void FixSideOrientHydridMesh(TPZCompMesh* cmesh);
+    
     /// Creates and HDiv approximation space/cmesh
     TPZCompMesh * CreateHDivSpace();
 
@@ -68,23 +82,8 @@ public:
     /// Creates the rotation space for elasticity problems
     TPZCompMesh * CreateRotationSpace(const int pOrder, const int lagLevel);
 
-protected:
-
-    /// Checks if the parameters provided do not violate any condition for mesh generation
-    void CheckSetupConsistency() override;
-        
-    /// Groups the elements in data structure to be condensed
-    /// @param mcmesh multiphysics compmesh with elements to be condensed
-    void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) override;
-    
-    
-    /// Fix the side orient of neighboring elements to be +1
-    /// @param cmesh cmesh to fix side orient
-    void FixSideOrientHydridMesh(TPZCompMesh* cmesh);
         
 private:
-
-    
         
     /// Creates the hybridized mesh for the flux
     /// @param compmesh to be created with hybrid data structure

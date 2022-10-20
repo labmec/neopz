@@ -21,11 +21,12 @@
 #include "pzcheckgeom.h"
 #include "pzcheckmesh.h"
 #include "TPZAnalyticSolution.h"
+#include "TPZMHMHDivApproxCreator.h"
 
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-// #define USE_MAIN
+ #define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -148,26 +149,26 @@ int main(){
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-//    HDivFamily sType = HDivFamily::EHDivStandard;
-//    HDivFamily sType = HDivFamily::EHDivKernel;
+    //    HDivFamily sType = HDivFamily::EHDivStandard;
+    //    HDivFamily sType = HDivFamily::EHDivKernel;
     HDivFamily sType = HDivFamily::EHDivConstant;
     
-//    ProblemType pType = ProblemType::EElastic;
-   ProblemType pType = ProblemType::EDarcy;
+    //    ProblemType pType = ProblemType::EElastic;
+    ProblemType pType = ProblemType::EDarcy;
     
     const int pord = 1;
     const bool isRBSpaces = false;
     
-//   MMeshType mType = MMeshType::EQuadrilateral;
-   MMeshType mType = MMeshType::ETriangular;
-//    MMeshType mType = MMeshType::EHexahedral;
+    //   MMeshType mType = MMeshType::EQuadrilateral;
+    MMeshType mType = MMeshType::ETriangular;
+    //    MMeshType mType = MMeshType::EHexahedral;
     // MMeshType mType = MMeshType::ETetrahedral;
     
     int extraporder = 0;
-   bool isCondensed = true;
+    bool isCondensed = true;
     // bool isCondensed = false;
 //    HybridizationType hType = HybridizationType::EStandard;
-   HybridizationType hType = HybridizationType::ESemi;
+    HybridizationType hType = HybridizationType::ESemi;
     // HybridizationType hType = HybridizationType::ENone;
     
     // this will create a mesh with hanging nodes
@@ -387,29 +388,36 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
 
     // ==========> Creating Multiphysics mesh <==========
     // ==================================================
-    TPZHDivApproxCreator hdivCreator(gmesh);
-    hdivCreator.HdivFamily() = hdivFam;
-    hdivCreator.ProbType() = probType;
-    hdivCreator.IsRigidBodySpaces() = isRigidBodySpaces;
-    hdivCreator.SetDefaultOrder(pOrder);
-    hdivCreator.SetExtraInternalOrder(extrapOrder);
-    hdivCreator.SetShouldCondense(isCondensed);
-    hdivCreator.HybridType() = hType;
-//    hdivCreator.SetHybridizeBoundary();
-    InsertMaterials(hdivCreator,probType);
-    TPZMultiphysicsCompMesh *cmesh = hdivCreator.CreateApproximationSpace();
+    TPZHDivApproxCreator* hdivCreator = nullptr;
+    const bool isMHM = false;
+    if(isMHM){
+        hdivCreator = new TPZMHMHDivApproxCreator(gmesh);
+    }
+    else{
+        hdivCreator = new TPZHDivApproxCreator(gmesh);
+    }
+    hdivCreator->HdivFamily() = hdivFam;
+    hdivCreator->ProbType() = probType;
+    hdivCreator->IsRigidBodySpaces() = isRigidBodySpaces;
+    hdivCreator->SetDefaultOrder(pOrder);
+    hdivCreator->SetExtraInternalOrder(extrapOrder);
+    hdivCreator->SetShouldCondense(isCondensed);
+    hdivCreator->HybridType() = hType;
+//    hdivCreator->SetHybridizeBoundary();
+    InsertMaterials(*hdivCreator,probType);
+    TPZMultiphysicsCompMesh *cmesh = hdivCreator->CreateApproximationSpace();
     std::ofstream outtxt("geomeshmodified.txt");
     gmesh->Print(outtxt);
 
     // ==========> Check number of equations for condensed problems <==========
     // ========================================================================
     if(isCondensed && hType != HybridizationType::ENone) {
-        CheckNEqCondensedProb(cmesh,hdivCreator,mType);
+        CheckNEqCondensedProb(cmesh,*hdivCreator,mType);
     }
     
 #ifdef PZDEBUG
-//    hdivCreator.PrintMeshElementsConnectInfo(cmesh);
-    hdivCreator.PrintAllMeshes(cmesh);
+//    hdivCreator->PrintMeshElementsConnectInfo(cmesh);
+    hdivCreator->PrintAllMeshes(cmesh);
 #endif
     
     // ==========> Solving problem <==========

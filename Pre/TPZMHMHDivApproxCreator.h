@@ -19,15 +19,17 @@ class TPZGeoElSide;
 
 class TPZMHMHDivApproxCreator : public TPZHDivApproxCreator, public TPZMHMApproxCreator {
 
-public:
+private:
     int fAvPresLevel;
     int fDistFluxLevel;
     int fPOrderSkeleton;
-    int fSkeletonMatId;
+    int fSkeletonMatId = -12345;
 
 public:
 
-    TPZMHMHDivApproxCreator(TPZAutoPointer<TPZGeoMesh> &gmesh, TPZVec<int64_t> elPartition = {});
+    TPZMHMHDivApproxCreator(TPZGeoMesh *gmesh);
+    
+    TPZMHMHDivApproxCreator(TPZGeoMesh* gmesh, TPZVec<int64_t>& elPartition);
 
     ~TPZMHMHDivApproxCreator(){};
     

@@ -1,6 +1,3 @@
-
-
-
 #ifndef PZ_TPZMHMCREATOR_H
 #define PZ_TPZMHMCREATOR_H
 
@@ -8,13 +5,14 @@
 
 class TPZMHMApproxCreator
 {
-private:
-    /* data */
+protected:
+    TPZVec<int64_t> fElementPartition;
+    
 public:
 
-    TPZVec<int64_t> fElementPartition;
-
-    TPZMHMApproxCreator(/* args */);
+    TPZMHMApproxCreator();
+    TPZMHMApproxCreator(TPZVec<int64_t>& elementPartition);
+    
     ~TPZMHMApproxCreator();
 };
 

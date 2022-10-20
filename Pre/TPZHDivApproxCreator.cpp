@@ -926,6 +926,8 @@ void TPZHDivApproxCreator::PartitionDependMatrix(TPZCompMesh *cmesh){
                 // std::cout << "K01 " << DepMat01 << std::endl;
                 // std::cout << "K10 " << DepMat10 << std::endl;
                 // std::cout << "K11 " << DepMat11 << std::endl;
+            
+                ptr = ptr->fNext;
                 
                 c.RemoveDepend(cIndex_old1,cIndex_old2);
                 
@@ -948,7 +950,6 @@ void TPZHDivApproxCreator::PartitionDependMatrix(TPZCompMesh *cmesh){
                 //Dependency 11 - new1 + new2
                 TPZConnect::TPZDepend *depend11 = c2.AddDependency(cIndex_new1, cIndex_new2, DepMat11, 0, 0, rows-1, cols-1);
 
-                ptr = ptr->fNext;
             }
         }
     }
