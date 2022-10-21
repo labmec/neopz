@@ -47,6 +47,10 @@ public:
     /// Function used for debugging. Prints the meshes in txt format
     /// @param mpcmesh Multiphysics compmesh
     static void PrintAllMeshes(TPZMultiphysicsCompMesh* mpcmesh);
+    
+    void CreateAtomicMeshes(TPZManVector<TPZCompMesh*,7>& meshvec, int& lagLevelCounter);
+    
+    void CreateMultiPhysicsMesh(TPZManVector<TPZCompMesh*,7>& meshvec, int& lagLevelCounter, TPZMultiphysicsCompMesh*& cmeshmulti);
 
 protected:
 

@@ -26,7 +26,7 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
- #define USE_MAIN
+// #define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -42,7 +42,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype);
 
 void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder,
                                 bool isRigidBodySpaces, MMeshType mType, int extrapOrder,
-                                bool isCondensed, HybridizationType hType, bool isRef);
+                                bool isCondensed, HybridizationType hType, bool isRef, bool isMHM);
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam);
 
@@ -136,11 +136,12 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     // HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ENone);
     bool isRef = GENERATE(true,false);
     // bool isRef = GENERATE(true);
+    bool isMHM = GENERATE(false);
     
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces,mType,extraporder,isCondensed,hType,isRef);
+    TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces,mType,extraporder,isCondensed,hType,isRef,isMHM);
     std::cout << "Finish test HDiv Approx Space Creator \n";
 }
 #else
@@ -175,7 +176,9 @@ int main(){
     bool isRef = true;
     // bool isRef = false;
     
-    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed,hType,isRef);
+    bool isMHM = false;
+    
+    TestHdivApproxSpaceCreator(sType,pType,pord,isRBSpaces,mType,extraporder,isCondensed,hType,isRef,isMHM);
     
     return 0;
 }
@@ -338,7 +341,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
 
 void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pOrder,
                                 bool isRigidBodySpaces, MMeshType mType, int extrapOrder,
-                                bool isCondensed, HybridizationType hType, bool isRef){
+                                bool isCondensed, HybridizationType hType, bool isRef, bool isMHM){
 
     // ==========> Initial headers <==========
     // =======================================
@@ -389,7 +392,6 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     // ==========> Creating Multiphysics mesh <==========
     // ==================================================
     TPZHDivApproxCreator* hdivCreator = nullptr;
-    const bool isMHM = false;
     if(isMHM){
         hdivCreator = new TPZMHMHDivApproxCreator(gmesh);
     }

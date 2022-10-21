@@ -80,10 +80,7 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
 
 }
 
-TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
-
-    CheckSetupConsistency();
-
+void TPZHDivApproxCreator::CreateAtomicMeshes(TPZManVector<TPZCompMesh*,7>& meshvec, int& lagLevelCounter){
     if (fHybridType != HybridizationType::ENone){
         ComputePeriferalMaterialIds();
         AddHybridizationGeoElements();
@@ -102,10 +99,10 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
     }
     if (fIsRBSpaces) fNumMeshes += 2;
 
-    TPZManVector<TPZCompMesh*,7> meshvec(fNumMeshes);
+    meshvec.Resize(fNumMeshes);
     int countMesh = 0;
     meshvec[countMesh++] = CreateHDivSpace();
-    int lagLevelCounter = 1;
+    lagLevelCounter = 1;
     meshvec[countMesh++] = CreateL2Space(fDefaultPOrder,lagLevelCounter++);
 #ifdef PZDEBUG
     // std::ofstream out("pressuremesh.txt");
@@ -131,12 +128,17 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
 //    meshvec[1]->Print(outp);
 
     if (countMesh != fNumMeshes) DebugStop();
+}
 
-    TPZMultiphysicsCompMesh *cmeshmulti = CreateMultiphysicsSpace(meshvec);
+void TPZHDivApproxCreator::CreateMultiPhysicsMesh(TPZManVector<TPZCompMesh*,7>& meshvec, int& lagLevelCounter, TPZMultiphysicsCompMesh*& cmeshmulti){
+    bool isElastic = fProbType == ProblemType::EElastic;
+    bool isDarcy = fProbType == ProblemType::EDarcy;
+    
+    cmeshmulti = CreateMultiphysicsSpace(meshvec);
 
     // PrintMeshElementsConnectInfo(cmeshmulti);
-    if (fShouldCondense){  
-        if (isElastic && !fIsRBSpaces && fHybridType == HybridizationType::ENone){ 
+    if (fShouldCondense){
+        if (isElastic && !fIsRBSpaces && fHybridType == HybridizationType::ENone){
             // In this case, the third (corresponding to the laglevCounter - 1) is the rotation mesh, whose can be condensed.
             // Displacements should be kept uncondensed
             TPZCompMeshTools::CondenseElements(cmeshmulti,lagLevelCounter-2,false);
@@ -157,6 +159,19 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
 //        PrintMeshElementsConnectInfo(meshvec[i]);
 //    }
 //    PrintMeshElementsConnectInfo(cmeshmulti);
+}
+
+TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
+
+    CheckSetupConsistency();
+
+    int lagLevelCounter = 1;
+    TPZManVector<TPZCompMesh*,7> meshvec(fNumMeshes);
+    CreateAtomicMeshes(meshvec,lagLevelCounter);
+    
+    TPZMultiphysicsCompMesh *cmeshmulti = nullptr;
+    CreateMultiPhysicsMesh(meshvec,lagLevelCounter,cmeshmulti);
+    
     
     return cmeshmulti;
 }
