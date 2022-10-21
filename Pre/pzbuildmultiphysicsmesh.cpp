@@ -413,6 +413,14 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysicsT(TPZVec<TPZCompMesh *> &
     int64_t nconnect = indexes.size();
     TPZBlock &blockMF = MFMesh->Block();
     TPZFMatrix<TVar> &solMF = MFMesh->Solution();
+
+    const int nsols = solMF.Cols();
+    //resize every sol vector accordingly
+    for(auto mesh : cmeshVec){
+        const int neqs = mesh->Solution().Rows();
+        mesh->Solution().Resize(neqs, nsols);
+    }
+    
     for(int64_t connect = 0; connect < nconnect; connect++)
     {
         TPZCompMesh *atomic_mesh = indexes[connect].first;
@@ -429,9 +437,11 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysicsT(TPZVec<TPZCompMesh *> &
         int64_t seqnumMF = conMF.SequenceNumber();
         if(seqnumMF < 0) DebugStop();
         for (int idf=0; idf<blsize; idf++) {
-            TVar val = solMF(blockMF.Index(seqnumMF, idf));
-            int64_t pos = block.Position(seqnum);
-            atomic_mesh_sol(pos+idf) = val;
+            const int64_t pos = block.Position(seqnum);
+            for(int is = 0; is < nsols; is++){
+                const TVar val = solMF(blockMF.Index(seqnumMF, idf),is);
+                atomic_mesh_sol(pos+idf,is) = val;
+            }
         }
     }
     

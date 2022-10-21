@@ -918,9 +918,9 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
 
     TPZFMatrix<TVar> &meshSol = this->Mesh()->Solution();
 
-    long numberSol = meshSol.Cols();
+    const long numberSol = meshSol.Cols();
 #ifdef PZDEBUG
-    if (numberSol != 1 || nVar != 1) {
+    if (nVar != 1) {
         DebugStop();
     }
 #endif
