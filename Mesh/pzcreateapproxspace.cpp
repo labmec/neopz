@@ -532,15 +532,27 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
 
 #include <TPZCompElHCurl.h>
 
+#define HCURL_EL_NOT_AVAILABLE \
+    PZError<<__PRETTY_FUNCTION__;\
+    PZError<<"Element not available.\n";\
+    PZError<<"Aborting...\n";\
+    DebugStop();\
+    return nullptr;
+
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
 
     fStyle = EHCurl;
     const HCurlFamily &hcurlfam = this->fhcurlfam;
 
+    
     switch (dimension) {
     case 1:
-        fp[EPoint] = CreateHCurlBoundPointEl;
-        fp[EOned] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlLinearEl(gel,mesh,hcurlfam);};
+        fp[EPoint] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            HCURL_EL_NOT_AVAILABLE
+        };
+        fp[EOned] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            return new TPZCompElHCurl<pzshape::TPZShapeLinear>(mesh,gel,hcurlfam);
+        };
         fp[ETriangle] = CreateNoElement;
         fp[EQuadrilateral] = CreateNoElement;
         fp[ETetraedro] = CreateNoElement;
@@ -550,9 +562,15 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
         break;
     case 2:
         fp[EPoint] = CreateNoElement;
-        fp[EOned] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlBoundLinearEl(gel,mesh,hcurlfam);};
-        fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTriangleEl(gel,mesh,hcurlfam);};
-        fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlQuadEl(gel,mesh,hcurlfam);};
+        fp[EOned] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            return new TPZCompElHCurl<pzshape::TPZShapeLinear>(mesh,gel,hcurlfam);
+        };
+        fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            return  new TPZCompElHCurl<pzshape::TPZShapeTriang>(mesh, gel, hcurlfam);
+        };
+        fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            return new TPZCompElHCurl<pzshape::TPZShapeQuad>(mesh,gel,hcurlfam);
+        };
         fp[ETetraedro] = CreateNoElement;
         fp[EPiramide] = CreateNoElement;
         fp[EPrisma] = CreateNoElement;
@@ -561,12 +579,24 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
     case 3:
         fp[EPoint] = CreateNoElement;
         fp[EOned] = CreateNoElement;
-        fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTriangleEl(gel,mesh,hcurlfam);};
-        fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlBoundQuadEl(gel,mesh,hcurlfam);};
-        fp[ETetraedro] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlTetraEl(gel,mesh,hcurlfam);};
-        fp[EPiramide] = CreateHCurlPyramEl;
-        fp[EPrisma] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlPrismEl(gel,mesh,hcurlfam);};
-        fp[ECube] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {return CreateHCurlCubeEl(gel,mesh,hcurlfam);};
+        fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            return new TPZCompElHCurl<pzshape::TPZShapeTriang>(mesh,gel,hcurlfam);
+        };
+        fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            return new TPZCompElHCurl<pzshape::TPZShapeQuad>(mesh,gel,hcurlfam);
+        };
+        fp[ETetraedro] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            return new TPZCompElHCurl<pzshape::TPZShapeTetra>(mesh,gel,hcurlfam);
+        };
+        fp[EPiramide] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            HCURL_EL_NOT_AVAILABLE
+                };
+        fp[EPrisma] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            return new TPZCompElHCurl<pzshape::TPZShapePrism>(mesh,gel,hcurlfam);
+        };
+        fp[ECube] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            return new TPZCompElHCurl<pzshape::TPZShapeCube>(mesh,gel,hcurlfam);
+        };
         break;
     default:
         DebugStop();
