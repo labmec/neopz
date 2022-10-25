@@ -9,6 +9,8 @@ set(public_headers
     TPZMatPML_impl.h
     TPZScalarField.h
     TPZPlanarWgma.h
+    TPZScattering.h
+    TPZScatteringSrc.h
     )
 
 set(headers
@@ -20,6 +22,8 @@ set(headers
     TPZMatPML_impl.h
     TPZScalarField.h
     TPZPlanarWgma.h
+    TPZScattering.h
+    TPZScatteringSrc.h
    )
 set(sources
     TPZWgma.cpp
@@ -28,6 +32,8 @@ set(sources
     TPZPeriodicWgma.cpp
     TPZScalarField.cpp
     TPZPlanarWgma.cpp
+    TPZScattering.cpp
+    TPZScatteringSrc.cpp
    )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/Electromagnetics)
