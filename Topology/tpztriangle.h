@@ -47,11 +47,6 @@ namespace pztopology {
         static REAL gVet2dT[6][2];
 
     
-        
-    /** @brief Data structure which defines the triangle transformations*/
-    static REAL gTrans2dT[6][2][2];
-    /** @brief Data structure which defines the triangle transformations*/
-    static REAL gVet2dT[6][2];
 
     int ClassId() const override;
     void Read(TPZStream &buf, void *context) override;

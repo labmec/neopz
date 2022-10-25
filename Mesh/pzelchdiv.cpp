@@ -685,8 +685,9 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
     }
 
     TPZBlock &block =this->Mesh()->Block();
-    int ivec=0;
+    int ishape=0,ivec=0,counter=0;
 
+    int nshapeV = data.fVecShapeIndex.NElements();
 
     for(int in=0; in<ncon; in++)
     {
