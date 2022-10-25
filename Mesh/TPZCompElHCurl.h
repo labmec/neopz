@@ -45,6 +45,9 @@ public:
         return new TPZCompElHCurl<TSHAPE> (mesh, *this);
     }
 
+    //! Sets desired HCurl Family
+    void SetFamily(HCurlFamily f) {fhcurlfam = f;}
+
     /**
      * @brief Create a copy of the given element. The clone copy have the connect indexes
      * mapped to the local clone connects by the given map

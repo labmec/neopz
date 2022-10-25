@@ -170,6 +170,16 @@ template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapeTet
 template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapePrism> >>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapePiram> >>;
 
+
+#include "TPZCompElHCurl.h"
+
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeLinear> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeTriang> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeQuad> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeCube> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeTetra> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapePrism> >>;
+
 #include "pzgeopoint.h"
 #include "pzgeoquad.h"
 #include "pzgeotriangle.h"

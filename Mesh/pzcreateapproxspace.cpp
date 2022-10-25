@@ -605,6 +605,101 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
     
 }
 
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurlWithMem(int dimension){
+
+    fStyle = EHCurl;
+    const HCurlFamily &hcurlfam = this->fhcurlfam;
+
+    
+    switch (dimension) {
+    case 1:
+        fp[EPoint] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            HCURL_EL_NOT_AVAILABLE
+        };
+        fp[EOned] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            auto *cel =
+                new TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeLinear>>(mesh,gel);
+            cel->SetFamily(hcurlfam);
+            return cel;
+        };
+        fp[ETriangle] = CreateNoElement;
+        fp[EQuadrilateral] = CreateNoElement;
+        fp[ETetraedro] = CreateNoElement;
+        fp[EPiramide] = CreateNoElement;
+        fp[EPrisma] = CreateNoElement;
+        fp[ECube] = CreateNoElement;
+        break;
+    case 2:
+        fp[EPoint] = CreateNoElement;
+        fp[EOned] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            auto *cel =
+                new TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeLinear>>(mesh,gel);
+            cel->SetFamily(hcurlfam);
+            return cel;
+        };
+        fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            auto *cel =
+                  new TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeTriang>>(mesh, gel);
+            cel->SetFamily(hcurlfam);
+            return cel;
+        };
+        fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            auto *cel =
+                 new TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeQuad>>(mesh,gel);
+            cel->SetFamily(hcurlfam);
+            return cel;
+        };
+        fp[ETetraedro] = CreateNoElement;
+        fp[EPiramide] = CreateNoElement;
+        fp[EPrisma] = CreateNoElement;
+        fp[ECube] = CreateNoElement;
+        break;
+    case 3:
+        fp[EPoint] = CreateNoElement;
+        fp[EOned] = CreateNoElement;
+        fp[ETriangle] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            auto *cel =
+                 new TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeTriang>>(mesh,gel);
+            cel->SetFamily(hcurlfam);
+            return cel;
+        };
+        fp[EQuadrilateral] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            auto *cel =
+                 new TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeQuad>>(mesh,gel);
+            cel->SetFamily(hcurlfam);
+            return cel;
+        };
+        fp[ETetraedro] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            auto *cel =
+                 new TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeTetra>>(mesh,gel);
+            cel->SetFamily(hcurlfam);
+            return cel;
+        };
+        fp[EPiramide] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            HCURL_EL_NOT_AVAILABLE
+                };
+        fp[EPrisma] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            auto *cel =
+                 new TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapePrism>>(mesh,gel);
+            cel->SetFamily(hcurlfam);
+            return cel;
+        };
+        fp[ECube] = [hcurlfam](TPZGeoEl *gel,TPZCompMesh &mesh) {
+            auto *cel =
+                 new TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeCube>>(mesh,gel);
+            cel->SetFamily(hcurlfam);
+            return cel;
+        };
+        break;
+    default:
+        DebugStop();
+        break;
+    }
+    
+}
+
+#undef HCURL_EL_NOT_AVAILABLE
+
 #if defined(USING_MKL) && defined(USING_LAPACK) && !defined(STATE_COMPLEX)
 
 #include "TPZSBFemVolume.h"

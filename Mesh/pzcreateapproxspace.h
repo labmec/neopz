@@ -115,6 +115,8 @@ public:
 	void SetAllCreateFunctionsHDiv(int meshdim);
     /** @brief Create an approximation space with HCurl elements */
     void SetAllCreateFunctionsHCurl(int meshdim);
+    /** @brief Create an approximation space with HCurl elements */
+    void SetAllCreateFunctionsHCurlWithMem(int meshdim);
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
 //    void SetAllCreateFunctionsHDivFull(int meshdim);
     
