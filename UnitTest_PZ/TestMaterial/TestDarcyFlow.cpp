@@ -71,7 +71,7 @@ static void computeStiffnessHybrid(TPZFMatrix<STATE> &ek)
     {
         REAL weight;
         integrule.Point(p, pt, weight);
-        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[1]);
+        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[1],DataVec[1].fPhi,DataVec[1].fDPhi);
         int degree = 0;
         pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[2].fPhi,DataVec[2].fDPhi,shtype);
         pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[3].fPhi,DataVec[3].fDPhi,shtype);
@@ -96,6 +96,7 @@ TEST_CASE("test_matriz_darcy","[material_tests]")
         {-1./3.,-1./6.,2./3.,-1./6},
         {-1./6,-1./3.,-1./6.,2./3.}
     };
+//    stiff.Print("Stiffness ",std::cout);
 	REAL dif;
 	for (int i = 0 ; i < 4 ; i++)
 	{
@@ -122,6 +123,8 @@ TEST_CASE("test_matriz_hybriddarcy","[material_tests]")
         {1,1,1,1,0,-4},
         {0,0,0,0,-4,0}
     };
+//    stiff.Print("Stiffness hybrid ",std::cout);
+
     REAL dif;
     for (int i = 0 ; i < 6 ; i++)
     {
