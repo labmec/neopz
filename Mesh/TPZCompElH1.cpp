@@ -140,7 +140,7 @@ template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
     
     TPZShapeData &shapedata = data;
-    TPZShapeH1<TSHAPE>::Shape(intpoint,shapedata);
+    TPZShapeH1<TSHAPE>::Shape(intpoint,shapedata,shapedata.fPhi,shapedata.fDPhi);
     int tranpose = 1;
     REAL alpha = 1.;
     REAL beta = 0.;
@@ -282,6 +282,7 @@ void TPZCompElH1<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
 template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
+    if(side == TSHAPE::NSides -1 ) Shape(point,phi,dphi);
 	int nc = TSHAPE::NContainedSides(side);
 	int nn = TSHAPE::NSideNodes(side);
 	TPZManVector<int64_t,27> id(nn);
@@ -296,7 +297,8 @@ void TPZCompElH1<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
 		int conloc = TSHAPE::ContainedSideLocId(side,c);
         order[c-nn] = this->Connect(conloc).Order();
 	}
-	TSHAPE::SideShape(side, point, id, order, phi, dphi);
+    TPZShapeH1<TSHAPE>::SideShape(side, point, id, order, phi, dphi);
+//	TSHAPE::SideShape(side, point, id, order, phi, dphi);
 }
 
 template<class TSHAPE>
@@ -311,7 +313,10 @@ void TPZCompElH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMat
 	for(i=0; i<TSHAPE::NSides-TSHAPE::NCornerNodes; i++) {
 		ord[i] = this->Connect(i+TSHAPE::NCornerNodes).Order();
 	}
-	TSHAPE::Shape(pt,id,ord,phi,dphi);
+    TPZShapeData data;
+    TPZShapeH1<TSHAPE>::Initialize(id, ord, data);
+    TPZShapeH1<TSHAPE>::Shape(pt,data,phi,dphi);
+//	TSHAPE::Shape(pt,id,ord,phi,dphi);
 }
 
 #include "pzshapepoint.h"

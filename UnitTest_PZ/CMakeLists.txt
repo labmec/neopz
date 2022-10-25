@@ -9,6 +9,7 @@ endif()
 
 target_link_libraries(test_library PUBLIC pz Catch2::Catch2)
 
+add_subdirectory(TestShapeFAD)
 add_subdirectory(TestReducedSpace)
 add_subdirectory(TestAutoPointer)
 add_subdirectory(TestVecTypes)

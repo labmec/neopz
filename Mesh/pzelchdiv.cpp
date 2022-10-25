@@ -661,8 +661,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
     }
 
     if (data.fNeedsDeformedDirectionsFad) {
-        // Needs to be rethought
-        DebugStop();
         for (int e = 0; e < normvecRows; e++) {
             for (int s = 0; s < normvecCols; s++) {
                 Normalvec(e,s)=data.fDeformedDirectionsFad(e,s).val();
@@ -687,9 +685,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
     }
 
     TPZBlock &block =this->Mesh()->Block();
-    int ishape=0,ivec=0,counter=0;
+    int ivec=0;
 
-    int nshapeV = data.fVecShapeIndex.NElements();
 
     for(int in=0; in<ncon; in++)
     {
@@ -732,13 +729,13 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
                     }
 #endif
 
-                    data.divsol[is][idf] += data.divphi(counter,0)*meshsol;
+                    data.divsol[is][idf] += data.divphi(ivec,0)*meshsol;
                     for (int ilinha=0; ilinha<dim; ilinha++) {
-                        data.sol[is][ilinha+dim*idf] += normal[ilinha]*phival*meshsol;
+                        data.sol[is][ilinha+dim*idf] += normal[ilinha]*meshsol;
                         for (int kdim = 0 ; kdim < dim; kdim++) {
                             data.dsol[is](ilinha+dim*idf,kdim)+= meshsol * GradOfPhiHdiv(ilinha,kdim);
                             if(data.fNeedsDeformedDirectionsFad){
-                                data.dsol[is](ilinha+dim*idf,kdim)+=meshsol *GradNormalvec[ivec](ilinha,kdim)*data.phi(ishape,0);
+                                data.dsol[is](ilinha+dim*idf,kdim)+=meshsol *GradNormalvec[ivec](ilinha,kdim);
                             }
                         }
 
@@ -925,9 +922,45 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
         data.fVecShapeIndex[i] = make_pair(i,i);
     }
     //
-    
     TPZFNMatrix<9,REAL> gradx(3,TSHAPE::Dimension,0.);
     this->Reference()->GradX(qsi, gradx);
+    if(data.fNeedsDeformedDirectionsFad)
+    {
+        const int dim = TSHAPE::Dimension;
+#ifdef PZDEBUG
+        for(int d1 = 0; d1<dim; d1++)
+        {
+            for(int d=dim; d<3; d++)
+            {
+                if(!IsZero(gradx(d,d1))) DebugStop();
+            }
+        }
+#endif
+        TPZFNMatrix<9,REAL> jac(dim,dim,0),jacinv(dim,dim,0),
+            axes(dim,3);
+        for(int d1=0; d1<dim; d1++) for(int d2=0; d2<dim; d2++) jac(d1,d2) = gradx(d1,d2);
+        jac.Inverse(jacinv, ELU);
+        TPZManVector<Fad<REAL> ,3> qsifad(dim);
+        for(int d1=0; d1<dim; d1++)
+        {
+            qsifad[d1] = Fad<REAL>(dim,qsi[d1]);
+            for(int d2=0; d2<dim; d2++)
+            {
+                qsifad[d1].fastAccessDx(d2) = jacinv(d1,d2);
+            }
+        }
+        TPZFNMatrix<9,Fad<REAL>> gradxfad(3,dim);
+        this->Reference()->GradX(qsifad,gradxfad);
+        TPZFMatrix<Fad<REAL>> phiMasterFad, divphiFad;
+
+        if(fhdivfam == HDivFamily::EHDivStandard)
+        {
+            TPZShapeHDiv<TSHAPE>::Shape(qsifad, shapedata, phiMasterFad, divphiFad);
+        }
+        Fad<REAL> detjacFad;
+        this->Reference()->ComputeDetjac(gradxfad,detjacFad);
+        gradxfad.MultAdd(phiMasterFad,data.fDeformedDirectionsFad,data.fDeformedDirectionsFad,1./abs(detjacFad));
+    }
     gradx.MultAdd(phiMaster,data.fDeformedDirections,data.fDeformedDirections,1./fabs(data.detjac));
     data.divphi *= 1/fabs(data.detjac);
     data.phi = 1.;
@@ -1213,7 +1246,6 @@ bool TPZCompElHDiv<TSHAPE>::CheckRestrainedSideOrientation(TPZGeoElSide &thisgeo
 #include "pzshapetetra.h"
 #include "pzreftetrahedra.h"
 #include "pzgeotetrahedra.h"
-#include "pzshapepiram.h"
 #include "pzrefpyram.h"
 #include "pzgeopyramid.h"
 #include "pzrefpoint.h"
@@ -1296,7 +1328,6 @@ template class TPZRestoreClass< TPZCompElHDiv<TPZShapeQuad>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapeCube>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapeTetra>>;
 template class TPZRestoreClass< TPZCompElHDiv<TPZShapePrism>>;
-// template class TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>>;
 
 
 template class TPZCompElHDiv<TPZShapeLinear>;
@@ -1304,7 +1335,6 @@ template class TPZCompElHDiv<TPZShapeTriang>;
 template class TPZCompElHDiv<TPZShapeQuad>;
 template class TPZCompElHDiv<TPZShapeTetra>;
 template class TPZCompElHDiv<TPZShapePrism>;
-// template class TPZCompElHDiv<TPZShapePiram>;
 template class TPZCompElHDiv<TPZShapeCube>;
 
 
@@ -1343,10 +1373,6 @@ TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily h
 TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
 	return new TPZCompElHDiv< TPZShapePrism>(mesh,gel,hdivfam);
 }
-
-// TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
-// 	return new TPZCompElHDiv< TPZShapePiram >(mesh,gel,hdivfam);
-// }
 
 TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh, const HDivFamily hdivfam) {
 	return new TPZCompElHDiv< TPZShapeTetra >(mesh,gel,hdivfam);

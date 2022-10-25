@@ -880,10 +880,22 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
 	int dim1 = dimension-1;
 	if(!fGraphMesh[dim1]) return;
 
-	fGraphMesh[dim1]->SetCompMesh(fCompMesh,fGraphMesh[dim1]->MaterialIds());
-	fGraphMesh[dim1]->SetResolution(resolution);
-	fGraphMesh[dim1]->DrawMesh(1);
-	fGraphMesh[dim1]->DrawSolution(fStep,0);
+	{
+    TPZSimpleTimer timer("fGraphMesh[dim1]->SetCompMesh");
+    fGraphMesh[dim1]->SetCompMesh(fCompMesh,fGraphMesh[dim1]->MaterialIds());
+  }
+	{
+    TPZSimpleTimer timer("fGraphMesh[dim1]->SetResolution");
+    fGraphMesh[dim1]->SetResolution(resolution);
+  }
+	{
+    TPZSimpleTimer timer("fGraphMesh[dim1]->DrawMesh");
+    fGraphMesh[dim1]->DrawMesh(1);
+  }
+	{
+    TPZSimpleTimer timer("fGraphMesh[dim1]->DrawSolution");
+    fGraphMesh[dim1]->DrawSolution(fStep,0);
+  }
 	fStep++;
 }
 

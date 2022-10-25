@@ -295,18 +295,19 @@ void TPZShapeHDiv<TSHAPE>::FillOrderScalarShapeFunctions(const TPZVec<int> &conn
     
 
 template<class TSHAPE>
-void TPZShapeHDiv<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi)
+void TPZShapeHDiv<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phiHDiv, TPZFMatrix<REAL> &divphi)
 {
     
     divphi.Resize(data.fSDVecShapeIndex.size(),1);
     divphi.Zero();
-    phi.Resize(TSHAPE::Dimension,data.fSDVecShapeIndex.size());
-    phi.Zero();
+    phiHDiv.Resize(TSHAPE::Dimension,data.fSDVecShapeIndex.size());
+    phiHDiv.Zero();
 
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
     const int dim = TSHAPE::Dimension;
-    TPZShapeH1<TSHAPE>::Shape(pt,data);
+    TPZFNMatrix<9,REAL> phi,dphi;
+    TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);
     for(int i = 0; i< data.fSDVecShapeIndex.size(); i++)
     {
         auto it = data.fSDVecShapeIndex[i];
@@ -315,11 +316,42 @@ void TPZShapeHDiv<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZ
         divphi(i,0) = 0.;
         for(int d = 0; d<TSHAPE::Dimension; d++)
         {
-            phi(d,i) = data.fPhi(scalindex,0)*data.fMasterDirections(d,vecindex);
+            phiHDiv(d,i) = data.fPhi(scalindex,0)*data.fMasterDirections(d,vecindex);
             divphi(i,0) += data.fDPhi(d,scalindex)*data.fMasterDirections(d,vecindex);
         }
     }
 }
+
+template<class TSHAPE>
+void TPZShapeHDiv<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data, TPZFMatrix<Fad<REAL>> &phi, TPZFMatrix<Fad<REAL>> &divphi)
+{
+    divphi.Resize(data.fSDVecShapeIndex.size(),1);
+    divphi.Zero();
+    phi.Resize(TSHAPE::Dimension,data.fSDVecShapeIndex.size());
+    phi.Zero();
+    int fadsize = pt[0].size();
+
+    const int ncorner = TSHAPE::NCornerNodes;
+    const int nsides = TSHAPE::NSides;
+    const int dim = TSHAPE::Dimension;
+    TPZFNMatrix<9,Fad<REAL>> locphi(data.fPhi.Rows(),1),dphi(TSHAPE::Dimension,data.fPhi.Rows());
+    TPZShapeH1<TSHAPE>::Shape(pt,data, locphi, dphi);
+    for(int i = 0; i< data.fSDVecShapeIndex.size(); i++)
+    {
+        auto it = data.fSDVecShapeIndex[i];
+        int vecindex = it.first;
+        int scalindex = it.second;
+        divphi(i,0) = Fad<REAL>(fadsize,0.);
+        for(int d = 0; d<TSHAPE::Dimension; d++)
+        {
+            phi(d,i) = locphi(scalindex,0)*data.fMasterDirections(d,vecindex);
+            divphi(i,0) += dphi(d,scalindex)*data.fMasterDirections(d,vecindex);
+        }
+    }
+
+}
+
+
 
 template<class TSHAPE>
 void TPZShapeHDiv<TSHAPE>::FirstShapeIndex(TPZVec<int64_t> &Index, int &scalarorders) {

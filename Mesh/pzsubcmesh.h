@@ -131,6 +131,12 @@ public:
 	/// Get method for fFatherToLocal
 	const std::map<int64_t,int64_t>& FatherToLocal() const {return fFatherToLocal;}
 	
+    /// returns true if the connect index of the mesh is external (belongs to the father mesh)
+    bool IsExternal(int64_t local)
+    {
+        return fExternalLocIndex[local] != -1;
+    }
+
     /**
      * @brief Condense the internal equations using a skyline symetric matrix 
      * the preconditioned argument indicates whether the equations are condensed with a direct method (0) or 

@@ -303,8 +303,9 @@ int ClassId() const override;
     void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const  override {
         return TGradX(qsi, gradx);
     }
+    
     void GradX(TPZVec<Fad<REAL>> &qsi, TPZFMatrix<Fad<REAL>> &gradx) const  override {
-        return TGradX(qsi, gradx);
+        TGradX(qsi, gradx);
     }
 
 //	/** @brief Returns the Jacobian matrix at the point (from son to father)*/

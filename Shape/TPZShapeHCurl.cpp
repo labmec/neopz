@@ -130,8 +130,10 @@ int TPZShapeHCurl<TSHAPE>::NHCurlShapeF(const TPZShapeData &data)
 
     
 
+
 template<class TSHAPE>
-void TPZShapeHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &curlphi)
+template<class T>
+void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFMatrix<T> &phi, TPZFMatrix<T> &curlphi)
 {
 
     constexpr int ncorner = TSHAPE::NCornerNodes;
@@ -144,7 +146,9 @@ void TPZShapeHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatr
         }
     }();
     
-    TPZShapeH1<TSHAPE>::Shape(pt,data);
+    TPZFNMatrix<9,T> locphi(data.fPhi.Rows(),data.fPhi.Cols()),dphi(data.fDPhi.Rows(),data.fDPhi.Cols());
+    TPZShapeH1<TSHAPE>::Shape(pt,data, locphi, dphi);
+    
     for(int i = 0; i< data.fSDVecShapeIndex.size(); i++)
     {
         const auto &it = data.fSDVecShapeIndex[i];
@@ -153,18 +157,18 @@ void TPZShapeHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatr
         
         for(int d = 0; d<TSHAPE::Dimension; d++)
         {
-            phi(d,i) = data.fPhi(scalindex,0)*data.fMasterDirections(d,vecindex);
+            phi(d,i) = locphi(scalindex,0)*data.fMasterDirections(d,vecindex);
         }
 
         if constexpr (dim==1){
             curlphi(0,i) =
-                data.fDPhi.GetVal( 0,vecindex) *
+                dphi.GetVal( 0,vecindex) *
                 data.fMasterDirections.GetVal(0,vecindex);
         }else if constexpr (dim==2){
             curlphi(0,i) =
-                data.fDPhi.GetVal(0,scalindex) *
+                dphi.GetVal(0,scalindex) *
                 data.fMasterDirections.GetVal(1,vecindex) -
-                data.fDPhi.GetVal(1,scalindex) *
+                dphi.GetVal(1,scalindex) *
                 data.fMasterDirections.GetVal(0,vecindex);
             }
         else if constexpr(dim==3){
@@ -172,9 +176,9 @@ void TPZShapeHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatr
                 const auto di = (d+1)%dim;
                 const auto dj = (d+2)%dim;
                 curlphi(d,i) =
-                    data.fDPhi.GetVal(di,scalindex) *
+                    dphi.GetVal(di,scalindex) *
                     data.fMasterDirections.GetVal(dj,vecindex)-
-                    data.fDPhi.GetVal(dj,scalindex) *
+                    dphi.GetVal(dj,scalindex) *
                     data.fMasterDirections.GetVal(di,vecindex);
             }
         }else{
@@ -737,23 +741,28 @@ int TPZShapeHCurl<TSHAPE>::MaxOrder(const int ordh1){
     }
 }
 
-template
-struct TPZShapeHCurl<pzshape::TPZShapeLinear>;
 
-template
-struct TPZShapeHCurl<pzshape::TPZShapeTriang>;
+#define IMPLEMENTHCURL(TSHAPE) \
+template struct TPZShapeHCurl<TSHAPE>;\
+\
+template void \
+TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, \
+                             TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &curlphi); \
+template void \
+ TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data, \
+                              TPZFMatrix<Fad<REAL>> &phi, \
+                              TPZFMatrix<Fad<REAL>> &curlphi);
 
-template
-struct TPZShapeHCurl<pzshape::TPZShapeQuad>;
 
-template
-struct TPZShapeHCurl<pzshape::TPZShapeTetra>;
+IMPLEMENTHCURL(pzshape::TPZShapeLinear)
+IMPLEMENTHCURL(pzshape::TPZShapeTriang)
+IMPLEMENTHCURL(pzshape::TPZShapeQuad)
+IMPLEMENTHCURL(pzshape::TPZShapeTetra)
+IMPLEMENTHCURL(pzshape::TPZShapeCube)
+IMPLEMENTHCURL(pzshape::TPZShapePrism)
 
-template
-struct TPZShapeHCurl<pzshape::TPZShapeCube>;
-
-template
-struct TPZShapeHCurl<pzshape::TPZShapePrism>;
+#undef IMPLEMENTHCURL
+//IMPLEMENTHCURLFULL(pzshape::TPZShapeLinear)
 
 //#define IMPLEMENTHCURLFULL(TSHAPE) \
 //\

@@ -93,7 +93,7 @@ int TPZShapeHDivConstant<TSHAPE>::NHDivShapeF(TPZShapeData &data)
     
 
 template<class TSHAPE>
-void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi)
+void TPZShapeHDivConstant<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi)
 {
 
     const int ncorner = TSHAPE::NCornerNodes;
@@ -112,7 +112,7 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
     int nshape = data.fPhi.Rows();
     
     if (dim == 2){
-        TPZShapeH1<TSHAPE>::Shape(pt,data);    
+        TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);    
         divphi.Zero();
         const auto nEdges = TSHAPE::NumSides(1);
 
@@ -195,8 +195,113 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
     } else {
         DebugStop();
     }
-    
+}
 
+
+template<class TSHAPE>
+void TPZShapeHDivConstant<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data, TPZFMatrix<Fad<REAL>> &phi, TPZFMatrix<Fad<REAL>> &divphi)
+{
+
+    const int ncorner = TSHAPE::NCornerNodes;
+    const int nsides = TSHAPE::NSides;
+    const int dim = TSHAPE::Dimension;
+    const int nfacets = TSHAPE::NFacets;
+
+    // Compute constant Hdiv functions
+    TPZFNMatrix<9,Fad<REAL>> vecDiv(dim,nfacets);
+    TPZVec<Fad<REAL>> div(nfacets);
+    vecDiv.Zero();
+    div.Fill(0.);
+    // std::cout << "FSide trans ID = " << data.fSideTransformationId << std::endl;
+    TSHAPE::ComputeConstantHDiv(pt, vecDiv, div);
+
+    int nshape = data.fPhi.Rows();
+    
+    if (dim == 2){
+        TPZFNMatrix<9,Fad<REAL>> locphi(data.fPhi.Rows(),data.fPhi.Cols()),dphi(data.fDPhi.Rows(),data.fDPhi.Cols());
+        TPZShapeH1<TSHAPE>::Shape(pt,data,locphi,dphi);    
+        divphi.Zero();
+        const auto nEdges = TSHAPE::NumSides(1);
+
+        int count = 0;
+        int countKernel=ncorner;
+        //Edge functions
+        for (int i = 0; i < nEdges; i++)
+        {
+            //RT0 Function
+            phi(0,count) = vecDiv(0,i) * data.fSideOrient[i];
+            phi(1,count) = vecDiv(1,i) * data.fSideOrient[i];
+            divphi(count,0) = div[i] * data.fSideOrient[i];
+            count++;
+
+            //Kernel Hdiv
+            for (int j = 1; j < data.fHDivConnectOrders[i]; j++)
+            {
+                phi(0,count) = -dphi(1,countKernel);
+                phi(1,count) =  dphi(0,countKernel);
+                count++;
+                countKernel++;
+            }
+        }
+        
+        //Internal functions
+        for (int i = countKernel; i < nshape; i++){
+            phi(0,count) = -dphi(1,countKernel);
+            phi(1,count) =  dphi(0,countKernel);
+            count++;
+            countKernel++;
+        }
+    } else if (dim == 3){
+        
+        divphi.Zero();
+        const auto nEdges = TSHAPE::NumSides(1);
+        int nshapehcurl = TPZShapeHCurlNoGrads<TSHAPE>::NHCurlShapeF(data);
+        int nshape = NHDivShapeF(data);
+        
+        TPZFNMatrix<9,Fad<REAL>> phiAux(dim,nshapehcurl),curlPhiAux(3,nshapehcurl);
+        phiAux.Zero(); curlPhiAux.Zero();
+
+        TPZShapeHCurlNoGrads<TSHAPE>::Shape(pt,data,phiAux,curlPhiAux);
+        
+        int count = 0;
+        int countKernel=nEdges;
+
+        //Face functions
+        for (int i = 0; i < nfacets; i++)
+        {
+            // std::cout << "Side orient - " << i << " " << data.fSideOrient[i] << std::endl;
+            //RT0 Function
+            for(auto d = 0; d < dim; d++) {
+                phi(d,count) = vecDiv(d,i) * data.fSideOrient[i];
+            }
+            divphi(count,0) = div[i] * data.fSideOrient[i];
+            count++;
+        
+            //Kernel HDiv functions
+            for (int k = 0; k < data.fHDivNumConnectShape[nEdges]; k++){
+                for(auto d = 0; d < dim; d++) {
+                    phi(d,count) = curlPhiAux(d,countKernel);               
+                }
+                countKernel++;
+                count++;
+            }
+        }
+        //Internal Functions - HDivKernel
+        for (int i = 0; i < data.fHDivNumConnectShape[TSHAPE::NSides-TSHAPE::NCornerNodes-1]; i++)
+        {
+            for (auto d = 0; d < dim; d++)
+            {
+                phi(d,count) = curlPhiAux(d,countKernel);  
+            }
+            countKernel++;
+            count++;
+        }
+        // std::cout << "VecDiv = " << vecDiv << std::endl;
+        // std::cout << "divphi = " << divphi << std::endl;
+        // std::cout << "phi = " << phi << std::endl;
+    } else {
+        DebugStop();
+    }
 }
 
 // icon is the connect index of the hdiv element

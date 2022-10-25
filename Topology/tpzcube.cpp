@@ -1388,7 +1388,7 @@ namespace pztopology {
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZCube::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
+    void TPZCube::ComputeConstantHDiv(const TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
 
         REAL scale = 4.;    
@@ -1411,13 +1411,38 @@ namespace pztopology {
         div[1] = 0.5 / scale;
         RT0function(2,0) = -0.5 * (1. - zeta) / scale;
         div[0] = 0.5 / scale;
-
-
     }
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZCube::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
+    void TPZCube::ComputeConstantHDiv(const TPZVec<Fad<REAL>> &point, TPZFMatrix<Fad<REAL>> &RT0function, TPZVec<Fad<REAL>> &div)
+    {
+
+        FADREAL scale = 4.;    
+        FADREAL qsi = point[0];
+        FADREAL eta = point[1];
+        FADREAL zeta = point[2];
+
+        //Face functions
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
+        RT0function(2,5) = 0.5 * (1. + zeta) / scale;
+        div[5] = 0.5 / scale;
+        RT0function(1,3) = 0.5 * (1. + eta) / scale;
+        div[3] = 0.5 / scale;
+        RT0function(0,2) = 0.5 * (1. + qsi) / scale;
+        div[2] = 0.5 / scale;
+
+        RT0function(0,4) = -0.5 * (1. - qsi) / scale;
+        div[4] = 0.5 / scale;
+        RT0function(1,1) = -0.5 * (1. - eta) / scale;
+        div[1] = 0.5 / scale;
+        RT0function(2,0) = -0.5 * (1. - zeta) / scale;
+        div[0] = 0.5 / scale;
+    }
+
+    /// Compute the directions of the HDiv vectors
+    // template <class TVar>
+    void TPZCube::ComputeConstantHCurl(const TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
     {
         REAL scale = 2.;    
         REAL qsi = point[0];

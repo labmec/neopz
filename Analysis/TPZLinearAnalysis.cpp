@@ -6,6 +6,8 @@
 #include "pzstepsolver.h"
 #include "pzdxmesh.h"                      // for TPZDXGraphMesh
 #include "pzlog.h"
+#include "TPZSimpleTimer.h"
+
 #ifdef PZ_LOG
 static TPZLogger logger("pz.analysis");
 static TPZLogger loggerError("pz.analysis.error");
@@ -299,10 +301,22 @@ void TPZLinearAnalysis::PostProcess(int resolution, int dimension){
 	int dim1 = dimension-1;
 	if(!fGraphMesh[dim1]) return;
 
-	fGraphMesh[dim1]->SetCompMesh(fCompMesh,fGraphMesh[dim1]->MaterialIds());
-	fGraphMesh[dim1]->SetResolution(resolution);
-	fGraphMesh[dim1]->DrawMesh(1);
-	fGraphMesh[dim1]->DrawSolution(fStep,fTime);
+	{
+    TPZSimpleTimer timer("fGraphMesh[dim1]->SetCompMesh");
+    fGraphMesh[dim1]->SetCompMesh(fCompMesh,fGraphMesh[dim1]->MaterialIds());
+  }
+	{
+    TPZSimpleTimer timer("fGraphMesh[dim1]->SetResolution");
+    fGraphMesh[dim1]->SetResolution(resolution);
+  }
+	{
+    TPZSimpleTimer timer("fGraphMesh[dim1]->DrawMesh");
+    fGraphMesh[dim1]->DrawMesh(1);
+  }
+	{
+    TPZSimpleTimer timer("fGraphMesh[dim1]->DrawSolution");
+    fGraphMesh[dim1]->DrawSolution(fStep,fTime);
+  }
 	fStep++;
 }
 

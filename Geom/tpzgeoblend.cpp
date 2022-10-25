@@ -197,27 +197,27 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
 
         int side = TGeo::NNodes + sideIndex;
         TPZGeoElSide gelside(fNeighbours[sideIndex], gmesh);
-        #ifdef PZ_LOG
+#ifdef PZ_LOG
         if (logger.isDebugEnabled()) {
             soutLogDebug << "================================" << std::endl;
             soutLogDebug << "side: " << side << " is linear: ";
         }
-        #endif
+#endif
         if (IsLinearMapping(side) || !gelside.Exists()) {
             blendFactor[sideIndex] = 0;
-            #ifdef PZ_LOG
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 if (IsLinearMapping(side)) soutLogDebug << "true" << std::endl;
                 else soutLogDebug << "false (no gelside) " << std::endl;
             }
-            #endif
+#endif
             continue;
         }
-        #ifdef PZ_LOG
+#ifdef PZ_LOG
         if (logger.isDebugEnabled()) {
             soutLogDebug << "false (gelside exists) " << std::endl;
         }
-        #endif
+#endif
         /**
      * Calculates the linear mapping of the side sideIndex, and the projected point on sideIndex
      */
@@ -225,12 +225,12 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
         TPZFNMatrix<9, T> transfXiToSideXi;
         bool regularMap = TGeo::CheckProjectionForSingularity(side, xiInterior);
         if (!regularMap) {
-            #ifdef PZ_LOG
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 soutLogDebug << "mapping is not regular. skipping side... ";
 
             }
-            #endif
+#endif
             continue;
         }
 
@@ -278,7 +278,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
         gradLinSideXiSide.Multiply(transfXiToSideXi,gradLinSide);//gradLinSideTemp = gradLinSideXiSide.transfXiToSideXi
         dXprojDxiSide.Multiply(transfXiToSideXi,dXiProjectedOverSideDxi);//dXprojDxiTemp = dXprojDxiSide.transfXiToSideXi
 
-        #ifdef PZ_LOG
+#ifdef PZ_LOG
         if (logger.isDebugEnabled()) {
             soutLogDebug << "xi projection over side: ";
             for (int x = 0; x < TGeo::Dimension; x++) soutLogDebug << xiProjectedOverSide[x] << "\t";
@@ -311,7 +311,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
                 soutLogDebug<<std::endl;
             }
         }
-        #endif
+#endif
         /**
          * Calculates the non-linear mapping of the side sideIndex
          */
@@ -337,9 +337,10 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
             continue;
         }
         TPZManVector<T, 3> Xside(3, 0.);
-        Neighbour(side, gmesh).X(neighXi, Xside);
+        TPZGeoElSide locneigh = Neighbour(side, gmesh);
+        locneigh.X(neighXi, Xside);
         TPZFNMatrix<9, T> gradNeigh;
-        Neighbour(side, gmesh).GradX(neighXi,gradNeigh);
+        locneigh.GradX(neighXi,gradNeigh);
         for (int x = 0; x < 3; x++) {
             nonLinearSideMappings(sideIndex, x) = Xside[x];
         }

@@ -62,7 +62,7 @@ void TPZShapeHDivBound<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data
         return;
     }
     const REAL scale = data.fSideOrient[0]*ncorner/volume;
-    TPZShapeH1<TSHAPE>::Shape(pt,data);
+    TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);
     TPZManVector<int, 9> permutegather(nsides);
     TPZShapeHDiv<TSHAPE>::HDivPermutation(TSHAPE::Type(), data.fCornerNodeIds, permutegather);
     for(int c=0; c < ncorner; c++) phi(c,0) = data.fPhi(permutegather[c],0)*scale;
