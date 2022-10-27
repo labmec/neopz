@@ -39,11 +39,19 @@ namespace pzgeom {
         /** @brief Constructor with list of nodes */
         TPZGeoBlend(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoBlend::ClassId),
                                                     TGeo(nodeindexes) {
+            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+                fNeighbours[is] =  TPZGeoElSideIndex(nullptr,-1);
+                fTrans[is] = TPZTransform<>();
+            }
         }
 
         /** @brief Empty constructor */
         TPZGeoBlend() : TPZRegisterClassId(&TPZGeoBlend::ClassId),
                         TGeo() {
+            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+                fNeighbours[is] =  TPZGeoElSideIndex(nullptr,-1);
+                fTrans[is] = TPZTransform<>();
+            }
         }
 
         /** @brief Constructor with node map */
@@ -171,7 +179,7 @@ namespace pzgeom {
                             TPZFMatrix<T> &JacNeighSide) const;
         /** @brief Vector of indexes of the neighbours */
         //TPZGeoElSideIndex fNeighbours[1+TGeo::NSides - TGeo::NNodes];
-        TPZGeoEl *fGeoEl;
+        TPZGeoEl *fGeoEl {nullptr};
         TPZGeoElSideIndex fNeighbours[1 + TGeo::NSides - TGeo::NNodes];
         TPZTransform<> fTrans[1 + TGeo::NSides - TGeo::NNodes];
     };

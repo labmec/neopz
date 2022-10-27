@@ -30,8 +30,8 @@ class TPZGeoEl;
  */
 class TPZGeoElSideIndex : public TPZSavable{
 private:
-	int64_t fGeoElIndex;
-	int fSide;
+	int64_t fGeoElIndex{-1};
+	int fSide{-1};
 	
 public:
 	/** @brief Destructor. */
@@ -85,8 +85,8 @@ public:
 /** This class is often used to manipulate neighbouring information between elements */
 class TPZGeoElSide : public TPZSavable {
 	
-	TPZGeoEl *fGeoEl;
-	int fSide;
+	TPZGeoEl *fGeoEl{nullptr};
+	int fSide{-1};
 public:
     
     /// return the number of element/side pairs which compose the current set of points
