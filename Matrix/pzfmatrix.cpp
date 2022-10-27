@@ -180,6 +180,7 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
 template<class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(TPZFMatrix<TVar> &&A ) {
     TPZMatrix<TVar>::operator=(A);
+    if(fElem && fElem != fGiven) {delete [] fElem;}
     fElem=A.fElem;
     fGiven=A.fGiven;
     fSize=A.fSize;
