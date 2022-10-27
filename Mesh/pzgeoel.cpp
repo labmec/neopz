@@ -1110,10 +1110,14 @@ void TPZGeoEl::RemoveConnectivities(){
 		if(neighbour != thisside){
       TPZGeoElSide neighneigh = neighbour;
       do{
+        const auto neighside = neighneigh.Side();
+        const auto neighnodes = neighneigh.Element()->NCornerNodes();
         /*if the following if condition is met, it means that
           neighneigh refers to a blend element whose side used to depend on *this*
-          for its mapping */
-        if(neighneigh.ResetBlendConnectivity(fIndex)){
+          for its mapping.
+          However, we must ensure that there are no sides of dim 0 (nodes)
+          involved, since blend elements dont store information regarding nodes*/
+        if(neighside >= neighnodes && neighneigh.ResetBlendConnectivity(fIndex)){
           /*
             The element will now look for other non linear neighbours
             so it can blend with it
