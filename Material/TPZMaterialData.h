@@ -99,7 +99,7 @@ public:
     /// Values of the divergence of the shape functions in the mapped element (only applicable to H(div) spaces)    
     TPZFNMatrix<MatDataNumPhi, REAL> divphi;
     /// Values of the curl of the shape functions in the mapped element (only applicable to H(curl) spaces)
-    TPZFNMatrix<MatDataNumPhi, REAL> curlphi;
+    TPZFNMatrix<MatDataNumDPhi, REAL> curlphi;
     /// Axes between the R3 space and the element's coordinates. Used for the derivatives of the shape functions
     TPZFNMatrix<9,REAL> axes;
     /// Value of the jacobian at the integration point
