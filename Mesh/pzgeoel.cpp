@@ -1101,17 +1101,28 @@ void TPZGeoEl::RemoveConnectivities(){
 	for(side=0;side<nsides;side++){
 		TPZGeoElSide thisside(this,side);
 		TPZGeoElSide neighbour (thisside.Neighbour());
-        if(!neighbour) DebugStop();
+    if(!neighbour) DebugStop();
 		thisside.RemoveConnectivity();
+    /*
+      this TPZGeoElSide is no longer in the connectivity loop
+      however, we may need to update any blend connectivity
+    */
 		if(neighbour != thisside){
-		    TPZGeoElSide neighneigh = neighbour;
-		    do{
-                if(neighneigh.ResetBlendConnectivity(fIndex)){
-                    neighneigh.Element()->SetNeighbourForBlending(neighneigh.Side());
-                }
-		        neighneigh = neighneigh.Neighbour();
-            }   while (neighbour != neighneigh);
+      TPZGeoElSide neighneigh = neighbour;
+      do{
+        /*if the following if condition is met, it means that
+          neighneigh refers to a blend element whose side used to depend on *this*
+          for its mapping */
+        if(neighneigh.ResetBlendConnectivity(fIndex)){
+          /*
+            The element will now look for other non linear neighbours
+            so it can blend with it
+           */
+          neighneigh.Element()->SetNeighbourForBlending(neighneigh.Side());
         }
+        neighneigh = neighneigh.Neighbour();
+      }   while (neighbour != neighneigh);
+    }
 	}
 }
 
