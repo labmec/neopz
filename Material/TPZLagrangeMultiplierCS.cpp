@@ -55,7 +55,7 @@ void TPZLagrangeMultiplierCS<TVar>::ContributeInterface(
         }
     }
     
-    //	// 4) phi_I_right, phi_J_left
+    //    // 4) phi_I_right, phi_J_left
     for(ir=0; ir<nrowr; ir++) {
         for (int ist=0; ist<fNStateVariables; ist++) {
             ef(ir*fNStateVariables+ist+secondblock,0) += weight * fMultiplier * phiR.GetVal(ir,0) * solL;
@@ -80,33 +80,34 @@ void TPZLagrangeMultiplierCS<STATE>::ContributeInterface(
     if(dataleft.size() != 1 || dataright.size() != 1)
         DebugStop();
 #endif
+
+
+        //const TPZFMatrix<REAL> *phiL = &(dataleft.begin()->second.phi);
+        TPZFMatrix<REAL> phiLdummy = dataleft.begin()->second.phi;
+        TPZFMatrix<REAL> *phiL = &phiLdummy;
+
+        TPZFMatrix<REAL> phiRdummy = dataright.begin()->second.phi;
+        TPZFMatrix<REAL> *phiR = &phiRdummy;
     
-    //const TPZFMatrix<REAL> *phiL = &(dataleft.begin()->second.phi);
-    TPZFMatrix<REAL> phiLdummy = dataleft.begin()->second.phi;
-    TPZFMatrix<REAL> *phiL = &phiLdummy;
-    
-    TPZFMatrix<REAL> phiRdummy = dataright.begin()->second.phi;
-    TPZFMatrix<REAL> *phiR = &phiRdummy;
-    
-    TPZManVector<STATE,3> solLvec = dataleft.begin()->second.sol[0];
-    TPZManVector<STATE,3> solRvec = dataright.begin()->second.sol[0];
-    STATE solL = solLvec[0];
-    STATE solR = solRvec[0];
-    
-    int nrowl = phiL->Rows();
-    int nrowr = phiR->Rows();
-    static int count  = 0;
-    
-    if((nrowl+nrowr)*fNStateVariables != ek.Rows() && count < 20)
-    {
-        std::cout<<"ek.Rows() "<< ek.Rows()<<
-        " nrowl " << nrowl <<
-        " nrowr " << nrowr << " may give wrong result "<< "fNStateVariables\t"<< fNStateVariables << "count " << count  << std::endl;
-        count++;
-    }
-    
-#ifdef USING_MKL
-    {
+        TPZManVector<REAL,3> solLvec = dataleft.begin()->second.sol[0];
+        TPZManVector<REAL,3> solRvec = dataright.begin()->second.sol[0];
+        REAL solL = solLvec[0];
+        REAL solR = solRvec[0];
+
+        int nrowl = phiL->Rows();
+        int nrowr = phiR->Rows();
+        static int count  = 0;
+
+        if((nrowl+nrowr)*fNStateVariables != ek.Rows() && count < 20)
+        {
+            std::cout<<"ek.Rows() "<< ek.Rows()<<
+                     " nrowl " << nrowl <<
+                     " nrowr " << nrowr << " may give wrong result "<< "fNStateVariables\t"<< fNStateVariables << "count " << count  << std::endl;
+            count++;
+        }
+  
+#ifdef USING_MKL2
+        {
         double *A, *B, *C;
         double alpha, beta;
         int m,n,k,phrL,phrR;
@@ -152,38 +153,41 @@ void TPZLagrangeMultiplierCS<STATE>::ContributeInterface(
     
 #else
     
-    
-    int secondblock = ek.Rows()-phiR->Rows()*fNStateVariables;
-    int il,jl,ir,jr;
-    
-    // 3) phi_I_left, phi_J_right
-    for(il=0; il<nrowl; il++) {
-        for (int ist=0; ist<fNStateVariables; ist++) {
-            ef(fNStateVariables*il+ist,0) += - weight * fMultiplier * phiL->GetVal(il,0) * solR;
-        }
-        for(jr=0; jr<nrowr; jr++) {
+  
+        
+        int secondblock = ek.Rows()-phiR->Rows()*fNStateVariables;
+        int il,jl,ir,jr;
+
+        // 3) phi_I_left, phi_J_right
+        for(il=0; il<nrowl; il++) {
             for (int ist=0; ist<fNStateVariables; ist++) {
-                double L = *(&phiLdummy(0,0)+il);
-                double R = *(&phiRdummy(0,0)+jr);
-                ek(fNStateVariables*il+ist,fNStateVariables*jr+ist+secondblock) += weight * fMultiplier * L * R;
+                ef(fNStateVariables*il+ist,0) += weight *(-1.0)* fMultiplier * phiL->GetVal(il,0) * solR;
+            }
+            for(jr=0; jr<nrowr; jr++) {
+                for (int ist=0; ist<fNStateVariables; ist++) {
+                    double L = *(&phiLdummy(0,0)+il);
+                    double R = *(&phiRdummy(0,0)+jr);
+                    ek(fNStateVariables*il+ist,fNStateVariables*jr+ist+secondblock) += weight * fMultiplier * L * R;
+                }
             }
         }
-    }
-    
-    //	// 4) phi_I_right, phi_J_left
-    for(ir=0; ir<nrowr; ir++) {
-        for (int ist=0; ist<fNStateVariables; ist++) {
-            ef(ir*fNStateVariables+ist+secondblock,0) += - weight * fMultiplier * phiR->GetVal(ir,0) * solL;
-        }
-        for(jl=0; jl<nrowl; jl++) {
+
+        //    // 4) phi_I_right, phi_J_left
+        for(ir=0; ir<nrowr; ir++) {
             for (int ist=0; ist<fNStateVariables; ist++) {
-                double L = *(&phiLdummy(0,0)+jl);
-                double R = *(&phiRdummy(0,0)+ir);
-                ek(ir*fNStateVariables+ist+secondblock,jl*fNStateVariables+ist) += weight * fMultiplier * (R * L);
-                
+                ef(ir*fNStateVariables+ist+secondblock,0) += weight * (-1.0)*fMultiplier * phiR->GetVal(ir,0) * solL;
+            }
+            for(jl=0; jl<nrowl; jl++) {
+                for (int ist=0; ist<fNStateVariables; ist++) {
+                    double L = *(&phiLdummy(0,0)+jl);
+                    double R = *(&phiRdummy(0,0)+ir);
+                    ek(ir*fNStateVariables+ist+secondblock,jl*fNStateVariables+ist) += weight * fMultiplier * (R * L);
+
+                }
+
             }
         }
-    }
+    
 #endif
 }
 
@@ -238,3 +242,4 @@ void TPZLagrangeMultiplierCS<TVar>::Read(TPZStream &buf, void *context)
 
 template class TPZLagrangeMultiplierCS<STATE>;
 template class TPZLagrangeMultiplierCS<CSTATE>;
+

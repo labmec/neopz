@@ -26,6 +26,10 @@ public:
 
     //! Default constructor
     TPZMatError() = default;
+    
+    TPZMatError(const TPZMatError & copy) = default;
+    
+    TPZMatError &operator = (const TPZMatError & copy) = default;
     //!@name Error
     /** @{*/
     /**
