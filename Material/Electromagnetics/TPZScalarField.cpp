@@ -94,9 +94,9 @@ void TPZScalarField::Write(TPZStream& buf, int withclassid) const
 
   switch(fMode){
   case ModeType::TE:
-    buf.Write(intTE);
+    buf.Write(&intTE);
   case ModeType::TM:
-    buf.Write(intTM);
+    buf.Write(&intTM);
   }
 }
 
