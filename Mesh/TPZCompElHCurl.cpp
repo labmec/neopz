@@ -370,12 +370,13 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
     //resizing of TPZMaterialData structures
 
     constexpr int dim = TSHAPE::Dimension;
-    constexpr int curldim = [dim](){
-        if constexpr (dim == 1) return 1;
-        else{
-            return 2*dim - 3;//1 for 2D 3 for 3D
-        }
-    }();
+    constexpr int curldim = dim == 1 ? 1 : 2 * dim - 3;
+//        [dim](){
+//        if constexpr (dim == 1) return 1;
+//        else{
+//            return 2*dim - 3;//1 for 2D 3 for 3D
+//        }
+//    }();
     const int nshape = this->NShapeF();
     
     auto &phi = data.phi;
@@ -406,12 +407,13 @@ template<class TSHAPE>
 void TPZCompElHCurl<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) {
 
     constexpr int dim = TSHAPE::Dimension;
-    constexpr int curldim = [dim](){
-        if constexpr (dim == 1) return 1;
-        else{
-            return 2*dim - 3;//1 for 2D 3 for 3D
-        }
-    }();
+    constexpr int curldim = dim == 1 ? 1 : 2 * dim - 3;
+//        [dim](){
+//        if constexpr (dim == 1) return 1;
+//        else{
+//            return 2*dim - 3;//1 for 2D 3 for 3D
+//        }
+//          }();
 
     const int nshape = this->NShapeF();
     TPZFNMatrix<dim*80,REAL> phiref(dim,nshape);
@@ -471,12 +473,13 @@ void TPZCompElHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZF
 
     constexpr int dim = TSHAPE::Dimension;
 
-    constexpr int curldim = [dim](){
-        if constexpr (dim == 1) return 1;
-        else{
-            return 2*dim - 3;//1 for 2D 3 for 3D
-        }
-    }();
+    constexpr int curldim = dim == 1 ? 1 : 2 * dim - 3;
+//        [dim](){
+//        if constexpr (dim == 1) return 1;
+//        else{
+//            return 2*dim - 3;//1 for 2D 3 for 3D
+//        }
+//    }();
     
     phi.Redim(dim,nShape);
     dphi.Redim(curldim, nShape);
@@ -907,12 +910,13 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
     TPZSolVec<TVar> &sol, TPZSolVec<TVar> &curlSol)
 {
     constexpr int dim = TSHAPE::Dimension;
-    constexpr int curlDim = [dim](){
-        if constexpr (dim == 1) return 1;
-        else{
-            return 2*dim - 3;//1 for 2D 3 for 3D
-        }
-    }();
+    constexpr int curlDim = dim == 1 ? 1 : 2 * dim - 3;
+//        [dim](){
+//        if constexpr (dim == 1) return 1;
+//        else{
+//            return 2*dim - 3;//1 for 2D 3 for 3D
+//        }
+//    }();
     const int nVar = this->Material()->NStateVariables();
     const int nConnects = this->NConnects();
 
