@@ -20,7 +20,7 @@ class TPZIsotropicPermeabilityBC;
  * @brief  This class implements the interface with the methods required to
  * handle the permeability field of an isotropic material.
  */
-class TPZIsotropicPermeability : public TPZSavable {
+class TPZIsotropicPermeability : public virtual TPZSavable {
 
 public:
     using TInterfaceBC = TPZIsotropicPermeabilityBC;
