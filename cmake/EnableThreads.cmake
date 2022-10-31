@@ -9,7 +9,7 @@ function(enable_threads target)
     #simple utility function for detecting if any linking is needed
     #for using functions from <atomic>.
     # apparently it is not needed on macos
-    if(UNIX)
+    if(UNIX AND NOT APPLE)
         include(cmake/check_for_atomic.cmake)
         check_for_atomic(${target})
     endif()
