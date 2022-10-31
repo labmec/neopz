@@ -3,7 +3,9 @@
 
 #include <stdexcept>
 
+#ifndef WIN32
 #include <execinfo.h>
+#endif
 #include <stdio.h>
 void pzinternal::DebugStopImpl(const char *fileName, const std::size_t lineN)
 {
