@@ -41,12 +41,13 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
     constexpr int nsides = TSHAPE::NSides;
     constexpr int ncon = nsides - ncorner;
     constexpr int dim = TSHAPE::Dimension;
-    constexpr int curldim = [dim](){
-        if constexpr (dim == 1) return 1;
-        else{
-            return 2*dim - 3;//1 for 2D 3 for 3D
-        }
-    }();
+    constexpr int curldim = dim==1 ? 1: 2*dim-3;
+//            [dim](){
+//        if constexpr (dim == 1) return 1;
+//        else{
+//            return 2*dim - 3;//1 for 2D 3 for 3D
+//        }
+//    }();
     const int nedges = TSHAPE::NumSides(1);
     
     //calculates # of unfiltered hcurl functions

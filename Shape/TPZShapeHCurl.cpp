@@ -137,12 +137,13 @@ void TPZShapeHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatr
     constexpr int ncorner = TSHAPE::NCornerNodes;
     constexpr int nsides = TSHAPE::NSides;
     constexpr int dim = TSHAPE::Dimension;
-    constexpr int curldim = [dim](){
-        if constexpr (dim == 1) return 1;
-        else{
-            return 2*dim - 3;//1 for 2D 3 for 3D
-        }
-    }();
+    constexpr int curldim = dim == 1 ? 1 : 2*dim-3;
+//                [dim](){
+//        if constexpr (dim == 1) return 1;
+//        else{
+//            return 2*dim - 3;//1 for 2D 3 for 3D
+//        }
+//    }();
     
     TPZShapeH1<TSHAPE>::Shape(pt,data);
     for(int i = 0; i< data.fSDVecShapeIndex.size(); i++)
