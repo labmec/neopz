@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
-using namespace std;
+
 
 
 #include "pzmatred.h"

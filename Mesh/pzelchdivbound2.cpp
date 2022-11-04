@@ -15,6 +15,7 @@
 #include "TPZShapeHDivBound.h"
 #include "TPZShapeHDivConstantBound.h"
 #include "TPZShapeHCurlNoGrads.h"
+#include "pzshapepoint.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.TPZCompElHDivBound2");
@@ -415,6 +416,40 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     }
 }
 
+template<>
+void TPZCompElHDivBound2<pzshape::TPZShapePoint>::InitMaterialData(TPZMaterialData& data)
+{
+    TPZIntelGen<pzshape::TPZShapePoint>::InitMaterialData(data);
+    data.fShapeType = TPZMaterialData::EScalarShape;
+
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
+    {
+        LOGPZ_DEBUG(logger, "Initializing normal vectors")
+    }
+#endif
+    TPZGeoEl* gel = this->Reference();
+    int nc = gel->NCornerNodes();
+    TPZManVector<int64_t, 8> id(nc);
+    for (int ic = 0; ic < nc; ic++) {
+        id[ic] = gel->Node(ic).Id();
+    }
+    int connectorder = this->Connect(0).Order();
+    int sideorient = fSideOrient;
+
+    // fill in the datastructures of shapedata
+    switch (fhdivfam)
+    {
+    case HDivFamily::EHDivStandard:
+    case HDivFamily::EHDivConstant:
+        TPZShapeHDivBound<pzshape::TPZShapePoint>::Initialize(id, connectorder, sideorient, data);
+        break;
+    default:
+        DebugStop();
+        break;
+    }
+}
+
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t> &shapeindex) {
 	
@@ -677,7 +712,7 @@ int TPZCompElHDivBound2<TSHAPE>::MaxOrder(){
 
 
 #include "pzshapetriang.h"
-#include "pzshapepoint.h"
+
 #include "pzshapelinear.h"
 #include "pzshapequad.h"
 
