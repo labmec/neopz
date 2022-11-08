@@ -40,7 +40,11 @@ set(CMAKE_MACOSX_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_INSTALL_RPATH ${basePoint} ${basePoint}/${relDir})
 ##RPATH SETTINGS - END
+if (WIN32)
+set(PZ_LIB_TYPE STATIC)
+else (WIN32)
 set(PZ_LIB_TYPE SHARED)
+endif()
 add_library(pz ${PZ_LIB_TYPE} "")
 target_compile_features(pz PUBLIC cxx_std_17)
 ##TODOWIN32: check whether these distinctions are really necessary
