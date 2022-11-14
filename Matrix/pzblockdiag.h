@@ -94,7 +94,7 @@ public:
 	virtual int Substitution( TPZFMatrix<TVar> * B ) const override;
 	
 	/** @brief Updates the values of the matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
+	virtual void UpdateFrom(TPZMatrix<TVar> &mat) override;
 	
 	/** @brief This method checks the working of the class */
 	static int main();

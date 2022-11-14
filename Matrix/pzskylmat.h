@@ -76,7 +76,7 @@ public:
     /**
 	 * @brief Updates the values of the matrix based on the values of the matrix
 	 */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
+	virtual void UpdateFrom(TPZMatrix<TVar> &mat) override;
     
   friend class TPZSkylMatrix<float>;
   friend class TPZSkylMatrix<double>;

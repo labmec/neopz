@@ -516,7 +516,7 @@ int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
       fPardisoControl.SetMatrixType(sysType,prop);
     }
     fPardisoControl.Decompose(this);
-    this->SetIsDecomposed(ELDLt);
+    this->SetIsDecomposed(ECholesky);
     return 1;
 }
 

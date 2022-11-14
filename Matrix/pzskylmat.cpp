@@ -104,9 +104,9 @@ void TPZSkylMatrix<TVar>::CheckTypeCompatibility(const TPZMatrix<TVar>*A,
  * @brief Updates the values of the matrix based on the values of the matrix
  */
 template<class TVar>
-void TPZSkylMatrix<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
+void TPZSkylMatrix<TVar>::UpdateFrom(TPZMatrix<TVar> &mat)
 {
-    TPZMatrix<TVar> *matrix = mat.operator->();
+    TPZMatrix<TVar> *matrix = &mat;
     TPZSkylMatrix<TVar> *skylmat = dynamic_cast<TPZSkylMatrix<TVar> *>(matrix);
     if (!skylmat) {
         DebugStop();

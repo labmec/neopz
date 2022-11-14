@@ -564,9 +564,9 @@ void TPZBlockDiagonal<TVar>::Print(const char *msg, std::ostream &out, const Mat
  * Updates the values of the matrix based on the values of the matrix
  */
 template<class TVar>
-void TPZBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
+void TPZBlockDiagonal<TVar>::UpdateFrom(TPZMatrix<TVar> &mat)
 {
-	if(!mat) 
+	if(!&mat) 
 	{
 		cout << "TPZBlockDiagonal::UpdateFrom" << " called with zero argument\n";
 		return;
@@ -579,7 +579,7 @@ void TPZBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 		//    int r,c;
 		pos = fBlockPos[b];
 		TPZFMatrix<TVar> block(bsize,bsize,&fStorage[pos],bsize*bsize);
-		mat->GetSub(firsteq,firsteq,bsize,bsize,block);
+		mat.GetSub(firsteq,firsteq,bsize,bsize,block);
 		firsteq += bsize;
 	}
 }
