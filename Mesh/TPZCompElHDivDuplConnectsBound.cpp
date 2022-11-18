@@ -48,7 +48,14 @@ int TPZCompElHDivDuplConnectsBound<TSHAPE>::NConnectShapeF(int connect, int conn
     }
 #endif
 
-    if(connectorder == 0) return 1;
+    if(connectorder == 0){
+        if (connect == 0){
+            return 1;
+        }else {
+            return 0;
+        }
+    }
+     
 
 	switch (this->fhdivfam)
     {
