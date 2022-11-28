@@ -162,7 +162,7 @@ void TPZHDivApproxCreator::CreateMultiPhysicsMesh(TPZManVector<TPZCompMesh*,7>& 
 }
 
 TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
-
+    std::cout << "\n---------------- Creating Space -----------------" << std::endl;
     CheckSetupConsistency();
 
     int lagLevelCounter = 1;
@@ -172,6 +172,7 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
     TPZMultiphysicsCompMesh *cmeshmulti = nullptr;
     CreateMultiPhysicsMesh(meshvec,lagLevelCounter,cmeshmulti);
     
+    std::cout << "\n---------------- Finished Creating Space -----------------" << std::endl;
     
     return cmeshmulti;
 }

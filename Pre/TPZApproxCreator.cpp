@@ -192,8 +192,8 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
 #endif
 #ifdef PZDEBUG
     {
-        std::ofstream out("gmesh.txt");
-        fGeoMesh->Print(out);
+//        std::ofstream out("gmesh.txt");
+//        fGeoMesh->Print(out);
     }
     // Check if neighborhood is correct
     CheckNeighborhoodHybridization();

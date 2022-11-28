@@ -24,6 +24,7 @@
 #include "TPZMHMHDivApproxCreator.h"
 
 #include <pzlog.h>
+#include "TPZSimpleTimer.h"
 
 // ----- Unit test includes -----
 // #define USE_MAIN
@@ -343,6 +344,8 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
                                 bool isRigidBodySpaces, MMeshType mType, int extrapOrder,
                                 bool isCondensed, HybridizationType hType, bool isRef, bool isMHM){
 
+    
+    TPZSimpleTimer totaltime;
     // ==========> Initial headers <==========
     // =======================================
     static int globcount = 0;
@@ -409,7 +412,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     InsertMaterials(*hdivCreator,probType);
     TPZMultiphysicsCompMesh *cmesh = hdivCreator->CreateApproximationSpace();
     std::ofstream outtxt("geomeshmodified.txt");
-    gmesh->Print(outtxt);
+//    gmesh->Print(outtxt);
 
     // ==========> Check number of equations for condensed problems <==========
     // ========================================================================
@@ -442,14 +445,15 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     TPZManVector<REAL,5> error;
     CheckError(cmesh,error,probType);
     
-    cout << "\n------------------ Test ended without crashing ------------------" << endl << endl;
+    cout << "\n------------------ Test ended without crashing ------------------" << endl;
+    std::cout << "==> Total time: " << totaltime.ReturnTimeDouble()/1000. << " seconds" << std::endl << endl;
 }
 
 void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol) {
 #ifdef USE_MAIN
     constexpr int nThreads{0};
 #else
-    constexpr int nThreads{0};
+    constexpr int nThreads{12};
 #endif
     TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>> matsp(cmesh);
     matsp.SetNumThreads(nThreads);
