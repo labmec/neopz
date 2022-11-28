@@ -885,6 +885,16 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         disp[0] = ur*sinphi*costheta;
         disp[1] = ur*sinphi*sintheta;
     }
+    else if(fProblemType == EYotov)
+	{
+        TPZManVector<TVar,3> xc(x);
+		const TVar x1 = x[0], x2 = x[1], x3 = x[2];
+		const TVar Pi = M_PI;
+
+        disp[0] = -0.1*(-1. + exp(x1))*sin(Pi*x1)*sin(Pi*x2);
+        disp[1] = (1. - exp(x1))*(-0.5 - ((1. + sqrt(3))*(-0.5 + x2))/(2.*sqrt(2.)) + x2 + ((-1 + sqrt(3.))*(-0.5 + x3))/(2.*sqrt(2)));
+        disp[2] = (1. - exp(x1))*(-0.5 - ((-1. + sqrt(3))*(-0.5 + x2))/(2.*sqrt(2.)) - ((1 + sqrt(3.))*(-0.5 + x3))/(2.*sqrt(2)) + x3);
+	}
     else{
         DebugStop();
     }
@@ -1026,6 +1036,16 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[0] = ur*sinphi*costheta;
         disp[1] = ur*sinphi*sintheta;
     }
+    else if(fProblemType == EYotov)
+	{
+		TPZManVector<TVar,3> xc(x);
+		const TVar x1 = x[0], x2 = x[1], x3 = x[2];
+		const TVar Pi = M_PI;
+
+		disp[0] = -0.1*(-1. + FADexp(x1))*FADsin(Pi*x1)*FADsin(Pi*x2);
+		disp[1] = (1. - FADexp(x1))*(-0.5 - ((1. + FADsqrt(3))*(-0.5 + x2))/(2.*FADsqrt(2.)) + x2 + ((-1 + FADsqrt(3.))*(-0.5 + x3))/(2.*FADsqrt(2)));
+		disp[2] = (1. - FADexp(x1))*(-0.5 - ((-1. + FADsqrt(3))*(-0.5 + x2))/(2.*FADsqrt(2.)) - ((1 + FADsqrt(3.))*(-0.5 + x3))/(2.*FADsqrt(2)) + x3);
+	}
     else{
         DebugStop();
     }
