@@ -142,14 +142,14 @@ public:
     }
 
     /// Set a variable elasticity and poisson coefficient
-//    void SetElasticityFunction(TPZAutoPointer<TPZFunction<STATE> > func)
-//    {
-//        fElasticity = func;
-//    }
-    void SetElasticityFunction(std::function<void(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)>& func)
-    {
-        fElasticity = func;
-    }
+   void SetElasticityFunction(TPZAutoPointer<TPZFunction<STATE> > func)
+   {
+       fElasticity = func;
+   }
+    // void SetElasticityFunction(std::function<void(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)>& func)
+    // {
+    //     fElasticity = func;
+    // }
     
     /** @brief Set elasticity parameters in the form of Lame's parameters*/
     void SetLameParameters(REAL Lambda, REAL mu) {
@@ -320,8 +320,8 @@ protected:
     int fDimension = 2;
 
     /** Elasticity function */
-//    TPZAutoPointer<TPZFunction<STATE> > fElasticity;
-    std::function<void(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> fElasticity{nullptr};
+   TPZAutoPointer<TPZFunction<STATE> > fElasticity;
+    // std::function<void(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> fElasticity{nullptr};
     
     /** @brief Elasticity modulus */
     REAL fE_const;

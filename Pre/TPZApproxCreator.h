@@ -71,6 +71,9 @@ protected:
     /// Attribute of struct with all the data regarding hybridization between elements
     HybridizationData fHybridizationData;
 
+    /// Predominant GeoMesh dimension element
+    MElementType fElementType = MElementType::ENoType;
+
 public:
     
     /// Default constructor
@@ -185,6 +188,9 @@ protected:
 
     /// Changes the internal order of the volumetric connect of all CompEls in a given CMesh
     void ChangeInternalOrder(TPZCompMesh *cmesh, int pOrder) const;
+
+    /// Determine the predominant element type in the GeoMesh
+    void SetMeshElementType();
 };
 
 

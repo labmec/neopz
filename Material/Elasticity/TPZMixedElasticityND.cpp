@@ -307,7 +307,7 @@ void TPZMixedElasticityND::Contribute_3spaces(const TPZVec<TPZMaterialDataT<STAT
         //TPZManVector<REAL,3> result(2);
 		TPZManVector<STATE, 3> result(2);
 		TPZFNMatrix<4,STATE> Dres(0,0);
-        fElasticity(datavec[0].x, result, Dres);
+        fElasticity->Execute(datavec[0].x, result, Dres);
         REAL E = result[0];
         REAL nu = result[1];
         TElasticityAtPoint modify(E,nu);
@@ -1112,7 +1112,7 @@ void TPZMixedElasticityND::Solution(const TPZVec<TPZMaterialDataT<STATE>> &data,
         //TPZManVector<REAL,3> result(2);
 		TPZManVector<STATE, 3> result(dim);
         TPZFNMatrix<9,STATE> Dres(0,0);
-        fElasticity(x, result, Dres);
+        fElasticity->Execute(x, result, Dres);
         REAL E = result[0];
         REAL nu = result[1];
         TElasticityAtPoint modify(E,nu);
@@ -1448,7 +1448,7 @@ void TPZMixedElasticityND::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, T
         //TPZManVector<REAL,3> result(2);
 		TPZManVector<STATE, 3> result(2);
         TPZFNMatrix<4,STATE> Dres(0,0);
-        fElasticity(x, result, Dres);
+        fElasticity->Execute(x, result, Dres);
         REAL E = result[0];
         REAL nu = result[1];
         TElasticityAtPoint modify(E,nu);

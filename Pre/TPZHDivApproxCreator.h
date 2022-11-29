@@ -72,7 +72,7 @@ protected:
     /// Creates an L2 approximation space/cmesh
     /// @param pOrder polynomial order of the space
     /// @param lagLevel lagrange multiplier level for factorization
-    TPZCompMesh * CreateL2Space(const int pOrder,const int lagLevel);
+    TPZCompMesh * CreateL2Space(int pOrder,const int lagLevel);
     
     
     /// Creates a constant L2 space (order 0). Used for extra spaces related to fIsRBSpaces flag

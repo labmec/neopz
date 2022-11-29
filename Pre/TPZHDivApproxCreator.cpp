@@ -37,6 +37,10 @@ TPZHDivApproxCreator::~TPZHDivApproxCreator()
 
 void TPZHDivApproxCreator::CheckSetupConsistency() {
     
+    if (fProbType == ProblemType::EElastic) {
+        std::cout << "WARNING! Polynomial orders have been checked only for Triangles and Tetrahedra. Please, check the convergence rates for the other topologies!\n";
+    }
+
     if (fProbType == ProblemType::ENone) {
         std::cout << "You have to set a proper problem type!\n";
         DebugStop();
@@ -109,7 +113,7 @@ void TPZHDivApproxCreator::CreateAtomicMeshes(TPZManVector<TPZCompMesh*,7>& mesh
     // meshvec[1]->Print(out);
 #endif
     if (isElastic){
-        meshvec[countMesh++] = CreateRotationSpace(fDefaultPOrder,lagLevelCounter++);
+        meshvec[countMesh++] = CreateRotationSpace(fDefaultPOrder+fExtraInternalPOrder,lagLevelCounter++);
 #ifdef PZDEBUG
         // std::ofstream out("rotation.txt");
         // meshvec[2]->Print(out);
@@ -164,6 +168,7 @@ void TPZHDivApproxCreator::CreateMultiPhysicsMesh(TPZManVector<TPZCompMesh*,7>& 
 TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
     std::cout << "\n---------------- Creating Space -----------------" << std::endl;
     CheckSetupConsistency();
+    SetMeshElementType();
 
     int lagLevelCounter = 1;
     TPZManVector<TPZCompMesh*,7> meshvec(fNumMeshes);
@@ -194,7 +199,9 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     fGeoMesh->ResetReference();
     int dim = fGeoMesh->Dimension();
     TPZCompMesh *cmesh = new TPZCompMesh(fGeoMesh);
-    if (fProbType == ProblemType::EElastic || fProbType == ProblemType::EDarcy) {
+    if (fProbType == ProblemType::EDarcy) {
+        cmesh->SetDefaultOrder(fDefaultPOrder);
+    }else if (fProbType == ProblemType::EElastic){
         cmesh->SetDefaultOrder(fDefaultPOrder);
     } else {
         DebugStop();
@@ -377,7 +384,11 @@ TPZCompMesh * TPZHDivApproxCreator::CreateConstantSpace(const int lagLevel) {
     return cmesh;
 }
 
-TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(const int pOrder, const int lagLevel){
+TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(int pOrder, const int lagLevel){
+
+    if (fProbType == ProblemType::EElastic){//Se triangular.
+        pOrder = fDefaultPOrder+fExtraInternalPOrder;
+    }
 
     fGeoMesh->ResetReference();
     int dim = fGeoMesh->Dimension();

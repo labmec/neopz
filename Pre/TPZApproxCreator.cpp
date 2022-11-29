@@ -442,3 +442,36 @@ void TPZApproxCreator::ChangeInternalOrder(TPZCompMesh *cmesh, int pOrder) const
     }
     cmesh->InitializeBlock();
 }
+
+void TPZApproxCreator::SetMeshElementType(){
+
+    MElementType firstElement;
+    const int dim = fGeoMesh->Dimension();
+    bool isfirst = true;
+    bool isDiffElMesh = false;
+
+    for (int iEl = 0; iEl < fGeoMesh->NElements(); iEl++){
+        
+        TPZGeoEl *gel = fGeoMesh->ElementVec()[iEl];
+        if (!gel) continue;
+        if (gel->Dimension() != dim) continue;
+
+        if (isfirst){
+            firstElement = gel->Type();
+            isfirst = false;
+        } else {
+            if (firstElement != gel->Type()){
+                isDiffElMesh = true;
+                if (fExtraInternalPOrder != 0){
+                    std::cout << "Error! Please implemet extra internal order for different element types" << std::endl;
+                    DebugStop();
+                };
+            }
+        }
+    }
+
+    if (!isDiffElMesh){
+        fElementType = firstElement;
+    }   
+
+}
