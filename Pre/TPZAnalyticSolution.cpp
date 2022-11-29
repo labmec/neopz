@@ -760,6 +760,8 @@ template
 void TElasticity2DAnalytic::DivSigma(const TPZVec<REAL> &x, TPZVec<STATE> &divsigma) const;
 
 
+
+
 TElasticity3DAnalytic::TElasticity3DAnalytic(const TElasticity3DAnalytic &cp) : TPZAnalyticSolution(cp),fProblemType(cp.fProblemType),fE(cp.fE),fPoisson(cp.fPoisson) {
     std::cout << "TElasticity3DAnalytic::TElasticity3DAnalytic(const TElasticity3DAnalytic &cp): One should not invoke this copy constructor";
     DebugStop();
@@ -2714,3 +2716,10 @@ void TStokesAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMa
 
 }
 
+template void TElasticity2DAnalytic::Elastic<float>(const TPZVec<float> &x, float &Elast, float &nu);
+template void TElasticity2DAnalytic::Elastic<double>(const TPZVec<double> &x, double &Elast, double &nu);
+template void TElasticity2DAnalytic::Elastic<long double>(const TPZVec<long double> &x, long double &Elast, long double &nu);
+
+template void TElasticity3DAnalytic::Elastic<float>(const TPZVec<float> &x, float &Elast, float &nu) const;
+template void TElasticity3DAnalytic::Elastic<double>(const TPZVec<double> &x, double &Elast, double &nu) const;
+template void TElasticity3DAnalytic::Elastic<long double>(const TPZVec<long double> &x, long double &Elast, long double &nu) const;
