@@ -103,6 +103,7 @@ template <class TGeo>
 template<class T>
 void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInterior, TPZFMatrix<T> &gradx) const {
 
+    constexpr int elDim = TGeo::Dimension;
     TPZGeoEl &gel = *fGeoEl;
     TPZGeoMesh *gmesh = gel.Mesh();
 #ifdef PZ_LOG
@@ -356,15 +357,22 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
              subSideIndex < allContainedSides.NElements(); subSideIndex++) {
 //            TPZFNMatrix<9, T> gradNonLinSubSide(3,TGeo::Dimension,(T)0);
             const int subSide = allContainedSides[subSideIndex];
+
+            
+            const bool isLinear = IsLinearMapping(subSide);
+            const bool regularMap =
+                TGeo::CheckProjectionForSingularity(subSide, xiProjectedOverSide);
 #ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 soutLogDebug << "\tSubside " << subSideIndex << " (global: " << subSide << ") is linear: ";
-                if (IsLinearMapping(subSide)) soutLogDebug << "true" << std::endl;
+                if (isLinear) soutLogDebug << "true" << std::endl;
                 else soutLogDebug << "false" << std::endl;
+                if(!regularMap){
+                    soutLogDebug<< "proj pt singularity. side will be skipped";
+                }
             }
 #endif
-            if (IsLinearMapping(subSide)) continue;
-
+            if(isLinear || !regularMap){continue;}
             T blendFactorSide = -1;
             TPZManVector<T,3> dCorrFactorSideDxiProj(TGeo::Dimension,(T)0);
             TPZFNMatrix<3, T> dCorrFactorSideDxi(TGeo::Dimension,1,(T)0);
@@ -505,6 +513,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
 template<class TGeo>
 template<class T>
 void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec<T> &result) const {
+
+    constexpr int elDim = TGeo::Dimension;
 //    TPZGeoEl &gel = *fGeoEl;
     if(!fGeoEl) DebugStop();
     TPZGeoMesh *gmesh = fGeoEl->Mesh();
@@ -676,6 +686,10 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
         TPZStack<int> containedNodesInSide;
         TGeo::LowerDimensionSides(side, containedNodesInSide, 0);
 
+        TPZManVector<T,elDim> xiProjectedOverSide(elDim,0.);
+        for(int ix = 0; ix < elDim; ix++){xiProjectedOverSide[ix] =
+                projectedPointOverSide(sideIndex,ix);}
+        
         TPZStack<int> allContainedSides;
         TGeo::LowerDimensionSides(side, allContainedSides);
         for (int subSideIndex = containedNodesInSide.NElements();
@@ -688,7 +702,11 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
                 else soutLogDebug << "false" << std::endl;
             }
 #endif
-            if(!isRegularMapping[subSide - TGeo::NNodes]) {
+            
+            const bool is_regular =
+                TGeo::CheckProjectionForSingularity(subSide,xiProjectedOverSide);
+            const bool is_linear = IsLinearMapping(subSide);
+            if(!is_regular) {
                 #ifdef PZ_LOG
                 if(logger.isDebugEnabled()){
                     soutLogDebug <<"mapping of subside is not regular. skipping side... ";
