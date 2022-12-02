@@ -31,6 +31,7 @@
 #include "TPZVTKGeoMesh.h"
 #include "TPZNullMaterialCS.h"
 #include "pzlog.h"
+#include "TPZSimpleTimer.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mhmixedmeshcontrol");
@@ -160,6 +161,11 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
     if (fpOrderInternal == 0 || fpOrderSkeleton == 0) {
         DebugStop();
     }
+    
+    std::cout << "\n----------- Creating atomic and multiphysics meshes -----------" << std::endl;
+    TPZSimpleTimer cmeshestimes;
+
+    
     // insert the peripheral material objects and create the auxiliary computational meshes if necessary
     InsertPeriferalMaterialObjects();
     CreateFluxMesh();
@@ -189,8 +195,8 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
     
     CreateHDivPressureMHMMesh();
     
-    
-    std::cout << "Total number of equations " << fCMesh->Solution().Rows() << std::endl;
+    std::cout << "Create cmeshes time: " << cmeshestimes.ReturnTimeDouble()/1000 << " seconds" << std::endl;
+          
     fGlobalSystemWithLocalCondensationSize = fCMesh->NEquations();
     fGlobalSystemSize = fCMesh->Solution().Rows();
 
@@ -203,9 +209,17 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
     CheckMeshConsistency();
 #endif
     
+    std::cout << "\n----------- Before Hide the elements -----------" << std::endl;
+    std::cout << "Number of equations in cmesh = " << fCMesh->NEquations() << std::endl;
+    std::cout << "Number of rows in sol vec = " << fCMesh->Solution().Rows() << std::endl;
+    std::cout << "\n----------- Starting Hiding the elements -----------" << std::endl;
+    TPZSimpleTimer hidetime;
     if (usersubstructure) {
         HideTheElements();
     }
+    std::cout << "HideTeElements time: " << hidetime.ReturnTimeDouble()/1000 << " seconds" << std::endl;
+    std::cout << "Number of equations in cmesh = " << fCMesh->NEquations() << std::endl;
+    std::cout << "Number of rows in sol vec = " << fCMesh->Solution().Rows() << std::endl;
     fNumeq = fCMesh->NEquations();
     
 #ifdef PZDEBUG2
