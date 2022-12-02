@@ -163,6 +163,7 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
     // insert the peripheral material objects and create the auxiliary computational meshes if necessary
     InsertPeriferalMaterialObjects();
     CreateFluxMesh();
+//    ChangeInternalOrder(fFluxMesh.operator->(), 2);
     
     
 #ifdef PZDEBUG
@@ -920,6 +921,7 @@ void TPZMHMixedMeshControl::CreateFluxElements() {
             SetSubdomain(cel, domain);
             if(gel->MaterialId() == fSkeletonMatId)
             {
+                intel->PRefine(fpOrderSkeleton);
                 intel->SetPreferredOrder(fpOrderSkeleton);
             }
             continue;
@@ -1290,4 +1292,23 @@ void TPZMHMixedMeshControl::InitializeLagrangeLevels()
         }
     }
 
+}
+
+void TPZMHMixedMeshControl::ChangeInternalOrder(TPZCompMesh *cmesh, int pOrder) {
+    int64_t nel = cmesh->NElements();
+    for (int64_t el = 0; el < nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        if (!cel) continue;
+
+        TPZGeoEl *gel = cel->Reference();
+        if (gel->Dimension() != cmesh->Dimension()) {
+            continue;
+        }
+        int nc = cel->NConnects();
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cel);
+        if (!intel) DebugStop();
+
+        intel->ForceSideOrder(gel->NSides() - 1, pOrder);
+    }
+    cmesh->ExpandSolution();
 }

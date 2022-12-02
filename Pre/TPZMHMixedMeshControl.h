@@ -154,6 +154,8 @@ public:
     // set the Lagrange levels of the connects for the atomic meshes
     void InitializeLagrangeLevels();
     
+    void ChangeInternalOrder(TPZCompMesh *cmesh, int pOrder);
+    
 protected:
     
    
