@@ -138,7 +138,7 @@ int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
                                                             TPZFMatrix<CTVar> &vecs,
                                                             bool calcVecs)
 {
-  const int nrows = A.Rows();
+  int nrows = A.Rows();
   if(nrows != A.Cols()){
     PZError<<__PRETTY_FUNCTION__;
     PZError<<"\nERROR: mat is not a square matrix\n";
@@ -155,21 +155,21 @@ int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
   }
 #endif
 
-  const char job = 'E';// compute eigenvalues only
-  const char compz = 'N';//do not compute Schur vectors
-  const int &n = nrows;//order of the matrix
+  char job = 'E';// compute eigenvalues only
+  char compz = 'N';//do not compute Schur vectors
+  int &n = nrows;//order of the matrix
   //ilo and ihi should be 1 and N if the matrix wasnt computed by ZGEBAL
-  const int ilo = 1;
-  const int ihi = n;
+  int ilo = 1;
+  int ihi = n;
   auto H = A;//the matrix (is unspecified on exit)
-  const int ldh = n;//leading dimension of the array
+  int ldh = n;//leading dimension of the array
   //WR is set only for real types
   //WI is set only for real types
   //W is set only for complex types
   
   TPZVec<TVar> Z(nrows);//not referenced since compz=N
-  const int ldz{1};//leading dimension of Z
-  const int lwork{11*nrows};//dimension of work
+  int ldz{1};//leading dimension of Z
+  int lwork{11*nrows};//dimension of work
   TPZVec<TVar> work(lwork);
   int info;
 
@@ -219,10 +219,10 @@ int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
 
   if(!calcVecs) return info;
   
-  const int mm = n;
-  const char side{'R'};//compute right eigenvectors only
-  const char eigsrc{'Q'};//eigenvalues were found from zhseqr
-  const char initv{'N'};//no initial vectors
+  int mm = n;
+  char side{'R'};//compute right eigenvectors only
+  char eigsrc{'Q'};//eigenvalues were found from zhseqr
+  char initv{'N'};//no initial vectors
   //select has been set already
   //n has been set already
   H=A;
@@ -231,9 +231,9 @@ int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
   //WI is set only for real types
   //W is set only for complex types
   TPZVec<TVar> vl(mm);//not referenced
-  const int ldvl{1};//will be ignored
+  int ldvl{1};//will be ignored
   //vr will be the eigenvectors
-  const int ldvr{n};//leading dimension of vr
+  int ldvr{n};//leading dimension of vr
   int m;
   //mm has already been set
   const int worksize = std::is_same_v<TVar,RTVar> ? n*n+2*n : n*n;
