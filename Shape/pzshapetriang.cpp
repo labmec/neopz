@@ -62,7 +62,23 @@ namespace pzshape {
         }
         
     }
-    
+
+void TPZShapeTriang::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
+{
+    int nshape = (order-2)*(order-1)/2;
+    if(shapeorders.Rows() != nshape) DebugStop();
+    int nsh=1;
+    int ish = 0;
+    for (int i=3; i<=order; i++) {
+        for (int j=0; j<nsh; j++) {
+            shapeorders(ish,0) = i;
+            shapeorders(ish,1) = i;
+            ish++;
+        }
+        nsh++;
+    }
+}
+
     
     void TPZShapeTriang::SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders)
     {
@@ -79,18 +95,7 @@ namespace pzshape {
         }
         else if (side == 6)
         {
-            int nshape = (order-2)*(order-1)/2;
-            if(shapeorders.Rows() != nshape) DebugStop();
-            int nsh=1;
-            int ish = 0;
-            for (int i=3; i<=order; i++) {
-                for (int j=0; j<nsh; j++) {
-                    shapeorders(ish,0) = i;
-                    shapeorders(ish,1) = i;
-                    ish++;
-                }
-                nsh++;
-            }
+            InternalShapeOrder(id, order, shapeorders);
         }
         else 
         {

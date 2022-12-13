@@ -80,7 +80,40 @@ namespace pzshape {
 
     }
     
+void TPZShapeTetra::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
+{
+    int totsum = 0,sum;
+    int i;
+    for(i=0;i<order-3;i++) {
+        sum = (i+1)*(i+2) / 2;
+        totsum += sum;
+    }
+    int nshape = totsum;
     
+    if (shapeorders.Rows() != nshape) {
+        DebugStop();
+    }
+    int count = 0;
+    int ord = order-3;
+    for (int i=0;i<ord;i++) {
+        for (int j=0;j<ord;j++) {
+            for (int k=0;k<ord;k++) {
+                int a = i;
+                int b = j;
+                int c = k;
+                int soma = a+b+c;
+                if( soma < ord ) { // Duvida
+                    shapeorders(count,0) = 4 + soma;
+                    shapeorders(count,1) = 4 + soma;
+                    shapeorders(count,2) = 4 + soma;
+                    count++;
+                }
+            }
+        }
+    }
+
+}
+
     void TPZShapeTetra::SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders)
     {
         //DebugStop();

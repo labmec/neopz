@@ -210,7 +210,14 @@ namespace pzshape {
         }
     }
     
-    
+void TPZShapeLinear::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
+{
+    int nshape = (order-1);
+    for (int i=0; i<nshape; i++) {
+        shapeorders(i,0) = i+2;
+    }
+}
+
     void TPZShapeLinear::SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders)
     {
         DebugStop();

@@ -10,9 +10,8 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 #include "tpzcube.h"
-#include "pzshapelinear.h"
-#include "pzshapequad.h"
 #include "pzshtmat.h"
+#include "pzshapelinear.h"
 
 #include "fadType.h"
 
@@ -30,11 +29,13 @@ namespace pzshape {
 		
 	public:
 		
-       // void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-
-        static void ShapeOrder(const TPZVec<int64_t> &id, const TPZVec<int> &order, TPZGenMatrix<int> &shapeorders);//, TPZVec<int64_t> &sides
-        static void SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders);
         
+        /**
+         * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
+         */
+        static void InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders);
+
+		
         template<class T>
          static void ShapeCorner(const TPZVec<T> &pt, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi)
          {
@@ -165,9 +166,9 @@ namespace pzshape {
 
         }
         
-	public:
-		
-	
+    public:
+        
+    
 
         template<class T>
         static void ShapeInternal(TPZVec<T> &x, int order,TPZFMatrix<T> &phi,
@@ -204,6 +205,8 @@ namespace pzshape {
             }
         }
         
+
+
 		
 	public:
 		/**
@@ -221,7 +224,7 @@ namespace pzshape {
 		 * @return number of shape functions
 		 */
 		static int NShapeF(const TPZVec<int> &order);
-        
+//        static void ShapeInternal(int side, TPZVec<REAL> &x, int order, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 
 	};
 	

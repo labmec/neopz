@@ -48,12 +48,14 @@ struct TPZShapeHCurl
     * @param[out] indexVecShape Indicates the pair vector/H1 shape function that will 
     be used for constructing the HCurl functions
     */
-    static void StaticIndexShapeToVec(const TPZVec<int>& connectOrder,
-                                      const TPZVec<int64_t>& firstH1ShapeFunc,
-                                      const TPZVec<int> &sidesH1Ord,
-                                      const TPZVec<int64_t>& nodeIds,
-                                      TPZVec<unsigned int>& shapeCountVec,
-                                      TPZVec<std::pair<int,int64_t>> & indexVecShape);
+//    static void StaticIndexShapeToVec(const TPZVec<int>& connectOrder,
+//                                      const TPZVec<int64_t>& firstH1ShapeFunc,
+//                                      const TPZVec<int> &sidesH1Ord,
+//                                      const TPZVec<int64_t>& nodeIds,
+//                                      TPZVec<unsigned int>& shapeCountVec,
+//                                      TPZVec<std::pair<int,int64_t>> & indexVecShape);
+    
+    static void StaticIndexShapeToVec(TPZShapeData &data);
 
     /**
        @brief Internal method for calculating the needed order of H1 functions

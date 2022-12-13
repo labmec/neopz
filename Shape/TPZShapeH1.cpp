@@ -108,155 +108,158 @@ void TPZShapeH1<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFM
 
         }
     }
-    phi = data.fPhi;
-    dphi = data.fDPhi;
 }
-*/
+
+using namespace pzshape;
 
 template <class TSHAPE>
-template <class T>
-void TPZShapeH1<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi)
+void TPZShapeH1<TSHAPE>::ShapeOrders(TPZGenMatrix<int> &shapeorders, TPZShapeData &data)
 {
-    TSHAPE::ShapeCorner(pt,phi,dphi);
-    
-    if(data.fPhi.Rows() == TSHAPE::NCornerNodes) return;
-    
-    const int dim = TSHAPE::Dimension;
-    
-    if constexpr (std::is_same_v<FADREAL, T>)
-    {
-        if(pt[0].size() != dim) DebugStop();
+    int nshape = data.fPhi.Rows();
+    if(shapeorders.Rows() != nshape || shapeorders.Cols() != 3) DebugStop();
+    for(int i = 0; i < TSHAPE::NCornerNodes; i++) {
+        shapeorders(i,0) = 1;
+        shapeorders(i,1) = 0;
+        shapeorders(i,2) = 0;
     }
-    const int NSides = TSHAPE::NSides;
-    const int NCorners = TSHAPE::NCornerNodes;
-
-    TPZFNMatrix<NSides*dim,T> phiblend(NSides,1),dphiblend(dim,NSides);
-    for(int nod=0; nod<NCorners; nod++)
-    {
-        phiblend(nod,0) = phi(nod,0);
-        for(int d=0; d< dim; d++)
-        {
-            dphiblend(d,nod) = dphi(d,nod);
+    if(TSHAPE::Dimension < 1) {
+        if(TSHAPE::NCornerNodes != nshape) DebugStop();
+        return;
+    }
+    int count = TSHAPE::NCornerNodes;
+    int numoned = TSHAPE::NumSides(1);
+    for(int side = TSHAPE::NCornerNodes; side < TSHAPE::NCornerNodes+numoned; side++) {
+        int nshape = data.fH1NumConnectShape[side-TSHAPE::NCornerNodes];
+        TPZGenMatrix<int> locorder(nshape,3);
+        const int nsidecorners = TSHAPE::NContainedSides(side);
+        TPZManVector<int64_t,8> ids(nsidecorners,0);
+        for(int i=0; i<nsidecorners; i++) {
+            int locid = TSHAPE::ContainedSideLocId(side,i);
+        }
+        int order = data.fH1ConnectOrders[side-TSHAPE::NCornerNodes];
+        TPZShapeLinear::InternalShapeOrder(ids, order, locorder);
+        for(int ish=0; ish<nshape; ish++) {
+            for(int i=0; i<3; i++) {
+                shapeorders(count,i) = locorder(ish,i);
+            }
+            count++;
         }
     }
-    TSHAPE::ShapeGenerating(pt, phiblend, dphiblend);
-    int shape = NCorners;
-    for (int side = NCorners; side<NSides ; side++)
-    {
-        int numshape = TSHAPE::NConnectShapeF(side, data.fH1ConnectOrders[side-NCorners]);
-        if(numshape == 0) continue;
-        
-        phi(shape,0) = phiblend(side,0);
-        for(int d=0; d<dim; d++) dphi(d,shape) = dphiblend(d,side);
-        shape++;
-        
-        if(numshape == 1) continue;
-        
-        TPZTransform<REAL> &transformREAL = data.fSideTransforms[side - NCorners];
-        TPZTransform<T> transform(transformREAL.Rows(),transformREAL.Cols());
-        transform.CopyFrom(transformREAL);
-//        for (int i=0; i<transformREAL.Rows(); i++) {
-//            transform.Sum()(i,0) = FADREAL(dim,transformREAL.Sum()(i,0));
-//            for (int j= 0; j<transformREAL.Cols(); j++) {
-//                transform.Mult()(i,j) = FADREAL(dim,transformREAL.Mult()(i,j));
-//            }
-//        }
-        int sidedim = TSHAPE::SideDimension(side);
-        TPZFNMatrix<100,T> phin(numshape,1), dphin(sidedim,numshape), dphiaux(TSHAPE::Dimension,numshape),
-            dphiaux2(TSHAPE::Dimension,numshape);
-        TPZManVector<T,3> outvec(sidedim);
-        transform.Apply(pt, outvec);
-//        dphin.Zero();
-        ShapeInternal(side, outvec,data.fH1ConnectOrders[side - NCorners], phin, dphin);
-        if(sidedim < 3)
-        {
-            T alpha = 1.;
-            T beta = 0.;
-            constexpr int opt = 1;
-            TPZFNMatrix<3,T> auxmat(1,1,0);
-            TPZFMatrix<T> &mult = transform.Mult();
-            mult.MultAdd(dphin, auxmat, dphiaux,alpha,beta,opt);
-            
-            for (int i = 1; i < numshape; i++) {
-                phi(shape,0) = phiblend(side,0)*phin(i,0);
-                for(int xj=0;xj<TSHAPE::Dimension;xj++) {
-                    dphi(xj,shape) = dphiblend(xj,side)*phin(i,0)+phiblend(side,0)*dphiaux(xj,i);
-                }
-                shape++;
+    if(TSHAPE::Dimension < 2) {
+        if(count != nshape) DebugStop();
+        return;
+    }
+    int numtwod = TSHAPE::NumSides(2);
+    for(int side = TSHAPE::NCornerNodes+numoned; side < TSHAPE::NCornerNodes+numoned+numtwod; side++) {
+        int nshape = data.fH1NumConnectShape[side-TSHAPE::NCornerNodes];
+        TPZGenMatrix<int> locorder(nshape,3);
+        const int nsidecorners = TSHAPE::NContainedSides(side);
+        TPZManVector<int64_t,8> ids(nsidecorners,0);
+        for(int i=0; i<nsidecorners; i++) {
+            int locid = TSHAPE::ContainedSideLocId(side,i);
+        }
+        int order = data.fH1ConnectOrders[side-TSHAPE::NCornerNodes];
+        if(TSHAPE::Type(side) == EQuadrilateral) {
+            TPZShapeQuad::InternalShapeOrder(ids, order, locorder);
+        } else if(TSHAPE::Type(side) == ETriangle) {
+            TPZShapeTriang::InternalShapeOrder(ids, order, locorder);
+        } else {
+            DebugStop();
+        }
+        for(int ish=0; ish<nshape; ish++) {
+            for(int i=0; i<3; i++) {
+                shapeorders(count,i) = locorder(ish,i);
             }
-        } else
-        {
-            for (int i = 1; i < numshape; i++) {
-                phi(shape,0) = phiblend(side,0)*phin(i,0);
-                for(int xj=0;xj<TSHAPE::Dimension;xj++) {
-                    dphi(xj,shape) = dphiblend(xj,side)*phin(i,0)+phiblend(side,0)*dphin(xj,i);
-                }
-                shape++;
-            }
-
+            count++;
         }
     }
-    if constexpr (std::is_same_v<REAL, T>)
-    {
-        data.fPhi = phi;
-        data.fDPhi = dphi;
+    if(TSHAPE::Dimension == 3) {
+        int side = TSHAPE::NSides - 1;
+        int nshape = data.fH1NumConnectShape[side-TSHAPE::NCornerNodes];
+        TPZGenMatrix<int> locorder(nshape,3);
+        const int nsidecorners = TSHAPE::NContainedSides(side);
+        TPZManVector<int64_t,8> ids(nsidecorners,0);
+        for(int i=0; i<nsidecorners; i++) {
+            int locid = TSHAPE::ContainedSideLocId(side,i);
+        }
+        int order = data.fH1ConnectOrders[side-TSHAPE::NCornerNodes];
+        TSHAPE::InternalShapeOrder(ids, order, locorder);
+        for(int ish=0; ish<nshape; ish++) {
+            for(int i=0; i<3; i++) {
+                shapeorders(count,i) = locorder(ish,i);
+            }
+            count++;
+        }
     }
+    if(count != nshape) DebugStop();
+}
+
+
+using namespace pzshape;
+
+template<class TSHAPE>
+static void Init(const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZShapeData &data)
+{
+    TPZShapeH1<TSHAPE>::Initialize(ids, connectorders, data);
 }
 
 template <class TSHAPE>
-TPZTransform<REAL> TPZShapeH1<TSHAPE>::GetSideTransform(const int side, int trans_id) {
-    
-    MElementType type_side = TSHAPE::Type(side);
-    /// this is the generic transform mapping the interior point to the side
-    TPZTransform<REAL> TransElToSide = TSHAPE::TransformElementToSide(side);
-    
-    TPZTransform<REAL> TransParametric(1,1);
-    switch (type_side) {
-        case EOned:
-        {
-            TransParametric = pzshape::TPZShapeLinear::ParametricTransform(trans_id);
+void TPZSideShapeH1<TSHAPE>::Initialize(const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZShapeData &data) {
+    if(fSide == TSHAPE::NSides-1) {
+        TPZShapeH1<TSHAPE>::Initialize(ids, connectorders, data);
+    } else {
+        switch (TSHAPE::Type(fSide)) {
+            case EPoint:
+                Init<TPZShapePoint>(ids, connectorders, data);
+                break;
+            case EOned:
+                Init<TPZShapeLinear>(ids, connectorders, data);
+                break;
+            case ETriangle:
+                Init<TPZShapeTriang>(ids, connectorders, data);
+                break;
+            case EQuadrilateral:
+                Init<TPZShapeQuad>(ids, connectorders, data);
+                break;
+            default:
+                DebugStop();
+                break;
         }
-            break;
-        case EQuadrilateral:
-        {
-            TransParametric = pzshape::TPZShapeQuad::ParametricTransform(trans_id);
-        }
-            break;
-        case ETriangle:
-        {
-            TransParametric = pzshape::TPZShapeTriang::ParametricTransform(trans_id);
-        }
-            break;
-        case ECube:
-        case ETetraedro:
-        case EPrisma:
-        case EPiramide:
-            break;
-        default:
-#ifdef PZDEBUG
-            DebugStop();
-#endif
-            break;
     }
-    //when dimension == 3 there is no permutation, because 3D elements are not supposed to overlap
-    if ((side == TSHAPE::NSides - 1) && TSHAPE::Dimension>2) {
+    
         
-        return TransElToSide;
-    }
-    else{
-        TPZFMatrix<REAL> resul_mult;
-        TransParametric.Mult().Multiply(TransElToSide.Mult(), resul_mult);
-        TransElToSide.Mult() = resul_mult;
-        TPZFMatrix<REAL> res1;
-        TransParametric.Mult().Multiply( TransElToSide.Sum(), res1);
-        TransElToSide.Sum() =res1;
-        TransElToSide.Sum() += TransParametric.Sum();
-        
-    }
-    
-    return TransElToSide;
     
 }
+    
+template <class TSHAPE>
+void TPZSideShapeH1<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data) {
+    if(fSide == TSHAPE::NSides-1) {
+        TPZShapeH1<TSHAPE>::Shape(pt, data);
+    } else {
+        switch (TSHAPE::Type(fSide)) {
+            case EPoint:
+                TPZShapeH1<TPZShapePoint>::Shape(pt, data);
+                break;
+            case EOned:
+                TPZShapeH1<TPZShapeLinear>::Shape(pt, data);
+                break;
+            case ETriangle:
+                TPZShapeH1<TPZShapeTriang>::Shape(pt, data);
+                break;
+            case EQuadrilateral:
+                TPZShapeH1<TPZShapeQuad>::Shape(pt, data);
+                break;
+            default:
+                DebugStop();
+                break;
+        }
+    }
+    
+        
+    
+
+}
+
 
 template <class TSHAPE>
 void TPZShapeH1<TSHAPE>::ComputeTransforms(const TPZVec<int64_t> &id,  TPZVec<TPZTransform<REAL> > &transvec) {
@@ -341,69 +344,25 @@ template
 struct TPZShapeH1<pzshape::TPZShapePiram>;
 
 template
-void TPZShapeH1<pzshape::TPZShapePoint>::Shape(const TPZVec<FADREAL> &pt, TPZShapeData &data, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeLinear>::Shape(const TPZVec<FADREAL> &pt, TPZShapeData &data, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeTriang>::Shape(const TPZVec<FADREAL> &pt, TPZShapeData &data, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeQuad>::Shape(const TPZVec<FADREAL> &pt, TPZShapeData &data, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeCube>::Shape(const TPZVec<FADREAL> &pt, TPZShapeData &data, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapePrism>::Shape(const TPZVec<FADREAL> &pt, TPZShapeData &data, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeTetra>::Shape(const TPZVec<FADREAL> &pt, TPZShapeData &data, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapePiram>::Shape(const TPZVec<FADREAL> &pt, TPZShapeData &data, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
+struct TPZSideShapeH1<pzshape::TPZShapePoint>;
 
 template
-void TPZShapeH1<pzshape::TPZShapePoint>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeLinear>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeTriang>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeQuad>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeCube>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapePrism>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeTetra>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapePiram>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+struct TPZSideShapeH1<pzshape::TPZShapeLinear>;
 
 template
-void TPZShapeH1<pzshape::TPZShapePoint>::SideShape(int side, const TPZVec<REAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeLinear>::SideShape(int side, const TPZVec<REAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeQuad>::SideShape(int side, const TPZVec<REAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeTriang>::SideShape(int side, const TPZVec<REAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeCube>::SideShape(int side, const TPZVec<REAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeTetra>::SideShape(int side, const TPZVec<REAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapePrism>::SideShape(int side, const TPZVec<REAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapePiram>::SideShape(int side, const TPZVec<REAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+struct TPZSideShapeH1<pzshape::TPZShapeTriang>;
 
 template
-void TPZShapeH1<pzshape::TPZShapePoint>::SideShape(int side, const TPZVec<FADREAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
+struct TPZSideShapeH1<pzshape::TPZShapeQuad>;
+
 template
-void TPZShapeH1<pzshape::TPZShapeLinear>::SideShape(int side, const TPZVec<FADREAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
+struct TPZSideShapeH1<pzshape::TPZShapeTetra>;
+
 template
-void TPZShapeH1<pzshape::TPZShapeQuad>::SideShape(int side, const TPZVec<FADREAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
+struct TPZSideShapeH1<pzshape::TPZShapeCube>;
+
 template
-void TPZShapeH1<pzshape::TPZShapeTriang>::SideShape(int side, const TPZVec<FADREAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
+struct TPZSideShapeH1<pzshape::TPZShapePrism>;
+
 template
-void TPZShapeH1<pzshape::TPZShapeCube>::SideShape(int side, const TPZVec<FADREAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapeTetra>::SideShape(int side, const TPZVec<FADREAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapePrism>::SideShape(int side, const TPZVec<FADREAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
-template
-void TPZShapeH1<pzshape::TPZShapePiram>::SideShape(int side, const TPZVec<FADREAL> &point, const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
+struct TPZSideShapeH1<pzshape::TPZShapePiram>;
