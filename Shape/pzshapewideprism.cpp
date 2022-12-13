@@ -1,9 +1,9 @@
 /**
  * @file
- * @brief Contains the implementation of the TPZShapePrism methods.
+ * @brief Contains the implementation of the TPZShapeWidePrism methods.
  */
 
-#include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"
@@ -17,14 +17,14 @@ using namespace std;
 /// groups all classes dedicated to the computation of shape functions
 namespace pzshape {
 	
-void TPZShapePrism::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
+void TPZShapeWidePrism::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
 {
-    int nshape = (order-2)*(order-1)*(order-1)/2;
+    int nshape = (order-1)*(order)*(order-1)/2;
     if (shapeorders.Rows() != nshape) {
         DebugStop();
     }
     int count = 0;
-    int ord1 = order - 2;
+    int ord1 = order - 1;
     int ord2 = order - 1;
     for (int i=0; i<ord1; i++) {
         for (int j=0; j<ord1; j++) {
@@ -46,7 +46,7 @@ void TPZShapePrism::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZ
 }
 
 	
-	int TPZShapePrism::NConnectShapeF(int side, int order) {
+	int TPZShapeWidePrism::NConnectShapeF(int side, int order) {
 		if(side<6) return 1;//0 a 4
 		if(side<15) return (order-1);//6 a 14
 		if(side==15 || side==19) {
@@ -56,13 +56,13 @@ void TPZShapePrism::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZ
 			return ((order-1)*(order-1));
 		}
 		if(side==20) {
-			return ((order-2)*(order-1)*(order-1)/2);
+			return ((order-1)*(order)*(order-1)/2);
 		}
-		PZError << "TPZShapePrism::NConnectShapeF, bad parameter side " << side << endl;
+		PZError << "TPZShapeWidePrism::NConnectShapeF, bad parameter side " << side << endl;
 		return 0;
 	}
 	
-	int TPZShapePrism::NShapeF(const TPZVec<int> &order) {
+	int TPZShapeWidePrism::NShapeF(const TPZVec<int> &order) {
 		int in,res=NCornerNodes;
 		for(in=NCornerNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NCornerNodes]);
 		return res;

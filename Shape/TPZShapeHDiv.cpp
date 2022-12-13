@@ -145,7 +145,8 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
         vecpermute[count] = count;
     }
     TPZGenMatrix<int> shapeorders(nshape,3);
-    TSHAPE::ShapeOrder(data.fCornerNodeIds, data.fH1ConnectOrders, shapeorders);
+    TPZShapeH1<TSHAPE>::ShapeOrders(shapeorders,data);
+//    TSHAPE::ShapeOrder(data.fCornerNodeIds, data.fH1ConnectOrders, shapeorders);
 
 //    int nshapeflux = NFluxShapeF();
 //    IndexVecShape.Resize(nshapeflux);

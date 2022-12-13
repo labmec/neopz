@@ -87,6 +87,15 @@ namespace pzshape{
             shapeorders(0,0) = 0;
         }
         
+        /**
+         * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
+         */
+        static void InternalShapeOrder(const TPZVec<int64_t> &id, const TPZVec<int> &order, TPZGenMatrix<int> &shapeorders)
+        {
+            shapeorders(0,0) = 0;
+        }
+        
+
 
 		/**
 		 * @brief Number of shapefunctions of the connect associated with the side, considering the order

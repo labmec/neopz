@@ -89,6 +89,8 @@ virtual void InitMaterialData(TPZMaterialData &data) override;
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 	
 	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
+    
+    
 };
 
 

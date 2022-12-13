@@ -1,10 +1,10 @@
 /**
  * @file
- * @brief Contains TPZShapePrism class which implements the shape functions of a prism element.
+ * @brief Contains TPZShapeWidePrism class which implements the shape functions of a prism element.
  */
 
-#ifndef SHAPEPRISMHPP
-#define SHAPEPRISMHPP
+#ifndef SHAPEWIDEPRISMHPP
+#define SHAPEWIDEPRISMHPP
 
 #include "pzfmatrix.h"
 #include "pzstack.h"
@@ -23,7 +23,7 @@ namespace pzshape {
 	/**
 	 * The range of the master element is \f$ [-1,1] \f$ for the \f$ z \f$ direction and \f$ [0,1] \f$ for the triangular plane
 	 */
-	class TPZShapePrism : public pztopology::TPZPrism {
+	class TPZShapeWidePrism : public pztopology::TPZPrism {
 		
 	public:
 		
@@ -188,7 +188,7 @@ namespace pzshape {
                                   TPZFMatrix<REAL> &dphi)
         {
             if(order < 3) return;
-            int ord1 = order-2;
+            int ord1 = order-1;
             int ord2 = order-1;
             
             TPZFNMatrix<20,REAL> phi0(ord1,1),phi1(ord1,1),phi2(ord2,1),
@@ -215,7 +215,7 @@ namespace pzshape {
                                   TPZFMatrix<FADREAL> &dphi)
         {
             if(order < 3) return;
-            int ord1 = order-2;
+            int ord1 = order-1;
             int ord2 = order-1;
             
             TPZFNMatrix<20,FADREAL> phi0(ord1,1),phi1(ord1,1),phi2(ord2,1),
