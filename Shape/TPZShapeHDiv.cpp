@@ -11,6 +11,13 @@
 #include "pzgeoel.h"
 #include "pzgnode.h"
 #include "TPZShapeData.h"
+#include "pzlog.h"
+
+#ifdef PZ_LOG
+static TPZLogger logger("pz.shapehdiv");
+#endif
+
+
 
 template<class TSHAPE>
 TPZShapeHDiv<TSHAPE>::TPZShapeHDiv()
@@ -61,7 +68,15 @@ void TPZShapeHDiv<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
         if (data.fHDivConnectOrders[i] > maxOrder){
             DebugStop();
         }
-    }    
+    }
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
+    {
+        std::stringstream sout;
+        data.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 }
 
 template<class TSHAPE>
@@ -146,6 +161,14 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
     }
     TPZGenMatrix<int> shapeorders(nshape,3);
     TPZShapeH1<TSHAPE>::ShapeOrders(shapeorders,data);
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
+    {
+        std::stringstream sout;
+        shapeorders.Print("shapeorders",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 //    TSHAPE::ShapeOrder(data.fCornerNodeIds, data.fH1ConnectOrders, shapeorders);
 
 //    int nshapeflux = NFluxShapeF();

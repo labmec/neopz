@@ -17,7 +17,10 @@ struct TPZShapeH1
     template<class T>
     static void Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi);
 
-    static void Shape(const TPZVec<REAL> &pt, TPZShapeData &data);
+    static void Shape(const TPZVec<REAL> &pt, TPZShapeData &data)
+    {
+        TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);
+    }
 
     static void ShapeOrders(TPZGenMatrix<int> &shapeorders, TPZShapeData &data);
     
@@ -34,6 +37,9 @@ struct TPZSideShapeH1
     }
     void Initialize(const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZShapeData &data);
     
+    template<class T>
+    static void Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi);
+
     void Shape(const TPZVec<REAL> &pt, TPZShapeData &data);
 
 };

@@ -19,6 +19,7 @@ set(headers
     pzshapelinear.h
     pzshapepiramHdiv.h
     pzshapeprism.h
+	pzshapewideprism.h
     pzshapetetra.h
     TPZShapeH1.h
     TPZShapeHDiv.h
@@ -41,6 +42,7 @@ set(sources
     pzshapepiram.cpp
     pzshapepiramHdiv.cpp
     pzshapeprism.cpp
+	pzshapewideprism.cpp
     pzshapequad.cpp
     pzshapetetra.cpp
     pzshapetriang.cpp
