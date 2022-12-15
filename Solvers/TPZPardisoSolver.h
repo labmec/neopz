@@ -96,6 +96,9 @@ public:
     void ResetParam();
     //! Whether the param array has been set manually.
     [[nodiscard]] bool HasCustomSettings() const {return fCustomSettings;}
+
+    //! Returns permutation vec used by pardiso (can be obtained by param[4]=2)
+    TPZVec<long long> &GetPermutationVec() {return fPermutation;}
 protected:
     /// Compute the `mtype` parameter of the pardiso_64 call
     long long MatrixType();
