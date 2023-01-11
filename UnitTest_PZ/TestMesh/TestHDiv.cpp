@@ -1149,11 +1149,6 @@ void CheckShapeOrder(int order)
                 firstshape += tshape::NConnectShapeF(lowerdimensionsides[i], order);
             }
             
-            /// Compute the ids associated with the nodes of the side
-            TPZManVector<int64_t,8> locids(tshape::NSideNodes(is));
-            for (int i=0; i<locids.size(); i++) {
-                locids[i] = ids[tshape::SideNodeLocId(is, i)];
-            }
             if(sidetype == EPiramide && sidedim == 3)
             {
                 for(int shape = 0; shape < nsideshape; shape++)
@@ -1205,12 +1200,11 @@ void CheckShapeOrder(int order)
                         point[2] = c+sidecenter[2];
                     }
 
-                    TPZManVector<int,27> locorders(tshape::NContainedSides(is)-tshape::NSideNodes(is),order);
                     TPZFNMatrix<200,REAL> philegendre(numlegendre,1,0.);
                     TPZFNMatrix<200,REAL> dphi(sidedim,nsideshape+firstshape), dphilegendre(1,numlegendre,0.), phi(nsideshape+firstshape,1,0.);
                     TPZSideShapeH1<tshape> h1(is);
                     TPZShapeData data;
-                    h1.Initialize(locids, orders, data);
+                    h1.Initialize(ids, orders, data);
                     h1.Shape(point, data);
                     phi = data.fPhi;
                     dphi = data.fDPhi;
