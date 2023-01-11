@@ -6,7 +6,7 @@ function(enable_mkl target)
   if(NOT MKL_THREAD_MODEL AND TARGET mkl::mkl_intel_32bit_tbb_dyn)
     set(MKL_THREAD_MODEL "tbb" CACHE STRING "${MKL_THREAD_MODEL_TYPES}")
   else()
-    set(MKL_THREAD_MODEL "omp" CACHE STRING "${MKL_THREAD_MODEL_TYPES}")
+    set(MKL_THREAD_MODEL "tbb" CACHE STRING "${MKL_THREAD_MODEL_TYPES}")
     endif()
   
   if(NOT MKL_THREAD_MODEL STREQUAL "tbb" AND
@@ -35,5 +35,5 @@ function(enable_mkl target)
 
   set(USING_LAPACK ON CACHE PATH "Whether the LAPACK library will be linked in" FORCE)
   #TODOWIN32: should we do something with mkl_rt on windows?
-  mark_as_advanced(MKL_THREAD_MODEL)
+#  mark_as_advanced(MKL_THREAD_MODEL)
 endfunction()
