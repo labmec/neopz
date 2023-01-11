@@ -426,6 +426,10 @@ static void Init(const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, T
 
 template <class TSHAPE>
 void TPZSideShapeH1<TSHAPE>::Initialize(const TPZVec<int64_t> &ids, const TPZVec<int> &connectorders, TPZShapeData &data) {
+#ifdef PZDEBUG
+    if(ids.size() != TSHAPE::NCornerNodes) DebugStop();
+    if(connectorders.size() != TSHAPE::NSides-TSHAPE::NCornerNodes) DebugStop();
+#endif
     if(fSide == TSHAPE::NSides-1) {
         TPZShapeH1<TSHAPE>::Initialize(ids, connectorders, data);
     } else {
