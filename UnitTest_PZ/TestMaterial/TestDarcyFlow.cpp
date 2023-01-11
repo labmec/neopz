@@ -71,7 +71,7 @@ static void computeStiffnessHybrid(TPZFMatrix<STATE> &ek)
     {
         REAL weight;
         integrule.Point(p, pt, weight);
-        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[0], DataVec[0].fPhi, DataVec[0].fDPhi);
+        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[1], DataVec[1].fPhi, DataVec[1].fDPhi);
         int degree = 0;
         pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[2].fPhi,DataVec[2].fDPhi,shtype);
         pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[3].fPhi,DataVec[3].fDPhi,shtype);
