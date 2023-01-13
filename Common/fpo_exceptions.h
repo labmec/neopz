@@ -31,7 +31,7 @@
 
 #include <fenv.h>
 
-#ifdef MACOSX
+#ifdef MACOSX2
 
 
 inline int
