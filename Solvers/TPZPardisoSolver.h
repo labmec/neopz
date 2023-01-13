@@ -73,6 +73,9 @@ public:
        @note  This method should only be called by the userbefore a matrix has been set.
     */
     void SetMatrixType(MSystemType systemtype, MProperty prop);
+
+    //! Changes only PARDISO's matrix type param
+    void SetMatrixType(long long type) {fMatrixType = type;} 
     /** @brief Sets the message level of the pardiso solver.
      Anything different than zero results in statistical information being printed.*/
     void SetMessageLevel(int lvl);
@@ -99,6 +102,9 @@ public:
 
     //! Returns permutation vec used by pardiso (can be obtained by param[4]=2)
     TPZVec<long long> &GetPermutationVec() {return fPermutation;}
+
+    //! Releases all internal memory from PARDISO solver
+    void FreePardisoMemory();
 protected:
     /// Compute the `mtype` parameter of the pardiso_64 call
     long long MatrixType();
