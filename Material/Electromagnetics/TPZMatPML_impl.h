@@ -86,29 +86,22 @@ void TPZMatPML<TMAT>::ComputeSParameters(const TPZVec<REAL> &x,
                                          CSTATE &sy,
                                          CSTATE &sz) const
 {
-  /*****************CALCULATE S PML PARAMETERS*************************
-   * In the current application, the waveguide's cross section is always
-   * in the xy-plane. Therefore, sz will always be unity, and omitted for
-   * the folllowing calculations. The same principle applies, for instance,
-   * for the z-component of the hcurl functions, the x and y components of
-   * their curl and so on.
-   */
+  /*************CALCULATE S PML PARAMETERS*************/
 
-  sx = 1;
-  sy = 1;
-  sz = 1;
   static constexpr CSTATE imag{0,1};
   if(fAttX){
-    sx = 1. - imag * fAlphaMaxX * ((x[0]-fPmlBeginX) / fDX )
-      * ((x[0]-fPmlBeginX) / fDX );
+    const auto dx = ((x[0]-fPmlBeginX) / fDX );
+    sx = 1. - imag * fAlphaMaxX * dx * dx;
   }
   if(fAttY){
-    sy = 1. - imag * fAlphaMaxY * ((x[1]-fPmlBeginY) / fDY ) *
-      ((x[1]-fPmlBeginY) / fDY );
+    const auto dy = ((x[1]-fPmlBeginY) / fDY );
+    sy = 1. - imag * fAlphaMaxY * dy * dy;
+      
   }
   if(fAttZ){
-    sz = 1. - imag * fAlphaMaxZ * ((x[2]-fPmlBeginZ) / fDZ ) *
-      ((x[2]-fPmlBeginZ) / fDZ );
+    const auto dz = ((x[2]-fPmlBeginZ) / fDZ );
+    sz = 1. - imag * fAlphaMaxZ * dz * dz;
+      
   }
 }
 
