@@ -1,24 +1,6 @@
 
 #include "TPZAnalyticSolution.h"
 
-#include "pzgmesh.h"
-#include "TPZGenGrid2D.h"
-#include "pzgeoel.h"
-#include "TPZRefPatternTools.h"
-#include "pzcheckgeom.h"
-#include "TPZVTKGeoMesh.h"
-
-#include "TPZLinearAnalysis.h"
-#include "pzstepsolver.h"
-
-#include "TPZMaterial.h"
-#include "pzbuildmultiphysicsmesh.h"
-
-#include "TPZSSpStructMatrix.h"
-
-#ifndef USING_MKL
-#include "pzskylstrmatrix.h"
-#endif
 
 
 #include "pzlog.h"
