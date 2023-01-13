@@ -56,7 +56,7 @@ TPZPardisoSolver<TVar>::TPZPardisoSolver(MSystemType systemtype,
 
 
 template<class TVar>
-TPZPardisoSolver<TVar>::~TPZPardisoSolver()
+void TPZPardisoSolver<TVar>::FreePardisoMemory()
 {
 #ifdef USING_MKL
     long long phase = -1;
@@ -73,7 +73,15 @@ TPZPardisoSolver<TVar>::~TPZPardisoSolver()
     if (Error) {
         DebugStop();
     }
+    fPardisoInitialized = false;
+    mkl_verbose(0);
 #endif
+}
+
+template<class TVar>
+TPZPardisoSolver<TVar>::~TPZPardisoSolver()
+{
+    FreePardisoMemory();
     //we should NOT delete fSymmetricSystem and fNonSymmetricSystem
 }
 template<class TVar>
