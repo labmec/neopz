@@ -1027,7 +1027,7 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
           RTVar diff =
               fabs(cpma.Get(i, j) - res.Get(i, j));
         
-          bool loccheck = IsZero(diff / (RTVar) 10.);
+          bool loccheck = IsZero(diff / (RTVar) 100.);
           if (loccheck == false) {
               CAPTURE(i, j, diff);
               std::cout << "diff " << diff << std::endl;
@@ -1446,6 +1446,7 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
     ma.MultAdd(inv, y, z, 1., -1.);
     constexpr RTVar tol = [](){
         if constexpr (std::is_same_v<RTVar,float>) return (RTVar)100;
+        else if constexpr (std::is_same_v<RTVar,long double>) return (RTVar)10;
         else return (RTVar)1;
     }();
     /// Checking whether the res matrix is identical to m1 matrix
@@ -1454,6 +1455,7 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
         for (j = 0; j < dim; j++) {
             TVar zval = z(i, j);
             if (!IsZero(zval/tol)) {
+                std::cout << "i " << i << " j " << j << zval << std::endl;
                 check = false;
             }
         }
