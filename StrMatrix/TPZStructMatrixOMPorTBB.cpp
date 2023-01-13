@@ -27,9 +27,7 @@
 #include "pzsysmp.h"
 #include "TPZThreadPool.h"
 
-#ifdef USING_MKL
-#include "mkl.h"
-#endif
+#include "TPZLapack.h"
 
 #ifdef USING_TBB
 #include <tbb/parallel_for.h>

@@ -1,7 +1,8 @@
 #include "TPZLagrangeMultiplierCS.h"
 #include "pzaxestools.h"
-#ifdef USING_MKL
-#include "mkl.h"
+
+#ifdef USING_LAPACK
+#include "TPZLapack.h"
 #endif
 
 template<class TVar>
@@ -106,7 +107,7 @@ void TPZLagrangeMultiplierCS<STATE>::ContributeInterface(
             count++;
         }
   
-#ifdef USING_MKL2
+#ifdef USING_LAPACK
         {
         double *A, *B, *C;
         double alpha, beta;
@@ -199,11 +200,10 @@ void TPZLagrangeMultiplierCS<TVar>::FillDataRequirementsInterface(
     std::map<int, TPZMaterialDataT<TVar>> &datavec_right)
 {
     data.SetAllRequirements(false);
-    typename std::map<int, TPZMaterialDataT<TVar> >::iterator it = datavec_left.begin();
-    for( ; it != datavec_left.end() ; it++){
+    for(auto it = datavec_left.begin() ; it != datavec_left.end() ; it++){
         it->second.fNeedsSol = true;
     }
-    for(it = datavec_right.begin() ; it != datavec_right.end() ; it++){
+    for(auto it = datavec_right.begin() ; it != datavec_right.end() ; it++){
         it->second.fNeedsSol = true;
     }
 }

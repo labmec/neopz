@@ -4,9 +4,7 @@
 
 #include "TPZHybridDarcyFlow.h"
 #include "pzaxestools.h"
-#ifdef USING_MKL
-#include "mkl.h"
-#endif
+#include "TPZLapack.h"
 
 TPZHybridDarcyFlow::TPZHybridDarcyFlow() : TPZRegisterClassId(&TPZHybridDarcyFlow::ClassId),
                                TPZMatCombinedSpacesT<STATE>(), TPZDarcyFlow() {}

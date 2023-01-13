@@ -5,9 +5,7 @@
 #include "TPZMixedDarcyFlow.h"
 #include "TPZMaterialDataT.h"
 #include "pzaxestools.h"
-#ifdef USING_MKL
-#include "mkl.h"
-#endif
+#include "TPZLapack.h"
 
 #define USEBLAS
 
@@ -89,7 +87,7 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
     }
 #endif
 
-#if defined(USEBLAS) && defined(USING_MKL)
+#if defined(USEBLAS) && defined(USING_LAPACK)
     TPZFNMatrix<3, REAL> ivec(3, phrq, 0.);
     for (int iq = 0; iq < phrq; iq++){
         //ef(iq, 0) += 0.;
