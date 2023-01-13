@@ -114,7 +114,7 @@ set(sources
   TPZHCurlEquationFilter.cpp
 )
 
-if(USING_MKL)
+if(USING_LAPACK)
   list(APPEND headers
     TPZSBFemElementGroup.h
     TPZSBFemMultiphysicsElGroup.h

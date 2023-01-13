@@ -34,6 +34,6 @@ add_subdirectory(TestShape)
 add_subdirectory(TestMultithreading)
 add_subdirectory(TestHDivCollapsed)
 
-if(USING_MKL)
+if(USING_LAPACK)
   add_subdirectory(TestSBFem)
 endif()

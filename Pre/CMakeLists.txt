@@ -59,7 +59,7 @@ set(sources
     tpzhierarquicalgrid.cpp
     )
 
-if (USING_MKL)
+if (USING_LAPACK)
 	list(APPEND headers TPZBuildSBFem.h TPZBuildSBFemMultiphysics.h)
 	list(APPEND sources TPZBuildSBFem.cpp TPZBuildSBFemMultiphysics.cpp)
 endif()
