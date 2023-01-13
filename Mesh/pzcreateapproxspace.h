@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the functions to create different computational elements (one- two- three-dimensional). The creation of SBFem elements depends on the NeoPZ library configuration USING_MKL=ON.
+ * @brief Contains the functions to create different computational elements (one- two- three-dimensional). The creation of SBFem elements depends on the NeoPZ library configuration USING_LAPACK=ON.
  */
 
 #ifndef CREATECONTINUOUSHPP

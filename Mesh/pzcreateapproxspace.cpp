@@ -700,7 +700,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurlWithMem(int dimensio
 
 #undef HCURL_EL_NOT_AVAILABLE
 
-#if defined(USING_MKL) && defined(USING_LAPACK) && !defined(STATE_COMPLEX)
+#if defined(USING_LAPACK) && !defined(STATE_COMPLEX)
 
 #include "TPZSBFemVolume.h"
 #include "TPZSBFemVolumeMultiphysics.h"
@@ -773,15 +773,15 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFemMultiphysics(int dim
 }
 #else
 void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
-    PZError<<__PRETTY_FUNCTION__<<" depends on MKL!\n";
-    PZError<<"Please configure NeoPZ with USING_MKL=ON\n";
+    PZError<<__PRETTY_FUNCTION__<<" depends on LAPACK!\n";
+    PZError<<"Please configure NeoPZ with USING_LAPACK or USING_MKL =ON\n";
     PZError<<"Aborting..."<<std::endl;
     DebugStop();
 }
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFemMultiphysics(int dimension){
-    PZError<<__PRETTY_FUNCTION__<<" depends on MKL!\n";
-    PZError<<"Please configure NeoPZ with USING_MKL=ON\n";
+    PZError<<__PRETTY_FUNCTION__<<" depends on LAPACK!\n";
+    PZError<<"Please configure NeoPZ with USING_LAPACK or USING_MKL =ON\n";
     PZError<<"Aborting..."<<std::endl;
     DebugStop();
 }

@@ -18,7 +18,11 @@
 #include "DarcyFlow/TPZDarcyFlow.h"
 #include "TPZGeoMeshTools.h"
 #include "TPZBndCond.h"
+#ifdef USING_MKL
 #include "TPZSSpStructMatrix.h"
+#else
+#include "pzskylstrmatrix.h"
+#endif
 #include "TPZAnalyticSolution.h"
 
 #include <catch2/catch.hpp>
@@ -137,9 +141,15 @@ void SBFemTest::InsertMaterialElasticity3D(TPZCompMesh * cmesh)
 
 void SBFemTest::Analysis(TPZLinearAnalysis & an, const int nThreads, TPZManVector<REAL> &errorVec)
 {
+    
+#ifdef USING_MKL
   TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>> matssp(an.Mesh());
   matssp.SetNumThreads(nThreads);
   an.SetStructuralMatrix(matssp);
+#else
+    TPZSkylineStructMatrix<> sklstr(an.Mesh());
+    an.SetStructuralMatrix(sklstr);
+#endif
 
   TPZStepSolver <STATE> *direct = new TPZStepSolver<STATE>;
   direct->SetDirect(ELDLt);
