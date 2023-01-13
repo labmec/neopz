@@ -103,6 +103,9 @@ public :
 	/** @} */
 	/** @brief Sets data to the class */
 	virtual void SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A );
+  /** @brief Get the data from the class*/
+  virtual void GetData(TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A);
+  
 
     virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & destinationindex) override;
 	
@@ -188,6 +191,13 @@ inline void TPZSYsmpMatrix<TVar>::SetData(const TPZVec<int64_t> &IA,const TPZVec
 	fJA = JA;
 	fA  =  A;
 	ComputeDiagonal();
+}
+
+template<class TVar>
+inline void TPZSYsmpMatrix<TVar>::GetData( TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A ){
+    IA = fIA;
+    JA = fJA;
+    A = fA;
 }
 
 #endif
