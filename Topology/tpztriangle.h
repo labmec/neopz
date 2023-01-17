@@ -40,13 +40,14 @@ namespace pztopology {
     static constexpr int64_t Dimension = 2;
     static constexpr int64_t NFacets = 3;
     static constexpr int64_t NPermutations = 6;
-        
-        /** @brief Data structure which defines the triangle transformations*/
-        static REAL gTrans2dT[6][2][2];
-        /** @brief Data structure which defines the triangle transformations*/
-        static REAL gVet2dT[6][2];
 
     
+        
+    /** @brief Data structure which defines the triangle transformations*/
+    static REAL gTrans2dT[6][2][2];
+    /** @brief Data structure which defines the triangle transformations*/
+    static REAL gVet2dT[6][2];
+
     int ClassId() const override;
     void Read(TPZStream &buf, void *context) override;
     void Write(TPZStream &buf, int withclassid) const override;
@@ -257,8 +258,9 @@ namespace pztopology {
 
         /// Compute the directions of the HDiv vectors for constant divergent
         // template <class TVar>
-        static void ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div);
-        static void ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds);
+        static void ComputeConstantHDiv(const TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div);
+        static void ComputeConstantHDiv(const TPZVec<Fad<REAL>> &point, TPZFMatrix<Fad<REAL>> &vecDiv, TPZVec<Fad<REAL>> &div);
+        static void ComputeConstantHCurl(const TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds);
         static int GetSideOrient(const int &face);
 
         /** Compute the directions of the HCurl vectors.

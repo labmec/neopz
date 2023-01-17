@@ -53,14 +53,23 @@ class TPZBndCondBase :
         return new TPZBndCondBase(*this);
     }
         
-        virtual int VariableIndex(const std::string &varname) const override{
-            return this->fMaterial->VariableIndex(varname);
-        }
-        
-        virtual int NSolutionVariables(int varindex) const override {
-            return this->fMaterial->NSolutionVariables(varindex);
-        }
-
+    virtual void Clone(std::map<int, TPZMaterial * >&matvec) override {
+        auto bccopy = new TPZBndCondBase(*this);
+#ifdef PZDEBUG
+        if(matvec.find(this->Id()) == matvec.end()) DebugStop();
+#endif
+        matvec[this->Id()] = bccopy;
+        auto newmat = matvec[this->Id()];
+        TPZBndCondBase *newbnd = dynamic_cast<TPZBndCondBase *>(newmat);
+#ifdef PZDEBUG
+        if(!newbnd) DebugStop();
+#endif
+        TPZMaterial *prev = this->Material();
+        int previd = prev->Id();
+        auto newmat_it = matvec.find(previd);
+        if(newmat_it == matvec.end()) DebugStop();
+        newbnd->SetMaterial(newmat_it->second);
+    }
 };
 
 template<class TVar, class...Interfaces>

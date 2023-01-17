@@ -156,7 +156,7 @@ static int SideIdf(TPZCompElHDiv<TPZShapePiram> *cel, int side)
 {
     TPZManVector<int64_t,3> ids(3);
     GetGeoNodeIds(cel->Reference(),side,ids);
-    int transformid = TPZShapeTriang::GetTransformId2dT(ids);
+    int transformid = TPZShapeTriang::GetTransformId(ids);
     return idf[transformid];
 }
 static TPZOneShapeRestraint SetupPyramidRestraint(TPZCompEl *cel, int side)

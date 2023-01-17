@@ -6,17 +6,17 @@
 #include "TPZMaterial.h"
 #include "TPZMatInterfaceCombinedSpaces.h"
 
-template<class TVar>
-int TPZMatInterfaceCombinedSpaces<TVar>::ClassId() const {
-    return Hash("TPZMatInterfaceCombinedSpaces") ^ ClassIdOrHash<TVar>() << 1;
-}
+//template<class TVar>
+//int TPZMatInterfaceCombinedSpaces<TVar>::ClassId() const {
+//    return Hash("TPZMatInterfaceCombinedSpaces") ^ ClassIdOrHash<TVar>() << 1;
+//}
 
 
 template<class TVar>
 void TPZMatInterfaceCombinedSpaces<TVar>::ContributeInterface(
     const TPZMaterialDataT<TVar> &data,
-    const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
-    const std::map<int, TPZMaterialDataT<TVar>> &dataright, REAL weight,
+    std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+    std::map<int, TPZMaterialDataT<TVar>> &dataright, REAL weight,
     TPZFMatrix<TVar> &ef)
 {
     TPZFMatrix<TVar> fakeek(ef.Rows(),ef.Rows());
@@ -26,7 +26,7 @@ void TPZMatInterfaceCombinedSpaces<TVar>::ContributeInterface(
 template<class TVar>
 void TPZMatInterfaceCombinedSpaces<TVar>::ContributeBCInterface(
     const TPZMaterialDataT<TVar> &data,
-    const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+    std::map<int, TPZMaterialDataT<TVar>> &dataleft,
     REAL weight,
     TPZFMatrix<TVar> &ef,
     TPZBndCondT<TVar> &bc)
@@ -67,8 +67,8 @@ SetMaterialImpl(TPZMaterial *mat)
 template<class TVar>
 void TPZMatInterfaceCombinedSpacesBC<TVar>::
 ContributeInterface(const TPZMaterialDataT<TVar> &data,
-                    const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
-                    const std::map<int, TPZMaterialDataT<TVar>> &dataright,
+                    std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                    std::map<int, TPZMaterialDataT<TVar>> &dataright,
                     REAL weight,
                     TPZFMatrix<TVar> &ek,
                     TPZFMatrix<TVar> &ef)
@@ -81,8 +81,8 @@ ContributeInterface(const TPZMaterialDataT<TVar> &data,
 template<class TVar>
 void TPZMatInterfaceCombinedSpacesBC<TVar>::
 ContributeInterface(const TPZMaterialDataT<TVar> &data,
-                    const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
-                    const std::map<int, TPZMaterialDataT<TVar>> &dataright,
+                    std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                    std::map<int, TPZMaterialDataT<TVar>> &dataright,
                     REAL weight,
                     TPZFMatrix<TVar> &ef)
 {
@@ -94,7 +94,7 @@ ContributeInterface(const TPZMaterialDataT<TVar> &data,
 template<class TVar>
 void TPZMatInterfaceCombinedSpacesBC<TVar>::
 ContributeBCInterface(const TPZMaterialDataT<TVar> &data,
-                      const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                      std::map<int, TPZMaterialDataT<TVar>> &dataleft,
                       REAL weight,
                       TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef,
                       TPZBndCondT<TVar> &bc)
@@ -107,7 +107,7 @@ ContributeBCInterface(const TPZMaterialDataT<TVar> &data,
 template<class TVar>
 void TPZMatInterfaceCombinedSpacesBC<TVar>::
 ContributeBCInterface(const TPZMaterialDataT<TVar> &data,
-                      const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                      std::map<int, TPZMaterialDataT<TVar>> &dataleft,
                       REAL weight,
                       TPZFMatrix<TVar> &ef,
                       TPZBndCondT<TVar> &bc)

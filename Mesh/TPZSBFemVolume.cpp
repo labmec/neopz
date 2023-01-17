@@ -1082,8 +1082,11 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
         
         Ref2D->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
         weight *= fabs(data.detjac);
-        
-        CSkeleton->Shape(intpoint, data1d.fPhi, data1d.fDPhi);
+        TPZManVector<REAL,3> intskel(problemdimension-1);
+        for (int i=0; i<problemdimension-1; i++) {
+            intskel[i] = intpoint[i];
+        }
+        CSkeleton->Shape(intskel, data1d.fPhi, data1d.fDPhi);
         
         Ref2D->X(intpoint, data.x);
         if (mat2d->HasForcingFunction())

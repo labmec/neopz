@@ -554,7 +554,8 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     
     for(ic=0; ic<ncon; ic++)
     {
-        int64_t neqThisConn = Connect(ic).NDof(*Mesh());
+        TPZConnect &c = Connect(ic);
+        int64_t neqThisConn = c.NDof(*Mesh());
         numeq += neqThisConn;
     }
     
@@ -1126,7 +1127,9 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeIntegrationRule()
     auto *material =
         dynamic_cast<TPZMatCombinedSpaces*>(basemat);
     if(!material){
-        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        std::cout << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        if(basemat) std::cout << "basemat \n";
+        basemat->Print();
         DebugStop();
     }
     
@@ -1199,9 +1202,9 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool
       return;
   }
   if(!matError){
-      PZError << __PRETTY_FUNCTION__;
-      PZError<<" no error interface for this element.\n";
-      PZError<<"See TPZMatErrorCombinedSpaces\n";
+//      PZError << __PRETTY_FUNCTION__;
+//      PZError<<" no error interface for this element.\n";
+//      PZError<<"See TPZMatErrorCombinedSpaces\n";
       return;
   }
       
@@ -1236,7 +1239,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool
   values.Fill(0.0);
   REAL weight;
 
-  TPZManVector<TPZMaterialDataT<TVar>, 5> datavec;
+  TPZManVector<TPZMaterialDataT<TVar>, 6> datavec;
   const int64_t nref = fElementVec.size();
   datavec.resize(nref);
   InitMaterialData(datavec);

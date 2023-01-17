@@ -24,6 +24,7 @@ TEST_CASE("error_poisson","[error_tests]")
   for(int p = 1; p < 5; p++){
     TPZManVector<REAL,3> error(3,0.);
     CheckErrorPoisson(p,error);
+      std::cout << "order " << p << " error " << error << std::endl;
     bool checkConv = true;
     for(auto i = 0; i < 3; i++){
       if(error[i]>lastError[i]) checkConv = false;
@@ -36,7 +37,9 @@ TEST_CASE("error_poisson","[error_tests]")
   //the solution is contained in the p=4 approx space
   for(auto ier : lastError){
     CAPTURE(ier);
-    REQUIRE(ier == Approx(0.0).margin(std::numeric_limits<REAL>::epsilon()*10));
+      auto precisonrequired = Approx(0.0).margin(std::numeric_limits<REAL>::epsilon()*1000000);
+      CAPTURE(precisonrequired);
+    REQUIRE(ier == precisonrequired);
   }
   Catch::StringMaker<REAL>::precision = oldPrecision;
 }

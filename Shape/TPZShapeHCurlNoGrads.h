@@ -37,8 +37,10 @@ struct TPZShapeHCurlNoGrads
      * @param[in] pt integration point in the reference element
      * @param[in] shapedata 
      */
-    static void Shape(TPZVec<REAL> &pt, TPZShapeData &data,
+    static void Shape(const TPZVec<REAL> &pt, TPZShapeData &data,
                       TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &curlphi);
+    static void Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data,
+                      TPZFMatrix<Fad<REAL>> &phi, TPZFMatrix<Fad<REAL>> &curlphi);
 
 
     //! Maximum (actual) polynomial order. Useful for choosing integration rule

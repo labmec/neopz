@@ -616,7 +616,15 @@ namespace pztopology {
 		return 0;
 
 	}
-    
+TPZTransform<REAL> TPZQuadrilateral::ParametricTransform(int trans_id){
+    TPZTransform<REAL> trans(2,2);
+    trans.Mult()(0,0) = gTrans2dQ[trans_id][0][0];
+    trans.Mult()(0,1) = gTrans2dQ[trans_id][0][1];
+    trans.Mult()(1,0) = gTrans2dQ[trans_id][1][0];
+    trans.Mult()(1,1) = gTrans2dQ[trans_id][1][1];
+    return trans;
+}
+
     /**
      * @brief return the vector which permutes the connects according to the transformation id
      */
@@ -1143,7 +1151,7 @@ namespace pztopology {
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZQuadrilateral::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
+    void TPZQuadrilateral::ComputeConstantHDiv(const TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
         REAL scale = 2.;
         REAL qsi = point[0];
@@ -1166,8 +1174,33 @@ namespace pztopology {
         
     }
 
+    /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZQuadrilateral::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
+    void TPZQuadrilateral::ComputeConstantHDiv(const TPZVec<Fad<REAL>> &point, TPZFMatrix<Fad<REAL>> &RT0function, TPZVec<Fad<REAL>> &div)
+    {
+        FADREAL scale = 2.;
+        FADREAL qsi = point[0];
+        FADREAL eta = point[1];
+        RT0function.Zero();
+
+        //Face functions
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
+        RT0function(1,0) = -0.5 * (1. - eta) / scale;
+        div[0] = 0.5 / scale;
+
+        RT0function(0,1) = 0.5 * (1. + qsi) / scale;
+        div[1] = 0.5 / scale;
+
+        RT0function(1,2) = 0.5 * (1. + eta) / scale;
+        div[2] = 0.5 / scale;
+
+        RT0function(0,3) = -0.5 * (1. - qsi) / scale;
+        div[3] = 0.5 / scale; 
+        
+    }
+
+    // template <class TVar>
+    void TPZQuadrilateral::ComputeConstantHCurl(const TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
     {
         REAL scale = 2.;
         REAL qsi = point[0];

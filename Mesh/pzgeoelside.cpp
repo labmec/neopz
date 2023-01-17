@@ -160,6 +160,23 @@ void TPZGeoElSide::GradX(TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx) const{
     
 }
 
+/** @brief GradX loc of the side */
+void TPZGeoElSide::GradX(TPZVec< Fad<REAL> > &loc, TPZFMatrix< Fad<REAL> > &gradx) const{
+    
+    TPZManVector< Fad<REAL> ,3 > locElement(fGeoEl->Dimension(), 0.);
+    gradx.Resize(3,Dimension());
+    int dim = fGeoEl->Dimension();
+    TPZFNMatrix<9,Fad<REAL>> gradx_vol(3,dim);
+
+    TPZTransform<> ElementDimR = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+    TPZTransform<Fad<REAL> > ElementDim;
+    ElementDim.CopyFrom(ElementDimR);
+    ElementDim.Apply(loc, locElement);
+    fGeoEl->GradX(locElement, gradx_vol);
+    gradx_vol.Multiply(ElementDim.Mult(), gradx);
+}
+
+
 /** @brief X coordinate of a point loc of the side */
 void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) const
 {
@@ -176,18 +193,6 @@ void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) cons
 
 }
 
-/** @brief GradX loc of the side */
-void TPZGeoElSide::GradX(TPZVec< Fad<REAL> > &loc, TPZFMatrix< Fad<REAL> > &gradx) const{
-    
-    TPZManVector< Fad<REAL> ,3 > locElement(fGeoEl->Dimension(), 0.);
-    gradx.Resize(3,fGeoEl->Dimension());
-    
-    TPZTransform<> ElementDimR = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
-    TPZTransform<Fad<REAL> > ElementDim;
-    ElementDim.CopyFrom(ElementDimR);
-    ElementDim.Apply(loc, locElement);
-    fGeoEl->GradX(locElement, gradx);
-}
 
 
 

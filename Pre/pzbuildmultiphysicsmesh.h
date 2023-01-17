@@ -83,7 +83,7 @@ public:
      */
     static void TransferFromMultiPhysics(TPZVec<TPZAutoPointer<TPZCompMesh> > &cmeshVec, TPZAutoPointer<TPZCompMesh> MFMesh)
     {
-        TPZManVector<TPZCompMesh *,4> meshVecPtr(cmeshVec.size());
+        TPZManVector<TPZCompMesh *,6> meshVecPtr(cmeshVec.size());
         for (int i=0; i<cmeshVec.size(); i++) {
             meshVecPtr[i] = cmeshVec[i].operator->();
         }

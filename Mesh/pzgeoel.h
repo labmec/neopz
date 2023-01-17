@@ -559,6 +559,10 @@ public:
     /** @brief Return the gradient of the transformation at the given coordinate */
     virtual void GradX(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
 
+    void ComputeQsiGrad(TPZVec<REAL> &qsi, TPZVec<Fad<REAL>> &qsifad);
+    
+    static void ComputeDetjac(TPZFMatrix<Fad<REAL> > &gradx, Fad<REAL> &detjac);
+
 //	void ComputeNormals(TPZMatrix<REAL> &normal);
 	
 	/** @brief To test continuity */

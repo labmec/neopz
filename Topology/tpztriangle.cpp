@@ -6,6 +6,8 @@
 #include "tpztriangle.h"
 #include "pzquad.h"
 #include "pznumeric.h"
+#include "pzreal.h"
+
 //#include "pzshapetriang.h"
 
 #include "fad.h"
@@ -30,10 +32,10 @@ REAL TPZTriangle::gTrans2dT[6][2][2] = {//s* , t*
     { {-1.,-1.},{ 1., 0.} },
     { { 1., 0.},{-1.,-1.} }
 };
+    
 
 REAL TPZTriangle::gVet2dT[6][2] = {  {0.,0.},{0.,0.},{0.,1.},{1.,0.},{1.,0.},{0.,1.} };
-
-
+    
     template<class T>
     inline void TPZTriangle::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T qsi = loc[0], eta = loc[1];
@@ -633,6 +635,7 @@ REAL TPZTriangle::gVet2dT[6][2] = {  {0.,0.},{0.,0.},{0.,1.},{1.,0.},{1.,0.},{0.
 		return 0;
 
 	}
+
 TPZTransform<REAL>  TPZTriangle::ParametricTransform(int trans_id){
     TPZTransform<REAL> trans(2,2);
     trans.Mult()(0,0) = gTrans2dT[trans_id][0][0];
@@ -644,7 +647,6 @@ TPZTransform<REAL>  TPZTriangle::ParametricTransform(int trans_id){
     return trans;
     
 }
-
 
 	/**
 	 * Method which identifies the transformation of a side based on the IDs
@@ -1100,7 +1102,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZTriangle::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
+    void TPZTriangle::ComputeConstantHDiv(const TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
         REAL scale = 1.;
         REAL qsi = point[0];
@@ -1125,9 +1127,37 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
 
     }
 
+
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZTriangle::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
+    void TPZTriangle::ComputeConstantHDiv(const TPZVec<Fad<REAL>> &point, TPZFMatrix<Fad<REAL>> &RT0function, TPZVec<Fad<REAL>> &div)
+    {
+        Fad<double> scale = 1.;
+        Fad<double> qsi = point[0];
+        Fad<double> eta = point[1];
+
+        //Face functions
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
+        scale = 1.;
+        RT0function(0,0) = qsi / scale;
+        RT0function(1,0) = (eta - 1.) / scale;
+        div[0] = 2./scale;
+
+        scale = M_SQRT2;
+        RT0function(0,1) = (M_SQRT2 * qsi) / scale;
+        RT0function(1,1) = (M_SQRT2 * eta) / scale;
+        div[1] = 2. * M_SQRT2/scale;
+
+        scale = 1.;
+        RT0function(0,2) = (qsi - 1.) / scale;
+        RT0function(1,2) = eta / scale;
+        div[2] = 2./scale;
+
+    }
+
+    /// Compute the directions of the HDiv vectors
+    // template <class TVar>
+    void TPZTriangle::ComputeConstantHCurl(const TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
     {
 
         REAL qsi = point[0];
