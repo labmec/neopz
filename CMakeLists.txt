@@ -184,11 +184,8 @@ endif(USING_MKL)
 #enabling LAPACK library
 option(USING_LAPACK "Whether the LAPACK library will be linked in" OFF)
 if(USING_LAPACK)
-    if(NOT APPLE)
-        # If apple, just use the ACCELERATE lib which is already linked by default to every mac
-        include(cmake/EnableLAPACK.cmake)
-        enable_lapack(pz)
-    endif()
+    include(cmake/EnableLAPACK.cmake)
+    enable_lapack(pz)
 endif(USING_LAPACK)
 
 #enabling PAPI library
