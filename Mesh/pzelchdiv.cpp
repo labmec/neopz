@@ -1199,7 +1199,7 @@ void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large
 
         // Checking the normal orientation based on the transformation determinant:
         // If negative, the element sides have opposite orientations and vice-versa.
-        if (orient) {
+        if (orient && (sOrientThis != sOrientLarge)) {
             auto depend = myconnect.FirstDepend();
             while(depend){
                 depend->fDepMatrix.MultiplyByScalar(-1.,depend->fDepMatrix);
