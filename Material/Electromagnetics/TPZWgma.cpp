@@ -199,7 +199,7 @@ TPZWgma::ContributeA(
     const CSTATE &exx = er[0];
     const CSTATE &eyy = er[1];
 
-    const CSTATE &uzz = ur[2];
+    const CSTATE uzz_inv = 1./ur[2];
     
     const auto &phiHCurl = datavec[fHCurlMeshIndex].phi;
     
@@ -219,7 +219,7 @@ TPZWgma::ContributeA(
             const STATE phiIdotPhiJy = phiHCurl(iv , 1) * phiHCurl(jv , 1);
 
             CSTATE stiffAtt = 0.;
-            stiffAtt += (1./uzz) * curlIzdotCurlJz;
+            stiffAtt += uzz_inv * curlIzdotCurlJz;
             stiffAtt -= k0 * k0 * exx * phiIdotPhiJx;
             stiffAtt -= k0 * k0 * eyy * phiIdotPhiJy;
             ek( firsthcurl + iv , firsthcurl + jv ) += stiffAtt * weight ;
@@ -237,8 +237,8 @@ TPZWgma::ContributeB(
 
     const CSTATE &ezz = er[2];
     
-    const CSTATE &uxx = ur[0];
-    const CSTATE &uyy = ur[1];
+    const CSTATE uxx_inv = 1./ur[0];
+    const CSTATE uyy_inv = 1./ur[1];
     //get h1 functions
     const TPZFMatrix<REAL> &phiH1 = datavec[fH1MeshIndex].phi;
     TPZFNMatrix<3,REAL> gradPhiH1(3, phiH1.Rows(), 0.);
@@ -262,8 +262,8 @@ TPZWgma::ContributeB(
             const STATE phiIdotPhiJx = phiHCurl(iv , 0) * phiHCurl(jv , 0);
             const STATE phiIdotPhiJy = phiHCurl(iv , 1) * phiHCurl(jv , 1);
             CSTATE stiffBtt = 0.;
-            stiffBtt += (1./uyy) * phiIdotPhiJx;
-            stiffBtt += (1./uxx) * phiIdotPhiJy;
+            stiffBtt += uxx_inv * phiIdotPhiJx;
+            stiffBtt += uyy_inv * phiIdotPhiJy;
             ek( firsthcurl + iv , firsthcurl + jv ) += stiffBtt * weight ;
 
         }
@@ -272,8 +272,8 @@ TPZWgma::ContributeB(
             const STATE phiVecDotGradPhiScay = phiHCurl(iv , 1) * gradPhiH1(1,js);
 
             CSTATE stiffBzt = 0.;
-            stiffBzt += (1./uyy) * phiVecDotGradPhiScax;
-            stiffBzt += (1./uxx) * phiVecDotGradPhiScay;
+            stiffBzt += uxx_inv * phiVecDotGradPhiScax;
+            stiffBzt += uyy_inv * phiVecDotGradPhiScay;
             ek( firsthcurl + iv , firsth1 + js ) += stiffBzt * weight ;
         }
     }
@@ -283,8 +283,8 @@ TPZWgma::ContributeB(
             const STATE phiVecDotGradPhiScay = phiHCurl(jv , 1) * gradPhiH1(1,is);
 
             CSTATE stiffBtz = 0.;
-            stiffBtz += (1./uyy) * phiVecDotGradPhiScax;
-            stiffBtz += (1./uxx) * phiVecDotGradPhiScay;
+            stiffBtz += uxx_inv * phiVecDotGradPhiScax;
+            stiffBtz += uyy_inv * phiVecDotGradPhiScay;
             ek( firsth1 + is , firsthcurl +  jv ) += stiffBtz * weight ;
         }
         for (int js = 0; js < nh1; js++) {
@@ -292,8 +292,8 @@ TPZWgma::ContributeB(
             const STATE gradPhiScaDotGradPhiScay = gradPhiH1(1,is) * gradPhiH1(1,js);
 
             CSTATE stiffBzz = 0.;
-            stiffBzz +=  (1./uyy) * gradPhiScaDotGradPhiScax;
-            stiffBzz +=  (1./uxx) * gradPhiScaDotGradPhiScay;
+            stiffBzz +=  uxx_inv * gradPhiScaDotGradPhiScax;
+            stiffBzz +=  uyy_inv * gradPhiScaDotGradPhiScay;
             stiffBzz -=  k0 * k0 * ezz * phiH1( is , 0 ) * phiH1( js , 0 );
 
             ek( firsth1 + is , firsth1 + js) += stiffBzz * weight ;
