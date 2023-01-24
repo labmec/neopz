@@ -82,7 +82,7 @@ namespace pzgeom {
             for (int i=0; i<3; i++) {
                 localco[i] = 0.;
                 for (int j=0; j<3; j++) {
-                    localco[i] += fRotation(j,i)*(co[i]-fOrigin[i]);
+                    localco[i] += fRotation(j,i)*(co[j]-fOrigin[j]);
                 }
             }
             const REAL radius = sqrt(localco[0]*localco[0]+localco[1]*localco[1]);
