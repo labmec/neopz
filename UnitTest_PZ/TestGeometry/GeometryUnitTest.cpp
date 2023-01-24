@@ -141,7 +141,152 @@ void PlotRefinedMesh(TPZGeoMesh &gmesh,const std::string &filename)
 
 /** @} */
 
+TEMPLATE_TEST_CASE("TPZCylinder3D","[special_maps][geometry_tests]",
+          pzgeom::TPZGeoTriangle,
+          pzgeom::TPZGeoQuad) {
 
+    constexpr REAL tol = 1e-10;
+
+    auto CreateAndTestCylinder = [](auto x_pts,
+                                    const TPZVec<REAL> &origin,
+                                    const TPZVec<REAL> &axis,
+                                    const REAL radius){
+        using TGeo=TestType;
+        TPZGeoMesh gmesh;
+        TPZManVector<int64_t, TGeo::NNodes> nodeind(TGeo::NNodes,-1);
+        TPZManVector<REAL,3> x(3,0.);
+        for(auto in = 0; in < TestType::NNodes; in++){
+            x_pts(in,x);
+            nodeind[in] = gmesh.NodeVec().AllocateNewElement(); 
+            gmesh.NodeVec()[nodeind[in]].Initialize(x,gmesh);
+        }
+
+        constexpr int matid{1};
+        auto *gel = new TPZGeoElRefLess<TPZCylinderMap<TGeo>> (nodeind,matid,gmesh);
+
+        gel->Geom().SetOrigin(origin, radius);
+        gel->Geom().SetCylinderAxis(axis);
+        gel->Geom().ComputeCornerCoordinates(gmesh);
+        //let us test the corner nodes
+        for(int i = 0; i < TGeo::NNodes; i++){
+            TPZManVector<REAL,TGeo::Dimension> qsi(TGeo::Dimension,0);
+            TGeo::ParametricDomainNodeCoord(i,qsi);
+
+            TPZManVector<REAL,3> x_calc(3,0.), x_given(3,0.);
+            x_pts(i,x_given);
+            gel->X(qsi,x_calc);
+            CAPTURE(x_calc);
+            CAPTURE(x_given);
+            REAL diff{0};
+            for(auto ix = 0; ix < 3; ix++){
+                diff += (x_given[ix] - x_calc[ix])*(x_given[ix] - x_calc[ix]);
+            }
+            REQUIRE((diff <= tol));
+        }
+    };
+    
+    const TPZVec<REAL> origin = {0,0,0};    
+    SECTION("+z-oriented axis"){
+        const TPZVec<REAL> axis = {0,0,1};
+        constexpr REAL r{1};
+        auto x_pts = [](int i, TPZVec<REAL> &x){
+            switch(i){
+            case 0:
+                x = {1,0,0};
+                break;
+            case 1:
+                x = {0,1,0};
+                break;
+            case 2:
+                x = {0,1,1};
+                break;
+            case 3://only for quads
+                x = {1,0,1};
+                break;
+            default:
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\n invalid number of nodes!\n";
+                DebugStop();
+            }
+        };
+        CreateAndTestCylinder(x_pts,origin,axis,r);
+    }
+    SECTION("-z-oriented axis"){
+        const TPZVec<REAL> axis = {0,0,-1};
+        constexpr REAL r{1};
+        auto x_pts = [](int i, TPZVec<REAL> &x){
+            switch(i){
+            case 0:
+                x = {1,0,0};
+                break;
+            case 1:
+                x = {0,1,0};
+                break;
+            case 2:
+                x = {0,1,1};
+                break;
+            case 3://only for quads
+                x = {1,0,1};
+                break;
+            default:
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\n invalid number of nodes!\n";
+                DebugStop();
+            }
+        };
+        CreateAndTestCylinder(x_pts,origin,axis,r);
+    }
+    SECTION("x-oriented axis"){
+        const TPZVec<REAL> axis = {1,0,0};
+        constexpr REAL r{1};
+        auto x_pts = [](int i, TPZVec<REAL> &x){
+            switch(i){
+            case 0:
+                x = {0,1,0};
+                break;
+            case 1:
+                x = {1,1,0};
+                break;
+            case 2:
+                x = {1,0,1};
+                break;
+            case 3://only for quads
+                x = {0,0,1};
+                break;
+            default:
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\n invalid number of nodes!\n";
+                DebugStop();
+            }
+        };
+        CreateAndTestCylinder(x_pts,origin,axis,r);
+    }
+    SECTION("bigger radius"){
+        const TPZVec<REAL> axis = {0,0,1};
+        constexpr REAL r{3};
+        auto x_pts = [](int i, TPZVec<REAL> &x){
+            switch(i){
+            case 0:
+                x = {3,0,0};
+                break;
+            case 1:
+                x = {0,3,0};
+                break;
+            case 2:
+                x = {0,3,3};
+                break;
+            case 3://only for quads
+                x = {3,0,3};
+                break;
+            default:
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\n invalid number of nodes!\n";
+                DebugStop();
+            }
+        };
+        CreateAndTestCylinder(x_pts,origin,axis,r);
+    }       
+}
 
 TEST_CASE("gradx_tests","[geometry_tests]") {
     TPZGeoMesh gmesh;
