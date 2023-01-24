@@ -135,8 +135,8 @@ int TPZShapeHDivConstantBound<TSHAPE>::ComputeNConnectShapeF(int connect, int or
  }
 
 
-//template
-// TPZShapeHDivConstantBound<pzshape::TPZShapePoint>;
+template
+struct TPZShapeHDivConstantBound<pzshape::TPZShapePoint>;
 
 template
 struct TPZShapeHDivConstantBound<pzshape::TPZShapeLinear>;

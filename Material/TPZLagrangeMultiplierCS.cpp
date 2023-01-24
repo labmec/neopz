@@ -29,15 +29,15 @@ void TPZLagrangeMultiplierCS<TVar>::ContributeInterface(
     const TPZFMatrix<REAL> &phiR = *phiRPtr;
     
     
-    int nphil = phiL.Rows();
-    int nphir = phiR.Rows();
+    int nrowl = phiL.Rows();
+    int nrowr = phiR.Rows();
     static int count  = 0;
 
-    if((nphil+nphir)*fNStateVariables != ek.Rows() && count < 20)
+    if((nrowl+nrowr)*fNStateVariables != ek.Rows() && count < 20)
     {
         std::cout<<"ek.Rows() "<< ek.Rows()<<
-        " nphil " << nphil <<
-        " nphir " << nphir << " may give wrong result " << std::endl;
+        " nrowl " << nrowl <<
+        " nrowr " << nrowr << " may give wrong result " << std::endl;
         count++;
     }
 
@@ -107,8 +107,20 @@ void TPZLagrangeMultiplierCS<STATE>::ContributeInterface(
             count++;
         }
   
-#ifdef USING_LAPACK
-        {
+#ifdef USING_LAPACK2
+    TPZFMatrix<REAL> phiLBlas(fNStateVariables,fNStateVariables*nrowl,0.);
+    TPZFMatrix<REAL> phiRBlas(fNStateVariables,fNStateVariables*nrowr,0.);
+    for (int i = 0; i < nrowl; i++) {
+        for (int j = 0; j < fNStateVariables; j++) {
+            phiLBlas(j,j+i*fNStateVariables) = phiLdummy(i,0);
+        }
+    }
+    for (int i = 0; i < nrowr; i++) {
+        for (int j = 0; j < fNStateVariables; j++) {
+            phiRBlas(j,j+i*fNStateVariables) = phiRdummy(i,0);
+        }
+    }
+    {
         double *A, *B, *C;
         double alpha, beta;
         int m,n,k;
@@ -118,16 +130,17 @@ void TPZLagrangeMultiplierCS<STATE>::ContributeInterface(
         alpha = weight * fMultiplier;
         beta = 1.0;
         int LDA,LDB,LDC;
-        LDC = nphil*fNStateVariables+nphir*fNStateVariables; // first dimension of C
+        LDC = nrowl*fNStateVariables+nrowr*fNStateVariables; // first dimension of C
         LDA = k; // if not transpose max( 1, m ), otherwise max( 1, k ).
         LDB = k; // if not transpose max( 1, k ), otherwise max( 1, n ).
-        C = &ek(0,nphil*fNStateVariables);
+        C = &ek(0,nrowl*fNStateVariables);
         A = &phiLBlas(0,0);
         B = &phiRBlas(0,0);
         cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
                     m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
     }
     {
+
         double *A, *B, *C;
         double alpha, beta;
         int m,n,k;
@@ -137,16 +150,16 @@ void TPZLagrangeMultiplierCS<STATE>::ContributeInterface(
         alpha = weight * fMultiplier ;
         beta = 1.0;
         int LDA,LDB,LDC;
-        LDC = phrL+phrR;
-        LDA = phiR->Rows();
-        LDB = 1;
-        C = &ek(phrL,0);
-        B = &phiLdummy(0,0);
-        A = &phiRdummy(0,0);
-        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
+        LDC = nrowl*fNStateVariables+nrowr*fNStateVariables;
+        LDA = k; // if not transpose max( 1, m ), otherwise max( 1, k ).
+        LDB = k; // if not transpose max( 1, k ), otherwise max( 1, n ).
+        C = &ek(nrowl*fNStateVariables,0);
+        B = &phiLBlas(0,0);
+        A = &phiRBlas(0,0);
+        cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
                     m, n, k,alpha , A, LDA, B, LDB, beta, C, LDC);
     }
-    
+
 #else
     
   

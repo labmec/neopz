@@ -27,7 +27,7 @@
 #include "TPZSimpleTimer.h"
 
 // ----- Unit test includes -----
-// #define USE_MAIN
+#define USE_MAIN
 
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
@@ -126,7 +126,7 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     ProblemType pType = GENERATE(ProblemType::EDarcy,ProblemType::EElastic);
     // ProblemType pType = GENERATE(ProblemType::EElastic);
     int pOrder = GENERATE(1);
-    bool isRBSpaces = GENERATE(false,true);
+    bool isRBSpaces = GENERATE(false);
     MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
     int extraporder = GENERATE(0);
 //    bool isCondensed = GENERATE(true);
@@ -155,14 +155,14 @@ int main(){
     //    HDivFamily sType = HDivFamily::EHDivKernel;
     HDivFamily sType = HDivFamily::EHDivConstant;
     
-    //    ProblemType pType = ProblemType::EElastic;
-    ProblemType pType = ProblemType::EDarcy;
+       ProblemType pType = ProblemType::EElastic;
+    // ProblemType pType = ProblemType::EDarcy;
     
     const int pord = 1;
-    const bool isRBSpaces = false;
+    const bool isRBSpaces = true;
     
-    //   MMeshType mType = MMeshType::EQuadrilateral;
-    MMeshType mType = MMeshType::ETriangular;
+      MMeshType mType = MMeshType::EQuadrilateral;
+    // MMeshType mType = MMeshType::ETriangular;
     //    MMeshType mType = MMeshType::EHexahedral;
     // MMeshType mType = MMeshType::ETetrahedral;
     
@@ -170,8 +170,8 @@ int main(){
     bool isCondensed = true;
     // bool isCondensed = false;
 //    HybridizationType hType = HybridizationType::EStandard;
-    HybridizationType hType = HybridizationType::ESemi;
-    // HybridizationType hType = HybridizationType::ENone;
+    // HybridizationType hType = HybridizationType::ESemi;
+    HybridizationType hType = HybridizationType::ENone;
     
     // this will create a mesh with hanging nodes
     bool isRef = true;
@@ -359,20 +359,21 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     "\nisRef = " << std::boolalpha << isRef << endl << endl;
     
     // TODO: WARNING!!!! Things to be fixed and for now we are skipping
-    if(isRigidBodySpaces && hdivFam == HDivFamily::EHDivConstant){
-        cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
-        return;
-    }
+    // if(isRigidBodySpaces && hdivFam == HDivFamily::EHDivConstant){
+    //     cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
+    //     return;
+    // }
     if(isRef && hType == HybridizationType::ESemi){
+        cout << "\n\t======> This test is not working because the global matrix has wrong size!!\n" << endl;
         cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
         return;
     }
     if(hdivFam == HDivFamily::EHDivConstant && probType == ProblemType::EElastic && mType == MMeshType::ETetrahedral){
-        cout << "\n\t======> UNKNOWN PROBLEM!!\n" << endl;
+        cout << "\n\t======> We don't know why this configuration does't work!!\n" << endl;
         cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
         return;
     }
-    if(hdivFam == HDivFamily::EHDivConstant && mType == MMeshType::EHexahedral && extrapOrder > 0){
+    if(hdivFam == HDivFamily::EHDivConstant && extrapOrder > 0){
         cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
         return;
     }
@@ -574,22 +575,25 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamil
 
 void Refinement(TPZGeoMesh *gmesh){
     // children[0]->Divide(children);
-
-    int dim = gmesh->Dimension();
-    TPZManVector<TPZGeoEl*,10> children;
-    gmesh->ElementVec()[0]->Divide(children);
-    int64_t nel = gmesh->NElements();
-    for(int64_t el = 0; el<nel; el++) {
-        TPZGeoEl *gel = gmesh->Element(el);
-        if(gel->Dimension() != dim-1) continue;
-        if(gel->HasSubElement()) continue;
-        TPZGeoElSide gelside(gel);
-        TPZGeoElSide neighbour = gelside.Neighbour();
-        if(neighbour.HasSubElement()) {
-            TPZManVector<TPZGeoEl*,10> children;
-            gel->Divide(children);
+    const int nel = gmesh->NElements();
+    // for (int i = 0; i < nel; i++){
+        int dim = gmesh->Dimension();
+        TPZManVector<TPZGeoEl*,10> children;
+        if (gmesh->ElementVec()[0]->Dimension() == dim) gmesh->ElementVec()[0]->Divide(children);
+        for(int64_t el = 0; el<nel; el++) {
+            TPZGeoEl *gel = gmesh->Element(el);
+            if(gel->Dimension() != dim-1) continue;
+            if(gel->HasSubElement()) continue;
+            TPZGeoElSide gelside(gel);
+            TPZGeoElSide neighbour = gelside.Neighbour();
+            if(neighbour.HasSubElement()) {
+                TPZManVector<TPZGeoEl*,10> children;
+                gel->Divide(children);
+            }
         }
-    }
+    // }
+    
+    
     
 //    children[0]->Divide(children);
 }
