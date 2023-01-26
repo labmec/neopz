@@ -38,7 +38,7 @@ TPZHDivApproxCreator::~TPZHDivApproxCreator()
 void TPZHDivApproxCreator::CheckSetupConsistency() {
     
     if (fProbType == ProblemType::EElastic) {
-        std::cout << "WARNING! Polynomial orders have been checked only for Triangles and Tetrahedra. Please, check the convergence rates for the other topologies!\n";
+        std::cout << "WARNING! In elasticity problems, convergence has been checked only for Triangles and Tetrahedra. Please, check the convergence rates for the other topologies!\n";
     }
 
     if (fProbType == ProblemType::ENone) {
@@ -79,6 +79,11 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
 
     if(fHybridType == HybridizationType::ESemi && fHDivFam != HDivFamily::EHDivConstant){
         std::cout << "The only HDiv space with available Semi hybridization is HDivConstant" << std::endl;
+        DebugStop();
+    }
+    
+    if (fHDivFam == HDivFamily::EHDivConstant && fShouldCondense) {
+        std::cout << "CODE STOPPED! Condensing hdivconst spaces leads to singular K00. This happens because of the rotation space that has linear and constant functions." << std::endl;
         DebugStop();
     }
 
@@ -530,16 +535,18 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateMultiphysicsSpace(const TP
 
 TPZCompMesh * TPZHDivApproxCreator::CreateRotationSpace(const int pOrder, const int lagLevel){
     const int dim = fGeoMesh->Dimension();
-    //Criando malha computacional:
     TPZCompMesh * cmesh = new TPZCompMesh(fGeoMesh);
-    //Insere ordem polimonial de aproximação
-    if (fHDivFam == HDivFamily::EHDivConstant){
-        cmesh->SetDefaultOrder(0);
-    } else if (fHDivFam == HDivFamily::EHDivStandard){
-        cmesh->SetDefaultOrder(pOrder);
-    }else {
-        DebugStop();
-    }
+    
+    // NS (Jan 2023): In discussion with Phil, it was agreed that the rotation space will always
+    // be the same order of the approximation no matter what is the HDiv family
+//    if (fHDivFam == HDivFamily::EHDivConstant){
+//        cmesh->SetDefaultOrder(0);
+//    } else if (fHDivFam == HDivFamily::EHDivStandard){
+//        cmesh->SetDefaultOrder(pOrder);
+//    }else {
+//        DebugStop();
+//    }
+    cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim); //Insere dimensão do modelo
 
     cmesh->SetAllCreateFunctionsDiscontinuous();
