@@ -420,16 +420,28 @@ TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int64_t ElemIndex)
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - NULL geometric element.\n";
 		return NULL;
 	}
-    MElementType oldType = OldElem->Type();
+    const MElementType oldType = OldElem->Type();
     int64_t oldId = OldElem->Id();
-    int64_t oldMatId = OldElem->MaterialId();
-    int nsides = OldElem->NSides();
+    const int64_t oldMatId = OldElem->MaterialId();
+    const int nsides = OldElem->NSides();
     
     TPZVec<TPZGeoElSide> oldNeigh(nsides);
-    for(int s = 0; s < nsides; s++)
+    //last connectivity deserves a bit of attention
+    for(int s = 0; s < nsides - 1; s++)
     {   
         TPZGeoElSide mySide(OldElem, s);
         oldNeigh[s] = mySide.Neighbour();
+    }
+
+    {
+        const int s = nsides-1;
+        TPZGeoElSide mySide(OldElem, s);
+        const auto neigh = mySide.Neighbour();
+        if (neigh==mySide){
+            oldNeigh.Resize(nsides-1);
+        }else{
+            oldNeigh[s] = neigh;
+        }
     }
 	
 	const int nnodes = OldElem->NCornerNodes();
@@ -443,11 +455,18 @@ TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int64_t ElemIndex)
     
 	TPZGeoEl * NewElem = Mesh->CreateGeoBlendElement(oldType, nodeindexes, oldMatId, oldId);
 
-    for(int s = 0; s < nsides; s++)
-    {   
-        TPZGeoElSide neigh = oldNeigh[s];
-        NewElem->SetNeighbour(s, neigh);
-    }
+  const int nneighs = oldNeigh.size();
+  for(int s = 0; s < nneighs; s++)
+  {
+      TPZGeoElSide mygelside(NewElem,s);
+      TPZGeoElSide &neigh = oldNeigh[s];
+      neigh.SetConnectivity(mygelside);
+  }
+
+  if(nneighs < nsides){
+      TPZGeoElSide mygelside(NewElem,nsides-1);
+      mygelside.SetConnectivity(mygelside);
+  }
     
 	NewElem->BuildBlendConnectivity();
 	
