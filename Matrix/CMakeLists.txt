@@ -15,7 +15,6 @@ set(headers
     pzbasematrix.h
     pzskylmat.h
     pzspblockdiagpivot.h
-    pzsysmp.h
     tpzsparseblockdiagonal.h
     pzblock.h
     pzdiffmatrix.h
@@ -28,7 +27,10 @@ set(headers
     pzblockdiag.h
     pzmatred.h
     pzshtmat.h
-    pzysmp.h
+    TPZYSMPPardiso.h
+    TPZSYSMPPardiso.h
+    TPZYSMPMatrix.h
+    TPZSYSMPMatrix.h
     TPZSolutionMatrix.h
     TPZTensor.h
     TPZTensorTranslator.h
@@ -42,7 +44,6 @@ set(sources
     pzbasematrix.cpp
     pzskylmat.cpp
     pzspblockdiagpivot.cpp
-    pzsysmp.cpp
     tpzsparseblockdiagonal.cpp
     pzbndmat.cpp
     pzsbndmat.cpp
@@ -54,7 +55,10 @@ set(sources
     pzblock.cpp
     pzmatred.cpp
     pzshtmat.cpp
-    pzysmp.cpp
+    TPZYSMPMatrix.cpp
+    TPZSYSMPMatrix.cpp
+    TPZYSMPPardiso.cpp
+    TPZSYSMPPardiso.cpp
     TPZSolutionMatrix.cpp
     TPZTensor.cpp
     TPZTensorTranslator.cpp

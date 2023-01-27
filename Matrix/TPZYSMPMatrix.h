@@ -10,7 +10,6 @@
 #include "pz_config.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
-#include "TPZPardisoSolver.h"
 
 template<class TVar>
 class TPZVerySparseMatrix;
@@ -23,9 +22,7 @@ class TPZVerySparseMatrix;
  */
 template<class TVar>
 class TPZFYsmpMatrix : public TPZMatrix<TVar> {
-	
-    friend class TPZPardisoSolver<TVar>;
-    
+	    
 	public :
 	
 	/** @brief An auxiliary structure to hold the data of the subset \n of equations used to multiply in a multi-threaded environment */
@@ -202,10 +199,8 @@ public:
 
 	
 	void ComputeDiagonal();
-    //! Gets reference to TPZPardisoSolver instance for fine-tuning
-    TPZPardisoSolver<TVar> & GetPardisoControl()
-    {return fPardisoControl;}
-private:	
+
+private:
 	/*
 	 * @brief Perform row update of the sparse matrix
 	 */
@@ -234,7 +229,6 @@ protected:
 	
 	int   fSymmetric;
 	
-  TPZPardisoSolver<TVar> fPardisoControl;
 protected:
 	
 	/**

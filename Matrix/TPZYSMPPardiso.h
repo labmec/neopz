@@ -9,8 +9,11 @@
 #ifndef SYSMPMATH
 #define SYSMPMATH
 
+#ifdef USING_MKL
+
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
+#include "TPZPardisoSolver.h"
 
  /**
   * @brief Implements a symmetric sparse matrix. \ref matrix "Matrix"
@@ -19,6 +22,7 @@
 template<class TVar>
 class TPZSYsmpMatrix : public TPZMatrix<TVar>{
 	
+    friend class TPZPardisoSolver<TVar>;
     
 public :
     /** @brief Constructor based on number of rows and columns */
@@ -199,7 +203,9 @@ public :
     int ClassId() const override;
 
     void ComputeDiagonal();
-
+    //! Gets reference to TPZPardisoSolver instance for fine-tuning
+    TPZPardisoSolver<TVar> & GetPardisoControl()
+    {return fPardisoControl;}
 protected:
   void CheckTypeCompatibility(const TPZMatrix<TVar>*aPtr,
                               const TPZMatrix<TVar>*bPtr)const override;
@@ -222,6 +228,7 @@ private:
 	TPZVec<int64_t>  fJA;
 	TPZVec<TVar> fA;
 	
+  TPZPardisoSolver<TVar> fPardisoControl;
 	
 	TPZVec<TVar> fDiag;
 };
@@ -236,4 +243,5 @@ inline void TPZSYsmpMatrix<TVar>::SetData(const TPZVec<int64_t> &IA,const TPZVec
 	ComputeDiagonal();
 }
 
+#endif
 #endif
