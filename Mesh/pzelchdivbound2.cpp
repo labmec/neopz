@@ -157,9 +157,8 @@ TPZIntelGen<TSHAPE>()
 {
 	this->fPreferredOrder = -1;
 	int i;
-	for(i=0;i<TSHAPE::NSides;i++) {
-		this-> fConnectIndexes[i] = -1;
-	}
+  //hdiv bound will always have only one connect
+  this-> fConnectIndexes[0] = -1;
 }
 
 // TESTADO
