@@ -5,7 +5,7 @@
 
 #include "TPZSSpStructMatrix.h"
 #include "pzcmesh.h"
-#include "pzsysmp.h"
+#include "TPZSYSMPMatrix.h"
 #include "TPZRenumbering.h"
 #include "TPZGuiInterface.h"
 #include "TPZTimer.h"

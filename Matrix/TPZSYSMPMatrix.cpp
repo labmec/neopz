@@ -5,7 +5,7 @@
 
 #include <memory.h>
 
-#include "pzsysmp.h"
+#include "TPZSYSMPMatrix.h"
 #include "pzfmatrix.h"
 #include "pzstack.h"
 #include "TPZParallelUtils.h"
@@ -60,7 +60,7 @@ template <class TVar> int TPZSYsmpMatrix<TVar>::Zero() {
 template<class TVar>
 const TVar TPZSYsmpMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) const {
     if (row > col) {
-        for(int ic=fIA[col] ; ic < fIA[col+1]; ic++ ) {
+        for(int64_t ic=fIA[col] ; ic < fIA[col+1]; ic++ ) {
             if ( fJA[ic] == row ) {
                 if constexpr (is_complex<TVar>::value){
                     return std::conj(fA[ic]);
@@ -71,7 +71,7 @@ const TVar TPZSYsmpMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) co
         }
         return (TVar)0;
     }
-	for(int ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
+	for(int64_t ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
 		if ( fJA[ic] == col ) return fA[ic];
 	}
 	return (TVar)0;
@@ -246,16 +246,16 @@ void TPZSYsmpMatrix<TVar>::Print(const char *title, std::ostream &out ,const Mat
         << "\tNon zero elements    = " << fA.size()  << '\n'
 		<< "\tRows    = " << this->Rows()  << '\n'
 		<< "\tColumns = " << this->Cols() << '\n';
-		int i;
+		
 		out << "\tIA\tJA\tA\n"
 		<< "\t--\t--\t-\n";
-		for(i=0; i<=this->Rows(); i++) {
+		for(int64_t i=0; i<=this->Rows(); i++) {
 			out << i      << '\t'
 			<< fIA[i] << '\t'
 			<< fJA[i] << '\t'
 			<< fA[i]  << '\n';
 		}
-		for(i=this->Rows()+1; i<fIA[this->Rows()]-1; i++) {
+		for(int64_t i=this->Rows()+1; i<fIA[this->Rows()]-1; i++) {
 			out << i      << "\t\t"
 			<< fJA[i] << '\t'
 			<< fA[i]  << '\n';
@@ -432,7 +432,7 @@ void TPZSYsmpMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> 
                     row = col;
                     col = temp;
                 }
-                int ic;
+                int64_t ic;
                 for(ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
                     if ( fJA[ic] == col )
                     {
@@ -457,8 +457,6 @@ void TPZSYsmpMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> 
 template<class TVar>
 void TPZSYsmpMatrix<TVar>::SetIsDecomposed(int val)
 {
-	if(val)
-		fPardisoControl.fDecomposed = true;
 	TPZBaseMatrix::SetIsDecomposed(val);
 }
 
@@ -478,19 +476,6 @@ int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
     if (this->IsDecomposed() != ENoDecompose) {
         DebugStop();
     }
-    if(!fPardisoControl.HasCustomSettings()){
-      typename TPZPardisoSolver<TVar>::MStructure str =
-        TPZPardisoSolver<TVar>::MStructure::ESymmetric;
-      typename TPZPardisoSolver<TVar>::MSystemType sysType =
-        TPZPardisoSolver<TVar>::MSystemType::ESymmetric;
-      typename TPZPardisoSolver<TVar>::MProperty prop =
-        this->IsDefPositive() ?
-        TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
-        TPZPardisoSolver<TVar>::MProperty::EIndefinite;
-      fPardisoControl.SetStructure(str);
-      fPardisoControl.SetMatrixType(sysType,prop);
-    }
-    fPardisoControl.Decompose(this);
     this->SetIsDecomposed(ELDLt);
     return 1;
 }
@@ -503,19 +488,6 @@ int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
         DebugStop();
     }
     this->fDefPositive = true;
-    if(!fPardisoControl.HasCustomSettings()){
-      typename TPZPardisoSolver<TVar>::MStructure str =
-        TPZPardisoSolver<TVar>::MStructure::ESymmetric;
-      typename TPZPardisoSolver<TVar>::MSystemType sysType =
-        TPZPardisoSolver<TVar>::MSystemType::ESymmetric;
-      typename TPZPardisoSolver<TVar>::MProperty prop =
-        this->IsDefPositive() ?
-        TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
-        TPZPardisoSolver<TVar>::MProperty::EIndefinite;
-      fPardisoControl.SetStructure(str);
-      fPardisoControl.SetMatrixType(sysType,prop);
-    }
-    fPardisoControl.Decompose(this);
     this->SetIsDecomposed(ELDLt);
     return 1;
 }
@@ -531,7 +503,6 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
 {
     TPZFMatrix<TVar> x(*b);
-    fPardisoControl.Solve(this,*b,x);
     *b = x;
     return 1;
 }
@@ -553,7 +524,6 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
 {
     TPZFMatrix<TVar> x(*b);
-    fPardisoControl.Solve(this,*b,x);
     *b = x;
     return 1;
 }

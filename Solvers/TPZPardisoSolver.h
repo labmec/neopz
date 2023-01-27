@@ -6,6 +6,9 @@
 //
 #ifndef TPZPARDISOSOLVER_H
 #define TPZPARDISOSOLVER_H
+
+#ifdef USING_MKL
+
 #include "TPZMatrixSolver.h"
 
 #include "pzmanvector.h"
@@ -148,4 +151,5 @@ protected:
     bool fCustomSettings{false};
 };
 
+#endif /* USING_MKL */
 #endif /* TPZPARDISOSOLVER_H */

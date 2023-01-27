@@ -6,10 +6,11 @@
 //
 //
 
+#ifdef USING_MKL
 #include "TPZPardisoSolver.h"
 
-#include "pzsysmp.h"
-#include "pzysmp.h"
+#include "TPZSYSMPMatrix.h"
+#include "TPZSYSMPMatrix.h"
 #include "pzlog.h"
 
 
@@ -554,3 +555,4 @@ template class TPZPardisoSolver<float>;
 template class TPZPardisoSolver<std::complex<float>>;
 template class TPZPardisoSolver<std::complex<double>>;
 template class TPZPardisoSolver<std::complex<long double>>;
+#endif

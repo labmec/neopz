@@ -11,8 +11,8 @@
 #include "pzsfulmat.h"
 #include "pzskylnsymmat.h"
 #include "pzskylmat.h"
-#include "pzysmp.h"
-#include "pzsysmp.h"
+#include "TPZYSMPMatrix.h"
+#include "TPZSYSMPMatrix.h"
 #include "TPZKrylovEigenSolver.h"
 
 #include <catch2/catch.hpp>
