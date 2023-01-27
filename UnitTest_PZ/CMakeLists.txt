@@ -34,6 +34,7 @@ add_subdirectory(TestBlend)
 add_subdirectory(TestShape)
 add_subdirectory(TestMultithreading)
 add_subdirectory(TestHDivCollapsed)
+add_subdirectory(TestPersistence)
 
 if(USING_LAPACK)
   add_subdirectory(TestSBFem)
