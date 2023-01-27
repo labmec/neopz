@@ -573,19 +573,23 @@ bool TPZChangeEl::CreateMiddleNodeAtEdge(TPZGeoMesh *Mesh, int64_t ElemIndex, in
         }
         neighEdge = neighEdge.Neighbour();
     }
+
+    const auto nodeidx = Mesh->NodeVec().AllocateNewElement();
+    Mesh->NodeVec()[nodeidx].Initialize(middleCoord,*Mesh);
+    middleNodeId = nodeidx;
     
-    //if not returned true...
-    TPZGeoNode midNode;
-    midNode.SetCoord(middleCoord);
+    // //if not returned true...
+    // TPZGeoNode midNode;
+    // midNode.SetCoord(middleCoord);
     
-    /** Setting Midnodes Id's */
-    int64_t NewNodeId = Mesh->NNodes();
-    Mesh->SetNodeIdUsed(NewNodeId);
-    midNode.SetNodeId(NewNodeId);
+    // /** Setting Midnodes Id's */
+    // int64_t NewNodeId = Mesh->NNodes();
+    // Mesh->SetNodeIdUsed(NewNodeId);
+    // midNode.SetNodeId(NewNodeId);
     
-    /** Allocating Memory for MidNodes and Pushing Them */
-    middleNodeId = Mesh->NodeVec().AllocateNewElement();
-    Mesh->NodeVec()[middleNodeId] = midNode;
+    // /** Allocating Memory for MidNodes and Pushing Them */
+    // middleNodeId = Mesh->NodeVec().AllocateNewElement();
+    // Mesh->NodeVec()[middleNodeId] = midNode;
 
     return true;
 }
