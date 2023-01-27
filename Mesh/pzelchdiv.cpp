@@ -157,7 +157,8 @@ TPZIntelGen<TSHAPE>()
 {
 	this->fPreferredOrder = -1;
 	int i;
-	for(i=0;i<TSHAPE::NSides;i++) {
+  constexpr int ncon = TSHAPE::NFacets+1;
+	for(i=0;i<ncon;i++) {
 		this-> fConnectIndexes[i] = -1;
 	}
 
