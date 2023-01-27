@@ -277,6 +277,26 @@ void TPZCompElH1<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
 	}
 }
 
+#include "pzshapepoint.h"
+#include "pzshapelinear.h"
+#include "pzshapetriang.h"
+#include "pzshapequad.h"
+#include "pzshapetetra.h"
+#include "pzshapeprism.h"
+#include "pzshapecube.h"
+#include "pzshapepiram.h"
+#include "pzshapepiramHdiv.h"
+
+
+using namespace pzshape;
+
+template<class TSIDESHAPE>
+static void SideShape(const TPZVec<REAL> &point, TPZVec<int64_t> &ids, TPZVec<int> &ord, TPZShapeData &data)
+{
+    TPZShapeH1<TSIDESHAPE>::Initialize(ids, ord, data);
+    TPZShapeH1<TSIDESHAPE>::Shape(point, data);
+}
+
 
 /**compute the values of the shape function of the side*/
 template<class TSHAPE>
@@ -297,8 +317,34 @@ void TPZCompElH1<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
 		int conloc = TSHAPE::ContainedSideLocId(side,c);
         order[c-nn] = this->Connect(conloc).Order();
 	}
-    TPZShapeH1<TSHAPE>::SideShape(side, point, id, order, phi, dphi);
-//	TSHAPE::SideShape(side, point, id, order, phi, dphi);
+    
+    TPZShapeData data;
+    if(side == TSHAPE::NSides-1)
+    {
+        TPZShapeData data;
+        TPZShapeH1<TSHAPE>::Initialize(id, order, data);
+    }
+    else {
+        switch (TSHAPE::Type(side)) {
+            case EPoint:
+                SideShape<TPZShapePoint>(point, id, order, data);
+                break;
+            case EOned:
+                SideShape<TPZShapeLinear>(point, id, order, data);
+                break;
+            case ETriangle:
+                SideShape<TPZShapeTriang>(point, id, order, data);
+                break;
+            case EQuadrilateral:
+                SideShape<TPZShapeQuad>(point, id, order, data);
+                break;
+            default:
+                DebugStop();
+                break;
+        }
+    }
+    phi = data.fPhi;
+    dphi = data.fDPhi;
 }
 
 template<class TSHAPE>
@@ -313,21 +359,13 @@ void TPZCompElH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMat
 	for(i=0; i<TSHAPE::NSides-TSHAPE::NCornerNodes; i++) {
 		ord[i] = this->Connect(i+TSHAPE::NCornerNodes).Order();
 	}
+    TPZShapeH1<TSHAPE> locshape;
     TPZShapeData data;
-    TPZShapeH1<TSHAPE>::Initialize(id, ord, data);
-    TPZShapeH1<TSHAPE>::Shape(pt,data,phi,dphi);
-//	TSHAPE::Shape(pt,id,ord,phi,dphi);
+    locshape.Initialize(id, ord, data);
+	locshape.Shape(pt,data);
+    phi = data.fPhi;
+    dphi = data.fDPhi;
 }
-
-#include "pzshapepoint.h"
-#include "pzshapelinear.h"
-#include "pzshapetriang.h"
-#include "pzshapequad.h"
-#include "pzshapetetra.h"
-#include "pzshapeprism.h"
-#include "pzshapecube.h"
-#include "pzshapepiram.h"
-#include "pzshapepiramHdiv.h"
 
 
 

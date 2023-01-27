@@ -67,7 +67,46 @@ namespace pzshape {
 
     }
     
-    
+void TPZShapeQuad::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
+{
+    if (shapeorders.Rows() != (order-1)*(order-1)) {
+        DebugStop();
+    }
+    int transid = GetTransformId(id);
+    int count = 0;
+    for (int i=2; i<order+1; i++) {
+        for (int j=2; j<order+1; j++) {
+            int a = i;
+            int b = j;
+            switch (transid)
+            {
+                case 0:
+                case 3:
+                case 4:
+                case 7:
+                    break;
+                case 1:
+                case 2:
+                case 5:
+                case 6:
+                {
+                    int c = a;
+                    a = b;
+                    b = c;
+                }
+                    break;
+                    
+                default:
+                    DebugStop();
+                    break;
+            }
+            shapeorders(count,0) = a;
+            shapeorders(count,1) = b;
+            count++;
+        }
+    }
+}
+
     void TPZShapeQuad::SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders)
     {
         
@@ -83,42 +122,7 @@ namespace pzshape {
         }
         else if (side == 8)
         {
-            if (shapeorders.Rows() != (order-1)*(order-1)) {
-                DebugStop();
-            }
-            int transid = GetTransformId(id);
-            int count = 0;
-            for (int i=2; i<order+1; i++) {
-                for (int j=2; j<order+1; j++) {
-                    int a = i;
-                    int b = j;
-                    switch (transid)
-                    {
-                        case 0:
-                        case 3:
-                        case 4:
-                        case 7:
-                            break;
-                        case 1:
-                        case 2:
-                        case 5:
-                        case 6:
-                        {
-                            int c = a;
-                            a = b;
-                            b = c;
-                        }
-                            break;
-                            
-                        default:
-                            DebugStop();
-                            break;
-                    }
-                    shapeorders(count,0) = a;
-                    shapeorders(count,1) = b;
-                    count++;
-                }
-            }
+            InternalShapeOrder(id, order, shapeorders);
         }
         else
         {

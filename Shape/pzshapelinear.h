@@ -133,6 +133,11 @@ public:
         static void ShapeOrder(const TPZVec<int64_t> &id, const TPZVec<int> &order, TPZGenMatrix<int> &shapeorders);//, TPZVec<int64_t> &sides
         
         /**
+         * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
+         */
+        static void InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders);
+
+        /**
          * @brief returns the polynomial order in the natural ksi, eta of the internal shapefunctions of a side
          * @param sides is a vector with copy of side as much as needed, it depends on the order
          */

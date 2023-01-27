@@ -47,8 +47,8 @@ public:
      * @since June 5, 2012
      */
     virtual void ContributeInterface(const TPZMaterialDataT<TVar> &data,
-                                     std::map<int, TPZMaterialDataT<TVar>> &dataleft,
-                                     std::map<int, TPZMaterialDataT<TVar>> &dataright, REAL weight,
+                                     const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                                     const std::map<int, TPZMaterialDataT<TVar>> &dataright, REAL weight,
                                      TPZFMatrix<TVar> &ek,
                                      TPZFMatrix<TVar> &ef) = 0;
 
@@ -63,8 +63,8 @@ public:
      * @since June 5, 2012
      */
     virtual void ContributeInterface(const TPZMaterialDataT<TVar> &data,
-                                     std::map<int, TPZMaterialDataT<TVar>> &dataleft,
-                                     std::map<int, TPZMaterialDataT<TVar>> &dataright, REAL weight,
+                                     const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                                     const std::map<int, TPZMaterialDataT<TVar>> &dataright, REAL weight,
                                      TPZFMatrix<TVar> &ef);
 
     /**
@@ -80,7 +80,7 @@ public:
      */
     virtual void
     ContributeBCInterface(const TPZMaterialDataT<TVar> &data,
-                          std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                          const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
                           REAL weight,
                           TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef, TPZBndCondT<TVar> &bc) = 0;
 
@@ -96,7 +96,7 @@ public:
      */
     virtual void
     ContributeBCInterface(const TPZMaterialDataT<TVar> &data,
-                          std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                          const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
                           REAL weight,
                           TPZFMatrix<TVar> &ef,
                           TPZBndCondT<TVar> &bc);
@@ -142,26 +142,26 @@ protected:
     void SetMaterialImpl(TPZMaterial *mat);
 public:    
     void ContributeInterface(const TPZMaterialDataT<TVar> &data,
-                             std::map<int, TPZMaterialDataT<TVar>> &dataleft,
-                             std::map<int, TPZMaterialDataT<TVar>> &dataright,
+                             const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                             const std::map<int, TPZMaterialDataT<TVar>> &dataright,
                              REAL weight,
                              TPZFMatrix<TVar> &ek,
                              TPZFMatrix<TVar> &ef) override;
     
     void ContributeInterface(const TPZMaterialDataT<TVar> &data,
-                             std::map<int, TPZMaterialDataT<TVar>> &dataleft,
-                             std::map<int, TPZMaterialDataT<TVar>> &dataright,
+                             const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                             const std::map<int, TPZMaterialDataT<TVar>> &dataright,
                              REAL weight,
                              TPZFMatrix<TVar> &ef) override;     
     //throws
     void ContributeBCInterface(const TPZMaterialDataT<TVar> &data,
-                               std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                               const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
                                REAL weight,
                                TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef,
                                TPZBndCondT<TVar> &bc) override;
     //throws
     void ContributeBCInterface(const TPZMaterialDataT<TVar> &data,
-                               std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+                               const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
                                REAL weight,
                                TPZFMatrix<TVar> &ef,
                                TPZBndCondT<TVar> &bc) override;

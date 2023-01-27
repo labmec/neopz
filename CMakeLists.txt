@@ -364,6 +364,21 @@ install(FILES
         DESTINATION ${PZ_CMAKE_INSTALL_DIR}
         )
 
+option(USING_UMFPACK "Whether the UMFPACK library will be linked in" OFF)
+if(USING_UMFPACK)
+		  find_package(suitesparse CONFIG)
+		  target_link_libraries(pz PUBLIC SuiteSparse::umfpack)
+		  target_compile_definitions(pz PUBLIC USING_UMFPACK)
+endif(USING_UMFPACK)
+
+
+
+
+
+
+
+
+
 include(cmake/InstallPZConfigFile.cmake)
 
 #############EXTRA TARGETS#############

@@ -116,7 +116,7 @@ void TPZShapeHCurl<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
     }
     TPZVec<int> &sidesH1Ord = data.fH1ConnectOrders;
     auto &nodeIds = data.fCornerNodeIds;
-    StaticIndexShapeToVec(connOrder, firstH1ShapeFunc, sidesH1Ord, nodeIds, shapeCountVec, data.fSDVecShapeIndex);
+    StaticIndexShapeToVec(data);
 }
 
 template<class TSHAPE>
@@ -293,6 +293,7 @@ void TPZShapeHCurl<TSHAPE>::CalcH1ShapeOrders(
     }
 }
 
+/*
 template<class TSHAPE>
 void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrder,
                                                   const TPZVec<int64_t>& firstH1ShapeFunc,
@@ -302,6 +303,400 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
                                                   TPZVec<std::pair<int,int64_t>> & indexVecShape
                                                   ) {
 
+
+
+    //                                                  TPZVec<std::pair<int,int64_t>> & indexVecShape,
+    //                                                       const TPZVec<int>& connectOrder,
+    //                                                       const TPZVec<int64_t>& firstH1ShapeFunc,
+    //                                                       const TPZVec<int>& sidesH1Ord,
+    //                                                       TPZVec<unsigned int>& shapeCountVec,
+    //                                                       const TPZVec<int64_t>& nodeIds) {
+    
+    const auto nFaces = TSHAPE::Dimension < 2 ? 0 : TSHAPE::NumSides(2);
+    const auto nEdges = TSHAPE::NumSides(1);
+    constexpr auto nNodes = TSHAPE::NCornerNodes;
+
+    const auto nConnects = connectOrder.size();
+    TPZManVector<int, TSHAPE::NSides - nNodes>
+        transformationIds(TSHAPE::NSides - nNodes, -1);
+    //computing transformation id for sides.
+    for (auto iCon = 0; iCon < nConnects; iCon++) {
+        transformationIds[iCon] = TSHAPE::GetTransformId(nNodes + iCon, nodeIds);
+    }
+    
+    unsigned int shapeCount = 0;
+
+
+    //calculates edge functions
+    for (auto iCon = 0; iCon < nEdges; iCon++) {
+        const auto pOrder = connectOrder[iCon];
+        //there will be 2 + pOrder - 1 = pOrder + 1 functions for each edge
+
+        for (auto iNode = 0; iNode < 2; iNode++) {
+            auto whichNode = transformationIds[iCon] == 0 ? iNode : (iNode + 1) % 2;
+            const int vecIndex = iCon * 2 + whichNode;
+            const int64_t shapeIndex = TSHAPE::SideNodeLocId(iCon + nNodes, whichNode);
+            indexVecShape[shapeCount] = std::make_pair(vecIndex, shapeIndex);
+            shapeCount++;
+            shapeCountVec[iCon]++;
+        }//phi^ea funcs
+        const int vecIndex = nEdges * 2 + iCon;
+        for (int iEdgeInternal = 0; iEdgeInternal < pOrder - 1; iEdgeInternal++) {
+            const int shapeIndex = firstH1ShapeFunc[iCon] + iEdgeInternal;
+            indexVecShape[shapeCount] = std::make_pair(vecIndex, shapeIndex);
+            shapeCount++;
+            shapeCountVec[iCon]++;
+        }//phi^et funcs
+    }
+
+    const int firstFaceShape = shapeCount;
+
+#ifdef PZ_LOG2
+    if (logger.isDebugEnabled()) {
+        std::ostringstream sout;
+        sout << __PRETTY_FUNCTION__ << '\n'
+             << " n shape funcs (edge connects): "<<shapeCount<<'\n';
+        //thats way too much info, uncomment if needed
+        
+        // sout << "vec shape index (edge connects):" << std::endl;
+        // for (int iShape = 0; iShape < firstFaceShape; iShape++) {
+        //     auto pair = indexVecShape[iShape];
+        //     sout << "\tvec: " << pair.first << "\tshape: " << pair.second << std::endl;
+        // }
+        LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+    if(TSHAPE::Dimension < 2) return;
+    TPZManVector<int> firstVfeVec(nFaces,-1);
+    TPZManVector<TPZStack<int>> faceEdges(nFaces,TPZStack<int>(0,0));
+    {
+        //we skip v^{e,a} and v^{e,T} vectors
+        const int nEdgeVectors = nEdges * 3;
+        firstVfeVec[0] = nEdgeVectors;
+        for(auto iFace = 0; iFace < nFaces; iFace++){
+            TSHAPE::LowerDimensionSides(iFace + nEdges + nNodes, faceEdges[iFace], 1);
+            const int nFaceEdges = iFace == 0 ? 0 : faceEdges[iFace-1].size();
+            firstVfeVec[iFace] = iFace == 0 ?
+                firstVfeVec[iFace] : firstVfeVec[iFace - 1] + nFaceEdges;
+        }
+    }
+    const int firstVftVec = firstVfeVec[nFaces-1] + faceEdges[nFaces-1].size();
+    const int firstVfOrthVec = firstVftVec + 2 * nFaces;
+
+    const int nH1Funcs = TSHAPE::NShapeF(sidesH1Ord);
+    TPZGenMatrix<int> shapeorders(nH1Funcs,3);
+    TSHAPE::ShapeOrder(nodeIds,sidesH1Ord, shapeorders);
+    
+    for(auto iCon = nEdges; iCon < nEdges + nFaces; iCon++){
+        const auto iSide = iCon + nNodes;
+        const auto iFace = iCon - nEdges;
+
+        int h1FaceOrder = -1;
+        TPZManVector<int,4> permutedSideSides(4,-1);
+        
+        switch(TSHAPE::Type(iSide)){
+        case ETriangle://triangular face
+            pztopology::GetPermutation<pztopology::TPZTriangle>(transformationIds[iCon],
+                                                                permutedSideSides);
+            h1FaceOrder = connectOrder[iCon];
+            break;
+        case EQuadrilateral://quadrilateral face
+            pztopology::GetPermutation<pztopology::TPZQuadrilateral>(transformationIds[iCon],
+                                                                     permutedSideSides);
+            h1FaceOrder = connectOrder[iCon]+1;
+            break;
+        default:
+            PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
+            DebugStop();
+        }
+#ifdef PZ_LOG2
+        if (logger.isDebugEnabled()) {
+            std::ostringstream sout;
+            sout << "face :"<< iSide <<" permutation:"<< std::endl;
+            for (auto i = 0; i < permutedSideSides.size(); i++) sout << permutedSideSides[i]<<"\t";
+            sout<<std::endl;
+            sout<<"transformation id:"<<transformationIds[iCon]<<std::endl;
+            LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
+
+
+        const int nFaceNodes = TSHAPE::NSideNodes(iSide);
+        //this is not a mistake, since for faces nEdges = nNodes
+        const int &nFaceEdges = nFaceNodes;
+
+        //first the phi Fe functions
+        for(auto iEdge = 0; iEdge < nFaceEdges; iEdge++ ){
+            const auto currentLocalEdge = permutedSideSides[iEdge+nFaceNodes];
+            const auto currentEdge = TSHAPE::ContainedSideLocId(iSide, currentLocalEdge);
+            const auto vecIndex = firstVfeVec[iFace] + currentLocalEdge - nFaceNodes;
+            
+            for(auto iEdgeInternal = 0; iEdgeInternal < h1FaceOrder - 1; iEdgeInternal++){
+                const int shapeIndex = firstH1ShapeFunc[currentEdge - nNodes] + iEdgeInternal;
+                indexVecShape[shapeCount] = std::make_pair(vecIndex,shapeIndex);
+                shapeCount++;
+                shapeCountVec[iCon]++;
+            }
+        }
+
+        const auto nVfeFuncs = shapeCountVec[iCon];
+        
+        
+        //number of h1 face funcs
+        const auto nH1FaceFuncs =
+            TSHAPE::NConnectShapeF(iSide,h1FaceOrder);
+        //most logic below relies on nH1FaceFuncs > 0
+        if (!nH1FaceFuncs){continue;}
+        
+        const auto quadFace = TSHAPE::Type(iSide) == EQuadrilateral;
+        
+        if(quadFace){
+            const auto transid = transformationIds[iCon];
+            const auto xdir = ((transid+1)/2)%2;//i told you so
+            const auto ydir = 1-xdir;
+
+            const auto hCurlFaceOrder = h1FaceOrder-1;
+            const auto nfuncsk = 2 * (hCurlFaceOrder - 1) * (hCurlFaceOrder - 1);
+            const auto nfuncsk1 = hCurlFaceOrder - 1;
+            TPZVec<std::pair<int,int>> funcXY(nfuncsk);
+            TPZVec<std::pair<int,int>> funcX(nfuncsk1);
+            TPZVec<std::pair<int,int>> funcY(nfuncsk1);
+            int countxy{0}, countx{0},county{0};
+            const int vecindex[] = {firstVftVec + 2*iFace,firstVftVec + 2*iFace+1};
+            for(auto iFunc = 0; iFunc < nH1FaceFuncs; iFunc++ ){
+                const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc;
+
+                //functions of degree k
+                if((shapeorders(shapeIndex,xdir) <= hCurlFaceOrder) &&
+                   (shapeorders(shapeIndex,ydir) <= hCurlFaceOrder)){
+                    funcXY[countxy++] = {vecindex[0],shapeIndex};
+                    funcXY[countxy++] = {vecindex[1],shapeIndex};
+                }else if(shapeorders(shapeIndex,xdir) <= hCurlFaceOrder){
+                    funcX[countx++] = {vecindex[0],shapeIndex};
+                }else if(shapeorders(shapeIndex,ydir) <= hCurlFaceOrder){
+                    funcY[county++] = {vecindex[1],shapeIndex};
+                }
+            }
+
+            auto AddFromVec = [&indexVecShape,&shapeCountVec, &shapeCount,iCon]
+                (TPZVec<std::pair<int,int>> myvec){
+                for(auto [vi,si] : myvec){
+                    indexVecShape[shapeCount] = std::make_pair(vi,si);
+                    shapeCount++;
+                    shapeCountVec[iCon]++;
+                }
+            };
+            AddFromVec(funcXY);
+            AddFromVec(funcX);
+            AddFromVec(funcY);
+            
+        }
+        else{
+            //ok that one is easy to guess
+            const auto nFaceInternalFuncs =
+                2 * nH1FaceFuncs;
+            for(auto iFunc = 0; iFunc < nFaceInternalFuncs; iFunc++ ){
+                //it should alternate between them
+                const auto vecIndex = firstVftVec + 2*iFace + iFunc % 2;
+                //they should repeat
+                const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc / 2;
+                indexVecShape[shapeCount] = std::make_pair(vecIndex,shapeIndex);
+                shapeCount++;
+                shapeCountVec[iCon]++;
+            }
+        }
+
+        const auto nVfiFuncs = shapeCountVec[iCon] - nVfeFuncs;
+#ifdef PZ_LOG2
+        if (logger.isDebugEnabled()) {
+            std::ostringstream sout;
+            sout << "iFace: "<<iFace<<' '
+                 << "nVfeFuncs: "<< nVfeFuncs <<' '
+                 << "nVfiFuncs: "<< nVfiFuncs << '\n';
+            LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
+    }
+
+#ifdef PZ_LOG2
+    if (logger.isDebugEnabled()) {
+        std::ostringstream sout;
+        sout << "n shape funcs (face connects): "
+             << firstInternalShape - firstFaceShape << '\n';
+        //way too much info, uncomment if needed
+        // sout << "vec shape index (face connects):" << std::endl;
+        // for (int iShape = firstFaceShape; iShape < firstInternalShape; iShape++) {
+        //     auto pair = indexVecShape[iShape];
+        //     sout << "\tvec: " << pair.first << "\tshape: " << pair.second << std::endl;
+        // }
+        LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+
+    if(TSHAPE::Dimension < 3) return;
+
+    const int firstInternalShape = shapeCount;
+    
+    const int iCon = nEdges + nFaces;
+    //hcurl connect order
+    const auto sideOrder = connectOrder[iCon];
+    //first, the phi KF functions
+    for(int iFace = 0; iFace < nFaces; iFace++){
+        const auto faceSide = iFace + nEdges + nNodes;
+        const auto faceType = TSHAPE::Type(faceSide);
+        const auto faceDim = TSHAPE::SideDimension(faceSide);
+        const auto faceOrderH1 =
+            TSHAPE::Type() == EPrisma || TSHAPE::Type() == ECube ?
+            sideOrder + 1 : sideOrder;
+        const auto nH1FaceFuncs =
+            TSHAPE::NConnectShapeF(faceSide,faceOrderH1);
+        const auto vecIndex = firstVfOrthVec + iFace;
+
+        for(auto iFunc = 0; iFunc < nH1FaceFuncs; iFunc++ ){
+            const auto shapeIndex = firstH1ShapeFunc[nEdges + iFace] + iFunc;
+
+            bool skip = false;
+            if constexpr(TSHAPE::Type() == EPrisma){
+                const int ordvec[] =
+                    {shapeorders(shapeIndex,0),shapeorders(shapeIndex,1)};
+                skip = true;
+                if((TSHAPE::Type(faceSide) == EQuadrilateral) &&
+                   (ordvec[0] <= sideOrder) &&
+                   (ordvec[1] <= sideOrder+1)){
+                    //for quad faces ordvec[0] = xord and ordvec[1] = zord
+                    skip = false;
+                    
+                }
+                else if(TSHAPE::Type(faceSide) == ETriangle){
+                    skip = false;
+                }
+            }
+            if(!skip){
+                indexVecShape[shapeCount] = std::make_pair(vecIndex,shapeIndex);
+                shapeCount++;
+                shapeCountVec[iCon]++;
+            }
+        }   
+    }
+
+    const auto nKfFuncs = shapeCount - firstInternalShape;
+
+    const auto h1InternalOrd = sidesH1Ord[nEdges+nFaces];
+    //now the phi Ki funcs
+    const int firstInternalVec = firstVfOrthVec + nFaces;
+    //ALL H1 internal functions
+    const auto nH1Internal =
+        TSHAPE::NConnectShapeF(TSHAPE::NSides - 1, h1InternalOrd);
+
+    const auto xVecIndex = firstInternalVec + 0;
+    const auto yVecIndex = firstInternalVec + 1;
+    const auto zVecIndex = firstInternalVec + 2;
+
+    auto addFunc = [&indexVecShape,&shapeCount,&shapeCountVec,iCon](
+      int vIndex, int sIndex){
+        indexVecShape[shapeCount] = std::make_pair(vIndex, sIndex);
+        shapeCount++;
+        shapeCountVec[iCon]++;
+    };
+    auto AddToVec = [](TPZVec<std::pair<int,int>> &v,std::pair<int,int> vs){
+        const auto vi = v.size();
+        v.Resize(vi+1);
+        v[vi] = vs;
+    };
+
+    TPZVec<std::pair<int,int>> funcXYZ, funcX, funcY, funcZ;
+    
+    
+    for(auto iFunc = 0; iFunc < nH1Internal; iFunc++ ){
+        const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc;
+        const int xord = shapeorders(shapeIndex,0);
+        const int yord = shapeorders(shapeIndex,1);
+        const int zord = shapeorders(shapeIndex,2);
+        if constexpr(TSHAPE::Type() == ECube){
+            if(xord <= sideOrder && yord <= sideOrder && zord <= sideOrder){
+                AddToVec(funcXYZ, std::make_pair(xVecIndex,shapeIndex));
+                AddToVec(funcXYZ, std::make_pair(yVecIndex,shapeIndex));
+                AddToVec(funcXYZ, std::make_pair(zVecIndex,shapeIndex));
+            }
+            else{
+                if(xord <= sideOrder){
+                    AddToVec(funcX, std::make_pair(xVecIndex,shapeIndex));
+                }
+                if(yord <= sideOrder){
+                    AddToVec(funcY, std::make_pair(yVecIndex,shapeIndex));
+                }
+                if(zord <= sideOrder){
+                    AddToVec(funcZ, std::make_pair(zVecIndex,shapeIndex));
+                }
+            }
+        }
+        else if constexpr(TSHAPE::Type() == EPrisma){
+            if((xord <= sideOrder) &&
+               (yord <= sideOrder) &&
+               (zord <= sideOrder+1)){
+                addFunc(xVecIndex,shapeIndex);
+                addFunc(yVecIndex,shapeIndex);
+            }
+            if((xord <= sideOrder+1) &&
+               (yord <= sideOrder+1) &&
+               (zord <= sideOrder)){
+                addFunc(zVecIndex,shapeIndex);
+            }
+        }
+        else{
+            addFunc(xVecIndex,shapeIndex);
+            addFunc(yVecIndex,shapeIndex);
+            addFunc(zVecIndex,shapeIndex);
+        }
+    }
+    //now we actually add the functions
+    if constexpr(TSHAPE::Type() == ECube){
+        for(auto [v,s] : funcXYZ){
+            addFunc(v,s);
+        }
+        for(auto [v,s] : funcX){
+            addFunc(v,s);
+        }
+        for(auto [v,s] : funcY){
+            addFunc(v,s);
+        }
+        for(auto [v,s] : funcZ){
+            addFunc(v,s);
+        }
+    }
+    
+    if(shapeCount != indexVecShape.size()){
+        DebugStop();
+    }
+#ifdef PZ_LOG2
+    if (logger.isDebugEnabled()) {
+        const auto nInternalFuncs = shapeCount - firstInternalShape;
+        const auto nKiFuncs = nInternalFuncs - nKfFuncs;
+        std::ostringstream sout;
+        sout << "n shape funcs (internal connect): "
+             << shapeCount - firstInternalShape << '\n'
+             << "\t n kf funcs : " << nKfFuncs
+             << "\t n ki funcs : " << nKiFuncs << '\n';
+        LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+}
+*/
+template<class TSHAPE>
+void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
+    const int nNodes = TSHAPE::NCornerNodes;
+    TPZVec<unsigned int> shapeCountVec(TSHAPE::NSides - nNodes, 0);
+    TPZVec<std::pair<int,int64_t>> & indexVecShape = data.fSDVecShapeIndex;
+    TPZVec<int> &connectOrder = data.fHDivConnectOrders;
+    TPZManVector<int64_t, TSHAPE::NSides - nNodes> firstH1ShapeFunc(TSHAPE::NSides - nNodes,
+                                                                                  0);
+    firstH1ShapeFunc[0] = nNodes;
+    for (int iSide = nNodes + 1; iSide < TSHAPE::NSides; iSide++) {
+        const int iCon = iSide - nNodes;
+        firstH1ShapeFunc[iCon] = firstH1ShapeFunc[iCon - 1] + data.fH1NumConnectShape[iCon-1];
+    }
+    TPZVec<int> &sidesH1Ord = data.fH1ConnectOrders;
+    auto &nodeIds = data.fCornerNodeIds;
 
 
     //                                                  TPZVec<std::pair<int,int64_t>> & indexVecShape,
@@ -326,7 +721,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
     
     const auto nFaces = TSHAPE::Dimension < 2 ? 0 : TSHAPE::NumSides(2);
     const auto nEdges = TSHAPE::NumSides(1);
-    constexpr auto nNodes = TSHAPE::NCornerNodes;
+//    constexpr auto nNodes = TSHAPE::NCornerNodes;
 
     const auto nConnects = connectOrder.size();
     TPZManVector<int, TSHAPE::NSides - nNodes>
@@ -404,7 +799,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
 
     const int nH1Funcs = TSHAPE::NShapeF(sidesH1Ord);
     TPZGenMatrix<int> shapeorders(nH1Funcs,3);
-    TSHAPE::ShapeOrder(nodeIds,sidesH1Ord, shapeorders);
+    TPZShapeH1<TSHAPE>::ShapeOrders(shapeorders, data);
     
     for(auto iCon = nEdges; iCon < nEdges + nFaces; iCon++){
         const auto iSide = iCon + nNodes;
@@ -622,7 +1017,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
                 shapeCount++;
                 shapeCountVec[iCon]++;
             }
-        }   
+        }
     }
 
     const auto nKfFuncs = shapeCount - firstInternalShape;
@@ -729,7 +1124,6 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(const TPZVec<int>& connectOrde
             }
 #endif
 }
-
 
 template<class TSHAPE>
 int TPZShapeHCurl<TSHAPE>::MaxOrder(const int ordh1){

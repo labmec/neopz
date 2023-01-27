@@ -47,6 +47,7 @@
 #include "pzshapetetra.h"
 #include "pzshapepiram.h"
 #include "pzshapepiramHdiv.h"
+#include "TPZShapeH1.h"
 
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
@@ -1122,7 +1123,11 @@ void CheckShapeOrder(int order)
             }
         }
         TPZVec<int64_t> sides;
-        tshape::ShapeOrder(ids, orders, shapeorders);
+        TPZShapeH1<tshape> h1;
+        TPZShapeData data;
+        h1.Initialize(ids, orders, data);
+        h1.ShapeOrders(shapeorders, data);
+//        tshape::ShapeOrder(ids, orders, shapeorders);
 
         int shapecounter = 0;
         for (int is=0; is<nsides; is++) {
@@ -1144,11 +1149,6 @@ void CheckShapeOrder(int order)
                 firstshape += tshape::NConnectShapeF(lowerdimensionsides[i], order);
             }
             
-            /// Compute the ids associated with the nodes of the side
-            TPZManVector<int64_t,8> locids(tshape::NSideNodes(is));
-            for (int i=0; i<locids.size(); i++) {
-                locids[i] = ids[tshape::SideNodeLocId(is, i)];
-            }
             if(sidetype == EPiramide && sidedim == 3)
             {
                 for(int shape = 0; shape < nsideshape; shape++)
@@ -1200,10 +1200,15 @@ void CheckShapeOrder(int order)
                         point[2] = c+sidecenter[2];
                     }
 
-                    TPZManVector<int,27> locorders(tshape::NContainedSides(is)-tshape::NSideNodes(is),order);
                     TPZFNMatrix<200,REAL> philegendre(numlegendre,1,0.);
                     TPZFNMatrix<200,REAL> dphi(sidedim,nsideshape+firstshape), dphilegendre(1,numlegendre,0.), phi(nsideshape+firstshape,1,0.);
-                    TPZShapeH1<tshape>::SideShape(is, point, locids, locorders, phi, dphi);
+                    TPZSideShapeH1<tshape> h1(is);
+                    TPZShapeData data;
+                    h1.Initialize(ids, orders, data);
+                    h1.Shape(point, data);
+                    phi = data.fPhi;
+                    dphi = data.fDPhi;
+//                    tshape::SideShape(is, point, locids, orders, phi, dphi);
                     
 //                    for (int ishape = firstshape; ishape<firstshape+nsideshape; ishape++) {
 //                        std::cout << phi(ishape,0) << " ";
