@@ -4,8 +4,8 @@
 #include "TPZStream.h"
 #include "pzmatrix.h"
 #include "TPZFMatrixRef.h"
-#include "pzysmp.h"
-#include "pzsysmp.h"
+#include "TPZYSMPMatrix.h"
+#include "TPZSYSMPMatrix.h"
 #include <complex>
 
 

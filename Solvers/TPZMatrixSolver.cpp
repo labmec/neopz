@@ -111,6 +111,7 @@ int TPZMatrixSolver<TVar>::ClassId() const{
     return Hash("TPZMatrixSolver") ^ ClassIdOrHash<TVar>() ^ TPZSolver::ClassId() << 2;
 }
 
+#ifdef USING_MKL
 #include "pzysmp.h"
 #include "pzsysmp.h"
 
@@ -126,6 +127,7 @@ TPZPardisoSolver<TVar> *TPZMatrixSolver<TVar>::GetPardisoControl(){
   }
   return nullptr;
 }
+#endif
 
 template class TPZMatrixSolver<float>;
 template class TPZMatrixSolver<std::complex<float> >;

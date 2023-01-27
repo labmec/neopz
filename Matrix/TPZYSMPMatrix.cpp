@@ -3,7 +3,7 @@
  * @brief Contains the implementation of the TPZFYsmpMatrix methods.
  */
 
-#include "pzysmp.h"
+#include "TPZYSMPMatrix.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 
@@ -597,7 +597,7 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
   std::vector<std::thread> allthreads;
 	TPZVec<TPZMThread> alldata(numthreads);
 	int i;
-	int eqperthread = r/numthreads;
+	int64_t eqperthread = r/numthreads;
 	int firsteq = 0;
 	for(i=0;i<numthreads;i++) 
 	{
@@ -838,7 +838,7 @@ void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 	}
 	return 0;
 }
-static int  FindCol(int64_t *colf, int64_t *coll, int64_t col)
+static int64_t  FindCol(int64_t *colf, int64_t *coll, int64_t col)
 {
 	if(col == *colf) return 0;
 	int64_t *begin = colf;
@@ -1002,31 +1002,6 @@ template<class TVar>
 int TPZFYsmpMatrix<TVar>::Decompose_LU()
 {
     
-#ifdef USING_MKL
-    if(this->IsDecomposed() == ELU) return 1;
-    if (this->IsDecomposed() != ENoDecompose) {
-        DebugStop();
-    }
-		if(!fPardisoControl.HasCustomSettings()){
-			typename TPZPardisoSolver<TVar>::MStructure str =
-        this->IsSymmetric() ?
-				TPZPardisoSolver<TVar>::MStructure::ESymmetric:
-				TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
-			typename TPZPardisoSolver<TVar>::MSystemType sysType =
-				this->IsSymmetric() ?
-				TPZPardisoSolver<TVar>::MSystemType::ESymmetric:
-				TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
-			typename TPZPardisoSolver<TVar>::MProperty prop =
-				this->IsDefPositive() ?
-				TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
-				TPZPardisoSolver<TVar>::MProperty::EIndefinite;
-			fPardisoControl.SetStructure(str);
-			fPardisoControl.SetMatrixType(sysType,prop);
-		}
-		fPardisoControl.Decompose(this);
-    this->SetIsDecomposed(ELU);
-    return 1;
-#endif
     
 	int64_t row;
 	int64_t neq = this->Rows();
@@ -1049,8 +1024,6 @@ int TPZFYsmpMatrix<TVar>::Decompose_LU()
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::SetIsDecomposed(int val)
 {
-	if(val)
-		fPardisoControl.fDecomposed = true;
 	TPZBaseMatrix::SetIsDecomposed(val);
 }
 

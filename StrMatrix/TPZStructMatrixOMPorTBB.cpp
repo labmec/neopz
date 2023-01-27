@@ -24,7 +24,7 @@
 #include "pzgnode.h"
 #include "TPZTimer.h"
 #include "TPZElementMatrixT.h"
-#include "pzsysmp.h"
+#include "TPZSYSMPMatrix.h"
 #include "TPZThreadPool.h"
 
 #include "TPZLapack.h"

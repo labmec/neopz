@@ -7,7 +7,7 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzelmat.h"
-#include "pzysmp.h"
+#include "TPZYSMPMatrix.h"
 #include "TPZRenumbering.h"
 #include "TPZGuiInterface.h"
 
