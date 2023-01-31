@@ -73,10 +73,10 @@ int ClassId() const override;
 	void SetNodeId(int id) { fId = id;}
 	
 	/** @brief Initialize the data structure of the node. Creates a unique id for the node automatically*/
-	void Initialize(TPZVec<REAL> &coord,TPZGeoMesh &mesh);
+	void Initialize(const TPZVec<REAL> &coord,TPZGeoMesh &mesh);
 	/** @brief Initializes the data structure of the node. Assumes that the id provided by the user
      is unique for the mesh*/
-	void Initialize(int id,TPZVec<REAL> &coord,TPZGeoMesh &mesh);
+	void Initialize(const int id,const TPZVec<REAL> &coord,TPZGeoMesh &mesh);
 	
 	/** @brief Initializes the node with data from a node from a different mesh */
 	void Initialize(const TPZGeoNode &node, TPZGeoMesh &mesh);  

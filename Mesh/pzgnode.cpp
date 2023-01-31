@@ -35,7 +35,7 @@ TPZGeoNode & TPZGeoNode::operator=(const TPZGeoNode &node){
 	return *this;
 }
 
-void TPZGeoNode::Initialize(TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
+void TPZGeoNode::Initialize(const TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
 	fId = mesh.CreateUniqueNodeId();
 	int i,dim = coord.NElements();
     if(dim != 3) DebugStop();
@@ -43,7 +43,7 @@ void TPZGeoNode::Initialize(TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
 	for(i=0;i<dim;i++) fCoord[i]=coord[i];
 	for(;i<3;i++) fCoord[i]=0.;
 }
-void TPZGeoNode::Initialize(int id,TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
+void TPZGeoNode::Initialize(const int id,const TPZVec<REAL> &coord,TPZGeoMesh &mesh) {
 	fId = id;
 	mesh.SetNodeIdUsed(id);
 	int i,dim = coord.NElements();
