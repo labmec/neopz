@@ -51,6 +51,20 @@ public:
 	 */
     static int64_t NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol);
     static bool CreateMiddleNodeAtEdge(TPZGeoMesh *Mesh, int64_t ElemIndex, int edge, int64_t &middleNodeId);
+
+    /**
+       @brief Stores the first neighbour for each side of a given element
+       @note If, for a given side, the neighbour is itself, an empty TPZGeoElSide is placed in its position
+       @param gel [in] given geometric element
+       @param neighs [out] vector of neighbours
+     */
+    static void StoreNeighbours(TPZGeoEl* gel, TPZVec<TPZGeoElSide> &neighs);
+    /**
+       @brief Restores neighbourhood information, checking for empty TPZGeoElSides in the vector
+       @param gel [in/out] given geometric element
+       @param neighs [in] vector of neighbours
+     */
+    static void RestoreNeighbours(TPZGeoEl* gel, TPZVec<TPZGeoElSide> &neighs);
 };
 
 #endif
