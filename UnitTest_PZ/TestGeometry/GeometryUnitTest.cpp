@@ -33,7 +33,7 @@
 #include "TPZQuadSphere.h"
 #include "TPZTriangleSphere.h"
 #include "TPZCylinderMap.h"
-
+#include "tpzchangeel.h"
 #include "TPZCurve.h"
 #include "TPZSurface.h"
 
@@ -371,4 +371,118 @@ TEST_CASE("gradx_tests","[geometry_tests]") {
     
     return;
 
+}
+
+TEST_CASE("changeel_tests","[geometry_tests]") {
+    TPZGeoMesh gmesh;
+
+    
+    //radius of the circumference
+    constexpr REAL radius{1.0};
+    //center of the circumference
+    TPZVec<REAL> xc = {0,0,0};
+    //axis of the cylinder (must be unitary)
+    TPZVec<REAL> axis = {0,0,1};
+    //this string will be filled at each section to generate .vtk files
+    std::string section_name = "";
+    
+    //simple lambda for creating new node and returning its index
+    auto CreateNewNode = [&gmesh] (const TPZVec<REAL> &x){
+        const int64_t nodeidx = gmesh.NodeVec().AllocateNewElement();
+        gmesh.NodeVec()[nodeidx].Initialize(x,gmesh);
+        return nodeidx;
+    };
+
+
+    //lambda to check whether pts lie in arc/cylinder
+
+    auto TestPts = [radius,xc,axis](TPZGeoEl *gel){
+        constexpr REAL tol = std::numeric_limits<REAL>::epsilon();
+        const int nsides = gel->NSides();
+        const int dim = gel->Dimension();
+        constexpr int p{4};
+        auto intRule = gel->CreateSideIntegrationRule(nsides-1, p);
+        const int npts = intRule->NPoints();
+        
+        TPZVec<REAL> xi(dim,0.), x(3,0.), dist(3,0.), dist_cross(3,0.);
+        for(int ipt = 0; ipt < npts; ipt++){
+            REAL w{0};
+            intRule->Point(ipt, xi, w);
+            gel->X(xi,x);
+            TPZManVector<REAL,3> dist = {x[0]-xc[0],x[1]-xc[1],x[2]-xc[2]};
+            //cross product
+            dist_cross = {
+                axis[1]*dist[2] - axis[2]*dist[1],
+                axis[2]*dist[0] - axis[0]*dist[2],
+                axis[0]*dist[1] - axis[1]*dist[0]
+            };
+
+            REAL norm = sqrt(dist_cross[0]*dist_cross[0] +
+                             dist_cross[1]*dist_cross[1] +
+                             dist_cross[2]*dist_cross[2]);
+            REQUIRE(norm== Approx(radius).epsilon(tol));
+        }
+    };
+
+
+    constexpr int line_mat{1};
+    constexpr int trig_mat{1};
+    
+    //create linear element that will be replaced by an TPZArc3D
+    TPZVec<int64_t> nodevec = {CreateNewNode({1,0,0}),CreateNewNode({0,1,0})};
+    
+    TPZGeoEl* lin_el =
+        new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(nodevec,line_mat,gmesh);
+
+    gmesh.BuildConnectivity();
+    SECTION("Arc3D"){
+        lin_el = TPZChangeEl::ChangeToArc3D(&gmesh, lin_el->Index(), xc, radius);
+        REQUIRE(lin_el);
+        TestPts(lin_el);
+        section_name = "Arc3D";
+    }
+
+    SECTION("Blend"){
+        lin_el = TPZChangeEl::ChangeToArc3D(&gmesh, lin_el->Index(), xc, radius);
+        nodevec.Resize(3);
+        nodevec[2] = CreateNewNode({0,0,0});
+        TPZGeoEl* trig_el =
+            new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(nodevec,trig_mat,gmesh);
+        gmesh.BuildConnectivity();
+        trig_el = TPZChangeEl::ChangeToGeoBlend(&gmesh, trig_el->Index());
+        REQUIRE(trig_el);
+        section_name = "Blend";
+    }
+
+    SECTION("Quad"){
+        lin_el = TPZChangeEl::ChangeToArc3D(&gmesh, lin_el->Index(), xc, radius);
+        nodevec.Resize(3);
+        nodevec[2] = CreateNewNode({0,0,0});
+        TPZGeoEl* trig_el =
+            new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(nodevec,trig_mat,gmesh);
+
+        gmesh.BuildConnectivity();
+        trig_el = TPZChangeEl::ChangeToQuadratic(&gmesh, trig_el->Index());
+        REQUIRE(trig_el);
+        section_name = "Quad";
+    }
+
+    SECTION("Cylinder"){
+        lin_el = TPZChangeEl::ChangeToArc3D(&gmesh, lin_el->Index(), xc, radius);
+        nodevec.Resize(3);
+        nodevec[2] = CreateNewNode({1,0,1});
+        TPZGeoEl* trig_el =
+            new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(nodevec,trig_mat,gmesh);
+
+        gmesh.BuildConnectivity();
+        trig_el = TPZChangeEl::ChangeToCylinder(&gmesh, trig_el->Index(),
+                                                xc, axis, radius);
+        REQUIRE(trig_el);
+        TestPts(trig_el);
+        section_name = "Cylinder";
+    }
+
+    if(section_name.size() != 0){
+        PlotRefinedMesh(gmesh, "change_el"+section_name+".vtk");
+    }
 }
