@@ -90,7 +90,7 @@ int TPZSYsmpMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & va
         row = col;
         col = temp;
     }
-    for(int ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
+    for(int64_t ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
         if ( fJA[ic] == col )
         {
             fA[ic] = val;
@@ -180,7 +180,7 @@ TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator-=(const TPZSYsmpMatrix<TVar
 	return *this;
 }
 template<class TVar>
-TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator*=(const TVar val)
+TPZMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator*=(const TVar val)
 {
 	TPZSYsmpMatrix<TVar> res((*this)*val);
 	*this = res;
@@ -454,11 +454,6 @@ void TPZSYsmpMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> 
     }
 }
 
-template<class TVar>
-void TPZSYsmpMatrix<TVar>::SetIsDecomposed(int val)
-{
-	TPZBaseMatrix::SetIsDecomposed(val);
-}
 
 #ifdef USING_MKL
 
@@ -545,63 +540,7 @@ int TPZSYsmpMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
     return -1;
 
 
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<int64_t> &singular)
-{    
-    NOMKL
-}
 
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
-{
-    NOMKL
-    
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
-{
-    NOMKL
-}
-
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
-{
-    NOMKL
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
-{
-    NOMKL
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
-{
-    NOMKL
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
-{
-    NOMKL
-}
-
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
-{
-    NOMKL
-}
-
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
-{
-    NOMKL
-}
 #endif
 
 

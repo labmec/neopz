@@ -29,7 +29,7 @@ void TPZSubMeshFrontalAnalysis::Run(std::ostream &out){
     //TODOCOMPLEX
 	fReferenceSolution = fSolution;
 	Assemble();
-    auto solverMat = MatrixSolver<STATE>().Matrix();
+    TPZAbstractFrontMatrix<STATE> *solverMat = dynamic_cast<TPZAbstractFrontMatrix<STATE> *>(MatrixSolver<STATE>().Matrix().operator->());
 	//    fSolver->Solve(fRhs, fRhs);
     if(solverMat->IsDecomposed() == ELU)
     {
@@ -54,8 +54,8 @@ void TPZSubMeshFrontalAnalysis::CondensedSolution(TPZFMatrix<TVar> &ek, TPZFMatr
 	if(fFront) {
         TPZFMatrix<TVar> &rhs = fRhs;
 		fFront->ExtractFrontMatrix(ek);
-		int next = ek.Rows();
-		int neq = fRhs.Rows();
+		int64_t next = ek.Rows();
+		int64_t neq = fRhs.Rows();
 		ef.Redim(next,1);
 		int eq;
 		for(eq=0; eq<next; eq++) {
@@ -69,11 +69,11 @@ void TPZSubMeshFrontalAnalysis::LoadSolutionInternal(
     TPZFMatrix<TVar> &mySol,const TPZFMatrix<TVar> &myRhs,
     const TPZFMatrix<TVar> &myRefSol, const TPZFMatrix<TVar> &sol)
 {
-    int numinter = fMesh->NumInternalEquations();
-	int numeq = fMesh->TPZCompMesh::NEquations();
+    int64_t numinter = fMesh->NumInternalEquations();
+	int64_t numeq = fMesh->TPZCompMesh::NEquations();
 	TPZFMatrix<TVar> soltemp(numeq,1,0.);
-    auto solverMat = MatrixSolver<STATE>().Matrix();
-	int i;
+    TPZAbstractFrontMatrix<STATE> *solverMat = dynamic_cast<TPZAbstractFrontMatrix<STATE> *>(MatrixSolver<STATE>().Matrix().operator->());
+	int64_t i;
 	for(i=0;i<numinter;i++) soltemp(i,0) = myRhs.GetVal(i,0);
 	for(; i<numeq; i++) {
 		soltemp(i,0) = sol.GetVal(i,0)-myRefSol.GetVal(i,0);

@@ -125,19 +125,90 @@ public:
     
     /// To solve linear systems
     // @{
-    //If LAPACK is available, it will use its implementation.
-    int Decompose_Cholesky() override;  // Faz A = GGt.
-    //If LAPACK is available, it will use its implementation.
-    int Decompose_Cholesky(std::list<int64_t> &singular) override;
     
-    int Subst_Forward( TPZFMatrix<TVar>*B ) const override;
-    int Subst_Backward ( TPZFMatrix<TVar> *b ) const override;
+    /** @brief decompose the system of equations acording to the decomposition
+      * scheme */
+     virtual int Decompose(const DecomposeType dt) override {
+       switch (dt) {
+       case ELDLt:
+         return Decompose_LDLt();
+         break;
+       case ECholesky:
+         return Decompose_Cholesky();
+         break;
+       default:
+         DebugStop();
+         break;
+       }
+       return -1;
+     }
 
-    int Decompose_LDLt(std::list<int64_t> &singular) override;
-    int Decompose_LDLt() override;
-    int Subst_LForward( TPZFMatrix<TVar> *B ) const override;
-    int Subst_LBackward( TPZFMatrix<TVar> *B ) const override;
-    int Subst_Diag( TPZFMatrix<TVar> *B ) const override;
+    
+    int SolveDirect( TPZFMatrix<TVar> &B , const DecomposeType dt) override {
+        
+        switch ( dt ) {
+            case ECholesky:
+                return( Solve_Cholesky( &B )  );
+            case ELDLt:
+                return( Solve_LDLt( &B )  );
+            default:
+                this->Error( "Solve  < Unknown decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+    int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override
+    {
+        if(this->fDecomposed != dt) DebugStop();
+        switch ( dt ) {
+            case ECholesky:
+                return ( Subst_Forward(&F) && Subst_Backward(&F) );
+            case ELDLt:
+                return( Subst_LForward( &F ) && Subst_Diag( &F ) && Subst_LBackward( &F ) );
+            default:
+                this->Error( "Solve  < Unhandled decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+
+    /**********************/
+    /*** Solve Cholesky ***/
+    //
+    //  Se nao conseguir resolver por Cholesky retorna 0 e a matriz
+    //   sera' modificada (seu valor perdera' o sentido).
+    //
+    int Solve_Cholesky( TPZFMatrix<TVar>* B )
+    {
+        return(
+               ( !Decompose_Cholesky() )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
+               );
+    }
+
+    /******************/
+    /*** Solve LDLt ***/
+
+    int Solve_LDLt( TPZFMatrix<TVar>* B ) {
+        
+        return(
+               ( !Decompose_LDLt() )? 0 :
+               ( Subst_LForward( B ) && Subst_Diag( B ) && Subst_LBackward( B ) )
+               );
+    }
+
+    
+
+
+    //If LAPACK is available, it will use its implementation.
+    int Decompose_Cholesky();  // Faz A = GGt.
+    
+    int Subst_Forward( TPZFMatrix<TVar>*B ) const;
+    int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
+
+    int Decompose_LDLt();
+    int Subst_LForward( TPZFMatrix<TVar> *B ) const;
+    int Subst_LBackward( TPZFMatrix<TVar> *B ) const;
+    int Subst_Diag( TPZFMatrix<TVar> *B ) const;
 //    int Subst_Forward( TPZFMatrix<TVar>*B ) const;
 //    int Subst_Backward( TPZFMatrix<TVar> *B ) const;
     

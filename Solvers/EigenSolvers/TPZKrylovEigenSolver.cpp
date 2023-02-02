@@ -144,8 +144,8 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
 #else
         DebugStop();
 #endif
-      if (this->MatrixB()->IsSymmetric()) this->MatrixB()->Decompose_LDLt();
-      else this->MatrixB()->Decompose_LU();
+      if (this->MatrixB()->IsSymmetric()) this->MatrixB()->Decompose(ELDLt);
+      else this->MatrixB()->Decompose(ELU);
     }
   }
   

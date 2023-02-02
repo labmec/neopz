@@ -77,7 +77,6 @@ public:
       }                                                       
   }
 
-  void SetIsDecomposed(int val) override;
   /** @brief Fill matrix storage with randomic values */
   /** This method use GetVal and PutVal which are implemented by each type matrices */
   void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
@@ -98,7 +97,7 @@ public:
   TPZFYsmpMatrix<TVar> operator*(const TVar alpha) const;
   TPZFYsmpMatrix<TVar> &operator+=(const TPZFYsmpMatrix<TVar> &A );
   TPZFYsmpMatrix<TVar> &operator-=(const TPZFYsmpMatrix<TVar> &A );
-  TPZFYsmpMatrix<TVar> &operator*=(const TVar val) override;
+  TPZMatrix<TVar> &operator*=(const TVar val) override;
   
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha=1.,const TVar beta = 0., const int opt = 0) const override;
@@ -168,31 +167,26 @@ public:
 	
 	virtual int Zero() override;
 	
-	/**
-	 * @name Factorization
-	 * @brief Those member functions are related to matrices factorization
-	 */
-	//@{
-	/**
-	 * @brief Decomposes the current matrix using LU decomposition.
-	 */
-	virtual int Decompose_LU(std::list<int64_t> &singular) override;
-	virtual int Decompose_LU() override;
+    /// this is a class that doesn't implement direct decompostion
+        /** @brief decompose the system of equations acording to the decomposition
+         * scheme */
+        virtual int Decompose(const DecomposeType dt) override {
+            DebugStop();
+        }
+        /**
+         * @brief Solves the linear system using Direct methods
+         * @param F The right hand side of the system and where the solution is stored.
+         * @param dt Indicates type of decomposition
+         */
+        virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override
+        {
+            DebugStop();
+        }
+        virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
+            DebugStop();
+        }
+
 	
-	//@}
-	
-	/**
-	 * @name Substitutions
-	 * @brief Substitutions forward and backward
-	 */
-	//@{  
-	/**
-	 * @brief Computes Forward and Backward substitution for a "LU" decomposed matrix.
-	 * @param B right hand side and result after all
-	 */
-	virtual int Substitution( TPZFMatrix<TVar> * B ) const override;
-	
-	//@}
 	
     int ClassId() const override;
 

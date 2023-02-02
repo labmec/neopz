@@ -143,10 +143,43 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   // Zera os Elementos da matriz
   //int Zero();
 
+    /** @brief decompose the system of equations acording to the decomposition
+     * scheme */
+    virtual int Decompose(const DecomposeType dt) override {
+        if(dt == ELU) {
+            return Decompose_LU();
+        }
+        else {
+            DebugStop();
+        }
+    }
+    /**
+     * @brief Solves the linear system using Direct methods
+     * @param F The right hand side of the system and where the solution is stored.
+     * @param dt Indicates type of decomposition
+     */
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override
+    {
+        if(dt == ELU) {
+            Decompose_LU();
+            Subst_LForward ( &F );
+            Subst_Backward ( &F );
+        } else {
+            DebugStop();
+        }
+    }
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
+        if(this->fDecomposed != ELU) DebugStop();
+        Subst_LForward ( &F );
+        Subst_Backward ( &F );
+    }
+
+
+
 
   /*** Resolucao de sistemas ***/
 
-  int Decompose_LU() override;  // Faz A = LU.
+  int Decompose_LU();  // Faz A = LU.
 
   //virtual void SolveSOR(int &numiterations,const TPZFMatrix &F, TPZFMatrix &result,
 	//		TPZFMatrix *residual,TPZFMatrix &scratch,const REAL overrelax, REAL &tol,
@@ -154,12 +187,8 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
 
   //int Subst_Forward  ( TPZFMatrix *b ) const override;
-  int Subst_Backward ( TPZFMatrix<TVar> *b ) const override;
-  int Subst_LForward ( TPZFMatrix<TVar> *b ) const override;
-  //int Subst_LBackward( TPZFMatrix *b ) const override;
-  //int Subst_Diag     ( TPZFMatrix *b ) const override;
-
-  //void TestSpeed(int col, int prevcol);
+  int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
+  int Subst_LForward ( TPZFMatrix<TVar> *b ) const;
 	
 	/**
 	 *@brief Return the id of the matrix defined pzmatrixid.h
@@ -203,7 +232,7 @@ int ClassId() const override;
 //static int  Error(const char *msg1,const char* msg2="" );
   int  Clear() override;
   void Copy (const TPZSkylNSymMatrix & );
-  int Size(const int64_t column) const {return fElem[column+1]-fElem[column];}
+  int64_t Size(const int64_t column) const {return fElem[column+1]-fElem[column];}
   static int64_t NumElements(const TPZVec<int64_t> &skyline);
   static void InitializeElem(const TPZVec<int64_t> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &elem);
   /**

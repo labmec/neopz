@@ -60,7 +60,7 @@ TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp) : TPZ
 }
 
 template<class TVar>
-void TPZVerySparseMatrix<TVar>::Simetrize() {
+void TPZVerySparseMatrix<TVar>::Symetrize() {
   
   int64_t rows = this->Rows();
   int64_t cols = this->Cols();
@@ -216,8 +216,12 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
 template<class TVar>
 void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid) const
 {
+    // The write method should call the write function of the super class
+    // @TODO needs to be reconsidered
+    DebugStop();
 	buf.Write(&this->fCol, 1);
-	buf.Write(&this->fDecomposed, 1);
+    int dec = (int)this->fDecomposed;
+	buf.Write(&dec, 1);
 	buf.Write(&this->fDefPositive, 1);
 	buf.Write(&this->fRow, 1);
 	WriteMap(buf, withclassid, this->fExtraSparseData);
@@ -243,8 +247,14 @@ void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, const 
 template<class TVar>
 void TPZVerySparseMatrix<TVar>::Read(TPZStream &buf, void *context)
 {
+    // The write method should call the write function of the super class
+    // @TODO needs to be reconsidered
+    DebugStop();
+
 	buf.Read(&this->fCol, 1);
-	buf.Read(&this->fDecomposed, 1);
+    int dec;
+	buf.Read(&dec, 1);
+    this->fDecomposed = (DecomposeType) dec;
 	buf.Read(&this->fDefPositive, 1);
 	buf.Read(&this->fRow, 1);
 	ReadMap(buf, context, this->fExtraSparseData);
