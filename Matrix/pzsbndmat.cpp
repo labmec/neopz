@@ -121,7 +121,6 @@ TPZSBMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar& value )
         return( 0 );        // O elemento esta fora da banda.
     }
     fDiag[ Index(row,col) ] = val;
-    this->fDecomposed = 0;
     return( 1 );
 }
 
@@ -439,9 +438,12 @@ TPZSBMatrix<TVar>::Redim(const int64_t newDim ,const int64_t otherDim)
         }
         fDiag.resize(Size());
     }
+    // the method does not allocate the proper space. It is wrong!
+    std::cout << __PRETTY_FUNCTION__ << " Please implement me\n";
+    DebugStop();
     
     Zero();
-    this->fDecomposed = 0;
+    this->fDecomposed = ENoDecompose;
     this->fDefPositive = 0;
     return( 1 );
 }
@@ -456,7 +458,7 @@ TPZSBMatrix<TVar>::Zero()
     }
     
     
-    this->fDecomposed = 0;
+    this->fDecomposed = ENoDecompose;
     this->fDefPositive = 0;
     return( 1 );
 }
@@ -489,20 +491,53 @@ TPZSBMatrix<TVar>::SetBand(int64_t newBand )
 
 
 
-/**************************/
-/*** Decompose Cholesky ***/
-template<class TVar>
-int
-TPZSBMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
-{
-    return Decompose_Cholesky();
-}
-
 template<class TVar>
 int
 TPZSBMatrix<TVar>::Decompose_Cholesky()
 {
-    return TPZMatrix<TVar>::Decompose_Cholesky();
+    if (  this->fDecomposed && this->fDecomposed != ECholesky) this->Error( "Decompose_Cholesky <Matrix already Decomposed>" );
+    if (  this->fDecomposed ) return ECholesky;
+    if ( this->Rows()!=this->Cols() ) this->Error( "Decompose_Cholesky <Matrix must be square>" );
+    //return 0;
+    
+    int64_t dim=this->Rows();
+    for (int64_t i=0 ; i<dim; i++) {
+        for(int64_t k=0; k<i; k++) {//diagonal elements
+            TVar sum = 0;
+            if constexpr (is_complex<TVar>::value){
+                sum += GetVal(i,k)*std::conj(GetVal(i,k));
+            }else{
+                sum += GetVal(i,k)*GetVal(i,k);
+            }
+            PutVal( i,i,GetVal(i,i)-sum );
+        }
+        TVar tmp = sqrt(GetVal(i,i));
+        PutVal( i,i,tmp );
+        for (int64_t j=i+1;j<dim; j++) {//off-diagonal elements
+            for(int64_t k=0; k<i; k++) {
+                TVar sum = 0.;
+                if constexpr (is_complex<TVar>::value){
+                    sum += GetVal(i,k)*std::conj(GetVal(j,k));
+                }else{
+                    sum += GetVal(i,k)*GetVal(j,k);
+                }
+                PutVal( i,j,GetVal(i,j)-sum);
+            }
+            TVar tmp2 = GetVal(i,i);
+            if ( IsZero(tmp2) ) {
+                this->Error( "Decompose_Cholesky <Zero on diagonal>" );
+            }
+            PutVal(i,j,GetVal(i,j)/GetVal(i,i) );
+            if constexpr (is_complex<TVar>::value){
+                PutVal(j,i,std::conj(GetVal(i,j)));
+            }else{
+                PutVal(j,i,GetVal(i,j));
+            }
+        }
+    }
+    this->fDecomposed = ECholesky;
+    return ECholesky;
+    
 }
 
 #ifdef USING_LAPACK
@@ -627,13 +662,6 @@ int TPZSBMatrix<double>::Decompose_Cholesky()
 /*** Decompose LDLt ***/
 template<class TVar>
 int
-TPZSBMatrix<TVar>::Decompose_LDLt(std::list<int64_t> &singular)
-{
-    return Decompose_LDLt();
-}
-
-template<class TVar>
-int
 TPZSBMatrix<TVar>::Decompose_LDLt()
 {
     
@@ -642,7 +670,7 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
     int64_t j,k,l, begin,end;
     TVar sum;
     
-    for ( j = 0; j < this->Dim(); j++ )
+    for ( j = 0; j < this->Rows(); j++ )
     {
         //Print("curernt");
         sum=0.;
@@ -694,7 +722,7 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
             PutVal( l,j,GetVal(l,j)/GetVal(j,j) ) ;
         }
     }
-    this->fDecomposed  = 1;
+    this->fDecomposed  = ELDLt;
     this->fDefPositive = 0;
     
     return( 1 );
@@ -1043,7 +1071,20 @@ TPZSBMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
     {
        this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
-    return TPZMatrix<TVar>::Subst_Forward(B);
+    for ( int64_t r = 0; r < this->Dim(); r++ ) {
+        TVar pivot = GetVal( r, r );
+        for ( int64_t c = 0; c < B->Cols();  c++ ) {
+            // Faz sum = SOMA( A[r,i] * B[i,c] ); i = 0, ..., r-1.
+            //
+            TVar sum = 0.0;
+            for ( int64_t i = 0; i < r; i++ ) sum += GetVal(r, i) * B->GetVal(i, c);
+            
+            // Faz B[r,c] = (B[r,c] - sum) / A[r,r].
+            //
+            B->PutVal( r, c, (B->GetVal(r, c) - sum) / pivot );
+        }
+    }
+    return( 1 );
 }
 /***********************/
 /*** Subst L Forward ***/
@@ -1107,12 +1148,25 @@ int TPZSBMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
 template<class TVar>
 int TPZSBMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 {
-    if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
-       this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     
-    return TPZMatrix<TVar>::Subst_Backward(B);
-    return ( 1 ) ;
-    
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed != ECholesky) {
+        this->Error(__PRETTY_FUNCTION__,"Subst_Backward-> wrong parameters") ;
+        return( -1 );
+    }
+    for ( int64_t r = this->Dim()-1;  r >= 0;  r-- ) {
+        TVar pivot = GetVal( r, r );
+        for ( int64_t c = 0; c < B->Cols(); c++ ) {
+            // Faz sum = SOMA( A[r,i] * B[i,c] ); i = N, ..., r+1.
+            //
+            TVar sum = 0.0;
+            for ( int64_t i = this->Dim()-1; i > r; i-- ) sum += GetVal(r, i) * B->GetVal(i, c);
+            // Faz B[r,c] = (B[r,c] - sum) / A[r,r].
+            //
+            B->PutVal( r, c, (B->GetVal(r, c) - sum) / pivot );
+        }
+    }
+    return( 1 );
+
 }
 
 template<class TVar>
@@ -1153,7 +1207,7 @@ TPZSBMatrix<TVar>::Clear()
 {
     this->fRow = this->fCol = 0;
     fDiag.resize(0);
-    this->fDecomposed = 0;
+    this->fDecomposed = ENoDecompose;
     return( 1 );
 }
 
@@ -1165,6 +1219,8 @@ void
 TPZSBMatrix<TVar>::Copy(const TPZSBMatrix<TVar> &A )
 {
     TPZMatrix<TVar>::operator=(A);
+    std::cout << __PRETTY_FUNCTION__ << " Please implement me!\n";
+    DebugStop();
     this->fBand = A.fBand;
     this->fDiag = A.fDiag;
 }

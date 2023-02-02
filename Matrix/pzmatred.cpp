@@ -73,7 +73,7 @@ void TPZMatRed<TVar, TSideMatrix>::SimetrizeMatRed() {
 	if(!fK00 || !this->fK00->IsSymmetric()) return;
 	fK01.Transpose(&fK10);
 	
-	fK11.Simetrize();
+	fK11.Symetrize();
 	
 	/*
 	int64_t row,col;
@@ -594,7 +594,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 		}
 #endif
 	}
-	else
+	else // not implemented for the transpose case
 	{
 		DebugStop();
 	}

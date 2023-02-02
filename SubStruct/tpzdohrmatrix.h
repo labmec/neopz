@@ -65,6 +65,26 @@ public:
 	
 	~TPZDohrMatrix();
 
+    
+    /// this is a class that doesn't implement direct decompostion
+        /** @brief decompose the system of equations acording to the decomposition
+         * scheme */
+        virtual int Decompose(const DecomposeType dt) override {
+            DebugStop();
+        }
+        /**
+         * @brief Solves the linear system using Direct methods
+         * @param F The right hand side of the system and where the solution is stored.
+         * @param dt Indicates type of decomposition
+         */
+        virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override
+        {
+            DebugStop();
+        }
+        virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
+            DebugStop();
+        }
+
 	void CopyFrom(const TPZMatrix<TVar> *  mat) override        
   {                                                           
     auto *from = dynamic_cast<const TPZDohrMatrix<TVar,TSubStruct> *>(mat);                

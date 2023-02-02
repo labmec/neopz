@@ -267,7 +267,6 @@ TPZSkylMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & value )
 	} else if(index >= Size(col)) return 1;
 	fElem[col][index] = value;
 	//  delete[]newVet;
-	this->fDecomposed = 0;
 	return( 1 );
 }
 #endif
@@ -753,7 +752,6 @@ TPZSkylMatrix<TVar>::operator*=(const TVar value )
 		while ( elem < end ) *elem++ *= value;
     }
 	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -782,7 +780,7 @@ int TPZSkylMatrix<TVar>::Resize( int64_t newDim ,int64_t ) {
 	// Zera as posicoes que sobrarem (se sobrarem)
 	fStorage.Resize(fElem[newDim]-fElem[0]);
 	this->fRow = this->fCol = newDim;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	return( 1 );
 }
 
@@ -807,7 +805,7 @@ TPZSkylMatrix<TVar>::Redim( int64_t newDim , int64_t)
 	fElem.Resize(newDim);
 	fElem.Fill(0);
 	this->fRow = this->fCol = newDim;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	return( 1 );
 }
 
@@ -1500,7 +1498,7 @@ TPZSkylMatrix<TVar>::Zero()
 {
     
     fStorage.Fill(0.);
-    this->fDecomposed = 0;
+    this->fDecomposed = ENoDecompose;
     this->fDefPositive = 0;
     return( 1 );
 }
@@ -1516,7 +1514,7 @@ TPZSkylMatrix<TVar>::Clear()
     //	fStorage.Shrink();
     this->fElem.Resize(0);
     this->fRow = this->fCol = 0;
-    this->fDecomposed = 0;
+    this->fDecomposed = ENoDecompose;
     return( 1 );
 }
 

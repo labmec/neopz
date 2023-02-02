@@ -207,7 +207,6 @@ TPZSFMatrix<TVar> ::operator+=(const TPZSFMatrix<TVar>  &A )
 	while ( dst < end )
 		*dst++ += *src++;
 	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -229,7 +228,6 @@ TPZSFMatrix<TVar> ::operator-=(const TPZSFMatrix<TVar>  &A )
 	while ( dst < end )
 		*dst++ -= *src++;
 	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -328,7 +326,6 @@ TPZSFMatrix<TVar> ::operator+=(const TPZMatrix<TVar>  &A )
 		for ( int64_t r = 0; r <= c; r++ )
 			*pm++ += A.Get( r, c );
 	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -349,7 +346,6 @@ TPZSFMatrix<TVar> ::operator-=(const TPZMatrix<TVar>  &A )
 		for ( int64_t r = 0; r <= c; r++ )
 			*pm++ -= A.Get( r, c );
 	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -368,7 +364,7 @@ TPZSFMatrix<TVar> ::operator=(const TVar value )
 	TVar *end = &fElem[ Size() ];
 	while ( dst < end )
 		*dst++ = value;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	this->fDefPositive = 0;
 	return( *this );
 }
@@ -425,7 +421,6 @@ TPZSFMatrix<TVar> ::operator+=( TVar value )
 	TVar *end = &fElem[ Size() ];
 	while ( dst < end )
 		*dst++ += value;
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -442,7 +437,6 @@ TPZSFMatrix<TVar> ::operator*=( TVar value )
 	TVar *end = &fElem[ Size() ];
 	while ( dst < end )
 		*dst++ *= value;
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -481,7 +475,7 @@ TPZSFMatrix<TVar> ::Resize( int64_t newDim , int64_t )
 		delete( fElem );
 	fElem = newElem;
 	this->fRow = this->fCol = newDim;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	return( 1 );
 }
 
@@ -509,7 +503,7 @@ TPZSFMatrix<TVar> ::Redim( int64_t newDim , int64_t)
 	TVar *end = &fElem[ Size() ];
 	while ( dst < end )
 		*dst++ = 0.;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	this->fDefPositive = 0;
 	
 	
@@ -525,20 +519,12 @@ TPZSFMatrix<TVar> ::Zero()
 	TVar *end = &fElem[ Size() ];
 	while ( dst < end )
 		*dst++ = 0.;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	this->fDefPositive = 0;
 	return( 1 );
 }
 /******** Resolucao de Sistemas ********/
 
-/**************************/
-/*** Decompose Cholesky ***/
-template<class TVar>
-int
-TPZSFMatrix<TVar> ::Decompose_Cholesky(std::list<int64_t> &singular)
-{
-	return Decompose_Cholesky();
-}
 
 template<class TVar>
 int
@@ -600,12 +586,6 @@ TPZSFMatrix<TVar> ::Decompose_Cholesky()
 
 /**********************/
 /*** Decompose LDLt ***/
-template<class TVar>
-int
-TPZSFMatrix<TVar> ::Decompose_LDLt(std::list<int64_t> &singular)
-{
-	return Decompose_LDLt();
-}
 
 template<class TVar>
 int

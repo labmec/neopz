@@ -419,7 +419,7 @@ TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator-=(const TPZFYsmpMatrix<TVar
 	return *this;
 }
 template<class TVar>
-TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator*=(const TVar val)
+TPZMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator*=(const TVar val)
 {
 	TPZFYsmpMatrix<TVar> res((*this)*val);
 	*this = res;
@@ -990,104 +990,6 @@ void TPZFYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric)
 }
 
 
-/**
- * Decomposes the current matrix using LU decomposition.
- */
-template<class TVar>
-int TPZFYsmpMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular)
-{
-	return Decompose_LU();
-}
-template<class TVar>
-int TPZFYsmpMatrix<TVar>::Decompose_LU()
-{
-    
-    
-	int64_t row;
-	int64_t neq = this->Rows();
-	for(row=1; row<neq; row++)
-	{
-		//    int firstcol = fIA[row];
-		int64_t lastcol = fIA[row+1];
-		int64_t colind = 0;
-		if(fJA[lastcol-1] < row) continue;
-		while(fJA[colind] < row)
-		{
-			RowLUUpdate(fJA[colind],row);
-			colind++;
-		}
-	}
-	this->fDecomposed=1;
-	return 1;
-}
-
-template<class TVar>
-void TPZFYsmpMatrix<TVar>::SetIsDecomposed(int val)
-{
-	TPZBaseMatrix::SetIsDecomposed(val);
-}
-
-template<class TVar>
-int TPZFYsmpMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const
-{
-    
-#ifdef USING_MKL
-    TPZFMatrix<TVar> x(*B);
-    fPardisoControl.Solve(this,*B,x);
-    *B = x;
-    return 1;
-#endif
-    
-	int64_t row;
-	int64_t bcol = B->Cols();
-	int64_t col;
-	int64_t neq = this->Rows();
-	
-	// forward substitution
-	for(row=0; row<neq; row++)
-	{
-		int64_t firstrow = fIA[row];
-		int64_t lastrow = fIA[row+1];
-		if(fJA[firstrow] > row || fJA[lastrow-1] < row)
-		{
-			cout << __PRETTY_FUNCTION__ << " " << __LINE__ << " inconsistent column information for row " << row << endl;
-			continue;
-		}
-		int64_t rowcounter = firstrow;
-		while(fJA[rowcounter] < row)
-		{
-			for(col=0; col<bcol; col++)
-			{
-				(*B)(row,col) -= fA[rowcounter]*(*B)(fJA[rowcounter],col);
-			}
-		}
-		for(col=0; col<bcol; col++)
-		{
-			(*B)(row,col) /= fA[rowcounter];
-		}
-	}
-	// backward substitution
-	for(row = neq-1; row >= 0; row--)
-	{
-		int64_t firstrow = fIA[row];
-		int64_t lastrow = fIA[row+1];
-		int64_t col = FindCol(&fJA[0]+firstrow,&fJA[0]+lastrow-1,row);
-		if(col < 0)
-		{
-			cout << __PRETTY_FUNCTION__ << " " << __LINE__ << " inconsistent column information for row " << row << endl;
-			continue;
-		}
-		int64_t coldist = firstrow+col+1;
-		while(coldist < lastrow)
-		{
-			for(col=0; col<bcol; col++)
-			{
-				(*B)(row,col) -= fA[coldist]*(*B)(fJA[coldist],col);
-			}
-		}
-	}
-	return 1;
-}
 
 
 template<class TVar>

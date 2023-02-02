@@ -76,7 +76,6 @@ public :
     return 0;
   }
 
-  void SetIsDecomposed(int val) override;
     /** @brief Fill matrix storage with randomic values */
     /** This method use GetVal and PutVal which are implemented by each type matrices */
     void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
@@ -95,7 +94,7 @@ public :
   TPZSYsmpMatrix<TVar> operator*(const TVar alpha) const;
   TPZSYsmpMatrix<TVar> &operator+=(const TPZSYsmpMatrix<TVar> &A );
   TPZSYsmpMatrix<TVar> &operator-=(const TPZSYsmpMatrix<TVar> &A );
-  TPZSYsmpMatrix<TVar> &operator*=(const TVar val) override;
+  TPZMatrix<TVar> &operator*=(const TVar val) override;
   
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** @note z and x cannot overlap in memory */
@@ -129,71 +128,24 @@ public :
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat = EFormatted ) const override;
     
-    /**
-     * @name Factorization
-     * @brief Those member functions perform the matrix factorization
-     * @{
-     */
-    
-
-    /**
-     * @brief Decomposes the current matrix using LDLt. Depends on MKL. \n
-     * The current matrix has to be symmetric.
-     * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
-     */
-    virtual int Decompose_LDLt(std::list<int64_t> &singular) override;
-    /** @brief Decomposes the current matrix using LDLt. Depends on MKL.*/
-    virtual int Decompose_LDLt() override;
-
-    /** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. Depends on MKL.*/
-    virtual int Decompose_Cholesky() override;
-    /**
-     * @brief Decomposes the current matrix using Cholesky method.Depends on MKL.
-     * @param singular
-     */
-    virtual int Decompose_Cholesky(std::list<int64_t> &singular)  override;
-    
-
-    /** @} */
-    
-    /**
-     * @name Substitutions
-     * @brief Substitutions forward and backward
-     * @{
-     */
-    
-    /**
-     * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.Depends on MKL.
-     * @param b right hand side and result after all
-     */
-    virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const override;
-    
-    /**
-     * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.Depends on MKL.
-     * @param b right hand side and result after all
-     */
-    virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const override;
-    
-    /**
-     * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.Depends on MKL.
-     * @param b right hand side and result after all
-     */
-    virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const override;
-
-    /**
-     * @brief Computes B = Y, where A*Y = B, A is lower triangular.Depends on MKL.
-     * @param b right hand side and result after all
-     */
-    virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const override;
-    
-    /**
-     * @brief Computes B = Y, where A*Y = B, A is upper triangular.Depends on MKL.
-     * @param b right hand side and result after all
-     */
-    virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const override;
-    
-
-    /** @} */
+    /// this is a class that doesn't implement direct decompostion
+        /** @brief decompose the system of equations acording to the decomposition
+         * scheme */
+        virtual int Decompose(const DecomposeType dt) override {
+            DebugStop();
+        }
+        /**
+         * @brief Solves the linear system using Direct methods
+         * @param F The right hand side of the system and where the solution is stored.
+         * @param dt Indicates type of decomposition
+         */
+        virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override
+        {
+            DebugStop();
+        }
+        virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
+            DebugStop();
+        }
     
 
     int ClassId() const override;

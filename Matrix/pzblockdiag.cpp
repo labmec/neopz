@@ -94,7 +94,7 @@ void TPZBlockDiagonal<TVar>::Initialize(const TPZVec<int> &blocksize){
 	
 	fStorage.Fill(0.,0);
 	fStorage.Resize(ndata,0.);
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	this->fRow = neq;
 	this->fCol = neq;
 }
@@ -381,7 +381,7 @@ int TPZBlockDiagonal<TVar>::Zero()
 {
 	
 	fStorage.Fill(0.,0);
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	
 	return( 1 );
 }
@@ -413,13 +413,6 @@ void TPZBlockDiagonal<TVar>::Transpose (TPZMatrix<TVar> *const T) const
 
 /*****************/
 /*** Decompose_LU ***/
-//fElem[ fBand * (2*row + 1) + col ]
-template<class TVar>
-int TPZBlockDiagonal<TVar>::Decompose_LU(std::list<int64_t> &singular)
-{
-	return Decompose_LU();
-}
-
 template<class TVar>
 int TPZBlockDiagonal<TVar>::Decompose_LU()
 {
@@ -496,7 +489,7 @@ int TPZBlockDiagonal<TVar>::Clear()
 	fBlockSize.Resize(0);
 	this->fRow = 0;
 	this->fCol = 0;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	return( 1 );
 }
 

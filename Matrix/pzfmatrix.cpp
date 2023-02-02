@@ -99,6 +99,7 @@ TPZFMatrix<TVar>::TPZFMatrix(TPZFMatrix<TVar> &&A)
       fGiven(0),fSize(0),
       fPivot(0), fWork(0)
 {
+    // A has preallocated memory, we cant copy the pointer
     if(A.fElem == A.fGiven)
     {
         int64_t size = A.fRow * A.fCol;
@@ -148,6 +149,7 @@ TPZMatrix<TVar>( A.Rows(), A.Cols() ), fElem(0), fGiven(0), fSize(0) {
 template<class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
     if(this == &A) return *this;
+    // amount of storage needed
     int64_t size = A.fRow * A.fCol;
     
     TVar * newElem = fElem;
@@ -178,6 +180,8 @@ template<class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(TPZFMatrix<TVar> &&A ) {
     TPZMatrix<TVar>::operator=(A);
     if(fElem && fElem != fGiven) {delete [] fElem;}
+    // if A points to preallocated memory, then this code is wrong
+    DebugStop();
     fElem=A.fElem;
     fGiven=A.fGiven;
     fSize=A.fSize;
@@ -1006,7 +1010,7 @@ TPZFMatrix<TVar>& TPZFMatrix<TVar>::operator=(const TVar value ) {
     TVar * dst   = fElem;
     for ( int64_t i = 0; i < size; i++ )
         *dst++ = value;
-    this->fDecomposed = 0;
+    this->fDecomposed = ENoDecompose;
     return *this;
 }
 
@@ -1634,20 +1638,9 @@ int TPZFMatrix<double>::Substitution( TPZFMatrix<double> *B ) const {
 #endif //USING_LAPACK
 
 
-//NAO TESTADO
-template <class TVar>
-int TPZFMatrix<TVar>::Decompose_Cholesky(){
-    std::list<int64_t> fake;
-    int res = this->Decompose_Cholesky(fake);
-    if(fake.size()){
-        DebugStop();
-    }
-    return res;
-}
-
 #ifdef USING_LAPACK
 template <>
-int TPZFMatrix<float>::Decompose_Cholesky(std::list<int64_t> &singular) {
+int TPZFMatrix<float>::Decompose_Cholesky() {
     if (  this->fDecomposed && this->fDecomposed != ECholesky) Error( "Decompose_Cholesky <Matrix already Decomposed>" );
     if (  this->fDecomposed ) return ECholesky;
     if ( this->Rows() != this->Cols() ) Error( "Decompose_Cholesky <Matrix must be square>" );
@@ -1668,7 +1661,7 @@ int TPZFMatrix<float>::Decompose_Cholesky(std::list<int64_t> &singular) {
     return 1;
 }
 template <>
-int TPZFMatrix<double>::Decompose_Cholesky(std::list<int64_t> &singular) {
+int TPZFMatrix<double>::Decompose_Cholesky() {
     if (  this->fDecomposed && this->fDecomposed != ECholesky) Error( "Decompose_Cholesky <Matrix already Decomposed>" );
     if (  this->fDecomposed ) return ECholesky;
     if ( this->Rows() != this->Cols() ) Error( "Decompose_Cholesky <Matrix must be square>" );
@@ -1688,6 +1681,64 @@ int TPZFMatrix<double>::Decompose_Cholesky(std::list<int64_t> &singular) {
     return 1;
 }
 #endif //USING_LAPACK
+
+
+template <class TVar>
+int TPZFMatrix<TVar>::Decompose_Cholesky(){
+    if (  this->fDecomposed && this->fDecomposed != ECholesky) Error( "Decompose_Cholesky <Matrix already Decomposed>" );
+    if (  this->fDecomposed ) return ECholesky;
+    if ( this->Rows() != this->Cols() ) Error( "Decompose_Cholesky <Matrix must be square>" );
+    //return 0;
+    
+    int dim=this->Dim();
+    
+    for (int i=0 ; i<dim; i++) {
+        
+
+        TVar &diagII = this->g(i,i);
+        for(int k=0; k<i; k++) { //diagonal elements
+            TVar sum = 0;
+            if constexpr (is_complex<TVar>::value){
+                sum += this->operator()(i,k)*std::conj(this->operator()(i,k));
+            }else{
+                sum+= this->operator()(i,k)*this->operator()(i,k);
+            }
+            diagII -= sum;
+        }
+        
+        
+        if( IsZero(diagII) ){
+            DebugStop();
+        }
+        if constexpr(!is_complex<TVar>::value) if (diagII < 0.) DebugStop();
+        
+        diagII = sqrt(diagII);
+
+        for (int j=i+1;j<dim; j++) {//off-diagonal elements
+            TVar sum = 0.;
+            int k = 0;
+            TVar * ikPtr = &(this->g(k,i));///(k,i) = (i,k) given that the matrix is symmetric, but the alignment will speed up execution
+            TVar * kjPtr = &(this->g(k,j));
+            for(; k<i; k++, kjPtr++, ikPtr++) {
+                if constexpr(is_complex<TVar>::value){
+                    sum += std::conj(*ikPtr)*(*kjPtr);
+                }else{
+                    sum += (*ikPtr)*(*kjPtr);
+                }
+            }
+            
+            const TVar val = (this->GetVal(i,j) - sum)/(diagII);
+            this->PutVal(i,j,val);
+            if constexpr (is_complex<TVar>::value) this->PutVal(j,i,std::conj(val));
+            else this->PutVal(j,i,val);
+        }
+    }
+    
+    //    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    this->fDecomposed = ECholesky;
+    return ECholesky;
+}
+
 
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular) {
@@ -1863,7 +1914,45 @@ int TPZFMatrix<double>::Decompose_LDLt() {
 
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LDLt() {
-    return TPZMatrix<TVar>::Decompose_LDLt();
+    if (  this->fDecomposed && this->fDecomposed != ELDLt) {
+        Error( "Decompose_LDLt <Matrix already Decomposed with other scheme> " );
+    } else if(this->fDecomposed ) {
+        return ELDLt;
+    }
+    if ( this->Rows()!=this->Cols() ) Error( "Decompose_LDLt <Matrix must be square>" );
+    
+    const int dim=this->Rows();
+    
+    for (auto j = 0; j < dim; j++ ) {
+        TVar sum = 0;
+        for (auto k=0; k<j; k++) {
+            if constexpr(is_complex<TVar>::value){
+                sum +=GetVal(k,k)*std::conj(GetVal(k,j))*GetVal(k,j);
+            }else{
+                sum +=GetVal(k,k)*GetVal(k,j)*GetVal(k,j);
+            }
+        }
+        PutVal( j,j,GetVal(j,j) - sum );
+        TVar tmp = GetVal(j,j);
+        if ( IsZero(tmp) ) Error( "Decompose_LDLt <Zero on diagonal>" );
+        for(auto l=j+1; l<dim;l++) {
+            TVar sum = 0;
+            for (auto k=0; k<j; k++) {
+                if constexpr(is_complex<TVar>::value){
+                    sum += GetVal(k,k)*std::conj(GetVal(j,k))*GetVal(l,k);
+                }else{
+                    sum += GetVal(k,k)*GetVal(j,k)*GetVal(l,k);
+                }
+            }
+            TVar val = (GetVal(l,j) - sum)/tmp;
+            PutVal(l,j,val);
+            if constexpr(is_complex<TVar>::value){val=std::conj(val);}
+            PutVal(j,l,val);
+        }
+    }
+    this->fDecomposed  = ELDLt;
+    this->fDefPositive = 0;
+    return( 1 );
 }
 
 
@@ -1889,7 +1978,8 @@ int TPZFMatrix<float>::Subst_Forward( TPZFMatrix<float>* b ) const
     }
     else
     {
-        return TPZMatrix<float>::Subst_Forward(b);
+        DebugStop();
+        return 0;
     }
 }
 
@@ -1914,7 +2004,8 @@ int TPZFMatrix<double>::Subst_Forward( TPZFMatrix<double>* b ) const
     }
     else
     {
-        return TPZMatrix<double>::Subst_Forward(b);
+        DebugStop();
+        return 0;
     }
 }
 #endif 
@@ -1923,9 +2014,24 @@ int TPZFMatrix<double>::Subst_Forward( TPZFMatrix<double>* b ) const
  * @param b right hand side and result after all
  */
 template<class TVar>
-int TPZFMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
+int TPZFMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* B ) const
 {
-    return TPZMatrix<TVar>::Subst_Forward(b);
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed != ECholesky)
+        return( 0 );
+    for ( int64_t r = 0; r < this->Dim(); r++ ) {
+        TVar pivot = GetVal( r, r );
+        for ( int64_t c = 0; c < B->Cols();  c++ ) {
+            // Faz sum = SOMA( A[r,i] * B[i,c] ); i = 0, ..., r-1.
+            //
+            TVar sum = 0.0;
+            for ( int64_t i = 0; i < r; i++ ) sum += GetVal(r, i) * B->GetVal(i, c);
+            
+            // Faz B[r,c] = (B[r,c] - sum) / A[r,r].
+            //
+            B->PutVal( r, c, (B->GetVal(r, c) - sum) / pivot );
+        }
+    }
+    return( 1 );
 }
 
 /**
@@ -1933,9 +2039,22 @@ int TPZFMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
  * @param b right hand side and result after all
  */
 template<class TVar>
-int TPZFMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
+int TPZFMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* B ) const
 {
-    return TPZMatrix<TVar>::Subst_Backward(b);
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed != ECholesky) return( 0 );
+    for ( int64_t r = this->Dim()-1;  r >= 0;  r-- ) {
+        TVar pivot = GetVal( r, r );
+        for ( int64_t c = 0; c < B->Cols(); c++ ) {
+            // Faz sum = SOMA( A[r,i] * B[i,c] ); i = N, ..., r+1.
+            //
+            TVar sum = 0.0;
+            for ( int64_t i = this->Dim()-1; i > r; i-- ) sum += GetVal(r, i) * B->GetVal(i, c);
+            // Faz B[r,c] = (B[r,c] - sum) / A[r,r].
+            //
+            B->PutVal( r, c, (B->GetVal(r, c) - sum) / pivot );
+        }
+    }
+    return( 1 );
 }
 
 #ifdef USING_LAPACK
@@ -1965,7 +2084,8 @@ int TPZFMatrix<float>::Subst_Backward( TPZFMatrix<float>* b ) const
     }
     else
     {
-        return TPZMatrix<float>::Subst_Backward(b);
+        DebugStop();
+        return 0;
     }
 }
 
@@ -1995,7 +2115,8 @@ int TPZFMatrix<double>::Subst_Backward( TPZFMatrix<double>* b ) const
     }
     else
     {
-        return TPZMatrix<double>::Subst_Backward(b);
+        DebugStop();
+        return 0;
     }
 }
 
@@ -2021,7 +2142,6 @@ int TPZFMatrix<float>::Subst_LForward( TPZFMatrix<float>* b ) const
     //    ssytrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     ssytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);
     return 1;
-    //    return TPZMatrix<TVar>::Subst_LForward(b);
 }
 
 /**
@@ -2046,7 +2166,6 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
     }
     dsytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);
     return 1;
-    //    return TPZMatrix<TVar>::Subst_LForward(b);
 }
 
 /**
@@ -2095,10 +2214,24 @@ int TPZFMatrix<double>::Subst_Diag( TPZFMatrix<double>* b ) const
  * @param b right hand side and result after all
  */
 template<class TVar>
-int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
+int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* B ) const
 {
-    //    ssytrs2
-    return TPZMatrix<TVar>::Subst_LForward(b);
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed != ELDLt) {
+        Error("TPZMatrix::Subst_LForward incompatible dimensions\n");
+    }
+    for ( int64_t r = 0; r < this->Dim(); r++ ) {
+        for ( int64_t c = 0; c < B->Cols();  c++ )    {
+            // Faz sum = SOMA( A[r,i] * B[i,c] ); i = 0, ..., r-1.
+            //
+            TVar sum = 0.0;
+            for ( int64_t i = 0; i < r; i++ ) sum += GetVal(r, i) * B->GetVal(i, c);
+            
+            // Faz B[r,c] = (B[r,c] - sum) / A[r,r].
+            //
+            B->PutVal( r, c, B->GetVal(r, c) - sum );
+        }
+    }
+    return( 1 );
 }
 
 /**
@@ -2106,9 +2239,25 @@ int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
  * @param b right hand side and result after all
  */
 template<class TVar>
-int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
+int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* B ) const
 {
-    return TPZMatrix<TVar>::Subst_LBackward(b);
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed != ELDLt){
+        Error("TPZMatrix::Subst_LBackward incompatible dimensions \n");
+    }
+    
+    for ( int64_t r = this->Dim()-1;  r >= 0;  r-- ) {
+        for ( int64_t c = 0; c < B->Cols(); c++ ) {
+            // Faz sum = SOMA( A[r,i] * B[i,c] ); i = N, ..., r+1.
+            //
+            TVar sum = 0.0;
+            for ( int64_t i = this->Dim()-1; i > r; i-- ) sum += GetVal(r, i) * B->GetVal(i, c);
+            
+            // Faz B[r,c] = B[r,c] - sum.
+            //
+            B->PutVal( r, c, B->GetVal(r, c) - sum );
+        }
+    }
+    return( 1 );
 }
 
 /**
@@ -2116,9 +2265,18 @@ int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
  * @param b right hand side and result after all
  */
 template<class TVar>
-int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
+int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* B ) const
 {
-    return TPZMatrix<TVar>::Subst_Diag(b);
+    if ( (B->Rows() != this->Dim())) {
+        Error("TPZMatrix::Subst_Diag incompatible dimensions\n");
+    }
+    for ( int64_t r = 0; r < this->Dim(); r++ ) {
+        TVar pivot = GetVal( r, r );
+        for ( int64_t c = 0; c < B->Cols(); c++ ) {
+            B->PutVal( r, c, B->GetVal( r, c ) / pivot );
+        }
+    }
+    return( 1 );
 }
 
 /** @brief Implement dot product for matrices */
@@ -2598,6 +2756,26 @@ Fad<REAL> Norm(const TPZFMatrix<Fad<REAL> > &A)
     Fad<REAL> res;
     return res;
 }
+
+
+template<class TVar>
+void TPZFMatrix<TVar>::Symetrize() {
+  
+  if ( this->Rows() != this->Cols() ) {
+    Error( "Simetrize only work for square matrices" );
+  }
+  
+  int64_t row,col;
+  int64_t fDim1 = this->Rows();
+  for(row=0; row<fDim1; row++) {
+    for(col=row+1; col<fDim1; col++) {
+      this->s(col,row) = this->s(row,col);
+    }
+  }
+  
+}
+
+
 
 #ifndef USING_LAPACK    
 #define NON_LAPACK \

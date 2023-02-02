@@ -82,6 +82,24 @@ public:
 	/** @brief returns 1 or 0 depending on whether the fK00 matrix is zero or not */
 	virtual int IsSymmetric() const override;
 	
+    // decomposition methods create an interrupt
+    /** @brief decompose the system of equations acording to the decomposition
+     * scheme */
+    virtual int Decompose(const DecomposeType dt) override {
+        DebugStop();
+    }
+    /**
+     * @brief Solves the linear system using Direct methods
+     * @param F The right hand side of the system and where the solution is stored.
+     * @param dt Indicates type of decomposition
+     */
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override
+    {
+        DebugStop();
+    }
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
+        DebugStop();
+    }
 	/** @brief changes the declared dimension of the matrix to fDim1 */
 	void SetReduced()
 	{

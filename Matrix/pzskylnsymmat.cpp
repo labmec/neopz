@@ -265,7 +265,6 @@ int TPZSkylNSymMatrix<TVar>::PutVal(const int64_t r, const int64_t c, const TVar
     fElemb[row][index] = value;
     // delete[]newVet;
   }
-	this->fDecomposed = 0;
 	
   return(1);
 }
@@ -810,7 +809,6 @@ TPZSkylNSymMatrix<TVar> & TPZSkylNSymMatrix<TVar>:: operator *= (const TVar valu
         * elem++ *= value;
     }
 
-  this->fDecomposed = 0;
   return(*this);
 }
 
@@ -1223,7 +1221,7 @@ int TPZSkylNSymMatrix<TVar>::Clear()
   fElem.Resize(0);
   fElemb.Resize(0);
   this->fRow = this->fCol = 0;
-  this->fDecomposed = 0;
+  this->fDecomposed = ENoDecompose;
   return(1);
 }
 
