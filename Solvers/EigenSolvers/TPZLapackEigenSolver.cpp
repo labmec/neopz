@@ -591,11 +591,11 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZSBMatrix<TVar> &A,
     TPZFMatrix<TVar> z(n,n);
     if constexpr (std::is_same_v<TVar,float>){
     
-      ssbev_(&jobz, &uplo, &n, &kd, A.fDiag.begin(), &ldab, w.begin(),
+      ssbev_(&jobz, &uplo, &n, &kd, A.Storage().begin(), &ldab, w.begin(),
              &z(0,0), &ldz, work.begin(), &info);
     }else if constexpr (std::is_same_v<TVar,double>){
       TPZVec<TVar> work(3*n);
-      dsbev_(&jobz, &uplo, &n, &kd, A.fDiag.begin(), &ldab, w.begin(),
+      dsbev_(&jobz, &uplo, &n, &kd, A.Storage().begin(), &ldab, w.begin(),
              &z(0,0), &ldz, work.begin(), &info);
     }
     if(calcVectors){
@@ -610,12 +610,12 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZSBMatrix<TVar> &A,
     TPZVec<RTVar> rwork(3*n);
     if constexpr (std::is_same_v<TVar,std::complex<float>>){
       chbev_(&jobz, &uplo, &n, &kd,
-             (varfloatcomplex*)A.fDiag.begin(), &ldab, w.begin(),
+             (varfloatcomplex*)A.Storage().begin(), &ldab, w.begin(),
              (varfloatcomplex*)&eigenVectorsLapack(0,0), &ldz,
              (varfloatcomplex*)work.begin(), rwork.begin(), &info);
     }else if constexpr (std::is_same_v<TVar,std::complex<double>>){
       zhbev_(&jobz, &uplo, &n, &kd,
-             (vardoublecomplex*)A.fDiag.begin(), &ldab, w.begin(),
+             (vardoublecomplex*)A.Storage().begin(), &ldab, w.begin(),
              (vardoublecomplex*)&eigenVectorsLapack(0,0), &ldz,
              (vardoublecomplex*)work.begin(), rwork.begin(), &info);
     }
@@ -696,13 +696,13 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
     TPZFMatrix<TVar> z(n,n);
     if constexpr (std::is_same_v<TVar,float>){
     
-      ssbgv_(&jobz, &uplo, &n, &ka, &kb, A.fDiag.begin(),
-             &ldab, B.fDiag.begin(), &ldbb, w.begin(),
+      ssbgv_(&jobz, &uplo, &n, &ka, &kb, A.Storage().begin(),
+             &ldab, B.Storage().begin(), &ldbb, w.begin(),
              &z(0,0), &ldz, work.begin(), &info);
     }else if constexpr (std::is_same_v<TVar,double>){
       TPZVec<TVar> work(3*n);
-      dsbgv_(&jobz, &uplo, &n, &ka, &kb, A.fDiag.begin(),
-             &ldab, B.fDiag.begin(), &ldbb, w.begin(),
+      dsbgv_(&jobz, &uplo, &n, &ka, &kb, A.Storage().begin(),
+             &ldab, B.Storage().begin(), &ldbb, w.begin(),
              &z(0,0), &ldz, work.begin(), &info);
     }
     if(calcVectors){
@@ -717,14 +717,14 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
     TPZVec<RTVar> rwork(3*n);
     if constexpr (std::is_same_v<TVar,std::complex<float>>){
       chbgv_(&jobz, &uplo, &n, &ka, &kb,
-             (varfloatcomplex *)A.fDiag.begin(), &ldab,
-             (varfloatcomplex *)B.fDiag.begin(), &ldbb, w.begin(),
+             (varfloatcomplex *)A.Storage().begin(), &ldab,
+             (varfloatcomplex *)B.Storage().begin(), &ldbb, w.begin(),
              (varfloatcomplex *)&eigenVectorsLapack(0,0), &ldz,
              (varfloatcomplex *)work.begin(),rwork.begin(), &info);
     }else if constexpr (std::is_same_v<TVar,std::complex<double>>){
       zhbgv_(&jobz, &uplo, &n, &ka, &kb,
-             (vardoublecomplex *)A.fDiag.begin(), &ldab,
-             (vardoublecomplex *)B.fDiag.begin(), &ldbb, w.begin(),
+             (vardoublecomplex *)A.Storage().begin(), &ldab,
+             (vardoublecomplex *)B.Storage().begin(), &ldbb, w.begin(),
              (vardoublecomplex *)&eigenVectorsLapack(0,0), &ldz,
              (vardoublecomplex *)work.begin(),rwork.begin(), &info);
     }
