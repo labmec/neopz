@@ -438,9 +438,6 @@ TPZSBMatrix<TVar>::Redim(const int64_t newDim ,const int64_t otherDim)
         }
         fStorage.resize(Size());
     }
-    // the method does not allocate the proper space. It is wrong!
-    std::cout << __PRETTY_FUNCTION__ << " Please implement me\n";
-    DebugStop();
     
     Zero();
     this->fDecomposed = ENoDecompose;
