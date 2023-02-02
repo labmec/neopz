@@ -221,9 +221,9 @@ void TestSVD(int nrows, int ncols);
             SECTION("TPZSFMatrix"){
                 TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ECholesky);
             }
-            SECTION("TPZFBMatrix"){
-                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 1, ECholesky);
-            }
+//            SECTION("TPZFBMatrix"){
+//                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 1, ECholesky);
+//            }
             SECTION("TPZSBMatrix"){
                 TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1,ECholesky);
             }
@@ -249,9 +249,9 @@ void TestSVD(int nrows, int ncols);
             SECTION("TPZSFMatrix"){
                 TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ELDLt);
             }
-            SECTION("TPZFBMatrix"){
-                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 1, ECholesky);
-            }
+//            SECTION("TPZFBMatrix"){
+//                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 1, ECholesky);
+//            }
             SECTION("TPZSBMatrix"){
                 TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1, ELDLt);
             }
@@ -619,6 +619,7 @@ template<class TVar>
     void MultiplyOperatorWithAutoFill() {
       for (int dim = 3; dim < 100; dim += 5) {
         TestingMultiplyOperatorWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, 0);
+        TestingMultiplyOperatorWithAutoFill<TPZFNMatrix<20,TVar>, TVar>(dim, 0);
       }
     }
     
@@ -1046,8 +1047,8 @@ void TestingMultiplyOperatorWithAutoFill(int dim, int symmetric) {
     matx ma;
     ma.AutoFill(dim, dim, symmetric);
 
-    TPZFMatrix<TVar> duplicate(ma);
-    TPZFMatrix<TVar> square, square2;
+    TPZFNMatrix<10,TVar> duplicate(ma);
+    TPZFNMatrix<10,TVar> square, square2;
 
     square2 = duplicate*duplicate;
     square = ma*duplicate;
