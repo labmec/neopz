@@ -109,12 +109,10 @@ TPZFMatrix<TVar>::TPZFMatrix(TPZFMatrix<TVar> &&A)
     }
     else {
         fElem = A.fElem;
-        fPivot = A.fPivot;
-        fWork = A.fWork;
         A.fElem=nullptr;
-        A.fGiven=nullptr;
-        A.fSize=0;
     }
+    fPivot = A.fPivot;
+    fWork = A.fWork;
 }
 
 /********************************/
@@ -154,8 +152,7 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
     
     TVar * newElem = fElem;
     if(fSize < size && size != this->fRow*this->fCol) {
-        newElem = new TVar
-        [size] ;
+        newElem = new TVar[size];
     } else if (fSize >= size) {
         newElem = fGiven;
     }
@@ -178,19 +175,35 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
 
 template<class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(TPZFMatrix<TVar> &&A ) {
-    TPZMatrix<TVar>::operator=(A);
-    if(fElem && fElem != fGiven) {delete [] fElem;}
+    if(this == &A) return *this;
     // if A points to preallocated memory, then this code is wrong
-    DebugStop();
-    fElem=A.fElem;
-    fGiven=A.fGiven;
-    fSize=A.fSize;
-    fPivot = A.fPivot;
-    fWork = A.fWork;
-    
-    A.fElem = nullptr;
-    A.fGiven = nullptr;
-    A.fSize = 0;
+    if(A.fGiven && A.fElem == A.fGiven) {
+        // amount of storage needed
+        int64_t size = A.fRow * A.fCol;
+        
+        TVar * newElem = 0;
+        if(size == this->fRow*this->fCol) {
+            newElem = fElem;
+        } else if(fSize < size) {
+            // not enough preallocated space, allocate dynamically
+            newElem = new TVar[size];
+        } else {
+            newElem = fGiven;
+        }
+        if ( newElem == NULL && size > 0) Error( "Operator= <memory allocation error>." );
+        if (fElem && fElem != newElem && fElem != fGiven) delete[]( fElem );
+        fElem = newElem;
+        // Copia a matriz
+        for(int64_t i = 0; i<size; i++) fElem[i] = A.fElem[i];
+    } else {
+        // A does not have or does not use preallocated memory
+        fElem=A.fElem;
+        fPivot = A.fPivot;
+        fWork = A.fWork;
+        
+        A.fElem = nullptr;
+    }
+    TPZMatrix<TVar>::operator=(A);
     return *this;
 }
 
