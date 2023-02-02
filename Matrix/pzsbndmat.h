@@ -33,7 +33,7 @@ class TPZSBMatrix : public TPZMatrix<TVar>
     friend class TPZLapackEigenSolver<TVar>;
 public:
     TPZSBMatrix() : TPZRegisterClassId(&TPZSBMatrix::ClassId),
-    TPZMatrix<TVar>() , fDiag() { fBand = 0; }
+    TPZMatrix<TVar>() , fStorage() { fBand = 0; }
     TPZSBMatrix(const int64_t dim,const int64_t band );
     TPZSBMatrix(const TPZSBMatrix<TVar> &A ) = default;
     TPZSBMatrix(TPZSBMatrix<TVar> &&A ) = default;
@@ -62,10 +62,10 @@ public:
     void CopyFromDiffPrecision(TPZSBMatrix<TVar2> &orig)
     {
         TPZMatrix<TVar>::CopyFromDiffPrecision(orig);
-        fDiag.resize(orig.fDiag.size());
-        int64_t nel = fDiag.size();
+        fStorage.resize(orig.fStorage.size());
+        int64_t nel = fStorage.size();
         for (int64_t el=0; el<nel; el++) {
-            fDiag[el] = orig.fDiag[el];
+            fStorage[el] = orig.fStorage[el];
         }
     }
 
@@ -261,11 +261,11 @@ protected:
     }
     inline TVar *&Elem() override
     {
-        return fDiag.begin();
+        return fStorage.begin();
     }
     inline const TVar *Elem() const override
     {
-        return fDiag.begin();
+        return fStorage.begin();
     }
 
     
@@ -288,7 +288,13 @@ private:
 #endif
         return fBand+i-j+(fBand+1)*j;
     }
-    TPZVec<TVar> fDiag;
+    
+    TPZVec<TVar> &Storage() {
+        return fStorage;
+    }
+private:
+    
+    TPZVec<TVar> fStorage;
     int64_t  fBand;
 };
 
