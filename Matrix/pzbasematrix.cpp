@@ -6,14 +6,17 @@
 void TPZBaseMatrix::Read(TPZStream &buf, void *context){
   buf.Read(&fRow);
   buf.Read(&fCol);
-  buf.Read(&fDecomposed);
+    int temp;
+  buf.Read(&temp);
+    fDecomposed = (DecomposeType) temp;
   buf.Read(&fDefPositive);
 }
 
 void TPZBaseMatrix::Write(TPZStream &buf, int withclassid) const{
   buf.Write(&fRow);
   buf.Write(&fCol);
-  buf.Write(&fDecomposed);
+    int temp;
+  buf.Write(&temp);
   buf.Write(&fDefPositive);
 }
 

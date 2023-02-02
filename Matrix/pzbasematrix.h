@@ -35,11 +35,17 @@ class TPZBaseMatrix : public TPZSavable{
 public:
   /** @brief Default constructor */
   TPZBaseMatrix() : TPZRegisterClassId(&TPZBaseMatrix::ClassId) {
-    fDecomposed = 0;
+    fDecomposed = ENoDecompose;
     fDefPositive = 0;
     fRow = 0;
     fCol = 0;
   }
+    TPZBaseMatrix(int64_t row, int64_t col) {
+      fDecomposed = ENoDecompose;
+      fDefPositive = 0;
+      fRow = row;
+      fCol = col;
+    }
   /** @brief Copy constructor*/
   TPZBaseMatrix(const TPZBaseMatrix &cp) = default;
   /** @brief Move constructor*/
@@ -105,92 +111,26 @@ public:
 
   /** @brief Simetrizes copies upper plan to the lower plan, making its data
    * simetric */
-  virtual void Simetrize() = 0;
+//  virtual void Simetrize() = 0;
 
   /** @brief Checks if current matrix is definite positive */
   virtual int IsDefPositive() const {
-    return fDefPositive; }
+    return fDefPositive;
+  }
   /** @brief Checks if current matrix is already decomposed */
-  int IsDecomposed() const {
+  DecomposeType IsDecomposed() const {
     return fDecomposed; }
 
 
 
   /** @brief Sets current matrix to decomposed state */
-  virtual void SetIsDecomposed(int val) {
-    fDecomposed = (char)val; }
+  virtual void SetIsDecomposed(DecomposeType val) {
+    fDecomposed = val; }
+
 
   /** @brief decompose the system of equations acording to the decomposition
    * scheme */
-  virtual int Decompose(const DecomposeType dt, std::list<int64_t> &singular) {
-    switch (dt) {
-    case ELU:
-      return Decompose_LU(singular);
-      break;
-    case ELDLt:
-      return Decompose_LDLt(singular);
-      break;
-    case ECholesky:
-      return Decompose_Cholesky(singular);
-      break;
-    default:
-      DebugStop();
-      break;
-    }
-    return -1;
-  }
-
-  /** @brief decompose the system of equations acording to the decomposition
-   * scheme */
-  virtual int Decompose(const DecomposeType dt) {
-    switch (dt) {
-    case ELU:
-      return Decompose_LU();
-      break;
-    case ELDLt:
-      return Decompose_LDLt();
-      break;
-    case ECholesky:
-      return Decompose_Cholesky();
-      break;
-    default:
-      DebugStop();
-      break;
-    }
-    return -1;
-  }
-  /**
-   * @name Factorization
-   * @brief Those member functions perform the matrix factorization
-   * @{
-   */
-
-  /** @brief Decomposes the current matrix using LU decomposition. */
-  virtual int Decompose_LU(std::list<int64_t> &singular) = 0;
-  /** @brief Decomposes the current matrix using LU decomposition. */
-  virtual int Decompose_LU() = 0;
-
-  
-  /**
-   * @brief Decomposes the current matrix using Cholesky method.
-   *
-   * The curent matrix has to be hermitian.
-   */
-  virtual int Decompose_Cholesky(std::list<int64_t> &singular) = 0;
-  /** @brief Decomposes the current matrix using Cholesky*/
-  virtual int Decompose_Cholesky() = 0;
-  /**
-   * @brief Decomposes the current matrix using LDLt.
-   *
-   * The current matrix has to be symmetric.
-   * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal
-   * matrix.
-   */
-  virtual int Decompose_LDLt(std::list<int64_t> &singular) = 0;
-  /** @brief Decomposes the current matrix using LDLt. */
-  virtual int Decompose_LDLt() = 0;
-  
-  /** @} */
+    virtual int Decompose(const DecomposeType dt) = 0;
 
   /** @brief It prints the matrix data in a MatrixFormat Rows X Cols */
   virtual void Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const = 0;
@@ -216,7 +156,7 @@ protected:
   /** @brief Number of cols in matrix */
   int64_t fCol;
   /** @brief Decomposition type used to decompose the current matrix */
-  char fDecomposed;
+  DecomposeType fDecomposed;
   /** @brief Definite Posistiveness of current matrix */
   char fDefPositive;
 };
