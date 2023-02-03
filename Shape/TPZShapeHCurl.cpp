@@ -140,54 +140,133 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
     constexpr int nsides = TSHAPE::NSides;
     constexpr int dim = TSHAPE::Dimension;
     constexpr int curldim = dim == 1 ? 1 : 2*dim-3;
-//                [dim](){
-//        if constexpr (dim == 1) return 1;
-//        else{
-//            return 2*dim - 3;//1 for 2D 3 for 3D
-//        }
-//    }();
+    constexpr int nfaces = dim < 2 ? 0 : dim == 2 ? 1 : TSHAPE::NFacets;
+    constexpr int nvol = dim == 3 ? 1 : 0;
+    constexpr int nedges = nsides - nvol - nfaces - ncorner;
     
-    TPZFNMatrix<9,T> locphi(data.fPhi.Rows(),data.fPhi.Cols()),dphi(data.fDPhi.Rows(),data.fDPhi.Cols());
+    TPZFNMatrix<100,T> locphi(data.fPhi.Rows(),data.fPhi.Cols());
+    TPZFNMatrix<100*dim,T> dphi(data.fDPhi.Rows(),data.fDPhi.Cols());
+    
     TPZShapeH1<TSHAPE>::Shape(pt,data, locphi, dphi);
-    
-    for(int i = 0; i< data.fSDVecShapeIndex.size(); i++)
-    {
-        const auto &it = data.fSDVecShapeIndex[i];
-        const int vecindex = it.first;
-        const int scalindex = it.second;
-        
-        for(int d = 0; d<TSHAPE::Dimension; d++)
-        {
-            phi(d,i) = locphi(scalindex,0)*data.fMasterDirections(d,vecindex);
+
+    //small lambda for computing shape
+    auto ComputeShape =
+        [&data, &locphi](auto &phi,
+                         const int iphi,
+                         const int isca,
+                         const int ivec){
+            for(int d = 0; d<TSHAPE::Dimension; d++){
+                phi(d,iphi) = locphi(isca,0)*data.fMasterDirections(d,ivec);
+            }
+        };
+
+    //small lambda for computing curl
+    auto ComputeCurl =
+        [&data, &dphi](auto &curlphi,
+                         const int iphi,
+                         const int isca,
+                         const int ivec){
+            if constexpr (dim==1){
+                curlphi(0,iphi) =
+                    dphi.GetVal( 0,ivec) *
+                    data.fMasterDirections.GetVal(0,ivec);
+            }else if constexpr (dim==2){
+                curlphi(0,iphi) =
+                    dphi.GetVal(0,isca) *
+                    data.fMasterDirections.GetVal(1,ivec) -
+                    dphi.GetVal(1,isca) *
+                    data.fMasterDirections.GetVal(0,ivec);
+            }
+            else if constexpr(dim==3){
+                for(auto d = 0; d < dim; d++) {
+                    const auto di = (d+1)%dim;
+                    const auto dj = (d+2)%dim;
+                    curlphi(d,iphi) =
+                        dphi.GetVal(di,isca) *
+                        data.fMasterDirections.GetVal(dj,ivec)-
+                        dphi.GetVal(dj,isca) *
+                        data.fMasterDirections.GetVal(di,ivec);
+                }
+            }else{
+                if constexpr (std::is_same_v<TSHAPE,TSHAPE>){
+                    static_assert(!sizeof(TSHAPE),"Invalid curl dimension");
+                }
+            }
+        };
+
+    /*
+      edges need special attention: the functions are to be recombined
+     */
+    const auto &connectorders = data.fHDivConnectOrders;
+
+    //current index of data.fSDVecShapeIndex
+    int vs_index = 0;
+    int phi_index = 0;
+
+    //tmp phi and curlphi
+    TPZFNMatrix<dim,T> phi_1(dim,1),phi_2(dim,1);
+    TPZFNMatrix<curldim,T> cphi_1(curldim,1),cphi_2(curldim,1);
+    //we iterate through edges...
+    for(int icon = 0; icon < nedges; icon++){
+        const auto order = connectorders[icon];
+
+        {//gets phi_1
+            const auto &itf = data.fSDVecShapeIndex[vs_index];
+            const int fv = itf.first;
+            const int fs = itf.second;
+            ComputeShape(phi_1,0,fs,fv);
+            ComputeCurl(cphi_1,0,fs,fv);
         }
 
-        if constexpr (dim==1){
-            curlphi(0,i) =
-                dphi.GetVal( 0,vecindex) *
-                data.fMasterDirections.GetVal(0,vecindex);
-        }else if constexpr (dim==2){
-            curlphi(0,i) =
-                dphi.GetVal(0,scalindex) *
-                data.fMasterDirections.GetVal(1,vecindex) -
-                dphi.GetVal(1,scalindex) *
-                data.fMasterDirections.GetVal(0,vecindex);
+        {//gets phi_2
+            const auto &its = data.fSDVecShapeIndex[vs_index+1];
+            const int sv = its.first;
+            const int ss = its.second;
+            ComputeShape(phi_2,0,ss,sv);
+            ComputeCurl(cphi_2,0,ss,sv);
+        }
+
+        //constant trace
+        for(auto x = 0; x < dim; x++){
+            phi(x,phi_index) =  (phi_1.GetVal(x,0) + phi_2.GetVal(x,0)) * 0.5;
+        }
+        for(auto x = 0; x < curldim; x++){
+            curlphi(x,phi_index) =  (cphi_1.GetVal(x,0) + cphi_2.GetVal(x,0)) * 0.5;
+        }
+        phi_index++;
+        if(order>0){
+            //linear traces
+            for(auto x = 0; x < dim; x++){
+                phi(x,phi_index) =  phi_1.GetVal(x,0) - phi_2.GetVal(x,0);
             }
-        else if constexpr(dim==3){
-            for(auto d = 0; d < dim; d++) {
-                const auto di = (d+1)%dim;
-                const auto dj = (d+2)%dim;
-                curlphi(d,i) =
-                    dphi.GetVal(di,scalindex) *
-                    data.fMasterDirections.GetVal(dj,vecindex)-
-                    dphi.GetVal(dj,scalindex) *
-                    data.fMasterDirections.GetVal(di,vecindex);
+            for(auto x = 0; x < curldim; x++){
+                curlphi(x,phi_index) =  cphi_1.GetVal(x,0) - cphi_2.GetVal(x,0);
             }
-        }else{
-            if constexpr (std::is_same_v<TSHAPE,TSHAPE>){
-                static_assert(!sizeof(TSHAPE),"Invalid curl dimension");
-            }
-        }        
+            phi_index++;
+        }
+        vs_index+=2;
+        //higher order edge functions
+        for(int ord = 2; ord < order+1; ord++, phi_index++, vs_index++){
+            const auto &it = data.fSDVecShapeIndex[vs_index];
+            const int vecindex = it.first;
+            const int scalindex = it.second;
+            ComputeShape(phi,phi_index,scalindex,vecindex);
+            ComputeCurl(curlphi,phi_index,scalindex,vecindex);
+        }
     }
+
+    //now we got for faces and volumes
+    for(;vs_index < data.fSDVecShapeIndex.size(); phi_index++, vs_index++)
+    {
+        const auto &it = data.fSDVecShapeIndex[vs_index];
+        const int vecindex = it.first;
+        const int scalindex = it.second;
+
+        ComputeShape(phi,phi_index,scalindex,vecindex);
+        ComputeCurl(curlphi,phi_index,scalindex,vecindex);
+    }
+
+
 }
 
 
