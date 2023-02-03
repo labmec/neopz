@@ -240,29 +240,31 @@ REAL TPZTriangle::gVet2dT[6][2] = {  {0.,0.},{0.,0.},{0.,1.},{1.,0.},{1.,0.},{0.
     template<class T>
     bool TPZTriangle::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
 
-        double zero = pztopology::GetTolerance();
-        T qsi = xiInterior[0]; T eta = xiInterior[1];
+        const double zero = pztopology::GetTolerance();
+        const T& qsi = xiInterior[0];
+        const T& eta = xiInterior[1];
 
         switch(side)
         {
-            case 0:
-            case 1:
-            case 2:
+        case 0:
+        case 1:
+        case 2:
             return true;
-            case 3:
-                if(fabs((T)(eta - 1.)) < zero)  return false;
-            case 4:
-                if((T)(qsi+eta) < (T)zero) return false;
-            case 5:
-                if(fabs((T)(qsi - 1.)) < zero) return false;
-            case 6: return true;
-        }
-        if(side > 6)
-        {
+        case 3:
+            if(fabs((T)(eta - 1.)) < zero)  return false;
+            else {return true;}
+        case 4:
+            if((T)(qsi+eta) < (T)zero) return false;
+            else {return true;}
+        case 5:
+            if(fabs((T)(qsi - 1.)) < zero) return false;
+            else {return true;}
+        case 6: return true;
+        default:
             cout << "Cant compute CheckProjectionForSingularity method in TPZTriangle class!\nParameter (SIDE) must be 3, 4 or 5!\nMethod Aborted!\n";
             DebugStop();
+            return true;
         }
-        return true;
     }
 
     template<class T>

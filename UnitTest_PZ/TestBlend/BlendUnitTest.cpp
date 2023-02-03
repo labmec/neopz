@@ -485,7 +485,29 @@ void CompareQuadraticAndBlendEls() {
         outVTK.close();
     }
 #endif
-    //X COMPARE
+    //X AND GRADX COMPARE FUNCTION
+
+    auto CompareX = [&coordsOffset](TPZGeoEl* blendEl, TPZGeoEl* quadEl, TPZVec<REAL> &xi){
+        TPZManVector<REAL,3> xBlend(3);
+        blendEl->X(xi, xBlend);
+        for(int iX = 0; iX < xBlend.size(); iX++) xBlend[iX] -= coordsOffset[iX];
+        TPZManVector<REAL,3> xQuad(3);
+        quadEl->X(xi, xQuad);
+        bool error = blendtest::CheckVectors(xBlend,"xBlend",xQuad,"xQuad",blendtest::tol);
+        CAPTURE(xBlend);
+        CAPTURE(xQuad);
+        REQUIRE(!error);
+        TPZFNMatrix<9,REAL> gradxBlend(3,TGeo::Dimension,0.);
+        TPZFNMatrix<9,REAL> gradxQuad(3,TGeo::Dimension,0.);
+        blendEl->GradX(xi, gradxBlend);
+        quadEl->GradX(xi, gradxQuad);
+        error = error ||  blendtest::CheckMatrices(gradxBlend,"gradxBlend",gradxQuad,"gradxQuad",blendtest::tol);
+        CAPTURE(gradxBlend);
+        CAPTURE(gradxQuad);
+        REQUIRE(!error);
+        return error;
+    };
+    
     {
         TPZManVector<REAL,3> xi;
         REAL notUsedHere = -1;
@@ -496,63 +518,15 @@ void CompareQuadraticAndBlendEls() {
             auto intRule = blendEl->CreateSideIntegrationRule(iSide, pOrder);
             xi.Resize(dim,0);
             for(int iPt = 0; iPt < intRule->NPoints(); iPt++){
-                bool hasAnErrorOccurred = false;
                 nPoints++;
                 TPZManVector<REAL,3> xiSide(TGeo::SideDimension(iSide),0);
                 intRule->Point(iPt,xiSide,notUsedHere);
                 auto transf = TGeo::TransformSideToElement(iSide);
                 transf.Apply(xiSide,xi);
-                TPZManVector<REAL,3> xBlend(3);
-                blendEl->X(xi, xBlend);
-                for(int iX = 0; iX < xBlend.size(); iX++) xBlend[iX] -= coordsOffset[iX];
-                TPZManVector<REAL,3> xQuad(3);
-                quadraticEl->X(xi, xQuad);
-                hasAnErrorOccurred = blendtest::CheckVectors(xBlend,"xBlend",xQuad,"xQuad",blendtest::tol);
-                REQUIRE(!hasAnErrorOccurred);
-                if(hasAnErrorOccurred){
-#ifdef BLEND_VERBOSE
-                    if(iSide < TGeo::NSides - 1) errorsSide[iSide - TGeo::NNodes]+=1;
-                    if(iSide == TGeo::NSides - 1) errorsInterior++;
-                    const auto VAL_WIDTH = 15;
-                    if(iSide < TGeo::NSides - 1){
-                        auto neigh = blendEl->Neighbour(iSide);
-                        if(neigh.Id() != blendEl->Id()) {
-                            TPZGeoElSide thisside(blendEl, iSide);
-                            auto neighTransf = thisside.NeighbourSideTransform(neigh);
-                            TPZManVector<REAL, 3> neighXi(neigh.Dimension(), 0);
-                            neighTransf.Apply(xiSide, neighXi);
-                            TPZManVector<REAL, 3> xNeigh(3);
-                            neigh.X(neighXi, xNeigh);
-                            std::cout<<"x_neigh_blend:"<<std::endl;
-                            
-                            for (int i = 0; i < xNeigh.size(); i++) {
-                                std::cout << std::setw(VAL_WIDTH) << std::right << xNeigh[i] - coordsOffset[i]
-                                << "\t";
-                            }
-                            std::cout<<std::endl;
-                        }
-                    }
-                    
-                    if(iSide < TGeo::NSides - 1){
-                        auto neigh = quadraticEl->Neighbour(iSide);
-                        if(neigh.Id() != quadraticEl->Id()) {
-                            
-                            TPZGeoElSide thisside(quadraticEl, iSide);
-                            auto neighTransf = thisside.NeighbourSideTransform(neigh);
-                            TPZManVector<REAL, 3> neighXi(neigh.Dimension(), 0);
-                            neighTransf.Apply(xiSide, neighXi);
-                            TPZManVector<REAL, 3> xNeigh(3);
-                            neigh.X(neighXi, xNeigh);
-                            
-                            std::cout<<"x_neigh_quad:"<<std::endl;
-                            for (int i = 0; i < xNeigh.size(); i++) {
-                                std::cout << std::setw(VAL_WIDTH) << std::right << xNeigh[i]<< "\t";
-                            }
-                            std::cout<<std::endl;
-                        }
-                    }
-#endif
-                }
+                bool error = CompareX(blendEl,quadraticEl,xi);
+                REQUIRE(!error);
+                if(iSide < TGeo::NSides - 1) errorsSide[iSide - TGeo::NNodes]+=1;
+                if(iSide == TGeo::NSides - 1) errorsInterior++;
             }
 #ifdef BLEND_VERBOSE
             if(iSide == TGeo::NSides - 1){
@@ -562,9 +536,23 @@ void CompareQuadraticAndBlendEls() {
             }
 #endif
         }
-        uint64_t errorsTotal = errorsInterior;
-        for(int i = 0; i< errorsSide.size(); i++){
-            errorsTotal +=errorsSide[i];
+
+
+        if constexpr(!std::is_same_v<TGeo, pzgeom::TPZGeoPyramid>)
+        {//TODO: fix the test for pyramidal el
+            //now we test the corner nodes
+            for(int in = 0; in < TGeo::NCornerNodes; in++){
+                nPoints++;
+                TPZManVector<REAL,TGeo::Dimension> xi(TGeo::Dimension,0.);
+                TGeo::ParametricDomainNodeCoord(in,xi);
+                bool error = CompareX(blendEl,quadraticEl,xi);
+                REQUIRE(!error);
+            }
+        
+            uint64_t errorsTotal = errorsInterior;
+            for(int i = 0; i< errorsSide.size(); i++){
+                errorsTotal +=errorsSide[i];
+            }
         }
 #ifdef BLEND_VERBOSE
         std::cout<<"\tNumber of points: "<<nPoints<<"\tErrors: "<<errorsTotal<<std::endl;
@@ -587,28 +575,18 @@ void CompareSameDimensionNonLinNeighbour(int nref) {
     const REAL sphereRadius = 1;
     TPZManVector<REAL,3> sphereCenter(3,0);
     TPZVec<REAL> phiPts(nCornerNodes,-1),thetaPts(nCornerNodes,-1); //r is always equal to sphereRadius
-    
-    switch(elType){
-        case EOned:
-            for(int i = 0; i < nCornerNodes; i++){
-                thetaPts[i] = M_PI/2;
-                phiPts[i] = i * M_PI/2;
-            }
-            break;
-        case ETriangle:
-            for(int i = 0; i < nCornerNodes; i++){
-                thetaPts[i] = M_PI/2;
-                phiPts[i] = i * M_PI/2;
-            }
-            break;
-        case EQuadrilateral:
-            for(int i = 0; i < nCornerNodes; i++){
-                thetaPts[i] = M_PI/2;
-                phiPts[i] = i * M_PI/2;
-            }
-            break;
-        default:
-            DebugStop();
+    if constexpr (std::is_same_v<TGeo,pzgeom::TPZGeoLinear>){
+        phiPts = {0,M_PI};
+        thetaPts = {M_PI/2,M_PI/2};
+    }
+    else if constexpr (std::is_same_v<TGeo,pzgeom::TPZGeoTriangle>){
+        phiPts = {0,M_PI/2,M_PI};
+        thetaPts = {M_PI/2,M_PI/2,M_PI/2};
+    }else if constexpr (std::is_same_v<TGeo,pzgeom::TPZGeoQuad>){
+        phiPts = {0,M_PI/2,M_PI,3*M_PI/2};
+        thetaPts = {M_PI/2,M_PI/2,M_PI/2,M_PI/2};
+    }else{
+        DebugStop();
     }
     
     
@@ -636,23 +614,32 @@ void CompareSameDimensionNonLinNeighbour(int nref) {
         for(int iSide = 0; iSide < TGeo::NSides; iSide++){
             if(TGeo::SideDimension(iSide) == 1) edgeStack.Push(iSide);
         }
+        const int nEdges = edgeStack.size();
+        TPZVec<REAL> phiPts(nEdges,-1),thetaPts(nEdges,-1);
+        if constexpr (std::is_same_v<TGeo,pzgeom::TPZGeoLinear>){
+            phiPts = {M_PI/2};
+            thetaPts = {M_PI/2};
+        }
+        else if constexpr (std::is_same_v<TGeo,pzgeom::TPZGeoTriangle>){
+            phiPts = {M_PI/4,3*M_PI/4,M_PI};
+            thetaPts = {M_PI/2,M_PI/2,0};
+        }else if constexpr (std::is_same_v<TGeo,pzgeom::TPZGeoQuad>){
+            phiPts = {M_PI/4,3*M_PI/4,5*M_PI/4,7*M_PI/4};
+            thetaPts = {M_PI/2,M_PI/2,M_PI/2,M_PI/2};
+        }else{
+            DebugStop();
+        }
+        
         //            TGeo::LowerDimensionSides(TGeo::NSides - 1, edgeStack, 1);
         for (int64_t edgeIndex = 0;
-             edgeIndex < edgeStack.NElements(); edgeIndex++) {
+             edgeIndex < nEdges; edgeIndex++) {
             const int64_t edge = edgeStack[edgeIndex];
             const int64_t nNodesSide = TGeo::NSideNodes(edge);
-            REAL sumPhiNodes = 0;
-            REAL sumThetaNodes = 0;
-            for (int64_t node = 0; node < nNodesSide; node++) {
-                const int64_t nodeIndex = TGeo::SideNodeLocId(edge, node);
-                sumPhiNodes += phiPts[nodeIndex];
-                sumThetaNodes += thetaPts[nodeIndex];
-            }
-            sumPhiNodes /= nNodesSide;
-            sumThetaNodes /= nNodesSide;
-            coord[0] = sphereRadius * sin(sumThetaNodes) * cos(sumPhiNodes);
-            coord[1] = sphereRadius * sin(sumThetaNodes) * sin(sumPhiNodes);
-            coord[2] = sphereRadius * cos(sumThetaNodes);
+            const REAL thetaPt = thetaPts[edgeIndex];
+            const REAL phiPt = thetaPts[edgeIndex];
+            coord[0] = sphereRadius * sin(thetaPt) * cos(phiPt);
+            coord[1] = sphereRadius * sin(thetaPt) * sin(phiPt);
+            coord[2] = sphereRadius * cos(thetaPt);
             const int64_t newindex = gmesh->NodeVec().AllocateNewElement();
             gmesh->NodeVec()[newindex].Initialize(coord, *gmesh);
             midSideNodesIndexVec[edgeIndex] = newindex;
@@ -669,27 +656,28 @@ void CompareSameDimensionNonLinNeighbour(int nref) {
     
     TPZGeoEl *nonLinearEl = nullptr;
     switch(elType){
-        case EOned:
-            nonLinearEl = new TPZGeoElRefPattern<pzgeom::TPZArc3D>(elId,nodesIdVec,matIdVol, *gmesh);
-            break;
-        case ETriangle:
-            nonLinearEl = new TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle>>(elId,nodesIdVec,matIdVol,*gmesh);
+    case EOned:
+        nonLinearEl = new TPZGeoElRefPattern<pzgeom::TPZArc3D>(elId,nodesIdVec,matIdVol, *gmesh);
+        break;
+    case ETriangle:
         {
-            auto sphere = dynamic_cast<TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle>> *> (nonLinearEl);
+            auto sphere = new TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle>>(elId,nodesIdVec,matIdVol,*gmesh);
             sphere->Geom().SetData(sphereRadius, sphereCenter);
+            nonLinearEl = sphere;
         }
-            break;
-        case EQuadrilateral:
-            nonLinearEl = new TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>>(elId,nodesIdVec,matIdVol,*gmesh);
+        break;
+    case EQuadrilateral:
         {
-            auto sphere = dynamic_cast<TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>> *> (nonLinearEl);
+            auto sphere = new TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>>(elId,nodesIdVec,matIdVol,*gmesh);
             sphere->Geom().SetData(sphereRadius, sphereCenter);
+            nonLinearEl = sphere;
         }
-            break;
-        default:
-            DebugStop();
-            break;
+        break;
+    default:
+        DebugStop();
+        break;
     }
+    
     nodesIdVec.Resize(nCornerNodes);
     for(int i = 0; i < nodesIdVec.size(); i++ ) nodesIdVec[i] = i;
     TPZGeoEl *blendEl = new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<TGeo>>(elId,nodesIdVec,matIdVol,*gmesh);
