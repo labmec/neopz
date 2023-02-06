@@ -185,6 +185,8 @@ if(USING_MKL)
     enable_mkl(pz)
 endif(USING_MKL)
 
+
+
 #enabling LAPACK library
 option(USING_LAPACK "Whether the LAPACK library will be linked in" OFF)
 if(USING_LAPACK)
@@ -374,6 +376,13 @@ if(USING_UMFPACK)
 		  target_link_libraries(pz PUBLIC SuiteSparse::umfpack)
 		  target_compile_definitions(pz PUBLIC USING_UMFPACK)
 endif(USING_UMFPACK)
+
+option(USING_EIGEN "Whether the EIGEN3 library will be linked in" ON)
+if(USING_EIGEN)
+		  find_package(Eigen3 CONFIG)
+		  target_link_libraries(pz PUBLIC Eigen3::Eigen)
+		  target_compile_definitions(pz PUBLIC USING_EIGEN)
+endif(USING_EIGEN)
 
 
 
