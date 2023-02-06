@@ -102,6 +102,10 @@ void TPZShapeHCurl<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
     }
 #endif
     int nshape = NHCurlShapeF(data);
+    //we need to take into account 0-th order edges (they need more h1 funcs)
+    for(int ie = 0; ie < nEdges; ie++){
+        if (data.fHDivConnectOrders[ie] == 0){nshape++;}
+    }
     data.fSDVecShapeIndex.Resize(nshape);
 
     TPZVec<unsigned int> shapeCountVec(TSHAPE::NSides - nNodes, 0);
@@ -281,10 +285,11 @@ int TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(const int icon, const int order
         DebugStop();
     }
 #endif
-    //given the choice of implementation, there are no shape functions for k=0
-    if(order == 0) return 0;
     const auto nFaces = TSHAPE::Dimension < 2 ? 0 : TSHAPE::NumSides(2);
     const auto nEdges = TSHAPE::NumSides(1);
+
+    if(order == 0 && side >= nNodes + nEdges) return 0;
+    
     const int nShapeF = [&](){
         if (side < nNodes + nEdges) {//edge connect
             return 1 + order;
@@ -368,7 +373,12 @@ void TPZShapeHCurl<TSHAPE>::CalcH1ShapeOrders(
                 maxOrder = std::max(maxOrder, hMaxOrder);
             }
         }
-        ordH1[iCon] = maxOrder;
+#ifdef PZDEBUG
+        if(maxOrder < 0){
+            DebugStop();
+        }
+#endif
+        ordH1[iCon] = maxOrder == 0 ? 1 : maxOrder;
     }
 }
 
@@ -463,6 +473,15 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
         LOGPZ_DEBUG(logger, sout.str())
             }
 #endif
+
+    {
+        bool all_zero = true;
+        for(auto o : sidesH1Ord){
+            all_zero = all_zero && o == 0;
+        }
+        if(all_zero){return;}
+    }
+    
     if(TSHAPE::Dimension < 2) return;
     /**
      * In order to ease the calculation of the indexes, these structures will store, respectively:
@@ -553,7 +572,8 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
            For quadrilateral faces, the face functions of order k+1 are taken:
            since we are interested in the Q_{k,k+1}\times Q_{k+1,k} space,
            we check their orders.*/
-        
+
+        if(h1FaceOrder == 0){continue;}
         //number of h1 face funcs
         const auto nH1FaceFuncs =
             TSHAPE::NConnectShapeF(iSide,h1FaceOrder);
@@ -676,9 +696,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
         const auto faceSide = iFace + nEdges + nNodes;
         const auto faceType = TSHAPE::Type(faceSide);
         const auto faceDim = TSHAPE::SideDimension(faceSide);
-        const auto faceOrderH1 =
-            TSHAPE::Type() == EPrisma || TSHAPE::Type() == ECube ?
-            sideOrder + 1 : sideOrder;
+        const auto faceOrderH1 =data.fH1ConnectOrders[faceSide-nNodes];
         const auto nH1FaceFuncs =
             TSHAPE::NConnectShapeF(faceSide,faceOrderH1);
         const auto vecIndex = firstVfOrthVec + iFace;
