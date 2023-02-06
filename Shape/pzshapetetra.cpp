@@ -19,6 +19,12 @@ namespace pzshape {
 	
 	
 	int TPZShapeTetra::NConnectShapeF(int side, int order) {
+#if PZDEBUG
+    if(order < 1){
+      PZError << "TPZShapeCube::NConnectShapeF, bad parameter order " << order << endl;
+      DebugStop();
+    }
+#endif
 		if(side<4) return 1;//0 a 3
 		//   int s = side-4;
 		if(side<10) return order-1;//4 a 9
@@ -35,7 +41,8 @@ namespace pzshape {
 			}
 			return totsum;
 		}
-		PZError << "TPZCompElT3d::NConnectShapeF, bad parameter side " << side << endl;
+		PZError << "TPZShapeTetra::NConnectShapeF, bad parameter side " << side << endl;
+    DebugStop();
 		return 0;
 	}
 	

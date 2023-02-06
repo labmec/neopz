@@ -87,7 +87,13 @@ void TPZShapeCube::InternalShapeOrder(const TPZVec<int64_t> &id, const int order
     }
 */
 	int TPZShapeCube::NConnectShapeF(int side, int order){
-		if(side<8) return 1;//0 a 4
+#if PZDEBUG
+    if(order < 1){
+      PZError << "TPZShapeCube::NConnectShapeF, bad parameter order " << order << endl;
+      DebugStop();
+    }
+#endif
+    if(side<8) return 1;//0 a 4
 		if(side<20) return (order-1);//6 a 14
 		if(side<26) {
 			return ((order-1)*(order-1));
@@ -96,6 +102,7 @@ void TPZShapeCube::InternalShapeOrder(const TPZVec<int64_t> &id, const int order
 			return ((order-1)*(order-1)*(order-1));
 		}
 		PZError << "TPZShapeCube::NConnectShapeF, bad parameter side " << side << endl;
+    DebugStop();
 		return 0;
 	}
 	

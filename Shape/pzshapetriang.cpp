@@ -113,6 +113,12 @@ void TPZShapeTriang::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TP
     
     
 	int TPZShapeTriang::NConnectShapeF(int side, int order) {
+#if PZDEBUG
+    if(order < 1){
+      PZError << "TPZShapeCube::NConnectShapeF, bad parameter order " << order << endl;
+      DebugStop();
+    }
+#endif
 		switch(side) {
 			case 0:
 			case 1:
@@ -126,6 +132,7 @@ void TPZShapeTriang::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TP
 				return (order-2) < 0 ? 0 : ((order-2)*(order-1))/2;
 			default:
 				PZError << "TPZShapeTriang::NConnectShapeF, bad parameter iconnect " << side << endl;
+        DebugStop();
 				return 0;
 		}
 	}
