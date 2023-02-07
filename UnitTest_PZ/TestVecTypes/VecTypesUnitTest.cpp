@@ -4,45 +4,46 @@
  */
 
 #include "pzmanvector.h"
-
+#include "fad.h"
 #include <catch2/catch.hpp>
 
 
-TEST_CASE("tpzvec_tests","[test_vectypes]") {
+TEMPLATE_TEST_CASE("tpzvec_tests","[test_vectypes]", REAL, Fad<REAL>) {
+    const TestType val = (TestType) 0;
     //tpzvec  tpzvec tests
     {
         //mv ctor
-        TPZVec<REAL> vec1(std::move(TPZVec<REAL>(3,0.)));
-        for(auto &v : vec1) {v++;}//let us test if the memory is accessible
+        TPZVec<TestType> vec1(std::move(TPZVec<TestType>(3,val)));
+        for(auto &v : vec1) {v+=1;}//let us test if the memory is accessible
         REQUIRE(true);
         //cp ctor
-        TPZVec<REAL> vec2(vec1);
-        for(auto &v : vec2) {v++;}//let us test if the memory is accessible
+        TPZVec<TestType> vec2(vec1);
+        for(auto &v : vec2) {v+=1;}//let us test if the memory is accessible
         REQUIRE(true);
         //mv assignment
         vec2= std::move(vec1);
-        for(auto &v : vec2) {v++;}//let us test if the memory is accessible
+        for(auto &v : vec2) {v+=1;}//let us test if the memory is accessible
         REQUIRE(true);
     }
     //tpzvec tpzmanvetor tests
     {
         //mv ctor with fExtAlloc = fStore
-        TPZVec<REAL> vec1(std::move(TPZManVector<REAL,5>(3,0)));
-        for(auto &v : vec1) {v++;}//let us test if the memory is accessible
+        TPZVec<TestType> vec1(std::move(TPZManVector<TestType,5>(3,val)));
+        for(auto &v : vec1) {v+=1;}//let us test if the memory is accessible
         REQUIRE(true);
         //mv ctor with fExtAlloc != fStore
-        TPZVec<REAL> vec2(std::move(TPZManVector<REAL,5>(10,0)));
-        for(auto &v : vec2) {v++;}//let us test if the memory is accessible
+        TPZVec<TestType> vec2(std::move(TPZManVector<TestType,5>(10,val)));
+        for(auto &v : vec2) {v+=1;}//let us test if the memory is accessible
         REQUIRE(true);
         //mv assignment with fExtAlloc = fStore
-        TPZManVector<REAL,3> manvec1(3,0.);
-        TPZVec<REAL> vec3 = std::move(manvec1);
-        for(auto &v : vec3) {v++;}//let us test if the memory is accessible
+        TPZManVector<TestType,3> manvec1(3,val);
+        TPZVec<TestType> vec3 = std::move(manvec1);
+        for(auto &v : vec3) {v+=1;}//let us test if the memory is accessible
         REQUIRE(true);
         //mv assignment with fExtAlloc != fStore
-        TPZManVector<REAL,1> manvec2(3,0.);
-        TPZVec<REAL> vec4 = std::move(manvec2);
-        for(auto &v : vec4) {v++;}//let us test if the memory is accessible
+        TPZManVector<TestType,1> manvec2(3,val);
+        TPZVec<TestType> vec4 = std::move(manvec2);
+        for(auto &v : vec4) {v+=1;}//let us test if the memory is accessible
         REQUIRE(true);
     }
 }
