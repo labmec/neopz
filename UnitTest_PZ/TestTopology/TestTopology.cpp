@@ -346,7 +346,7 @@ namespace topologytests{
         auto &conOrders = shapedata.fHDivConnectOrders;
         constexpr auto nConnects = nSides - nCorner;
         conOrders.Resize(nConnects,-1);
-        for(auto i = 0; i < nConnects; i++) conOrders[i] = 1;
+        for(auto i = 0; i < nConnects; i++) conOrders[i] = 0;
 
         TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, shapedata);
 
@@ -377,32 +377,30 @@ namespace topologytests{
             // std::cout << "Constant phi = " << N0Function << std::endl;
             // std::cout << "Constant Curl = " << curlN0 << std::endl;
 
-            // Checks if all edges have the same curl value.
-            bool condHcurl = true;
-            bool condHcurlN0 = true;
-            for (int i = 0; i < dim; i++){
-                for (int j = 0; j < nEdges; j++){
-                    REAL funVal = (phiHCurl(i,2*j  )+phiHCurl(i,2*j+1));
-                    if (fabs(funVal-N0Function(i,j)) > tol){
-                        condHcurl = false;
-                    } 
+            for (int j = 0; j < nEdges; j++){
+                TPZManVector<REAL,dim> phi_shape(dim,0.), phi_topol(dim,0.);
+                for (int i = 0; i < dim; i++){
+                    phi_shape[i] = phiHCurl(i,j);
+                    phi_topol[i] = N0Function(i,j);
+                }
+                CAPTURE(phi_shape);
+                CAPTURE(phi_topol);
+                for (int i = 0; i < dim; i++){
+                    REQUIRE(phiHCurl(i,j)-N0Function(i,j) == Approx(0).margin(tol));
                 }
             }
-            for (int i = 0; i < 3; i++){
-                for (int j = 0; j < nEdges; j++){
-                    REAL curlVal = (curlHCurl(i,2*j  )+curlHCurl(i,2*j+1));
-                    if (fabs(curlVal-curlN0(i,j)) > tol){
-                        condHcurlN0 = false;
-                    } 
+            for (int j = 0; j < nEdges; j++){
+                TPZManVector<REAL,3> curl_shape(dim,0.), curl_topol(dim,0.);
+                for (int i = 0; i < dim; i++){
+                    curl_shape[i] = curlHCurl(i,j);
+                    curl_topol[i] = curlN0(i,j);
+                }
+                CAPTURE(curl_shape);
+                CAPTURE(curl_topol);
+                for (int i = 0; i < 3; i++){
+                    REQUIRE(curlHCurl(i,j)-curlN0(i,j) == Approx(0).margin(tol));
                 }
             }
-            if(!condHcurl || !condHcurlN0){
-                std::cerr << "\n" + testName + " failed Hcurl" +
-                                "\ntopology: " + MElementType_Name(type);
-            }
-
-            REQUIRE(condHcurl);
-            REQUIRE(condHcurlN0);
         }
     }//Testing Constant Curl
 
