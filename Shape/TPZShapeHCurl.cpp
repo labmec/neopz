@@ -232,10 +232,10 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
 
         //constant trace
         for(auto x = 0; x < dim; x++){
-            phi(x,phi_index) =  (phi_1.GetVal(x,0) + phi_2.GetVal(x,0)) * 0.5;
+            phi(x,phi_index) =  phi_1.GetVal(x,0) + phi_2.GetVal(x,0);
         }
         for(auto x = 0; x < curldim; x++){
-            curlphi(x,phi_index) =  (cphi_1.GetVal(x,0) + cphi_2.GetVal(x,0)) * 0.5;
+            curlphi(x,phi_index) =  cphi_1.GetVal(x,0) + cphi_2.GetVal(x,0);
         }
         phi_index++;
         if(order>0){
