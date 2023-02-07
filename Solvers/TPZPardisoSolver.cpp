@@ -9,8 +9,8 @@
 #ifdef USING_MKL
 #include "TPZPardisoSolver.h"
 
-#include "TPZSYSMPMatrix.h"
-#include "TPZSYSMPMatrix.h"
+#include "TPZSYSMPPardiso.h"
+#include "TPZYSMPPardiso.h"
 #include "pzlog.h"
 
 
@@ -148,9 +148,9 @@ void TPZPardisoSolver<TVar>::Decompose(TPZMatrix<TVar> *mat)
     NOMKL
 #else
     auto *symSystem =
-        dynamic_cast<TPZSYsmpMatrix<TVar>*>(mat);
+        dynamic_cast<TPZSYsmpMatrixPardiso<TVar>*>(mat);
     auto *nSymSystem =
-        dynamic_cast<TPZFYsmpMatrix<TVar>*>(mat);
+        dynamic_cast<TPZFYsmpMatrixPardiso<TVar>*>(mat);
 
     long long n=0;
     TVar bval = 0., xval = 0.;
@@ -259,9 +259,9 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
     }
 #endif
     auto *symSystem =
-        dynamic_cast<const TPZSYsmpMatrix<TVar>*>(mat);
+        dynamic_cast<const TPZSYsmpMatrixPardiso<TVar>*>(mat);
     auto *nSymSystem =
-        dynamic_cast<const TPZFYsmpMatrix<TVar>*>(mat);
+        dynamic_cast<const TPZFYsmpMatrixPardiso<TVar>*>(mat);
     long long n=0;
     TVar *a,*b, *x;
     long long *ia,*ja;
