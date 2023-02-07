@@ -15,10 +15,10 @@
 #include "tpzautopointer.h"
 
 template<class TVar>
-class TPZSYsmpMatrix;
+class TPZSYsmpMatrixPardiso;
 
 template<class TVar>
-class TPZFYsmpMatrix;
+class TPZFYsmpMatrixPardiso;
 
 /**
    @brief This class acts as a wrapper for calls to the PARDISO solver.
@@ -33,8 +33,8 @@ template<class TVar>
 class TPZPardisoSolver : public TPZMatrixSolver<TVar>
 {
     //they need access to SetRawMatrix and ReallySolve
-    friend class TPZFYsmpMatrix<TVar>;
-    friend class TPZSYsmpMatrix<TVar>;
+    friend class TPZFYsmpMatrixPardiso<TVar>;
+    friend class TPZSYsmpMatrixPardiso<TVar>;
 public:
     /*!Symmetry of the algebraic system*/
     enum class MSystemType {ENonInitialized=0, ESymmetric, ENonSymmetric};
