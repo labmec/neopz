@@ -271,7 +271,7 @@ void TPZVTKGenerator::FillRefEls()
   TPZSimpleTimer timer("FillRefEls");
   
   TPZManVector<TPZManVector<MElementType,3>,4> eltypes{
-    {},
+    {{}},
     {EOned},
     {ETriangle, EQuadrilateral},
     {ETetraedro, EPrisma, ECube, EPiramide}
