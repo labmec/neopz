@@ -112,16 +112,16 @@ int TPZMatrixSolver<TVar>::ClassId() const{
 }
 
 #ifdef USING_MKL
-#include "pzysmp.h"
-#include "pzsysmp.h"
+#include "TPZSYSMPPardiso.h"
+#include "TPZYSMPPardiso.h"
 
 template<class TVar>
 TPZPardisoSolver<TVar> *TPZMatrixSolver<TVar>::GetPardisoControl(){
-  auto sym = TPZAutoPointerDynamicCast<TPZSYsmpMatrix<TVar>>(fContainer);
+  auto sym = TPZAutoPointerDynamicCast<TPZSYsmpMatrixPardiso<TVar>>(fContainer);
   if(sym){
     return  &(sym->GetPardisoControl());
   }
-  auto nsym = TPZAutoPointerDynamicCast<TPZFYsmpMatrix<TVar>>(fContainer);
+  auto nsym = TPZAutoPointerDynamicCast<TPZFYsmpMatrixPardiso<TVar>>(fContainer);
   if(nsym){
     return  &(nsym->GetPardisoControl());
   }
