@@ -573,7 +573,7 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 				}
 			}
 			else if(&z != &y) {
-				memcpy(zp,yp,r*sizeof(REAL));
+				memcpy(zp,yp,r*sizeof(TVar));
 			}
 		} else {
 			TVar *zp = &(z(0,ic)), *zlast = zp+r;
