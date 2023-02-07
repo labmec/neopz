@@ -19,7 +19,8 @@
 #include "tpzquadraticpyramid.h"
 #include "tpzquadraticprism.h"
 #include "tpzquadraticcube.h"
-
+#include "tpzarc3d.h"
+#include "TPZCylinderMap.h"
 #include "TPZGeoElement.h"
 #include "pzgeoelside.h"
 #include "pzstack.h"
@@ -91,16 +92,14 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int64_t ElemIndex)
     }
     
     int64_t midN;
-	int nsides = OldElem->NSides();
+    int nsides = OldElem->NSides();
+    TPZVec<TPZGeoElSide> oldNeigh(nsides);
+    StoreNeighbours(OldElem, oldNeigh);
     
-    //backingup oldElem neighbourhood
-    TPZVec< std::vector<TPZGeoElSide> > neighbourhood(nsides);
     TPZVec<int64_t> NodesSequence(0);
     for(int s = 0; s < nsides; s++)
     {
-        neighbourhood[s].resize(0);
         TPZGeoElSide mySide(OldElem,s);
-        TPZGeoElSide neighS = mySide.Neighbour();
         if(mySide.Dimension() == 0)
         {
             int64_t oldSz = NodesSequence.NElements();
@@ -112,11 +111,6 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int64_t ElemIndex)
             int64_t oldSz = NodesSequence.NElements();
             NodesSequence.resize(oldSz+1);
             NodesSequence[oldSz] = midN;
-        }
-        while(mySide != neighS)
-        {
-            neighbourhood[s].push_back(neighS);
-            neighS = neighS.Neighbour();
         }
     }
     
@@ -184,23 +178,10 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int64_t ElemIndex)
         NewElem->SetFather(father);
         father->SetSubElement(which_subel,NewElem);
     }
+
+
+    RestoreNeighbours(NewElem, oldNeigh);
     
-    // melhor utilizar neigh.SetConnectivity...
-    for(int s = 0; s < nsides; s++)
-    {
-        TPZGeoEl * tempEl = NewElem;
-        TPZGeoElSide tempSide(NewElem,s);
-        int byside = s;
-        for(uint64_t n = 0; n < neighbourhood[s].size(); n++)
-        {
-            TPZGeoElSide neighS = neighbourhood[s][n];
-            tempEl->SetNeighbour(byside, neighS);
-            tempEl = neighS.Element();
-            byside = neighS.Side();
-        }
-        tempEl->SetNeighbour(byside, tempSide);
-    }
-        
     if(NewElem->HasSubElement())
     {
         //Mudar subelementos para TPZGeoElMapped
@@ -420,39 +401,155 @@ TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int64_t ElemIndex)
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - NULL geometric element.\n";
 		return NULL;
 	}
-    MElementType oldType = OldElem->Type();
+    const MElementType oldType = OldElem->Type();
     int64_t oldId = OldElem->Id();
-    int64_t oldMatId = OldElem->MaterialId();
-    int nsides = OldElem->NSides();
+    const int64_t oldMatId = OldElem->MaterialId();
+    const int nsides = OldElem->NSides();
     
     TPZVec<TPZGeoElSide> oldNeigh(nsides);
-    for(int s = 0; s < nsides; s++)
-    {   
-        TPZGeoElSide mySide(OldElem, s);
-        oldNeigh[s] = mySide.Neighbour();
-    }
+    StoreNeighbours(OldElem, oldNeigh);
+
+    
 	
-	const int nnodes = OldElem->NCornerNodes();
-	TPZManVector<int64_t> nodeindexes(nnodes);
-	for(int i = 0; i < nnodes; i++)
+    const int nnodes = OldElem->NCornerNodes();
+    TPZManVector<int64_t> nodeindexes(nnodes);
+    for(int i = 0; i < nnodes; i++)
     {
         nodeindexes[i] = OldElem->NodeIndex(i);
     }
     
     Mesh->DeleteElement(OldElem);
     
-	TPZGeoEl * NewElem = Mesh->CreateGeoBlendElement(oldType, nodeindexes, oldMatId, oldId);
+    TPZGeoEl * NewElem = Mesh->CreateGeoBlendElement(oldType, nodeindexes, oldMatId, oldId);
 
-    for(int s = 0; s < nsides; s++)
-    {   
-        TPZGeoElSide neigh = oldNeigh[s];
-        NewElem->SetNeighbour(s, neigh);
-    }
+  RestoreNeighbours(NewElem, oldNeigh);
     
 	NewElem->BuildBlendConnectivity();
 	
 	return NewElem;
 }
+//--------------------------------------------------------
+TPZGeoEl * TPZChangeEl::ChangeToArc3D(TPZGeoMesh *mesh, const int64_t ElemIndex,
+                                      const TPZVec<REAL> &xcenter, const REAL radius)
+{
+
+    auto CreateMidNode = [](const TPZVec<REAL> &x1, const TPZVec<REAL> &x2,
+                            const REAL r,
+                            const TPZVec<REAL> &xcenter){
+        TPZVec<REAL> x3(3,0);
+        const auto &xc = xcenter[0];
+        const auto &yc = xcenter[1];
+        const auto &zc = xcenter[2];
+        
+        //first we get its distance from xc
+        x3[0] = (x1[0] + x2[0])/2 - xc;
+        x3[1] = (x1[1] + x2[1])/2 - yc;
+        x3[2] = (x1[2] + x2[2])/2 - zc;
+
+        //norm of the vector
+        const auto vecnorm = sqrt(x3[0]*x3[0] + x3[1]*x3[1] + x3[2]*x3[2]);
+
+        //mid-arc coordinates
+        x3[0] = xc + r * x3[0]/vecnorm;
+        x3[1] = yc + r * x3[1]/vecnorm;
+        x3[2] = zc + r * x3[2]/vecnorm;
+        return x3;
+    };
+    
+    TPZGeoEl * old_el = mesh->ElementVec()[ElemIndex];
+    if(!old_el)
+    {
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " - NULL geometric element.\n";
+        return NULL;
+    }
+    const MElementType oldType = old_el->Type();
+    if(oldType != EOned){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " geometric el is not 1d\n";
+        return NULL;
+    }
+    const int64_t oldId = old_el->Id();
+    const int64_t oldMatId = old_el->MaterialId();
+    constexpr int nsides = 3;
+    
+    TPZVec<TPZGeoElSide> oldNeigh(nsides);
+    StoreNeighbours(old_el, oldNeigh);
+
+    //create new node
+    TPZManVector<REAL,3> x1(3,0), x2(3,0), x3(3,0);
+        
+    old_el->Node(0).GetCoordinates(x1);
+    old_el->Node(1).GetCoordinates(x2);
+
+    x3 = CreateMidNode(x1, x2, radius, xcenter);
+    const auto nodeidx = mesh->NodeVec().AllocateNewElement();
+    mesh->NodeVec()[nodeidx].Initialize(x3,*mesh);
+
+    TPZManVector<int64_t,3> nodeindexes =
+        {old_el->NodeIndex(0), old_el->NodeIndex(1), nodeidx};
+    
+    mesh->DeleteElement(old_el);
+    auto new_el =
+        new TPZGeoElRefPattern<pzgeom::TPZArc3D>(nodeindexes, oldMatId, *mesh);
+
+    RestoreNeighbours(new_el, oldNeigh);
+    return new_el;
+}
+
+TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemIndex,
+                                         const TPZVec<REAL> &xcenter,
+                                         const TPZVec<REAL> &axis,
+                                         const REAL radius)
+{
+
+    auto SetCylData = [xcenter,radius,axis,mesh](auto &cyl){
+        cyl.SetOrigin(xcenter, radius);
+        cyl.SetCylinderAxis(axis);
+        cyl.ComputeCornerCoordinates(*mesh);
+    };
+
+    TPZGeoEl * old_el = mesh->ElementVec()[ElemIndex];
+    if(!old_el)
+    {
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " - NULL geometric element.\n";
+        return nullptr;
+    }
+    const MElementType oldType = old_el->Type();
+    if(oldType != ETriangle && oldType != EQuadrilateral){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " geometric el is not 2d\n";
+        return nullptr;
+    }
+    const int64_t oldId = old_el->Id();
+    const int64_t oldMatId = old_el->MaterialId();
+    const int nsides = old_el->NSides();
+    const int nnodes = old_el->NCornerNodes();
+    
+    TPZVec<TPZGeoElSide> oldNeigh(nsides);
+    StoreNeighbours(old_el, oldNeigh);
+    TPZManVector<int64_t,4> nodeindexes(nnodes);
+    for(int in = 0; in < nnodes; in++){
+        nodeindexes[in] = old_el->NodeIndex(in);
+    }
+    
+    mesh->DeleteElement(old_el);
+    TPZGeoEl *new_el{nullptr};
+
+    if(oldType == ETriangle){
+        auto cyl =
+            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoTriangle>>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cyl->Geom());
+        new_el = cyl;
+    }else if (oldType == EQuadrilateral){
+        auto cyl =
+            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoTriangle>>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cyl->Geom());
+        new_el = cyl;
+    }
+
+    RestoreNeighbours(new_el, oldNeigh);
+    return new_el;
+}
+
+
 //------------------------------------------------------------------------------------------------------------
 
 bool TPZChangeEl::NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, int64_t &meshNode, double tol)
@@ -554,21 +651,58 @@ bool TPZChangeEl::CreateMiddleNodeAtEdge(TPZGeoMesh *Mesh, int64_t ElemIndex, in
         }
         neighEdge = neighEdge.Neighbour();
     }
+
+    const auto nodeidx = Mesh->NodeVec().AllocateNewElement();
+    Mesh->NodeVec()[nodeidx].Initialize(middleCoord,*Mesh);
+    middleNodeId = nodeidx;
     
-    //if not returned true...
-    TPZGeoNode midNode;
-    midNode.SetCoord(middleCoord);
+    // //if not returned true...
+    // TPZGeoNode midNode;
+    // midNode.SetCoord(middleCoord);
     
-    /** Setting Midnodes Id's */
-    int64_t NewNodeId = Mesh->NNodes();
-    Mesh->SetNodeIdUsed(NewNodeId);
-    midNode.SetNodeId(NewNodeId);
+    // /** Setting Midnodes Id's */
+    // int64_t NewNodeId = Mesh->NNodes();
+    // Mesh->SetNodeIdUsed(NewNodeId);
+    // midNode.SetNodeId(NewNodeId);
     
-    /** Allocating Memory for MidNodes and Pushing Them */
-    middleNodeId = Mesh->NodeVec().AllocateNewElement();
-    Mesh->NodeVec()[middleNodeId] = midNode;
+    // /** Allocating Memory for MidNodes and Pushing Them */
+    // middleNodeId = Mesh->NodeVec().AllocateNewElement();
+    // Mesh->NodeVec()[middleNodeId] = midNode;
 
     return true;
 }
 
+void TPZChangeEl::StoreNeighbours(TPZGeoEl* gel, TPZVec<TPZGeoElSide> &neighs)
+{
+    const int nsides = gel->NSides();
+    neighs.Resize(nsides);
+    for(int s = 0; s < nsides; s++)
+    {   
+        TPZGeoElSide mySide(gel, s);
+        TPZGeoElSide neigh = mySide.Neighbour();
+        if(neigh.Exists() && neigh.Element() != gel){
+            neighs[s] = neigh;
+        }
+    }
+}
+void TPZChangeEl::RestoreNeighbours(TPZGeoEl* gel, TPZVec<TPZGeoElSide> &neighs)
+{
+    const int nsides = gel->NSides();
 
+    if(nsides != neighs.size()){
+        PZError<<__PRETTY_FUNCTION__
+                <<"\n neighbour vector should have size nsides. Aborting...\n";
+        DebugStop();
+    }
+
+    for(int s = 0; s < nsides; s++)
+    {
+        TPZGeoElSide mygelside(gel,s);
+        TPZGeoElSide &neigh = neighs[s];
+        if(neigh.Exists()){
+            neigh.SetConnectivity(mygelside);
+        }else{
+            gel->SetNeighbour(s,mygelside);
+        }
+    }
+}
