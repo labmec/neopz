@@ -170,7 +170,6 @@ protected:
   {
     return fA.size();
   }
-private:
 	
 	
 	TPZVec<int64_t>  fIA;
