@@ -107,7 +107,7 @@ TEMPLATE_TEST_CASE("Arnoldi Solver 1", "[eigen_tests]",
                   std::is_same_v<TPZFYsmpMatrix<std::complex<double>>,TestType>){
       //full matrix
       auto mat = new TestType(dim,dim);
-      TPZVec<int64_t> ia(dim+1,0), ja(dim*dim,0);
+      TPZVec<int> ia(dim+1,0), ja(dim*dim,0);
       for(int i = 0; i < dim; i++){
         ia[i] = dim*i;
         for(int j = 0; j < dim; j++){

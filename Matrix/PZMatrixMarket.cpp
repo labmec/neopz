@@ -225,10 +225,10 @@ void TPZMatrixMarket::Read(std::string filename, TPZSYsmpMatrix<T> &fmat)
     if (nlower && nsup) {
         std::cout << "The matrix is probably not symmetric, expect trouble\n";
     }
-    TPZVec<int64_t> IA(nrow+1);
-    TPZVec<int64_t> JA(nonzero,0);
+    TPZVec<int> IA(nrow+1);
+    TPZVec<int> JA(nonzero,0);
     TPZVec<T> A(nonzero,0.);
-    TPZVec<int64_t> IAcounter(nonzero);
+    TPZVec<int> IAcounter(nonzero);
     IA[0] = 0;
     for (int64_t i=0; i<nrow; i++) {
         IA[i+1] = IA[i]+numrowel[i];
