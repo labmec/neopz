@@ -151,6 +151,7 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
         }
         else {
             DebugStop();
+            return 0;
         }
     }
     /**
@@ -163,15 +164,16 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
         if(dt == ELU) {
             Decompose_LU();
             Subst_LForward ( &F );
-            Subst_Backward ( &F );
+            return Subst_Backward ( &F );
         } else {
             DebugStop();
+            return 0;
         }
     }
     virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
         if(this->fDecomposed != ELU) DebugStop();
         Subst_LForward ( &F );
-        Subst_Backward ( &F );
+        return Subst_Backward ( &F );
     }
 
 

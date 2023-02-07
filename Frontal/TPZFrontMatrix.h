@@ -164,23 +164,23 @@ public:
     virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt) const override
     {
         if(this->fDecomposed != dt) DebugStop();
-        Substitution(&B);
+        return Substitution(&B);
     }
     /** @brief decompose the system of equations acording to the decomposition
      * scheme */
     virtual int Decompose(const DecomposeType dt) override {
         TPZFMatrix<TVar> B(this->Rows(),1,0.);
-        SolveDirect(B, dt);
+        return SolveDirect(B, dt);
     }
 
     /**
 	 * @brief Forward substitution and result is on b
 	 * @param b Result of the substitution
 	 */
-	int Subst_Forward(TPZFMatrix<TVar> *b) const;
+	int Subst_Forward(TPZFMatrix<TVar> *b) const override;
 	
     /** @brief Backward substitution and result is on b*/
-	int Subst_Backward(TPZFMatrix<TVar> *b) const;
+	int Subst_Backward(TPZFMatrix<TVar> *b) const override;
     /** @brief Executes a substitution on a TPZFMatrix<REAL> object
 	 applies both forward and backward substitution automaticaly */
 	int Substitution(TPZFMatrix<TVar> *) const;
