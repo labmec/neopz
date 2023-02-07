@@ -244,7 +244,7 @@ int TPZCompElH1<TSHAPE>::EffectiveSideOrder(int side) const {
 template<class TSHAPE>
 int TPZCompElH1<TSHAPE>::NConnectShapeF(int connect, int order) const{
     
-    if(connect < TSHAPE::NCornerNodes) return TSHAPE::NConnectShapeF(connect,0);
+    if(connect < TSHAPE::NCornerNodes) return TSHAPE::NConnectShapeF(connect,1);
 	if(order < 0) return 0;
     int nshape = TSHAPE::NConnectShapeF(connect, order);
 #ifdef PZDEBUG
