@@ -114,12 +114,12 @@ public:
   
   
 	/** @brief Pass the data to the class. */
-	virtual void SetData( int64_t *IA, int64_t *JA, TVar *A );
+	virtual void SetData( int *IA, int *JA, TVar *A );
     
     /** @brief Pass the data to the class. */
-    virtual void SetData( TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A );
+    virtual void SetData( TPZVec<int> &IA, TPZVec<int> &JA, TPZVec<TVar> &A );
   /** @brief Get the data from the class*/
-  virtual void GetData(TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A);
+  virtual void GetData(TPZVec<int> &IA, TPZVec<int> &JA, TPZVec<TVar> &A);
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const override;
 	
@@ -218,8 +218,8 @@ protected:
   {
     return fA.size();
   }
-	TPZVec<int64_t>  fIA;
-	TPZVec<int64_t>  fJA;
+	TPZVec<int>  fIA;
+	TPZVec<int>  fJA;
 	TPZVec<TVar> fA;
 	
 	TPZVec<TVar> fDiag;
@@ -241,14 +241,14 @@ protected:
 
 
 template<class TVar>
-inline void TPZFYsmpMatrix<TVar>::SetData( int64_t *IA, int64_t *JA, TVar *A ) {
+inline void TPZFYsmpMatrix<TVar>::SetData( int *IA, int *JA, TVar *A ) {
 	// Pass the data to the class.
     int nel = this->Rows()+1;
     fIA.resize(nel);
-    memccpy(&fIA[0], IA, nel, sizeof(int64_t));
-    int64_t nval = fIA[nel-1];
+    memccpy(&fIA[0], IA, nel, sizeof(int));
+    int nval = fIA[nel-1];
     fJA.resize(nval);
-    memccpy(&fJA[0], JA, nval, sizeof(int64_t));
+    memccpy(&fJA[0], JA, nval, sizeof(int));
     fA.resize(nval);
     memccpy(&fA[0], A, nval, sizeof(TVar));
 	ComputeDiagonal();
@@ -256,7 +256,7 @@ inline void TPZFYsmpMatrix<TVar>::SetData( int64_t *IA, int64_t *JA, TVar *A ) {
 
 /** @brief Pass the data to the class. */
 template<class TVar>
-inline void TPZFYsmpMatrix<TVar>::SetData( TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A ){
+inline void TPZFYsmpMatrix<TVar>::SetData( TPZVec<int> &IA, TPZVec<int> &JA, TPZVec<TVar> &A ){
     
     if (IA.size() != this->Rows() + 1 ) {
         DebugStop();
@@ -272,7 +272,7 @@ inline void TPZFYsmpMatrix<TVar>::SetData( TPZVec<int64_t> &IA, TPZVec<int64_t> 
 }
 
 template<class TVar>
-inline void TPZFYsmpMatrix<TVar>::GetData( TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A ){
+inline void TPZFYsmpMatrix<TVar>::GetData( TPZVec<int> &IA, TPZVec<int> &JA, TPZVec<TVar> &A ){
     IA = fIA;
     JA = fJA;
     A = fA;

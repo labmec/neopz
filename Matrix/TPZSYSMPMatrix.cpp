@@ -291,11 +291,11 @@ void TPZSYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric)
     TPZFMatrix<TVar> orig;
     orig.AutoFill(nrow,ncol,symmetric);
     
-    TPZVec<int64_t> IA(nrow+1);
-    TPZStack<int64_t> JA;
+    TPZVec<int> IA(nrow+1);
+    TPZStack<int> JA;
     TPZStack<TVar> A;
     IA[0] = 0;
-    TPZVec<std::set<int64_t> > eqs(nrow);
+    TPZVec<std::set<int> > eqs(nrow);
     for (int64_t row=0; row<nrow; row++) {
         eqs[row].insert(row);
         for (int64_t col = 0; col<ncol; col++) {
@@ -308,9 +308,9 @@ void TPZSYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric)
             }
         }
     }
-    int64_t pos=0;
-    for (int64_t row=0; row< nrow; row++) {
-        for (std::set<int64_t>::iterator col = eqs[row].begin(); col != eqs[row].end(); col++) {
+    int pos=0;
+    for (int row=0; row< nrow; row++) {
+        for (std::set<int>::iterator col = eqs[row].begin(); col != eqs[row].end(); col++) {
             if(*col >= row)
             {
                 JA.Push(*col);

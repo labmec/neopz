@@ -109,8 +109,8 @@ TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_
     // pos is the position where we will put the column value
     int64_t pos = 0;
     
-    TPZVec<int64_t> Eq(totaleq+1);
-    TPZVec<int64_t> EqCol(totalvar);
+    TPZVec<int> Eq(totaleq+1);
+    TPZVec<int> EqCol(totalvar);
     TPZVec<TVar> EqValue(totalvar,0.);
     //lambda for avoid repeating code
     //lambda for avoid repeating code

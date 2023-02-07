@@ -108,8 +108,8 @@ TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph,
     // pos is the position where we will put the column value
     int64_t pos = 0;
 	
-    TPZManVector<int64_t,400> Eq(totaleq+1);
-    TPZVec<int64_t> EqCol(totalvar);
+    TPZManVector<int,400> Eq(totaleq+1);
+    TPZVec<int> EqCol(totalvar);
     TPZVec<TVar> EqValue(totalvar);
     //lambda for avoid repeating code
     auto AddColEqs =
