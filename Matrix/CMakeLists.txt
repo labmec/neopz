@@ -64,6 +64,14 @@ set(sources
     TPZTensorTranslator.cpp
     )
 
+	if(USING_EIGEN)
+		list(APPEND headers
+			TPZEigenSparseMatrix.h
+		)
+		list(APPEND sources
+			TPZEigenSparseMatrix.cpp			
+		)
+	endif()
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Matrix)
 
 target_sources(pz PRIVATE ${headers} ${sources})
