@@ -68,6 +68,7 @@ public :
          * scheme */
         virtual int Decompose(const DecomposeType dt) override {
             DebugStop();
+            return 0;
         }
         /**
          * @brief Solves the linear system using Direct methods
@@ -77,9 +78,11 @@ public :
         virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override
         {
             DebugStop();
+            return 0;
         }
         virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
             DebugStop();
+            return 0;
         }
     
 
