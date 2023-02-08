@@ -67,7 +67,7 @@ void TPZPardisoSolver<TVar>::FreePardisoMemory()
     long long ia,ja,perm,nrhs = 1;
     long long Error = 0;
     if(fPardisoInitialized)
-        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType,
+        pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType,
                     &phase, &n, a, &ia, &ja, &perm,
                     &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
@@ -237,7 +237,7 @@ void TPZPardisoSolver<TVar>::Decompose(TPZMatrix<TVar> *mat)
         fParam[59] = 0;
     }
     
-    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+    pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     if (Error) {
         Error_check(int(Error));
@@ -314,13 +314,13 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
     /// forward and backward substitution
     long long phase = 33;
     
-    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+    pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
     if(fParam[19]>150){
         std::cout << "Pardiso:: Number of iterations " << fParam[19] << " > 150, calling numerical factorization... " << std::endl;
         phase = 23;
-        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+        pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                     &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     }
     
@@ -365,7 +365,7 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
         Error_check(int(Error));
         std::cout << "Pardiso:: Calling a numerical factorization. \n";
         phase = 23;
-        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+        pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                     &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     }
     
@@ -470,8 +470,8 @@ long long TPZPardisoSolver<TVar>::MatrixType()
 
     if(fCustomSettings){return fMatrixType;}
 #ifdef USING_MKL
-    int param[64] = {0};
-    int matrixtype = fMatrixType;
+    MKL_INT param[64] = {0};
+    MKL_INT matrixtype = fMatrixType;
     pardisoinit(fHandle,&matrixtype,param);
     fPardisoInitialized = true;
     for (int i=0; i<64; i++) {
