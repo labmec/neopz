@@ -38,7 +38,7 @@ template<class TVar>
 TPZPardisoSolver<TVar>::TPZPardisoSolver() :
     TPZMatrixSolver<TVar>(),fPardisoControl(),fParam(64,0)
 {
-    fPardisoControl = new TPZManVector<int,64>(64,0);
+    fPardisoControl = new TPZManVector<long long,64>(64,0);
     fHandle = &fPardisoControl.operator->()->operator[](0);
 }
 
@@ -50,7 +50,7 @@ TPZPardisoSolver<TVar>::TPZPardisoSolver(MSystemType systemtype,
     fSystemType(systemtype), fStructure(structure), fProperty(prop),
     fPardisoControl(), fParam(64,0)
 {
-    fPardisoControl = new TPZManVector<int,64>(64,0);
+    fPardisoControl = new TPZManVector<long long,64>(64,0);
     fHandle = &fPardisoControl.operator->()->operator[](0);
 }
 
@@ -59,16 +59,16 @@ template<class TVar>
 TPZPardisoSolver<TVar>::~TPZPardisoSolver()
 {
 #ifdef USING_MKL
-    int phase = -1;
-    int n=1;
-    int av,bv,xv;
+    long long phase = -1;
+    long long n=1;
+    long long av,bv,xv;
     void *a= &av,*b = &bv, *x = &xv;
-    int ia,ja,perm,nrhs = 1;
-    int Error = 0;
+    long long ia,ja,perm,nrhs = 1;
+    long long Error = 0;
     if(fPardisoInitialized)
-        pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType,
-                 &phase, &n, a, &ia, &ja, &perm,
-                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType,
+                    &phase, &n, a, &ia, &ja, &perm,
+                    &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
     if (Error) {
         DebugStop();
@@ -152,36 +152,35 @@ void TPZPardisoSolver<TVar>::Decompose(TPZMatrix<TVar> *mat)
     auto *nSymSystem =
         dynamic_cast<TPZFYsmpMatrixPardiso<TVar>*>(mat);
 
-    
-    int n=0;
+    long long n=0;
     TVar bval = 0., xval = 0.;
     TVar *a,*b = &bval, *x = &xval;
-    int *ia,*ja;
+    long long *ia,*ja;
     if (symSystem) {
         if (symSystem->Rows()==0) {
             return;
         }
         a = &(symSystem->fA[0]);
-        ia = &(symSystem->fIA[0]);
-        ja = &(symSystem->fJA[0]);
+        ia = (long long *) &(symSystem->fIA[0]);
+        ja = (long long *) &(symSystem->fJA[0]);
         n = symSystem->Rows();
     }
     if (nSymSystem) {
         a = &(nSymSystem->fA[0]);
-        ia = &(nSymSystem->fIA[0]);
-        ja = &(nSymSystem->fJA[0]);
+        ia = (long long *) &(nSymSystem->fIA[0]);
+        ja = (long long *) &(nSymSystem->fJA[0]);
         n = nSymSystem->Rows();
         
     }
 
-    int *perm = 0,nrhs = 0;
-    int Error = 0;
+    long long *perm = 0,nrhs = 0;
+    long long Error = 0;
     nrhs = 0;    
     
     /// analyse and factor the equations
-    int phase = 12;
+    long long phase = 12;
     fPermutation.resize(n);
-    for (int i=0; i<n; i++) {
+    for (long long i=0; i<n; i++) {
         fPermutation[i] = i;
     }
     perm = &fPermutation[0];
@@ -229,7 +228,7 @@ void TPZPardisoSolver<TVar>::Decompose(TPZMatrix<TVar> *mat)
         fParam[59] = 0;
     }
     
-    pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     if (Error) {
         Error_check(int(Error));
@@ -263,23 +262,23 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
         dynamic_cast<const TPZSYsmpMatrixPardiso<TVar>*>(mat);
     auto *nSymSystem =
         dynamic_cast<const TPZFYsmpMatrixPardiso<TVar>*>(mat);
-    int n=0;
+    long long n=0;
     TVar *a,*b, *x;
-    int *ia,*ja;
+    long long *ia,*ja;
     if (symSystem) {
         if(symSystem->Rows() == 0)
         {
             return;
         }
         a = &(symSystem->fA[0]);
-        ia = (int *) &(symSystem->fIA[0]);
-        ja = (int *) &(symSystem->fJA[0]);
+        ia = (long long *) &(symSystem->fIA[0]);
+        ja = (long long *) &(symSystem->fJA[0]);
         n = symSystem->Rows();
     }
     if (nSymSystem) {
         a = &(nSymSystem->fA[0]);
-        ia = (int *) &(nSymSystem->fIA[0]);
-        ja = (int *) &(nSymSystem->fJA[0]);
+        ia = (long long *) &(nSymSystem->fIA[0]);
+        ja = (long long *) &(nSymSystem->fJA[0]);
         n = nSymSystem->Rows();
     }
     
@@ -292,8 +291,8 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
         LOGPZ_DEBUG(logger,sout.str())
     }
 #endif
-    int *perm,nrhs;
-    int Error = 0;
+    long long *perm,nrhs;
+    long long Error = 0;
     nrhs = rhs.Cols();
     n = rhs.Rows();
     b = &rhs.g(0,0);
@@ -304,15 +303,15 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
     x = &sol.g(0,0);
     perm = &fPermutation[0];
     /// forward and backward substitution
-    int phase = 33;
+    long long phase = 33;
     
-    pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
     if(fParam[19]>150){
         std::cout << "Pardiso:: Number of iterations " << fParam[19] << " > 150, calling numerical factorization... " << std::endl;
         phase = 23;
-        pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                     &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     }
     
@@ -357,7 +356,7 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
         Error_check(int(Error));
         std::cout << "Pardiso:: Calling a numerical factorization. \n";
         phase = 23;
-        pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                     &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     }
     
@@ -385,7 +384,7 @@ TPZPardisoSolver<TVar> *TPZPardisoSolver<TVar>::Clone() const{
 
 
 template<class TVar>
-void TPZPardisoSolver<TVar>::SetParam(const TPZVec<int> &p){
+void TPZPardisoSolver<TVar>::SetParam(const TPZVec<long long> &p){
     if(p.size() != fParam.size()){
         PZError<<__PRETTY_FUNCTION__
                <<"\nIncorrect size of PARDISO param array!"
@@ -420,7 +419,7 @@ void TPZPardisoSolver<TVar>::SetMatrixType(MSystemType systemtype, MProperty pro
 }
 
 template<class TVar>
-int TPZPardisoSolver<TVar>::MatrixType()
+long long TPZPardisoSolver<TVar>::MatrixType()
 {
     
     if (fStructure == MStructure::ENonSymmetric){

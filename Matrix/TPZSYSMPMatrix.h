@@ -102,7 +102,7 @@ public :
 						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const override;
 	/** @} */
 	/** @brief Sets data to the class */
-	virtual void SetData(const TPZVec<int> &IA,const TPZVec<int> &JA, const TPZVec<TVar> &A );
+	virtual void SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A );
 
     virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & destinationindex) override;
 	
@@ -115,12 +115,12 @@ public :
         return fA;
     }
     
-    TPZVec<int> &IA()
+    TPZVec<int64_t> &IA()
     {
         return fIA;
     }
     
-    TPZVec<int> &JA()
+    TPZVec<int64_t> &JA()
     {
         return fJA;
     }
@@ -172,8 +172,8 @@ protected:
   }
 	
 	
-	TPZVec<int>  fIA;
-	TPZVec<int>  fJA;
+	TPZVec<int64_t>  fIA;
+	TPZVec<int64_t>  fJA;
 	TPZVec<TVar> fA;
 	
 	
@@ -181,7 +181,7 @@ protected:
 };
 
 template<class TVar>
-inline void TPZSYsmpMatrix<TVar>::SetData(const TPZVec<int> &IA,const TPZVec<int> &JA, const TPZVec<TVar> &A )
+inline void TPZSYsmpMatrix<TVar>::SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A )
 {
 	// Pass the data to the class.
 	fIA = IA;

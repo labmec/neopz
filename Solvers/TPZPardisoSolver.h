@@ -87,11 +87,11 @@ public:
     /** @brief Gets copy of Pardiso param array
         @note It is strongly suggested to call SetStructure and SetMatrixType before
         customising the param array.*/
-    [[nodiscard]] inline TPZVec<int> GetParam() const
+    [[nodiscard]] inline TPZVec<long long> GetParam() const
     {return fParam;}
 
     /** @brief Sets custom values to Pardiso param array.*/
-    void SetParam(const TPZVec<int> & p);
+    void SetParam(const TPZVec<long long> & p);
 
     /** @brief Resets custom values of Pardiso param array
      @note This function should only be called if SetParam has been previously called.*/
@@ -100,7 +100,7 @@ public:
     [[nodiscard]] bool HasCustomSettings() const {return fCustomSettings;}
 protected:
     /// Compute the `mtype` parameter of the pardiso_64 call
-    int MatrixType();
+    long long MatrixType();
     /**@brief Decompose the matrix */
     void Decompose(TPZMatrix<TVar> *mat);
     /** @brief Use the decomposed matrix to invert the system of equations
@@ -114,34 +114,34 @@ protected:
     MProperty fProperty{MProperty::ENonInitialized};
     
     // Solver internal data address pointers
-    // 32-bit: int pt[64]; 64-bit: int pt[64]
+    // 32-bit: int pt[64]; 64-bit: long long pt[64]
     // or void *pt[64] should be OK on both architectures
     // this datastructure should not be copied or duplicated, therefore the "autopointer" protection
-    TPZAutoPointer<TPZManVector<int, 64> > fPardisoControl{nullptr};
+    TPZAutoPointer<TPZManVector<long long, 64> > fPardisoControl{nullptr};
     
     // adress of the first element of pt;
-    int *fHandle{nullptr};
+    long long *fHandle{nullptr};
     
     // Array used to pass parameters to Pardiso
-    TPZManVector<int, 64> fParam;
+    TPZManVector<long long, 64> fParam;
     
     // Maximum number of factors we will pass to the solver
-    int fMax_num_factors{1};
+    long long fMax_num_factors{1};
     
     // Factor number we are using
-    int fMatrix_num{1};
+    long long fMatrix_num{1};
     
     // Message level information
-    int fMessageLevel{0};
+    long long fMessageLevel{0};
     
     // error flag from Pardiso
-    int fError{0};
+    long long fError{0};
     
     /// permutation vector computed by Pardiso
-    TPZVec<int> fPermutation;
+    TPZVec<long long> fPermutation;
     
     // matrix type, computed based on the structural information and TVar
-    int fMatrixType{0};
+    long long fMatrixType{0};
 
     /// whether the matrix has been decomposed
     bool fDecomposed{false};
