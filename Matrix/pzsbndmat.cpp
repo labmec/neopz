@@ -550,10 +550,10 @@ TPZSBMatrix<std::complex< float > >::Decompose_Cholesky()
     }
     
     char uplo[] = "Upper";
-    int n = this->Dim();
-    int lda = this->fBand + 1;
-    int kd = this->fBand;
-    int info = -666;
+    lapack_int n = this->Dim();
+    lapack_int lda = this->fBand + 1;
+    lapack_int kd = this->fBand;
+    lapack_int info = -666;
     
     cpbtrf_(uplo, &n, &kd , (varfloatcomplex*) fStorage.begin(), &lda, &info);
     if( info > 0){
@@ -581,10 +581,10 @@ TPZSBMatrix<std::complex< double > >::Decompose_Cholesky()
     }
     
     char uplo[] = "Upper";
-    int n = this->Dim();
-    int lda = this->fBand + 1;
-    int kd = this->fBand;
-    int info = -666;
+    lapack_int n = this->Dim();
+    lapack_int lda = this->fBand + 1;
+    lapack_int kd = this->fBand;
+    lapack_int info = -666;
     zpbtrf_(uplo, &n, &kd, (vardoublecomplex *) fStorage.begin(), &lda, &info);
     if( info > 0){
        this->Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
@@ -608,13 +608,13 @@ int TPZSBMatrix<float>::Decompose_Cholesky()
         DebugStop();
     }
     char uplo[]="Upper";
-    int n = Dim();
-    int kd = fBand;
-    int nrhs = 0;
+    lapack_int n = Dim();
+    lapack_int kd = fBand;
+    lapack_int nrhs = 0;
     float *ab = &fStorage[0];
-    int ldab = fBand+1;
+    lapack_int ldab = fBand+1;
     float b = 0;
-    int info;
+    lapack_int info;
     
     //    spbsv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__kd#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     spbsv_(uplo, &n, &kd, &nrhs, ab, &ldab, &b, &n, &info);
@@ -636,13 +636,13 @@ int TPZSBMatrix<double>::Decompose_Cholesky()
         DebugStop();
     }
     char uplo[]="Upper";
-    int n = Dim();
-    int kd = fBand;
-    int nrhs = 0;
+    lapack_int n = Dim();
+    lapack_int kd = fBand;
+    lapack_int nrhs = 0;
     double *ab = &fStorage[0];
-    int ldab = fBand+1;
+    lapack_int ldab = fBand+1;
     double b = 0;
-    int info;
+    lapack_int info;
     
     //    spbsv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__kd#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     dpbsv_(uplo, &n, &kd, &nrhs, ab, &ldab, &b, &n, &info);

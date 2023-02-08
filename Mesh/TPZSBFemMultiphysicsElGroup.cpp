@@ -183,15 +183,15 @@ void TPZSBFemMultiphysicsElGroup::CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElem
     
     InitializeElementMatrix(ek, ef);
 
-    int n = E0.fMat.Rows();
+    lapack_int n = E0.fMat.Rows();
     auto dim = Mesh()->Dimension();
     
     TPZFMatrix<STATE> E0Inv(E0.fMat);
 
-    TPZVec<int> pivot(E0Inv.Rows(),0);
-    int nwork = 4*n*n + 2*n;
+    TPZVec<lapack_int> pivot(E0Inv.Rows(),0);
+    lapack_int nwork = 4*n*n + 2*n;
     TPZVec<STATE> work(2*nwork,0.);
-    int info=0;
+    lapack_int info=0;
 #ifdef STATEdouble
     dgetrf_(&n, &n, &E0Inv(0,0), &n, &pivot[0], &info);
 #endif

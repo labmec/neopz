@@ -157,25 +157,25 @@ int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
 
   char job = 'E';// compute eigenvalues only
   char compz = 'N';//do not compute Schur vectors
-  int &n = nrows;//order of the matrix
+  lapack_int n = nrows;//order of the matrix
   //ilo and ihi should be 1 and N if the matrix wasnt computed by ZGEBAL
-  int ilo = 1;
-  int ihi = n;
+  lapack_int ilo = 1;
+  lapack_int ihi = n;
   auto H = A;//the matrix (is unspecified on exit)
-  int ldh = n;//leading dimension of the array
+  lapack_int ldh = n;//leading dimension of the array
   //WR is set only for real types
   //WI is set only for real types
   //W is set only for complex types
   
   TPZVec<TVar> Z(nrows);//not referenced since compz=N
-  int ldz{1};//leading dimension of Z
-  int lwork{11*nrows};//dimension of work
+  lapack_int ldz{1};//leading dimension of Z
+  lapack_int lwork{11*nrows};//dimension of work
   TPZVec<TVar> work(lwork);
-  int info;
+  lapack_int info;
 
   w.Resize(n);
 
-  TPZManVector<int,20> select(n,1);//which eigenvectors to compute in the next step
+  TPZManVector<lapack_int,20> select(n,1);//which eigenvectors to compute in the next step
   TPZVec<TVar> wrVec, wiVec;
 #ifdef USING_LAPACK
   if constexpr (std::is_same_v<TVar,RTVar>){
@@ -219,7 +219,7 @@ int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
 
   if(!calcVecs) return info;
   
-  int mm = n;
+  lapack_int mm = n;
   char side{'R'};//compute right eigenvectors only
   char eigsrc{'Q'};//eigenvalues were found from zhseqr
   char initv{'N'};//no initial vectors
@@ -231,16 +231,16 @@ int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
   //WI is set only for real types
   //W is set only for complex types
   TPZVec<TVar> vl(mm);//not referenced
-  int ldvl{1};//will be ignored
+  lapack_int ldvl{1};//will be ignored
   //vr will be the eigenvectors
-  int ldvr{n};//leading dimension of vr
-  int m;
+  lapack_int ldvr{n};//leading dimension of vr
+  lapack_int m;
   //mm has already been set
-  const int worksize = std::is_same_v<TVar,RTVar> ? n*n+2*n : n*n;
+  const lapack_int worksize = std::is_same_v<TVar,RTVar> ? n*n+2*n : n*n;
   work.Resize(worksize);
   vecs.Redim(n,n);
-  TPZVec<int> ifaill(mm,-1);//will not be referenced
-  TPZVec<int> ifailr(mm,-1);
+  TPZVec<lapack_int> ifaill(mm,-1);//will not be referenced
+  TPZVec<lapack_int> ifailr(mm,-1);
 
 
 #ifdef USING_LAPACK
@@ -321,10 +321,10 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZFMatrix<TVar> &A,
   if(!calcVectors) jobvr[0]='N';
   
   TPZFMatrix<TVar> VL(A.Rows(),A.Cols()),VR(A.Rows(),A.Cols());
-  int dim = A.Rows();
+  lapack_int dim = A.Rows();
   TVar testwork;
-  int lwork = 10+20*dim;
-  int info;
+  lapack_int lwork = 10+20*dim;
+  lapack_int info;
 
   TPZVec<TVar> work(lwork);
 
@@ -437,10 +437,10 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
   char jobvl[] = "N", jobvr[] = "V";
   if(!calcVectors) jobvr[0] = 'N';
   TPZFMatrix< TVar> VL(A.Rows(),A.Cols()),VR(A.Rows(),A.Cols());
-  int dim = A.Rows();
+  lapack_int dim = A.Rows();
   TVar testwork;
-  int lwork = 10+20*dim;
-  int info;
+  lapack_int lwork = 10+20*dim;
+  lapack_int info;
 
   TPZVec<TVar> beta(dim);
   TPZVec<TVar> work(lwork);
@@ -573,15 +573,15 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZSBMatrix<TVar> &A,
   TPZFMatrix <CTVar> eigenVectorsLapack;
   char jobz = calcVectors ? 'V' : 'N'; //compute eigenvectors
   char uplo = 'U';//assume upper triangular
-  int n = A.Dim();
-  int kd = A.fBand;
-  int ldab = A.fBand + 1;
-  int ldbb = A.fBand + 1;
+  lapack_int n = A.Dim();
+  lapack_int kd = A.fBand;
+  lapack_int ldab = A.fBand + 1;
+  lapack_int ldbb = A.fBand + 1;
   TPZVec<RTVar> w(0,0.);
   w.Resize(n);
-  int ldz = n;
+  lapack_int ldz = n;
 
-  int info = -666;
+  lapack_int info = -666;
 #ifdef USING_LAPACK
   eigenValues.Resize(n);
   if(calcVectors) eigenVectorsLapack.Redim(n, n);
@@ -678,15 +678,15 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
   TPZFMatrix <CTVar> eigenVectorsLapack;
   char jobz = calcVectors? 'V' : 'N'; //Compute eigenvectors
   char uplo = 'U';//assume upper triangular
-  int n = A.Dim();
-  int ka = A.fBand;
-  int kb = B.fBand;
-  int ldab = A.fBand + 1;
-  int ldbb = A.fBand + 1;
+  lapack_int n = A.Dim();
+  lapack_int ka = A.fBand;
+  lapack_int kb = B.fBand;
+  lapack_int ldab = A.fBand + 1;
+  lapack_int ldbb = A.fBand + 1;
   TPZVec<RTVar> w(0,0.);
   w.Resize( n );
-  int ldz = n;
-  int info = -666;
+  lapack_int ldz = n;
+  lapack_int info = -666;
 #ifdef USING_LAPACK
   eigenValues.Resize(n);
   if(calcVectors) eigenVectorsLapack.Redim(n, n);

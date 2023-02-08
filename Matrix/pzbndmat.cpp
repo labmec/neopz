@@ -441,14 +441,14 @@ TPZFBMatrix<float>::Decompose_LU()
 	} else if(this->fDecomposed) {
 		this->Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
 	}
-    int rows = Rows();
-    int bandlower = fBandLower;
-    int bandupper = fBandUpper;
-    int nrhs = 0;
-    int ldab = 1+2*fBandLower+fBandUpper;
+    lapack_int rows = Rows();
+    lapack_int bandlower = fBandLower;
+    lapack_int bandupper = fBandUpper;
+    lapack_int nrhs = 0;
+    lapack_int ldab = 1+2*fBandLower+fBandUpper;
     fPivot.Resize(rows, 0);
     float B;
-    int info;
+    lapack_int info;
     
 //    sgbsv_(<#__CLPK_integer *__n#>, <#__CLPK_integer *__kl#>, <#__CLPK_integer *__ku#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
 //    lapack_int LAPACKE_sgbsv( int matrix_layout, lapack_int n, lapack_int kl,
@@ -456,7 +456,12 @@ TPZFBMatrix<float>::Decompose_LU()
 //                             lapack_int ldab, lapack_int* ipiv, float* b,
 //                             lapack_int ldb );
 
-    sgbsv_(&rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab,&fPivot[0], &B,&rows, &info);
+    TPZManVector<lapack_int,2000> pivot(rows);
+    for(int i = 0; i < rows; i++){pivot[i]=fPivot[i];}
+    sgbsv_(&rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab,&pivot[0], &B,&rows, &info);
+    for(int i = 0; i < rows; i++){
+        fPivot[i] = pivot[i];
+    }
     //int matrix_layout = 0;
 //    LAPACKE_sgbsv(matrix_layout,rows, bandlower, bandupper, nrhs, &fElem[0], ldab,&fPivot[0], &B,rows);
     
@@ -475,18 +480,23 @@ TPZFBMatrix<double>::Decompose_LU()
     } else if(this->fDecomposed) {
         this->Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
     }
-    int rows = Rows();
-    int bandlower = fBandLower;
-    int bandupper = fBandUpper;
-    int nrhs = 0;
-    int ldab = 1+2*fBandLower+fBandUpper;
+    lapack_int rows = Rows();
+    lapack_int bandlower = fBandLower;
+    lapack_int bandupper = fBandUpper;
+    lapack_int nrhs = 0;
+    lapack_int ldab = 1+2*fBandLower+fBandUpper;
     fPivot.Resize(rows, 0);
     double B;
-    int info;
+    lapack_int info;
     
     //    sgbsv_(<#__CLPK_integer *__n#>, <#__CLPK_integer *__kl#>, <#__CLPK_integer *__ku#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
-    dgbsv_(&rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab,&fPivot[0], &B,&rows, &info);
-    
+    TPZManVector<lapack_int,2000> pivot(rows);
+    for(int i = 0; i < rows; i++){pivot[i]=fPivot[i];}
+    dgbsv_(&rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab,&pivot[0], &B,&rows, &info);
+
+    for(int i = 0; i < rows; i++){
+        fPivot[i] = pivot[i];
+    }
     if (info != 0) {
         DebugStop();
     }
@@ -501,17 +511,20 @@ int TPZFBMatrix<float>::Substitution( TPZFMatrix<float> *B ) const{
     if (this->fDecomposed != ELU) {
         DebugStop();
     }
-    int rows = Rows();
-    int bandlower = fBandLower;
-    int bandupper = fBandUpper;
-    int nrhs = B->Cols();
-    int ldab = 1+2*fBandLower+fBandUpper;
-    int info;
+    lapack_int rows = Rows();
+    lapack_int bandlower = fBandLower;
+    lapack_int bandupper = fBandUpper;
+    lapack_int nrhs = B->Cols();
+    lapack_int ldab = 1+2*fBandLower+fBandUpper;
+    lapack_int info;
     char notrans[]="No Transpose";
 
     
 //    sgbtrs_(<#char *__trans#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__kl#>, <#__CLPK_integer *__ku#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
-    sgbtrs_(notrans, &rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab, &fPivot[0], &B->s(0,0), &rows, &info);
+    TPZManVector<lapack_int,2000> pivot(rows);
+    for(int i = 0; i < rows; i++){pivot[i]=fPivot[i];}
+    sgbtrs_(notrans, &rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab, &pivot[0], &B->s(0,0), &rows, &info);
+    for(int i = 0; i < rows; i++){fPivot[i] = pivot[i];}
     return( 1 );
 }
 
@@ -521,17 +534,22 @@ int TPZFBMatrix<double>::Substitution( TPZFMatrix<double> *B ) const{
     if (this->fDecomposed != ELU) {
         DebugStop();
     }
-    int rows = Rows();
-    int bandlower = fBandLower;
-    int bandupper = fBandUpper;
-    int nrhs = B->Cols();
-    int ldab = 1+2*fBandLower+fBandUpper;
-    int info;
+    lapack_int rows = Rows();
+    lapack_int bandlower = fBandLower;
+    lapack_int bandupper = fBandUpper;
+    lapack_int nrhs = B->Cols();
+    lapack_int ldab = 1+2*fBandLower+fBandUpper;
+    lapack_int info;
     char notrans[]="No Transpose";
     
     
     //    sgbtrs_(<#char *__trans#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__kl#>, <#__CLPK_integer *__ku#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
-    dgbtrs_(notrans, &rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab, &fPivot[0], &B->s(0,0), &rows, &info);
+    TPZManVector<lapack_int,2000> pivot(rows);
+    for(int i = 0; i < rows; i++){pivot[i]=fPivot[i];}
+    dgbtrs_(notrans, &rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab, &pivot[0], &B->s(0,0), &rows, &info);
+    for(int i = 0; i < rows; i++){
+        fPivot[i] = pivot[i];
+    }
     return( 1 );
 }
 
