@@ -89,8 +89,8 @@ TPZMatrix<TVar> * TPZBSpStructMatrix<TVar,TPar>::Create(){
 	
     nblock=this->fMesh->NIndependentConnects();
 	
-    int * Eq = new int[totaleq+1];
-    int * EqCol = new int[totalvar/2];
+    int64_t * Eq = new int64_t[totaleq+1];
+    int64_t * EqCol = new int64_t[totalvar/2];
     TVar * EqValue = new TVar[totalvar/2];
     for(i=0;i<nblock;i++){
 		int64_t iblsize = this->fMesh->Block().Size(i);

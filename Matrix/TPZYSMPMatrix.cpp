@@ -233,10 +233,10 @@ void TPZFYsmpMatrix<TVar>::AddKelOld(TPZFMatrix<TVar> & elmat, TPZVec < int > & 
 	}
 	for(i=0;i<nel;i++){
 		ilocal = destinationindex[i];
-		int jfirst = fIA[ilocal];
-		int jlast = fIA[ilocal+1];
-		int *Aptr = &fJA[jfirst];
-		int *AptrLast = &fJA[jlast];
+		int64_t jfirst = fIA[ilocal];
+		int64_t jlast = fIA[ilocal+1];
+		int64_t *Aptr = &fJA[jfirst];
+		int64_t *AptrLast = &fJA[jlast];
 		j=0;
 		std::multimap<int64_t,int64_t>::iterator itelmat = mapindex.begin();
 		while(j<nel && Aptr != AptrLast)
@@ -261,7 +261,7 @@ void TPZFYsmpMatrix<TVar>::AddKelOld(TPZFMatrix<TVar> & elmat, TPZVec < int > & 
 			else if(*Aptr > (*itelmat).second)
 			{
 				std::cout << __PRETTY_FUNCTION__ << " inconsistent\n";
-				int *iptr = &fJA[jfirst];
+				int64_t *iptr = &fJA[jfirst];
 				while(iptr < AptrLast) 
 				{
 					cout << *iptr << " ";
@@ -280,7 +280,7 @@ void TPZFYsmpMatrix<TVar>::AddKelOld(TPZFMatrix<TVar> & elmat, TPZVec < int > & 
 		if(j!= nel)
 		{
 			std::cout << __PRETTY_FUNCTION__ << " inconsistent2 j = " << j << " nel " << nel << "\n";
-			int *iptr = &fJA[jfirst];
+			int64_t *iptr = &fJA[jfirst];
 			while(iptr < AptrLast) 
 			{
 				cout << *iptr << " ";
@@ -474,7 +474,7 @@ void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 			int64_t icolmax = fIA[ir+1];
 			const TVar *xptr = &(x.g(0,0));
 			TVar *Aptr = &fA[0];
-			int *JAptr = &fJA[0];
+			int64_t *JAptr = &fJA[0];
 			for(sum = 0.0, icol=icolmin; icol<icolmax; icol++ ) {
 				sum += Aptr[icol] * xptr[JAptr[icol]];
 			}
@@ -798,7 +798,7 @@ void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 			int64_t icolmax = mat->fIA[ir+1];
 			const TVar *xptr = &(data->fX->g(0,0));
 			TVar *Aptr = &mat->fA[0];
-			int *JAptr = &mat->fJA[0];
+			int64_t *JAptr = &mat->fJA[0];
 			for(sum = 0.0, icol=icolmin; icol<icolmax; icol++ ) {
 				sum += Aptr[icol] * xptr[JAptr[icol]];
 			}
@@ -838,15 +838,15 @@ void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 	}
 	return 0;
 }
-static int  FindCol(int *colf, int *coll, int col)
+static int64_t  FindCol(int64_t *colf, int64_t *coll, int64_t col)
 {
 	if(col == *colf) return 0;
-	int *begin = colf;
-	int *end = coll;
+	int64_t *begin = colf;
+	int64_t *end = coll;
 	while (begin != end)
 	{
-		int dist = (end-begin)/2;
-		int *mid = begin+dist;
+		int64_t dist = (end-begin)/2;
+		int64_t *mid = begin+dist;
 		if(*mid == col) return (mid-colf);
 		else if(*mid > col) end=mid;
 		else begin = mid;
@@ -863,7 +863,7 @@ int TPZFYsmpMatrix<TVar>::GetSub(const int64_t sRow,const int64_t sCol,const int
 		int64_t row = sRow+ir;
 		int64_t colfirst = fIA[row];
 		int64_t collast = fIA[row+1];
-		int iacol = FindCol(&fJA[0]+colfirst,&fJA[0]+collast-1,sCol);
+		int64_t iacol = FindCol(&fJA[0]+colfirst,&fJA[0]+collast-1,sCol);
 		int64_t ic;
 		for(ic=0; ic<colSize; ic++) A(ir,ic) = fA[iacol+colfirst];
 	}
@@ -883,13 +883,13 @@ void TPZFYsmpMatrix<TVar>::GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar
 	std::map<int64_t,int64_t>::iterator itset,jtset;
 	for(itset = indord.begin(); itset != indord.end(); itset++)
 	{
-		int *jfirst = &fJA[0]+fIA[(*itset).first];
-		int *jlast = &fJA[0]+fIA[(*itset).first+1]-1;
+		int64_t *jfirst = &fJA[0]+fIA[(*itset).first];
+		int64_t *jlast = &fJA[0]+fIA[(*itset).first+1]-1;
 		//    int row = (*itset).first;
 		for(jtset = indord.begin(); jtset != indord.end(); jtset++)
 		{
-			int col = FindCol(jfirst,jlast,(*jtset).first);
-			int dist = jfirst+col-&fJA[0];
+			int64_t col = FindCol(jfirst,jlast,(*jtset).first);
+			int64_t dist = jfirst+col-&fJA[0];
 			block((*itset).second,(*jtset).second) = fA[dist];
 			jfirst += col+1;
 		}
@@ -902,17 +902,17 @@ void TPZFYsmpMatrix<TVar>::GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::RowLUUpdate(int64_t sourcerow, int64_t destrow)
 {
-	int *sourcefirst = &fJA[0]+fIA[sourcerow];
-	int *sourcelast = &fJA[0]+fIA[sourcerow+1]-1;
-	int sourcecol = FindCol(sourcefirst,sourcelast,sourcerow);
+	int64_t *sourcefirst = &fJA[0]+fIA[sourcerow];
+	int64_t *sourcelast = &fJA[0]+fIA[sourcerow+1]-1;
+	int64_t sourcecol = FindCol(sourcefirst,sourcelast,sourcerow);
 	if(sourcecol < 0)
 	{
 		cout << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " source not found\n";
 		return;
 	}
 	int64_t sourcedist = sourcefirst+sourcecol-&fJA[0];
-	int *destfirst = &fJA[0]+fIA[destrow];
-	int *destlast = &fJA[0]+fIA[destrow+1]-1;
+	int64_t *destfirst = &fJA[0]+fIA[destrow];
+	int64_t *destlast = &fJA[0]+fIA[destrow+1]-1;
 	int64_t destcol = FindCol(destfirst,destlast,destrow);
 	int64_t destdist = destfirst+destcol-&fJA[0];
 	if(destcol < 0)
@@ -960,8 +960,8 @@ void TPZFYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric)
     TPZFMatrix<TVar> orig;
     orig.AutoFill(nrow,ncol,symmetric);
     
-    TPZVec<int> IA(nrow+1);
-    TPZStack<int> JA;
+    TPZVec<int64_t> IA(nrow+1);
+    TPZStack<int64_t> JA;
     TPZStack<TVar> A;
     IA[0] = 0;
     TPZVec<std::set<int64_t> > eqs(nrow);
