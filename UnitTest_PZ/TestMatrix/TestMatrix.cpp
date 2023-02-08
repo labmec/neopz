@@ -653,6 +653,12 @@ template<class TVar>
           SECTION("TPZSkylNSymMatrix"){
               TestingMultAdd<TPZSkylNSymMatrix<TVar>, TVar>(dim, 0, ELU);
           }
+          SECTION("TPZSYsmpMatrix"){
+              TestingMultAdd<TPZSYsmpMatrix<TVar>, TVar>(dim, 1, ECholesky);
+          }
+          SECTION("TPZFYsmpMatrix"){
+              TestingMultAdd<TPZFYsmpMatrix<TVar>, TVar>(dim, 0, ELU);
+          }
       }
     }
 #ifdef PZ_USING_LAPACK
@@ -1083,18 +1089,15 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
     duplicate.Multiply(duplicate, square2);
     auto oldPrecision = Catch::StringMaker<RTVar>::precision;
     Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
-    // Checking whether result matrix is the identity matrix
+    // Checking whether result matrix is the same
     bool check = true;
-    constexpr RTVar tol = [](){
-        if constexpr (std::is_same_v<RTVar,float>) return (RTVar)100;
-        else return (RTVar)1;
-    }();
+    constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*1000;
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
-            if (!IsZero(fabs(square(i, j) - square2(i, j))/tol)) {
-                CAPTURE(i,j,square(i,j));
-                check = false;
-            }
+            const auto diff = fabs(square(i, j) - square2(i, j));
+            CAPTURE(i,j,square(i,j), square2(i,j), diff);
+            REQUIRE((diff == Approx(0).margin(tol)));
+            if(diff > tol){check = false;}
         }
     }
     if(!check){
@@ -1364,7 +1367,6 @@ void TestingMultiplyByScalarOperator(int row, int col, int symmetric) {
   
 template <class matx, class TVar>
 void TestingTransposeMultiply(int row, int col, int symmetric) {
-    // ma times inv must to be a identity matrix
     matx ma;
     ma.AutoFill(row, col, symmetric);
 
@@ -1379,29 +1381,26 @@ void TestingTransposeMultiply(int row, int col, int symmetric) {
     //    square2.Print("square2",std::cout,EMathematicaInput);
     // Checking whether result matrix is the identity matrix
     bool check = true;
-    constexpr RTVar tol = [](){
-        if constexpr (std::is_same_v<RTVar,float>) return (RTVar)10;
-        else return (RTVar)1;
-    }();
+    constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*100;
     for (int i = 0; i < col; i++) {
         for (int j = 0; j < col; j++) {
-            if (!IsZero(fabs(square(i, j) - square2(i, j))/tol)) {
-                check = false;
+            const auto diff = fabs(square(i, j) - square2(i, j));
+            if(diff > tol){
+              check = false;
+              ma.Print("ma");
+              duplicate.Print("ma2");
+              square.Print("sq");
+              square2.Print("sq2");
             }
+            CAPTURE(i,j,square(i,j), square2(i,j), diff);
+            REQUIRE((diff == Approx(0).margin(tol)));
         }
     }
-    if (!check) {
+    if(!check){
         std::cout<<typeid(matx).name()<<std::endl;
         std::cout << __PRETTY_FUNCTION__ << "failed \n";
-        // duplicate.Print("Full");
-        // ma.Print("Matrix");
-        // duplicate -=ma;
-        // duplicate.Print("Diff");
-        // square2.Print("Full");
-        // square.Print("Matrix");
-        // square2 -= square;
-        // square2.Print("Diff");
     }
+
     REQUIRE(check);
 
 }
