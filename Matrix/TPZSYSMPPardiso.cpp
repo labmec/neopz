@@ -72,9 +72,9 @@ void TPZSYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMa
 										(std::is_same_v<TVar,std::complex<float>>) ||
 										(std::is_same_v<TVar,std::complex<double>>)
 									 )){
-			const int m_rows = this->Rows();
-			const int m_cols = this->Cols();
-      const int x_rows = x.Rows();
+			const int64_t m_rows = this->Rows();
+			const int64_t m_cols = this->Cols();
+			const int64_t x_rows = x.Rows();
 
       if(IsZero(beta)){
         const auto zr = opt ? m_cols : m_rows;
@@ -84,8 +84,8 @@ void TPZSYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMa
         z = y;
       }
       
-			const int z_cols = z.Cols();
-			const int z_rows = z.Rows();
+			const int64_t z_cols = z.Cols();
+			const int64_t z_rows = z.Rows();
 			
 			sparse_status_t status; 
 			sparse_operation_t op = opt ? SPARSE_OPERATION_TRANSPOSE : SPARSE_OPERATION_NON_TRANSPOSE;
@@ -127,34 +127,30 @@ void TPZSYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMa
 					break;
 				}
 			};
-      TPZVec<int> ia(this->fIA.size(),0), ja(this->fJA.size(),0);
-      for(int i = 0; i < ia.size(); i++){
-        ia[i] = this->fIA[i];
-      }
-      for(int i = 0; i < ja.size(); i++){
-        ja[i] = this->fJA[i];
-      }
+      static_assert(sizeof(int64_t)==sizeof(long long), "incompatible sizes for MKL");
+      long long * ia_b = (long long*) this->fIA.begin();
+      long long * ja_b = (long long*) this->fJA.begin();
 			//create A mat
 			if constexpr (std::is_same_v<TVar,double>){
 				status = mkl_sparse_d_create_csr(&A,idx, m_rows, m_cols,
-                                         ia.begin(), ia.begin()+1,
-																				 ja.begin(),this->fA.begin());
+                                         ia_b, ia_b+1,
+																				 ja_b,this->fA.begin());
 				CheckStatus(status);
 			}
 			else if constexpr (std::is_same_v<TVar,float>){
 
-				status = mkl_sparse_s_create_csr(&A,idx, m_rows, m_cols, ia.begin(), ia.begin()+1,
-																				 ja.begin(),this->fA.begin());
+				status = mkl_sparse_s_create_csr(&A,idx, m_rows, m_cols, ia_b, ia_b+1,
+																				 ja_b,this->fA.begin());
 				CheckStatus(status);
 			}
 			else if constexpr (std::is_same_v<TVar,std::complex<double>>){
-				status = mkl_sparse_z_create_csr(&A,idx, m_rows, m_cols, ia.begin(), ia.begin()+1,
-																				 ja.begin(),this->fA.begin());
+				status = mkl_sparse_z_create_csr(&A,idx, m_rows, m_cols, ia_b, ia_b+1,
+																				 ja_b,this->fA.begin());
 				CheckStatus(status);
 			}
 			else if constexpr (std::is_same_v<TVar,std::complex<float>>){
-				status = mkl_sparse_c_create_csr(&A,idx, m_rows, m_cols, ia.begin(), ia.begin()+1,
-																				 ja.begin(),this->fA.begin());
+				status = mkl_sparse_c_create_csr(&A,idx, m_rows, m_cols, ia_b, ia_b+1,
+																				 ja_b,this->fA.begin());
 				CheckStatus(status);
 			}
 
