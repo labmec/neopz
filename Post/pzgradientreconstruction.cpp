@@ -740,14 +740,14 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
 
 #ifdef USING_LAPACK
     
-    int m = matA.Rows();
-    int n = matA.Cols();
+    lapack_int m = matA.Rows();
+    lapack_int n = matA.Cols();
     
-    int lda = m; //the leading dimension of the matA
+    lapack_int lda = m; //the leading dimension of the matA
     double *tau = new double[n];//The scalar factors of the elementary reflectors
-    int lwork = n;
+    lapack_int lwork = n;
     double *work = new double[n];
-    int info;
+    lapack_int info;
     
     double *A = new double[m*n];
     for(int j = 0; j<n; j++){
@@ -770,7 +770,7 @@ void TPZGradientReconstruction::TPZGradientData::QRFactorization(TPZFMatrix<REAL
     //matA.Print("\n\n \tmtR = ");
     
     //metodo que retorna a matrix Q
-    int kk=n;
+    lapack_int kk=n;
     double *Q = new double[m*n];
     Q=A;
 

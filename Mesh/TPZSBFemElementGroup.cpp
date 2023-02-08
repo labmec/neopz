@@ -643,8 +643,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatr
     }
 #endif
     
-    int n = E0.fMat.Rows();
-    int dim = Mesh()->Dimension();
+    lapack_int n = E0.fMat.Rows();
+    lapack_int dim = Mesh()->Dimension();
     
     TPZFMatrix<STATE> E0Inv(E0.fMat);
     if(1)
@@ -664,10 +664,10 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatr
     }
     else
     {
-        TPZVec<int> pivot(E0Inv.Rows(),0);
-        int nwork = 4*n*n + 2*n;
+        TPZVec<lapack_int> pivot(E0Inv.Rows(),0);
+        lapack_int nwork = 4*n*n + 2*n;
         TPZVec<STATE> work(2*nwork,0.);
-        int info=0;
+        lapack_int info=0;
 #ifdef STATEdouble
         dgetrf_(&n, &n, &E0Inv(0,0), &n, &pivot[0], &info);
 #endif
@@ -1690,10 +1690,10 @@ void TPZSBFemElementGroup::SolveEigenProblemSBFEM(TPZFMatrix<STATE> &globmatkeep
     char jobvl[] = "None", jobvr[] = "Vectors";
     TPZFMatrix< double > VL(globmatkeep.Rows(),globmatkeep.Cols(),0.),VR(globmatkeep.Rows(),globmatkeep.Cols(),0.);
 
-    int dim = globmatkeep.Rows();
-    int ldvr = dim;
-    int lwork = 10+50*dim;
-    int info = 0;
+    lapack_int dim = globmatkeep.Rows();
+    lapack_int ldvr = dim;
+    lapack_int lwork = 10+50*dim;
+    lapack_int info = 0;
     std::complex<double> I(0,1.);
     TPZVec<double> realeigen(dim,0.);
     TPZVec<double> imageigen(dim,0.);
