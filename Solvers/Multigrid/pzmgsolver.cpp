@@ -113,6 +113,9 @@ template class TPZMGSolver<float>;
 template class TPZMGSolver<double>;
 template class TPZMGSolver<long double>;
 
+template class TPZMGSolver<std::complex<float>>;
+template class TPZMGSolver<std::complex<double>>;
+template class TPZMGSolver<std::complex<long double>>;
 
 #ifndef BORLAND
 template class TPZRestoreClass<TPZMGSolver<REAL>>;
