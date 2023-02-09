@@ -154,7 +154,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
 
   auto lapackres = [&h,&w,&lapackEV]()
   {
-    TPZSimpleTimer lapacktimer("Hessenberg EVP",true);
+    TPZSimpleTimer lapacktimer("Hessenberg EVP");
     TPZLapackEigenSolver<TVar> lapack;
     return lapack.SolveHessenbergEigenProblem(h, w, lapackEV);
   }();
@@ -169,7 +169,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   if(!computeVectors) return lapackres;
   eigenVectors.Redim(nRows,n);
   {
-    TPZSimpleTimer evTimer("Computing eigenvectors",true);
+    TPZSimpleTimer evTimer("Computing eigenvectors");
     for (int i = 0; i< n; i++){//which eigenvector from A
       auto il = indices[i];
       for (int j = 0; j < krylovDim; j++){//which vector from Q
@@ -260,7 +260,7 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
   //initializing first vector
   *(Q[0]) = fKrylovVector * (TVar)(1./Norm(fKrylovVector));
   
-  TPZSimpleTimer arnoldiIteration("ArnoldiIteration",true);
+  TPZSimpleTimer arnoldiIteration("ArnoldiIteration");
   const auto &tol = Tolerance();
 
   for(auto k = 1; k < n+1; k++){
