@@ -22,6 +22,7 @@
 #include <iterator>
 #include <fstream>
 #include "pzlog.h"
+#include "TPZSimpleTimer.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.nodesetcompute");
@@ -46,6 +47,7 @@ TPZNodesetCompute::~TPZNodesetCompute()
     */
 void TPZNodesetCompute::AnalyseGraph()
 {
+  TPZSimpleTimer analyse("AnalyseGraph");
   fMaxSeqNum = -1;
   fMaxLevel = -1;
   int64_t nnodes = fNodegraphindex.NElements()-1;
@@ -57,16 +59,21 @@ void TPZNodesetCompute::AnalyseGraph()
   fLevel.Fill(0);
   TPZVec<std::set<int64_t> > nodeset(nnodes);
   int64_t in;
+  int count{0};//for displaying info
+  const char* spinner = "-\\|/";
+  const int spin_len = 4;
   for(in=0; in<nnodes; in++) 
   {
 	  if(!(in%1000))
 	  {
-		  std::cout << "*";
+		  std::cout <<'\r'<<"TPZNodesetCompute::AnalyseGraph "<<spinner[count++%spin_len];
 		  std::cout.flush();
 	  }
 	  AnalyseNode(in,nodeset);
   }
-	std::cout << std::endl;
+  if(count > 0){
+    std::cout << '\r'<< "TPZNodesetCompute::AnalyseGraph done!"<<std::endl;
+  }
   
 }
 
@@ -193,6 +200,7 @@ void TPZNodesetCompute::AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &n
 
 void TPZNodesetCompute::BuildNodeGraph(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex)
 {
+  TPZSimpleTimer timer("TPZNodesetCompute::BuildNodeGraph");
   int64_t nnodes = fSeqNumber.NElements();
   blockgraphindex.Resize(fSeqCard.NElements()+1);
   blockgraph.Resize(nnodes);
@@ -214,6 +222,7 @@ void TPZNodesetCompute::BuildNodeGraph(TPZVec<int64_t> &blockgraph, TPZVec<int64
 
 void TPZNodesetCompute::BuildVertexGraph(TPZStack<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex)
 {
+  TPZSimpleTimer timer("TPZNodesetCompute::BuildVertexGraph");
   std::map<int64_t,int64_t> vertices;
   int64_t nnodes = fSeqNumber.NElements();
   int64_t in;
@@ -409,6 +418,7 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 
 void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStack<int64_t> &blockgraphindex)
 {
+  TPZSimpleTimer timer("TPZNodesetCompute::BuildElementGraph");
 #ifdef PZ_LOG
 	{
 		std::stringstream sout;
@@ -556,6 +566,7 @@ void TPZNodesetCompute::Print(std::ostream &file, const std::set<int64_t> &nodes
 void TPZNodesetCompute::ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZBlock &block,
     TPZVec<int64_t> &expgraph, TPZVec<int64_t> &expgraphindex)
 {
+  TPZSimpleTimer timer("TPZNodesetCompute::ExpandGraph");
   int64_t expgraphsize = 0;
   int64_t nbl = graph.NElements();
   expgraphindex.Resize(graphindex.NElements());
