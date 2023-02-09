@@ -994,7 +994,8 @@ void TPZAnalysis::PostProcessTable(std::ostream &out_file) {
 template<class TVar>
 TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool overlap)
 {
-    auto mySolver = dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
+  TPZSimpleTimer build("BuildPreconditioner");
+  auto mySolver = dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
 	if(!mySolver || !mySolver->Matrix())
 	{
 #ifndef BORLAND
@@ -1063,6 +1064,7 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner,
 #endif
 		if(overlap && !(preconditioner == EBlockJacobi))
 		{
+      TPZSimpleTimer build("BuildPreconditioner::Create");
 			TPZSparseBlockDiagonal<TVar> *sp = new TPZSparseBlockDiagonal<TVar>(expblockgraph,expblockgraphindex,neq);
 			TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(sp);
 			step->SetDirect(ELU);
@@ -1071,6 +1073,7 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner,
 		}
 		else if (overlap)
 		{
+      TPZSimpleTimer build("BuildPreconditioner::Create");
 			TPZBlockDiagonalStructMatrix<TVar> blstr(fCompMesh);
 			TPZBlockDiagonal<TVar> *sp = new TPZBlockDiagonal<TVar>();
 			blstr.AssembleBlockDiagonal(*sp);
@@ -1080,6 +1083,7 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner,
 		}
 		else
 		{
+      TPZSimpleTimer build("BuildPreconditioner::Create");
 			TPZVec<int> blockcolor;
 			int numcolors = nodeset.ColorGraph(expblockgraph,expblockgraphindex,neq,blockcolor);
 			return BuildSequenceSolver<TVar>(expblockgraph,expblockgraphindex,neq,numcolors,blockcolor);
