@@ -1,201 +1,158 @@
-/**
- * @file
- * @brief Contains the implementation of the CMRES function which solves the unsymmetric linear system using the Generalized Minimum Residual method. 
- */
+#include "pzreal.h"
+#include "TPZSimpleTimer.h"
+#include "tpzautopointer.h"
+#include "pzvec.h"
 
-/** @ingroup util */
-/** @brief Compute the values cs and sn parameters to rotation */
-template<class Real>
-void GeneratePlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn);
 
-/** @ingroup util */
-/** @brief Makes rotation of the plane based on the cs and sn parameters */
-template<class Real>
-void ApplyPlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn);
+template<class TVar>
+void GeneratePlaneRotation(const TVar dx, const TVar dy, TVar &cs, TVar &sn);
 
-/**
- * @ingroup solver
- * @brief Computes back solve. Updates on v vector.
- */
-template < class Matrix, class Vector >
-void 
-Update(Vector &x, int64_t k, Matrix &h, Vector &s, Vector v[])
-{
-	Vector y(s);
-	
-	// Backsolve:  
-	for (int64_t i = k; i >= 0; i--) {
-		y(i) /= h(i,i);
-		for (int64_t j = i - 1; j >= 0; j--)
-			y(j) -= h(j,i) * y(i);
-	}
-	
-	for (int64_t j = 0; j <= k; j++)
-		x.ZAXPY(y(j),v[j]);
-}
+template<class TVar>
+void ApplyPlaneRotation(TVar &dx, TVar &dy, const TVar cs, const TVar sn);
 
-/**
- * @ingroup solver
- * @brief Returns absolute value to real.
- */
-template < class Real >
-Real
-abs(Real x)
-{
-	return (x > ((Real)0.) ? x : -x);
-}
+template<class TVar>
+void Update(TPZFMatrix<TVar>&x, const int k, const TPZFMatrix<TVar>&H,
+            const TPZVec<TVar> &s, const TPZVec<TPZFMatrix<TVar>>&v);
 
-/**
- * @ingroup solver
- * @brief GMRES solves the unsymmetric linear system Ax = b using the Generalized Minimum Residual method
- * @return The return value indicates convergence within max_iter (input) iterations (0), or no convergence within max_iter iterations (1).\n
- * Upon successful return, output arguments have the following values:
- * @param A Matrix of the system
- * @param b Vector of the system
- * @param M Preconditioner matrix
- * @param H Auxiliar matrix (?)
- * @param m Size (?)
- * @param x Approximate solution to \f$ Ax = b \f$
- * @param max_iter The number of iterations performed before the tolerance was reached
- * @param tol The residual after the final iteration
- * @param residual Residual vector (return)
- * @param FromCurrent For type of operation (MultAdd)
- */
-/**
- * Iterative template routine -- GMRES \n
- * GMRES follows the algorithm described on p. 20 of the SIAM Templates book.
- */
-template < class Operator, class Vector, class Preconditioner,
-class Matrix, class Real >
-int 
-GMRES( Operator &A, Vector &x, const Vector &b,
-	  Preconditioner &M, Matrix &H, int &m, int64_t &max_iter,
-	  Real &tol, Vector *residual,const int FromCurrent)
-{
-	Real resid;
-	int64_t j = 1, k;
-	Vector s(m+1), cs(m+1), sn(m+1), w1,w;
+template<class TVar>
+int GMRES(const TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> &b,
+					TPZMatrixSolver<TVar> &M, TPZFMatrix<TVar> &H, const int krylovdim,
+					int64_t &max_iter, RTVar &tol,
+					TPZFMatrix<TVar> *residual, const int fromcurrent){  
+  TPZSimpleTimer gmres("GMRES");
+  //allocating structures
+  TPZVec<TPZFMatrix<TVar>> v(krylovdim+1);
+  TPZVec<TVar> cs(krylovdim+1), sn(krylovdim+1), s(krylovdim+1);
+
+  //compute rhs norm
+	TPZFMatrix<TVar> r;
+	M.Solve(b,r);
+	const RTVar normb = [&r]{
+		RTVar norm_b = Norm(r);
+		if(IsZero(norm_b)) return (RTVar)1;
+		return norm_b;
+	}();
 	
-	//  Real normb = norm(M.Solve(b));
-	Vector resbackup;
-	Vector *res = residual;
-	if(!res) res = &resbackup;
-	Vector &r = *res;
-    M.Solve(b,r);
-	Real normb = TPZExtractVal::val(Norm(r));	//  Vector r = b - A*x;
-	if(FromCurrent) 
-    {
-        A.MultAdd(x,b,r,-1.,1.);
-    } 
-    else 
-    {
-		x.Zero();
-		r = b;
-	}
-	M.Solve(r,w);
-	r=w;
-	Real beta = TPZExtractVal::val(Norm(r));
+  if(fromcurrent){//we actually need to compute the residual
+		//r = b-A*x without dynamic allocation
+		A.MultAdd(x,b,r,-1,1);
+    M.Solve(r,r);
+  }else{//residual is equal to rhs for initial sol == 0   
+    x.Zero();
+  }
 	
-	if (normb == 0.0)
-		normb = 1;
-	
-	if ((resid = ((Real)TPZExtractVal::val(Norm(r))) / normb) <= tol) {
-		tol = resid;
-		x+=r;
-		max_iter = 0;
-		return 0;
-	}
-	
-	Vector *v = new Vector[m+1];
-	
-	while (j <= max_iter) {
-        int64_t rows = r.Rows();
-        v[0].Resize(rows,1);
-        for (int64_t i=0; i<rows; i++) {
-            v[0](i) = TPZExtractVal::val(r(i)) * ((Real)(1.0/beta));
-        }
-        int64_t srows = s.Rows();
-        for (int64_t i=0; i<srows; i++) {
-            s(i) = REAL(0.);
-        }
-//		v[0] = r * (REAL(1.0 / beta));    // ??? r / beta
-//		s = REAL(0.0);
-		s(0) = beta;
-		
-		for (int64_t i = 0; i < m && j <= max_iter; i++, j++) {
+  RTVar beta = Norm(r);
+  RTVar resid = beta;
+  if ((resid / normb) <= tol) {
+    tol = resid;
+    max_iter = 0;
+    return 0;
+  }
+
+	//we avoid allocating w at every step
+	TPZFMatrix<TVar> w(r.Rows(),1,0), w1;
+  int iter = 1;
+  while (iter <= max_iter) {
+    v[0] = r * (1.0 / beta);
+    s = 0.0;
+    s[0] = beta;
+    
+    for (int i = 0; i < krylovdim && iter <= max_iter; i++, iter++) {
 			A.Multiply(v[i],w1);
 			M.Solve(w1,w);
-			for (k = 0; k <= i; k++) {
-				H(k, i) = Dot(w, v[k]);
-				w.ZAXPY(-H(k, i), v[k]);
+      for (int k = 0; k <= i; k++) {
+        H(k, i) = Dot(w, v[k]);
+        w -= H(k, i) * v[k];
+      }
+      H(i+1, i) = Norm(w);
+      w *= ((TVar)1.0 / H(i+1, i));
+      v[i+1] = w;
+
+      for (int k = 0; k < i; k++){
+        ApplyPlaneRotation(H(k,i), H(k+1,i), cs[k], sn[k]);
+      }
+      
+      GeneratePlaneRotation(H(i,i), H(i+1,i), cs[i], sn[i]);
+      ApplyPlaneRotation(H(i,i), H(i+1,i), cs[i], sn[i]);
+      ApplyPlaneRotation(s[i], s[i+1], cs[i], sn[i]);
+      
+      if ((resid = std::abs(s[i+1]) / normb) < tol) {
+        Update(x, i, H, s, v);
+        tol = resid;
+        max_iter = iter;
+        return 0;
+      }
+			if(iter % 5 == 0){
+				std::cout << iter << "\t" << std::scientific << resid << std::endl;
 			}
-			H(i+1, i) = Norm(w);
-			v[i+1] = w;
-			v[i+1] *= (1.0)/TPZExtractVal::val(H(i+1,i));
-			
-			for (k = 0; k < i; k++)
-				ApplyPlaneRotation(H(k,i), H(k+1,i), cs(k), sn(k));
-			
-			GeneratePlaneRotation(H(i,i), H(i+1,i), cs(i), sn(i));
-			ApplyPlaneRotation(H(i,i), H(i+1,i), cs(i), sn(i));
-			ApplyPlaneRotation(s(i), s(i+1), cs(i), sn(i));
-			resid = ((Real)fabs(s(i+1)))/normb;
-			if (resid < tol) {
-				Update(x, i, H, s, v);
-				tol = resid;
-				max_iter = j;
-				delete [] v;
-				return 0;
-			}
-		}
-		Update(x, m - 1, H, s, v);
-		A.MultAdd(x,b,r,-1.,1.);
-		M.Solve(r,r);
-		beta = TPZExtractVal::val(Norm(r));
-        resid = beta/normb;
-		if (resid < tol) {
-            std::cout << "iter " << j << " - " << resid << std::endl;
-			tol = resid;
-			max_iter = j;
-			delete [] v;
-			return 0;
-		}
-	}
-	
-	tol = resid;
-	delete [] v;
-	return 1;
+    }
+    Update(x, krylovdim - 1, H, s, v);
+		//r = b-A*x without dynamic allocation
+		A.MultAdd(x,b,r,-1,1);
+    M.Solve(r,r);
+    beta = Norm(r);
+    if ((resid = beta / normb) < tol) {
+      tol = resid;
+      max_iter = iter;
+      return 0;
+    }
+  }
+  
+  tol = resid;
+  return 1;
 }
-
-
-#include <math.h>
 
 /** @ingroup util */
 /** @brief Compute the values cs and sn parameters to rotation */
-template<class Real>
-void GeneratePlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn)
+template<class TVar>
+void GeneratePlaneRotation(TVar dx, TVar dy, TVar &cs, TVar &sn)
 {
-	if (dy == ((Real)0.0)) {
+	if (IsZero(dy)){
 		cs = 1.0;
 		sn = 0.0;
 	} else if (abs(dy) > abs(dx)) {
-		Real temp = dx / dy;
-		sn = ((Real)1.0) / sqrt( ((Real)1.0) + temp*temp );
+		const TVar temp = dx / dy;
+		sn = ((TVar)1.0) / sqrt( ((TVar)1.0) + temp*temp );
 		cs = temp * sn;
 	} else {
-		Real temp = dy / dx;
-		cs = ((Real)1.0) / sqrt( ((Real)1.0) + temp*temp );
+		const TVar temp = dy / dx;
+		cs = ((TVar)1.0) / sqrt( ((TVar)1.0) + temp*temp );
 		sn = temp * cs;
 	}
 }
 
 /** @ingroup util */
 /** @brief Makes rotation of the plane based on the cs and sn parameters */
-template<class Real>
-void ApplyPlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn)
+template<class TVar>
+void ApplyPlaneRotation(TVar &dx, TVar &dy, const TVar cs, const TVar sn)
 {
-	Real temp  =  cs * dx + sn * dy;
+
+  
+	TVar temp  =  0.;
+  if constexpr (is_complex<TVar>::value){
+		//see https://github.com/ddemidov/amgcl/issues/34
+    temp = std::conj(cs) * dx + std::conj(sn) * dy;
+  }else{
+    temp = cs * dx + sn * dy;
+  }
+  
 	dy = -sn * dx + cs * dy;
 	dx = temp;
 }
 
+template<class TVar>
+void Update(TPZFMatrix<TVar>&x, const int k, const TPZFMatrix<TVar>&H,
+            const TPZVec<TVar> &s, const TPZVec<TPZFMatrix<TVar>>&v)
+{
+  TPZVec<TVar> y(s);
+
+  // Backsolve:  
+  for (int i = k; i >= 0; i--) {
+    y[i] /= H(i,i);
+    for (int j = i - 1; j >= 0; j--)
+      y[j] -= H(j,i) * y[i];
+  }
+
+  for (int j = 0; j <= k; j++)
+    x += v[j] * y[j];
+}

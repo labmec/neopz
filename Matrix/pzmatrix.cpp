@@ -729,29 +729,34 @@ void TPZMatrix<TVar>::SolveGMRES(int64_t &numiterations, TPZSolver &precondition
                                  const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
                                  TPZFMatrix<TVar> *residual, REAL &tol,const int FromCurrent)  
 {
-    if constexpr(std::is_floating_point<TVar>::value){
+  if constexpr(std::is_floating_point<RTVar>::value){
         TPZMatrixSolver<TVar> &precond = dynamic_cast<TPZMatrixSolver<TVar> &>(preconditioner);
       if (F.Cols() > 1) {
         int64_t locnumiter = numiterations;
-        TVar loctol = tol;
+        RTVar loctol = tol;
         int64_t nrow = F.Rows();
         int64_t ncol = F.Cols();
         int64_t col;
         // preconditioner.Solve(F, result);
         for (col = 0; col < ncol; col++) {
           //            std::cout << "Column " << col << std::endl;
-          numiterations = locnumiter;
-          tol = TPZExtractVal::val(loctol);
+          locnumiter = numiterations;
+          loctol = tol;
           TPZFMatrix<TVar> FCol(nrow, 1);
           F.GetSub(0, col, F.Rows(), 1, FCol);
           TPZFMatrix<TVar> resultCol(nrow, 1, &result(0, col), nrow);
+
           
           GMRES(*this, resultCol, FCol, precond, H, numvectors,
-                numiterations, tol, residual, FromCurrent);
+                locnumiter, loctol, residual, FromCurrent);
         }
+        numiterations = locnumiter;
+        tol = loctol;
       } else {
+        RTVar loctol = tol;
         GMRES(*this, result, F, precond, H, numvectors, numiterations,
-              tol, residual, FromCurrent);
+              loctol, residual, FromCurrent);
+        tol = loctol;
       }
     }else{
         PZError<<__PRETTY_FUNCTION__<<" is currently not implemented ";
