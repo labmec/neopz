@@ -12,10 +12,10 @@
 
 using namespace std;
 
-template <class Tvar>
-Tvar TPZNumeric::Norm(const TPZVec<Tvar> &vetor){
+template <class TVar>
+RTVar TPZNumeric::Norm(const TPZVec<TVar> &vetor){
 	const int size = vetor.NElements();
-    Tvar norma=0;
+    RTVar norma=0;
     for (int i=0; i<size; i++) {
         norma += vetor[i]*vetor[i];
     }
