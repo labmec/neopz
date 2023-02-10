@@ -25,11 +25,13 @@ template<class TVar>
 class TPZEigenSparseMatrix : public TPZFYsmpMatrix<TVar> {
     
     public :
-    typedef Eigen::SparseMatrix<TVar> SpMat; // declares a column-major sparse matrix type of double
+    typedef Eigen::SparseMatrix<TVar,0,int64_t> SpMat; // declares a column-major sparse matrix type of double
     typedef Eigen::Map<SpMat> EigenSparse;
+    typedef Eigen::SimplicialLLT<EigenSparse> EigenCholesky;
     typedef Eigen::Map<Eigen::VectorX<TVar>> EigenVec;
 private:
     EigenSparse *fEigenMatrix = 0;
+    EigenCholesky *fCholesky = 0;
     EigenVec *fvec = 0;
     
 public:

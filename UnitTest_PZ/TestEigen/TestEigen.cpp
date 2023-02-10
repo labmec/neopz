@@ -1,6 +1,8 @@
 //
 // Created by Philippe on 04/02/2023
 //
+//#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int64_t
+
 #include "pzlog.h"
 
 #ifdef MACOSX
@@ -12,7 +14,7 @@
 #include <vector>
 #include <iostream>
  
-typedef Eigen::SparseMatrix<double> SpMat; // declares a column-major sparse matrix type of double
+typedef Eigen::SparseMatrix<double,0,long long> SpMat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> T;
 
 
@@ -86,14 +88,14 @@ void InvertUsingEigen()
 
 void CreateSparse()
 {
-    int ia[] = {0,1,3};
-    int ja[] = {0,0,1};
+    long long ia[] = {0,1,3};
+    long long ja[] = {0,0,1};
     double val[] = {1.,0.,2.};
     double bptr[] = {1.,2.};
     Eigen::Map<Eigen::VectorXd> b(bptr,2);
     b << 1., 2. ;
     int row = 2, col = 2, nnz = 3;
-    Eigen::Map< SpMat > sparse(row,col,nnz,ia,ja,val);
+    Eigen::Map< SpMat> sparse(row,col,nnz,ia,ja,val);
     Eigen::SimplicialCholesky<SpMat> chol(sparse);  // performs a Cholesky factorization of A
     Eigen::VectorXd x = chol.solve(b);         // use the factorization to solve for the given right hand side
    
@@ -103,8 +105,8 @@ void CreateSparse()
 
 void AccelerateSparse()
 {
-    int ia[] = {0,1,3};
-    int ja[] = {0,0,1};
+    long long ia[] = {0,1,3};
+    long long ja[] = {0,0,1};
     double val[] = {1.,0.,2.};
     double bptr[] = {1.,2.};
     Eigen::Map<Eigen::VectorXd> b(bptr,2);

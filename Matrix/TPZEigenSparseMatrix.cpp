@@ -186,12 +186,13 @@ static int64_t  FindCol(int64_t *colf, int64_t *coll, int64_t col)
 template<class TVar>
 int TPZEigenSparseMatrix<TVar>::Decompose(const DecomposeType dt)
 {
-    TPZVec<int> IA;
-    for(auto it : fIA.begin(), auto it2:IA.begin(); it != fIA.end(); 
-    TPZVec<int> JA;
-    int fJA[] = {0};
     if(!fEigenMatrix){
-        fEigenMatrix = new EigenSparse(this->fRow,this->fCol,this->fJA.size(),&fIA[0],&fJA[0],&this->fA[0]);
+        fEigenMatrix = new EigenSparse(this->fRow,this->fCol,this->fJA.size(),&this->fIA[0],&this->fJA[0],&this->fA[0]);
+    }
+    if(dt == ECholesky) {
+        fCholesky = new EigenCholesky(*fEigenMatrix);
+        fCholesky->analyzePattern(*fEigenMatrix);
+        fCholesky->factorize(*fEigenMatrix);
     }
 }
 /**
@@ -202,12 +203,21 @@ int TPZEigenSparseMatrix<TVar>::Decompose(const DecomposeType dt)
 template<class TVar>
 int TPZEigenSparseMatrix<TVar>::SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt)
 {
+    Eigen::Map<Eigen::Matrix<TVar,Eigen::Dynamic,1>  > b(&F(0,0),F.Rows());
+    if(!fCholesky) {
+        Decompose(dt);
+        if(!fCholesky) DebugStop();
+    }
+    b = fCholesky->solve(b);
     
+
 }
 template<class TVar>
 int TPZEigenSparseMatrix<TVar>::SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const
 {
-    
+    Eigen::Map<Eigen::Matrix<TVar,Eigen::Dynamic,1>  > b(&F(0,0),F.Rows());
+    if(!fCholesky) DebugStop();
+    b = fCholesky->solve(b);
 }
 
 
