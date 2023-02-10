@@ -85,15 +85,19 @@ int TPZSYsmpMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & va
 {
     // Get the matrix entry at (row,col) without bound checking
     int64_t row(r),col(c);
+    TVar valcp{val};
     if (r > c) {
         int64_t temp = r;
         row = col;
         col = temp;
+        if constexpr (is_complex<TVar>::value){
+          valcp = std::conj(val);
+        }
     }
     for(int64_t ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
         if ( fJA[ic] == col )
         {
-            fA[ic] = val;
+            fA[ic] = valcp;
             return 0;
         }
     }
