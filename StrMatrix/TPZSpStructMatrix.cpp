@@ -11,6 +11,10 @@
 
 #include "TPZTimer.h"
 
+#ifdef USING_EIGEN
+#include "TPZEigenSparseMatrix.h"
+#endif
+
 #include "pzlog.h"
 #ifdef PZ_LOG
 static TPZLogger logger("pz.StrMatrix");
@@ -53,7 +57,13 @@ TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph,
                                               TPZVec<int64_t> &elgraphindex){
     
     const int64_t neq = this->fEquationFilter.NActiveEquations();
+#ifdef USING_MKL
     TPZFYsmpMatrix<TVar> * mat = new TPZFYsmpMatrix<TVar>(neq,neq);
+#elif USING_EIGEN
+    TPZEigenSparseMatrix<TVar> * mat = new TPZEigenSparseMatrix<TVar>(neq,neq);
+#else
+    DebugStop();
+#endif
     
     /**Creates a element graph*/
     TPZRenumbering graph;

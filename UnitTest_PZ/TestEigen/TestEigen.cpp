@@ -22,6 +22,7 @@
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 #include "TPZVTKGenerator.h"
+#include "TPZSpStructMatrix.h"
 
 typedef Eigen::SparseMatrix<double,0,long long> SpMat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> T;
@@ -190,10 +191,20 @@ void TestH1Problem() {
     // ========> Solve H1
     TPZLinearAnalysis an(cmesh,false);
     constexpr int nThreads{0};
-    TPZSkylineStructMatrix<STATE> matskl(cmesh);
+    TPZStructMatrixT<STATE>* matstruct;
     
-    matskl.SetNumThreads(nThreads);
-    an.SetStructuralMatrix(matskl);
+    const bool useSparse = true;
+    if(useSparse){
+        matstruct = new TPZSpStructMatrix<STATE>(cmesh);
+    }
+    else{
+        matstruct = new TPZSkylineStructMatrix<STATE>(cmesh);
+    }
+//    matstruct = new TPZSkylineStructMatrix<STATE> matstruct(cmesh);
+//    TPZSSpStructMatrix<STATE> matstruct(cmesh);
+    
+    matstruct->SetNumThreads(nThreads);
+    an.SetStructuralMatrix(*matstruct);
     TPZStepSolver<STATE> step;
     
     step.SetDirect(ECholesky);//ELU //ECholesky // ELDLt
@@ -208,6 +219,10 @@ void TestH1Problem() {
     TPZVec<std::string> fields = {"Solution","Derivative"};
     auto vtk = TPZVTKGenerator(cmesh, fields, plotfile, vtkRes);
     vtk.Do();
+    
+    delete matstruct;
+    delete cmesh;
+    delete gmesh;
 }
 
 TPZGeoMesh* CreateGeoMesh(const int dim, TPZVec<int> &nDivs, const int volId, const int bcId){
@@ -265,7 +280,7 @@ TPZCompMesh* CreateCMeshH1(TPZGeoMesh* gmesh, const int pOrder, const int volId,
     
     // ======> Set the boundary conditions
     TPZFMatrix<STATE> val1(1,1,0.);
-    TPZManVector<STATE> val2(1,3.);
+    TPZManVector<STATE> val2(1,5.5);
     const int diri = 0;
     auto * BCond = poi->CreateBC(poi, bcId, diri, val1, val2);
 //    BCond->SetForcingFunctionBC(ExactSolution, pOrder+1);
