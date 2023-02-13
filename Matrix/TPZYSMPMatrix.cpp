@@ -558,7 +558,7 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
     int64_t  ic, xcols;
 	xcols = x.Cols();
 	int64_t  r = (opt) ? this->Cols() : this->Rows();
-	
+	/*
 	// Determine how to initialize z
 	for(ic=0; ic<xcols; ic++) {
 		TVar *zp = &(z(0,ic));
@@ -583,6 +583,9 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 			}
 		}
 	}
+     */
+    TPZMatrix<TVar>::PrepareZ(y, z, beta, opt);
+//    z.Print("z = ",std::cout,EMathematicaInput);
 	/*
 	 TPZFYsmpMatrix *target;
 	 int fFirsteq;
