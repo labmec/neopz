@@ -245,12 +245,15 @@ inline void TPZFYsmpMatrix<TVar>::SetData( int64_t *IA, int64_t *JA, TVar *A ) {
 	// Pass the data to the class.
     int nel = this->Rows()+1;
     fIA.resize(nel);
-    memccpy(&fIA[0], IA, nel, sizeof(int64_t));
+//    memccpy(&fIA[0], IA, nel, sizeof(int64_t));
+    memcpy(&fIA[0], IA, nel*sizeof(int64_t));
     int64_t nval = fIA[nel-1];
     fJA.resize(nval);
-    memccpy(&fJA[0], JA, nval, sizeof(int64_t));
+//    memccpy(&fJA[0], JA, nval, sizeof(int64_t));
+    memcpy(&fJA[0], JA, nval*sizeof(int64_t));
     fA.resize(nval);
-    memccpy(&fA[0], A, nval, sizeof(TVar));
+//    memccpy(&fA[0], A, nval, sizeof(TVar));
+    memcpy(&fA[0], A, nval*sizeof(TVar));
 	ComputeDiagonal();
 }
 

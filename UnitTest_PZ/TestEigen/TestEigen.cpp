@@ -13,7 +13,8 @@
 #include <Eigen/Dense>
 #include <vector>
 #include <iostream>
- 
+#include "TPZEigenSparseMatrix.h"
+
 typedef Eigen::SparseMatrix<double,0,long long> SpMat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> T;
 
@@ -22,23 +23,45 @@ typedef Eigen::Triplet<double> T;
 static TPZLogger logger("pz.eigen");
 #endif
 
-#include <catch2/catch.hpp>
+// ----- Run tests with or without main -----
+//#define RUNWITHMAIN
 
 void InvertUsingEigen();
 void CreateSparse();
 void AccelerateSparse();
+void TestSparseClass();
+
+
+#ifndef RUNWITHMAIN
+#include <catch2/catch.hpp>
 
 TEST_CASE("Eigen_inversion", "[eigen_test]") {
   InvertUsingEigen();
 }
-TEST_CASE("Sparse_mat", "[create_sparse]") {
+TEST_CASE("Sparse_mat", "[eigen_test]") {
   CreateSparse();
 }
-TEST_CASE("Sparse_macos", "[create_sparse]") {
+TEST_CASE("Sparse_macos", "[eigen_test]") {
   AccelerateSparse();
 }
+TEST_CASE("Sparse_class", "[eigen_test]") {
+  AccelerateSparse();
+}
+
+
+#else
+
+int main(){
+    TestSparseClass();
+    return 0;
+}
+
+#endif
+
+
 void buildProblem(std::vector<T>& coefficients, Eigen::VectorXd& b, int n)
 {
+#ifndef RUNWITHMAIN
     std::random_device rd; // obtain a random number from hardware
     std::mt19937 gen(rd()); // seed the generator
     std::uniform_int_distribution<> distr(25, 63); // define the range
@@ -58,6 +81,7 @@ void buildProblem(std::vector<T>& coefficients, Eigen::VectorXd& b, int n)
     std::cout << "coefficients\n";
     for(auto it=coefficients.begin(); it != coefficients.end(); it++)
         std::cout << "row " << it->row() << " col " << it->col() << " val " << it->value() << std::endl;
+#endif
 }
 
 void InvertUsingEigen()
@@ -119,4 +143,23 @@ void AccelerateSparse()
    
     std::cout << "solution " << x << std::endl;
 
+}
+
+void TestSparseClass() {
+    const int64_t nrows = 2;
+    int64_t ia[] = {0,1,3};
+    int64_t ja[] = {0,0,1};
+    STATE val[] = {1.,0.,2.};
+
+    TPZFMatrix<STATE> F(nrows,1);
+    F(0,0) = 1.;
+    F(1,0) = 4.;
+   
+    
+    TPZEigenSparseMatrix<STATE> spmat(nrows,nrows);
+    spmat.SetData(ia, ja, val);
+    const DecomposeType dt = ECholesky;
+    spmat.Decompose(dt);
+    spmat.SolveDirect(F, dt);
+    std::cout << "solution " << F << std::endl;
 }
