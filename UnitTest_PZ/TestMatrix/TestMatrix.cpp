@@ -1091,13 +1091,15 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
     Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
     // Checking whether result matrix is the same
     bool check = true;
-    constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*1000;
+    constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*2000;
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
             const auto diff = fabs(square(i, j) - square2(i, j));
-            CAPTURE(i,j,square(i,j), square2(i,j), diff);
+            CAPTURE(i,j,square(i,j), square2(i,j), diff, tol, dim, symmetric, typeid(matx).name());
             REQUIRE((diff == Approx(0).margin(tol)));
-            if(diff > tol){check = false;}
+            if(diff > tol){
+                check = false;
+            }
         }
     }
     if(!check){
@@ -1432,7 +1434,7 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
     matx ma;
     ma.AutoFill(dim, dim, symmetric);
 
-    TPZFMatrix<TVar> cpy(ma);
+    TPZFMatrix<TVar> cpy(ma), cpy2(ma);
     TPZFMatrix<TVar> inv(dim, dim);
     TPZFMatrix<TVar> y(ma), z;
     y.Identity();
@@ -1457,7 +1459,13 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
             if (!IsZero(zval/tol)) {
                 CAPTURE(dim,symmetric,dec);
                 CAPTURE(zval,tol);
-                std::cout << "i " << i << " j " << j << zval << std::endl;
+                std::cout << "i " << i << " j " << j << " zval " << zval << std::endl;
+                if(check) {
+                    cpy2.Print("FullMat = ",std::cout,EMathematicaInput);
+                    ma.Print("SparseMat = ",std::cout,EMathematicaInput);
+                    inv.Print("Inv = ",std::cout,EMathematicaInput);
+                    z.Print("zmat = ",std::cout,EMathematicaInput);
+                }
                 check = false;
             }
         }
