@@ -14,6 +14,14 @@
 #include <vector>
 #include <iostream>
 #include "TPZEigenSparseMatrix.h"
+#include "TPZGeoMeshTools.h"
+#include "TPZVTKGeoMesh.h"
+#include "pzcmesh.h"
+#include "Poisson/TPZMatPoisson.h"
+#include "TPZLinearAnalysis.h"
+#include "pzskylstrmatrix.h"
+#include "pzstepsolver.h"
+#include "TPZVTKGenerator.h"
 
 typedef Eigen::SparseMatrix<double,0,long long> SpMat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> T;
@@ -24,12 +32,15 @@ static TPZLogger logger("pz.eigen");
 #endif
 
 // ----- Run tests with or without main -----
-//#define RUNWITHMAIN
+#define RUNWITHMAIN
 
 void InvertUsingEigen();
 void CreateSparse();
 void AccelerateSparse();
 void TestSparseClass();
+void TestH1Problem();
+TPZGeoMesh* CreateGeoMesh(const int dim, TPZVec<int> &nDivs, const int volId, const int bcId);
+TPZCompMesh* CreateCMeshH1(TPZGeoMesh* gmesh, const int pOrder, const int volId, const int bcId);
 
 
 #ifndef RUNWITHMAIN
@@ -52,7 +63,7 @@ TEST_CASE("Sparse_class", "[eigen_test]") {
 #else
 
 int main(){
-    TestSparseClass();
+    TestH1Problem();
     return 0;
 }
 
@@ -162,4 +173,107 @@ void TestSparseClass() {
     spmat.Decompose(dt);
     spmat.SolveDirect(F, dt);
     std::cout << "solution " << F << std::endl;
+}
+
+void TestH1Problem() {
+    
+    const int volid = 1, bcid = -1;
+    const int ndiv = 2;
+    const int dim = 3;
+    const int pOrder = 1;
+    TPZVec<int> nDivs;
+    if(dim == 2) nDivs = {ndiv,ndiv};
+    else nDivs = {ndiv,ndiv,ndiv};
+    TPZGeoMesh* gmesh = CreateGeoMesh(dim,nDivs,volid,bcid);
+    TPZCompMesh* cmesh = CreateCMeshH1(gmesh,pOrder,volid,bcid);
+    
+    // ========> Solve H1
+    TPZLinearAnalysis an(cmesh,false);
+    constexpr int nThreads{0};
+    TPZSkylineStructMatrix<STATE> matskl(cmesh);
+    
+    matskl.SetNumThreads(nThreads);
+    an.SetStructuralMatrix(matskl);
+    TPZStepSolver<STATE> step;
+    
+    step.SetDirect(ECholesky);//ELU //ECholesky // ELDLt
+    an.SetSolver(step);
+    
+    an.Assemble();
+    an.Solve();
+    
+    // ========> Print
+    const std::string plotfile = "postprocess";//sem o .vtk no final
+    constexpr int vtkRes{0};
+    TPZVec<std::string> fields = {"Solution","Derivative"};
+    auto vtk = TPZVTKGenerator(cmesh, fields, plotfile, vtkRes);
+    vtk.Do();
+}
+
+TPZGeoMesh* CreateGeoMesh(const int dim, TPZVec<int> &nDivs, const int volId, const int bcId){
+    
+    TPZManVector<REAL,3> minX = {0,0,0};
+    TPZManVector<REAL,3> maxX = {1,1,1};
+    int nMats = 2*dim+1;
+
+    //all bcs share the same id
+    constexpr bool createBoundEls{true};
+    TPZVec<int> matIds(nMats,bcId);
+    matIds[0] = 1; // volume id
+    
+    MMeshType meshType;
+    if(dim == 2){
+        meshType = MMeshType::EQuadrilateral;
+    }
+    else if(dim == 3) {
+        meshType = MMeshType::EHexahedral;
+    }
+    else{
+        DebugStop();
+    }
+    TPZGeoMesh* gmesh = TPZGeoMeshTools::CreateGeoMeshOnGrid(dim, minX, maxX,
+                        matIds, nDivs, meshType,createBoundEls);
+    
+    std::ofstream out("geomesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+    
+    return gmesh;
+}
+
+auto ExactSolution = [](const TPZVec<REAL> &loc,TPZVec<STATE>&u,TPZFMatrix<STATE>&gradU){
+    const auto &x=loc[0];
+    const auto &y=loc[1];
+    const auto &z=loc[2];
+    const REAL aux = 1./sinh(M_SQRT2*M_PI);
+    u[0] = sin(M_PI*x)*sin(M_PI*y)*sinh(M_SQRT2*M_PI*z)/sinh(M_SQRT2*M_PI);
+    gradU(0,0) = -M_PI*cos(M_PI*x)*sin(M_PI*y)*sinh(M_SQRT2*M_PI*z)*aux;
+    gradU(1,0) = -M_PI*cos(M_PI*y)*sin(M_PI*x)*sinh(M_SQRT2*M_PI*z)*aux;
+    gradU(2,0) = -sqrt(2)*M_PI*cosh(M_SQRT2*M_PI*z)*sin(M_PI*x)*sin(M_PI*y)*aux;
+};
+
+TPZCompMesh* CreateCMeshH1(TPZGeoMesh* gmesh, const int pOrder, const int volId, const int bcId) {
+    
+    // ======> Create mesh and set polynomial order
+    TPZCompMesh* cmesh = new TPZCompMesh(gmesh);
+    const int dim = gmesh->Dimension();
+    cmesh->SetDefaultOrder(pOrder);
+    
+    // ======> Set the volume materials
+    TPZMatPoisson<>* poi = new TPZMatPoisson<>(volId,dim);
+//    poi->SetExactSol(, ) // Does not need if div(grad(u))=0
+    cmesh->InsertMaterialObject(poi);
+    
+    // ======> Set the boundary conditions
+    TPZFMatrix<STATE> val1(1,1,0.);
+    TPZManVector<STATE> val2(1,3.);
+    const int diri = 0;
+    auto * BCond = poi->CreateBC(poi, bcId, diri, val1, val2);
+//    BCond->SetForcingFunctionBC(ExactSolution, pOrder+1);
+    cmesh->InsertMaterialObject(BCond);
+        
+    cmesh->SetDimModel(dim);
+    cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
+    cmesh->AutoBuild();
+    
+    return cmesh;
 }
