@@ -272,6 +272,7 @@ inline void TPZFYsmpMatrix<TVar>::SetData( TPZVec<int64_t> &IA, TPZVec<int64_t> 
     fIA = IA;
     fJA = JA;
     fA = A;
+    ComputeDiagonal();
 }
 
 template<class TVar>
