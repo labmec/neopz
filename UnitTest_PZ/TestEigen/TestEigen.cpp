@@ -48,18 +48,21 @@ TPZCompMesh* CreateCMeshH1(TPZGeoMesh* gmesh, const int pOrder, const int volId,
 #include <catch2/catch.hpp>
 
 TEST_CASE("Eigen_inversion", "[eigen_test]") {
-  InvertUsingEigen();
+    InvertUsingEigen();
 }
 TEST_CASE("Sparse_mat", "[eigen_test]") {
-  CreateSparse();
+    CreateSparse();
 }
 TEST_CASE("Sparse_macos", "[eigen_test]") {
-  AccelerateSparse();
+    AccelerateSparse();
 }
 TEST_CASE("Sparse_class", "[eigen_test]") {
-  AccelerateSparse();
+    TestSparseClass();
 }
 
+TEST_CASE("H1_simulation", "[eigen_test]") {
+    TestH1Problem();
+}
 
 #else
 
@@ -174,6 +177,11 @@ void TestSparseClass() {
     spmat.Decompose(dt);
     spmat.SolveDirect(F, dt);
     std::cout << "solution " << F << std::endl;
+    
+#ifndef RUNWITHMAIN
+    REQUIRE(F[0] == Approx(1.0));
+    REQUIRE(F[1] == Approx(2.0));
+#endif
 }
 
 void TestH1Problem() {
@@ -207,7 +215,8 @@ void TestH1Problem() {
     an.SetStructuralMatrix(*matstruct);
     TPZStepSolver<STATE> step;
     
-    step.SetDirect(ECholesky);//ELU //ECholesky // ELDLt
+//    step.SetDirect(ECholesky);//ELU //ECholesky // ELDLt
+    step.SetDirect(ELU);
     an.SetSolver(step);
     
     an.Assemble();
@@ -219,6 +228,17 @@ void TestH1Problem() {
     TPZVec<std::string> fields = {"Solution","Derivative"};
     auto vtk = TPZVTKGenerator(cmesh, fields, plotfile, vtkRes);
     vtk.Do();
+
+    // ========> Check if solution is constant 2.0
+    TPZFMatrix<STATE>& sol = an.Solution();
+    const int64_t nel = sol.Rows();
+    STATE average = 0.;
+    for(int64_t i = 0; i < nel; i++) average += sol[i];
+    average /= nel;
+    std::cout << "\n=> Sol average = " << average << std::endl;
+#ifndef RUNWITHMAIN
+    REQUIRE(average == Approx(2.));    
+#endif
     
     delete matstruct;
     delete cmesh;
@@ -280,7 +300,7 @@ TPZCompMesh* CreateCMeshH1(TPZGeoMesh* gmesh, const int pOrder, const int volId,
     
     // ======> Set the boundary conditions
     TPZFMatrix<STATE> val1(1,1,0.);
-    TPZManVector<STATE> val2(1,5.5);
+    TPZManVector<STATE> val2(1,2.0);
     const int diri = 0;
     auto * BCond = poi->CreateBC(poi, bcId, diri, val1, val2);
 //    BCond->SetForcingFunctionBC(ExactSolution, pOrder+1);

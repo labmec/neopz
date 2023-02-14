@@ -190,9 +190,22 @@ int TPZEigenSparseMatrix<TVar>::Decompose(const DecomposeType dt)
         fEigenMatrix = new EigenSparse(this->fRow,this->fCol,this->fJA.size(),&this->fIA[0],&this->fJA[0],&this->fA[0]);
     }
     if(dt == ECholesky) {
-        fCholesky = new EigenCholesky(*fEigenMatrix);
+        fCholesky = new EigenCholesky(*fEigenMatrix);        
         fCholesky->analyzePattern(*fEigenMatrix);
         fCholesky->factorize(*fEigenMatrix);
+    }
+    else if(dt == ELDLt) {
+        fLDLT = new EigenLDLT(*fEigenMatrix);
+        fLDLT->analyzePattern(*fEigenMatrix);
+        fLDLT->factorize(*fEigenMatrix);
+    }
+    else if(dt == ELU) {
+        fLU = new EigenLU(*fEigenMatrix);
+        fLU->analyzePattern(*fEigenMatrix);
+        fLU->factorize(*fEigenMatrix);
+    }
+    else {
+        DebugStop();
     }
 }
 /**
@@ -204,24 +217,48 @@ template<class TVar>
 int TPZEigenSparseMatrix<TVar>::SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt)
 {
     Eigen::Map<Eigen::Matrix<TVar,Eigen::Dynamic,1>  > b(&F(0,0),F.Rows());
-    if(!fCholesky) {
-        Decompose(dt);
-        if(!fCholesky) DebugStop();
-    }
-    b = fCholesky->solve(b);
     
-
+    if(dt == ECholesky) {
+        if(fLDLT || fLU) DebugStop();
+        if(!fCholesky) Decompose(dt);
+        b = fCholesky->solve(b);
+    }
+    else if(dt == ELDLt) {
+        if(fCholesky || fLU) DebugStop();
+        if(!fLDLT) Decompose(dt);
+        b = fLDLT->solve(b);
+    }
+    else if(dt == ELU) {
+        if(fLDLT || fCholesky) DebugStop();
+        if(!fLU) Decompose(dt);
+        b = fLU->solve(b);
+    }
+    else{
+        DebugStop();
+    }
 }
+
 template<class TVar>
 int TPZEigenSparseMatrix<TVar>::SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const
 {
     Eigen::Map<Eigen::Matrix<TVar,Eigen::Dynamic,1>  > b(&F(0,0),F.Rows());
-    if(!fCholesky) DebugStop();
-    b = fCholesky->solve(b);
+    
+    if(fCholesky) {
+        if(dt != ECholesky) DebugStop();
+        b = fCholesky->solve(b);
+    }
+    else if(fLDLT) {
+        if(dt != ELDLt) DebugStop();
+        b = fLDLT->solve(b);
+    }
+    else if(fLU) {
+        if(dt != ELU) DebugStop();
+        b = fLU->solve(b);
+    }
+    else{
+        DebugStop();
+    }
 }
-
-
-
 
 
 template<class TVar>
