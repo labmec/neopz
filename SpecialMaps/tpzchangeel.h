@@ -32,6 +32,14 @@ public:
     /** @brief Turns a regular element into a geoblend */
     static TPZGeoEl * ChangeToGeoBlend(TPZGeoMesh *Mesh, int64_t ElemIndex);
 
+    /** @brief Turns a regular linear element into a TPZArc3D*/
+    static TPZGeoEl * ChangeToArc3D(TPZGeoMesh *mesh, const int64_t ElemIndex,
+                                    const TPZVec<REAL> &xcenter, const REAL radius);
+    /** @brief Turns a regular 2D element into a TPZCylinderMap*/
+    static TPZGeoEl * ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemIndex,
+                                       const TPZVec<REAL> &xcenter,
+                                       const TPZVec<REAL> &axis, const REAL radius);
+
     /** @brief Slide middle nodes of an quadratic geoelement to the quarterpoint with respect to a given side */
     static TPZGeoEl * ChangeToQuarterPoint(TPZGeoMesh *Mesh, int64_t ElemIndex, int targetSide);
 
@@ -51,6 +59,20 @@ public:
 	 */
     static int64_t NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol);
     static bool CreateMiddleNodeAtEdge(TPZGeoMesh *Mesh, int64_t ElemIndex, int edge, int64_t &middleNodeId);
+
+    /**
+       @brief Stores the first neighbour for each side of a given element
+       @note If, for a given side, the neighbour is itself, an empty TPZGeoElSide is placed in its position
+       @param gel [in] given geometric element
+       @param neighs [out] vector of neighbours
+     */
+    static void StoreNeighbours(TPZGeoEl* gel, TPZVec<TPZGeoElSide> &neighs);
+    /**
+       @brief Restores neighbourhood information, checking for empty TPZGeoElSides in the vector
+       @param gel [in/out] given geometric element
+       @param neighs [in] vector of neighbours
+     */
+    static void RestoreNeighbours(TPZGeoEl* gel, TPZVec<TPZGeoElSide> &neighs);
 };
 
 #endif

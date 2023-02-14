@@ -157,7 +157,8 @@ TPZIntelGen<TSHAPE>()
 {
 	this->fPreferredOrder = -1;
 	int i;
-	for(i=0;i<TSHAPE::NSides;i++) {
+  constexpr int ncon = TSHAPE::NFacets+1;
+	for(i=0;i<ncon;i++) {
 		this-> fConnectIndexes[i] = -1;
 	}
 
@@ -727,8 +728,9 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
     }
 
     TPZBlock &block =this->Mesh()->Block();
-    int ivec=0;
+    int ishape=0,ivec=0,counter=0;
 
+    int nshapeV = data.fVecShapeIndex.NElements();
 
     for(int in=0; in<ncon; in++)
     {

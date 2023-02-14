@@ -532,7 +532,9 @@ void TPZStructMatrixOMPorTBB<TVar>::OrderElements(){
 
 template<class TVar>
 int TPZStructMatrixOMPorTBB<TVar>::ClassId() const{
-    return Hash("TPZStructMatrixOMPorTBB") ^ TPZStrMatParInterface::ClassId() << 1;
+    return Hash("TPZStructMatrixOMPorTBB") ^
+        ClassIdOrHash<TVar>() << 1 ^
+        TPZStrMatParInterface::ClassId();
 }
 
 template<class TVar>

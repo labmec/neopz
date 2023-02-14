@@ -36,7 +36,7 @@ public:
     /**
      * It will call the empty constructor on all objects of type T.
      */
-    TPZManVector(const int64_t size = 0);
+    explicit TPZManVector(const int64_t size = 0);
 
     /**
      * @brief Creates a vector of a given size, filling it.

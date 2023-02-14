@@ -38,7 +38,7 @@ public:
 	 * @param size Size of the new vector.
 	 */
 	/** It will call the empty constructor on all objects of type T created. */
-	TPZVec(const int64_t size);
+	explicit TPZVec(const int64_t size);
 	
 	/**
 	 * @brief Creates a vector of a given size.

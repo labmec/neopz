@@ -36,6 +36,7 @@ add_subdirectory(TestMultithreading)
 add_subdirectory(TestHDivCollapsed)
 add_subdirectory(TestHDivApproxSpaceCreator)
 add_subdirectory(TestH1ApproxSpaceCreator)
+add_subdirectory(TestPersistence)
 
 if(USING_LAPACK)
   add_subdirectory(TestSBFem)

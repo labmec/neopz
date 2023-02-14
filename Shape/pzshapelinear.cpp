@@ -210,7 +210,14 @@ namespace pzshape {
         }
     }
     
-    
+void TPZShapeLinear::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
+{
+    int nshape = (order-1);
+    for (int i=0; i<nshape; i++) {
+        shapeorders(i,0) = i+2;
+    }
+}
+
     void TPZShapeLinear::SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders)
     {
         DebugStop();
@@ -218,10 +225,17 @@ namespace pzshape {
     
 	
 	int TPZShapeLinear::NConnectShapeF(int side, int order) {
-		if(side<2) return 1;//0 a 4
+#if PZDEBUG
+    if(order < 1){
+      PZError << "TPZShapeCube::NConnectShapeF, bad parameter order " << order << endl;
+      DebugStop();
+    }
+#endif
+    if(side<2) return 1;//0 a 4
 		if(side<3) return (order-1);//6 a 14
 		PZError << "TPZShapeLinear::NConnectShapeF, bad parameter side " << side << endl;
-		return 0;
+		DebugStop();
+    return 0;
 	}
 	
 	int TPZShapeLinear::NShapeF(const TPZVec<int> &order) {

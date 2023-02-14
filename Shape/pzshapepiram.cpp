@@ -49,7 +49,37 @@ namespace pzshape {
             }
         }
     }
+
+void TPZShapePiram::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
+{
+    // interno
+    int totsum = 0;
+    for(int i=0;i<order - 2;i++) {
+        totsum += (i+1)*(i+2) / 2;
+    }
+    int nshape = totsum;
     
+    if (shapeorders.Rows() != nshape) {
+        DebugStop();
+    }
+    int count = 0;
+    int ord = order-2;
+    for (int i=0;i<ord;i++) {
+        for (int j=0;j<ord;j++) {
+            for (int k=0;k<ord;k++) {
+                int soma = i+j+k;
+                if( i+j+k < ord ) // Duvida
+                {
+                    shapeorders(count,0) = 3 + soma;
+                    shapeorders(count,1) = 3 + soma;
+                    shapeorders(count,2) = 3 + soma;
+                    count++;
+                }
+            }
+        }
+    }
+}
+
     
     void TPZShapePiram::SideShapeOrder(const int side,  const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders)
     {
@@ -176,7 +206,13 @@ namespace pzshape {
 	
 	
 	int TPZShapePiram::NConnectShapeF(int side, int order) {
-		if(side<5) return 1;//0 a 4
+#if PZDEBUG
+    if(order < 1){
+      PZError << "TPZShapeCube::NConnectShapeF, bad parameter order " << order << endl;
+      DebugStop();
+    }
+#endif
+    if(side<5) return 1;//0 a 4
 		//   int s = side-5;//s = 0 a 14 ou side = 6 a 20
 		if(side<13) return (order-1);//6 a 14
 		if(side==13) {
@@ -194,6 +230,7 @@ namespace pzshape {
 			return totsum;
 		}
 		PZError << "TPZShapePiram::NConnectShapeF, bad parameter side " << side << endl;
+    DebugStop();
 		return 0;
 	}
 	

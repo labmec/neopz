@@ -1481,7 +1481,7 @@ bool TPZGeoElSide::IsNeighbourCounterClockWise(TPZGeoElSide &neighbour)
     TPZManVector<int64_t> thisids(nnodes),neighids(nnodes);
     for(int in = 0; in<nnodes; in++) {
         thisids[in] = fGeoEl->SideNodeIndex(fSide, in);
-        neighids = neighbour.Element()->SideNodeIndex(neighbour.Side(), in);
+        neighids[in] = neighbour.Element()->SideNodeIndex(neighbour.Side(), in);
     }
     int trid = 0;
     if(nnodes == 2)

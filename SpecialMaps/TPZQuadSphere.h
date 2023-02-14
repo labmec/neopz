@@ -238,7 +238,7 @@ namespace pzgeom {
         template<class T>
         static TPZFMatrix<T> TensorProd(TPZFMatrix<T> &vec1, TPZFMatrix<T> &vec2)
         {
-            TPZFNMatrix<9,T> res(3,3,0.);
+            TPZFMatrix<T> res(3,3,0.);
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     res(i,j) = vec1(i,0) * vec2(j,0);

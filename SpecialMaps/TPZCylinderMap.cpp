@@ -16,29 +16,29 @@ namespace pzgeom {
     constexpr REAL tol = std::numeric_limits<REAL>::epsilon()*1000;
     /// axis direction with the vertical axis
     template<class TGeo>
-    void TPZCylinderMap<TGeo>::SetCylinderAxis(const TPZVec<REAL> &axis)
+    void TPZCylinderMap<TGeo>::SetCylinderAxis(const TPZVec<REAL> &orig_axis)
     {
-        //master cylinder has axis in this direction
-        TPZManVector<REAL,3> orig_axis = {0,0,1};
+        /**master cylinder has axis in the z-direction.
+         therefore, a rotation matrix to convert from reference axis
+        to cylinder's axis will have the cylinder's axis as the 3 column
+        (for [0,0,1] is transformed to the cylinder's axis).
+        we now need to find two orthonormal vectors to compose our matrix*/
+        TPZManVector<REAL,3> reference_axis = {0,0,1};
 
         //let us normalize axis
         REAL normaxis = 0;
-        for(const auto &ax : axis){normaxis += ax*ax;}
+        for(const auto &ax : orig_axis){normaxis += ax*ax;}
         normaxis = sqrt(normaxis);
-        /*
-          We know three things about this rotation matrix:
-          Let us assume that x is the original axis and y is the new axis.
-          1. Rx = y
-          2. R^t y = x
-          3. R(x \times y) = x \times y
-         */
-        const auto &x = orig_axis;
+        const TPZManVector<REAL,3> axis = {orig_axis[0]/normaxis,
+                                           orig_axis[1]/normaxis,
+                                           orig_axis[2]/normaxis};
+        const auto &x = reference_axis;
         const auto &y = axis;
-        TPZManVector<REAL,3> z(3,0.);
-        //Let us compute the cross product between x and y
-        Cross(x,y,z);
+        TPZManVector<REAL,3> orth1(3,0.);
+        Cross(x,y,orth1);
 
-        if(fabs(z[0]) < tol && fabs(z[1]) < tol && fabs(z[2]) < tol){
+        //if they are aligned, then it is just a matter of sign
+        if(fabs(orth1[0]) < tol && fabs(orth1[1]) < tol && fabs(orth1[2]) < tol){
             //x and y are aligned
             //let us compute the inner product
             REAL inner{0};
@@ -48,33 +48,21 @@ namespace pzgeom {
                 fRotation(i,i) = sign;
             }
         }else{
-            //we first normalise the z vector
+            /**if they are not aligned, orth1 is already an orth vector,
+             we need to normalise it*/
             {
-                REAL normz{0};
-                for(auto &zx : z) {normz += zx*zx;}
-                normz = sqrt(normz);
-                for(auto &zx : z) {zx /= normz;}
-            }
-            //now we build a 9x9 matrix to find the rotation matrix
-            TPZFNMatrix<81,REAL> M(9,9,0.), b(9,1,0.);
-            for(int c = 0; c < 3; c++){
-                for(int i = 0; i < 3; i++){
-                    for(int j =0 ; j < 3; j++){
-                        M(3*c+i,3*c+j) = x[j];
-                        M(3*c+i,3*j) = y[j];
-                        M(3*c+2+i,3*c+j) = z[j];
-                    }
-                }
-                b(3*c+0,0) = y[c];
-                b(3*c+1,0) = x[c];
-                b(3*c+2,0) = z[c];
+                REAL normorth1{0};
+                for(auto &xx : orth1) {normorth1 += xx*xx;}
+                normorth1 = sqrt(normorth1);
+                for(auto &xx : orth1) {xx /= normorth1;}
             }
 
-            M.Solve_Cholesky(&b);
-            for(int i = 0; i < 9; i++){
-                const auto r = i/3;
-                const auto c = i%3;
-                fRotation(r,c) = b(i,0);
+            TPZManVector<REAL,3> orth2(3,0.);
+            Cross(y,orth1,orth2);
+            for(int i = 0; i < 3; i++){
+                fRotation(i,0) = orth1[i];
+                fRotation(i,1) = orth2[i];
+                fRotation(i,2) = y[i];
             }
         }
     }
@@ -94,7 +82,7 @@ namespace pzgeom {
             for (int i=0; i<3; i++) {
                 localco[i] = 0.;
                 for (int j=0; j<3; j++) {
-                    localco[i] += fRotation(j,i)*(co[i]-fOrigin[i]);
+                    localco[i] += fRotation(j,i)*(co[j]-fOrigin[j]);
                 }
             }
             const REAL radius = sqrt(localco[0]*localco[0]+localco[1]*localco[1]);

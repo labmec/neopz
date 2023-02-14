@@ -163,7 +163,11 @@ TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
       }
     }
   }
-  
+
+  if(fPostProcMats.size() == 0){
+    std::cout<<"No post processing materials could be found!"<<std::endl;
+    return;
+  }
 #ifdef PZDEBUG
   std::cout<<"The following materials will be post-processed:";
   for(auto id : fPostProcMats){std::cout<<" "<<id;}
@@ -267,7 +271,7 @@ void TPZVTKGenerator::FillRefEls()
   TPZSimpleTimer timer("FillRefEls");
   
   TPZManVector<TPZManVector<MElementType,3>,4> eltypes{
-    {},
+    {{}},
     {EOned},
     {ETriangle, EQuadrilateral},
     {ETetraedro, EPrisma, ECube, EPiramide}
@@ -602,6 +606,10 @@ bool TPZVTKGenerator::IsValidEl(TPZCompEl *cel)
 
 void TPZVTKGenerator::Do(REAL time)
 {
+  if(fPostProcMats.size() == 0){
+    std::cout<<"No post-processing materials found..."<<std::endl;
+    return;
+  }
   /*
     Main function for exporting one .VTK file.
     May be called repeatedly if the solution associated with 

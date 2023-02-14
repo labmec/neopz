@@ -1035,7 +1035,7 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
           check &= loccheck;
       }
   }
-    
+    CAPTURE(dim,symmetric,dec);
   REQUIRE(check);
   Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
@@ -1455,6 +1455,8 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
         for (j = 0; j < dim; j++) {
             TVar zval = z(i, j);
             if (!IsZero(zval/tol)) {
+                CAPTURE(dim,symmetric,dec);
+                CAPTURE(zval,tol);
                 std::cout << "i " << i << " j " << j << zval << std::endl;
                 check = false;
             }

@@ -8,8 +8,8 @@
 template<class TVar>
 void TPZLagrangeMultiplierCS<TVar>::ContributeInterface(
     const TPZMaterialDataT<TVar> &data,
-    std::map<int, TPZMaterialDataT<TVar>> &dataleft,
-    std::map<int, TPZMaterialDataT<TVar>> &dataright,
+    const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
+    const std::map<int, TPZMaterialDataT<TVar>> &dataright,
     REAL weight, TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef)
 {
 #ifdef PZDEBUG
@@ -72,8 +72,8 @@ void TPZLagrangeMultiplierCS<TVar>::ContributeInterface(
 template<>
 void TPZLagrangeMultiplierCS<STATE>::ContributeInterface(
                                                          const TPZMaterialDataT<STATE> &data,
-                                                         std::map<int, TPZMaterialDataT<STATE>> &dataleft,
-                                                         std::map<int, TPZMaterialDataT<STATE>> &dataright,
+                                                         const std::map<int, TPZMaterialDataT<STATE>> &dataleft,
+                                                         const std::map<int, TPZMaterialDataT<STATE>> &dataright,
                                                          REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     

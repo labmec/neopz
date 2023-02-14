@@ -24,7 +24,7 @@ TEST_CASE("error_poisson","[error_tests]")
   for(int p = 1; p < 5; p++){
     TPZManVector<REAL,3> error(3,0.);
     CheckErrorPoisson(p,error);
-      std::cout << "order " << p << " error " << error << std::endl;
+    std::cout << "order " << p << " error " << error << std::endl;
     bool checkConv = true;
     for(auto i = 0; i < 3; i++){
       if(error[i]>lastError[i]) checkConv = false;
