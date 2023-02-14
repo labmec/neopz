@@ -361,30 +361,36 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     // TODO: WARNING!!!! Things to be fixed and for now we are skipping
      if(isCondensed && hdivFam == HDivFamily::EHDivConstant){
          std::cout << "\n\t======> WARNING! Condensing hdivconst spaces leads to singular K00. This happens because of the rotation space that has linear and constant functions."
-         "One option is to separate the linear and constant functions is two different spaces. Please implement before using." << std::endl;
+         " One option is to separate the linear and constant functions is two different spaces. Please implement before using." << std::endl;
          cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
+         DebugStop();
          return;
      }
     if(isRef && hType == HybridizationType::ESemi){
         cout << "\n\t======> This test is not working because the global matrix has wrong size!!\n" << endl;
         cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
+        DebugStop();
         return;
     }
     if(hdivFam == HDivFamily::EHDivConstant && probType == ProblemType::EElastic && mType == MMeshType::ETetrahedral){
         cout << "\n\t======> We don't know why this configuration does not work!!\n" << endl;
         cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
+        DebugStop();
         return;
     }
     if(hdivFam == HDivFamily::EHDivConstant && extrapOrder > 0){
         cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
+        DebugStop();
         return;
     }
     if (hdivFam == HDivFamily::EHDivKernel && isRigidBodySpaces) {
-        std::cout << " Hdiv kernel currently does not support rigid body spaces \n";
+        std::cout << "ERROR! Hdiv kernel currently does not support rigid body spaces \n";
+        DebugStop();
         return;
     }
     if (hdivFam != HDivFamily::EHDivConstant && hType == HybridizationType::ESemi) {
-        std::cout << " The only HDiv space with available Semi hybridization is HDivConstant \n";
+        std::cout << "ERROR! The only HDiv space with available Semi hybridization is HDivConstant \n";
+        DebugStop();
         return;
     }
     

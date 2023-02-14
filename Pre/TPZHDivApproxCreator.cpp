@@ -84,7 +84,7 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
     
     if (fHDivFam == HDivFamily::EHDivConstant && fShouldCondense) {
         std::cout << "CODE STOPPED! Condensing hdivconst spaces leads to singular K00. This happens because of the rotation space that has linear and constant functions."
-        "One option is to separate the linear and constant functions is two different spaces. Please implement before using." << std::endl;
+        " One option is to separate the linear and constant functions is two different spaces. Please implement before using." << std::endl;
         DebugStop();
     }
 

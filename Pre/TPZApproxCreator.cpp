@@ -98,7 +98,7 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
                 }
             }
 #endif
-            // if the neighbour is a boundary condition and no hybridization is applied
+            // if there is a neighbour that is a boundary condition
             // do not create the wrap layers
             bool hasBCNeighbour = gelside.HasNeighbour(bcMatIds);
             if(hasBCNeighbour)
