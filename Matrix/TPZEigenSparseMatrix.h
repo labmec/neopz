@@ -28,11 +28,14 @@ class TPZEigenSparseMatrix : public TPZFYsmpMatrix<TVar> {
     typedef Eigen::SparseMatrix<TVar,0,int64_t> SpMat; // declares a column-major sparse matrix type of double
     typedef Eigen::Map<SpMat> EigenSparse;
     typedef Eigen::SimplicialLLT<EigenSparse> EigenCholesky;
+    typedef Eigen::SimplicialLDLT<EigenSparse> EigenLDLT;
+    typedef Eigen::SparseLU<EigenSparse> EigenLU;
 
 private:
     EigenSparse *fEigenMatrix = 0;
     EigenCholesky *fCholesky = 0;
-
+    EigenLDLT *fLDLT = 0;
+    EigenLU *fLU = 0;
     
 public:
     
