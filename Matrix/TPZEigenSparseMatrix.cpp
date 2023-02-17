@@ -186,6 +186,11 @@ static int64_t  FindCol(int64_t *colf, int64_t *coll, int64_t col)
 template<class TVar>
 int TPZEigenSparseMatrix<TVar>::Decompose(const DecomposeType dt)
 {
+//    Eigen::setNbThreads(16);
+    std::cout << "\n=====> Starting factorization with Eigen..." << std::endl;
+    const int n = Eigen::nbThreads( );
+    std::cout << "Using n = " << n << " threads" << std::endl;
+    
     if(!fEigenMatrix){
         fEigenMatrix = new EigenSparse(this->fRow,this->fCol,this->fJA.size(),&this->fIA[0],&this->fJA[0],&this->fA[0]);
     }
