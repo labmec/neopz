@@ -23,6 +23,11 @@
 #include "pzstepsolver.h"
 #include "TPZVTKGenerator.h"
 #include "TPZSpStructMatrix.h"
+#include "TPZSimpleTimer.h"
+
+#ifdef MACOSX
+#include <Eigen/AccelerateSupport>
+#endif
 
 typedef Eigen::SparseMatrix<double,0,long long> SpMat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> T;
@@ -33,13 +38,14 @@ static TPZLogger logger("pz.eigen");
 #endif
 
 // ----- Run tests with or without main -----
-#define RUNWITHMAIN
+//#define RUNWITHMAIN
 
 void InvertUsingEigen();
 void CreateSparse();
 void AccelerateSparse();
 void TestSparseClass();
 void TestH1Problem();
+void TestAppleAccelerate();
 TPZGeoMesh* CreateGeoMesh(const int dim, TPZVec<int> &nDivs, const int volId, const int bcId);
 TPZCompMesh* CreateCMeshH1(TPZGeoMesh* gmesh, const int pOrder, const int volId, const int bcId);
 
@@ -64,9 +70,16 @@ TEST_CASE("H1_simulation", "[eigen_test]") {
     TestH1Problem();
 }
 
+#ifdef MACOSX
+TEST_CASE("Sparse_apple_accelerate", "[eigen_test]") {
+    TestAppleAccelerate();
+}
+#endif
+
 #else
 
 int main(){
+//    TestAppleAccelerate();
     TestH1Problem();
     return 0;
 }
@@ -198,7 +211,7 @@ void TestH1Problem() {
     
     // ========> Solve H1
     TPZLinearAnalysis an(cmesh,false);
-    constexpr int nThreads{0};
+    constexpr int nThreads{16};
     TPZStructMatrixT<STATE>* matstruct;
     
     const bool useSparse = true;
@@ -215,12 +228,19 @@ void TestH1Problem() {
     an.SetStructuralMatrix(*matstruct);
     TPZStepSolver<STATE> step;
     
-//    step.SetDirect(ECholesky);//ELU //ECholesky // ELDLt
-    step.SetDirect(ELU);
+//    step.SetDirect(ECholesky);
+    step.SetDirect(ELDLt);
+//    step.SetDirect(ELU);
     an.SetSolver(step);
     
+    std::cout << "\n---------------------- Starting Assemble ----------------------" << std::endl;
+    TPZSimpleTimer timer_ass;
     an.Assemble();
+    std::cout << "==> total time : " << timer_ass.ReturnTimeDouble()/1000. << " seconds" << std::endl;
+    std::cout << "\n---------------------- Starting Solve ----------------------" << std::endl;
+    TPZSimpleTimer timer_solve;
     an.Solve();
+    std::cout << "==> total time : " << timer_solve.ReturnTimeDouble()/1000. << " seconds" << std::endl;
     
     // ========> Print
     const std::string plotfile = "postprocess";//sem o .vtk no final
@@ -237,7 +257,7 @@ void TestH1Problem() {
     average /= nel;
     std::cout << "\n=> Sol average = " << average << std::endl;
 #ifndef RUNWITHMAIN
-    REQUIRE(average == Approx(2.));    
+    REQUIRE(average == Approx(2.)); // ONLY WORKS FOR P=1
 #endif
     
     delete matstruct;
@@ -311,4 +331,32 @@ TPZCompMesh* CreateCMeshH1(TPZGeoMesh* gmesh, const int pOrder, const int volId,
     cmesh->AutoBuild();
     
     return cmesh;
+}
+
+void TestAppleAccelerate() {
+
+#ifdef MACOSX
+    
+    // NOTE (Feb/2023): From what I gathered, Apple Accelerate does not have support for std::complex.
+    // It also has restrictions in setting int64_t as the indexer, which we use in PZ.
+    // For these reasons, I could not make it work to integrate it with our TPZEigenSparseMatrix class.
+    // However, here is a working example for those that plan to use it in the future.
+        
+    long long ia[] = {0,1,3};
+    long long ja[] = {0,0,1};
+    double val[] = {1.,0.,2.};
+    double bptr[] = {1.,2.};
+    Eigen::Map<Eigen::VectorXd> b(bptr,2);
+    b << 1., 2. ;
+    int row = 2, col = 2, nnz = 3;
+    Eigen::Map< SpMat> sparse(row,col,nnz,ia,ja,val);
+    Eigen::AccelerateLDLT<Eigen::SparseMatrix<double,0>>* ldlt = new Eigen::AccelerateLDLT<Eigen::SparseMatrix<double,0>>(sparse);
+    
+    Eigen::VectorXd x = ldlt->solve(b); // use the factorization to solve for the given right hand side
+   
+    std::cout << "solution " << x << std::endl;
+    delete ldlt;
+    
+#endif
+    
 }

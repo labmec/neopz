@@ -8,6 +8,9 @@ if (APPLE)
 endif()
 
 target_link_libraries(test_library PUBLIC pz Catch2::Catch2)
+if(APPLE)
+   target_link_libraries(test_library PRIVATE ${ACCELERATE_LIB})
+ENDIF(APPLE)
 
 add_subdirectory(TestShapeFAD)
 add_subdirectory(TestReducedSpace)
