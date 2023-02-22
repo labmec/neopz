@@ -599,10 +599,10 @@ void TPZMatrix<TVar>::SolveJacobi(int64_t &numiterations,const TPZFMatrix<TVar> 
 		scratch = F;
 		result.Zero();
 	}
-	REAL res;
-	res = TPZExtractVal::val(Norm(scratch));
-	int64_t r = Dim();
-	int64_t c = F.Cols();
+	RTVar res;
+	res = Norm(scratch);
+	const int64_t r = Dim();
+	const int64_t c = F.Cols();
 	for(int64_t it=0; it<numiterations && (fabs(res)) > tol; it++) {
 		for(int64_t ic=0; ic<c; ic++) {
 			for(int64_t i=0; i<r; i++) {
@@ -610,7 +610,7 @@ void TPZMatrix<TVar>::SolveJacobi(int64_t &numiterations,const TPZFMatrix<TVar> 
 			}
 		}
 		Residual(result,F,scratch);
-		res = TPZExtractVal::val(Norm(scratch));
+		res = Norm(scratch);
 	}
 	if(residual) *residual = scratch;
 }
