@@ -108,41 +108,46 @@ int GMRES(const TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> 
 }
 
 /** @ingroup util */
-/** @brief Compute the values cs and sn parameters to rotation */
+/** @brief Compute the values cs and sn parameters to rotation
+    @note These rotations are based on lapack Xlartg routines. (X=s,d,c,z)
+    They will result in a plane rotation with real cosine and complex sine*/
 template<class TVar>
 void GeneratePlaneRotation(TVar dx, TVar dy, TVar &cs, TVar &sn)
 {
-	if (IsZero(dy)){
-		cs = 1.0;
-		sn = 0.0;
-	} else if (abs(dy) > abs(dx)) {
-		const TVar temp = dx / dy;
-		sn = ((TVar)1.0) / sqrt( ((TVar)1.0) + temp*temp );
-		cs = temp * sn;
-	} else {
-		const TVar temp = dy / dx;
-		cs = ((TVar)1.0) / sqrt( ((TVar)1.0) + temp*temp );
-		sn = temp * cs;
-	}
+  
+  if(IsZero(dy)){
+    cs = 1.;
+    sn = 0;
+  }else if (IsZero(dx)){
+    cs = 0;
+    if constexpr(is_complex<TVar>::value){
+      sn = std::conj(dy)/abs(dy);
+    }else{
+      sn = dy/std::abs(dy);
+    }
+  }else{
+    //note: std::norm is actually the squared magnitude
+    const TVar norm = (dx / abs(dx) ) * sqrt(std::norm(dx) + std::norm(dy));
+    sn = dy/norm;
+    cs = dx/norm;
+  }
+  
 }
 
 /** @ingroup util */
-/** @brief Makes rotation of the plane based on the cs and sn parameters */
+/** @brief Makes rotation of the plane based on the cs and sn parameters
+    @note These rotations are based on lapack Xlartg routines. (X=s,d,c,z)
+    They will result in a plane rotation with real cosine and complex sine*/
 template<class TVar>
 void ApplyPlaneRotation(TVar &dx, TVar &dy, const TVar cs, const TVar sn)
 {
-
-  
-	TVar temp  =  0.;
+  const TVar temp = cs * dx + sn * dy;
   if constexpr (is_complex<TVar>::value){
-		//see https://github.com/ddemidov/amgcl/issues/34
-    temp = std::conj(cs) * dx + std::conj(sn) * dy;
+    dy = -std::conj(sn) * dx + cs * dy;
   }else{
-    temp = cs * dx + sn * dy;
+    dy = -sn * dx + cs * dy;
   }
-  
-	dy = -sn * dx + cs * dy;
-	dx = temp;
+  dx = temp;
 }
 
 template<class TVar>
