@@ -1258,6 +1258,55 @@ int TPZFMatrix<double>::Decompose_LU(TPZVec<int> &index) {
     this->fDecomposed = ELUPivot;
     return 1;
 }
+
+template <>
+int TPZFMatrix<std::complex<double>>::Decompose_LU(TPZVec<int> &index) {
+    
+    
+    if (this->fDecomposed != ENoDecompose && this->fDecomposed != ELUPivot) DebugStop();
+    
+    if (this->fDecomposed != ENoDecompose) {
+        return ELUPivot;
+    }
+    
+    if ( this->Rows() != this->Cols() ) {
+        cout << "TPZFPivotMatrix::DecomposeLU ERRO : A Matriz não é quadrada" << endl;
+        return 0;
+    }
+    
+    
+    lapack_int nRows = this->Rows();
+    if (nRows == 0) return 0;
+
+    lapack_int zero = 0;
+    double b;lapack_int info;
+    
+    // If the matrix is 1x1, the lapack function dgesv_ does not modify
+    // fPivot. And, if fPivot is not initialized it can lead to problems
+    // when the function Substitution() is called. That is why we are
+    // now initializing fPivot before calling dgesv_
+//    fPivot.Resize(nRows);
+    InitializePivot();
+    TPZManVector<lapack_int,2000> pivot(nRows);
+    for(int i = 0; i < nRows; i++){pivot[i]=fPivot[i];}
+    //    int sgesv_(__CLPK_integer *__n, __CLPK_integer *__nrhs, __CLPK_real *__a,
+    //               __CLPK_integer *__lda, __CLPK_integer *__ipiv, __CLPK_real *__b,
+    //               __CLPK_integer *__ldb,
+    //               __CLPK_integer *__info) __OSX_AVAILABLE_STARTING(__MAC_10_2,
+    //                                                                __IPHONE_4_0);
+    
+
+    static_assert(sizeof(vardoublecomplex) == sizeof(std::complex<double>),
+                  "Incompatible types");
+    zgetrf_(&nRows,&nRows,(vardoublecomplex*)fElem,&nRows,&pivot[0],&info);
+//    dgesv_(&nRows,&zero,fElem,&nRows,&fPivot[0],&b,&nRows,&info);
+    index.Resize(nRows);
+    for(int i = 0; i < nRows; i++){
+        index[i] = fPivot[i] = pivot[i];
+    }
+    this->fDecomposed = ELUPivot;
+    return 1;
+}
 #endif //USING_LAPACK
 
 template <class TVar>
@@ -1397,6 +1446,12 @@ int TPZFMatrix<float>::Decompose_LU() {
 }
 template <>
 int TPZFMatrix<double>::Decompose_LU() {
+    
+    
+    return this->Decompose_LU(fPivot);
+}
+template <>
+int TPZFMatrix<std::complex<double>>::Decompose_LU() {
     
     
     return this->Decompose_LU(fPivot);
@@ -1582,6 +1637,50 @@ int TPZFMatrix<double>::Substitution( TPZFMatrix<double> *B, const TPZVec<int> &
     return 1;
 }
 
+template<>
+int TPZFMatrix<std::complex<double>>::Substitution( TPZFMatrix<std::complex<double>> *B, const TPZVec<int> &index ) const{
+    
+    if(!B){
+        PZError << __PRETTY_FUNCTION__ << "TPZFMatrix<>*B eh nulo" << endl;
+        return 0;
+    }
+    
+    
+    if (!this->fDecomposed){
+        PZError <<  __PRETTY_FUNCTION__ << "Matriz não decomposta" << endl;
+        return 0;
+    }
+    
+    if (this->fDecomposed != ELUPivot){
+        PZError << __PRETTY_FUNCTION__ << "\nfDecomposed != ELUPivot" << endl;
+    }
+    
+    //    int sgetrs_(char *__trans, __CLPK_integer *__n, __CLPK_integer *__nrhs,
+    //                __CLPK_real *__a, __CLPK_integer *__lda, __CLPK_integer *__ipiv,
+    //                __CLPK_real *__b, __CLPK_integer *__ldb,
+    //                __CLPK_integer *__info) __OSX_AVAILABLE_STARTING(__MAC_10_2,
+    //                                                                 __IPHONE_4_0);
+    lapack_int nRows = this->Rows();
+    char notrans = 'N';
+    lapack_int BCols = B->Cols();
+    lapack_int info = 0;
+
+    TPZManVector<lapack_int,2000> pivot(nRows);
+    for(int i = 0; i < nRows; i++){pivot[i]=index[i];}
+    static_assert(sizeof(std::complex<double>)==sizeof(vardoublecomplex), "incompatible sizes");
+    zgetrs_(&notrans,&nRows,&BCols,(vardoublecomplex*)fElem,&nRows,
+            &pivot[0],(vardoublecomplex*)B->fElem,&nRows,&info);
+    
+#ifdef PZDEBUG
+    if(info != 0)
+    {
+        DebugStop();
+    }
+#endif
+    
+    return 1;
+}
+
 #endif //USING_LAPACK
 
 
@@ -1656,6 +1755,11 @@ int TPZFMatrix<float>::Substitution( TPZFMatrix<float> *B ) const {
 }
 template <>
 int TPZFMatrix<double>::Substitution( TPZFMatrix<double> *B ) const {
+    
+    return this->Substitution(B,fPivot);
+}
+template <>
+int TPZFMatrix<std::complex<double>>::Substitution( TPZFMatrix<std::complex<double>> *B ) const {
     
     return this->Substitution(B,fPivot);
 }
