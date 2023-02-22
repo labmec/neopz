@@ -69,8 +69,8 @@ void TPZScatteringSrc::Contribute(const TPZMaterialDataT<CSTATE> &data,
   
   const auto &sol = mem_item.sol;
   TPZFNMatrix<3,CSTATE> src_mat(3,1,0.);
-  src_mat(0,0) = src_cte * sol[0];
-  src_mat(1,0) = src_cte * sol[1];
+  src_mat(0,0) = -1.*src_cte * sol[0];
+  src_mat(1,0) =  1.*src_cte * sol[1];
 
   //Contribution
   ef += phi * (ur_inv * src_mat) * weight;
