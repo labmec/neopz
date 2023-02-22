@@ -56,15 +56,21 @@ int GMRES(const TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> 
     v[0] = r * (1.0 / beta);
     s = 0.0;
     s[0] = beta;
-    
-    for (int i = 0; i < krylovdim && iter <= max_iter; i++, iter++) {
+
+    int i = 0;
+    for (; i < krylovdim && iter <= max_iter; i++, iter++) {
 			A.Multiply(v[i],w1);
 			M.Solve(w1,w);
       for (int k = 0; k <= i; k++) {
-        H(k, i) = Dot(w, v[k]);
-        w -= H(k, i) * v[k];
+        const auto dotwv = Dot(w,v[k]);
+        H(k, i) = dotwv;
+        w -= dotwv * v[k];
       }
-      H(i+1, i) = Norm(w);
+      const auto normw = Norm(w);
+      if(IsZero(normw)){
+        DebugStop();
+      }
+      H(i+1, i) = normw;
       w *= ((TVar)1.0 / H(i+1, i));
       v[i+1] = w;
 
@@ -77,20 +83,19 @@ int GMRES(const TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> 
       ApplyPlaneRotation(s[i], s[i+1], cs[i], sn[i]);
       
       if ((resid = std::abs(s[i+1]) / normb) < tol) {
-        Update(x, i, H, s, v);
-        tol = resid;
-        max_iter = iter;
-        return 0;
+				i++;
+        break;
       }
-			if(iter % 5 == 0){
-				std::cout << iter << "\t" << std::scientific << resid << std::endl;
-			}
+      std::cout << iter << "\t" << std::scientific << resid << std::endl;
+			// if(iter % 5 == 0){
+			// }
     }
-    Update(x, krylovdim - 1, H, s, v);
+    Update(x, i - 1, H, s, v);
 		//r = b-A*x without dynamic allocation
 		A.MultAdd(x,b,r,-1,1);
     M.Solve(r,r);
     beta = Norm(r);
+    std::cout<<"beta "<<beta<<" resid "<<resid<<" normb "<<normb<<std::endl;
     if ((resid = beta / normb) < tol) {
       tol = resid;
       max_iter = iter;
