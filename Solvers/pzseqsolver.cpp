@@ -49,6 +49,7 @@ void TPZSequenceSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> 
 	}
 	
 	this->fScratch = F;
+  const TPZFMatrix<TVar> fcp = F;//F and result might be the sme
 	TPZFMatrix<TVar> delu(result.Rows(),result.Cols(),0.);
 	TPZFMatrix<TVar> resloc(F.Rows(),F.Cols(),0.);
 	result.Zero();
@@ -60,7 +61,7 @@ void TPZSequenceSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> 
     for(s=0; s<nums; s++) {
         fSolvers[s]->Solve(this->fScratch,delu,&resloc);
         result += delu;
-        mat->Residual(result,F,this->fScratch);
+        mat->Residual(result,fcp,this->fScratch);
     }
     if(residual) *residual = this->fScratch;
 }
