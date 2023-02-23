@@ -195,7 +195,19 @@ template<class TVar>
 void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
 							 TPZFMatrix<TVar> &z,
 							 const TVar alpha,const TVar beta,const int opt) const {	
-	// Determine how to initialize z
+
+#ifdef PZDEBUG
+    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
+        std::cout << "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" ;
+        return;
+    }
+    if(!IsZero(beta) && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+        std::cout << "TPZFMatrix::MultAdd matrix y with incompatible dimensions>";
+        return;
+    }
+#endif
+
+    // Determine how to initialize z
     this->PrepareZ(y,z,beta,opt);
 	
 	// Compute alpha * A * x
