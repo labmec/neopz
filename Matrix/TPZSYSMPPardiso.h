@@ -10,9 +10,6 @@
 #define SYSMPMATPARDISO_H
 
 #include "TPZSYSMPMatrix.h"
-
-#ifdef USING_MKL
-
 #include "TPZPardisoSolver.h"
 
  /**
@@ -74,5 +71,4 @@ private:
   TPZPardisoSolver<TVar> fPardisoControl;
 };
 
-#endif
 #endif
