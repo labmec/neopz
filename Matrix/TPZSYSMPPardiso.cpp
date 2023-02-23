@@ -80,9 +80,9 @@ int TPZSYsmpMatrixPardiso<TVar>::SolveDirect ( TPZFMatrix<TVar>& F , const Decom
   if(this->fDecomposed && this->fDecomposed != dt){
     this->Error(__PRETTY_FUNCTION__,"matrix is already decomposed with other scheme");
   }
-  this->Decompose(dt);
-  const auto &this_ct = *this;
-  this_ct.SolveDirect(F,dt);
+  if(this->fDecomposed == ENoDecompose) this->Decompose(dt);
+  const TPZSYsmpMatrixPardiso<TVar>* this_ct = const_cast<const TPZSYsmpMatrixPardiso<TVar>*>(this);
+  this_ct->SolveDirect(F,dt);
   return 0;
 }
 

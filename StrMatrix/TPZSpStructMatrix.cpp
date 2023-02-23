@@ -15,6 +15,10 @@
 #include "TPZEigenSparseMatrix.h"
 #endif
 
+#ifdef USING_MKL
+#include "TPZYSMPPardiso.h"
+#endif
+
 #include "pzlog.h"
 #ifdef PZ_LOG
 static TPZLogger logger("pz.StrMatrix");
@@ -58,7 +62,7 @@ TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph,
     
     const int64_t neq = this->fEquationFilter.NActiveEquations();
 #ifdef USING_MKL
-    TPZFYsmpMatrix<TVar> * mat = new TPZFYsmpMatrix<TVar>(neq,neq);
+    TPZFYsmpMatrixPardiso<TVar> * mat = new TPZFYsmpMatrixPardiso<TVar>(neq,neq);
 #elif USING_EIGEN
     TPZEigenSparseMatrix<TVar> * mat = new TPZEigenSparseMatrix<TVar>(neq,neq);
 #else
@@ -224,6 +228,8 @@ template class TPZSpStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
 template class TPZSpStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
 template class TPZSpStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
 
+#ifndef USING_EIGEN
 template class TPZSpStructMatrix<CSTATE,TPZStructMatrixOR<CSTATE>>;
 template class TPZSpStructMatrix<CSTATE,TPZStructMatrixOT<CSTATE>>;
 template class TPZSpStructMatrix<CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
+#endif

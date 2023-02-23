@@ -14,6 +14,11 @@
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 
+#define USEACCELERATESUPPORT
+#if defined(MACOSX) && defined(USEACCELERATESUPPORT)
+#include <Eigen/AccelerateSupport>
+#endif
+
 /**
  * @brief Implements a non symmetric sparse matrix (Yale Sparse Matrix Storage). \ref matrix "Matrix"
  * @ingroup matrix
@@ -26,10 +31,20 @@ class TPZEigenSparseMatrix : public TPZFYsmpMatrix<TVar> {
     
     public :
     typedef Eigen::SparseMatrix<TVar,0,int64_t> SpMat; // declares a column-major sparse matrix type of double
+    typedef Eigen::SparseMatrix<TVar,0> SpMatInt; // declares a column-major sparse matrix type of double with int indexer. Needed for mac accelerate
+    
     typedef Eigen::Map<SpMat> EigenSparse;
+    typedef Eigen::Map<SpMatInt> EigenSparseInt;
     typedef Eigen::SimplicialLLT<EigenSparse> EigenCholesky;
-    typedef Eigen::SimplicialLDLT<EigenSparse> EigenLDLT;
+    
     typedef Eigen::SparseLU<EigenSparse> EigenLU;
+    
+#if defined(MACOSX) && defined(USEACCELERATESUPPORT)
+    typedef Eigen::AccelerateLDLT<SpMatInt,Eigen::Lower | Eigen::Symmetric> EigenLDLT;
+#else
+    typedef Eigen::SimplicialLDLT<EigenSparse> EigenLDLT;
+#endif
+    
 
 private:
     EigenSparse *fEigenMatrix = 0;
@@ -111,6 +126,16 @@ public:
     virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override;
     
     
+    /// Reimplements the multadd function using eigen optimized operations
+    /// Multadd is:
+    /// z = beta * y + alpha * opt(this)*x
+    /// z and x cannot share storage
+    /// - Parameters:
+    ///   - x: vector that the sparse matrix opt(this) will multiply
+    ///   - y: a vector that multiplied by alpha will sum to opt(this)*x*
+    ///   - z: the result of the operation
+    virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+                         const TVar alpha=1.,const TVar beta = 0., const int opt = 0) const override;
     
     int ClassId() const override;
     

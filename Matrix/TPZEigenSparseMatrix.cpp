@@ -195,19 +195,27 @@ int TPZEigenSparseMatrix<TVar>::Decompose(const DecomposeType dt)
         fEigenMatrix = new EigenSparse(this->fRow,this->fCol,this->fJA.size(),&this->fIA[0],&this->fJA[0],&this->fA[0]);
     }
     if(dt == ECholesky) {
+#ifndef USEACCELERATESUPPORT
         fCholesky = new EigenCholesky(*fEigenMatrix);        
         fCholesky->analyzePattern(*fEigenMatrix);
         fCholesky->factorize(*fEigenMatrix);
+#endif
     }
     else if(dt == ELDLt) {
+#if defined(MACOSX) && defined(USEACCELERATESUPPORT)
         fLDLT = new EigenLDLT(*fEigenMatrix);
+#else
+        fLDLT = new EigenLDLT(*fEigenMatrix);
+#endif
         fLDLT->analyzePattern(*fEigenMatrix);
         fLDLT->factorize(*fEigenMatrix);
     }
     else if(dt == ELU) {
+#ifndef USEACCELERATESUPPORT
         fLU = new EigenLU(*fEigenMatrix);
         fLU->analyzePattern(*fEigenMatrix);
         fLU->factorize(*fEigenMatrix);
+#endif
     }
     else {
         DebugStop();
@@ -265,14 +273,53 @@ int TPZEigenSparseMatrix<TVar>::SolveDirect ( TPZFMatrix<TVar>& F , const Decomp
     }
 }
 
+template<class TVar>
+void TPZEigenSparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+                                         const TVar alpha,const TVar beta, const int opt) const {
+#ifdef PZDEBUG
+    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
+        std::cout << "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" ;
+        return;
+    }
+    if(!IsZero(beta) && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+        std::cout << "TPZFMatrix::MultAdd matrix y with incompatible dimensions>";
+        return;
+    }
+#endif
+    if(!opt) {
+        if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
+            z.Redim(this->Rows(),x.Cols());
+        }
+    } else {
+        if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
+            z.Redim(this->Cols(),x.Cols());
+        }
+    }
+    if(this->Cols() == 0) {
+        z.Zero();
+        return;
+    }
+    
+    DebugStop(); // Please implement me
+    
+    // z = beta * y + alpha * opt(this)*x
+    
+//    Eigen::Map<Eigen::Matrix<TVar,Eigen::Dynamic,1>  > b(&F(0,0),F.Rows());
+
+}
+
 
 template<class TVar>
 int TPZEigenSparseMatrix<TVar>::ClassId() const{
     return Hash("TPZEigenSparseMatrix") ^ TPZFYsmpMatrix<TVar>::ClassId() << 1;
 }
-template class TPZEigenSparseMatrix<long double>;
+
 template class TPZEigenSparseMatrix<double>;
 template class TPZEigenSparseMatrix<float>;
+
+#ifndef USEACCELERATESUPPORT
+template class TPZEigenSparseMatrix<long double>;
 template class TPZEigenSparseMatrix<std::complex<long double>>;
 template class TPZEigenSparseMatrix<std::complex<double>>;
 template class TPZEigenSparseMatrix<std::complex<float>>;
+#endif

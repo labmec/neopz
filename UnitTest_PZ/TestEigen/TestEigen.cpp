@@ -9,11 +9,15 @@
 #include <Accelerate/Accelerate.h>
 #endif
 
+#ifdef USING_EIGEN
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
+#endif
 #include <vector>
 #include <iostream>
+#ifdef USING_EIGEN
 #include "TPZEigenSparseMatrix.h"
+#endif
 #include "TPZGeoMeshTools.h"
 #include "TPZVTKGeoMesh.h"
 #include "pzcmesh.h"
@@ -24,21 +28,25 @@
 #include "TPZVTKGenerator.h"
 #include "TPZSpStructMatrix.h"
 #include "TPZSimpleTimer.h"
+#include "TPZSSpStructMatrix.h"
 
-#ifdef MACOSX
+// AccelerateSupport only works with eigen3-devel port
+//#define USEACCELERATESUPPORT
+#if defined(MACOSX) && defined(USEACCELERATESUPPORT)
 #include <Eigen/AccelerateSupport>
 #endif
 
+#ifdef USING_EIGEN
 typedef Eigen::SparseMatrix<double,0,long long> SpMat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> T;
-
+#endif
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.eigen");
 #endif
 
 // ----- Run tests with or without main -----
-//#define RUNWITHMAIN
+#define RUNWITHMAIN
 
 void InvertUsingEigen();
 void CreateSparse();
@@ -46,6 +54,7 @@ void AccelerateSparse();
 void TestSparseClass();
 void TestH1Problem();
 void TestAppleAccelerate();
+void TestSparseMatrixOperations();
 TPZGeoMesh* CreateGeoMesh(const int dim, TPZVec<int> &nDivs, const int volId, const int bcId);
 TPZCompMesh* CreateCMeshH1(TPZGeoMesh* gmesh, const int pOrder, const int volId, const int bcId);
 
@@ -81,12 +90,13 @@ TEST_CASE("Sparse_apple_accelerate", "[eigen_test]") {
 int main(){
 //    TestAppleAccelerate();
     TestH1Problem();
+//    TestSparseMatrixOperations();
     return 0;
 }
 
 #endif
 
-
+#ifdef USING_EIGEN
 void buildProblem(std::vector<T>& coefficients, Eigen::VectorXd& b, int n)
 {
 #ifndef RUNWITHMAIN
@@ -111,9 +121,11 @@ void buildProblem(std::vector<T>& coefficients, Eigen::VectorXd& b, int n)
         std::cout << "row " << it->row() << " col " << it->col() << " val " << it->value() << std::endl;
 #endif
 }
+#endif
 
 void InvertUsingEigen()
 {
+#ifdef USING_EIGEN
     std::cout << "We re all happy\n";
     int n = 3;  // size of the image
    
@@ -134,12 +146,13 @@ void InvertUsingEigen()
     std::cout << "solution " << x << std::endl;
     // Export the result to a file:
 //    saveAsBitmap(x, n, argv[1]);
+#endif
    
-    return;
 }
 
 void CreateSparse()
 {
+#ifdef USING_EIGEN
     long long ia[] = {0,1,3};
     long long ja[] = {0,0,1};
     double val[] = {1.,0.,2.};
@@ -152,11 +165,12 @@ void CreateSparse()
     Eigen::VectorXd x = chol.solve(b);         // use the factorization to solve for the given right hand side
    
     std::cout << "solution " << x << std::endl;
-
+#endif
 }
 
 void AccelerateSparse()
 {
+#ifdef USING_EIGEN
     long long ia[] = {0,1,3};
     long long ja[] = {0,0,1};
     double val[] = {1.,0.,2.};
@@ -170,10 +184,11 @@ void AccelerateSparse()
     Eigen::VectorXd x = chol.solve(b);         // use the factorization to solve for the given right hand side
    
     std::cout << "solution " << x << std::endl;
-
+#endif
 }
 
 void TestSparseClass() {
+#ifdef USING_EIGEN
     const int64_t nrows = 2;
     int64_t ia[] = {0,1,3};
     int64_t ja[] = {0,0,1};
@@ -195,14 +210,15 @@ void TestSparseClass() {
     REQUIRE(F[0] == Approx(1.0));
     REQUIRE(F[1] == Approx(2.0));
 #endif
+#endif
 }
 
 void TestH1Problem() {
     
     const int volid = 1, bcid = -1;
-    const int ndiv = 2;
+    const int ndiv = 20;
     const int dim = 3;
-    const int pOrder = 1;
+    const int pOrder = 2;
     TPZVec<int> nDivs;
     if(dim == 2) nDivs = {ndiv,ndiv};
     else nDivs = {ndiv,ndiv,ndiv};
@@ -210,7 +226,7 @@ void TestH1Problem() {
     TPZCompMesh* cmesh = CreateCMeshH1(gmesh,pOrder,volid,bcid);
     
     // ========> Solve H1
-    TPZLinearAnalysis an(cmesh,false);
+    TPZLinearAnalysis an(cmesh,true);
     constexpr int nThreads{16};
     TPZStructMatrixT<STATE>* matstruct;
     
@@ -234,6 +250,7 @@ void TestH1Problem() {
     an.SetSolver(step);
     
     std::cout << "\n---------------------- Starting Assemble ----------------------" << std::endl;
+    std::cout << "NEquations = " << an.Mesh()->NEquations() << std::endl;
     TPZSimpleTimer timer_ass;
     an.Assemble();
     std::cout << "==> total time : " << timer_ass.ReturnTimeDouble()/1000. << " seconds" << std::endl;
@@ -335,11 +352,10 @@ TPZCompMesh* CreateCMeshH1(TPZGeoMesh* gmesh, const int pOrder, const int volId,
 
 void TestAppleAccelerate() {
 
-#ifdef MACOSX
-    
+#if defined(MACOSX) && defined(USEACCELERATESUPPORT)    
     // NOTE (Feb/2023): From what I gathered, Apple Accelerate does not have support for std::complex.
     // It also has restrictions in setting int64_t as the indexer, which we use in PZ.
-    // For these reasons, I could not make it work to integrate it with our TPZEigenSparseMatrix class.
+    // For these reasons, I don't think it is worth to make it work to integrate it with our TPZEigenSparseMatrix class.
     // However, here is a working example for those that plan to use it in the future.
         
     long long ia[] = {0,1,3};
@@ -351,6 +367,7 @@ void TestAppleAccelerate() {
     int row = 2, col = 2, nnz = 3;
     Eigen::Map< SpMat> sparse(row,col,nnz,ia,ja,val);
     Eigen::AccelerateLDLT<Eigen::SparseMatrix<double,0>>* ldlt = new Eigen::AccelerateLDLT<Eigen::SparseMatrix<double,0>>(sparse);
+//    Eigen::AccelerateLDLT<Eigen::SparseMatrix<double,0, long long>>* ldlt = new Eigen::AccelerateLDLT<Eigen::SparseMatrix<double,0,long long>>(sparse); // This does not work!
     
     Eigen::VectorXd x = ldlt->solve(b); // use the factorization to solve for the given right hand side
    
@@ -359,4 +376,41 @@ void TestAppleAccelerate() {
     
 #endif
     
+}
+
+void TestSparseMatrixOperations() {
+#ifdef USING_EIGEN
+    const int nrows = 2;
+    long long ia[] = {0,1,3};
+    long long ja[] = {0,0,1};
+    double val[] = {1.,1.,2.};
+    double bptr[] = {1.,2.};
+    int row = 2, col = 2, nnz = 3;
+    Eigen::Map< SpMat > sparse(row,col,nnz,ia,ja,val);
+    Eigen::VectorXd x(nrows), z(nrows), y(nrows);
+    x[0] = 2.;
+    x[1] = 3.;
+    y[0] = 3.;
+    y[1] = 6.;
+    const double beta = 0.5;
+    
+//    z = beta * y + alpha * opt(this)*x
+    const bool isTranspose = true;
+    if(isTranspose){
+        std::cout << "\nsparse.IsRowMajor() = " << sparse.IsRowMajor << std::endl;
+        sparse.transpose();
+        z = beta * y + sparse * x;
+    }
+    else{
+        z = beta * y + sparse * x;
+    }
+        
+    
+    std::cout << "\nsolution = \n" << z << std::endl;
+
+#ifndef RUNWITHMAIN
+    REQUIRE(z[0] == Approx(5.0));
+    REQUIRE(z[1] == Approx(6.0));
+#endif
+#endif
 }

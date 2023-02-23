@@ -58,10 +58,8 @@ int TPZFYsmpMatrixPardiso<TVar>::Decompose(const DecomposeType dt)
   }
 
   if(!fPardisoControl.HasCustomSettings()){
-    typename TPZPardisoSolver<TVar>::MStructure str =
-      TPZPardisoSolver<TVar>::MStructure::ESymmetric;
-    typename TPZPardisoSolver<TVar>::MSystemType sysType =
-      TPZPardisoSolver<TVar>::MSystemType::ESymmetric;
+    typename TPZPardisoSolver<TVar>::MStructure str = this->IsSymmetric() ? TPZPardisoSolver<TVar>::MStructure::ESymmetric : TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
+    typename TPZPardisoSolver<TVar>::MSystemType sysType = this->IsSymmetric() ? TPZPardisoSolver<TVar>::MSystemType::ESymmetric : TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
     typename TPZPardisoSolver<TVar>::MProperty prop =
       this->IsDefPositive() ?
       TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
@@ -80,9 +78,9 @@ int TPZFYsmpMatrixPardiso<TVar>::SolveDirect ( TPZFMatrix<TVar>& F , const Decom
   if(this->fDecomposed && this->fDecomposed != dt){
     this->Error(__PRETTY_FUNCTION__,"matrix is already decomposed with other scheme");
   }
-  this->Decompose(dt);
-  const auto &this_ct = *this;
-  this_ct.SolveDirect(F,dt);
+  if(this->fDecomposed == ENoDecompose) this->Decompose(dt);
+  const TPZFYsmpMatrixPardiso<TVar>* this_ct = const_cast<const TPZFYsmpMatrixPardiso<TVar>*>(this);
+  this_ct->SolveDirect(F,dt);
   return 0;
 }
 

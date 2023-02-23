@@ -158,10 +158,20 @@ if(USING_TBB)
 endif()
 
 #enabling OMP library
-option(USING_OMP "Whether the TBB library will be linked in" OFF)
+option(USING_OMP "Whether the OpenMP library will be linked in" OFF)
 if(USING_OMP)
-    include(cmake/EnableOMP.cmake)
-    enable_omp(pz)
+    if(CMAKE_GENERATOR MATCHES "Xcode")
+        message(STATUS "setting flags")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Xclang -fopenmp")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fopenmp")
+        find_library(XCODE_OMP_LIB NAMES libiomp5.dylib PATHS /opt/local/lib/libomp)
+        target_link_libraries(pz PRIVATE ${XCODE_OMP_LIB})
+        find_path(XCODE_OMP_INCLUDE omp.h PATHS /opt/local/include/libomp)
+        include_directories(${XCODE_OMP_INCLUDE})
+    else()
+        include(cmake/EnableOMP.cmake)
+        enable_omp(pz)
+    endif()
 endif()
 
 #enabling LIKWID library
