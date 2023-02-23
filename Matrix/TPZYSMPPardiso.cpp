@@ -6,6 +6,12 @@
 #ifdef USING_MKL
 #include "TPZYSMPPardiso.h"
 #include "pzfmatrix.h"
+
+#ifdef USING_MKL
+#define MKL_Complex8 std::complex<float>
+#define MKL_Complex16 std::complex<double>
+#include <mkl_spblas.h>
+#endif
 // ****************************************************************************
 // 
 // Constructors and the destructor
@@ -43,6 +49,151 @@ int TPZFYsmpMatrixPardiso<TVar>::ClassId() const{
     return Hash("TPZFYsmpMatrixPardiso") ^ TPZFYsmpMatrix<TVar>::ClassId() << 1;
 }
 
+
+template<class TVar>
+void
+TPZFYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,
+                                     const TPZFMatrix<TVar> &y,
+                                     TPZFMatrix<TVar> &z,
+                                     const TVar alpha,
+                                     const TVar beta,const int opt) const {
+	// computes z = beta * y + alpha * opt(this)*x
+	//          z and x cannot share storage
+	
+#ifdef PZDEBUG
+    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
+        std::cout << "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" ;
+        return;
+    }
+    if(!IsZero(beta) && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+        std::cout << "TPZFMatrix::MultAdd matrix y with incompatible dimensions>";
+        return;
+    }
+#endif
+
+		//suported MKL types
+		if constexpr ((
+										(std::is_same_v<TVar,float>) ||
+										(std::is_same_v<TVar,double>) ||
+										(std::is_same_v<TVar,std::complex<float>>) ||
+										(std::is_same_v<TVar,std::complex<double>>)
+									 )){
+			const int m_rows = this->Rows();
+			const int m_cols = this->Cols();
+			const int x_rows = x.Rows();
+
+			if(IsZero(beta)){
+        const auto zr = opt ? m_cols : m_rows;
+        const auto zc = x.Cols();
+        z.Redim(zr,zc);
+      }else{
+        z = y;
+      }
+			
+			const int z_cols = z.Cols();
+			const int z_rows = z.Rows();
+			
+			sparse_status_t status; 
+			sparse_operation_t op =
+				opt ? SPARSE_OPERATION_TRANSPOSE : SPARSE_OPERATION_NON_TRANSPOSE;
+			sparse_index_base_t idx = SPARSE_INDEX_BASE_ZERO;
+			sparse_matrix_t A;
+			matrix_descr descr;
+			descr.type = SPARSE_MATRIX_TYPE_GENERAL;
+			descr.mode = SPARSE_FILL_MODE_FULL;
+			descr.diag = SPARSE_DIAG_NON_UNIT;
+
+			auto CheckStatus = [] (auto status){
+				switch(status){
+				case SPARSE_STATUS_SUCCESS:
+					return;
+					break;
+				case SPARSE_STATUS_NOT_INITIALIZED:
+					std::cout<<"The routine encountered an empty handle or matrix array. "<<std::endl;
+					DebugStop();
+					break;
+				case SPARSE_STATUS_ALLOC_FAILED:
+					std::cout<<"Internal memory allocation failed. "<<std::endl;
+					DebugStop();
+					break;
+				case SPARSE_STATUS_INVALID_VALUE:
+					std::cout<<"The input parameters contain an invalid value. "<<std::endl;
+					DebugStop();
+					break;
+				case SPARSE_STATUS_EXECUTION_FAILED:
+					std::cout<<"Execution failed. "<<std::endl;
+					DebugStop();
+					break;
+				case SPARSE_STATUS_INTERNAL_ERROR:
+					std::cout<<"An error in algorithm implementation occurred. "<<std::endl;
+					DebugStop();
+					break;
+				case SPARSE_STATUS_NOT_SUPPORTED:
+					std::cout<<"The requested operation is not supported. "<<std::endl;
+					DebugStop();
+					break;
+				}
+			};
+
+      TPZVec<int> ia(this->fIA.size(),0), ja(this->fJA.size(),0);
+      for(int i = 0; i < ia.size(); i++){
+        ia[i] = this->fIA[i];
+      }
+      for(int i = 0; i < ja.size(); i++){
+        ja[i] = this->fJA[i];
+      }
+      
+			//create A mat
+			if constexpr (std::is_same_v<TVar,double>){
+				status = mkl_sparse_d_create_csr(&A,idx, m_rows, m_cols,
+                                         ia.begin(), ia.begin()+1,
+																				 ja.begin(),this->fA.begin());
+				CheckStatus(status);
+			}
+			else if constexpr (std::is_same_v<TVar,float>){
+
+				status = mkl_sparse_s_create_csr(&A,idx, m_rows, m_cols, ia.begin(), ia.begin()+1,
+																				 ja.begin(),this->fA.begin());
+				CheckStatus(status);
+			}
+			else if constexpr (std::is_same_v<TVar,std::complex<double>>){
+				status = mkl_sparse_z_create_csr(&A,idx, m_rows, m_cols, ia.begin(), ia.begin()+1,
+																				 ja.begin(),this->fA.begin());
+				CheckStatus(status);
+			}
+			else if constexpr (std::is_same_v<TVar,std::complex<float>>){
+				status = mkl_sparse_c_create_csr(&A,idx, m_rows, m_cols, ia.begin(), ia.begin()+1,
+																				 ja.begin(),this->fA.begin());
+				CheckStatus(status);
+			}
+
+			for(int c = 0; c < z_cols; c++){
+				const TVar *x_ptr = x.Elem() + x_rows*c;
+				TVar *z_ptr = z.Elem() + z_rows*c;
+				if constexpr (std::is_same_v<TVar,double>){
+					status = mkl_sparse_d_mv(op,alpha,A,descr,x_ptr,beta,z_ptr);
+					CheckStatus(status);
+				}
+				else if constexpr (std::is_same_v<TVar,float>){
+					status = mkl_sparse_s_mv(op,alpha,A,descr,x_ptr,beta,z_ptr);
+					CheckStatus(status);
+				}
+				else if constexpr (std::is_same_v<TVar,std::complex<double>>){
+					status = mkl_sparse_z_mv(op,alpha,A,descr,x_ptr,beta,z_ptr);
+					CheckStatus(status);
+				}
+				else if constexpr (std::is_same_v<TVar,std::complex<float>>){
+					status = mkl_sparse_c_mv(op, alpha,A,descr,x_ptr,beta,z_ptr);
+					CheckStatus(status);
+				}
+			}
+			return;
+		}else{
+      //unsupported type
+      DebugStop();
+    }
+
+}
 
 template<class TVar>
 void TPZFYsmpMatrixPardiso<TVar>::SetIsDecomposed(DecomposeType val){

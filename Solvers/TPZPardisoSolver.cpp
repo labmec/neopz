@@ -16,6 +16,7 @@
 
 #ifdef USING_MKL
 #include "mkl_pardiso.h"
+#include "mkl.h"
 #else
 #define NOMKL                                                   \
     PZError<<"The class TPZPardisoSolver should not be used ";  \
