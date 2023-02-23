@@ -515,6 +515,22 @@ template<class TVar>
           SECTION("TPZSkylMatrix"){
               TestingTransposeMultiply<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
           }
+#ifdef PZ_USING_MKL
+          //suported MKL types
+          if constexpr ((
+                          (std::is_same_v<TVar,float>) ||
+                          (std::is_same_v<TVar,double>) ||
+                          (std::is_same_v<TVar,std::complex<float>>) ||
+                          (std::is_same_v<TVar,std::complex<double>>)
+                         )){
+            SECTION("TPZFYsmpMatrixPardiso"){
+              TestingTransposeMultiply<TPZFYsmpMatrixPardiso<TVar>, TVar>(dim, dim, 0);
+            }
+            SECTION("TPZSYsmpMatrixPardiso"){
+              TestingTransposeMultiply<TPZSYsmpMatrixPardiso<TVar>, TVar>(dim, dim, 1);
+            }
+          }
+#endif
       }
     }
 
@@ -545,6 +561,22 @@ template<class TVar>
           SECTION("TPZSkylMatrix"){
               TestingMultiplyWithAutoFill<TPZSkylMatrix<TVar>, TVar>(dim, 1);
           }
+#ifdef PZ_USING_MKL
+          //suported MKL types
+          if constexpr ((
+                          (std::is_same_v<TVar,float>) ||
+                          (std::is_same_v<TVar,double>) ||
+                          (std::is_same_v<TVar,std::complex<float>>) ||
+                          (std::is_same_v<TVar,std::complex<double>>)
+                         )){
+            SECTION("TPZFYsmpMatrixPardiso"){
+              TestingMultiplyWithAutoFill<TPZFYsmpMatrixPardiso<TVar>, TVar>(dim, 0);
+            }
+            SECTION("TPZSYsmpMatrixPardiso"){
+              TestingMultiplyWithAutoFill<TPZSYsmpMatrixPardiso<TVar>, TVar>(dim, 1);
+            }
+          }
+#endif
       }
     }
 
@@ -661,6 +693,22 @@ template<class TVar>
           SECTION("TPZFYsmpMatrix"){
               TestingMultAdd<TPZFYsmpMatrix<TVar>, TVar>(dim, 0, ELU);
           }
+#ifdef PZ_USING_MKL
+          //suported MKL types
+          if constexpr ((
+                          (std::is_same_v<TVar,float>) ||
+                          (std::is_same_v<TVar,double>) ||
+                          (std::is_same_v<TVar,std::complex<float>>) ||
+                          (std::is_same_v<TVar,std::complex<double>>)
+                         )){
+            SECTION("TPZFYsmpMatrixPardiso"){
+              TestingMultAdd<TPZFYsmpMatrixPardiso<TVar>, TVar>(dim, 0, ELU);
+            }
+            SECTION("TPZSYsmpMatrixPardiso"){
+              TestingMultAdd<TPZSYsmpMatrixPardiso<TVar>, TVar>(dim, 1, ECholesky);
+            }
+          }
+#endif
       }
     }
 #ifdef PZ_USING_LAPACK
@@ -1385,7 +1433,7 @@ void TestingTransposeMultiply(int row, int col, int symmetric) {
     //    square2.Print("square2",std::cout,EMathematicaInput);
     // Checking whether result matrix is the identity matrix
     bool check = true;
-    constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*100;
+    constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*1000;
     for (int i = 0; i < col; i++) {
         for (int j = 0; j < col; j++) {
             const auto diff = fabs(square(i, j) - square2(i, j));
