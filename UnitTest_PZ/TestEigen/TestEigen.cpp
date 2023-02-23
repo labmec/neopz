@@ -135,7 +135,7 @@ void InvertUsingEigen()
     // Export the result to a file:
 //    saveAsBitmap(x, n, argv[1]);
    
-    return 0;
+    return;
 }
 
 void CreateSparse()
