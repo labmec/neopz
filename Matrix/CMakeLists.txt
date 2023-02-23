@@ -27,8 +27,6 @@ set(headers
     pzblockdiag.h
     pzmatred.h
     pzshtmat.h
-    TPZYSMPPardiso.h
-    TPZSYSMPPardiso.h
     TPZYSMPMatrix.h
     TPZSYSMPMatrix.h
     TPZSolutionMatrix.h
@@ -57,13 +55,21 @@ set(sources
     pzshtmat.cpp
     TPZYSMPMatrix.cpp
     TPZSYSMPMatrix.cpp
-    TPZYSMPPardiso.cpp
-    TPZSYSMPPardiso.cpp
     TPZSolutionMatrix.cpp
     TPZTensor.cpp
     TPZTensorTranslator.cpp
     )
 
+  if(USING_MKL)
+    list(APPEND headers
+      TPZYSMPPardiso.h
+      TPZSYSMPPardiso.h
+    )
+    list(APPEND sources
+      TPZYSMPPardiso.cpp
+      TPZSYSMPPardiso.cpp
+      )
+  endif()
 	if(USING_EIGEN)
 		list(APPEND headers
 			TPZEigenSparseMatrix.h

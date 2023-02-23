@@ -11,8 +11,6 @@
 
 #include "TPZYSMPMatrix.h"
 
-#ifdef USING_MKL
-
 #include "TPZPardisoSolver.h"
 
  /**
@@ -74,5 +72,4 @@ private:
   TPZPardisoSolver<TVar> fPardisoControl;
 };
 
-#endif
 #endif

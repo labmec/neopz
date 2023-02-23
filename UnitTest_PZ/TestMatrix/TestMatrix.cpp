@@ -13,8 +13,10 @@
 #include "pzskylmat.h"
 #include "TPZYSMPMatrix.h"
 #include "TPZSYSMPMatrix.h"
-
-
+#ifdef PZ_USING_MKL
+#include "TPZYSMPPardiso.h"
+#include "TPZSYSMPPardiso.h"
+#endif
 #include <catch2/catch.hpp>
 
 template<>
@@ -211,7 +213,7 @@ void TestSVD(int nrows, int ncols);
 #ifdef PZ_USING_MKL
             if constexpr (std::is_same<RTVar,double>::value){
                 SECTION("TPZSYsmpMatrix"){
-                    TestingInverseWithAutoFill<TPZSYsmpMatrix<TVar>,TVar>(dim, 1, ECholesky);
+                    TestingInverseWithAutoFill<TPZSYsmpMatrixPardiso<TVar>,TVar>(dim, 1, ECholesky);
                 }
             }
 #endif
@@ -239,7 +241,7 @@ void TestSVD(int nrows, int ncols);
 #ifdef PZ_USING_MKL
             if constexpr (std::is_same<RTVar,double>::value){
                 SECTION("TPZSYsmpMatrix"){
-                    TestingInverseWithAutoFill<TPZSYsmpMatrix<TVar>,TVar>(dim, 1, ELDLt);
+                    TestingInverseWithAutoFill<TPZSYsmpMatrixPardiso<TVar>,TVar>(dim, 1, ELDLt);
                 }
             }
 #endif
@@ -288,10 +290,10 @@ void TestSVD(int nrows, int ncols);
 #ifdef PZ_USING_MKL
             if constexpr (std::is_same<RTVar,double>::value){
                 SECTION("TPZFYsmpMatrix"){
-                    TestingInverseWithAutoFill<TPZFYsmpMatrix<TVar>,TVar>(dim, 0, ELU);
+                    TestingInverseWithAutoFill<TPZFYsmpMatrixPardiso<TVar>,TVar>(dim, 0, ELU);
                 }
                 SECTION("TPZFYsmpMatrix"){
-                    TestingInverseWithAutoFill<TPZFYsmpMatrix<TVar>,TVar>(dim, 1, ELU);
+                    TestingInverseWithAutoFill<TPZFYsmpMatrixPardiso<TVar>,TVar>(dim, 1, ELU);
                 }
             }
             
