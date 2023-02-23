@@ -60,7 +60,7 @@ void TPZMGSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &resul
         fCoarse->Solve(FCoarse,UCoarse);
     }
 	tr->Multiply(UCoarse,result,1);
-	if(residual) this->Matrix()->Residual(fcp,result,*residual);
+	if(residual) this->Matrix()->Residual(result, fcp, *residual);
 }
 
 template <class TVar>
