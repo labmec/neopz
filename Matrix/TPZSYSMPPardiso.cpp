@@ -81,7 +81,8 @@ int TPZSYsmpMatrixPardiso<TVar>::SolveDirect ( TPZFMatrix<TVar>& F , const Decom
     this->Error(__PRETTY_FUNCTION__,"matrix is already decomposed with other scheme");
   }
   this->Decompose(dt);
-  this->SolveDirect(F,dt);
+  const auto &this_ct = *this;
+  this_ct.SolveDirect(F,dt);
   return 0;
 }
 
