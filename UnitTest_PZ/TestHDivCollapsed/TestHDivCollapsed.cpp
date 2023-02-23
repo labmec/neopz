@@ -5,6 +5,8 @@
 #include <TPZVTKGeoMesh.h>
 #include <pzgeoquad.h>
 #include <tpzgeoelrefpattern.h>
+#include "TPZSSpStructMatrix.h"
+#include "TPZSpStructMatrix.h"
 
 #include <pzcmesh.h>
 #include <TPZMultiphysicsCompMesh.h>
@@ -29,7 +31,7 @@
 #include <catch2/catch.hpp>
 
 // ----- Run tests with or without main -----
-//#define RUNWITHMAIN
+#define RUNWITHMAIN
 
 // ----- Functions -----
 void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLinPVar, const bool& isFracIntersect);
@@ -773,13 +775,15 @@ void SolveProblemDirect(TPZLinearAnalysis &an, TPZCompMesh *cmesh)
 {
     constexpr int nThreads{0};
 //    TPZSkylineStructMatrix<STATE> matskl(cmesh);
-    TPZFStructMatrix<STATE> matskl(cmesh);
+//    TPZFStructMatrix<STATE> matskl(cmesh);
+    TPZSpStructMatrix<STATE> matskl(cmesh);
+//    TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>> matskl(cmesh);
     matskl.SetNumThreads(nThreads);
     an.SetStructuralMatrix(matskl);
     
     ///Setting a direct solver
     TPZStepSolver<STATE> step;
-    step.SetDirect(ELDLt);//ELU //ECholesky // ELDLt
+    step.SetDirect(ELU);//ELU //ECholesky // ELDLt
     an.SetSolver(step);
     
     //assembles the system
