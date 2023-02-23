@@ -6,6 +6,10 @@ cmake_minimum_required (VERSION 3.14)
 #set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/cmake/CompilerOptionsMSVC.cmake")
 
 project(PZ LANGUAGES CXX)
+
+message("We strongly recommend usage of the following options
+(specially when testing changes in NeoPZ or in the develop branch):\nUSING_MKL=ON\nUSING_LOG4CXX=ON\n\nAlso, for multiple NeoPZ installs,
+changing CMAKE_INSTALL_PREFIX might be desirable\nfor setting up a local install.\n\n")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -121,7 +125,7 @@ if(USING_BOOST)
 endif()
 
 #enabling to use LOG4CXX library
-option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" ON)
+option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
 if(USING_LOG4CXX)
   #this is the definition used in pz lib
   include(cmake/EnableLog4cxx.cmake)
@@ -175,7 +179,7 @@ if(USING_LIBNUMA)
 endif()
 
 #enabling MKL library
-option(USING_MKL "Whether the MKL library will be linked in" ON)
+option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
     include(cmake/EnableMKL.cmake)
     enable_mkl(pz)
@@ -329,7 +333,6 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "C:/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
   else()
     set(CMAKE_INSTALL_PREFIX "/opt/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
-    set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/../neopz_install" CACHE PATH "Directory where PZ will be installed" FORCE)
   endif()
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
