@@ -212,6 +212,8 @@ protected:
 	TPZVec<int64_t> fBlockPos;
 	/** @brief Stores block sizes data */
 	TPZVec<int> fBlockSize;
+  /** @brief Block matrices as full mats (using fStorage as memory)*/
+  TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> fBlockMats;
 };
 
 template<class TVar>
