@@ -66,6 +66,17 @@ void TestGeneratingHermitianMatrix();
  */
 template <class matx, class TVar>
 void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec);
+
+/**
+ * @brief Tests the Inverse method of the matrix to any matrix types.
+ * @note The matrix should have been filled.
+ * @param mat Matrix to be inverted
+ * @param dec Decomposition method to be used (See enum DecomposeType at pzmatrix.h)
+ * @note Process: gets square matrix, compute its inverse and the inverse of the inverse.
+ * Then, checks whether the first and last matrices are identical.
+ */
+template <class matx, class TVar>
+void TestingInverse(matx mat, DecomposeType dec);
     
 /**
  * @brief Tests the operator * of the matrix, using AutoFill to build a square matrix of dimension dim (user defined)
@@ -1064,12 +1075,21 @@ void TestGeneratingHermitianMatrix() {
 template <class matx, class TVar>
 void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
   int i, j;
-  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
-  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   matx ma;
-  ma.AutoFill(dim, dim, symmetric);  
+  ma.AutoFill(dim, dim, symmetric);
+  TestingInverse<matx,TVar>(ma,dec);
+}
+
+template <class matx, class TVar>
+void TestingInverse(matx ma, DecomposeType dec) {
+  const bool symmetric = ma.IsSymmetric();
+  if(ma.Rows() != ma.Cols()){
+    const bool is_square_mat{false};
+    REQUIRE(is_square_mat);
+  }
   // Making ma copy because ma is modified by Inverse method (it's decomposed)
   matx cpma(ma);
+  const int dim = ma.Rows();
   TPZFMatrix<TVar> inv(dim, dim), invkeep;
   TPZFMatrix<TVar> res(inv);
   // getting inverse twice
@@ -1079,8 +1099,10 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
   //    ma.Print("skyl2 =",std::cout,EMathematicaInput);
   bool check = true;
   /// Checking whether the res matrix is identical to m1 matrix
-  for (i = 0; i < dim; i++) {
-      for (j = 0; j < dim; j++) {
+  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
+  for (int i = 0; i < dim; i++) {
+      for (int j = 0; j < dim; j++) {
           RTVar diff =
               fabs(cpma.Get(i, j) - res.Get(i, j));
         
@@ -1092,7 +1114,7 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
           check &= loccheck;
       }
   }
-    CAPTURE(dim,symmetric,dec);
+  CAPTURE(dim,symmetric,dec);
   REQUIRE(check);
   Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
