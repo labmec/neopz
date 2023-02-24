@@ -526,6 +526,9 @@ template<class TVar>
           SECTION("TPZSkylMatrix"){
               TestingTransposeMultiply<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
           }
+          SECTION("TPZBlockDiagonal"){
+              TestingTransposeMultiply<TPZBlockDiagonal<TVar>, TVar>(dim, dim, 0);
+          }
 #ifdef PZ_USING_MKL
           //suported MKL types
           if constexpr ((
@@ -703,6 +706,9 @@ template<class TVar>
           }
           SECTION("TPZFYsmpMatrix"){
               TestingMultAdd<TPZFYsmpMatrix<TVar>, TVar>(dim, 0, ELU);
+          }
+          SECTION("TPZBlockDiagonal"){
+              TestingMultAdd<TPZBlockDiagonal<TVar>, TVar>(dim, 0, ELU);
           }
 #ifdef PZ_USING_MKL
           //suported MKL types
