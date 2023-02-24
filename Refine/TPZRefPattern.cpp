@@ -1178,7 +1178,8 @@ void TPZRefPattern::ReadAndCreateRefinementPattern(std::istream &pattern){
             pattern >> nodes[incid];
         }
         int64_t index;
-        TPZGeoEl *subel = fRefPatternMesh.CreateGeoElement(etype, nodes, nummat, index, 0);
+        TPZGeoEl *subel = fRefPatternMesh.CreateGeoElement(etype, nodes, nummat, index, 1);
+        
         if(el == 0)
         {
             father = subel;
@@ -1187,7 +1188,7 @@ void TPZRefPattern::ReadAndCreateRefinementPattern(std::istream &pattern){
         if(el > 0)
         {
             subel->SetFather(father);
-            father->SetSubElement(el-1, subel);
+//            father->SetSubElement(el-1, subel);
             subel->SetFatherIndex(father->Index());
         }
     }
