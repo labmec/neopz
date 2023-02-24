@@ -761,6 +761,23 @@ template<class TVar>
         }
     }
 #endif
+  
+  template<class TVar>
+  void BlockDiagLUPivot(){
+    //we will create a matrix with 2x2 blocks that will require pivoting
+    const int nblocks = 5;
+    const int dim = 2*nblocks;
+    TPZFMatrix<TVar> fmat(dim,dim,0);
+    for(int i = 0; i < nblocks; i++){
+      fmat.PutVal(2*i, 2*i, 0);
+      fmat.PutVal(2*i, 2*i+1, 1);
+      fmat.PutVal(2*i+1, 2*i, 1);
+      fmat.PutVal(2*i+1, 2*i+1, 0);
+    }
+    TPZVec<int> blocksizes(nblocks,2);
+    TPZBlockDiagonal<TVar> blckmat(blocksizes,fmat);
+    TestingInverse<TPZBlockDiagonal<TVar>, TVar>(blckmat, ELU);
+  }
 };
 
 
@@ -1012,6 +1029,15 @@ TEMPLATE_TEST_CASE("Singular Value Decomposition (REAL)","[matrix_tests]",
                    double
                    ) {
     testmatrix::SingularValueDecomposition_Real<TestType>();
+}
+
+TEMPLATE_TEST_CASE("Additional Block Diagonal tests","[matrix_tests]",
+                   float,
+                   double,
+                   std::complex<float>,
+                   std::complex<double>
+                   ) {
+    testmatrix::BlockDiagLUPivot<TestType>();
 }
 #endif
 
