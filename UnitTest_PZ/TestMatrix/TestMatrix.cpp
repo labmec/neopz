@@ -1043,7 +1043,9 @@ TEMPLATE_TEST_CASE("Additional Block Diagonal tests","[matrix_tests]",
                    std::complex<float>,
                    std::complex<double>
                    ) {
+  SECTION("LU Pivot"){
     testmatrix::BlockDiagLUPivot<TestType>();
+  }
 }
 #endif
 
