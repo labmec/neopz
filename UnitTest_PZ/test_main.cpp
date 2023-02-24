@@ -16,6 +16,49 @@ int main( int argc, char* argv[] ) {
   return result;
 }
 
+struct EventListener : Catch::TestEventListenerBase
+{
+  std::vector<std::string> failed_sections;
+    using TestEventListenerBase::TestEventListenerBase;
+
+  std::string lastCase="";
+  bool no_fails{true};
+  
+  void testCaseStarting(Catch::TestCaseInfo const& testCaseInfo) final{
+    lastCase = testCaseInfo.name;
+    no_fails = true;
+  }
+
+  void sectionEnded(Catch::SectionStats const& sectionStats) final
+  {
+    if (sectionStats.assertions.failed > 0){
+      /*a test case will always have one implicit section (full case).
+        this logic aims to avoid printing the implicit section in case
+        inner sections have already failed*/
+      if(sectionStats.sectionInfo.name != lastCase || no_fails){
+        failed_sections.push_back(
+          lastCase
+          +' '
+          +sectionStats.sectionInfo.name);
+        no_fails = false;
+      }
+    }
+  }
+
+  void testRunEnded(Catch::TestRunStats const&) final
+  {
+    if(failed_sections.size() > 0){
+      std::cout<<"The following cases have failed:\n";
+      for(auto &s : failed_sections){
+        std::cout<<'\t'<<s<<'\n';
+      }
+      std::cout<<std::flush;
+    }
+  }
+};
+
+CATCH_REGISTER_LISTENER(EventListener)
+
 /*
 TEMPLATE_TEST_CASE_SYNTAX:
 
