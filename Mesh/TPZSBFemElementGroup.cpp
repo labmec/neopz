@@ -14,6 +14,7 @@
 #include "pzintel.h"
 #include "pzelctemp.h"
 #include "TPZMaterial.h"
+#include "TPZLapack.h"
 
 #include <numeric>
 

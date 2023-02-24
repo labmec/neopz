@@ -10,6 +10,7 @@
 #include "TPZSBFemVolumeMultiphysics.h"
 #include "TPZMaterialDataT.h"
 #include "TPZGeoLinear.h"
+#include "TPZLapack.h"
 
 #ifdef USING_MKL
 #include <mkl.h>
