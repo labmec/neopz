@@ -61,11 +61,11 @@ TPZMatrix<TVar>(mat), fElem(0),fGiven(0),fSize(0) {
     if(this->fRow*this->fCol) {
         
         fElem = new TVar[this->fRow*this->fCol];
-        TVar * p = fElem;
+        
         int64_t i,j;
         for(j=0; j<this->fCol; j++) {
             for(i=0; i<this->fRow; i++) {
-                *p++ = mat.GetVal(i,j);
+                this->PutVal(i, j, mat.GetVal(i,j));
             }
         }
     }
@@ -1461,8 +1461,7 @@ int TPZFMatrix<std::complex<double>>::Decompose_LU() {
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LU() {
     
-    std::list<int64_t> fake;
-    return this->Decompose_LU(fake);
+    return this->Decompose_LU(fPivot);
 }
 
 
@@ -1511,6 +1510,7 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 	if (this->fDecomposed != ELUPivot) {
 		Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
 	}
+    return Substitution(B,fPivot);
 #else
 	if(this->fDecomposed != ELU) {
         Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
