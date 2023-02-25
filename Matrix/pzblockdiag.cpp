@@ -332,7 +332,7 @@ void TPZBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 	
 	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZBlockDiagonal::MultAdd <matrixs with incompatible dimensions>" );
-	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
+	if(beta != TVar(0) && (x.Cols() != y.Cols() || x.Rows() != y.Rows())) {
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZBlockDiagonal::MultAdd incompatible dimensions\n");
 	}
 	
@@ -356,7 +356,6 @@ void TPZBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 			}
 		}
 	} else {
-		cout << "xcols \t" << xcols << "\n";
 		for (ic = 0; ic < xcols; ic++) {
 			eq=0;
 			for(b=0; b<nb; b++) {
@@ -364,7 +363,7 @@ void TPZBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 				int64_t pos = fBlockPos[b];
 				for(r=0; r<bsize; r++) {
 					for(c=0; c<bsize; c++) {
-						z(eq+r,ic) += alpha*fStorage[pos+r+bsize*c]*x.GetVal((eq+c),ic);
+						z(eq+r,ic) += alpha*fStorage[pos+c+bsize*r]*x.GetVal((eq+c),ic);
 					}
 				}
 				eq+=bsize;
@@ -542,8 +541,8 @@ void TPZBlockDiagonal<TVar>::Print(const char *msg, std::ostream &out, const Mat
 		out << "block number " << b << " size : " << bsize << std::endl;
 		int64_t r,c;
 		pos = fBlockPos[b];
-		for(c=0; c<bsize; c++) {
-			for(r=0; r<bsize ; r++) {
+        for(r=0; r<bsize ; r++) {
+            for(c=0; c<bsize; c++) {
 				out << fStorage[pos+r+bsize*c] << ' ';
 			}
 			out << std::endl;
