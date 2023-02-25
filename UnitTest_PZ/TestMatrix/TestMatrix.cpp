@@ -1143,12 +1143,17 @@ void TestingInverse(matx ma, DecomposeType dec) {
           bool loccheck = IsZero(diff / (RTVar) 100.);
           if (loccheck == false) {
               CAPTURE(i, j, diff);
-              std::cout << "diff " << diff << std::endl;
+              std::cout << " i " << i << " j " << j << "diff " << diff << std::endl;
           }
           check &= loccheck;
       }
   }
   CAPTURE(dim,symmetric,dec);
+    if(!check) {
+        cpma.Print(" block mat ",std::cout);
+        inv.Print(" inv mat ", std::cout);
+        res.Print(" inv inv mat ",std::cout);
+    }
   REQUIRE(check);
   Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
