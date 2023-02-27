@@ -17,6 +17,7 @@
 #include "TPZYSMPPardiso.h"
 #include "TPZSYSMPPardiso.h"
 #endif
+#include "tpzsparseblockdiagonal.h"
 #include <catch2/catch.hpp>
 
 template<>
@@ -784,6 +785,9 @@ template<class TVar>
     TPZBlockDiagonal<TVar> blckmat(blocksizes,fmat);
     TestingInverse<TPZBlockDiagonal<TVar>, TVar>(blckmat, ELU);
   }
+
+  template<class TVar>
+  void SparseBlockDiagInverse();
 };
 
 
@@ -1045,6 +1049,9 @@ TEMPLATE_TEST_CASE("Additional Block Diagonal tests","[matrix_tests]",
                    ) {
   SECTION("LU Pivot"){
     testmatrix::BlockDiagLUPivot<TestType>();
+  }
+  SECTION("Sparse Block Inverse"){
+    testmatrix::SparseBlockDiagInverse<TestType>();
   }
 }
 #endif
@@ -2160,4 +2167,87 @@ void TestSVD(int nrows, int ncols){
 
 #endif // PZ_USING_LAPACK
 
+template<class TVar>
+void SparseBlockDiagInverse(){
+
+  constexpr int neq = 10;
+  constexpr int nblocks = 3;
+  constexpr int bsize = 2;
+
+  TPZFMatrix<TVar> fmat(neq,neq);
+  fmat.AutoFill(neq, neq, 0);
+  //now we will extract a few blocks from the full matrix
+  //non-null equations
+  TPZVec<int64_t> blockgraph =
+    {
+      0,1,//first block
+      4,5,6,//second block
+      8,9//third block
+    };
+
+  //index in blockgraph of first equation of each block
+  TPZVec<int64_t> blockgraphindex =
+    {
+      0,//first block
+      2,//second block
+      5,//third block
+      7//size of blockgraph
+    };
+
+  TPZSparseBlockDiagonal<TVar> blmat(blockgraph,blockgraphindex,neq);
+  //now we remove the coupling from the full matrix
+  for (auto bleq : blockgraph){
+    int64_t block{0}, blockind{0};
+    blmat.FindBlockIndex(bleq, block, blockind);
+    for(int ieq : blockgraph){
+      int64_t blockother{0};
+      blmat.FindBlockIndex(ieq, blockother, blockind);
+      if(blockother != -1 && blockother != block){
+        fmat.PutVal(bleq, ieq, 0);
+        fmat.PutVal(ieq, bleq, 0);
+      }
+    }
+  }
+  blmat.BuildFromMatrix(fmat);
+
+  //rhs, initial solution, residual and sol update
+  TPZFMatrix<TVar> rhs(neq,1,0), u0(neq,1,0), res(neq,1,0), du(neq,1,0) ;
+  rhs.AutoFill(neq,1,0);
+
+  fmat.Residual(u0, rhs, res);
+
+  // fmat.Print("full",std::cout,EMathematicaInput);
+  // blmat.Print("blck",std::cout,EMathematicaInput);
+  // blmat.Print("blck",std::cout,EFormatted);
+  
+  du = res;
+  blmat.Solve_LU(&du);
+
+  fmat.Residual(du,rhs,res);
+
+  
+  //now we check if the residual is null for every eq in a block
+  constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*2000;
+  for(auto ieq : blockgraph){
+    CAPTURE(ieq);
+    CAPTURE(res);
+    REQUIRE((std::abs(res.GetVal(ieq,0)) == Approx(0).margin(tol)));
+  }
+
+  /*
+    NEXT:
+  - compute residual using a copy of block matrix
+  and check if relevant entries are the same
+  first we create blmatcp together with blmat.
+  then:
+
+  blmatcp.Residual(du,rhs,resblck);
+  for(auto ieq : blockgraph){
+    CAPTURE(ieq);
+    CAPTURE(res);
+    REQUIRE((std::abs(resblck.GetVal(ieq,0)) == Approx(0).margin(tol)));
+  }
+  
+  */
+}   
 };
