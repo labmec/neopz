@@ -154,7 +154,7 @@ int TPZSparseBlockDiagonal<TVar>::Substitution(TPZFMatrix<TVar>* B) const
 	Gather(*B,BG);
 	int result = TPZBlockDiagonal<TVar>::Substitution(&BG);
 	B->Zero();
-	Scatter(BG,*B);
+	ScatterAdd(BG,*B);
 	return result;
 	
 }
@@ -241,9 +241,14 @@ void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZF
 	if(abs(beta) != 0.) ysc.Resize(fBlock.NElements(),y.Cols());
 	zsc.Resize(fBlock.NElements(),z.Cols());
 	Gather(x,xsc);
-	if(abs(beta) != 0.) Scatter(y,ysc);
+	if(abs(beta) != 0.) Gather(y,ysc);
+	const auto rows = this->fRow;
+	/*sorry for non-constness*/
+	TPZSparseBlockDiagonal<TVar> *other = (TPZSparseBlockDiagonal<TVar> *)this;
+	other->fRow = other->fCol = this->fBlock.NElements();
 	TPZBlockDiagonal<TVar>::MultAdd(xsc, ysc, zsc, alpha, beta, opt);
-	Scatter(zsc,z);
+	ScatterAdd(zsc,z);
+	other->fRow = other->fCol = rows;
 }
 
 /*!
@@ -274,7 +279,7 @@ void TPZSparseBlockDiagonal<TVar>::FindBlockIndex(int64_t glob, int64_t &block, 
  \fn TPZSparseBlockDiagonal::Scatter(TPZFMatrix<>&in, TPZFMatrix<>&out) const
  */
 template<class TVar>
-void TPZSparseBlockDiagonal<TVar>::Scatter(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const
+void TPZSparseBlockDiagonal<TVar>::ScatterAdd(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const
 {
     int64_t neq = fBlock.NElements();
     int64_t nc = in.Cols();

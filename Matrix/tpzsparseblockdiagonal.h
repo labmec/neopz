@@ -54,7 +54,7 @@ protected:
 	/** @brief Index to first element of each block in fBlock */
     TPZVec<int64_t> fBlockIndex;
 	
-    void Scatter(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const;
+    void ScatterAdd(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const;
     void Gather(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const;
 };
 
