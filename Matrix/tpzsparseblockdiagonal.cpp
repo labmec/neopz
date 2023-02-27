@@ -30,6 +30,7 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 		this->fBlockSize[ibl] = blockgraphindex[ibl+1]-blockgraphindex[ibl];
 	}
 	this->Initialize(this->fBlockSize);
+	//initialize from parent class will set fRow and fCol as the number of equations
 	this->fRow = rows;
 	this->fCol = rows;
 }
