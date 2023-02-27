@@ -252,7 +252,7 @@ void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZF
 template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::FindBlockIndex(int64_t glob, int64_t &block, int64_t &blockind) const
 {
-    int64_t numbl = fBlockIndex.NElements()-2;
+    int64_t numbl = fBlockIndex.NElements()-1;
     int64_t ieq,ibl;
     for(ibl = 0; ibl<numbl; ibl++)
     {
