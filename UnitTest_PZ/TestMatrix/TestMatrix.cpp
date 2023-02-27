@@ -2194,7 +2194,8 @@ void SparseBlockDiagInverse(){
       7//size of blockgraph
     };
 
-  TPZSparseBlockDiagonal<TVar> blmat(blockgraph,blockgraphindex,neq);
+  TPZSparseBlockDiagonal<TVar> blmat(blockgraph,blockgraphindex,neq),
+    blcp(blockgraph,blockgraphindex, neq);
   //now we remove the coupling from the full matrix
   for (auto bleq : blockgraph){
     int64_t block{0}, blockind{0};
@@ -2209,9 +2210,11 @@ void SparseBlockDiagInverse(){
     }
   }
   blmat.BuildFromMatrix(fmat);
+  blcp.BuildFromMatrix(fmat);
 
   //rhs, initial solution, residual and sol update
-  TPZFMatrix<TVar> rhs(neq,1,0), u0(neq,1,0), res(neq,1,0), du(neq,1,0) ;
+  TPZFMatrix<TVar> rhs(neq,1,0), u0(neq,1,0), res(neq,1,0),
+    du(neq,1,0), resblck(neq,1,0);
   rhs.AutoFill(neq,1,0);
 
   fmat.Residual(u0, rhs, res);
@@ -2223,31 +2226,25 @@ void SparseBlockDiagInverse(){
   du = res;
   blmat.Solve_LU(&du);
 
-  fmat.Residual(du,rhs,res);
-
   
-  //now we check if the residual is null for every eq in a block
   constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*2000;
-  for(auto ieq : blockgraph){
-    CAPTURE(ieq);
-    CAPTURE(res);
-    REQUIRE((std::abs(res.GetVal(ieq,0)) == Approx(0).margin(tol)));
+  //now we check if the residual is null for every eq in a block
+  SECTION("Residual (full mat)"){
+    fmat.Residual(du,rhs,res);
+    for(auto ieq : blockgraph){
+      CAPTURE(ieq);
+      CAPTURE(res);
+      REQUIRE((std::abs(res.GetVal(ieq,0)) == Approx(0).margin(tol)));
+    }
   }
 
-  /*
-    NEXT:
-  - compute residual using a copy of block matrix
-  and check if relevant entries are the same
-  first we create blmatcp together with blmat.
-  then:
-
-  blmatcp.Residual(du,rhs,resblck);
-  for(auto ieq : blockgraph){
-    CAPTURE(ieq);
-    CAPTURE(res);
-    REQUIRE((std::abs(resblck.GetVal(ieq,0)) == Approx(0).margin(tol)));
+  SECTION("Residual (block mat)"){
+    blcp.Residual(du,rhs,resblck);
+    for(auto ieq : blockgraph){
+      CAPTURE(ieq);
+      CAPTURE(res);
+      REQUIRE((std::abs(resblck.GetVal(ieq,0)) == Approx(0).margin(tol)));
+    }
   }
-  
-  */
 }   
 };
