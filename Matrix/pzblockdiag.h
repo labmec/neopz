@@ -208,9 +208,9 @@ protected:
   }
 	/** @brief Stores matrix data */
 	TPZVec<TVar> fStorage;
-	/** @brief Stores blocks data */
+	/** @brief Stores position of first entry of each block in fStorage */
 	TPZVec<int64_t> fBlockPos;
-	/** @brief Stores block sizes data */
+	/** @brief Stores size of each block(nrows and ncols, blocks are square) */
 	TPZVec<int> fBlockSize;
   /** @brief Block matrices as full mats (using fStorage as memory)*/
   TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> fBlockMats;
