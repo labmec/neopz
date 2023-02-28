@@ -12,6 +12,7 @@
 #include "tpzautopointer.h"
 #include "pzeltype.h"
 #include <iostream>
+#include <fstream>
 #include <map>
 #include <set>
 #include <array>
