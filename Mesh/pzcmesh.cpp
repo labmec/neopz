@@ -1556,14 +1556,12 @@ void TPZCompMesh::AccountForElementError(TPZCompEl* cel, bool store_error, TPZMa
 void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum, std::set<int> &matset) {
 	
     if(!matset.size()) DebugStop();
-    
-	errorSum.Resize(3);
+
 	errorSum.Fill(0.);
 	
-	TPZManVector<REAL,3> true_error(3);
+	TPZManVector<REAL,3> true_error(errorSum.size());
 	true_error.Fill(0.);
 	
-
 	TPZCompEl *cel;
 	int gridDim = Dimension();
 	

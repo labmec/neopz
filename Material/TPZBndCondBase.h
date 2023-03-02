@@ -56,7 +56,7 @@ class TPZBndCondBase :
     virtual void Clone(std::map<int, TPZMaterial * >&matvec) override {
         auto bccopy = new TPZBndCondBase(*this);
 #ifdef PZDEBUG
-        if(matvec.find(this->Id()) == matvec.end()) DebugStop();
+        if(matvec.find(this->Id()) != matvec.end()) DebugStop();
 #endif
         matvec[this->Id()] = bccopy;
         auto newmat = matvec[this->Id()];
