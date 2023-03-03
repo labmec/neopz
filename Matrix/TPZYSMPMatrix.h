@@ -195,7 +195,21 @@ public:
 
 	
 	
-    int ClassId() const override;
+  int ClassId() const override;
+
+  /**
+   * @brief Unpacks the object structure from a stream of bytes
+   * @param buf The buffer containing the object in a packed form
+   * @param context
+   */
+  void Read(TPZStream &buf, void *context) override;
+
+  /**
+   * @brief Packs the object structure in a stream of bytes
+   * @param buf Buffer which will receive the bytes
+   * @param withclassid
+   */
+  void Write(TPZStream &buf, int withclassid) const override;
 
 
 	

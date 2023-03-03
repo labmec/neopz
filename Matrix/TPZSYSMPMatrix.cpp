@@ -488,6 +488,26 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::ClassId() const{
     return Hash("TPZSYsmpMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
+
+
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::Read(TPZStream &buf, void *context){
+	TPZMatrix<TVar>::Read(buf,context);
+	buf.Read(fIA);
+	buf.Read(fJA);
+	buf.Read(fA);
+	buf.Read(fDiag);	
+}
+
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::Write(TPZStream &buf, int withclassid) const{
+	TPZMatrix<TVar>::Write(buf,withclassid);
+	buf.Write(fIA);
+	buf.Write(fJA);
+	buf.Write(fA);
+	buf.Write(fDiag);
+}
+
 template class TPZSYsmpMatrix<double>;
 template class TPZSYsmpMatrix<float>;
 template class TPZSYsmpMatrix<long double>;
