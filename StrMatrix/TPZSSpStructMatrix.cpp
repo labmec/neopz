@@ -205,7 +205,7 @@ TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_
     }
 
     Eq[ieq] = pos;
-    mat->SetData(Eq,EqCol,EqValue);
+    mat->SetData(std::move(Eq),std::move(EqCol),std::move(EqValue));
     return mat;
 }
 

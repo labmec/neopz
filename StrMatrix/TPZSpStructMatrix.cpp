@@ -198,7 +198,7 @@ TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph,
         PZError<<"l pos: "<<pos<<'\n';
         DebugStop();
     }
-    mat->SetData(Eq,EqCol,EqValue);
+    mat->SetData(std::move(Eq),std::move(EqCol),std::move(EqValue));
     return mat;
 }
 
