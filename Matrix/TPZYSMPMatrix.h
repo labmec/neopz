@@ -118,8 +118,12 @@ public:
     
     /** @brief Pass the data to the class. */
     virtual void SetData( TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A );
+  virtual void SetData(TPZVec<int64_t> &&IA, TPZVec<int64_t> &&JA, TPZVec<TVar> &&A);
   /** @brief Get the data from the class*/
   virtual void GetData(TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A);
+  /** @brief Get the mem location of data from the class*/
+  virtual void GetData(int64_t* &IA, int64_t* &JA, TVar* &A);
+
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const override;
 	
@@ -280,6 +284,27 @@ inline void TPZFYsmpMatrix<TVar>::GetData( TPZVec<int64_t> &IA, TPZVec<int64_t> 
     IA = fIA;
     JA = fJA;
     A = fA;
+}
+
+template<class TVar>
+inline void TPZFYsmpMatrix<TVar>::GetData( int64_t* &IA, int64_t* &JA, TVar* &A ){
+    IA = fIA.begin();
+    JA = fJA.begin();
+    A = fA.begin();
+}
+
+template<class TVar>
+inline void TPZFYsmpMatrix<TVar>::SetData( TPZVec<int64_t> &&IA, TPZVec<int64_t> &&JA, TPZVec<TVar> &&A ){
+  if (IA.size() != this->Rows() + 1 ) {
+    DebugStop();
+  }
+    
+  if (JA.size() != IA[this->Rows()]) {
+    DebugStop();
+  }
+  fIA = std::move(IA);
+  fJA = std::move(JA);
+  fA = std::move(A);
 }
 
 #endif

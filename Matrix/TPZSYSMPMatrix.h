@@ -103,10 +103,14 @@ public :
 	/** @} */
 	/** @brief Sets data to the class */
 	virtual void SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A );
+  virtual void SetData(TPZVec<int64_t> &&IA, TPZVec<int64_t> &&JA, TPZVec<TVar> &&A);
   /** @brief Get the data from the class*/
   virtual void GetData(TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A);
-  
+  /** @brief Get the mem location of data from the class*/
+  virtual void GetData( int64_t* &IA, int64_t* &JA, TVar* &A );
 
+  
+  
     virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & destinationindex) override;
 	
 	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex) override;
@@ -193,6 +197,15 @@ inline void TPZSYsmpMatrix<TVar>::SetData(const TPZVec<int64_t> &IA,const TPZVec
 	ComputeDiagonal();
 }
 
+
+template<class TVar>
+inline void TPZSYsmpMatrix<TVar>::SetData( TPZVec<int64_t> &&IA, TPZVec<int64_t> &&JA, TPZVec<TVar> &&A ){
+    fIA = IA;
+    fJA = JA;
+    fA = A;
+    ComputeDiagonal();
+}
+
 template<class TVar>
 inline void TPZSYsmpMatrix<TVar>::GetData( TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A ){
     IA = fIA;
@@ -200,4 +213,10 @@ inline void TPZSYsmpMatrix<TVar>::GetData( TPZVec<int64_t> &IA, TPZVec<int64_t> 
     A = fA;
 }
 
+template<class TVar>
+inline void TPZSYsmpMatrix<TVar>::GetData( int64_t* &IA, int64_t* &JA, TVar* &A ){
+    IA = fIA.begin();
+    JA = fJA.begin();
+    A = fA.begin();
+}
 #endif
