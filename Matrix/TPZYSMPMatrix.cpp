@@ -1019,9 +1019,15 @@ void TPZFYsmpMatrix<TVar>::Write(TPZStream &buf, int withclassid) const{
 	buf.Write(fSymmetric);
 }
 
-template class TPZFYsmpMatrix<long double>;
-template class TPZFYsmpMatrix<double>;
-template class TPZFYsmpMatrix<float>;
-template class TPZFYsmpMatrix<std::complex<long double>>;
-template class TPZFYsmpMatrix<std::complex<double>>;
-template class TPZFYsmpMatrix<std::complex<float>>;
+#define TEMPL_INST(T) \
+  template class TPZRestoreClass<TPZFYsmpMatrix<T>>;\
+  template class TPZFYsmpMatrix<T>;
+
+TEMPL_INST(double)
+TEMPL_INST(float)
+TEMPL_INST(long double)
+TEMPL_INST(std::complex<float>)
+TEMPL_INST(std::complex<double>)
+TEMPL_INST(std::complex<long double>)
+
+#undef TEMPL_INST

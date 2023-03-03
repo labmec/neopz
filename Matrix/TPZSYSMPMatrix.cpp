@@ -508,9 +508,15 @@ void TPZSYsmpMatrix<TVar>::Write(TPZStream &buf, int withclassid) const{
 	buf.Write(fDiag);
 }
 
-template class TPZSYsmpMatrix<double>;
-template class TPZSYsmpMatrix<float>;
-template class TPZSYsmpMatrix<long double>;
-template class TPZSYsmpMatrix<std::complex<float>>;
-template class TPZSYsmpMatrix<std::complex<double>>;
-template class TPZSYsmpMatrix<std::complex<long double>>;
+#define TEMPL_INST(T) \
+  template class TPZRestoreClass<TPZSYsmpMatrix<T>>;\
+  template class TPZSYsmpMatrix<T>;
+
+TEMPL_INST(double)
+TEMPL_INST(float)
+TEMPL_INST(long double)
+TEMPL_INST(std::complex<float>)
+TEMPL_INST(std::complex<double>)
+TEMPL_INST(std::complex<long double>)
+
+#undef TEMPL_INST
