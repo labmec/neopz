@@ -66,9 +66,10 @@ int TPZInterpolationSpace::MaxOrder(){
 }
 
 /** @brief Adjust the integration rule according to the polynomial order of shape functions. */
-void TPZInterpolationSpace::AdjustIntegrationRule()
+void TPZInterpolationSpace::AdjustIntegrationRule(bool isMeshBuilt, int meshPreferredOrder)
 {
-    int order = MaxOrder();
+	int order = (isMeshBuilt) ? MaxOrder() : meshPreferredOrder;
+
     int integrationruleorder = 0;
     auto *mat =
         dynamic_cast<TPZMatSingleSpace*>(this->Material());

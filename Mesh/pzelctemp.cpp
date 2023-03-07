@@ -29,7 +29,8 @@ TPZInterpolatedElement(mesh,gel){
   }
 #endif
   
-   AdjustIntegrationRule();
+   bool isMeshBuilt = false;
+   AdjustIntegrationRule(isMeshBuilt,fPreferredOrder);
 }
 
 template<class TSHAPE>
