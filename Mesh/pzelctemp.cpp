@@ -28,23 +28,8 @@ TPZInterpolatedElement(mesh,gel){
     DebugStop();
   }
 #endif
-  //TODO: NATHANFRAN ASKPHIL
-
-
   
-  // AdjustIntegrationRule();
-	int order = fPreferredOrder;
-  int integrationruleorder = 0;
-  auto *mat =
-    dynamic_cast<TPZMatSingleSpace*>(this->Material());
-
-  if (mat) {
-    integrationruleorder = mat->IntegrationRuleOrder(order);
-  }else
-    {
-      integrationruleorder = order + order;
-    }
-  SetIntegrationRule(integrationruleorder);
+   AdjustIntegrationRule();
 }
 
 template<class TSHAPE>

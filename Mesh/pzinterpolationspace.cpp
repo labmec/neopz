@@ -72,12 +72,16 @@ void TPZInterpolationSpace::AdjustIntegrationRule()
     int integrationruleorder = 0;
     auto *mat =
         dynamic_cast<TPZMatSingleSpace*>(this->Material());
-
-    if (mat) {
+	auto *bc = dynamic_cast<TPZBndCond *>(mat);
+	if(bc)
+	{
+		integrationruleorder = bc->IntegrationRuleOrder(order);
+	}
+    else if (mat) {
         integrationruleorder = mat->IntegrationRuleOrder(order);
     }else
     {
-        integrationruleorder = order + order;
+        DebugStop();
     }
     SetIntegrationRule(integrationruleorder);
 }

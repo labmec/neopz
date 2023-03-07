@@ -40,6 +40,11 @@ public :
     [[nodiscard]] int ClassId() const override;
     //! Whether the boundary condition has a forcing function
     [[nodiscard]] virtual bool HasForcingFunctionBC() const = 0;
+
+    /**
+     * @brief Returns the polynomial order of the BC forcing function 
+     */
+    virtual int IntegrationRuleOrder(int order) const = 0;
   
     virtual void Print(std::ostream &out = std::cout) const;
     

@@ -43,6 +43,15 @@ public:
      */
     int ForcingFunctionBCPOrder() const {return fForcingFunctionBCPOrder;}
 
+    int IntegrationRuleOrder(int order) const override {
+        if(HasForcingFunctionBC()){
+            if(order < fForcingFunctionBCPOrder ){
+                return(order + fForcingFunctionBCPOrder);
+            }
+        }
+        return(order + order);
+     }
+
     //! Whether a forcing function has been set.
     [[nodiscard]] bool HasForcingFunctionBC() const final{
         return (bool)fForcingFunctionBC;}
