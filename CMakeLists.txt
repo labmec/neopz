@@ -89,7 +89,7 @@ if(APPLE)
   set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
 endif()
 # Location to search files or libraries
-set(EXTRA_SEARCH_DIRS ${EXTRA_SEARCH_DIRS})
+set(EXTRA_SEARCH_DIRS ${EXTRA_SEARCH_DIRS} /opt/homebrew/lib /opt/homebrew/include)
 
 #ENABLING EXTERNAL LIBRARIES
 

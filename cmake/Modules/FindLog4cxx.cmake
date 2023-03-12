@@ -14,12 +14,16 @@ if( Log4cxx_DIR )
   find_package( Log4cxx NO_MODULE )
 elseif( NOT Log4cxx_FOUND )
   message(STATUS "Searching for log4cxx/logger.h")
+  message(STATUS "search dirs are ${EXTRA_SEARCH_DIRS}")
   find_path( Log4cxx_INCLUDE_DIR
     NAMES log4cxx/logger.h
     PATHS ${EXTRA_SEARCH_DIRS})
 
   message(STATUS "Searching for libLog4cxx")
   find_library( Log4cxx_LIBRARY log4cxx )
+
+  message(STATUS "log4cxx_include_dir ${Log4cxx_INCLUDE_DIR}")
+  message(STATUS "log4cxx_library ${Log4cxx_LIBRARY}")
 
   include( FindPackageHandleStandardArgs )
   FIND_PACKAGE_HANDLE_STANDARD_ARGS( Log4cxx Log4cxx_INCLUDE_DIR Log4cxx_LIBRARY )
