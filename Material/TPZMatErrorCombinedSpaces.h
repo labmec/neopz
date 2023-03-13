@@ -33,7 +33,14 @@ class TPZMatErrorCombinedSpaces : public virtual TPZMatError<TVar>{
     //! Default constructor
     TPZMatErrorCombinedSpaces() = default;
 
-    
+    TPZMatErrorCombinedSpaces(const TPZMatErrorCombinedSpaces &copy) : TPZMatError<TVar>(copy) {
+        
+    }
+    TPZMatErrorCombinedSpaces &operator=(const TPZMatErrorCombinedSpaces &copy) {
+        TPZMatError<TVar>::operator=(copy);
+        return *this;
+    }
+
 //    [[nodiscard]] virtual int ClassId() const override;
 
     //! @name Error
