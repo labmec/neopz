@@ -302,7 +302,10 @@ static void SideShape(const TPZVec<REAL> &point, TPZVec<int64_t> &ids, TPZVec<in
 template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
-    if(side == TSHAPE::NSides -1 ) Shape(point,phi,dphi);
+    if(side == TSHAPE::NSides -1 ) {
+        Shape(point,phi,dphi);
+        return;
+    }
 	int nc = TSHAPE::NContainedSides(side);
 	int nn = TSHAPE::NSideNodes(side);
 	TPZManVector<int64_t,27> id(nn);
@@ -321,7 +324,6 @@ void TPZCompElH1<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
     TPZShapeData data;
     if(side == TSHAPE::NSides-1)
     {
-        TPZShapeData data;
         TPZShapeH1<TSHAPE>::Initialize(id, order, data);
     }
     else {
