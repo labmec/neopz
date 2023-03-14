@@ -238,7 +238,8 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
     TPZCompEl::Print(out);
     out << "Integration rule ";
     GetIntegrationRule().Print(out);
-    if(this->Reference())
+    TPZGeoEl *gref = Reference();
+    if(gref)
     {
         out << "\nCenter coordinate: ";
         TPZVec< REAL > centerMaster( this->Reference()->Dimension(),0. );
@@ -247,9 +248,11 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
         this->Reference()->X(centerMaster,centerEuclid);
         out << centerEuclid << std::endl;
     }
-    if(this->Material())
+    int matid = 0;
+    
+    if(gref)
     {
-        out << "Material id " << this->Material()->Id() << "\n";
+        out << "Material id " << gref->MaterialId() << "\n";
     }
     else {
         out << "No material\n";

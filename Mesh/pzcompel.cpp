@@ -312,7 +312,8 @@ void TPZCompEl::Print(std::ostream & out) const {
 
 	out << "\nOutput for a computable element index: " << fIndex;
     out << "\nfReferenceIndex " << fReferenceIndex;
-	if(this->Reference())
+    TPZGeoEl *gref = this->Reference();
+	if(gref)
 	{
 		out << "\nCenter coordinate: ";
 		TPZVec< REAL > centerMaster( this->Reference()->Dimension(),0. );
@@ -321,9 +322,12 @@ void TPZCompEl::Print(std::ostream & out) const {
 		this->Reference()->X(centerMaster,centerEuclid);
 		out << centerEuclid;
 	}
-	if(this->Material())
+    int matid = 0;
+    if(gref) matid = gref->MaterialId();
+    
+	if(gref)
 	{
-		out << "\nMaterial id " << this->Material()->Id() << "\n";
+		out << "\nMaterial id " << matid << "\n";
 	}
 	else {
 		out << "\nNo material\n";
