@@ -41,6 +41,10 @@ TPZMultiphysicsCompMesh::~TPZMultiphysicsCompMesh()
 {
     m_active_approx_spaces.Resize(0);
     m_mesh_vector.Resize(0);
+    int64_t nc = fConnectVec.NElements();
+    for (int ic=0; ic<nc; ic++) {
+        fConnectVec[ic].RemoveDepend();
+    }
 }
 
 TPZMultiphysicsCompMesh & TPZMultiphysicsCompMesh::operator=(const TPZMultiphysicsCompMesh &other){

@@ -190,10 +190,10 @@ void TPZCompMesh::CleanUp() {
 	
 	// THIS ROUTINE NEEDS TO INCLUDE THE DELETION OF THE LIST POINTERS
 	TPZGeoMesh *ref = Reference();
-	if (ref){
-		ref->ResetReference();
-		this->LoadReferences();
-	}
+//	if (ref){
+//		ref->ResetReference();
+//		this->LoadReferences();
+//	}
 
 	int64_t i, nelem = this->NElements();
 
@@ -306,6 +306,8 @@ void TPZCompMesh::Print (std::ostream & out) const {
         if (!mat) {
           DebugStop();
         }
+        int matindex = mit->first;
+        out << "material index " << matindex << std::endl;
 		mat->Print(out);
         out << std::endl;
 	}
