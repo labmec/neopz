@@ -28,7 +28,12 @@ class TPZMatErrorSingleSpace : public virtual TPZMatError<TVar> {
     //! Default constructor
     TPZMatErrorSingleSpace() = default;
     
-    TPZMatErrorSingleSpace(const TPZMatErrorSingleSpace &copy) = default;
+    TPZMatErrorSingleSpace(const TPZMatErrorSingleSpace &copy) : TPZMatError<TVar>(copy)
+    {
+//        std::cout <<  __PRETTY_FUNCTION__ << std::endl;
+//        std::cout << "copy porder " << copy.fExactPOrder << std::endl;
+//        std::cout << "this porder " << this->fExactPOrder << std::endl;
+    }
 
     TPZMatErrorSingleSpace &operator=(const TPZMatErrorSingleSpace &copy) = default;
 //    [[nodiscard]] int ClassId() const override;

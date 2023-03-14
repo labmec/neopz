@@ -22,7 +22,7 @@
 #include "TPZMatErrorCombinedSpaces.h"
 
 
-class TPZHybridDarcyFlow : public TPZMatCombinedSpacesT<STATE>,public TPZMatErrorCombinedSpaces<STATE>, public TPZDarcyFlow {
+class TPZHybridDarcyFlow : public TPZDarcyFlow, public TPZMatCombinedSpacesT<STATE>,public TPZMatErrorCombinedSpaces<STATE> {
 
 
 public:
@@ -38,6 +38,16 @@ public:
 	 */
     TPZHybridDarcyFlow(int id, int dim);
 
+    TPZHybridDarcyFlow(const TPZHybridDarcyFlow &copy) : TPZDarcyFlow(copy), TPZMatCombinedSpacesT<STATE>(copy),
+    TPZMatErrorCombinedSpaces<STATE>(copy){
+
+    }
+    TPZHybridDarcyFlow &operator=(const TPZHybridDarcyFlow &copy){
+        TPZDarcyFlow::operator=(copy);
+        TPZMatCombinedSpacesT<STATE>::operator=(copy);
+        TPZMatErrorCombinedSpaces<STATE>::operator=(copy);
+        return *this;
+    }
     /**
      * @brief Returns the problem dimension
      */

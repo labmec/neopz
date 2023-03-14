@@ -25,11 +25,21 @@ class TPZMatError {
 public:
 
     //! Default constructor
-    TPZMatError() = default;
+    TPZMatError() : fExactSol(NULL), fExactPOrder(0) {
+//        std::cout << __PRETTY_FUNCTION__ << std::endl;
+    }
     
-    TPZMatError(const TPZMatError & copy) = default;
+    TPZMatError(const TPZMatError & copy) : fExactSol(copy.fExactSol), fExactPOrder(copy.fExactPOrder) {
+//        std::cout << __PRETTY_FUNCTION__ << std::endl;
+//        std::cout << "copy porder " << copy.fExactPOrder << std::endl;
+//        std::cout << "fExactPOrder " << fExactPOrder << std::endl;
+    }
     
-    TPZMatError &operator = (const TPZMatError & copy) = default;
+    TPZMatError &operator = (const TPZMatError & copy) {
+        fExactSol = copy.fExactSol;
+        fExactPOrder = copy.fExactPOrder;
+//        std::cout << __PRETTY_FUNCTION__ << std::endl;
+    }
     //!@name Error
     /** @{*/
     /**

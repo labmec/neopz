@@ -9,7 +9,19 @@ TPZDarcyFlow::TPZDarcyFlow() : TPZRegisterClassId(&TPZDarcyFlow::ClassId),
                                TBase(), fDim(-1) {}
 
 TPZDarcyFlow::TPZDarcyFlow(int id, int dim) : TPZRegisterClassId(&TPZDarcyFlow::ClassId),
-                                              TBase(id), fDim(dim) {}
+                                              TBase(id), fDim(dim) {
+                                                  std::cout << __PRETTY_FUNCTION__ << std::endl;
+                                              }
+
+TPZDarcyFlow::TPZDarcyFlow(const TPZDarcyFlow &copy) : TPZMatBase(copy), fDim(copy.fDim)
+{
+}
+
+TPZDarcyFlow& TPZDarcyFlow::operator=(const TPZDarcyFlow &copy) {
+    TPZMatBase::operator=(copy);
+    fDim = copy.fDim;
+    return *this;
+}
 
 void TPZDarcyFlow::SetDimension(int dim) {
     if (dim > 3 || dim < 1) DebugStop();

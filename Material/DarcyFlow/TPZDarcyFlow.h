@@ -40,6 +40,10 @@ public:
 	 */
     TPZDarcyFlow(int id, int dim);
 
+            TPZDarcyFlow(const TPZDarcyFlow &copy);
+
+            TPZDarcyFlow& operator=(const TPZDarcyFlow &copy);
+
     /**
 	 * @brief Returns a 'std::string' with the name of the material
 	 */

@@ -31,10 +31,13 @@ class TPZMatErrorCombinedSpaces : public virtual TPZMatError<TVar>{
     // this will be used in CreateBC
     using TInterfaceBC = TPZMatErrorCombinedSpacesBC<TVar>;
     //! Default constructor
-    TPZMatErrorCombinedSpaces() = default;
+    TPZMatErrorCombinedSpaces() : TPZMatError<TVar>()
+    {
+//        std::cout << __PRETTY_FUNCTION__ << std::endl;
+    }
 
     TPZMatErrorCombinedSpaces(const TPZMatErrorCombinedSpaces &copy) : TPZMatError<TVar>(copy) {
-        
+//        std::cout << __PRETTY_FUNCTION__ << std::endl;
     }
     TPZMatErrorCombinedSpaces &operator=(const TPZMatErrorCombinedSpaces &copy) {
         TPZMatError<TVar>::operator=(copy);
