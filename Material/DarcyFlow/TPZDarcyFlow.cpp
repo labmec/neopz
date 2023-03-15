@@ -10,7 +10,6 @@ TPZDarcyFlow::TPZDarcyFlow() : TPZRegisterClassId(&TPZDarcyFlow::ClassId),
 
 TPZDarcyFlow::TPZDarcyFlow(int id, int dim) : TPZRegisterClassId(&TPZDarcyFlow::ClassId),
                                               TBase(id), fDim(dim) {
-                                                  std::cout << __PRETTY_FUNCTION__ << std::endl;
                                               }
 
 TPZDarcyFlow::TPZDarcyFlow(const TPZDarcyFlow &copy) : TPZMatBase(copy), fDim(copy.fDim)
