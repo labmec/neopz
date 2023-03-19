@@ -1336,14 +1336,13 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
 
         case ESteepWave:
         {
-            TPZManVector<TVar,3> x0;
-            x0.resize(fDimension);
+            TPZManVector<TVar,3> x0(fDimension,TVar(0.));
             TVar r2Circle = TVar(0);
             TVar r0 = TVar(0.7);
             TVar alpha = TVar(100);
 
             for (int i=0; i<fDimension; i++) {
-                x0[i] = TVar(-0.05);
+//                x0[i] = TVar(-0.05);
                 r2Circle += (xloc[i]-x0[i])*(xloc[i]-x0[i]);
             }
             TVar rCircle = sqrt(r2Circle);
@@ -1675,14 +1674,13 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
 
         case ESteepWave:
         {
-            TPZManVector<TVar,3> x0;
-            x0.resize(fDimension);
+            TPZManVector<TVar,3> x0(fDimension,TVar(0.));
             TVar r2Circle = TVar(0);
             TVar r0 = TVar(0.7);
             TVar alpha = TVar(100);
 
             for (int i=0; i<fDimension; i++) {
-                x0[i] = TVar(-0.05);
+//                x0[i] = TVar(-0.05);
                 r2Circle += (xloc[i]-x0[i])*(xloc[i]-x0[i]);
             }
             TVar rCircle = FADsqrt(r2Circle);
