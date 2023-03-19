@@ -344,13 +344,17 @@ public:
     /**
      *      verify if a neighbour with the given material id exists
     */
-    TPZGeoElSide HasNeighbour(std::set<int> matIDs) const;
+    TPZGeoElSide HasNeighbour(const std::set<int> &matIDs) const;
     
     /** verifiy if a larger (lower level) neighbour exists with the given material id
      */
     TPZGeoElSide HasLowerLevelNeighbour(int materialid) const;
     
+    /** verifiy if a larger (lower level) neighbour exists with the given material id
+     */
+    TPZGeoElSide HasLowerLevelNeighbour(const std::set<int> &matids) const;
     
+
     /** @brief Will return all elements of equal or higher level than than the current element */
 	void EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celside, int onlyinterpolated, int removeduplicates);
     

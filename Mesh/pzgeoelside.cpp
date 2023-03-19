@@ -1440,7 +1440,7 @@ TPZGeoElSide TPZGeoElSide::HasNeighbour(int materialid) const
     return TPZGeoElSide();
 }
 
-TPZGeoElSide TPZGeoElSide::HasNeighbour(std::set<int> matIDs) const
+TPZGeoElSide TPZGeoElSide::HasNeighbour(const std::set<int> &matIDs) const
 {
     for (const auto &it : matIDs) {
         TPZGeoElSide neigh = HasNeighbour(it);
@@ -1467,6 +1467,20 @@ TPZGeoElSide TPZGeoElSide::HasLowerLevelNeighbour(int materialid) const
     return lower;
 }
 
+/** verifiy if a larger (lower level) neighbour exists with the given material id
+ */
+TPZGeoElSide TPZGeoElSide::HasLowerLevelNeighbour(const std::set<int> &matids) const
+{
+    if(!fGeoEl) return TPZGeoElSide();
+    TPZGeoElSide lower = LowerLevelSide();
+    while(lower)
+    {
+        TPZGeoElSide neighbour = lower.HasNeighbour(matids);
+        if(neighbour) return neighbour;
+        lower = lower.LowerLevelSide();
+    }
+    return lower;
+}
 /// Compute if the neighbour along a face has normal pointing outward
 bool TPZGeoElSide::IsNeighbourCounterClockWise(TPZGeoElSide &neighbour)
 {
