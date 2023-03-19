@@ -849,41 +849,46 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiffT(TPZElementMatrixT<TVar> &ek, T
     
     int dim = Dimension();
     TPZAutoPointer<TPZIntPoints> intrule;
+    TPZGeoEl *ref = this->Reference();
+
+    if(fIntRule.NPoints() == 1) {
+        
+        TPZManVector<int,4> ordervec;
+        //ordervec.resize(nref);
+        for (int64_t iref=0;  iref<nref; iref++)
+        {
+            TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+            int svec;
+            if(msp)
+            {
+                ordervec.Resize(ordervec.size()+1);
+                svec = ordervec.size();
+            }
+            else
+            {
+                continue;
+            }
+            datavec[iref].p = msp->MaxOrder();
+            ordervec[svec-1] = datavec[iref].p;
+        }
+        
+        int order = matCombined->IntegrationRuleOrder(ordervec);
+        
+        intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
+        
+        TPZManVector<int,4> intorder(dim,order);
+        intrule->SetOrder(intorder);
+        if(intrule->NPoints() > 1000) {
+            DebugStop();
+        }
+    } else {
+        intrule = fIntRule.Clone();
+    }
     
+    int intrulepoints = intrule->NPoints();
     TPZManVector<REAL,4> intpointtemp(TGeometry::Dimension,0.);
     REAL weight = 0.;
-    
-    TPZManVector<int,4> ordervec;
-    //ordervec.resize(nref);
-    for (int64_t iref=0;  iref<nref; iref++)
-    {
-        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
-        int svec;
-        if(msp)
-        {
-            ordervec.Resize(ordervec.size()+1);
-            svec = ordervec.size();
-        }
-        else
-        {
-            continue;
-        }
-        datavec[iref].p = msp->MaxOrder();
-        ordervec[svec-1] = datavec[iref].p;
-    }
-    
-    int order = matCombined->IntegrationRuleOrder(ordervec);
-    
-    TPZGeoEl *ref = this->Reference();
-    intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
-    
-    TPZManVector<int,4> intorder(dim,order);
-    intrule->SetOrder(intorder);
-    int intrulepoints = intrule->NPoints();
-    if(intrulepoints > 1000) {
-        DebugStop();
-    }
-    
+
     TPZFMatrix<REAL> jac, axe, jacInv;
     REAL detJac;
     for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
@@ -1281,7 +1286,9 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool
   }//fim for : integration rule
   //Norma sobre o elemento
   for (int ier = 0; ier < NErrors; ier++) {
-    errors[ier] = sqrt(errors[ier]);
+      if(ier < 7) {
+          errors[ier] = sqrt(errors[ier]);
+      }
   }//for ier
 
   if (store_errors) {
