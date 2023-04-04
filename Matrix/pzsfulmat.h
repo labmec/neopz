@@ -39,10 +39,8 @@ public:
 	
 	~TPZSFMatrix();
 	
-    /** @brief Checks if the current matrix is symmetric */
-    virtual int IsSymmetric() const  override {
-        return 1;
-    }
+    /** @brief Sets symmetry property of current matrix (only hermitian/symmetric allowed)*/
+    void SetSymmetry (SymProp sp) override;
 
     friend class TPZSFMatrix<float>;
     friend class TPZSFMatrix<double>;

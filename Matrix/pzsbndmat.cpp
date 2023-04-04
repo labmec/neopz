@@ -37,6 +37,7 @@ TPZSBMatrix<TVar>::TPZSBMatrix( int64_t dim, int64_t band )
 : TPZRegisterClassId(&TPZSBMatrix::ClassId),
 TPZMatrix<TVar>( dim, dim )
 {
+    this->fSymProp = SymProp::Herm;
     fBand = ( band > (dim - 1) ? (dim - 1) : band );
     fStorage.resize(Size());
     
@@ -44,11 +45,20 @@ TPZMatrix<TVar>( dim, dim )
 }
 
 
+template<class TVar>
+void TPZSBMatrix<TVar>::SetSymmetry (SymProp sp){
+    if(sp == SymProp::NonSym){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nTrying to set matrix with symmetric storage as non symmetric\n"
+               <<"Aborting..."<<std::endl;
+        DebugStop();
+    }
+}
 
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
-void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
-    if (nrow != ncol || symmetric == 0) {
+void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym) {
+    if (nrow != ncol || sym == SymProp::NonSym) {
         DebugStop();
     }
     fBand = nrow/10;
@@ -105,7 +115,7 @@ TPZSBMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar& value )
     if ( row > col ){
         //hermitian matrix
         if constexpr (is_complex<TVar>::value){
-            val = std::conj(value);
+            if(this->fSymProp == SymProp::Herm) {val = std::conj(value);}
         }
         this->Swap( &row, &col );
     }
@@ -132,7 +142,8 @@ TPZSBMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) const
         if (auto index = row-col; index > fBand ){
             return (TVar) 0;//out of band
         }else if constexpr(is_complex<TVar>::value){
-            return( std::conj(fStorage[Index(col,row)]) );
+            if(this->fSymProp == SymProp::Herm) {return( std::conj(fStorage[Index(col,row)]) );}
+            else{return fStorage[Index(col,row)];}
         }else{
             return( fStorage[ Index(col,row) ] );
         }
@@ -145,63 +156,23 @@ TPZSBMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) const
     }
 }
 
-template<>
-std::complex<float>
-&TPZSBMatrix< std::complex< float> >::operator()(const int64_t r,const int64_t c )
-{
-    
-    // inicializando row e col para trabalhar com a triangular superior
-    int64_t row(r),col(c);
-    bool mustConj = false;
-    if ( row > col ){
-        this->Swap( &row, &col );
-        mustConj = true;
-    }
-    
-    int64_t index;
-    if ( (index = col-row) > fBand )
-        return( this->gZero );        // O elemento esta fora da banda.
-    if( mustConj ){
-        static std::complex<float> cpVal;
-        cpVal = std::conj( fStorage[ Index(row,col) ] );
-        return cpVal;
-    }
-    else
-        return( fStorage[ Index(row,col) ] );
-}
-
-template<>
-std::complex<double>
-&TPZSBMatrix< std::complex<double> >::operator()(const int64_t r,const int64_t c )
-{
-    
-    // inicializando row e col para trabalhar com a triangular superior
-    int64_t row(r),col(c);
-    bool mustConj = false;
-    if ( row > col ){
-        this->Swap( &row, &col );
-        mustConj = true;
-    }
-    
-    int64_t index;
-    if ( (index = col-row) > fBand )
-        return( this->gZero );        // O elemento esta fora da banda.
-    if( mustConj ){
-        static std::complex<double> cpVal;
-        cpVal = std::conj( fStorage[ Index(row,col) ] );
-        return cpVal;
-    }
-    else
-        return( fStorage[ Index(row,col) ] );
-}
-
 
 template<class TVar>
 TVar &TPZSBMatrix<TVar>::operator()(int64_t row, int64_t col)
 {
     // row and col are set to work with upper triang mat
-    if ( row > col )
+    if ( row > col ){
         this->Swap( &row, &col );
+        if constexpr (is_complex<TVar>::value){
+            if(this->fSymProp == SymProp::Herm){
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\nTrying to access lower triang hermitian mat by reference\n"
+                       <<"Aborting..."
+                       <<std::endl;
+                DebugStop();
+            }
+        }
+    }
     
     int64_t index;
     if ( (index = col-row) > fBand )
@@ -496,7 +467,18 @@ TPZSBMatrix<TVar>::Decompose_Cholesky()
     if (  this->fDecomposed ) return ECholesky;
     if ( this->Rows()!=this->Cols() ) this->Error( "Decompose_Cholesky <Matrix must be square>" );
     //return 0;
-    
+
+#ifdef PZDEBUG
+    const bool cond =
+        (is_complex<TVar>::value && this->IsSymmetric() == SymProp::Sym) ||
+        this->IsSymmetric() == SymProp::NonSym;
+    if (cond){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nCalling Cholesky decomposition on non symmetric matrix! Aborting..."
+               <<std::endl;
+        DebugStop();
+    }
+#endif
     int64_t dim=this->Rows();
     for (int64_t i=0 ; i<dim; i++) {
         for(int64_t k=0; k<i; k++) {//diagonal elements

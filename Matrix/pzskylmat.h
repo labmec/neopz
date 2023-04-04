@@ -31,7 +31,8 @@ template<class TVar>
 class TPZSkylMatrix : public TPZMatrix<TVar>
 {
 public:
-	TPZSkylMatrix() : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>(0,0),fElem(0),fStorage(0) { }
+	TPZSkylMatrix() : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>(0,0),fElem(0),fStorage(0) {
+    this->fSymProp = SymProp::Herm;}
 	TPZSkylMatrix(const int64_t dim);
 	/**
      @brief Construct a skyline matrix of dimension dim
@@ -70,8 +71,8 @@ public:
 	 */
 	void AddSameStruct(TPZSkylMatrix<TVar> &B, double k = 1.);
 	
-	/** @brief declare the object as simetric matrix*/
-	virtual int IsSymmetric() const  override {return 1;}
+	/** @brief Sets symmetry property of current matrix (only hermitian/symmetric allowed)*/
+  void SetSymmetry (SymProp sp) override;
     
     /**
 	 * @brief Updates the values of the matrix based on the values of the matrix
@@ -286,7 +287,7 @@ public:
 	// @}
 	
 	//void TestSpeed(int col, int prevcol);
-	virtual void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+	virtual void AutoFill(int64_t nrow, int64_t ncol, SymProp symmetric) override;
 	
 	public:
 int ClassId() const override;
