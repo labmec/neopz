@@ -576,7 +576,7 @@ void TPZBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 
 /** Fill the matrix with random values (non singular matrix) */
 template<class TVar>
-void TPZBlockDiagonal<TVar>::AutoFill(int64_t neq, int64_t jeq, int symmetric) {
+void TPZBlockDiagonal<TVar>::AutoFill(int64_t neq, int64_t jeq, SymProp sp) {
     if (neq != jeq) {
         DebugStop();
     }
@@ -592,18 +592,29 @@ void TPZBlockDiagonal<TVar>::AutoFill(int64_t neq, int64_t jeq, int symmetric) {
     // Initialize the blocksizes!!
 	int64_t b, bsize, eq = 0, pos;
 	int64_t nb = fBlockSize.NElements(), r, c;
+
+	const bool must_conj = is_complex<TVar>::value && sp == SymProp::Herm;
 	for ( b=0; b<nb; b++) {
 		pos= fBlockPos[b];
 		bsize = fBlockSize[b];
 		for(c=0; c<bsize; c++) {
             RTVar sum = 0.;
             r=0;
-            if (symmetric == 1) {
-                for (r=0; r<c; r++) {
-                    fStorage[pos+c+r*bsize]=fStorage[pos+r+c*bsize];
-                    sum += fabs(fStorage[pos+r+c*bsize]);
-                }
-            }
+						if (must_conj){
+							if constexpr (is_complex<TVar>::value){
+								for (r=0; r<c; r++) {
+									fStorage[pos+c+r*bsize]=std::conj(fStorage[pos+r+c*bsize]);
+									sum += fabs(fStorage[pos+r+c*bsize]);
+								}
+							}else{
+								DebugStop();//how the hell did we get here?
+							}
+						}else{
+							for (r=0; r<c; r++) {
+								fStorage[pos+c+r*bsize]=fStorage[pos+r+c*bsize];
+								sum += fabs(fStorage[pos+r+c*bsize]);
+							}
+						}
 			for(; r<bsize; r++) {
 				auto val = this->GetRandomVal();
 				fStorage[pos+c+r*bsize] = (val);
