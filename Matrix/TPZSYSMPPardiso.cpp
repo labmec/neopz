@@ -92,7 +92,7 @@ void TPZSYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMa
 			sparse_index_base_t idx = SPARSE_INDEX_BASE_ZERO;
 			sparse_matrix_t A;
 			matrix_descr descr;
-			descr.type = SPARSE_MATRIX_TYPE_HERMITIAN;
+			descr.type = this->IsSymmetric() == SymProp::Herm ? SPARSE_MATRIX_TYPE_HERMITIAN : SPARSE_MATRIX_TYPE_SYMMETRIC;
 			descr.mode = SPARSE_FILL_MODE_UPPER;
 			descr.diag = SPARSE_DIAG_NON_UNIT;
 
@@ -195,15 +195,11 @@ int TPZSYsmpMatrixPardiso<TVar>::Decompose(const DecomposeType dt)
   }
 
   if(!fPardisoControl.HasCustomSettings()){
-    typename TPZPardisoSolver<TVar>::MStructure str =
-      TPZPardisoSolver<TVar>::MStructure::ESymmetric;
-    typename TPZPardisoSolver<TVar>::MSystemType sysType =
-      TPZPardisoSolver<TVar>::MSystemType::ESymmetric;
+    const auto sysType = this->IsSymmetric();
     typename TPZPardisoSolver<TVar>::MProperty prop =
       this->IsDefPositive() ?
       TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
       TPZPardisoSolver<TVar>::MProperty::EIndefinite;
-    fPardisoControl.SetStructure(str);
     fPardisoControl.SetMatrixType(sysType,prop);
   }
   fPardisoControl.Decompose(this);
