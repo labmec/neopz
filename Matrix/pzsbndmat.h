@@ -33,7 +33,7 @@ class TPZSBMatrix : public TPZMatrix<TVar>
     friend class TPZLapackEigenSolver<TVar>;
 public:
     TPZSBMatrix() : TPZRegisterClassId(&TPZSBMatrix::ClassId),
-    TPZMatrix<TVar>() , fStorage() { fBand = 0; }
+    TPZMatrix<TVar>() , fStorage() { fBand = 0; this->fSymProp = SymProp::Herm;}
     TPZSBMatrix(const int64_t dim,const int64_t band );
     TPZSBMatrix(const TPZSBMatrix<TVar> &A ) = default;
     TPZSBMatrix(TPZSBMatrix<TVar> &&A ) = default;
@@ -48,11 +48,8 @@ public:
     
     TVar &operator()(int64_t row, int64_t col);
     
-    /** @brief Checks if the current matrix is symmetric */
-    virtual int IsSymmetric() const override
-    {
-        return 1;
-    }
+    /** @brief Sets symmetry property of current matrix (only hermitian/symmetric allowed)*/
+    void SetSymmetry (SymProp sp) override;
 
     friend class TPZSBMatrix<float>;
     friend class TPZSBMatrix<double>;
@@ -95,7 +92,7 @@ public:
     template<class TT>friend std::ostream & operator<< (std::ostream& out,const TPZSBMatrix<TT>  &A);
     
     /** Fill the matrix with random values (non singular matrix) */
-    void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+    void AutoFill(int64_t nrow, int64_t ncol, SymProp symmetric) override;
     
     
     /// Operadores com matrizes SKY LINE.

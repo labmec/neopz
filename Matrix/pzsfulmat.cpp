@@ -33,6 +33,7 @@ TPZMatrix<TVar>( dim, dim )
 	
 	// Zera a Matriz.
 	Zero();
+	this->fSymProp = SymProp::Herm;
 }
 
 /*********************************/
@@ -53,6 +54,7 @@ TPZMatrix<TVar> ( A.Dim(), A.Dim() )
 	TVar *end = &fElem[Size()];
 	while ( dst < end )
 		*dst++ = *src++;
+	this->fSymProp = A.IsSymmetric();
 }
 
 /*** Constructor( TPZSFMatrix& ) ***/
@@ -96,6 +98,16 @@ TPZSFMatrix<TVar> ::~TPZSFMatrix ()
 {
 	if ( fElem != NULL )
 		delete []fElem;
+}
+
+template<class TVar>
+void TPZSFMatrix<TVar>::SetSymmetry (SymProp sp){
+    if(sp == SymProp::NonSym){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nTrying to set matrix with symmetric storage as non symmetric\n"
+               <<"Aborting..."<<std::endl;
+        DebugStop();
+    }
 }
 
 
@@ -643,7 +655,7 @@ TPZSFMatrix<TVar> ::Subst_Forward( TPZFMatrix<TVar>  *B ) const
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
 		return( 0 );
 	
-	if ( B->IsSymmetric() )
+	if ( B->IsSymmetric()!=SymProp::NonSym )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_Forward <the matrix result can not be simetric>" );
 	
 	TVar *ptr_k = fElem;
@@ -679,7 +691,7 @@ TPZSFMatrix<TVar> ::Subst_Backward( TPZFMatrix<TVar>  *B ) const
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
 		return( 0 );
 	
-	if ( B->IsSymmetric() )
+	if ( B->IsSymmetric()!= SymProp::NonSym )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_Backward <the matrix result can not be simetric>" );
 	
 	TVar *ptr_k = &fElem[ Size()-1 ];
@@ -719,7 +731,7 @@ TPZSFMatrix<TVar> ::Subst_LForward( TPZFMatrix<TVar>  *B ) const
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
 		return( 0 );
 	
-	if ( B->IsSymmetric() )
+	if ( B->IsSymmetric() != SymProp::NonSym )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_LForward <the matrix result can not be simetric>" );
 	
 	TVar *ptr_k = fElem;
@@ -753,7 +765,7 @@ TPZSFMatrix<TVar> ::Subst_LBackward( TPZFMatrix<TVar>  *B ) const
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
 		return( 0 );
 	
-	if ( B->IsSymmetric() )
+	if ( B->IsSymmetric()!=SymProp::NonSym )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_LBackward <the matrix result can not be simetric>" );
 	
 	TVar *ptr_k = &fElem[ Size()-1 ];

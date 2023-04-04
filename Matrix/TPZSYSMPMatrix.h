@@ -54,8 +54,8 @@ public :
       }                                                       
   }
   
-  /** @brief Checks if the current matrix is symmetric */
-  virtual int IsSymmetric() const  override { return 1; }
+  /** @brief Sets symmetry property of current matrix (only hermitian/symmetric allowed)*/
+  void SetSymmetry (SymProp sp) override;
   /** @brief Checks if current matrix is square */
   inline int IsSquare() const { return 1;}
     
@@ -78,7 +78,7 @@ public :
 
     /** @brief Fill matrix storage with randomic values */
     /** This method use GetVal and PutVal which are implemented by each type matrices */
-    void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+    void AutoFill(int64_t nrow, int64_t ncol, SymProp symmetric) override;
 	  
 	  /** @brief Get the matrix entry at (row,col) without bound checking */
 	  virtual const TVar GetVal(const int64_t row, const int64_t col ) const override;
