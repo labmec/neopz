@@ -361,7 +361,16 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
         }
     else if( form == EMatrixMarket)
         {
-            bool sym = IsSymmetric();
+            const auto symprop = IsSymmetric();
+            //@fran better to have a DebugStop than to output an incorrect format
+            if constexpr(is_complex<TVar>::value){
+              std::cout<<__PRETTY_FUNCTION__
+                       <<"\nNot implemented for complex types!"
+                       <<"\nAborting..."
+                       <<std::endl;
+              DebugStop();
+            }
+            const bool sym = symprop == SymProp::Herm || symprop == SymProp::Sym;
             int64_t numzero = 0;
             int64_t nrow = nrows;
             for ( int64_t row = 0; row < nrows; row++) {
@@ -397,8 +406,9 @@ template<class TVar>
 void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &destinationindex) {
 	
 	int64_t nelem = elmat.Rows();
-  	int64_t icoef,jcoef,ieq,jeq;
-	if(IsSymmetric()) {
+  int64_t icoef,jcoef,ieq,jeq;
+	const auto symprop = IsSymmetric();  
+	if(symprop == SymProp::Herm || symprop == SymProp::Sym){
 		for(icoef=0; icoef<nelem; icoef++) {
 			ieq = destinationindex[icoef];
 			for(jcoef=icoef; jcoef<nelem; jcoef++) {
@@ -425,9 +435,10 @@ template<class TVar>
 void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &source, TPZVec<int64_t> &destinationindex) {
 	
 	int64_t nelem = source.NElements();
-  	int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
-    TVar prevval;
-	if(IsSymmetric()) {
+  int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
+  TVar prevval;
+  const auto symprop = IsSymmetric();  
+	if(symprop == SymProp::Herm || symprop == SymProp::Sym){
 		for(icoef=0; icoef<nelem; icoef++) {
 			ieq = destinationindex[icoef];
 			ieqs = source[icoef];
@@ -887,33 +898,51 @@ void TPZMatrix<TVar>::GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar> &bl
 }
 
 template<>
-int TPZMatrix<TFad<6,REAL> >::VerifySymmetry(REAL tol) const{
+SymProp TPZMatrix<TFad<6,REAL> >::VerifySymmetry(REAL tol) const{
     DebugStop();
-    return -1;
+    return SymProp::NonSym;
 }
 
 template <class TVar>
-int TPZMatrix<TVar>::VerifySymmetry(REAL tol) const{
-	int64_t nrows = this->Rows();
-	int64_t ncols = this->Cols();
-	if (nrows != ncols) return 0;
-	
-	for( int64_t i = 0; i < nrows; i++){
-		for(int64_t j = 0; j <= i; j++){
-            TVar exp = this->Get(i,j) - this->Get(j,i);
-			if ( (REAL)(fabs( exp )) > tol ) {
-			  	#ifdef STATE_COMPLEX
-				cout << "Elemento: " << i << ", " << j << "  -> " << fabs( exp ) << "/" <<
-				this->Get(i,j) << endl;
-				#else
-				cout << "Elemento: " << i << ", " << j << "  -> " << exp << "/" <<
-				this->Get(i,j) << endl;
-				#endif
-				return 0;
-			}
-		}
-	}
-	return 1;
+SymProp TPZMatrix<TVar>::VerifySymmetry(REAL tol) const{
+	const int64_t nrows = this->Rows();
+	const int64_t ncols = this->Cols();
+	if (nrows != ncols) return SymProp::NonSym;
+	if constexpr (is_complex<TVar>::value){
+    bool hermSoFar = true;
+    bool symSoFar = true;
+    for( int64_t i = 0; i < nrows; i++){
+      for(int64_t j = 0; j <= i; j++){
+        const TVar exp1 = this->GetVal(i,j) - this->GetVal(j,i);
+        const TVar exp2 = this->GetVal(i,j) - std::conj(this->GetVal(j,i));
+        if(symSoFar && fabs(exp1) > tol){symSoFar = false;}
+        if(hermSoFar && fabs(exp2) > tol){hermSoFar = false;}
+        if(!hermSoFar && !symSoFar){
+          cout << "Element: " << i << ", " << j << "  -> " << this->GetVal(i,j)<<endl;
+          cout << "Element: " << j << ", " << i << "  -> " << this->GetVal(j,i)<<endl;
+          return SymProp::NonSym;}
+      }
+    }
+    if(hermSoFar){return SymProp::Herm;}
+    else if (symSoFar){return SymProp::NonSym;}
+    else{
+      //how did we end up here?
+      DebugStop();
+      return SymProp::NonSym;
+    }
+  }else{
+    for( int64_t i = 0; i < nrows; i++){
+      for(int64_t j = 0; j <= i; j++){
+        const TVar exp = this->Get(i,j) - this->Get(j,i);
+        if (fabs( exp ) > tol ) {
+          cout << "Element: " << i << ", " << j << "  -> " << exp << "/" <<
+            this->Get(i,j) << endl;
+          return SymProp::NonSym;
+        }
+      }
+    }
+    return SymProp::Herm;
+  }
 }
 
 template<>
@@ -1426,34 +1455,41 @@ int TPZMatrix<TVar>::Inverse(TPZFMatrix<TVar>&Inv, DecomposeType dec){
     }
     else
     {
-        const int issimetric = this->IsSymmetric();
-        if (issimetric)  return this->SolveDirect(Inv, ELDLt);
-        if (!issimetric) return this->SolveDirect(Inv, ELU);
+        const bool isHermitian = this->IsSymmetric() == SymProp::Herm;
+        if (isHermitian)  return this->SolveDirect(Inv, ELDLt);
+        if (!isHermitian) return this->SolveDirect(Inv, ELU);
     }
 	return 0;
 }//method
 
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
-void TPZMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
+void TPZMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym) {
     Resize(nrow,ncol);
 	int64_t i, j;
 	TVar val, sum;
 	/** Fill data */
+  const bool must_conj = is_complex<TVar>::value && sym == SymProp::Herm;
 	for(i=0;i<Rows();i++) {
 		sum = 0.0;
-        j=0;
-        if (symmetric) {
-            for (; j<i; j++) {
-                if constexpr (is_complex<TVar>::value){
-                    //hermitian matrices
+    j=0;
+    if (sym == SymProp::Sym || sym == SymProp::Herm) {
+        if (must_conj){
+            if constexpr (is_complex<TVar>::value){
+                for (; j<i; j++) {
                     PutVal(i, j, std::conj(GetVal(j,i)));
-                }else{
-                    PutVal(i, j, GetVal(j,i));
+                    sum += fabs(GetVal(i, j));
                 }
+            }else{
+                DebugStop();//should be unreachable
+            }
+        }else{
+            for (; j<i; j++) {
+                PutVal(i, j, GetVal(j,i));
                 sum += fabs(GetVal(i, j));
             }
         }
+    }
 		for(;j<Cols();j++) {
 			val = GetRandomVal();
             if constexpr(is_complex<TVar>::value){

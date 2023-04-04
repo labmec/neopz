@@ -104,10 +104,10 @@ public:
   
 	/** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
-	void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+	void AutoFill(int64_t nrow, int64_t ncol, SymProp sym) override;
 	
 	/** @brief Checks if current matrix value is symmetric */
-	int VerifySymmetry(REAL tol = ZeroTolerance()) const override;
+	SymProp VerifySymmetry(REAL tol = ZeroTolerance()) const override;
 	
 	/**
      * @brief Put value with bounds checking
