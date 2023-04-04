@@ -3,6 +3,14 @@
 #include "Hash/TPZHash.h"
 
 
+void TPZBaseMatrix::SetSymmetry(SymProp sp){
+  if(fRow!=fCol && sp != SymProp::NonSym){
+    PZError<<__PRETTY_FUNCTION__
+           <<"\nTrying to set a non-square matrix as symmetric/hermitian\n"
+           <<"Aborting..."<<std::endl;
+    DebugStop();
+  }
+}
 void TPZBaseMatrix::Read(TPZStream &buf, void *context){
   buf.Read(&fRow);
   buf.Read(&fCol);
