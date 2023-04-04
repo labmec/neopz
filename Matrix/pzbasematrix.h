@@ -28,6 +28,15 @@ class TPZStream;
  */
 enum DecomposeType { ENoDecompose, ELU, ELUPivot, ECholesky, ELDLt };
 
+/**
+ * @enum SymProp
+ * @brief Defined symmetry property of a given matrix
+ * @param NonSym Non symmetric
+ * @param Sym Symmetric
+ * @param Herm Hermitian 
+ */
+enum class SymProp{NonSym, Sym, Herm};
+
 /** @brief Root matrix class (abstract). \ref matrix "Matrix"
  * Abstract class TPZBaseMatrix which is agnostic with respect to
  * the arithmetic type being used. */
@@ -65,11 +74,8 @@ public:
   virtual int64_t MemoryFootprint() const = 0;
 
   /** @brief Fill matrix storage with randomic values */
-  virtual void AutoFill(int64_t nrow, int64_t ncol, int symmetric) = 0;
+  virtual void AutoFill(int64_t nrow, int64_t ncol, SymProp sym) = 0;
     
-  /** @brief Checks if current matrix value is symmetric */
-  virtual int VerifySymmetry(REAL tol) const = 0;
-
   /** @brief Returns number of rows */
   inline int64_t Rows() const { return fRow; }
   /** @brief Returns number of cols */
@@ -103,8 +109,19 @@ public:
   virtual int Zero() = 0;
 
 
-  /** @brief Checks if the current matrix is symmetric */
-  virtual int IsSymmetric() const{ return 0;}
+  /** @brief Gets symmetry property of current matrix
+      @note This flag is set by the user. Use VerifySymmetry for actually checking values.*/
+  SymProp IsSymmetric() const{ return fSymProp; }
+
+  /** @brief Performs a check to ensure if current matrix value is symmetric */
+  virtual SymProp VerifySymmetry(REAL tol) const = 0;
+
+  /** @brief Sets symmetry property of current matrix.
+      If matrix is not square and symmetry property is not SymProp::NonSym, this function throws an error.
+      Matrix classes that store only lower/upper triangular portion of the matrix will overload this method
+      as non-symmetric formats are not allowed.
+      @note Should only be called if the user is sure about the symmetry property. Can lead to inconsistent states.*/
+  virtual void SetSymmetry(SymProp sp);
   /** @brief Checks if current matrix is square */
   inline int IsSquare() const {
     return fRow == fCol; }
@@ -157,9 +174,20 @@ protected:
   int64_t fCol;
   /** @brief Decomposition type used to decompose the current matrix */
   DecomposeType fDecomposed;
+  /** @brief Symmetry property of the matrix*/
+  SymProp fSymProp{SymProp::NonSym};
   /** @brief Definite Posistiveness of current matrix */
   char fDefPositive;
 };
+
+//! Convert enum to string
+constexpr auto SymPropName(SymProp sp){
+  switch(sp){
+  case SymProp::NonSym: return "NonSym";
+  case SymProp::Sym: return "Sym";
+  case SymProp::Herm: return "Herm";
+  }
+}
 
 /** @} */
 
