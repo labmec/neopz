@@ -29,8 +29,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
                                           bool computeVectors)
 {
 #ifdef USING_MKL
-  auto PardisoSetup = [](auto pardiso_control, auto sys, auto prop, auto str){
-    pardiso_control->SetStructure(str);
+  auto PardisoSetup = [](auto pardiso_control, auto sys, auto prop){
     pardiso_control->SetMatrixType(sys,prop);
     auto param = pardiso_control->GetParam();
       //fParam[0] No default values
@@ -99,19 +98,12 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
 #ifdef USING_MKL
     auto prdscfg = this->GetPardisoControlA();
     if(prdscfg && !prdscfg->HasCustomSettings()){
-      const auto str =
-        this->MatrixA()->IsSymmetric() ?
-        TPZPardisoSolver<TVar>::MStructure::ESymmetric:
-        TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
-      const auto sys =
-        this->MatrixA()->IsSymmetric() ? 
-        TPZPardisoSolver<TVar>::MSystemType::ESymmetric:
-        TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
+      const auto sys = this->MatrixA()->IsSymmetric();
       const auto prop =
         this->MatrixA()->IsDefPositive() ?
         TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
         TPZPardisoSolver<TVar>::MProperty::EIndefinite;
-      PardisoSetup(prdscfg,sys,prop,str); 
+      PardisoSetup(prdscfg,sys,prop); 
     }
 #else
       DebugStop();
@@ -127,25 +119,20 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
 #ifdef USING_MKL
       auto prdscfg = this->GetPardisoControlB();
       if(prdscfg && !prdscfg->HasCustomSettings()){
-        const auto str =
-        this->MatrixB()->IsSymmetric() ?
-        TPZPardisoSolver<TVar>::MStructure::ESymmetric:
-        TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
-      const auto sys =
-        this->MatrixB()->IsSymmetric() ? 
-        TPZPardisoSolver<TVar>::MSystemType::ESymmetric:
-        TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
+      const auto sys = this->MatrixB()->IsSymmetric();
       const auto prop =
         this->MatrixB()->IsDefPositive() ?
         TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
         TPZPardisoSolver<TVar>::MProperty::EIndefinite;
-        PardisoSetup(prdscfg,sys,prop,str); 
+        PardisoSetup(prdscfg,sys,prop); 
       }
 #else
         DebugStop();
 #endif
-      if (this->MatrixB()->IsSymmetric()) this->MatrixB()->Decompose(ELDLt);
-      else this->MatrixB()->Decompose(ELU);
+      const auto sp= this->MatrixB()->IsSymmetric();
+      const bool use_lu = sp == SymProp::Herm || (!std::is_same_v<TVar,RTVar> && sp == SymProp::Sym);
+      if (use_lu) this->MatrixB()->Decompose(ELU);
+      else this->MatrixB()->Decompose(ELDLt);
     }
   }
   
@@ -250,7 +237,7 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
   Q.Resize(n, nullptr);
 
   if(fKrylovVector.Rows() != nRows || fKrylovVector.Cols() != 1){
-    fKrylovVector.AutoFill(nRows,1,0);
+    fKrylovVector.AutoFill(nRows,1,SymProp::NonSym);
   }
   
   for(int i = 0; i < n; i++) Q[i]= new TPZFMatrix<TVar>;
@@ -314,7 +301,7 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
       }
       else{
         //generate random unit vector and try again
-        w.AutoFill(nRows,1,0);
+        w.AutoFill(nRows,1,SymProp::NonSym);
         w *= 1/Norm(w);
       }
     }
