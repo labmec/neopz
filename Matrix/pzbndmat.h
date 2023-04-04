@@ -87,7 +87,7 @@ public:
       }                                                       
   }
   
-  void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+  void AutoFill(int64_t nrow, int64_t ncol, SymProp symmetric) override;
 
     
 	int    Put(const int64_t row,const int64_t col,const TVar& value ) override;

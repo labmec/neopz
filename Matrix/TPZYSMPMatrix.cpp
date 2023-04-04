@@ -955,13 +955,11 @@ void TPZFYsmpMatrix<TVar>::RowLUUpdate(int64_t sourcerow, int64_t destrow)
 /** @brief Fill matrix storage with randomic values */
 /** This method use GetVal and PutVal which are implemented by each type matrices */
 template<class TVar>
-void TPZFYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric)
+void TPZFYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym)
 {
-    if (symmetric && nrow != ncol) {
-        DebugStop();
-    }
+	  const bool square = nrow == ncol;
     TPZFMatrix<TVar> orig;
-    orig.AutoFill(nrow,ncol,symmetric);
+    orig.AutoFill(nrow,ncol,sym);
     
     TPZVec<int64_t> IA(nrow+1);
     TPZStack<int64_t> JA;
@@ -974,9 +972,8 @@ void TPZFYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric)
             REAL test = rand()*1./RAND_MAX;
             if (test > 0.5) {
                 eqs[row].insert(col);
-                if (symmetric) {
-                    eqs[col].insert(row);
-                }
+							  //if the matrix is square, we want it to have a symmetric structure
+								if(square){eqs[col].insert(row);}
             }
         }
     }

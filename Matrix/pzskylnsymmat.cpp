@@ -1570,7 +1570,7 @@ void TPZSkylNSymMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const
 
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
-void TPZSkylNSymMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
+void TPZSkylNSymMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sp) {
     if (nrow != ncol) {
         DebugStop();
     }
@@ -1595,10 +1595,10 @@ void TPZSkylNSymMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric
             {
 				this->Error("AutoFill (TPZMatrix) failed.");
             }
-            if (symmetric == 0) {
+            if (sp == SymProp::NonSym) {
               val = this->GetRandomVal();
             }else if constexpr(is_complex<TVar>::value){
-              val = std::conj(val);
+              if(sp == SymProp::Herm) val = std::conj(val);
             }
 			if(!PutVal(j,i,val))
             {

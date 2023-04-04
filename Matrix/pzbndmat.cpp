@@ -254,7 +254,7 @@ TPZFBMatrix<TVar>::operator*=(const TVar value )
 }
 
 template <class TVar>
-void TPZFBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
+void TPZFBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sp) {
     if (nrow != ncol) {
         DebugStop();
     }
@@ -276,11 +276,11 @@ void TPZFBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
         }
         TVar sum = 0.;
         int64_t j = jmin;
-        if (symmetric) {
+        if (sp != SymProp::NonSym) {
             for (; j<i; j++) {
                 if constexpr (is_complex<TVar>::value){
-                    //hermitian matrices
-                    PutVal(i, j, std::conj(GetVal(j,i)));
+                    if(sp == SymProp::Herm){PutVal(i, j, std::conj(GetVal(j,i)));}
+                    else {PutVal(i, j, GetVal(j,i));}
                 }else{
                     PutVal(i, j, GetVal(j,i));
                 }

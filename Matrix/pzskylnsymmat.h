@@ -89,9 +89,6 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
    */
   //void AddSameStruct(TPZSkylNSymMatrix &B, double k = 1.);
 
-  /**declare the object as non-symmetric matrix*/
-  virtual int IsSymmetric() const  override {return 0;}
-
   int PutVal(const int64_t row,const int64_t col,const TVar &element ) override;
 
   const TVar GetVal(const int64_t row,const int64_t col ) const override;
@@ -213,7 +210,7 @@ int ClassId() const override;
     
     /** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
-	void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+	void AutoFill(int64_t nrow, int64_t ncol, SymProp sym) override;
 
 
  protected:
