@@ -406,7 +406,7 @@ void TPZElasticity3D::Contribute(const TPZMaterialDataT<STATE> &data,
     DebugStop();
 #endif
 #ifdef PZDEBUG
-	if ( !ek.VerifySymmetry( 1.e-8 ) ) PZError << __PRETTY_FUNCTION__ << "\nERROR - NON SYMMETRIC MATRIX" << std::endl;
+    if ( ek.VerifySymmetry( 1.e-8 )==SymProp::NonSym ) PZError << __PRETTY_FUNCTION__ << "\nERROR - NON SYMMETRIC MATRIX" << std::endl;
 #endif
 }//method
 
