@@ -70,9 +70,16 @@ TEST_CASE("test_matriz_rigidez_cubo","[material_tests]")
 	std::string name = "CubeStiffMatrix.txt";
 	TPZFMatrix<STATE> RightStiff(readStressStrain(name)), stiff(computeStressStrain());
 	REAL tol = 1.e-8;
-	bool sym = stiff.VerifySymmetry(tol);
-	std::cout << sym << std::endl;
-	REQUIRE(sym==1);		// Verify the symmetry of the stiffness matrix
+	const auto sp = stiff.VerifySymmetry(tol);
+	const auto str_sp = [sp](){
+		switch(sp){
+		case SymProp::NonSym: return "NonSym";
+		case SymProp::Sym: return "Sym";
+		case SymProp::Herm: return "Herm";
+		}
+	}();
+	std::cout << str_sp << std::endl;
+	REQUIRE(sp!=SymProp::NonSym);		// Verify the symmetry of the stiffness matrix
 	REAL dif;
 	for (int i = 0 ; i < 9 ; i++) 
 	{

@@ -84,7 +84,7 @@ void TestingEigenDecompositionThreeDistinct() {
 template <class TTensor, class TNumber>
 void TestingEigenDecompositionAutoFill() {
     TPZFMatrix<TNumber> ma;
-    ma.AutoFill(3, 3, true);
+    ma.AutoFill(3, 3, SymProp::Herm);
 
     TTensor tensor(ma);
 
