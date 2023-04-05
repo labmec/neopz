@@ -35,7 +35,7 @@ std::string Catch::StringMaker<long double>::convert(long double value) {
 /**tests if the H matrix is Hessenberg, 
 and if the vectors are an orthonormal basis*/
 template<class matx, class TVar>
-void TestArnoldiIteration(bool sym);
+void TestArnoldiIteration(SymProp sp);
 
 
 /**solves an EVP and ensures that
@@ -46,30 +46,43 @@ void TestArnoldiSolver(TPZAutoPointer<matx> A, const TPZFMatrix<CTVar> &sol);
 TEMPLATE_TEST_CASE("Arnoldi Iteration", "[eigen_tests]",
                    double)
 {
-  bool isSym{true};
   SECTION("Sym")
     {
       SECTION("TPZFMatrix")
-        {TestArnoldiIteration<TPZFMatrix<TestType>,TestType>(isSym);}
+        {
+          TestArnoldiIteration<TPZFMatrix<TestType>,TestType>(SymProp::Sym);
+          TestArnoldiIteration<TPZFMatrix<TestType>,TestType>(SymProp::Herm);
+        }
       SECTION("TPZSkylNSymMatrix")
-        {TestArnoldiIteration<TPZSkylNSymMatrix<TestType>,TestType>(isSym);}
+        {
+          TestArnoldiIteration<TPZSkylNSymMatrix<TestType>,TestType>(SymProp::Sym);
+          TestArnoldiIteration<TPZSkylNSymMatrix<TestType>,TestType>(SymProp::Herm);
+        }
       SECTION("TPZSkylMatrix")
-        {TestArnoldiIteration<TPZSkylMatrix<TestType>,TestType>(isSym);}
+      {
+        TestArnoldiIteration<TPZSkylMatrix<TestType>,TestType>(SymProp::Sym);
+        TestArnoldiIteration<TPZSkylMatrix<TestType>,TestType>(SymProp::Herm);
+      }
       SECTION("TPZFYsmpMatrix")
-        {TestArnoldiIteration<TPZFYsmpMatrix<TestType>,TestType>(isSym);}
+      {
+        TestArnoldiIteration<TPZFYsmpMatrix<TestType>,TestType>(SymProp::Sym);
+        TestArnoldiIteration<TPZFYsmpMatrix<TestType>,TestType>(SymProp::Herm);
+      }
       SECTION("TPZSYsmpMatrix")
-        {TestArnoldiIteration<TPZSYsmpMatrix<TestType>,TestType>(isSym);}
+      {
+        TestArnoldiIteration<TPZSYsmpMatrix<TestType>,TestType>(SymProp::Sym);
+        TestArnoldiIteration<TPZSYsmpMatrix<TestType>,TestType>(SymProp::Herm);
+      }
     }
-  isSym = false;
   
   SECTION("NSym")
     {
       SECTION("TPZFMatrix")
-        {TestArnoldiIteration<TPZFMatrix<TestType>,TestType>(isSym);}
+        {TestArnoldiIteration<TPZFMatrix<TestType>,TestType>(SymProp::NonSym);}
       SECTION("TPZSkylNSymMatrix")
-        {TestArnoldiIteration<TPZSkylNSymMatrix<TestType>,TestType>(isSym);}
+        {TestArnoldiIteration<TPZSkylNSymMatrix<TestType>,TestType>(SymProp::NonSym);}
       SECTION("TPZFYsmpMatrix")
-        {TestArnoldiIteration<TPZFYsmpMatrix<TestType>,TestType>(isSym);}
+        {TestArnoldiIteration<TPZFYsmpMatrix<TestType>,TestType>(SymProp::NonSym);}
     }
 }
 
@@ -192,8 +205,8 @@ TEMPLATE_TEST_CASE("Arnoldi Solver 2", "[eigen_tests]",
   TPZAutoPointer<TestType> A = new TestType;
   constexpr int64_t dim{20};
   constexpr int dimKrylov{20};
-  constexpr bool isSym{true};
-  A->AutoFill(dim,dim,isSym);//generates adequate storage
+  constexpr SymProp sp{SymProp::Herm};
+  A->AutoFill(dim,dim,sp);//generates adequate storage
   
   for(int i = 0; i < dim; i++){
     for(int j = 0; j < dim; j++){
@@ -212,7 +225,7 @@ TEMPLATE_TEST_CASE("Arnoldi Solver 2", "[eigen_tests]",
 #endif
 
 template<class matx, class TVar>
-void TestArnoldiIteration(bool sym)
+void TestArnoldiIteration(SymProp sp)
 {
 
   const auto oldPrecision = Catch::StringMaker<RTVar>::precision;
@@ -221,7 +234,7 @@ void TestArnoldiIteration(bool sym)
   matx A;
   constexpr int dim{100};
   int dimKrylov{100};
-  A.AutoFill(dim,dim,sym);
+  A.AutoFill(dim,dim,sp);
   TPZKrylovEigenSolver<TVar> arnoldi;
   arnoldi.SetKrylovDim(dimKrylov);
   TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> qVecs;

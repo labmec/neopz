@@ -88,8 +88,8 @@ TEST_CASE("test_matriz_darcy","[material_tests]")
     TPZFNMatrix<16,STATE> stiff;
     computeStiffnessH1(stiff);
 	REAL tol = 1.e-8;
-	bool sym = stiff.VerifySymmetry(tol);
-	REQUIRE(sym==1);		// Verify the symmetry of the stiffness matrix
+	auto sym = stiff.VerifySymmetry(tol);
+	REQUIRE(sym!=SymProp::NonSym);		// Verify the symmetry of the stiffness matrix
     REAL RightStiff[4][4] = {
         {2./3.,-1./6,-1./3.,-1./6.},
         {-1./6.,2./3.,-1./6,-1./3.},
@@ -113,8 +113,8 @@ TEST_CASE("test_matriz_hybriddarcy","[material_tests]")
     TPZFNMatrix<36,STATE> stiff;
     computeStiffnessHybrid(stiff);
     REAL tol = 1.e-8;
-    bool sym = stiff.VerifySymmetry(tol);
-    REQUIRE(sym==1);        // Verify the symmetry of the stiffness matrix
+    auto sym = stiff.VerifySymmetry(tol);
+    REQUIRE(sym!=SymProp::NonSym);        // Verify the symmetry of the stiffness matrix
     REAL RightStiff[6][6] = {
         {2./3.,-1./6,-1./3.,-1./6.,1,0},
         {-1./6.,2./3.,-1./6,-1./3.,1,0},
