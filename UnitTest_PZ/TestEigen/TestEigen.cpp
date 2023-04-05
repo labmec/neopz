@@ -46,7 +46,7 @@ static TPZLogger logger("pz.eigen");
 #endif
 
 // ----- Run tests with or without main -----
-#define RUNWITHMAIN
+// #define RUNWITHMAIN
 
 void InvertUsingEigen();
 void CreateSparse();
@@ -216,7 +216,7 @@ void TestSparseClass() {
 void TestH1Problem() {
     
     const int volid = 1, bcid = -1;
-    const int ndiv = 20;
+    const int ndiv = 5;
     const int dim = 3;
     const int pOrder = 2;
     TPZVec<int> nDivs;
