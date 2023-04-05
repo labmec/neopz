@@ -23,6 +23,7 @@ class TPZVerySparseMatrix;
 /**
  * @brief Implements a simple substructuring of a linear system of equations, composed of 4 submatrices. \ref matrix "Matrix"
  * @ingroup matrix
+ * @note Its symmetry properties are given by its K00 matrix
  */
 /**
  * Implements a matrix composed of 4 submatrices:
@@ -78,9 +79,6 @@ public:
   }
 	/** @brief Simple destructor */
 	~TPZMatRed();
-	
-	/** @brief returns 1 or 0 depending on whether the fK00 matrix is zero or not */
-	virtual int IsSymmetric() const override;
 	
     // decomposition methods create an interrupt
     /** @brief decompose the system of equations acording to the decomposition
