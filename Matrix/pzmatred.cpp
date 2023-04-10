@@ -64,7 +64,7 @@ void TPZMatRed<TVar, TSideMatrix>::SimetrizeMatRed() {
 	// considering fK00 is simetric, only half of the object is assembled.
 	// this method simetrizes the matrix object
 	
-	if(!fK00 || this->IsSymmetric() == SymProp::NonSym) return;
+	if(!fK00 || this->GetSymmetry() == SymProp::NonSym) return;
 	fK01.Transpose(&fK10);
 	
 	fK11.Symetrize();
@@ -84,10 +84,10 @@ int
 TPZMatRed<TVar, TSideMatrix>::PutVal(const int64_t r,const int64_t c,const TVar& value ){
 	int64_t row(r),col(c);
   auto val = value;
-	if (this->IsSymmetric() != SymProp::NonSym && row > col ) {
+	if (this->GetSymmetry() != SymProp::NonSym && row > col ) {
     Swap( &row, &col );
     if constexpr (is_complex<TVar>::value){
-      if (this->IsSymmetric() == SymProp::Herm){
+      if (this->GetSymmetry() == SymProp::Herm){
         val = std::conj(val);
       }
     }
@@ -104,7 +104,7 @@ template<class TVar, class TSideMatrix>
 const TVar
 TPZMatRed<TVar,TSideMatrix>::GetVal(const int64_t r,const int64_t c ) const {
 	int64_t row(r),col(c);
-	const auto sp = this->IsSymmetric();
+	const auto sp = this->GetSymmetry();
 	if (sp != SymProp::NonSym && row > col ) Swap( &row, &col );
 
   TVar val = -1;
@@ -122,7 +122,7 @@ TPZMatRed<TVar,TSideMatrix>::GetVal(const int64_t r,const int64_t c ) const {
 template<class TVar, class TSideMatrix>
 TVar& TPZMatRed<TVar,TSideMatrix>::s(const int64_t r,const int64_t c ) {
 	int64_t row(r),col(c);
-	const auto sp = this->IsSymmetric();
+	const auto sp = this->GetSymmetry();
   if constexpr (is_complex<TVar>::value) {
     if(sp == SymProp::Herm && row > col){
       PZError<<__PRETTY_FUNCTION__
@@ -179,7 +179,7 @@ void
 TPZMatRed<TVar, TSideMatrix>::SetK00(TPZAutoPointer<TPZMatrix<TVar> > K00)
 {
 	fK00=K00;
-  this->fSymProp = fK00->IsSymmetric();
+  this->fSymProp = fK00->GetSymmetry();
 }
 
 template<class TVar, class TSideMatrix>

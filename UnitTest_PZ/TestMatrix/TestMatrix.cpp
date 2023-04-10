@@ -1165,7 +1165,7 @@ void TestingInverseWithAutoFill(int dim, SymProp sp, DecomposeType dec) {
 
 template <class matx, class TVar>
 void TestingInverse(matx ma, DecomposeType dec) {
-  const auto symmetric = SymPropName(ma.IsSymmetric());
+  const auto symmetric = SymPropName(ma.GetSymmetry());
   if(ma.Rows() != ma.Cols()){
     const bool is_square_mat{false};
     REQUIRE(is_square_mat);

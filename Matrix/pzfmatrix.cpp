@@ -90,7 +90,7 @@ TPZMatrix<TVar>( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
     TVar * p = fElem;
     for(int64_t i = 0; i< size; i++) p[i]=src[i];
 //    memcpy((void *)(p),(void *)(src),(size_t)size*sizeof(TVar));
-    this->fSymProp = A.IsSymmetric();
+    this->fSymProp = A.GetSymmetry();
 }
 
 
@@ -2909,7 +2909,7 @@ void TPZFMatrix<TVar>::Symetrize() {
   int64_t row,col;
   int64_t fDim1 = this->Rows();
   const bool must_conj =
-    is_complex<TVar>::value && this->IsSymmetric() == SymProp::Herm;
+    is_complex<TVar>::value && this->GetSymmetry() == SymProp::Herm;
   for(row=0; row<fDim1; row++) {
     if(must_conj){
       if constexpr (is_complex<TVar>::value){
