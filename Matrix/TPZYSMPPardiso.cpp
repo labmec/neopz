@@ -99,7 +99,7 @@ TPZFYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,
 			sparse_index_base_t idx = SPARSE_INDEX_BASE_ZERO;
 			sparse_matrix_t A;
 			matrix_descr descr;
-      switch(this->IsSymmetric()){
+      switch(this->GetSymmetry()){
       case SymProp::NonSym:
         descr.type = SPARSE_MATRIX_TYPE_GENERAL;
         break;
@@ -215,7 +215,7 @@ int TPZFYsmpMatrixPardiso<TVar>::Decompose(const DecomposeType dt)
   }
 
   if(!fPardisoControl.HasCustomSettings()){
-    const auto sysType = this->IsSymmetric();
+    const auto sysType = this->GetSymmetry();
     typename TPZPardisoSolver<TVar>::MProperty prop =
       this->IsDefPositive() ?
       TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:

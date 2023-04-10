@@ -215,7 +215,7 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
     const int64_t nrows = this->Rows();
 
     const bool must_conj =
-      is_complex<TVar>::value && this->IsSymmetric() == SymProp::Herm;
+      is_complex<TVar>::value && this->GetSymmetry() == SymProp::Herm;
 
 
     if(must_conj){

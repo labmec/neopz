@@ -111,7 +111,7 @@ public:
 
   /** @brief Gets symmetry property of current matrix
       @note This flag is set by the user. Use VerifySymmetry for actually checking values.*/
-  SymProp IsSymmetric() const{ return fSymProp; }
+  SymProp GetSymmetry() const{ return fSymProp; }
 
   /** @brief Performs a check to ensure if current matrix value is symmetric */
   virtual SymProp VerifySymmetry(REAL tol) const = 0;

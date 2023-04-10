@@ -470,8 +470,8 @@ TPZSBMatrix<TVar>::Decompose_Cholesky()
 
 #ifdef PZDEBUG
     const bool cond =
-        (is_complex<TVar>::value && this->IsSymmetric() == SymProp::Sym) ||
-        this->IsSymmetric() == SymProp::NonSym;
+        (is_complex<TVar>::value && this->GetSymmetry() == SymProp::Sym) ||
+        this->GetSymmetry() == SymProp::NonSym;
     if (cond){
         PZError<<__PRETTY_FUNCTION__
                <<"\nCalling Cholesky decomposition on non symmetric matrix! Aborting..."

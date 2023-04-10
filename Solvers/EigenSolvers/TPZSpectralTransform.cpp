@@ -19,7 +19,7 @@ template<class TVar>
 TPZAutoPointer<TPZMatrix<TVar>>
 TPZSTShiftOrigin<TVar>::CalcMatrix(TPZAutoPointer<TPZMatrix<TVar>>A, TPZAutoPointer<TPZMatrix<TVar>>B) const
 {
-  const auto sp= B->IsSymmetric();
+  const auto sp= B->GetSymmetry();
   const bool use_lu = sp == SymProp::Herm || (!std::is_same_v<TVar,RTVar> && sp == SymProp::Sym);
   if (use_lu) B->Decompose(ELU);
   else B->Decompose(ELDLt);
@@ -84,7 +84,7 @@ TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZAutoPointer<TPZMatrix<TVar>>A, TPZAutoP
   }
   shiftedMat->Storage() -= B->Storage() * shift;
 
-  const auto sp= shiftedMat->IsSymmetric();
+  const auto sp= shiftedMat->GetSymmetry();
   const bool use_lu = sp == SymProp::Herm || (!std::is_same_v<TVar,RTVar> && sp == SymProp::Sym);
   if (use_lu) shiftedMat->Decompose(ELU);
   else shiftedMat->Decompose(ELDLt);
@@ -99,7 +99,7 @@ TPZSTShiftAndInvert<TVar>::CalcMatrix(TPZAutoPointer<TPZMatrix<TVar>>A) const
   const auto &shift = this->Shift();
   const auto nRows = A->Rows();
   for(int i = 0; i < nRows; i++) shiftedMat->PutVal(i,i,A->GetVal(i,i)-shift);
-  const auto sp= shiftedMat->IsSymmetric();
+  const auto sp= shiftedMat->GetSymmetry();
   const bool use_lu = sp == SymProp::Herm || (!std::is_same_v<TVar,RTVar> && sp == SymProp::Sym);
   if (use_lu) shiftedMat->Decompose(ELU);
   else shiftedMat->Decompose(ELDLt);

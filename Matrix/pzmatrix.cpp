@@ -361,7 +361,7 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
         }
     else if( form == EMatrixMarket)
         {
-            const auto symprop = IsSymmetric();
+            const auto symprop = GetSymmetry();
             //@fran better to have a DebugStop than to output an incorrect format
             if constexpr(is_complex<TVar>::value){
               std::cout<<__PRETTY_FUNCTION__
@@ -407,7 +407,7 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &destinati
 	
 	int64_t nelem = elmat.Rows();
   int64_t icoef,jcoef,ieq,jeq;
-	const auto symprop = IsSymmetric();  
+	const auto symprop = GetSymmetry();  
 	if(symprop == SymProp::Herm || symprop == SymProp::Sym){
 		for(icoef=0; icoef<nelem; icoef++) {
 			ieq = destinationindex[icoef];
@@ -437,7 +437,7 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &source, T
 	int64_t nelem = source.NElements();
   int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
   TVar prevval;
-  const auto symprop = IsSymmetric();  
+  const auto symprop = GetSymmetry();  
 	if(symprop == SymProp::Herm || symprop == SymProp::Sym){
 		for(icoef=0; icoef<nelem; icoef++) {
 			ieq = destinationindex[icoef];
@@ -1455,7 +1455,7 @@ int TPZMatrix<TVar>::Inverse(TPZFMatrix<TVar>&Inv, DecomposeType dec){
     }
     else
     {
-        const bool isHermitian = this->IsSymmetric() == SymProp::Herm;
+        const bool isHermitian = this->GetSymmetry() == SymProp::Herm;
         if (isHermitian)  return this->SolveDirect(Inv, ELDLt);
         if (!isHermitian) return this->SolveDirect(Inv, ELU);
     }

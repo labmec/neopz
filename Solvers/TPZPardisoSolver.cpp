@@ -92,7 +92,7 @@ void TPZPardisoSolver<TVar>::SetMatrix(TPZAutoPointer<TPZBaseMatrix> refmat)
     fDecomposed = refmat->IsDecomposed();
     const MProperty prop = refmat->IsDefPositive() ?
         MProperty::EPositiveDefinite : MProperty::EIndefinite;
-    SetMatrixType(refmat->IsSymmetric(),prop);
+    SetMatrixType(refmat->GetSymmetry(),prop);
     TPZMatrixSolver<TVar>::SetMatrix(refmat);
 }
 

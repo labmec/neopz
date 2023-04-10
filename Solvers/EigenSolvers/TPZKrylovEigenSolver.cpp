@@ -98,7 +98,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
 #ifdef USING_MKL
     auto prdscfg = this->GetPardisoControlA();
     if(prdscfg && !prdscfg->HasCustomSettings()){
-      const auto sys = this->MatrixA()->IsSymmetric();
+      const auto sys = this->MatrixA()->GetSymmetry();
       const auto prop =
         this->MatrixA()->IsDefPositive() ?
         TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
@@ -119,7 +119,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
 #ifdef USING_MKL
       auto prdscfg = this->GetPardisoControlB();
       if(prdscfg && !prdscfg->HasCustomSettings()){
-      const auto sys = this->MatrixB()->IsSymmetric();
+      const auto sys = this->MatrixB()->GetSymmetry();
       const auto prop =
         this->MatrixB()->IsDefPositive() ?
         TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
@@ -129,7 +129,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
 #else
         DebugStop();
 #endif
-      const auto sp= this->MatrixB()->IsSymmetric();
+      const auto sp= this->MatrixB()->GetSymmetry();
       const bool use_lu = sp == SymProp::Herm || (!std::is_same_v<TVar,RTVar> && sp == SymProp::Sym);
       if (use_lu) this->MatrixB()->Decompose(ELU);
       else this->MatrixB()->Decompose(ELDLt);
