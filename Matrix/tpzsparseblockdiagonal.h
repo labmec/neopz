@@ -8,7 +8,9 @@
 #include "pzblockdiag.h"
 
 /**
- * @brief Implements a block diagonal matrix where the blocks are not contiguous. \ref matrix "Matrix"
+ * @brief Implements a block diagonal matrix where the blocks are not contiguous.
+ * @note Not only the blocks are not contiguous but the entries in each block need not be.
+ \ref matrix "Matrix"
  * @ingroup matrix
  * @author Philippe R. B. Devloo
  * @since 2004
@@ -33,7 +35,7 @@ public:
     
     virtual TVar &s(const int64_t row, const int64_t col) override;
     
-    virtual void Print(const char* message, std::ostream& out, const MatrixOutputFormat=EFormatted) const override;
+    virtual void Print(const char* message, std::ostream& out=std::cout, const MatrixOutputFormat=EFormatted) const override;
     void AddBlock(int64_t i, TPZFMatrix<TVar>& block);
     void BuildFromMatrix(TPZMatrix<TVar>& matrix);
     void GetBlock(int64_t i, TPZFMatrix<TVar>& block);
@@ -49,10 +51,10 @@ int ClassId() const override;
 protected:
 	/** @brief Equation numbers for each block */
     TPZVec<int64_t> fBlock;
-	/** @brief Index to first element of each block */
+	/** @brief Index to first element of each block in fBlock */
     TPZVec<int64_t> fBlockIndex;
 	
-    void Scatter(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const;
+    void ScatterAdd(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const;
     void Gather(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const;
 };
 

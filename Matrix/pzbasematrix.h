@@ -28,6 +28,15 @@ class TPZStream;
  */
 enum DecomposeType { ENoDecompose, ELU, ELUPivot, ECholesky, ELDLt };
 
+/**
+ * @enum SymProp
+ * @brief Defined symmetry property of a given matrix
+ * @param NonSym Non symmetric
+ * @param Sym Symmetric
+ * @param Herm Hermitian 
+ */
+enum class SymProp{NonSym, Sym, Herm};
+
 /** @brief Root matrix class (abstract). \ref matrix "Matrix"
  * Abstract class TPZBaseMatrix which is agnostic with respect to
  * the arithmetic type being used. */
@@ -35,11 +44,17 @@ class TPZBaseMatrix : public TPZSavable{
 public:
   /** @brief Default constructor */
   TPZBaseMatrix() : TPZRegisterClassId(&TPZBaseMatrix::ClassId) {
-    fDecomposed = 0;
+    fDecomposed = ENoDecompose;
     fDefPositive = 0;
     fRow = 0;
     fCol = 0;
   }
+    TPZBaseMatrix(int64_t row, int64_t col) {
+      fDecomposed = ENoDecompose;
+      fDefPositive = 0;
+      fRow = row;
+      fCol = col;
+    }
   /** @brief Copy constructor*/
   TPZBaseMatrix(const TPZBaseMatrix &cp) = default;
   /** @brief Move constructor*/
@@ -59,11 +74,8 @@ public:
   virtual int64_t MemoryFootprint() const = 0;
 
   /** @brief Fill matrix storage with randomic values */
-  virtual void AutoFill(int64_t nrow, int64_t ncol, int symmetric) = 0;
+  virtual void AutoFill(int64_t nrow, int64_t ncol, SymProp sym) = 0;
     
-  /** @brief Checks if current matrix value is symmetric */
-  virtual int VerifySymmetry(REAL tol) const = 0;
-
   /** @brief Returns number of rows */
   inline int64_t Rows() const { return fRow; }
   /** @brief Returns number of cols */
@@ -97,100 +109,50 @@ public:
   virtual int Zero() = 0;
 
 
-  /** @brief Checks if the current matrix is symmetric */
-  virtual int IsSymmetric() const{ return 0;}
+  /** @brief Gets symmetry property of current matrix
+      @note This flag is set by the user. Use VerifySymmetry for actually checking values.*/
+  SymProp GetSymmetry() const{ return fSymProp; }
+
+  /** @brief Performs a check to ensure if current matrix value is symmetric */
+  virtual SymProp VerifySymmetry(REAL tol) const = 0;
+
+  /** @brief Sets symmetry property of current matrix.
+      If matrix is not square and symmetry property is not SymProp::NonSym, this function throws an error.
+      Matrix classes that store only lower/upper triangular portion of the matrix will overload this method
+      as non-symmetric formats are not allowed.
+      @note Should only be called if the user is sure about the symmetry property. Can lead to inconsistent states.*/
+  virtual void SetSymmetry(SymProp sp);
   /** @brief Checks if current matrix is square */
   inline int IsSquare() const {
     return fRow == fCol; }
 
   /** @brief Simetrizes copies upper plan to the lower plan, making its data
    * simetric */
-  virtual void Simetrize() = 0;
+//  virtual void Simetrize() = 0;
 
+  /** @brief Sets current matrix as definite positive */
+  void SetDefPositive(bool v) {
+    fDefPositive = v;
+  }
+  
   /** @brief Checks if current matrix is definite positive */
-  virtual int IsDefPositive() const {
-    return fDefPositive; }
+  virtual bool IsDefPositive() const {
+    return fDefPositive;
+  }
   /** @brief Checks if current matrix is already decomposed */
-  int IsDecomposed() const {
+  DecomposeType IsDecomposed() const {
     return fDecomposed; }
 
 
 
   /** @brief Sets current matrix to decomposed state */
-  virtual void SetIsDecomposed(int val) {
-    fDecomposed = (char)val; }
+  virtual void SetIsDecomposed(DecomposeType val) {
+    fDecomposed = val; }
+
 
   /** @brief decompose the system of equations acording to the decomposition
    * scheme */
-  virtual int Decompose(const DecomposeType dt, std::list<int64_t> &singular) {
-    switch (dt) {
-    case ELU:
-      return Decompose_LU(singular);
-      break;
-    case ELDLt:
-      return Decompose_LDLt(singular);
-      break;
-    case ECholesky:
-      return Decompose_Cholesky(singular);
-      break;
-    default:
-      DebugStop();
-      break;
-    }
-    return -1;
-  }
-
-  /** @brief decompose the system of equations acording to the decomposition
-   * scheme */
-  virtual int Decompose(const DecomposeType dt) {
-    switch (dt) {
-    case ELU:
-      return Decompose_LU();
-      break;
-    case ELDLt:
-      return Decompose_LDLt();
-      break;
-    case ECholesky:
-      return Decompose_Cholesky();
-      break;
-    default:
-      DebugStop();
-      break;
-    }
-    return -1;
-  }
-  /**
-   * @name Factorization
-   * @brief Those member functions perform the matrix factorization
-   * @{
-   */
-
-  /** @brief Decomposes the current matrix using LU decomposition. */
-  virtual int Decompose_LU(std::list<int64_t> &singular) = 0;
-  /** @brief Decomposes the current matrix using LU decomposition. */
-  virtual int Decompose_LU() = 0;
-
-  
-  /**
-   * @brief Decomposes the current matrix using Cholesky method.
-   *
-   * The curent matrix has to be hermitian.
-   */
-  virtual int Decompose_Cholesky(std::list<int64_t> &singular) = 0;
-  /** @brief Decomposes the current matrix using Cholesky*/
-  virtual int Decompose_Cholesky() = 0;
-  /**
-   * @brief Decomposes the current matrix using LDLt.
-   *
-   * The current matrix has to be symmetric.
-   * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal
-   * matrix.
-   */
-  virtual int Decompose_LDLt(std::list<int64_t> &singular) = 0;
-  /** @brief Decomposes the current matrix using LDLt. */
-  virtual int Decompose_LDLt() = 0;
-  
-  /** @} */
+    virtual int Decompose(const DecomposeType dt) = 0;
 
   /** @brief It prints the matrix data in a MatrixFormat Rows X Cols */
   virtual void Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const = 0;
@@ -216,10 +178,21 @@ protected:
   /** @brief Number of cols in matrix */
   int64_t fCol;
   /** @brief Decomposition type used to decompose the current matrix */
-  char fDecomposed;
+  DecomposeType fDecomposed;
+  /** @brief Symmetry property of the matrix*/
+  SymProp fSymProp{SymProp::NonSym};
   /** @brief Definite Posistiveness of current matrix */
-  char fDefPositive;
+  bool fDefPositive;
 };
+
+//! Convert enum to string
+constexpr auto SymPropName(SymProp sp){
+  switch(sp){
+  case SymProp::NonSym: return "NonSym";
+  case SymProp::Sym: return "Sym";
+  case SymProp::Herm: return "Herm";
+  }
+}
 
 /** @} */
 

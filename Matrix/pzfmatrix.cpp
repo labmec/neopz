@@ -61,11 +61,11 @@ TPZMatrix<TVar>(mat), fElem(0),fGiven(0),fSize(0) {
     if(this->fRow*this->fCol) {
         
         fElem = new TVar[this->fRow*this->fCol];
-        TVar * p = fElem;
+        
         int64_t i,j;
         for(j=0; j<this->fCol; j++) {
             for(i=0; i<this->fRow; i++) {
-                *p++ = mat.GetVal(i,j);
+                this->PutVal(i, j, mat.GetVal(i,j));
             }
         }
     }
@@ -90,6 +90,7 @@ TPZMatrix<TVar>( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
     TVar * p = fElem;
     for(int64_t i = 0; i< size; i++) p[i]=src[i];
 //    memcpy((void *)(p),(void *)(src),(size_t)size*sizeof(TVar));
+    this->fSymProp = A.GetSymmetry();
 }
 
 
@@ -99,6 +100,7 @@ TPZFMatrix<TVar>::TPZFMatrix(TPZFMatrix<TVar> &&A)
       fGiven(0),fSize(0),
       fPivot(0), fWork(0)
 {
+    // A has preallocated memory, we cant copy the pointer
     if(A.fElem == A.fGiven)
     {
         int64_t size = A.fRow * A.fCol;
@@ -108,12 +110,10 @@ TPZFMatrix<TVar>::TPZFMatrix(TPZFMatrix<TVar> &&A)
     }
     else {
         fElem = A.fElem;
-        fPivot = A.fPivot;
-        fWork = A.fWork;
         A.fElem=nullptr;
-        A.fGiven=nullptr;
-        A.fSize=0;
     }
+    fPivot = A.fPivot;
+    fWork = A.fWork;
 }
 
 /********************************/
@@ -148,12 +148,12 @@ TPZMatrix<TVar>( A.Rows(), A.Cols() ), fElem(0), fGiven(0), fSize(0) {
 template<class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
     if(this == &A) return *this;
+    // amount of storage needed
     int64_t size = A.fRow * A.fCol;
     
     TVar * newElem = fElem;
     if(fSize < size && size != this->fRow*this->fCol) {
-        newElem = new TVar
-        [size] ;
+        newElem = new TVar[size];
     } else if (fSize >= size) {
         newElem = fGiven;
     }
@@ -176,17 +176,35 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
 
 template<class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(TPZFMatrix<TVar> &&A ) {
+    if(this == &A) return *this;
+    // if A points to preallocated memory, then this code is wrong
+    if(A.fGiven && A.fElem == A.fGiven) {
+        // amount of storage needed
+        int64_t size = A.fRow * A.fCol;
+        
+        TVar * newElem = 0;
+        if(size == this->fRow*this->fCol) {
+            newElem = fElem;
+        } else if(fSize < size) {
+            // not enough preallocated space, allocate dynamically
+            newElem = new TVar[size];
+        } else {
+            newElem = fGiven;
+        }
+        if ( newElem == NULL && size > 0) Error( "Operator= <memory allocation error>." );
+        if (fElem && fElem != newElem && fElem != fGiven) delete[]( fElem );
+        fElem = newElem;
+        // Copia a matriz
+        for(int64_t i = 0; i<size; i++) fElem[i] = A.fElem[i];
+    } else {
+        // A does not have or does not use preallocated memory
+        fElem=A.fElem;
+        fPivot = A.fPivot;
+        fWork = A.fWork;
+        
+        A.fElem = nullptr;
+    }
     TPZMatrix<TVar>::operator=(A);
-    if(fElem && fElem != fGiven) {delete [] fElem;}
-    fElem=A.fElem;
-    fGiven=A.fGiven;
-    fSize=A.fSize;
-    fPivot = A.fPivot;
-    fWork = A.fWork;
-    
-    A.fElem = nullptr;
-    A.fGiven = nullptr;
-    A.fSize = 0;
     return *this;
 }
 
@@ -1006,7 +1024,7 @@ TPZFMatrix<TVar>& TPZFMatrix<TVar>::operator=(const TVar value ) {
     TVar * dst   = fElem;
     for ( int64_t i = 0; i < size; i++ )
         *dst++ = value;
-    this->fDecomposed = 0;
+    this->fDecomposed = ENoDecompose;
     return *this;
 }
 
@@ -1173,12 +1191,13 @@ int TPZFMatrix<float>::Decompose_LU(TPZVec<int> &index) {
     }
     
     
-    int nRows = this->Rows();
-    int zero = 0;
-    float b;int info;
+    lapack_int nRows = this->Rows();
+    lapack_int zero = 0;
+    float b;lapack_int info;
     
-    fPivot.Resize(nRows);
-    
+    InitializePivot();
+    TPZManVector<lapack_int,2000> pivot(nRows);
+    for(int i = 0; i < nRows; i++){pivot[i]=fPivot[i];}
     //    int sgesv_(__CLPK_integer *__n, __CLPK_integer *__nrhs, __CLPK_real *__a,
     //               __CLPK_integer *__lda, __CLPK_integer *__ipiv, __CLPK_real *__b,
     //               __CLPK_integer *__ldb,
@@ -1186,8 +1205,11 @@ int TPZFMatrix<float>::Decompose_LU(TPZVec<int> &index) {
     //                                                                __IPHONE_4_0);
     
     
-    sgesv_(&nRows,&zero,fElem,&nRows,&fPivot[0],&b,&nRows,&info);
-    index = fPivot;
+    sgesv_(&nRows,&zero,fElem,&nRows,pivot.begin(),&b,&nRows,&info);
+    index.Resize(nRows);
+    for(int i = 0; i < nRows; i++){
+        index[i] = fPivot[i] = pivot[i];
+    }
     this->fDecomposed = ELUPivot;
     return 1;
 }
@@ -1207,11 +1229,11 @@ int TPZFMatrix<double>::Decompose_LU(TPZVec<int> &index) {
     }
     
     
-    int nRows = this->Rows();
+    lapack_int nRows = this->Rows();
     if (nRows == 0) return 0;
 
-    int zero = 0;
-    double b;int info;
+    lapack_int zero = 0;
+    double b;lapack_int info;
     
     // If the matrix is 1x1, the lapack function dgesv_ does not modify
     // fPivot. And, if fPivot is not initialized it can lead to problems
@@ -1219,7 +1241,8 @@ int TPZFMatrix<double>::Decompose_LU(TPZVec<int> &index) {
     // now initializing fPivot before calling dgesv_
 //    fPivot.Resize(nRows);
     InitializePivot();
-    
+    TPZManVector<lapack_int,2000> pivot(nRows);
+    for(int i = 0; i < nRows; i++){pivot[i]=fPivot[i];}
     //    int sgesv_(__CLPK_integer *__n, __CLPK_integer *__nrhs, __CLPK_real *__a,
     //               __CLPK_integer *__lda, __CLPK_integer *__ipiv, __CLPK_real *__b,
     //               __CLPK_integer *__ldb,
@@ -1227,9 +1250,61 @@ int TPZFMatrix<double>::Decompose_LU(TPZVec<int> &index) {
     //                                                                __IPHONE_4_0);
     
     
-    dgetrf_(&nRows,&nRows,fElem,&nRows,&fPivot[0],&info);
+    dgetrf_(&nRows,&nRows,fElem,&nRows,&pivot[0],&info);
 //    dgesv_(&nRows,&zero,fElem,&nRows,&fPivot[0],&b,&nRows,&info);
-    index = fPivot;
+    index.Resize(nRows);
+    for(int i = 0; i < nRows; i++){
+        index[i] = fPivot[i] = pivot[i];
+    }
+    this->fDecomposed = ELUPivot;
+    return 1;
+}
+
+template <>
+int TPZFMatrix<std::complex<double>>::Decompose_LU(TPZVec<int> &index) {
+    
+    
+    if (this->fDecomposed != ENoDecompose && this->fDecomposed != ELUPivot) DebugStop();
+    
+    if (this->fDecomposed != ENoDecompose) {
+        return ELUPivot;
+    }
+    
+    if ( this->Rows() != this->Cols() ) {
+        cout << "TPZFPivotMatrix::DecomposeLU ERRO : A Matriz não é quadrada" << endl;
+        return 0;
+    }
+    
+    
+    lapack_int nRows = this->Rows();
+    if (nRows == 0) return 0;
+
+    lapack_int zero = 0;
+    double b;lapack_int info;
+    
+    // If the matrix is 1x1, the lapack function dgesv_ does not modify
+    // fPivot. And, if fPivot is not initialized it can lead to problems
+    // when the function Substitution() is called. That is why we are
+    // now initializing fPivot before calling dgesv_
+//    fPivot.Resize(nRows);
+    InitializePivot();
+    TPZManVector<lapack_int,2000> pivot(nRows);
+    for(int i = 0; i < nRows; i++){pivot[i]=fPivot[i];}
+    //    int sgesv_(__CLPK_integer *__n, __CLPK_integer *__nrhs, __CLPK_real *__a,
+    //               __CLPK_integer *__lda, __CLPK_integer *__ipiv, __CLPK_real *__b,
+    //               __CLPK_integer *__ldb,
+    //               __CLPK_integer *__info) __OSX_AVAILABLE_STARTING(__MAC_10_2,
+    //                                                                __IPHONE_4_0);
+    
+
+    static_assert(sizeof(vardoublecomplex) == sizeof(std::complex<double>),
+                  "Incompatible types");
+    zgetrf_(&nRows,&nRows,(vardoublecomplex*)fElem,&nRows,&pivot[0],&info);
+//    dgesv_(&nRows,&zero,fElem,&nRows,&fPivot[0],&b,&nRows,&info);
+    index.Resize(nRows);
+    for(int i = 0; i < nRows; i++){
+        index[i] = fPivot[i] = pivot[i];
+    }
     this->fDecomposed = ELUPivot;
     return 1;
 }
@@ -1376,13 +1451,18 @@ int TPZFMatrix<double>::Decompose_LU() {
     
     return this->Decompose_LU(fPivot);
 }
+template <>
+int TPZFMatrix<std::complex<double>>::Decompose_LU() {
+    
+    
+    return this->Decompose_LU(fPivot);
+}
 #endif //USING_LAPACK
 
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LU() {
     
-    std::list<int64_t> fake;
-    return this->Decompose_LU(fake);
+    return this->Decompose_LU(fPivot);
 }
 
 
@@ -1431,6 +1511,7 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
 	if (this->fDecomposed != ELUPivot) {
 		Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
 	}
+    return Substitution(B,fPivot);
 #else
 	if(this->fDecomposed != ELU) {
         Error("TPZFMatrix::Decompose_LU substitution called for a wrongly decomposed matrix");
@@ -1497,13 +1578,14 @@ int TPZFMatrix<float>::Substitution( TPZFMatrix<float> *B, const TPZVec<int> &in
     //                __CLPK_real *__b, __CLPK_integer *__ldb,
     //                __CLPK_integer *__info) __OSX_AVAILABLE_STARTING(__MAC_10_2,
     //                                                                 __IPHONE_4_0);
-    int nRows = this->Rows();
+    lapack_int nRows = this->Rows();
     char notrans = 'N';
-    int BCols = B->Cols();
-    int info = 0;
-    
-    sgetrs_(&notrans,&nRows,&BCols,fElem,&nRows,&fPivot[0],B->fElem,&nRows,&info);
-    
+    lapack_int BCols = B->Cols();
+    lapack_int info = 0;
+
+    TPZManVector<lapack_int,2000> pivot(nRows);
+    for(int i = 0; i < nRows; i++){pivot[i]=index[i];}
+    sgetrs_(&notrans,&nRows,&BCols,fElem,&nRows,&pivot[0],B->fElem,&nRows,&info);
 #ifdef PZDEBUG
     if(info != 0)
     {
@@ -1537,12 +1619,58 @@ int TPZFMatrix<double>::Substitution( TPZFMatrix<double> *B, const TPZVec<int> &
     //                __CLPK_real *__b, __CLPK_integer *__ldb,
     //                __CLPK_integer *__info) __OSX_AVAILABLE_STARTING(__MAC_10_2,
     //                                                                 __IPHONE_4_0);
-    int nRows = this->Rows();
+    lapack_int nRows = this->Rows();
     char notrans = 'N';
-    int BCols = B->Cols();
-    int info = 0;
+    lapack_int BCols = B->Cols();
+    lapack_int info = 0;
+
+    TPZManVector<lapack_int,2000> pivot(nRows);
+    for(int i = 0; i < nRows; i++){pivot[i]=index[i];}
+    dgetrs_(&notrans,&nRows,&BCols,fElem,&nRows,&pivot[0],B->fElem,&nRows,&info);
     
-    dgetrs_(&notrans,&nRows,&BCols,fElem,&nRows,&fPivot[0],B->fElem,&nRows,&info);
+#ifdef PZDEBUG
+    if(info != 0)
+    {
+        DebugStop();
+    }
+#endif
+    
+    return 1;
+}
+
+template<>
+int TPZFMatrix<std::complex<double>>::Substitution( TPZFMatrix<std::complex<double>> *B, const TPZVec<int> &index ) const{
+    
+    if(!B){
+        PZError << __PRETTY_FUNCTION__ << "TPZFMatrix<>*B eh nulo" << endl;
+        return 0;
+    }
+    
+    
+    if (!this->fDecomposed){
+        PZError <<  __PRETTY_FUNCTION__ << "Matriz não decomposta" << endl;
+        return 0;
+    }
+    
+    if (this->fDecomposed != ELUPivot){
+        PZError << __PRETTY_FUNCTION__ << "\nfDecomposed != ELUPivot" << endl;
+    }
+    
+    //    int sgetrs_(char *__trans, __CLPK_integer *__n, __CLPK_integer *__nrhs,
+    //                __CLPK_real *__a, __CLPK_integer *__lda, __CLPK_integer *__ipiv,
+    //                __CLPK_real *__b, __CLPK_integer *__ldb,
+    //                __CLPK_integer *__info) __OSX_AVAILABLE_STARTING(__MAC_10_2,
+    //                                                                 __IPHONE_4_0);
+    lapack_int nRows = this->Rows();
+    char notrans = 'N';
+    lapack_int BCols = B->Cols();
+    lapack_int info = 0;
+
+    TPZManVector<lapack_int,2000> pivot(nRows);
+    for(int i = 0; i < nRows; i++){pivot[i]=index[i];}
+    static_assert(sizeof(std::complex<double>)==sizeof(vardoublecomplex), "incompatible sizes");
+    zgetrs_(&notrans,&nRows,&BCols,(vardoublecomplex*)fElem,&nRows,
+            &pivot[0],(vardoublecomplex*)B->fElem,&nRows,&info);
     
 #ifdef PZDEBUG
     if(info != 0)
@@ -1631,33 +1759,27 @@ int TPZFMatrix<double>::Substitution( TPZFMatrix<double> *B ) const {
     
     return this->Substitution(B,fPivot);
 }
+template <>
+int TPZFMatrix<std::complex<double>>::Substitution( TPZFMatrix<std::complex<double>> *B ) const {
+    
+    return this->Substitution(B,fPivot);
+}
 #endif //USING_LAPACK
 
 
-//NAO TESTADO
-template <class TVar>
-int TPZFMatrix<TVar>::Decompose_Cholesky(){
-    std::list<int64_t> fake;
-    int res = this->Decompose_Cholesky(fake);
-    if(fake.size()){
-        DebugStop();
-    }
-    return res;
-}
-
 #ifdef USING_LAPACK
 template <>
-int TPZFMatrix<float>::Decompose_Cholesky(std::list<int64_t> &singular) {
+int TPZFMatrix<float>::Decompose_Cholesky() {
     if (  this->fDecomposed && this->fDecomposed != ECholesky) Error( "Decompose_Cholesky <Matrix already Decomposed>" );
     if (  this->fDecomposed ) return ECholesky;
     if ( this->Rows() != this->Cols() ) Error( "Decompose_Cholesky <Matrix must be square>" );
-    int dim=this->Dim();
+    lapack_int dim=this->Dim();
     
     TPZFMatrix<float> B(*this);
-    int nrhs = 0;
+    lapack_int nrhs = 0;
     float *A = fElem;
     char uplo = 'U';
-    int info;
+    lapack_int info;
     //    sposv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     spotrf_(&uplo, &dim, A, &dim, &info);
     this->fDecomposed = ECholesky;
@@ -1668,17 +1790,17 @@ int TPZFMatrix<float>::Decompose_Cholesky(std::list<int64_t> &singular) {
     return 1;
 }
 template <>
-int TPZFMatrix<double>::Decompose_Cholesky(std::list<int64_t> &singular) {
+int TPZFMatrix<double>::Decompose_Cholesky() {
     if (  this->fDecomposed && this->fDecomposed != ECholesky) Error( "Decompose_Cholesky <Matrix already Decomposed>" );
     if (  this->fDecomposed ) return ECholesky;
     if ( this->Rows() != this->Cols() ) Error( "Decompose_Cholesky <Matrix must be square>" );
-    int dim=this->Dim();
+    lapack_int dim=this->Dim();
     
     double B;
-    int nrhs = 0;
+    lapack_int nrhs = 0;
     double *A = fElem;
     char uplo = 'U';
-    int info;
+    lapack_int info;
     dpotrf_(&uplo, &dim, A, &dim, &info);
     this->fDecomposed = ECholesky;
     
@@ -1688,6 +1810,64 @@ int TPZFMatrix<double>::Decompose_Cholesky(std::list<int64_t> &singular) {
     return 1;
 }
 #endif //USING_LAPACK
+
+
+template <class TVar>
+int TPZFMatrix<TVar>::Decompose_Cholesky(){
+    if (  this->fDecomposed && this->fDecomposed != ECholesky) Error( "Decompose_Cholesky <Matrix already Decomposed>" );
+    if (  this->fDecomposed ) return ECholesky;
+    if ( this->Rows() != this->Cols() ) Error( "Decompose_Cholesky <Matrix must be square>" );
+    //return 0;
+    
+    int dim=this->Dim();
+    
+    for (int i=0 ; i<dim; i++) {
+        
+
+        TVar &diagII = this->g(i,i);
+        for(int k=0; k<i; k++) { //diagonal elements
+            TVar sum = 0;
+            if constexpr (is_complex<TVar>::value){
+                sum += this->operator()(i,k)*std::conj(this->operator()(i,k));
+            }else{
+                sum+= this->operator()(i,k)*this->operator()(i,k);
+            }
+            diagII -= sum;
+        }
+        
+        
+        if( IsZero(diagII) ){
+            DebugStop();
+        }
+        if constexpr(!is_complex<TVar>::value) if (diagII < 0.) DebugStop();
+        
+        diagII = sqrt(diagII);
+
+        for (int j=i+1;j<dim; j++) {//off-diagonal elements
+            TVar sum = 0.;
+            int k = 0;
+            TVar * ikPtr = &(this->g(k,i));///(k,i) = (i,k) given that the matrix is symmetric, but the alignment will speed up execution
+            TVar * kjPtr = &(this->g(k,j));
+            for(; k<i; k++, kjPtr++, ikPtr++) {
+                if constexpr(is_complex<TVar>::value){
+                    sum += std::conj(*ikPtr)*(*kjPtr);
+                }else{
+                    sum += (*ikPtr)*(*kjPtr);
+                }
+            }
+            
+            const TVar val = (this->GetVal(i,j) - sum)/(diagII);
+            this->PutVal(i,j,val);
+            if constexpr (is_complex<TVar>::value) this->PutVal(j,i,std::conj(val));
+            else this->PutVal(j,i,val);
+        }
+    }
+    
+    //    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    this->fDecomposed = ECholesky;
+    return ECholesky;
+}
+
 
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular) {
@@ -1807,13 +1987,13 @@ int TPZFMatrix<float>::Decompose_LDLt() {
     }
     if ( this->Rows()!=this->Cols() ) Error( "Decompose_LDLt <Matrix must be square>" );
     char uplo = 'U';
-    int dim = Rows();
-    int nrhs = 0;
+    lapack_int dim = Rows();
+    lapack_int nrhs = 0;
     fPivot.Resize(dim,0);
     float B  = 0.;
-    int worksize = 3*dim;
+    lapack_int worksize = 3*dim;
     fWork.Resize(worksize);
-    int info;
+    lapack_int info;
     
     if (dim == 0) {
         this->fDecomposed  = ELDLt;
@@ -1822,8 +2002,12 @@ int TPZFMatrix<float>::Decompose_LDLt() {
     }
     
     //    ssysv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_real *__work#>, <#__CLPK_integer *__lwork#>, <#__CLPK_integer *__info#>)
-    
-    ssysv_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], &B, &dim, &fWork[0], &worksize, &info);
+
+    InitializePivot();
+    TPZManVector<lapack_int,2000> pivot(dim);
+    for(int i = 0 ; i < dim ; i++){pivot[i] = fPivot[i];}
+    ssysv_(&uplo, &dim, &nrhs, fElem, &dim, &pivot[0], &B, &dim, &fWork[0], &worksize, &info);
+    for(int i = 0; i < dim; i++){fPivot[i] = pivot[i];}
     fDecomposed = ELDLt;
     return 1;
 }
@@ -1838,13 +2022,13 @@ int TPZFMatrix<double>::Decompose_LDLt() {
     }
     if ( this->Rows()!=this->Cols() ) Error( "Decompose_LDLt <Matrix must be square>" );
     char uplo = 'L';
-    int dim = Rows();
-    int nrhs = 0;
+    lapack_int dim = Rows();
+    lapack_int nrhs = 0;
     fPivot.Resize(dim,0);
     double B  = 0.;
-    int worksize = 3*dim;
+    lapack_int worksize = 3*dim;
     fWork.Resize(worksize);
-    int info;
+    lapack_int info;
     
     if (dim == 0) {
         this->fDecomposed  = ELDLt;
@@ -1853,8 +2037,10 @@ int TPZFMatrix<double>::Decompose_LDLt() {
     }
     
     //    ssysv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_real *__work#>, <#__CLPK_integer *__lwork#>, <#__CLPK_integer *__info#>)
-    
-    dsysv_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], &B, &dim, &fWork[0], &worksize, &info);
+    TPZManVector<lapack_int,2000> pivot(dim);
+    for(int i = 0 ; i < dim ; i++){pivot[i] = fPivot[i];}
+    dsysv_(&uplo, &dim, &nrhs, fElem, &dim, &pivot[0], &B, &dim, &fWork[0], &worksize, &info);
+    for(int i = 0; i < dim; i++){fPivot[i] = pivot[i];}
     fDecomposed = ELDLt;
     return 1;
 }
@@ -1863,7 +2049,45 @@ int TPZFMatrix<double>::Decompose_LDLt() {
 
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LDLt() {
-    return TPZMatrix<TVar>::Decompose_LDLt();
+    if (  this->fDecomposed && this->fDecomposed != ELDLt) {
+        Error( "Decompose_LDLt <Matrix already Decomposed with other scheme> " );
+    } else if(this->fDecomposed ) {
+        return ELDLt;
+    }
+    if ( this->Rows()!=this->Cols() ) Error( "Decompose_LDLt <Matrix must be square>" );
+    
+    const int dim=this->Rows();
+    
+    for (auto j = 0; j < dim; j++ ) {
+        TVar sum = 0;
+        for (auto k=0; k<j; k++) {
+            if constexpr(is_complex<TVar>::value){
+                sum +=GetVal(k,k)*std::conj(GetVal(k,j))*GetVal(k,j);
+            }else{
+                sum +=GetVal(k,k)*GetVal(k,j)*GetVal(k,j);
+            }
+        }
+        PutVal( j,j,GetVal(j,j) - sum );
+        TVar tmp = GetVal(j,j);
+        if ( IsZero(tmp) ) Error( "Decompose_LDLt <Zero on diagonal>" );
+        for(auto l=j+1; l<dim;l++) {
+            TVar sum = 0;
+            for (auto k=0; k<j; k++) {
+                if constexpr(is_complex<TVar>::value){
+                    sum += GetVal(k,k)*std::conj(GetVal(j,k))*GetVal(l,k);
+                }else{
+                    sum += GetVal(k,k)*GetVal(j,k)*GetVal(l,k);
+                }
+            }
+            TVar val = (GetVal(l,j) - sum)/tmp;
+            PutVal(l,j,val);
+            if constexpr(is_complex<TVar>::value){val=std::conj(val);}
+            PutVal(j,l,val);
+        }
+    }
+    this->fDecomposed  = ELDLt;
+    this->fDefPositive = 0;
+    return( 1 );
 }
 
 
@@ -1889,7 +2113,8 @@ int TPZFMatrix<float>::Subst_Forward( TPZFMatrix<float>* b ) const
     }
     else
     {
-        return TPZMatrix<float>::Subst_Forward(b);
+        DebugStop();
+        return 0;
     }
 }
 
@@ -1914,7 +2139,8 @@ int TPZFMatrix<double>::Subst_Forward( TPZFMatrix<double>* b ) const
     }
     else
     {
-        return TPZMatrix<double>::Subst_Forward(b);
+        DebugStop();
+        return 0;
     }
 }
 #endif 
@@ -1923,9 +2149,24 @@ int TPZFMatrix<double>::Subst_Forward( TPZFMatrix<double>* b ) const
  * @param b right hand side and result after all
  */
 template<class TVar>
-int TPZFMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
+int TPZFMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* B ) const
 {
-    return TPZMatrix<TVar>::Subst_Forward(b);
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed != ECholesky)
+        return( 0 );
+    for ( int64_t r = 0; r < this->Dim(); r++ ) {
+        TVar pivot = GetVal( r, r );
+        for ( int64_t c = 0; c < B->Cols();  c++ ) {
+            // Faz sum = SOMA( A[r,i] * B[i,c] ); i = 0, ..., r-1.
+            //
+            TVar sum = 0.0;
+            for ( int64_t i = 0; i < r; i++ ) sum += GetVal(r, i) * B->GetVal(i, c);
+            
+            // Faz B[r,c] = (B[r,c] - sum) / A[r,r].
+            //
+            B->PutVal( r, c, (B->GetVal(r, c) - sum) / pivot );
+        }
+    }
+    return( 1 );
 }
 
 /**
@@ -1933,9 +2174,22 @@ int TPZFMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
  * @param b right hand side and result after all
  */
 template<class TVar>
-int TPZFMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
+int TPZFMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* B ) const
 {
-    return TPZMatrix<TVar>::Subst_Backward(b);
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed != ECholesky) return( 0 );
+    for ( int64_t r = this->Dim()-1;  r >= 0;  r-- ) {
+        TVar pivot = GetVal( r, r );
+        for ( int64_t c = 0; c < B->Cols(); c++ ) {
+            // Faz sum = SOMA( A[r,i] * B[i,c] ); i = N, ..., r+1.
+            //
+            TVar sum = 0.0;
+            for ( int64_t i = this->Dim()-1; i > r; i-- ) sum += GetVal(r, i) * B->GetVal(i, c);
+            // Faz B[r,c] = (B[r,c] - sum) / A[r,r].
+            //
+            B->PutVal( r, c, (B->GetVal(r, c) - sum) / pivot );
+        }
+    }
+    return( 1 );
 }
 
 #ifdef USING_LAPACK
@@ -1965,7 +2219,8 @@ int TPZFMatrix<float>::Subst_Backward( TPZFMatrix<float>* b ) const
     }
     else
     {
-        return TPZMatrix<float>::Subst_Backward(b);
+        DebugStop();
+        return 0;
     }
 }
 
@@ -1995,7 +2250,8 @@ int TPZFMatrix<double>::Subst_Backward( TPZFMatrix<double>* b ) const
     }
     else
     {
-        return TPZMatrix<double>::Subst_Backward(b);
+        DebugStop();
+        return 0;
     }
 }
 
@@ -2013,15 +2269,17 @@ int TPZFMatrix<float>::Subst_LForward( TPZFMatrix<float>* b ) const
     }
     
     char uplo = 'U';
-    int dim = Rows();
-    int nrhs = b->Cols();
+    lapack_int dim = Rows();
+    lapack_int nrhs = b->Cols();
     float B  = 0.;
-    int info;
+    lapack_int info;
     
     //    ssytrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
-    ssytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);
+    TPZManVector<lapack_int,2000> pivot(dim);
+    for(int i = 0 ; i < dim ; i++){pivot[i] = fPivot[i];}
+    ssytrs_(&uplo, &dim, &nrhs, fElem, &dim, &pivot[0], b->fElem, &dim, &info);
+    for(int i = 0; i < dim; i++){fPivot[i] = pivot[i];}
     return 1;
-    //    return TPZMatrix<TVar>::Subst_LForward(b);
 }
 
 /**
@@ -2037,16 +2295,18 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
     }
     
     char uplo = 'L';
-    int dim = Rows();
-    int nrhs = b->Cols();
+    lapack_int dim = Rows();
+    lapack_int nrhs = b->Cols();
     double B  = 0.;
-    int info;
+    lapack_int info;
     if (dim == 0 || nrhs == 0) {
         return 0;
     }
-    dsytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);
+    TPZManVector<lapack_int,2000> pivot(dim);
+    for(int i = 0 ; i < dim ; i++){pivot[i] = fPivot[i];}
+    dsytrs_(&uplo, &dim, &nrhs, fElem, &dim, &pivot[0], b->fElem, &dim, &info);
+    for(int i = 0; i < dim; i++){fPivot[i] = pivot[i];}
     return 1;
-    //    return TPZMatrix<TVar>::Subst_LForward(b);
 }
 
 /**
@@ -2095,10 +2355,24 @@ int TPZFMatrix<double>::Subst_Diag( TPZFMatrix<double>* b ) const
  * @param b right hand side and result after all
  */
 template<class TVar>
-int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
+int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* B ) const
 {
-    //    ssytrs2
-    return TPZMatrix<TVar>::Subst_LForward(b);
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed != ELDLt) {
+        Error("TPZMatrix::Subst_LForward incompatible dimensions\n");
+    }
+    for ( int64_t r = 0; r < this->Dim(); r++ ) {
+        for ( int64_t c = 0; c < B->Cols();  c++ )    {
+            // Faz sum = SOMA( A[r,i] * B[i,c] ); i = 0, ..., r-1.
+            //
+            TVar sum = 0.0;
+            for ( int64_t i = 0; i < r; i++ ) sum += GetVal(r, i) * B->GetVal(i, c);
+            
+            // Faz B[r,c] = (B[r,c] - sum) / A[r,r].
+            //
+            B->PutVal( r, c, B->GetVal(r, c) - sum );
+        }
+    }
+    return( 1 );
 }
 
 /**
@@ -2106,9 +2380,25 @@ int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
  * @param b right hand side and result after all
  */
 template<class TVar>
-int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
+int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* B ) const
 {
-    return TPZMatrix<TVar>::Subst_LBackward(b);
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed != ELDLt){
+        Error("TPZMatrix::Subst_LBackward incompatible dimensions \n");
+    }
+    
+    for ( int64_t r = this->Dim()-1;  r >= 0;  r-- ) {
+        for ( int64_t c = 0; c < B->Cols(); c++ ) {
+            // Faz sum = SOMA( A[r,i] * B[i,c] ); i = N, ..., r+1.
+            //
+            TVar sum = 0.0;
+            for ( int64_t i = this->Dim()-1; i > r; i-- ) sum += GetVal(r, i) * B->GetVal(i, c);
+            
+            // Faz B[r,c] = B[r,c] - sum.
+            //
+            B->PutVal( r, c, B->GetVal(r, c) - sum );
+        }
+    }
+    return( 1 );
 }
 
 /**
@@ -2116,9 +2406,18 @@ int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
  * @param b right hand side and result after all
  */
 template<class TVar>
-int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
+int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* B ) const
 {
-    return TPZMatrix<TVar>::Subst_Diag(b);
+    if ( (B->Rows() != this->Dim())) {
+        Error("TPZMatrix::Subst_Diag incompatible dimensions\n");
+    }
+    for ( int64_t r = 0; r < this->Dim(); r++ ) {
+        TVar pivot = GetVal( r, r );
+        for ( int64_t c = 0; c < B->Cols(); c++ ) {
+            B->PutVal( r, c, B->GetVal( r, c ) / pivot );
+        }
+    }
+    return( 1 );
 }
 
 /** @brief Implement dot product for matrices */
@@ -2510,9 +2809,9 @@ int TPZFMatrix<TVar>::SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix
 template<>
 int TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMatrix<double>& S, TPZFMatrix<double>& VT,char jobU, char jobVT){
     // Setup matrix sizes. This section of the code should happen for all specializations
-    int m = this->Rows();
-    int n = this->Cols();
-    int min = std::min(m,n);
+    lapack_int m = this->Rows();
+    lapack_int n = this->Cols();
+    lapack_int min = std::min(m,n);
     switch(jobU){
         case 'A': U.Resize(m,m);    break;
         case 'S': U.Resize(m,min);  break;
@@ -2533,10 +2832,10 @@ int TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMa
     double* S_ptr = &S(0,0);
     double* VT_ptr = &VT(0,0);
     // Setup auxiliar variables
-    int nrows = fRow, ncols = fCol;
-    int info = 0;
-    int lda = nrows;
-    int ldu = 1, ldvt = 1;
+    lapack_int nrows = fRow, ncols = fCol;
+    lapack_int info = 0;
+    lapack_int lda = nrows;
+    lapack_int ldu = 1, ldvt = 1;
     switch(jobU){
         case 'A':
         case 'S': ldu = nrows; break;
@@ -2548,10 +2847,10 @@ int TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMa
         default:  ldvt = 1; break;
     }
     double work_opt;
-    int lwork = -1; //<-- Pass -1 to tell Lapack to compute it for you
+    lapack_int lwork = -1; //<-- Pass -1 to tell Lapack to compute it for you
     // first do a pseudo-run to compute optimal work size
     dgesvd_(&jobU,&jobVT,&nrows,&ncols,A_ptr,&lda,S_ptr,U_ptr,&ldu,VT_ptr,&ldvt,&work_opt,&lwork,&info);
-    lwork = (int)work_opt;
+    lwork = (lapack_int)work_opt;
     TPZVec<double> work(lwork,0.);
     // then do actual computation of SVD
     dgesvd_(&jobU,&jobVT,&nrows,&ncols,A_ptr,&lda,S_ptr,U_ptr,&ldu,VT_ptr,&ldvt,&work[0],&lwork,&info);
@@ -2598,6 +2897,39 @@ Fad<REAL> Norm(const TPZFMatrix<Fad<REAL> > &A)
     Fad<REAL> res;
     return res;
 }
+
+
+template<class TVar>
+void TPZFMatrix<TVar>::Symetrize() {
+  
+  if ( this->Rows() != this->Cols() ) {
+    Error( "Simetrize only work for square matrices" );
+  }
+  
+  int64_t row,col;
+  int64_t fDim1 = this->Rows();
+  const bool must_conj =
+    is_complex<TVar>::value && this->GetSymmetry() == SymProp::Herm;
+  for(row=0; row<fDim1; row++) {
+    if(must_conj){
+      if constexpr (is_complex<TVar>::value){
+        for(col=row+1; col<fDim1; col++) {
+          this->s(col,row) = std::conj(this->s(row,col));
+        }
+      }else{
+        DebugStop();//unreachable
+      }
+    }else{
+      for(col=row+1; col<fDim1; col++) {
+        this->s(col,row) = this->s(row,col);
+      }
+    }
+    
+  }
+  
+}
+
+
 
 #ifndef USING_LAPACK    
 #define NON_LAPACK \

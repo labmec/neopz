@@ -6,16 +6,17 @@
 //
 #ifndef TPZPARDISOSOLVER_H
 #define TPZPARDISOSOLVER_H
+
 #include "TPZMatrixSolver.h"
 
 #include "pzmanvector.h"
 #include "tpzautopointer.h"
 
 template<class TVar>
-class TPZSYsmpMatrix;
+class TPZSYsmpMatrixPardiso;
 
 template<class TVar>
-class TPZFYsmpMatrix;
+class TPZFYsmpMatrixPardiso;
 
 /**
    @brief This class acts as a wrapper for calls to the PARDISO solver.
@@ -30,20 +31,14 @@ template<class TVar>
 class TPZPardisoSolver : public TPZMatrixSolver<TVar>
 {
     //they need access to SetRawMatrix and ReallySolve
-    friend class TPZFYsmpMatrix<TVar>;
-    friend class TPZSYsmpMatrix<TVar>;
+    friend class TPZFYsmpMatrixPardiso<TVar>;
+    friend class TPZSYsmpMatrixPardiso<TVar>;
 public:
-    /*!Symmetry of the algebraic system*/
-    enum class MSystemType {ENonInitialized=0, ESymmetric, ENonSymmetric};
-    /*! Storage format*/
-    enum class MStructure {ENonInitialized=0, ESymmetric, ENonSymmetric};
     /*! Whether the algebraic system is positive definite*/
     enum class MProperty {ENonInitialized=0, EPositiveDefinite, EIndefinite};
     
     /// Default constructor.
     TPZPardisoSolver();
-    /*!Constructor with info on the algebraic system*/
-    TPZPardisoSolver(MSystemType systemtype, MStructure structure, MProperty prop);
     /*!Copy constructor*/
     TPZPardisoSolver(const TPZPardisoSolver &copy) = default;
     /*!Move constructor*/
@@ -69,18 +64,17 @@ public:
 
     /**
        @brief Change the matrix type
-       @note  This method should only be called by the userbefore a matrix has been set.
+       @note  This method should only be called by the user before a matrix has been set.
     */
-    void SetMatrixType(MSystemType systemtype, MProperty prop);
+    void SetMatrixType(SymProp symtype, MProperty prop);
+
+    //! Changes only PARDISO's matrix type param
+    void SetMatrixType(long long type) {fMatrixType = type;} 
     /** @brief Sets the message level of the pardiso solver.
      Anything different than zero results in statistical information being printed.*/
     void SetMessageLevel(int lvl);
     //! Clones the current object returning a pointer of type TPZSolver
-	TPZPardisoSolver<TVar> *Clone() const override;
-    //! Sets matrix structure
-    void SetStructure(MStructure str){
-        fStructure = str;
-    }
+	  TPZPardisoSolver<TVar> *Clone() const override;
     /** @brief Gets copy of Pardiso param array
         @note It is strongly suggested to call SetStructure and SetMatrixType before
         customising the param array.*/
@@ -95,6 +89,12 @@ public:
     void ResetParam();
     //! Whether the param array has been set manually.
     [[nodiscard]] bool HasCustomSettings() const {return fCustomSettings;}
+
+    //! Returns permutation vec used by pardiso (can be obtained by param[4]=2)
+    TPZVec<long long> &GetPermutationVec() {return fPermutation;}
+
+    //! Releases all internal memory from PARDISO solver
+    void FreePardisoMemory();
 protected:
     /// Compute the `mtype` parameter of the pardiso_64 call
     long long MatrixType();
@@ -104,9 +104,7 @@ protected:
      This method assumes that the matrix has been decomposed.*/
     void Solve(const TPZMatrix<TVar> *mat, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const;
     
-    MSystemType fSystemType{MSystemType::ENonInitialized};
-    
-    MStructure fStructure{MStructure::ENonInitialized};
+    SymProp fSymmetry{SymProp::NonSym};
     
     MProperty fProperty{MProperty::ENonInitialized};
     

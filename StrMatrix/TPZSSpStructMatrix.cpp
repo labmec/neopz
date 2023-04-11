@@ -5,11 +5,20 @@
 
 #include "TPZSSpStructMatrix.h"
 #include "pzcmesh.h"
-#include "pzsysmp.h"
+#include "TPZSYSMPMatrix.h"
 #include "TPZRenumbering.h"
 #include "TPZGuiInterface.h"
 #include "TPZTimer.h"
 #include "pzlog.h"
+
+#ifdef USING_MKL
+#include "TPZSYSMPPardiso.h"
+#endif
+
+#ifdef USING_EIGEN
+#include "TPZEigenSparseMatrix.h"
+#endif
+
 #ifdef PZ_LOG
 static TPZLogger logger("pz.StrMatrix");
 #endif
@@ -52,7 +61,13 @@ template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex){
     
     const int64_t neq = this->fEquationFilter.NActiveEquations();
-    TPZSYsmpMatrix<TVar> * mat = new TPZSYsmpMatrix<TVar>(neq,neq);
+#ifdef USING_MKL
+    TPZSYsmpMatrixPardiso<TVar> * mat = new TPZSYsmpMatrixPardiso<TVar>(neq,neq);
+#elif USING_EIGEN
+    TPZEigenSparseMatrix<TVar> * mat = new TPZEigenSparseMatrix<TVar>(neq,neq);
+#else
+    DebugStop();
+#endif
     
     /**Creates a element graph*/
     TPZRenumbering graph;
@@ -190,7 +205,7 @@ TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_
     }
 
     Eq[ieq] = pos;
-    mat->SetData(Eq,EqCol,EqValue);
+    mat->SetData(std::move(Eq),std::move(EqCol),std::move(EqValue));
     return mat;
 }
 
@@ -222,7 +237,9 @@ template class TPZSSpStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
 template class TPZSSpStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
 template class TPZSSpStructMatrix<STATE,TPZStructMatrixOMPorTBB<STATE>>;
 
+#ifndef USING_EIGEN
 template class TPZSSpStructMatrix<CSTATE,TPZStructMatrixOR<CSTATE>>;
 template class TPZSSpStructMatrix<CSTATE,TPZStructMatrixOT<CSTATE>>;
 template class TPZSSpStructMatrix<CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
 template class TPZSSpStructMatrix<CSTATE,TPZStructMatrixOMPorTBB<CSTATE>>;
+#endif

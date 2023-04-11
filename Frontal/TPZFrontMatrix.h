@@ -39,6 +39,15 @@ public:
 	{
 	}
 	
+    /**
+     * @brief Forward substitution and result is on b
+     * @param b Result of the substitution
+     */
+    virtual int Subst_Forward(TPZFMatrix<TVar> *b) const = 0;
+    
+    /** @brief Backward substitution and result is on b*/
+    virtual int Subst_Backward(TPZFMatrix<TVar> *b) const = 0;
+
 	virtual TPZFront<TVar> & GetFront() = 0;
 	
 int ClassId() const override;
@@ -143,7 +152,27 @@ public:
 	 */
     virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex) override ;
 	
-    virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt, std::list<int64_t> &singular) override;
+    virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt) override
+    {
+        std::list<int64_t> singular;
+        int res = SolveDirect(B,dt, singular);
+        if(singular.size()) DebugStop();
+        return res;
+    }
+    virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt, std::list<int64_t> &singular);
+
+    virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt) const override
+    {
+        if(this->fDecomposed != dt) DebugStop();
+        return Substitution(&B);
+    }
+    /** @brief decompose the system of equations acording to the decomposition
+     * scheme */
+    virtual int Decompose(const DecomposeType dt) override {
+        TPZFMatrix<TVar> B(this->Rows(),1,0.);
+        return SolveDirect(B, dt);
+    }
+
     /**
 	 * @brief Forward substitution and result is on b
 	 * @param b Result of the substitution
@@ -154,7 +183,7 @@ public:
 	int Subst_Backward(TPZFMatrix<TVar> *b) const override;
     /** @brief Executes a substitution on a TPZFMatrix<REAL> object
 	 applies both forward and backward substitution automaticaly */
-	int Substitution(TPZFMatrix<TVar> *) const override;
+	int Substitution(TPZFMatrix<TVar> *) const;
     /*
 	 void SetFileName(
 	 const char *name = SetTempFileName() //! Name of the file

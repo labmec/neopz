@@ -1515,9 +1515,9 @@ void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<TVar> > substruct, int
     }
     
 #ifdef USE_LDLT_DECOMPOSITION
-    Stiffness->Decompose_LDLt();
+    Stiffness->Decompose(ELDLt);
 #else
-    Stiffness->Decompose_Cholesky();
+    Stiffness->Decompose(ECholesky);
 #endif
     
     substruct->Initialize();
@@ -1534,9 +1534,9 @@ void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<TVar> > substruct
     }
     
 #ifdef USE_LDLT_DECOMPOSITION
-    InternalStiffness->Decompose_LDLt();
+    InternalStiffness->Decompose(ELDLt);
 #else
-    InternalStiffness->Decompose_Cholesky();
+    InternalStiffness->Decompose(ECholesky);
 #endif
 }
 

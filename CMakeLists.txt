@@ -158,10 +158,20 @@ if(USING_TBB)
 endif()
 
 #enabling OMP library
-option(USING_OMP "Whether the TBB library will be linked in" OFF)
+option(USING_OMP "Whether the OpenMP library will be linked in" OFF)
 if(USING_OMP)
-    include(cmake/EnableOMP.cmake)
-    enable_omp(pz)
+    if(CMAKE_GENERATOR MATCHES "Xcode")
+        message(STATUS "setting flags")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Xclang -fopenmp")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fopenmp")
+        find_library(XCODE_OMP_LIB NAMES libiomp5.dylib PATHS /opt/local/lib/libomp)
+        target_link_libraries(pz PRIVATE ${XCODE_OMP_LIB})
+        find_path(XCODE_OMP_INCLUDE omp.h PATHS /opt/local/include/libomp)
+        include_directories(${XCODE_OMP_INCLUDE})
+    else()
+        include(cmake/EnableOMP.cmake)
+        enable_omp(pz)
+    endif()
 endif()
 
 #enabling LIKWID library
@@ -184,6 +194,8 @@ if(USING_MKL)
     include(cmake/EnableMKL.cmake)
     enable_mkl(pz)
 endif(USING_MKL)
+
+
 
 #enabling LAPACK library
 option(USING_LAPACK "Whether the LAPACK library will be linked in" OFF)
@@ -374,6 +386,13 @@ if(USING_UMFPACK)
 		  target_link_libraries(pz PUBLIC SuiteSparse::umfpack)
 		  target_compile_definitions(pz PUBLIC USING_UMFPACK)
 endif(USING_UMFPACK)
+
+option(USING_EIGEN "Whether the EIGEN3 library will be linked in" OFF)
+if(USING_EIGEN)
+		  find_package(Eigen3 CONFIG)
+		  target_link_libraries(pz PUBLIC Eigen3::Eigen)
+		  target_compile_definitions(pz PUBLIC USING_EIGEN)
+endif(USING_EIGEN)
 
 
 

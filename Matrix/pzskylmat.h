@@ -31,7 +31,8 @@ template<class TVar>
 class TPZSkylMatrix : public TPZMatrix<TVar>
 {
 public:
-	TPZSkylMatrix() : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>(0,0),fElem(0),fStorage(0) { }
+	TPZSkylMatrix() : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>(0,0),fElem(0),fStorage(0) {
+    this->fSymProp = SymProp::Herm;}
 	TPZSkylMatrix(const int64_t dim);
 	/**
      @brief Construct a skyline matrix of dimension dim
@@ -70,8 +71,8 @@ public:
 	 */
 	void AddSameStruct(TPZSkylMatrix<TVar> &B, double k = 1.);
 	
-	/** @brief declare the object as simetric matrix*/
-	virtual int IsSymmetric() const  override {return 1;}
+	/** @brief Sets symmetry property of current matrix (only hermitian/symmetric allowed)*/
+  void SetSymmetry (SymProp sp) override;
     
     /**
 	 * @brief Updates the values of the matrix based on the values of the matrix
@@ -151,7 +152,7 @@ public:
 	// Redimensiona a matriz e ZERA seus elementos.
 	// o segundo parametro � o tamanho das colunas
 	int Redim(const int64_t newDim ,const int64_t ) override;
-	int Redim(const int64_t newDim) {return Redim(newDim,newDim);}
+	int Redim(const int64_t newDim) {return this->Redim(newDim,newDim);}
 	
 	// Zera os Elementos da matriz
 	int Zero() override;
@@ -172,23 +173,121 @@ public:
 						  TPZFMatrix<TVar> *residual,TPZFMatrix<TVar> &scratch,const REAL overrelax, REAL &tol,
 						  const int FromCurrent = 0,const int direction = 1)  override;
 	
-	
-	int Decompose_Cholesky() override;  // Faz A = GGt.
+    /** @brief decompose the system of equations acording to the decomposition
+      * scheme */
+     virtual int Decompose(const DecomposeType dt) override {
+       switch (dt) {
+       case ELDLt:
+         return Decompose_LDLt();
+         break;
+       case ECholesky:
+         return Decompose_Cholesky();
+         break;
+       default:
+         DebugStop();
+         break;
+       }
+       return -1;
+     }
+
+    int SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::list<int64_t> &singular) {
+        
+        switch ( dt ) {
+            case ECholesky:
+                return( Solve_Cholesky( &B , singular)  );
+            case ELDLt:
+                return( Solve_LDLt( &B, singular )  );
+            default:
+                this->Error( "Solve  < Unknown decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+    
+    
+    int SolveDirect( TPZFMatrix<TVar> &B , const DecomposeType dt) override {
+        
+        switch ( dt ) {
+            case ECholesky:
+                return( Solve_Cholesky( &B )  );
+            case ELDLt:
+                return( Solve_LDLt( &B )  );
+            default:
+                this->Error( "Solve  < Unknown decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+    int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override
+    {
+        if(this->fDecomposed != dt) DebugStop();
+        switch ( dt ) {
+            case ECholesky:
+                return ( Subst_Forward(&F) && Subst_Backward(&F) );
+            case ELDLt:
+                return( Subst_LForward( &F ) && Subst_Diag( &F ) && Subst_LBackward( &F ) );
+            default:
+                this->Error( "Solve  < Unhandled decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+
+    /**********************/
+    /*** Solve Cholesky ***/
+    //
+    //  Se nao conseguir resolver por Cholesky retorna 0 e a matriz
+    //   sera' modificada (seu valor perdera' o sentido).
+    //
+    int Solve_Cholesky( TPZFMatrix<TVar>* B )
+    {
+        return(
+               ( !Decompose_Cholesky() )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
+               );
+    }
+
+    int Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<int64_t> &singular ) {
+        return(
+               ( !Decompose_Cholesky(singular) )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
+               );
+    }
+
+    /******************/
+    /*** Solve LDLt ***/
+
+    int Solve_LDLt( TPZFMatrix<TVar>* B ) {
+        
+        return(
+               ( !Decompose_LDLt() )? 0 :
+               ( Subst_LForward( B ) && Subst_Diag( B ) && Subst_LBackward( B ) )
+               );
+    }
+
+    int Solve_LDLt( TPZFMatrix<TVar>* B, std::list<int64_t> &singular ) {
+        
+        return(
+               ( !Decompose_LDLt(singular) )? 0 :
+               ( Subst_LForward( B ) && Subst_Diag( B ) && Subst_LBackward( B ) )
+               );
+    }
+
+
+	int Decompose_Cholesky();  // Faz A = GGt.
 	int Decompose_Cholesky_blk(int64_t blk_sz);
     
-	int Decompose_LDLt    () override;  // Faz A = LDLt.
-	int Decompose_Cholesky(std::list<int64_t> &singular) override;  // Faz A = GGt.
-	int Decompose_LDLt    (std::list<int64_t> &singular) override;  // Faz A = LDLt.
+	int Decompose_LDLt    ();  // Faz A = LDLt.
+	int Decompose_Cholesky(std::list<int64_t> &singular);  // Faz A = GGt.
+	int Decompose_LDLt    (std::list<int64_t> &singular);  // Faz A = LDLt.
 	
-	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const override;
-	int Subst_Backward ( TPZFMatrix<TVar> *b ) const override;
-	int Subst_LForward ( TPZFMatrix<TVar> *b ) const override;
-	int Subst_LBackward( TPZFMatrix<TVar> *b ) const override;
-	int Subst_Diag     ( TPZFMatrix<TVar> *b ) const override;
+	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
+	int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
+	int Subst_LForward ( TPZFMatrix<TVar> *b ) const;
+	int Subst_LBackward( TPZFMatrix<TVar> *b ) const;
+	int Subst_Diag     ( TPZFMatrix<TVar> *b ) const;
 	// @}
 	
 	//void TestSpeed(int col, int prevcol);
-	virtual void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+	virtual void AutoFill(int64_t nrow, int64_t ncol, SymProp symmetric) override;
 	
 	public:
 int ClassId() const override;

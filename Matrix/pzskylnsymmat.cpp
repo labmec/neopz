@@ -265,7 +265,6 @@ int TPZSkylNSymMatrix<TVar>::PutVal(const int64_t r, const int64_t c, const TVar
     fElemb[row][index] = value;
     // delete[]newVet;
   }
-	this->fDecomposed = 0;
 	
   return(1);
 }
@@ -810,7 +809,6 @@ TPZSkylNSymMatrix<TVar> & TPZSkylNSymMatrix<TVar>:: operator *= (const TVar valu
         * elem++ *= value;
     }
 
-  this->fDecomposed = 0;
   return(*this);
 }
 
@@ -1223,7 +1221,7 @@ int TPZSkylNSymMatrix<TVar>::Clear()
   fElem.Resize(0);
   fElemb.Resize(0);
   this->fRow = this->fCol = 0;
-  this->fDecomposed = 0;
+  this->fDecomposed = ENoDecompose;
   return(1);
 }
 
@@ -1572,7 +1570,7 @@ void TPZSkylNSymMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const
 
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
-void TPZSkylNSymMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
+void TPZSkylNSymMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sp) {
     if (nrow != ncol) {
         DebugStop();
     }
@@ -1597,10 +1595,10 @@ void TPZSkylNSymMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric
             {
 				this->Error("AutoFill (TPZMatrix) failed.");
             }
-            if (symmetric == 0) {
+            if (sp == SymProp::NonSym) {
               val = this->GetRandomVal();
             }else if constexpr(is_complex<TVar>::value){
-              val = std::conj(val);
+              if(sp == SymProp::Herm) val = std::conj(val);
             }
 			if(!PutVal(j,i,val))
             {

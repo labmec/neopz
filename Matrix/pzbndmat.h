@@ -31,7 +31,6 @@ class TPZFBMatrix : public TPZMatrix<TVar>
 {
 	
 public:
-	virtual int Substitution(TPZFMatrix<TVar> *B) const override;
 	/** @brief Simple constructor */
 	TPZFBMatrix ();
 	/**
@@ -88,7 +87,7 @@ public:
       }                                                       
   }
   
-  void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+  void AutoFill(int64_t nrow, int64_t ncol, SymProp symmetric) override;
 
     
 	int    Put(const int64_t row,const int64_t col,const TVar& value ) override;
@@ -151,11 +150,59 @@ public:
 	int Zero() override;
 	
 	void Transpose(TPZMatrix<TVar> *const T) const override;
+    
+    /** @brief decompose the system of equations acording to the decomposition
+      * scheme */
+     virtual int Decompose(const DecomposeType dt) override {
+       switch (dt) {
+       case ELU:
+         return Decompose_LU();
+         break;
+       default:
+         DebugStop();
+         break;
+       }
+       return -1;
+     }
+
+    
+    int SolveDirect( TPZFMatrix<TVar> &B , const DecomposeType dt) override {
+        
+        switch ( dt ) {
+            case ELU:
+                return( Solve_LU( &B)  );
+            default:
+                this->Error( "Solve  < Unknown decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+    int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override
+    {
+        if(this->fDecomposed != dt) DebugStop();
+        switch ( dt ) {
+            case ELU:
+                return( Substitution( &F)  );
+            default:
+                this->Error( "Solve  < Unhandled decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+
+    int Solve_LU( TPZFMatrix<TVar>*B ) {
+        return ( ( !Decompose_LU() )?  0 : Substitution( B )  );
+    }
+
+    /*** Solve ***/
+    
+    
+
+
     //If LAPACK is available, it will use its implementation.
-	int       Decompose_LU(std::list<int64_t> &singular) override;
-    //If LAPACK is available, it will use its implementation.
-	int       Decompose_LU() override;
-	
+	int Decompose_LU();
+    virtual int Substitution(TPZFMatrix<TVar> *B) const;
+
     public:
 int ClassId() const override;
 

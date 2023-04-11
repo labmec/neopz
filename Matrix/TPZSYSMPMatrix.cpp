@@ -5,7 +5,7 @@
 
 #include <memory.h>
 
-#include "pzsysmp.h"
+#include "TPZSYSMPMatrix.h"
 #include "pzfmatrix.h"
 #include "pzstack.h"
 #include "TPZParallelUtils.h"
@@ -17,8 +17,8 @@
 
 template<class TVar>
 TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix() : TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
-TPZMatrix<TVar>() {
-
+                                         TPZMatrix<TVar>() {
+  this->fSymProp = SymProp::Herm;
 #ifdef CONSTRUCTOR
     cerr << "TPZSYsmpMatrix(int rows,int cols)\n";
 #endif
@@ -26,9 +26,9 @@ TPZMatrix<TVar>() {
 
 
 template<class TVar>
-TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const int64_t rows,const int64_t cols ) : TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
-TPZMatrix<TVar>(rows,cols) {
-
+TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const int64_t rows,const int64_t cols) :
+    TPZRegisterClassId(&TPZSYsmpMatrix::ClassId), TPZMatrix<TVar>(rows,cols) {
+  this->fSymProp = SymProp::Herm;
 #ifdef CONSTRUCTOR
 	cerr << "TPZSYsmpMatrix(int rows,int cols)\n";
 #endif
@@ -60,10 +60,10 @@ template <class TVar> int TPZSYsmpMatrix<TVar>::Zero() {
 template<class TVar>
 const TVar TPZSYsmpMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) const {
     if (row > col) {
-        for(int ic=fIA[col] ; ic < fIA[col+1]; ic++ ) {
+        for(int64_t ic=fIA[col] ; ic < fIA[col+1]; ic++ ) {
             if ( fJA[ic] == row ) {
                 if constexpr (is_complex<TVar>::value){
-                    return std::conj(fA[ic]);
+                    return this->fSymProp == SymProp::Herm ? std::conj(fA[ic]) : fA[ic];
                 }else{
                     return fA[ic];
                 }
@@ -71,7 +71,7 @@ const TVar TPZSYsmpMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) co
         }
         return (TVar)0;
     }
-	for(int ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
+	for(int64_t ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
 		if ( fJA[ic] == col ) return fA[ic];
 	}
 	return (TVar)0;
@@ -85,15 +85,19 @@ int TPZSYsmpMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & va
 {
     // Get the matrix entry at (row,col) without bound checking
     int64_t row(r),col(c);
+    TVar valcp{val};
     if (r > c) {
         int64_t temp = r;
         row = col;
         col = temp;
+        if constexpr (is_complex<TVar>::value){
+            valcp = this->fSymProp == SymProp::Herm? std::conj(val) : val;
+        }
     }
-    for(int ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
+    for(int64_t ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
         if ( fJA[ic] == col )
         {
-            fA[ic] = val;
+            fA[ic] = valcp;
             return 0;
         }
     }
@@ -180,7 +184,7 @@ TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator-=(const TPZSYsmpMatrix<TVar
 	return *this;
 }
 template<class TVar>
-TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator*=(const TVar val)
+TPZMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator*=(const TVar val)
 {
 	TPZSYsmpMatrix<TVar> res((*this)*val);
 	*this = res;
@@ -191,44 +195,62 @@ template<class TVar>
 void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
 							 TPZFMatrix<TVar> &z,
 							 const TVar alpha,const TVar beta,const int opt) const {	
-	// Determine how to initialize z
+
+#ifdef PZDEBUG
+    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
+        std::cout << "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" ;
+        return;
+    }
+    if(!IsZero(beta) && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+        std::cout << "TPZFMatrix::MultAdd matrix y with incompatible dimensions>";
+        return;
+    }
+#endif
+
+    // Determine how to initialize z
     this->PrepareZ(y,z,beta,opt);
 	
 	// Compute alpha * A * x
     const int64_t ncols = x.Cols();
     const int64_t nrows = this->Rows();
 
-    
-    if constexpr (is_complex<TVar>::value){
+    const bool must_conj =
+      is_complex<TVar>::value && this->GetSymmetry() == SymProp::Herm;
+
+
+    if(must_conj){
+      if constexpr (is_complex<TVar>::value){
         auto GetMyVal = [](const int64_t ir, const int64_t ic,
                            const bool opt, const TVar val){
-            if((ir <= ic && !opt)||(ir >= ic && opt)) return val;
-            else return std::conj(val);
+          if((ir <= ic && !opt)||(ir > ic && opt)) return val;
+          else return std::conj(val);
         };
         for (int64_t col=0; col<ncols; col++){
-            for(int64_t row=0; row<nrows; row++) {
-                for(int64_t iv=fIA[row]; iv<fIA[row+1]; iv++) {
-                    const int64_t ic = fJA[iv];
-                    const TVar val = GetMyVal(row,ic,opt,fA[iv]);
-                    z(row,col) += alpha * val * x.GetVal(ic,col);
-                    if(row != ic){
-                        z(ic,col) += alpha* std::conj(val) * x.GetVal(row,col);
-                    }
-                }
+          for(int64_t row=0; row<nrows; row++) {
+            for(int64_t iv=fIA[row]; iv<fIA[row+1]; iv++) {
+              const int64_t ic = fJA[iv];
+              const TVar val = GetMyVal(row,ic,opt,fA[iv]);
+              z(row,col) += alpha * val * x.GetVal(ic,col);
+              if(row != ic){
+                z(ic,col) += alpha* std::conj(val) * x.GetVal(row,col);
+              }
             }
+          }
         }
-    }else{
-        for (int64_t col=0; col<ncols; col++){
-            for(int64_t row=0; row<nrows; row++) {
-                for(int64_t iv=fIA[row]; iv<fIA[row+1]; iv++) {
-                    const int64_t ic = fJA[iv];
-                    z(row,col) += alpha*fA[iv] * x.GetVal(ic,col);
-                    if(row != ic){
-                        z(ic,col) += alpha*fA[iv] * x.GetVal(row,col);
-                    }
-                }
+      }//no need for else
+    }
+    else{
+      for (int64_t col=0; col<ncols; col++){
+        for(int64_t row=0; row<nrows; row++) {
+          for(int64_t iv=fIA[row]; iv<fIA[row+1]; iv++) {
+            const int64_t ic = fJA[iv];
+            z(row,col) += alpha * fA[iv] * x.GetVal(ic,col);
+            if(row != ic){
+              z(ic,col) += alpha * fA[iv] * x.GetVal(row,col);
             }
+          }
         }
+      }
     }
 }
 
@@ -246,16 +268,16 @@ void TPZSYsmpMatrix<TVar>::Print(const char *title, std::ostream &out ,const Mat
         << "\tNon zero elements    = " << fA.size()  << '\n'
 		<< "\tRows    = " << this->Rows()  << '\n'
 		<< "\tColumns = " << this->Cols() << '\n';
-		int i;
+		
 		out << "\tIA\tJA\tA\n"
 		<< "\t--\t--\t-\n";
-		for(i=0; i<=this->Rows(); i++) {
+		for(int64_t i=0; i<=this->Rows(); i++) {
 			out << i      << '\t'
 			<< fIA[i] << '\t'
 			<< fJA[i] << '\t'
 			<< fA[i]  << '\n';
 		}
-		for(i=this->Rows()+1; i<fIA[this->Rows()]-1; i++) {
+		for(int64_t i=this->Rows()+1; i<fIA[this->Rows()]-1; i++) {
 			out << i      << "\t\t"
 			<< fJA[i] << '\t'
 			<< fA[i]  << '\n';
@@ -280,16 +302,26 @@ void TPZSYsmpMatrix<TVar>::ComputeDiagonal() {
 	}
 }
 
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::SetSymmetry (SymProp sp){
+    if(sp == SymProp::NonSym){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nTrying to set matrix with symmetric storage as non symmetric\n"
+               <<"Aborting..."<<std::endl;
+        DebugStop();
+    }
+}
+
 /** @brief Fill matrix storage with randomic values */
 /** This method use GetVal and PutVal which are implemented by each type matrices */
 template<class TVar>
-void TPZSYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric)
+void TPZSYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym)
 {
-    if (!symmetric || nrow != ncol) {
+    if (sym == SymProp::NonSym || nrow != ncol) {
         DebugStop();
     }
     TPZFMatrix<TVar> orig;
-    orig.AutoFill(nrow,ncol,symmetric);
+    orig.AutoFill(nrow,ncol,sym);
     
     TPZVec<int64_t> IA(nrow+1);
     TPZStack<int64_t> JA;
@@ -302,9 +334,7 @@ void TPZSYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric)
             REAL test = rand()*1./RAND_MAX;
             if (test > 0.5) {
                 eqs[row].insert(col);
-                if (symmetric) {
-                    eqs[col].insert(row);
-                }
+                eqs[col].insert(row);
             }
         }
     }
@@ -432,7 +462,7 @@ void TPZSYsmpMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> 
                     row = col;
                     col = temp;
                 }
-                int ic;
+                int64_t ic;
                 for(ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
                     if ( fJA[ic] == col )
                     {
@@ -455,193 +485,38 @@ void TPZSYsmpMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> 
 }
 
 template<class TVar>
-void TPZSYsmpMatrix<TVar>::SetIsDecomposed(int val)
-{
-	if(val)
-		fPardisoControl.fDecomposed = true;
-	TPZBaseMatrix::SetIsDecomposed(val);
-}
-
-#ifdef USING_MKL
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<int64_t> &singular)
-{
-    Decompose_LDLt();
-    return 1;
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
-{
-    if(this->IsDecomposed() == ELDLt) return 1;
-    if (this->IsDecomposed() != ENoDecompose) {
-        DebugStop();
-    }
-    if(!fPardisoControl.HasCustomSettings()){
-      typename TPZPardisoSolver<TVar>::MStructure str =
-        TPZPardisoSolver<TVar>::MStructure::ESymmetric;
-      typename TPZPardisoSolver<TVar>::MSystemType sysType =
-        TPZPardisoSolver<TVar>::MSystemType::ESymmetric;
-      typename TPZPardisoSolver<TVar>::MProperty prop =
-        this->IsDefPositive() ?
-        TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
-        TPZPardisoSolver<TVar>::MProperty::EIndefinite;
-      fPardisoControl.SetStructure(str);
-      fPardisoControl.SetMatrixType(sysType,prop);
-    }
-    fPardisoControl.Decompose(this);
-    this->SetIsDecomposed(ELDLt);
-    return 1;
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
-{
-    if(this->IsDecomposed() == ECholesky) return 1;
-    if (this->IsDecomposed() != ENoDecompose) {
-        DebugStop();
-    }
-    this->fDefPositive = true;
-    if(!fPardisoControl.HasCustomSettings()){
-      typename TPZPardisoSolver<TVar>::MStructure str =
-        TPZPardisoSolver<TVar>::MStructure::ESymmetric;
-      typename TPZPardisoSolver<TVar>::MSystemType sysType =
-        TPZPardisoSolver<TVar>::MSystemType::ESymmetric;
-      typename TPZPardisoSolver<TVar>::MProperty prop =
-        this->IsDefPositive() ?
-        TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
-        TPZPardisoSolver<TVar>::MProperty::EIndefinite;
-      fPardisoControl.SetStructure(str);
-      fPardisoControl.SetMatrixType(sysType,prop);
-    }
-    fPardisoControl.Decompose(this);
-    this->SetIsDecomposed(ECholesky);
-    return 1;
-}
-
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
-{
-    return Decompose_Cholesky();
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
-{
-    TPZFMatrix<TVar> x(*b);
-    fPardisoControl.Solve(this,*b,x);
-    *b = x;
-    return 1;
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
-{
-    return 1;
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
-{
-    return 1;
-}
-
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
-{
-    TPZFMatrix<TVar> x(*b);
-    fPardisoControl.Solve(this,*b,x);
-    *b = x;
-    return 1;
-}
-
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
-{
-    return 1;
-}
-
-#else
-//perhaps we could default to a less eficient implementation for
-//solving. Perhaps removing the DebugStop() on PutVal() would be enough?
-#define NOMKL \
-    PZError<<__PRETTY_FUNCTION__<<" is not available if NeoPZ ";\
-    PZError<<"was not configured with MKL. Aborting..."<<std::endl;\
-    DebugStop();\
-    return -1;
-
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<int64_t> &singular)
-{    
-    NOMKL
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
-{
-    NOMKL
-    
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
-{
-    NOMKL
-}
-
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
-{
-    NOMKL
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
-{
-    NOMKL
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
-{
-    NOMKL
-}
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
-{
-    NOMKL
-}
-
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
-{
-    NOMKL
-}
-
-
-template<class TVar>
-int TPZSYsmpMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
-{
-    NOMKL
-}
-#endif
-
-
-template<class TVar>
 int TPZSYsmpMatrix<TVar>::ClassId() const{
     return Hash("TPZSYsmpMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
-template class TPZSYsmpMatrix<double>;
-template class TPZSYsmpMatrix<float>;
-template class TPZSYsmpMatrix<long double>;
-template class TPZSYsmpMatrix<std::complex<float>>;
-template class TPZSYsmpMatrix<std::complex<double>>;
-template class TPZSYsmpMatrix<std::complex<long double>>;
+
+
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::Read(TPZStream &buf, void *context){
+	TPZMatrix<TVar>::Read(buf,context);
+	buf.Read(fIA);
+	buf.Read(fJA);
+	buf.Read(fA);
+	buf.Read(fDiag);	
+}
+
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::Write(TPZStream &buf, int withclassid) const{
+	TPZMatrix<TVar>::Write(buf,withclassid);
+	buf.Write(fIA);
+	buf.Write(fJA);
+	buf.Write(fA);
+	buf.Write(fDiag);
+}
+
+#define TEMPL_INST(T) \
+  template class TPZRestoreClass<TPZSYsmpMatrix<T>>;\
+  template class TPZSYsmpMatrix<T>;
+
+TEMPL_INST(double)
+TEMPL_INST(float)
+TEMPL_INST(long double)
+TEMPL_INST(std::complex<float>)
+TEMPL_INST(std::complex<double>)
+TEMPL_INST(std::complex<long double>)
+
+#undef TEMPL_INST

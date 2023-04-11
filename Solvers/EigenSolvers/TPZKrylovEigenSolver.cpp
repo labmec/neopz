@@ -3,6 +3,8 @@
 #include "TPZPardisoSolver.h"
 #include "TPZSimpleTimer.h"
 
+#include <algorithm>
+
 template<class TVar>
 void TPZKrylovEigenSolver<TVar>::SetTarget(TVar target)
 {
@@ -26,9 +28,8 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
                                           TPZFMatrix<CTVar> &eigenVectors,
                                           bool computeVectors)
 {
-
-  auto PardisoSetup = [](auto pardiso_control, auto sys, auto prop, auto str){
-    pardiso_control->SetStructure(str);
+#ifdef USING_MKL
+  auto PardisoSetup = [](auto pardiso_control, auto sys, auto prop){
     pardiso_control->SetMatrixType(sys,prop);
     auto param = pardiso_control->GetParam();
       //fParam[0] No default values
@@ -74,7 +75,9 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
     param[59] = 0;
     pardiso_control->SetParam(param);
   };
-
+#else
+    DebugStop();
+#endif
   if(this->NEigenpairs() < 1) SetNEigenpairs(1);
 #ifndef USING_LAPACK
   PZError<<__PRETTY_FUNCTION__;
@@ -84,7 +87,7 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   TPZSimpleTimer total("Arnoldi Solver",true);
 
   
-  const int nRows = this->MatrixA()->Rows();
+  const int64_t nRows = this->MatrixA()->Rows();
   
   if(fUserTarget) AdjustTargetST();
   
@@ -92,22 +95,19 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   auto st = this->SpectralTransform();
   if(st){
     TPZSimpleTimer calcMat("ST Calculating matrix",true);
+#ifdef USING_MKL
     auto prdscfg = this->GetPardisoControlA();
     if(prdscfg && !prdscfg->HasCustomSettings()){
-      const auto str =
-        this->MatrixA()->IsSymmetric() ?
-        TPZPardisoSolver<TVar>::MStructure::ESymmetric:
-        TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
-      const auto sys =
-        this->MatrixA()->IsSymmetric() ? 
-        TPZPardisoSolver<TVar>::MSystemType::ESymmetric:
-        TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
+      const auto sys = this->MatrixA()->GetSymmetry();
       const auto prop =
         this->MatrixA()->IsDefPositive() ?
         TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
         TPZPardisoSolver<TVar>::MProperty::EIndefinite;
-      PardisoSetup(prdscfg,sys,prop,str); 
+      PardisoSetup(prdscfg,sys,prop); 
     }
+#else
+      DebugStop();
+#endif
     if(this->IsGeneralised())
       arnoldiMat = st->CalcMatrix(this->MatrixA(),this->MatrixB());
     else
@@ -116,24 +116,23 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
     arnoldiMat = this->MatrixA();
     if(this->IsGeneralised()){
       TPZSimpleTimer binvert("invert B mat",true);
+#ifdef USING_MKL
       auto prdscfg = this->GetPardisoControlB();
       if(prdscfg && !prdscfg->HasCustomSettings()){
-        const auto str =
-        this->MatrixB()->IsSymmetric() ?
-        TPZPardisoSolver<TVar>::MStructure::ESymmetric:
-        TPZPardisoSolver<TVar>::MStructure::ENonSymmetric;
-      const auto sys =
-        this->MatrixB()->IsSymmetric() ? 
-        TPZPardisoSolver<TVar>::MSystemType::ESymmetric:
-        TPZPardisoSolver<TVar>::MSystemType::ENonSymmetric;
+      const auto sys = this->MatrixB()->GetSymmetry();
       const auto prop =
         this->MatrixB()->IsDefPositive() ?
         TPZPardisoSolver<TVar>::MProperty::EPositiveDefinite:
         TPZPardisoSolver<TVar>::MProperty::EIndefinite;
-        PardisoSetup(prdscfg,sys,prop,str); 
+        PardisoSetup(prdscfg,sys,prop); 
       }
-      if (this->MatrixB()->IsSymmetric()) this->MatrixB()->Decompose_LDLt();
-      else this->MatrixB()->Decompose_LU();
+#else
+        DebugStop();
+#endif
+      const auto sp= this->MatrixB()->GetSymmetry();
+      const bool use_lu = sp == SymProp::Herm || (!std::is_same_v<TVar,RTVar> && sp == SymProp::Sym);
+      if (use_lu) this->MatrixB()->Decompose(ELU);
+      else this->MatrixB()->Decompose(ELDLt);
     }
   }
   
@@ -219,6 +218,7 @@ int TPZKrylovEigenSolver<TVar>::SolveGeneralisedEigenProblem(TPZVec<CTVar> &w)
   return SolveImpl(w, eigenVectors,false);
 }
 
+
 template<class TVar>
 bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
   const TPZMatrix<TVar> &A,
@@ -229,7 +229,7 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
   if(KrylovDim() < 2){
     fKrylovDim = 10;
   }
-  const int nRows = A.Rows();
+  const int64_t nRows = A.Rows();
   const TPZMatrix<TVar> &B = this->fMatrixB.operator*();
   const int n = std::min(fKrylovDim,nRows);
   std::cout<<"Calculating Krylov subspace of dimension "<<n<<'\n';
@@ -237,7 +237,7 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
   Q.Resize(n, nullptr);
 
   if(fKrylovVector.Rows() != nRows || fKrylovVector.Cols() != 1){
-    fKrylovVector.AutoFill(nRows,1,0);
+    fKrylovVector.AutoFill(nRows,1,SymProp::NonSym);
   }
   
   for(int i = 0; i < n; i++) Q[i]= new TPZFMatrix<TVar>;
@@ -301,7 +301,7 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
       }
       else{
         //generate random unit vector and try again
-        w.AutoFill(nRows,1,0);
+        w.AutoFill(nRows,1,SymProp::NonSym);
         w *= 1/Norm(w);
       }
     }

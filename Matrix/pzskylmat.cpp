@@ -38,7 +38,7 @@ template<class TVar>
 TPZSkylMatrix<TVar>::TPZSkylMatrix(const int64_t dim )
 : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 {
-	
+  this->fSymProp = SymProp::Herm;
 	// Inicializa a diagonal (vazia).
 	fElem.Fill(0);
 }
@@ -46,7 +46,7 @@ template<class TVar>
 TPZSkylMatrix<TVar>::TPZSkylMatrix(const int64_t dim, const TPZVec<int64_t> &skyline )
 : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 {
-	
+  this->fSymProp = SymProp::Herm;
 	// Inicializa a diagonal (vazia).
 	fElem.Fill(0);
 	InitializeElem(skyline,fStorage,fElem);
@@ -187,7 +187,18 @@ template<class TVar>
 TVar &
 TPZSkylMatrix<TVar>::operator()(const int64_t r, const int64_t c) {
 	int64_t row(r),col(c);
-	if ( row > col ) this->Swap( &row, &col );
+	if ( row > col ) {
+    this->Swap( &row, &col );
+    if constexpr (is_complex<TVar>::value){
+      if(this->fSymProp == SymProp::Herm){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nTrying to access lower triang hermitian mat by reference\n"
+               <<"Aborting..."
+               <<std::endl;
+        DebugStop();
+      }
+    }
+  }
 	
 	// Indice do vetor coluna.
 	int64_t index = col - row;
@@ -267,7 +278,6 @@ TPZSkylMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & value )
 	} else if(index >= Size(col)) return 1;
 	fElem[col][index] = value;
 	//  delete[]newVet;
-	this->fDecomposed = 0;
 	return( 1 );
 }
 #endif
@@ -301,8 +311,12 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 			const TVar *diaglast = fElem[r];
 			while( diag > diaglast ) {
                 if constexpr (is_complex<TVar>::value){
-                    if(opt) val += *diag-- * *p;
-                    else val += std::conj(*diag--) * *p;
+                    if(this->fSymProp == SymProp::Herm){
+                        if(opt) val += *diag-- * *p;
+                        else val += std::conj(*diag--) * *p;
+                    }else{
+                        val += *diag-- * *p;
+                    }
                 }else{
                     val += *diag-- * *p;
                 }
@@ -315,8 +329,12 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 			diag = fElem[r] + offset-1;
 			while( diag > diaglast ) {
                 if constexpr (is_complex<TVar>::value){
-                    if(opt) *zp += alpha * std::conj(*diag--) * val;
-                    else *zp += alpha * *diag-- * val;
+                    if(this->fSymProp == SymProp::Herm){
+                        if(opt) *zp += alpha * std::conj(*diag--) * val;
+                        else *zp += alpha * *diag-- * val;
+                    }else{
+                        *zp += alpha * *diag-- * val;
+                    }
                 }else{
                     *zp += alpha * *diag-- * val;
                 }
@@ -478,7 +496,8 @@ TPZSkylMatrix<TVar>::GetVal(const int64_t r,const int64_t c ) const
         const int64_t index   = col - row;
         if ( index < Size(col) ){
             if constexpr (is_complex<TVar>::value){
-                return( std::conj(fElem[col][index]) );
+                if(this->fSymProp == SymProp::Herm) {return( std::conj(fElem[col][index]) );}
+                else {return( fElem[col][index] );}
             }else{
                 return( fElem[col][index] );
             }
@@ -753,7 +772,6 @@ TPZSkylMatrix<TVar>::operator*=(const TVar value )
 		while ( elem < end ) *elem++ *= value;
     }
 	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -782,7 +800,7 @@ int TPZSkylMatrix<TVar>::Resize( int64_t newDim ,int64_t ) {
 	// Zera as posicoes que sobrarem (se sobrarem)
 	fStorage.Resize(fElem[newDim]-fElem[0]);
 	this->fRow = this->fCol = newDim;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	return( 1 );
 }
 
@@ -807,7 +825,7 @@ TPZSkylMatrix<TVar>::Redim( int64_t newDim , int64_t)
 	fElem.Resize(newDim);
 	fElem.Fill(0);
 	this->fRow = this->fCol = newDim;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	return( 1 );
 }
 
@@ -817,6 +835,14 @@ template<class TVar>
 int
 TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
 {
+#ifdef PZDEBUG
+    if constexpr (is_complex<TVar>::value){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nCalling Cholesky decomposition on non symmetric matrix! Aborting..."
+               <<std::endl;
+        DebugStop();
+    }
+#endif
 	if(this->fDecomposed == ECholesky) return 1;
 	if (  this->fDecomposed )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
     
@@ -920,6 +946,17 @@ template<class TVar>
 int
 TPZSkylMatrix<TVar>::Decompose_Cholesky()
 {
+#ifdef PZDEBUG
+    const bool cond =
+        (is_complex<TVar>::value && this->GetSymmetry() == SymProp::Sym) ||
+        this->GetSymmetry() == SymProp::NonSym;
+    if (cond){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nCalling Cholesky decomposition on non symmetric matrix! Aborting..."
+               <<std::endl;
+        DebugStop();
+    }
+#endif
     if(this->fDecomposed == ECholesky) return 1;
     if (this->fDecomposed )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
 	
@@ -1336,7 +1373,7 @@ TPZSkylMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar> *B ) const
             //EBORIN:
             // Is this a hot-spot?
             // Is it vectorized?
-            if constexpr(is_complex<TVar>::value)
+            if constexpr(is_complex<TVar>::value)//at this point the matrix has been checked and it is hermitian
                 while(elem_ki < end_ki) sum += std::conj(*elem_ki++) * (*--BPtr);//(*BPtr--)
             else
                 while(elem_ki < end_ki) sum += (*elem_ki++) * (*--BPtr);//(*BPtr--)
@@ -1421,9 +1458,13 @@ TPZSkylMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const {
             TVar *elem_ki = fElem[k]+1;
             TVar *end_ki  = fElem[k+1];
             TVar *BPtr = &(*B)(k,j);
-            if constexpr(is_complex<TVar>::value)
-                while(elem_ki < end_ki) sum += std::conj(*elem_ki++) * (*--BPtr);//(*BPtr--)
-            else
+            if constexpr(is_complex<TVar>::value){
+                if(this->fSymProp == SymProp::Herm){
+                    while(elem_ki < end_ki) sum += std::conj(*elem_ki++) * (*--BPtr);//(*BPtr--)
+                }else{
+                    while(elem_ki < end_ki) sum += (*elem_ki++) * (*--BPtr);//(*BPtr--)
+                }
+            }else
                 while(elem_ki < end_ki) sum += (*elem_ki++) * (*--BPtr);//(*BPtr--)
             
             // Faz B[k,j] = (B[k,j] - sum) / A[k,k].
@@ -1500,7 +1541,7 @@ TPZSkylMatrix<TVar>::Zero()
 {
     
     fStorage.Fill(0.);
-    this->fDecomposed = 0;
+    this->fDecomposed = ENoDecompose;
     this->fDefPositive = 0;
     return( 1 );
 }
@@ -1516,7 +1557,7 @@ TPZSkylMatrix<TVar>::Clear()
     //	fStorage.Shrink();
     this->fElem.Resize(0);
     this->fRow = this->fCol = 0;
-    this->fDecomposed = 0;
+    this->fDecomposed = ENoDecompose;
     return( 1 );
 }
 
@@ -1743,10 +1784,26 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(int64_t col, int64_t prevcol){
     }
 }
 
+template<class TVar>
+void TPZSkylMatrix<TVar>::SetSymmetry (SymProp sp){
+    if(sp == SymProp::NonSym){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nTrying to set matrix with symmetric storage as non symmetric\n"
+               <<"Aborting..."<<std::endl;
+        DebugStop();
+    }
+}
+
 template <class TVar>
-void TPZSkylMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
-    if (nrow != ncol || !symmetric)
+void TPZSkylMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sp) {
+    if (nrow != ncol || sp == SymProp::NonSym)
     {
+        
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nIncompatible arguments:"
+               <<"\nnr: "<<nrow<<" nc: "<<ncol<<" sp "<<SymPropName(sp)
+               <<"\nAborting..."
+               <<std::endl;
         DebugStop();
     }
     TPZMatrix<TVar>::Redim(nrow,ncol);

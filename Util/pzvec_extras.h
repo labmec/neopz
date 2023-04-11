@@ -259,7 +259,7 @@ void Intersect(const TPZVec< T > &one, const TPZVec< T > &two, const TPZVec< T >
 
 /** @brief Gets commom elements into the one and two vectors */
 template< class T>
-T Norm(const TPZVec< T > &one) {
+RType(T) Norm(const TPZVec< T > &one) {
     T res = 0.;
     int size = one.NElements();
     for (int i = 0; i < size; i++) {

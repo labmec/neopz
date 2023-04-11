@@ -6,15 +6,17 @@
 //
 //
 
+#ifdef USING_MKL
 #include "TPZPardisoSolver.h"
 
-#include "pzsysmp.h"
-#include "pzysmp.h"
+#include "TPZSYSMPPardiso.h"
+#include "TPZYSMPPardiso.h"
 #include "pzlog.h"
 
 
 #ifdef USING_MKL
 #include "mkl_pardiso.h"
+#include "mkl.h"
 #else
 #define NOMKL                                                   \
     PZError<<"The class TPZPardisoSolver should not be used ";  \
@@ -42,20 +44,9 @@ TPZPardisoSolver<TVar>::TPZPardisoSolver() :
 }
 
 
-template<class TVar>
-TPZPardisoSolver<TVar>::TPZPardisoSolver(MSystemType systemtype,
-                                         MStructure structure,
-                                         MProperty prop) :
-    fSystemType(systemtype), fStructure(structure), fProperty(prop),
-    fPardisoControl(), fParam(64,0)
-{
-    fPardisoControl = new TPZManVector<long long,64>(64,0);
-    fHandle = &fPardisoControl.operator->()->operator[](0);
-}
-
 
 template<class TVar>
-TPZPardisoSolver<TVar>::~TPZPardisoSolver()
+void TPZPardisoSolver<TVar>::FreePardisoMemory()
 {
 #ifdef USING_MKL
     long long phase = -1;
@@ -65,14 +56,22 @@ TPZPardisoSolver<TVar>::~TPZPardisoSolver()
     long long ia,ja,perm,nrhs = 1;
     long long Error = 0;
     if(fPardisoInitialized)
-        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType,
+        pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType,
                     &phase, &n, a, &ia, &ja, &perm,
                     &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
     if (Error) {
         DebugStop();
     }
+    fPardisoInitialized = false;
+    mkl_verbose(0);
 #endif
+}
+
+template<class TVar>
+TPZPardisoSolver<TVar>::~TPZPardisoSolver()
+{
+    FreePardisoMemory();
     //we should NOT delete fSymmetricSystem and fNonSymmetricSystem
 }
 template<class TVar>
@@ -91,18 +90,9 @@ void TPZPardisoSolver<TVar>::SetMatrix(TPZAutoPointer<TPZBaseMatrix> refmat)
 #endif
     
     fDecomposed = refmat->IsDecomposed();
-    /*the following variables could have been initialized by the user*/
-    if (fStructure == MStructure::ENonInitialized)
-        fStructure = symSystem ? MStructure::ESymmetric : MStructure::ENonSymmetric;
-    
-    if(fSystemType == MSystemType::ENonInitialized ||
-       fProperty == MProperty::ENonInitialized){
-        const MProperty prop = refmat->IsDefPositive() ?
-            MProperty::EPositiveDefinite : MProperty::EIndefinite;
-        const MSystemType sym = refmat->IsSymmetric() ?
-            MSystemType::ESymmetric : MSystemType::ENonSymmetric;
-        SetMatrixType(sym,prop);
-    }
+    const MProperty prop = refmat->IsDefPositive() ?
+        MProperty::EPositiveDefinite : MProperty::EIndefinite;
+    SetMatrixType(refmat->GetSymmetry(),prop);
     TPZMatrixSolver<TVar>::SetMatrix(refmat);
 }
 
@@ -147,9 +137,9 @@ void TPZPardisoSolver<TVar>::Decompose(TPZMatrix<TVar> *mat)
     NOMKL
 #else
     auto *symSystem =
-        dynamic_cast<TPZSYsmpMatrix<TVar>*>(mat);
+        dynamic_cast<TPZSYsmpMatrixPardiso<TVar>*>(mat);
     auto *nSymSystem =
-        dynamic_cast<TPZFYsmpMatrix<TVar>*>(mat);
+        dynamic_cast<TPZFYsmpMatrixPardiso<TVar>*>(mat);
 
     long long n=0;
     TVar bval = 0., xval = 0.;
@@ -213,7 +203,7 @@ void TPZPardisoSolver<TVar>::Decompose(TPZMatrix<TVar> *mat)
         */
         //fParam[4]  No user fill-in reducing permutation
         if constexpr (!is_complex<TVar>::value){
-            fParam[3] = fSystemType == MSystemType::ESymmetric ? 10*6+2 : 10*6+1;
+            fParam[3] = fSymmetry == SymProp::NonSym ? 10*6+1 : 10*6+2;
             if(fProperty == MProperty::EIndefinite) fParam[4] =1;
         }else{
             fParam[3] = 0;
@@ -227,7 +217,7 @@ void TPZPardisoSolver<TVar>::Decompose(TPZMatrix<TVar> *mat)
         fParam[59] = 0;
     }
     
-    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+    pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     if (Error) {
         Error_check(int(Error));
@@ -258,9 +248,9 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
     }
 #endif
     auto *symSystem =
-        dynamic_cast<const TPZSYsmpMatrix<TVar>*>(mat);
+        dynamic_cast<const TPZSYsmpMatrixPardiso<TVar>*>(mat);
     auto *nSymSystem =
-        dynamic_cast<const TPZFYsmpMatrix<TVar>*>(mat);
+        dynamic_cast<const TPZFYsmpMatrixPardiso<TVar>*>(mat);
     long long n=0;
     TVar *a,*b, *x;
     long long *ia,*ja;
@@ -304,13 +294,13 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
     /// forward and backward substitution
     long long phase = 33;
     
-    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+    pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
     if(fParam[19]>150){
         std::cout << "Pardiso:: Number of iterations " << fParam[19] << " > 150, calling numerical factorization... " << std::endl;
         phase = 23;
-        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+        pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                     &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     }
     
@@ -355,7 +345,7 @@ void TPZPardisoSolver<TVar>::Solve(const TPZMatrix<TVar> *mat,
         Error_check(int(Error));
         std::cout << "Pardiso:: Calling a numerical factorization. \n";
         phase = 23;
-        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+        pardiso (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                     &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     }
     
@@ -403,16 +393,9 @@ void TPZPardisoSolver<TVar>::ResetParam(){
 }
 
 template<class TVar>
-void TPZPardisoSolver<TVar>::SetMatrixType(MSystemType systemtype, MProperty prop)
+void TPZPardisoSolver<TVar>::SetMatrixType(SymProp symtype, MProperty prop)
 {
-    if(fSystemType != MSystemType::ENonInitialized){
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"\nERROR:\n";
-        PZError<<"this function should not be called on an initialized instance.\n";
-        PZError<<"Aborting..."<<std::endl;
-        DebugStop();
-    }
-    fSystemType = systemtype;
+    fSymmetry = symtype;
     fProperty = prop;
     fMatrixType = MatrixType();
 }
@@ -420,38 +403,31 @@ void TPZPardisoSolver<TVar>::SetMatrixType(MSystemType systemtype, MProperty pro
 template<class TVar>
 long long TPZPardisoSolver<TVar>::MatrixType()
 {
-    
-    if (fStructure == MStructure::ENonSymmetric){
-        if(fSystemType == MSystemType::ESymmetric){
-            if constexpr (is_complex<TVar>::value){
-                fMatrixType = 3;
+    //now we assume that all matrices are structurally symmetric
+    if constexpr (is_complex<TVar>::value){
+        switch(fSymmetry){
+        case SymProp::NonSym:
+            fMatrixType = 3;
+            break;
+        case SymProp::Sym:
+            fMatrixType = 6;
+            break;
+        case SymProp::Herm:
+            if(fProperty == MProperty::EPositiveDefinite){
+                fMatrixType = 4;
             }else{
-                fMatrixType = 1;
-            }
-        }else{
-            if constexpr (is_complex<TVar>::value){
-                fMatrixType = 13;
-            }else{
-                fMatrixType = 11;
+                fMatrixType = -4;
             }
         }
     }else{
-        if(fSystemType != MSystemType::ESymmetric){
-            if constexpr (is_complex<TVar>::value){
-                fMatrixType = 3;
-            }else{
-                fMatrixType = 1;
-            }
-        }
-        else if(fProperty == MProperty::EPositiveDefinite){
-            if constexpr (is_complex<TVar>::value){
-                fMatrixType = 4;
-            }else{
+        switch(fSymmetry){
+        case SymProp::NonSym:
+            fMatrixType = 1;
+            break;
+        case SymProp::Sym:
+        case SymProp::Herm://they are the same for real-valued matrices
+            if(fProperty == MProperty::EPositiveDefinite){
                 fMatrixType = 2;
-            }
-        }else{
-            if constexpr (is_complex<TVar>::value){
-                fMatrixType = -4;
             }else{
                 fMatrixType = -2;
             }
@@ -460,17 +436,17 @@ long long TPZPardisoSolver<TVar>::MatrixType()
 
     if(fCustomSettings){return fMatrixType;}
 #ifdef USING_MKL
-    int param[64] = {0};
-    int matrixtype = fMatrixType;
+    MKL_INT param[64] = {0};
+    MKL_INT matrixtype = fMatrixType;
     pardisoinit(fHandle,&matrixtype,param);
     fPardisoInitialized = true;
     for (int i=0; i<64; i++) {
         fParam[i] = param[i];
     }
     //fParam[10]  Use nonsymmetric permutation and scaling MPS
-    fParam[10] = fSystemType == MSystemType::ESymmetric ? 0 : 1;
+    fParam[10] = fSymmetry == SymProp::NonSym ? 1 : 0;
     //fParam[12]  Maximum weighted matching algorithm is switched-off (default for symmetric).
-    fParam[12] = fSystemType == MSystemType::ESymmetric ? 0 : 1;
+    fParam[12] = fSymmetry == SymProp::NonSym ? 1 : 0;
     //fParam[27] float or double
     fParam[27] = DataType((TVar)0);
     //fParam[34]  zero-based indexing
@@ -554,3 +530,4 @@ template class TPZPardisoSolver<float>;
 template class TPZPardisoSolver<std::complex<float>>;
 template class TPZPardisoSolver<std::complex<double>>;
 template class TPZPardisoSolver<std::complex<long double>>;
+#endif

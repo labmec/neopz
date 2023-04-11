@@ -26,6 +26,15 @@ set(sources
     pzseqsolver.cpp
     )
 
+if(USING_MKL)
+    list(APPEND headers
+      TPZPardisoSolver.h
+    )
+    list(APPEND sources
+      TPZPardisoSolver.cpp
+      )
+endif()
+    
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Solvers)
 
 target_sources(pz PRIVATE ${headers} ${sources})

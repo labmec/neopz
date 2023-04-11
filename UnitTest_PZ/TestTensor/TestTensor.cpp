@@ -11,8 +11,8 @@
 #include "pzsfulmat.h"
 #include "pzskylnsymmat.h"
 #include "pzskylmat.h"
-#include "pzysmp.h"
-#include "pzsysmp.h"
+#include "TPZYSMPMatrix.h"
+#include "TPZSYSMPMatrix.h"
 #include "TPZTensor.h"
 #include "fstream"
 #include <catch2/catch.hpp>
@@ -84,7 +84,7 @@ void TestingEigenDecompositionThreeDistinct() {
 template <class TTensor, class TNumber>
 void TestingEigenDecompositionAutoFill() {
     TPZFMatrix<TNumber> ma;
-    ma.AutoFill(3, 3, true);
+    ma.AutoFill(3, 3, SymProp::Herm);
 
     TTensor tensor(ma);
 

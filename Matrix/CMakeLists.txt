@@ -15,7 +15,6 @@ set(headers
     pzbasematrix.h
     pzskylmat.h
     pzspblockdiagpivot.h
-    pzsysmp.h
     tpzsparseblockdiagonal.h
     pzblock.h
     pzdiffmatrix.h
@@ -28,7 +27,8 @@ set(headers
     pzblockdiag.h
     pzmatred.h
     pzshtmat.h
-    pzysmp.h
+    TPZYSMPMatrix.h
+    TPZSYSMPMatrix.h
     TPZSolutionMatrix.h
     TPZTensor.h
     TPZTensorTranslator.h
@@ -42,7 +42,6 @@ set(sources
     pzbasematrix.cpp
     pzskylmat.cpp
     pzspblockdiagpivot.cpp
-    pzsysmp.cpp
     tpzsparseblockdiagonal.cpp
     pzbndmat.cpp
     pzsbndmat.cpp
@@ -54,12 +53,31 @@ set(sources
     pzblock.cpp
     pzmatred.cpp
     pzshtmat.cpp
-    pzysmp.cpp
+    TPZYSMPMatrix.cpp
+    TPZSYSMPMatrix.cpp
     TPZSolutionMatrix.cpp
     TPZTensor.cpp
     TPZTensorTranslator.cpp
     )
 
+  if(USING_MKL)
+    list(APPEND headers
+      TPZYSMPPardiso.h
+      TPZSYSMPPardiso.h
+    )
+    list(APPEND sources
+      TPZYSMPPardiso.cpp
+      TPZSYSMPPardiso.cpp
+      )
+  endif()
+	if(USING_EIGEN)
+		list(APPEND headers
+			TPZEigenSparseMatrix.h
+		)
+		list(APPEND sources
+			TPZEigenSparseMatrix.cpp			
+		)
+	endif()
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Matrix)
 
 target_sources(pz PRIVATE ${headers} ${sources})

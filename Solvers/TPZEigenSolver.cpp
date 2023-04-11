@@ -2,8 +2,10 @@
 #include "TPZKrylovEigenSolver.h"
 #include "TPZSpectralTransform.h"
 #include "Hash/TPZHash.h"
-#include "pzysmp.h"
-#include "pzsysmp.h"
+#include "TPZYSMPMatrix.h"
+#include "TPZSYSMPMatrix.h"
+#include "TPZYSMPPardiso.h"
+#include "TPZSYSMPPardiso.h"
 #include <numeric>
 
 template <class TVar>
@@ -24,20 +26,21 @@ void TPZEigenSolver<TVar>::ResetMatrix()
   fMatrixB = newB;
 }
 
+#ifdef USING_MKL
 template<class TVar>
 TPZPardisoSolver<TVar> *
 TPZEigenSolver<TVar>::GetPardisoControl(TPZAutoPointer<TPZMatrix<TVar>> mat){
-  auto sym = TPZAutoPointerDynamicCast<TPZSYsmpMatrix<TVar>>(mat);
+  auto sym = TPZAutoPointerDynamicCast<TPZSYsmpMatrixPardiso<TVar>>(mat);
   if(sym){
     return  &(sym->GetPardisoControl());
   }
-  auto nsym = TPZAutoPointerDynamicCast<TPZFYsmpMatrix<TVar>>(mat);
+  auto nsym = TPZAutoPointerDynamicCast<TPZFYsmpMatrixPardiso<TVar>>(mat);
   if(nsym){
     return  &(nsym->GetPardisoControl());
   }
   return nullptr;
 }
-
+#endif
 
 template<class TVar>
 void TPZEigenSolver<TVar>::SortEigenvalues(TPZVec<CTVar> &w, TPZVec<int> &indices)

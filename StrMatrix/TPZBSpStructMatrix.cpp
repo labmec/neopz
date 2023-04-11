@@ -7,7 +7,7 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzelmat.h"
-#include "pzysmp.h"
+#include "TPZYSMPMatrix.h"
 #include "TPZRenumbering.h"
 #include "TPZGuiInterface.h"
 
@@ -166,6 +166,8 @@ template class TPZBSpStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
 template class TPZBSpStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
 template class TPZBSpStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
 
+#ifndef USING_EIGEN
 template class TPZBSpStructMatrix<CSTATE,TPZStructMatrixOR<CSTATE>>;
 template class TPZBSpStructMatrix<CSTATE,TPZStructMatrixOT<CSTATE>>;
 template class TPZBSpStructMatrix<CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
+#endif

@@ -98,7 +98,7 @@ public:
   /** @}*/
 protected:
   //! Dimension of the Krylov subspace to calculate
-  int fKrylovDim{-1};
+  int64_t fKrylovDim{-1};
   //! Initial vector to be used to create Krylov subspace
   TPZFMatrix<TVar> fKrylovVector;
   //! Tolerance

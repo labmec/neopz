@@ -11,7 +11,6 @@
 
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
-#include "TPZPardisoSolver.h"
 
  /**
   * @brief Implements a symmetric sparse matrix. \ref matrix "Matrix"
@@ -20,7 +19,6 @@
 template<class TVar>
 class TPZSYsmpMatrix : public TPZMatrix<TVar>{
 	
-    friend class TPZPardisoSolver<TVar>;
     
 public :
     /** @brief Constructor based on number of rows and columns */
@@ -56,8 +54,8 @@ public :
       }                                                       
   }
   
-  /** @brief Checks if the current matrix is symmetric */
-  virtual int IsSymmetric() const  override { return 1; }
+  /** @brief Sets symmetry property of current matrix (only hermitian/symmetric allowed)*/
+  void SetSymmetry (SymProp sp) override;
   /** @brief Checks if current matrix is square */
   inline int IsSquare() const { return 1;}
     
@@ -78,10 +76,9 @@ public :
     return 0;
   }
 
-  void SetIsDecomposed(int val) override;
     /** @brief Fill matrix storage with randomic values */
     /** This method use GetVal and PutVal which are implemented by each type matrices */
-    void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+    void AutoFill(int64_t nrow, int64_t ncol, SymProp symmetric) override;
 	  
 	  /** @brief Get the matrix entry at (row,col) without bound checking */
 	  virtual const TVar GetVal(const int64_t row, const int64_t col ) const override;
@@ -97,7 +94,7 @@ public :
   TPZSYsmpMatrix<TVar> operator*(const TVar alpha) const;
   TPZSYsmpMatrix<TVar> &operator+=(const TPZSYsmpMatrix<TVar> &A );
   TPZSYsmpMatrix<TVar> &operator-=(const TPZSYsmpMatrix<TVar> &A );
-  TPZSYsmpMatrix<TVar> &operator*=(const TVar val) override;
+  TPZMatrix<TVar> &operator*=(const TVar val) override;
   
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** @note z and x cannot overlap in memory */
@@ -106,7 +103,14 @@ public :
 	/** @} */
 	/** @brief Sets data to the class */
 	virtual void SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A );
+  virtual void SetData(TPZVec<int64_t> &&IA, TPZVec<int64_t> &&JA, TPZVec<TVar> &&A);
+  /** @brief Get the data from the class*/
+  virtual void GetData(TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A);
+  /** @brief Get the mem location of data from the class*/
+  virtual void GetData( int64_t* &IA, int64_t* &JA, TVar* &A );
 
+  
+  
     virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & destinationindex) override;
 	
 	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex) override;
@@ -131,79 +135,48 @@ public :
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat = EFormatted ) const override;
     
-    /**
-     * @name Factorization
-     * @brief Those member functions perform the matrix factorization
-     * @{
-     */
-    
-
-    /**
-     * @brief Decomposes the current matrix using LDLt. Depends on MKL. \n
-     * The current matrix has to be symmetric.
-     * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
-     */
-    virtual int Decompose_LDLt(std::list<int64_t> &singular) override;
-    /** @brief Decomposes the current matrix using LDLt. Depends on MKL.*/
-    virtual int Decompose_LDLt() override;
-
-    /** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. Depends on MKL.*/
-    virtual int Decompose_Cholesky() override;
-    /**
-     * @brief Decomposes the current matrix using Cholesky method.Depends on MKL.
-     * @param singular
-     */
-    virtual int Decompose_Cholesky(std::list<int64_t> &singular)  override;
-    
-
-    /** @} */
-    
-    /**
-     * @name Substitutions
-     * @brief Substitutions forward and backward
-     * @{
-     */
-    
-    /**
-     * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.Depends on MKL.
-     * @param b right hand side and result after all
-     */
-    virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const override;
-    
-    /**
-     * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.Depends on MKL.
-     * @param b right hand side and result after all
-     */
-    virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const override;
-    
-    /**
-     * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.Depends on MKL.
-     * @param b right hand side and result after all
-     */
-    virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const override;
-
-    /**
-     * @brief Computes B = Y, where A*Y = B, A is lower triangular.Depends on MKL.
-     * @param b right hand side and result after all
-     */
-    virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const override;
-    
-    /**
-     * @brief Computes B = Y, where A*Y = B, A is upper triangular.Depends on MKL.
-     * @param b right hand side and result after all
-     */
-    virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const override;
-    
-
-    /** @} */
+    /// this is a class that doesn't implement direct decompostion
+        /** @brief decompose the system of equations acording to the decomposition
+         * scheme */
+        virtual int Decompose(const DecomposeType dt) override {
+            DebugStop();
+            return 0;
+        }
+        /**
+         * @brief Solves the linear system using Direct methods
+         * @param F The right hand side of the system and where the solution is stored.
+         * @param dt Indicates type of decomposition
+         */
+        virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override
+        {
+            DebugStop();
+            return 0;
+        }
+        virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
+            DebugStop();
+            return 0;
+        }
     
 
     int ClassId() const override;
 
+    /**
+     * @brief Unpacks the object structure from a stream of bytes
+     * @param buf The buffer containing the object in a packed form
+     * @param context
+     */
+    void Read(TPZStream &buf, void *context) override;
+  
+    /**
+     * @brief Packs the object structure in a stream of bytes
+     * @param buf Buffer which will receive the bytes
+     * @param withclassid
+     */
+    void Write(TPZStream &buf, int withclassid) const override;
+
+  
     void ComputeDiagonal();
-    //! Gets reference to TPZPardisoSolver instance for fine-tuning
-    TPZPardisoSolver<TVar> & GetPardisoControl()
-    {return fPardisoControl;}
+
 protected:
   void CheckTypeCompatibility(const TPZMatrix<TVar>*aPtr,
                               const TPZMatrix<TVar>*bPtr)const override;
@@ -219,14 +192,12 @@ protected:
   {
     return fA.size();
   }
-private:
 	
 	
 	TPZVec<int64_t>  fIA;
 	TPZVec<int64_t>  fJA;
 	TPZVec<TVar> fA;
 	
-  TPZPardisoSolver<TVar> fPardisoControl;
 	
 	TPZVec<TVar> fDiag;
 };
@@ -241,4 +212,26 @@ inline void TPZSYsmpMatrix<TVar>::SetData(const TPZVec<int64_t> &IA,const TPZVec
 	ComputeDiagonal();
 }
 
+
+template<class TVar>
+inline void TPZSYsmpMatrix<TVar>::SetData( TPZVec<int64_t> &&IA, TPZVec<int64_t> &&JA, TPZVec<TVar> &&A ){
+    fIA = IA;
+    fJA = JA;
+    fA = A;
+    ComputeDiagonal();
+}
+
+template<class TVar>
+inline void TPZSYsmpMatrix<TVar>::GetData( TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A ){
+    IA = fIA;
+    JA = fJA;
+    A = fA;
+}
+
+template<class TVar>
+inline void TPZSYsmpMatrix<TVar>::GetData( int64_t* &IA, int64_t* &JA, TVar* &A ){
+    IA = fIA.begin();
+    JA = fJA.begin();
+    A = fA.begin();
+}
 #endif

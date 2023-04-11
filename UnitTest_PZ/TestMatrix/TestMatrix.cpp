@@ -11,10 +11,13 @@
 #include "pzsfulmat.h"
 #include "pzskylnsymmat.h"
 #include "pzskylmat.h"
-#include "pzysmp.h"
-#include "pzsysmp.h"
-
-
+#include "TPZYSMPMatrix.h"
+#include "TPZSYSMPMatrix.h"
+#ifdef PZ_USING_MKL
+#include "TPZYSMPPardiso.h"
+#include "TPZSYSMPPardiso.h"
+#endif
+#include "tpzsparseblockdiagonal.h"
 #include <catch2/catch.hpp>
 
 template<>
@@ -43,7 +46,7 @@ template <class matx>
 void CheckDiagonalDominantMatrix(matx &matr);
 
 template <class matx>
-void TestGeneratingDiagonalDominantMatrix(bool isSymmetric);
+void TestGeneratingDiagonalDominantMatrix(SymProp sp);
 
 template <class matx, class TVar>
 void TestGeneratingHermitianMatrix();
@@ -63,7 +66,18 @@ void TestGeneratingHermitianMatrix();
  * NOTE3: The first function is for square matrices and the second function is for rectangular matrices.
  */
 template <class matx, class TVar>
-void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec);
+void TestingInverseWithAutoFill(int dim, SymProp sp, DecomposeType dec);
+
+/**
+ * @brief Tests the Inverse method of the matrix to any matrix types.
+ * @note The matrix should have been filled.
+ * @param mat Matrix to be inverted
+ * @param dec Decomposition method to be used (See enum DecomposeType at pzmatrix.h)
+ * @note Process: gets square matrix, compute its inverse and the inverse of the inverse.
+ * Then, checks whether the first and last matrices are identical.
+ */
+template <class matx, class TVar>
+void TestingInverse(matx mat, DecomposeType dec);
     
 /**
  * @brief Tests the operator * of the matrix, using AutoFill to build a square matrix of dimension dim (user defined)
@@ -72,7 +86,7 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec);
  * @note Process: build square matrix with randomic values, compute its square twice using * operator with two different copies of itself and checks whether the result is the same
  */
 template <class matx, class TVar>
-void TestingMultiplyOperatorWithAutoFill(int dim, int symmetric);
+void TestingMultiplyOperatorWithAutoFill(int dim, SymProp sp);
 /**
  * @brief Tests the Multiply method of the matrix, using AutoFill to build a square matrix of dimension dim (user defined)
  * @param dim Dimension of the square matrix to be build.
@@ -84,7 +98,7 @@ void TestingMultiplyOperatorWithAutoFill(int dim, int symmetric);
  * Check if the result is a identity matrix.
  */
 template <class matx, class TVar>
-void TestingMultiplyWithAutoFill(int dim, int symmetric);
+void TestingMultiplyWithAutoFill(int dim, SymProp sp);
 /**
  * @brief Tests the Multiply method of the matrix, using AutoFill to build a square matrix of dimension dim (user defined)
  * @param dim Dimension of the square matrix to be build.
@@ -101,35 +115,35 @@ void TestingDotNorm(int dim);
 Test Add operation
 */
 template <class matx, class TVar>
-void TestingAdd(int row, int col, int symmetric);
+void TestingAdd(int row, int col, SymProp sp);
 /*
 Test Subtract operation
 */
 template <class matx, class TVar>
-void TestingSubtract(int row, int col, int symmetric);
+void TestingSubtract(int row, int col, SymProp sp);
 /*
 Test MultiplyByScalar operation
 */
 template <class matx, class TVar>
-void TestingMultiplyByScalar(int row, int col, int symmetric);
+void TestingMultiplyByScalar(int row, int col, SymProp sp);
 
 template <class matx, class TVar>
-void TestingAddOperator(int row, int col, int symmetric);
+void TestingAddOperator(int row, int col, SymProp sp);
 /*
 Test Subtract operation
 */
 template <class matx, class TVar>
-void TestingSubtractOperator(int row, int col, int symmetric);
+void TestingSubtractOperator(int row, int col, SymProp sp);
 /*
 Test MultiplyByScalar operation
 */
 template <class matx, class TVar>
-void TestingMultiplyByScalarOperator(int row, int col, int symmetric);
+void TestingMultiplyByScalarOperator(int row, int col, SymProp sp);
 /**
  * Check if the result is a identity matrix.
  */
 template <class matx, class TVar>
-void TestingTransposeMultiply(int row, int col, int symmetric);
+void TestingTransposeMultiply(int row, int col, SymProp sp);
 /**
  * @brief Tests the Transpose method of the matrix, using AutoFill to build a matrix of dimension row x cols (user defined)
  * @param rows Number of rows
@@ -138,7 +152,7 @@ void TestingTransposeMultiply(int row, int col, int symmetric);
  * @note Process: build matrix with randomic values, compute its transpose and transpose again then compare the first and last matrices.
  */
 template <class matx, class TVar>
-void TestingTransposeWithAutoFill(int rows, int cols, int symmetric);
+void TestingTransposeWithAutoFill(int rows, int cols, SymProp sp);
 /**
  * @brief Tests the MultAdd method of the matrix, that calculates z = beta * y + alpha * A * x , using AutoFill to build a square matrix of dimension dim (user defined)
  * @param dim Dimension of the square matrix to be build.
@@ -147,7 +161,7 @@ void TestingTransposeWithAutoFill(int rows, int cols, int symmetric);
  * @note Process: build square matrix with randomic values, compute its inverse and uses MultAdd for calculating I - A*A^-1 and check whether you have any non-zero entries on the result
  */
 template <class matx, class TVar>
-void TestingMultAdd(int dim, int symmetric, DecomposeType dec);
+void TestingMultAdd(int dim, SymProp sp, DecomposeType dec);
 #ifdef PZ_USING_LAPACK
 
 /**
@@ -156,7 +170,7 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec);
  * @param symmetric Whether to build a symmetric matrix
  * @note Process: uses LAPACK's routine */
 template <class matx, class TVar>
-void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric);
+void TestingGeneralisedEigenValuesWithAutoFill(int dim, SymProp sp);
 
 /**
  * @brief Tests the Eigenvalues/eigenvectors of a couple of known matrices
@@ -171,7 +185,7 @@ void BasicEigenTests();
  * @param symmetric Whether to build a symmetric matrix
  * @note Process: uses LAPACK's routine */
 template <class matx, class TVar>
-void TestingEigenDecompositionAutoFill(int dim, int symmetric);
+void TestingEigenDecompositionAutoFill(int dim, SymProp sp);
 
 /** @brief Check if, for an auto generated matrix A, 
 * U and VT are orthogonal;
@@ -211,27 +225,27 @@ void TestSVD(int nrows, int ncols);
 #ifdef PZ_USING_MKL
             if constexpr (std::is_same<RTVar,double>::value){
                 SECTION("TPZSYsmpMatrix"){
-                    TestingInverseWithAutoFill<TPZSYsmpMatrix<TVar>,TVar>(dim, 1, ECholesky);
+                  TestingInverseWithAutoFill<TPZSYsmpMatrixPardiso<TVar>,TVar>(dim, SymProp::Herm, ECholesky);
                 }
             }
 #endif
             SECTION("TPZFMatrix"){
-                TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1, ECholesky);
+                TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, SymProp::Herm, ECholesky);
             }
             SECTION("TPZSFMatrix"){
-                TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ECholesky);
+                TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, SymProp::Herm, ECholesky);
             }
-            SECTION("TPZFBMatrix"){
-                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 1, ECholesky);
-            }
+//            SECTION("TPZFBMatrix"){
+//                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, SymProp::Herm, ECholesky);
+//            }
             SECTION("TPZSBMatrix"){
-                TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1,ECholesky);
+                TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, SymProp::Herm,ECholesky);
             }
             SECTION("TPZSkylMatrix"){
-                TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ECholesky);
+                TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, SymProp::Herm,ECholesky);
             }
             SECTION("TPZNSymSkylMatrix"){
-                TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ECholesky);
+                TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, SymProp::Herm,ECholesky);
             }
             
         }
@@ -239,59 +253,59 @@ void TestSVD(int nrows, int ncols);
 #ifdef PZ_USING_MKL
             if constexpr (std::is_same<RTVar,double>::value){
                 SECTION("TPZSYsmpMatrix"){
-                    TestingInverseWithAutoFill<TPZSYsmpMatrix<TVar>,TVar>(dim, 1, ELDLt);
+                  TestingInverseWithAutoFill<TPZSYsmpMatrixPardiso<TVar>,TVar>(dim, SymProp::Herm, ELDLt);
                 }
             }
 #endif
             SECTION("TPZFMatrix"){
-                TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1, ELDLt);
+                TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, SymProp::Herm, ELDLt);
             }
             SECTION("TPZSFMatrix"){
-                TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ELDLt);
+                TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, SymProp::Herm, ELDLt);
             }
-            SECTION("TPZFBMatrix"){
-                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 1, ECholesky);
-            }
+//            SECTION("TPZFBMatrix"){
+//                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, SymProp::Herm, ECholesky);
+//            }
             SECTION("TPZSBMatrix"){
-                TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1, ELDLt);
+                TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, SymProp::Herm, ELDLt);
             }
             SECTION("TPZSkylMatrix"){
-                TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ELDLt);
+                TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, SymProp::Herm,ELDLt);
             }
             SECTION("TPZNSymSkylMatrix"){
-                TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ELDLt);
+                TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, SymProp::Herm,ELDLt);
             }
         }
         SECTION("LU"){
             SECTION("TPZFMatrix"){
-                TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 0, ELU);
-                TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1, ELU);
+                TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, SymProp::NonSym, ELU);
+                TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, SymProp::Herm, ELU);
             }
             SECTION("TPZFBMatrix"){
-                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0, ELU);
-                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 1, ELU);
+                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, SymProp::NonSym, ELU);
+                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, SymProp::Herm, ELU);
             }
             SECTION("TPZBlockDiagonal"){
-                TestingInverseWithAutoFill<TPZBlockDiagonal<TVar>,TVar>(dim, 0,ELU);
-                TestingInverseWithAutoFill<TPZBlockDiagonal<TVar>,TVar>(dim, 1,ELU);
+                TestingInverseWithAutoFill<TPZBlockDiagonal<TVar>,TVar>(dim, SymProp::NonSym,ELU);
+                TestingInverseWithAutoFill<TPZBlockDiagonal<TVar>,TVar>(dim, SymProp::Herm,ELU);
             }
         
             SECTION("TPZFNMatrix"){
-                TestingInverseWithAutoFill<TPZFNMatrix<9,TVar>,TVar>(dim, 0, ELU);
-                TestingInverseWithAutoFill<TPZFNMatrix<9,TVar>,TVar>(dim, 1, ELU);
+                TestingInverseWithAutoFill<TPZFNMatrix<9,TVar>,TVar>(dim, SymProp::NonSym, ELU);
+                TestingInverseWithAutoFill<TPZFNMatrix<9,TVar>,TVar>(dim, SymProp::Herm, ELU);
             }
         
             SECTION("TPZSkylNSymMatrix"){
-                TestingInverseWithAutoFill<TPZSkylNSymMatrix<TVar>,TVar>(dim, 0,ELU);
-                TestingInverseWithAutoFill<TPZSkylNSymMatrix<TVar>,TVar>(dim, 1,ELU);
+                TestingInverseWithAutoFill<TPZSkylNSymMatrix<TVar>,TVar>(dim, SymProp::NonSym,ELU);
+                TestingInverseWithAutoFill<TPZSkylNSymMatrix<TVar>,TVar>(dim, SymProp::Herm,ELU);
             }
 #ifdef PZ_USING_MKL
             if constexpr (std::is_same<RTVar,double>::value){
                 SECTION("TPZFYsmpMatrix"){
-                    TestingInverseWithAutoFill<TPZFYsmpMatrix<TVar>,TVar>(dim, 0, ELU);
+                    TestingInverseWithAutoFill<TPZFYsmpMatrixPardiso<TVar>,TVar>(dim, SymProp::NonSym, ELU);
                 }
                 SECTION("TPZFYsmpMatrix"){
-                    TestingInverseWithAutoFill<TPZFYsmpMatrix<TVar>,TVar>(dim, 1, ELU);
+                    TestingInverseWithAutoFill<TPZFYsmpMatrixPardiso<TVar>,TVar>(dim, SymProp::Herm, ELU);
                 }
             }
             
@@ -313,28 +327,32 @@ void TestSVD(int nrows, int ncols);
     void Add(){
       for (auto dim = 5; dim < 100; dim += 500) {
           SECTION("TPZFMatrix"){
-              TestingAdd<TPZFMatrix<TVar>, TVar>(10, dim, 0);
+              TestingAdd<TPZFMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSFMatrix"){
-              TestingAdd<TPZSFMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingAdd<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingAdd<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           SECTION("TPZFBMatrix"){
-              TestingAdd<TPZFBMatrix<TVar>,TVar>(dim, dim, 0);
+              TestingAdd<TPZFBMatrix<TVar>,TVar>(dim, dim, SymProp::NonSym);
           }
           SECTION("TPZSBMatrix"){
-              TestingAdd<TPZSBMatrix<TVar>,TVar>(dim, dim,1);
+              TestingAdd<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Herm);
+              TestingAdd<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Sym);
           }
           SECTION("TPZFYsmpMatrix"){
-              TestingAdd<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
+              TestingAdd<TPZFYsmpMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSYsmpMatrix"){
-              TestingAdd<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingAdd<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingAdd<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           // SECTION("TPZSkylNSymMatrix"){
-          //     TestingAdd<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, 0);
+          //     TestingAdd<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, SymProp::NonSym);
           // }
           SECTION("TPZSkylMatrix"){
-              TestingAdd<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingAdd<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingAdd<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
       }
     }
@@ -343,28 +361,32 @@ void TestSVD(int nrows, int ncols);
     void Subtract(){
       for (auto dim = 5; dim < 100; dim += 500) {
           SECTION("TPZFMatrix"){
-              TestingSubtract<TPZFMatrix<TVar>, TVar>(10, dim, 0);
+              TestingSubtract<TPZFMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSFMatrix"){
-              TestingSubtract<TPZSFMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingSubtract<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingSubtract<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           SECTION("TPZFBMatrix"){
-              TestingSubtract<TPZFBMatrix<TVar>,TVar>(dim, dim, 0);
+              TestingSubtract<TPZFBMatrix<TVar>,TVar>(dim, dim, SymProp::NonSym);
           }
           SECTION("TPZSBMatrix"){
-              TestingSubtract<TPZSBMatrix<TVar>,TVar>(dim, dim,1);
+              TestingSubtract<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Herm);
+              TestingSubtract<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Sym);
           }
           SECTION("TPZFYsmpMatrix"){
-              TestingSubtract<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
+              TestingSubtract<TPZFYsmpMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSYsmpMatrix"){
-              TestingSubtract<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingSubtract<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingSubtract<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           // SECTION("TPZSkylNSymMatrix"){
-          //     TestingSubtract<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, 0);
+          //     TestingSubtract<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, SymProp::NonSym);
           // }
           SECTION("TPZSkylMatrix"){
-              TestingSubtract<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingSubtract<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingSubtract<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
       }
     }
@@ -372,28 +394,32 @@ template<class TVar>
     void MultiplyByScalar(){
       for (auto dim = 5; dim < 100; dim += 500) {
           SECTION("TPZFMatrix"){
-              TestingMultiplyByScalar<TPZFMatrix<TVar>, TVar>(10, dim, 0);
+              TestingMultiplyByScalar<TPZFMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSFMatrix"){
-              TestingMultiplyByScalar<TPZSFMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingMultiplyByScalar<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingMultiplyByScalar<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           SECTION("TPZFBMatrix"){
-              TestingMultiplyByScalar<TPZFBMatrix<TVar>,TVar>(dim, dim, 0);
+              TestingMultiplyByScalar<TPZFBMatrix<TVar>,TVar>(dim, dim, SymProp::NonSym);
           }
           SECTION("TPZSBMatrix"){
-              TestingMultiplyByScalar<TPZSBMatrix<TVar>,TVar>(dim, dim,1);
+              TestingMultiplyByScalar<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Herm);
+              TestingMultiplyByScalar<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Sym);
           }
           SECTION("TPZFYsmpMatrix"){
-              TestingMultiplyByScalar<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
+              TestingMultiplyByScalar<TPZFYsmpMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSYsmpMatrix"){
-              TestingMultiplyByScalar<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingMultiplyByScalar<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingMultiplyByScalar<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           // SECTION("TPZSkylNSymMatrix"){
-          //     TestingMultiplyByScalar<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, 0);
+          //     TestingMultiplyByScalar<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, SymProp::NonSym);
           // }
           SECTION("TPZSkylMatrix"){
-              TestingMultiplyByScalar<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingMultiplyByScalar<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingMultiplyByScalar<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
       }
     }
@@ -401,28 +427,32 @@ template<class TVar>
     void AddOperator(){
       for (auto dim = 5; dim < 100; dim += 500) {
           SECTION("TPZFMatrix"){
-              TestingAddOperator<TPZFMatrix<TVar>, TVar>(10, dim, 0);
+              TestingAddOperator<TPZFMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSFMatrix"){
-              TestingAddOperator<TPZSFMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingAddOperator<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingAddOperator<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           SECTION("TPZFBMatrix"){
-              TestingAddOperator<TPZFBMatrix<TVar>,TVar>(dim, dim, 0);
+              TestingAddOperator<TPZFBMatrix<TVar>,TVar>(dim, dim, SymProp::NonSym);
           }
           SECTION("TPZSBMatrix"){
-              TestingAddOperator<TPZSBMatrix<TVar>,TVar>(dim, dim,1);
+              TestingAddOperator<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Herm);
+              TestingAddOperator<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Sym);
           }
           SECTION("TPZFYsmpMatrix"){
-              TestingAddOperator<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
+              TestingAddOperator<TPZFYsmpMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSYsmpMatrix"){
-              TestingAddOperator<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingAddOperator<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingAddOperator<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           // SECTION("TPZSkylNSymMatrix"){
-          //     TestingAddOperator<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, 0);
+          //     TestingAddOperator<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, SymProp::NonSym);
           // }
           SECTION("TPZSkylMatrix"){
-              TestingAddOperator<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingAddOperator<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingAddOperator<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
       }
     }
@@ -431,28 +461,32 @@ template<class TVar>
     void SubtractOperator(){
       for (auto dim = 5; dim < 100; dim += 500) {
           SECTION("TPZFMatrix"){
-              TestingSubtractOperator<TPZFMatrix<TVar>, TVar>(10, dim, 0);
+              TestingSubtractOperator<TPZFMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSFMatrix"){
-              TestingSubtractOperator<TPZSFMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingSubtractOperator<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingSubtractOperator<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           SECTION("TPZFBMatrix"){
-              TestingSubtractOperator<TPZFBMatrix<TVar>,TVar>(dim, dim, 0);
+              TestingSubtractOperator<TPZFBMatrix<TVar>,TVar>(dim, dim, SymProp::NonSym);
           }
           SECTION("TPZSBMatrix"){
-              TestingSubtractOperator<TPZSBMatrix<TVar>,TVar>(dim, dim,1);
+              TestingSubtractOperator<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Herm);
+              TestingSubtractOperator<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Sym);
           }
           SECTION("TPZFYsmpMatrix"){
-              TestingSubtractOperator<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
+              TestingSubtractOperator<TPZFYsmpMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSYsmpMatrix"){
-              TestingSubtractOperator<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingSubtractOperator<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingSubtractOperator<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           // SECTION("TPZSkylNSymMatrix"){
-          //     TestingSubtractOperator<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, 0);
+          //     TestingSubtractOperator<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, SymProp::NonSym);
           // }
           SECTION("TPZSkylMatrix"){
-              TestingSubtractOperator<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingSubtractOperator<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingSubtractOperator<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
       }
     }
@@ -460,28 +494,32 @@ template<class TVar>
     void MultiplyByScalarOperator(){
       for (auto dim = 5; dim < 100; dim += 500) {
           SECTION("TPZFMatrix"){
-              TestingMultiplyByScalarOperator<TPZFMatrix<TVar>, TVar>(10, dim, 0);
+              TestingMultiplyByScalarOperator<TPZFMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSFMatrix"){
-              TestingMultiplyByScalarOperator<TPZSFMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingMultiplyByScalarOperator<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingMultiplyByScalarOperator<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           SECTION("TPZFBMatrix"){
-              TestingMultiplyByScalarOperator<TPZFBMatrix<TVar>,TVar>(dim, dim, 0);
+              TestingMultiplyByScalarOperator<TPZFBMatrix<TVar>,TVar>(dim, dim, SymProp::NonSym);
           }
           SECTION("TPZSBMatrix"){
-              TestingMultiplyByScalarOperator<TPZSBMatrix<TVar>,TVar>(dim, dim,1);
+              TestingMultiplyByScalarOperator<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Herm);
+              TestingMultiplyByScalarOperator<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Sym);
           }
           SECTION("TPZFYsmpMatrix"){
-              TestingMultiplyByScalarOperator<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
+              TestingMultiplyByScalarOperator<TPZFYsmpMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSYsmpMatrix"){
-              TestingMultiplyByScalarOperator<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingMultiplyByScalarOperator<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingMultiplyByScalarOperator<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           // SECTION("TPZSkylNSymMatrix"){
-          //     TestingMultiplyByScalarOperator<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, 0);
+          //     TestingMultiplyByScalarOperator<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, SymProp::NonSym);
           // }
           SECTION("TPZSkylMatrix"){
-              TestingMultiplyByScalarOperator<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingMultiplyByScalarOperator<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingMultiplyByScalarOperator<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
       }
     }
@@ -490,29 +528,53 @@ template<class TVar>
     void MultiplyTranspose(){
       for (auto dim = 5; dim < 100; dim += 500) {
           SECTION("TPZFMatrix"){
-              TestingTransposeMultiply<TPZFMatrix<TVar>, TVar>(10, dim, 0);
+              TestingTransposeMultiply<TPZFMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSFMatrix"){
-              TestingTransposeMultiply<TPZSFMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingTransposeMultiply<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingTransposeMultiply<TPZSFMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           SECTION("TPZFBMatrix"){
-              TestingTransposeMultiply<TPZFBMatrix<TVar>,TVar>(dim, dim, 0);
+              TestingTransposeMultiply<TPZFBMatrix<TVar>,TVar>(dim, dim, SymProp::NonSym);
           }
           SECTION("TPZSBMatrix"){
-              TestingTransposeMultiply<TPZSBMatrix<TVar>,TVar>(dim, dim,1);
+              TestingTransposeMultiply<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Herm);
+              TestingTransposeMultiply<TPZSBMatrix<TVar>,TVar>(dim, dim,SymProp::Sym);
           }
           SECTION("TPZFYsmpMatrix"){
-              TestingTransposeMultiply<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
+              TestingTransposeMultiply<TPZFYsmpMatrix<TVar>, TVar>(10, dim, SymProp::NonSym);
           }
           SECTION("TPZSYsmpMatrix"){
-              TestingTransposeMultiply<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingTransposeMultiply<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingTransposeMultiply<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
           SECTION("TPZSkylNSymMatrix"){
-              TestingTransposeMultiply<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, 0);
+              TestingTransposeMultiply<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, SymProp::NonSym);
           }
           SECTION("TPZSkylMatrix"){
-              TestingTransposeMultiply<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
+              TestingTransposeMultiply<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Herm);
+              TestingTransposeMultiply<TPZSkylMatrix<TVar>, TVar>(dim, dim, SymProp::Sym);
           }
+          SECTION("TPZBlockDiagonal"){
+              TestingTransposeMultiply<TPZBlockDiagonal<TVar>, TVar>(dim, dim, SymProp::NonSym);
+          }
+#ifdef PZ_USING_MKL
+          //suported MKL types
+          if constexpr ((
+                          (std::is_same_v<TVar,float>) ||
+                          (std::is_same_v<TVar,double>) ||
+                          (std::is_same_v<TVar,std::complex<float>>) ||
+                          (std::is_same_v<TVar,std::complex<double>>)
+                         )){
+            SECTION("TPZFYsmpMatrixPardiso"){
+              TestingTransposeMultiply<TPZFYsmpMatrixPardiso<TVar>, TVar>(dim, dim, SymProp::NonSym);
+            }
+            SECTION("TPZSYsmpMatrixPardiso"){
+                TestingTransposeMultiply<TPZSYsmpMatrixPardiso<TVar>, TVar>(dim, dim, SymProp::Herm);
+                TestingTransposeMultiply<TPZSYsmpMatrixPardiso<TVar>, TVar>(dim, dim, SymProp::Sym);
+            }
+          }
+#endif
       }
     }
 
@@ -520,29 +582,50 @@ template<class TVar>
     void Multiply(){
       for (auto dim = 20; dim < 100; dim += 500) {
           SECTION("TPZFMatrix"){
-              TestingMultiplyWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, 0);
+              TestingMultiplyWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, SymProp::NonSym);
           }
           SECTION("TPZSFMatrix"){
-              TestingMultiplyWithAutoFill<TPZSFMatrix<TVar>, TVar>(dim, 1);
+              TestingMultiplyWithAutoFill<TPZSFMatrix<TVar>, TVar>(dim, SymProp::Herm);
+              TestingMultiplyWithAutoFill<TPZSFMatrix<TVar>, TVar>(dim, SymProp::Sym);
           }
           SECTION("TPZFBMatrix"){
-              TestingMultiplyWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0);
+              TestingMultiplyWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, SymProp::NonSym);
           }
           SECTION("TPZSBMatrix"){
-              TestingMultiplyWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim,1);
+              TestingMultiplyWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim,SymProp::Herm);
+              TestingMultiplyWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim,SymProp::Sym);
           }
           SECTION("TPZFYsmpMatrix"){
-              TestingMultiplyWithAutoFill<TPZFYsmpMatrix<TVar>, TVar>(dim, 0);
+              TestingMultiplyWithAutoFill<TPZFYsmpMatrix<TVar>, TVar>(dim, SymProp::NonSym);
           }
           SECTION("TPZSYsmpMatrix"){
-              TestingMultiplyWithAutoFill<TPZSYsmpMatrix<TVar>, TVar>(dim, 1);
+              TestingMultiplyWithAutoFill<TPZSYsmpMatrix<TVar>, TVar>(dim, SymProp::Herm);
+              TestingMultiplyWithAutoFill<TPZSYsmpMatrix<TVar>, TVar>(dim, SymProp::Sym);
           }
           SECTION("TPZSkylNSymMatrix"){
-              TestingMultiplyWithAutoFill<TPZSkylNSymMatrix<TVar>, TVar>(dim, 0);
+              TestingMultiplyWithAutoFill<TPZSkylNSymMatrix<TVar>, TVar>(dim, SymProp::NonSym);
           }
           SECTION("TPZSkylMatrix"){
-              TestingMultiplyWithAutoFill<TPZSkylMatrix<TVar>, TVar>(dim, 1);
+              TestingMultiplyWithAutoFill<TPZSkylMatrix<TVar>, TVar>(dim, SymProp::Herm);
+              TestingMultiplyWithAutoFill<TPZSkylMatrix<TVar>, TVar>(dim, SymProp::Sym);
           }
+#ifdef PZ_USING_MKL
+          //suported MKL types
+          if constexpr ((
+                          (std::is_same_v<TVar,float>) ||
+                          (std::is_same_v<TVar,double>) ||
+                          (std::is_same_v<TVar,std::complex<float>>) ||
+                          (std::is_same_v<TVar,std::complex<double>>)
+                         )){
+            SECTION("TPZFYsmpMatrixPardiso"){
+              TestingMultiplyWithAutoFill<TPZFYsmpMatrixPardiso<TVar>, TVar>(dim, SymProp::NonSym);
+            }
+            SECTION("TPZSYsmpMatrixPardiso"){
+                TestingMultiplyWithAutoFill<TPZSYsmpMatrixPardiso<TVar>, TVar>(dim, SymProp::Herm);
+                TestingMultiplyWithAutoFill<TPZSYsmpMatrixPardiso<TVar>, TVar>(dim, SymProp::Sym);
+            }
+          }
+#endif
       }
     }
 
@@ -578,31 +661,35 @@ template<class TVar>
     
     template<class TVar>
     void DiagonalDominant(){
-        bool isSymmetric{false};
+        auto sp = SymProp::NonSym;
         SECTION("TPZFMatrix"){            
-            TestGeneratingDiagonalDominantMatrix<TPZFMatrix<TVar>>(isSymmetric);
+            TestGeneratingDiagonalDominantMatrix<TPZFMatrix<TVar>>(SymProp::NonSym);
         }
         SECTION("TPZFBMatrix"){
-            TestGeneratingDiagonalDominantMatrix<TPZFBMatrix<TVar>>(isSymmetric);
+            TestGeneratingDiagonalDominantMatrix<TPZFBMatrix<TVar>>(SymProp::NonSym);
         }
         SECTION("TPZSkylNSymMatrix"){
-            TestGeneratingDiagonalDominantMatrix<TPZSkylNSymMatrix<TVar>>(isSymmetric);
+            TestGeneratingDiagonalDominantMatrix<TPZSkylNSymMatrix<TVar>>(SymProp::NonSym);
         }
         SECTION("TPZFYsmpMatrix"){
-            TestGeneratingDiagonalDominantMatrix<TPZFYsmpMatrix<TVar>>(isSymmetric);
+            TestGeneratingDiagonalDominantMatrix<TPZFYsmpMatrix<TVar>>(SymProp::NonSym);
         }
-        isSymmetric = true;
+
         SECTION("TPZSFMatrix"){
-            TestGeneratingDiagonalDominantMatrix<TPZSFMatrix<TVar>>(isSymmetric);
+            TestGeneratingDiagonalDominantMatrix<TPZSFMatrix<TVar>>(SymProp::Sym);
+            TestGeneratingDiagonalDominantMatrix<TPZSFMatrix<TVar>>(SymProp::Herm);
         }
         SECTION("TPZSBMatrix"){
-            TestGeneratingDiagonalDominantMatrix<TPZSBMatrix<TVar>>(isSymmetric);
+            TestGeneratingDiagonalDominantMatrix<TPZSBMatrix<TVar>>(SymProp::Sym);
+            TestGeneratingDiagonalDominantMatrix<TPZSBMatrix<TVar>>(SymProp::Herm);
         }
         SECTION("TPZSkylMatrix"){
-            TestGeneratingDiagonalDominantMatrix<TPZSkylMatrix<TVar>>(isSymmetric);
+            TestGeneratingDiagonalDominantMatrix<TPZSkylMatrix<TVar>>(SymProp::Sym);
+            TestGeneratingDiagonalDominantMatrix<TPZSkylMatrix<TVar>>(SymProp::Herm);
         }
         SECTION("TPZSYsmpMatrix"){
-            TestGeneratingDiagonalDominantMatrix<TPZSYsmpMatrix<TVar>>(isSymmetric);
+            TestGeneratingDiagonalDominantMatrix<TPZSYsmpMatrix<TVar>>(SymProp::Sym);
+            TestGeneratingDiagonalDominantMatrix<TPZSYsmpMatrix<TVar>>(SymProp::Herm);
         }
         SECTION("TPZBlockDiagonal"){
             // Unit Test for block diagonal matrix
@@ -610,7 +697,7 @@ template<class TVar>
             for (int i = 0; i < 13; i++)
                 blocks[i] = 15 + (i % 4);
             TPZBlockDiagonal<TVar> mabd(blocks);
-            mabd.AutoFill(50, 50, 0);
+            mabd.AutoFill(50, 50, SymProp::NonSym);
             CheckDiagonalDominantMatrix(mabd);
         }
     }
@@ -618,7 +705,8 @@ template<class TVar>
     template <class TVar>
     void MultiplyOperatorWithAutoFill() {
       for (int dim = 3; dim < 100; dim += 5) {
-        TestingMultiplyOperatorWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, 0);
+        TestingMultiplyOperatorWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, SymProp::NonSym);
+        TestingMultiplyOperatorWithAutoFill<TPZFNMatrix<20,TVar>, TVar>(dim, SymProp::NonSym);
       }
     }
     
@@ -626,7 +714,7 @@ template<class TVar>
     void TransposeWithAutoFill() {
       for (int rows = 3; rows < 4; rows += 5) {
         for (int cols = 3; cols < 100; cols += 5) {
-          TestingTransposeWithAutoFill<TPZFMatrix<TVar>, TVar>(rows, cols, 0);
+          TestingTransposeWithAutoFill<TPZFMatrix<TVar>, TVar>(rows, cols, SymProp::NonSym);
         }
       }
     }
@@ -635,33 +723,60 @@ template<class TVar>
     void TestMultAdd(){
       for (int dim = 5; dim < 6; dim += 10) {
           SECTION("TPZFMatrix"){
-              TestingMultAdd<TPZFMatrix<TVar>, TVar>(dim, 0, ELU);
+              TestingMultAdd<TPZFMatrix<TVar>, TVar>(dim, SymProp::NonSym, ELU);
           }
           SECTION("TPZSFMatrix"){
-              TestingMultAdd<TPZSFMatrix<TVar>, TVar>(dim, 1, ECholesky);
+              TestingMultAdd<TPZSFMatrix<TVar>, TVar>(dim, SymProp::Herm, ECholesky);
           }
           SECTION("TPZFBMatrix"){
-              TestingMultAdd<TPZFBMatrix<TVar>, TVar>(dim, 0, ELU);
+              TestingMultAdd<TPZFBMatrix<TVar>, TVar>(dim, SymProp::NonSym, ELU);
           }
           SECTION("TPZSBMatrix"){
-              TestingMultAdd<TPZSBMatrix<TVar>, TVar>(dim, 1, ECholesky);
+              TestingMultAdd<TPZSBMatrix<TVar>, TVar>(dim, SymProp::Herm, ECholesky);
           }
           SECTION("TPZSkylMatrix"){
-              TestingMultAdd<TPZSkylMatrix<TVar>, TVar>(dim, 1, ECholesky);
+              TestingMultAdd<TPZSkylMatrix<TVar>, TVar>(dim, SymProp::Herm, ECholesky);
           }
           SECTION("TPZSkylNSymMatrix"){
-              TestingMultAdd<TPZSkylNSymMatrix<TVar>, TVar>(dim, 0, ELU);
+              TestingMultAdd<TPZSkylNSymMatrix<TVar>, TVar>(dim, SymProp::NonSym, ELU);
           }
+          SECTION("TPZSYsmpMatrix"){
+              TestingMultAdd<TPZSYsmpMatrix<TVar>, TVar>(dim, SymProp::Herm, ECholesky);
+          }
+          SECTION("TPZFYsmpMatrix"){
+              TestingMultAdd<TPZFYsmpMatrix<TVar>, TVar>(dim, SymProp::NonSym, ELU);
+          }
+          SECTION("TPZBlockDiagonal"){
+              TestingMultAdd<TPZBlockDiagonal<TVar>, TVar>(dim, SymProp::NonSym, ELU);
+          }
+#ifdef PZ_USING_MKL
+          //suported MKL types
+          if constexpr ((
+                          (std::is_same_v<TVar,float>) ||
+                          (std::is_same_v<TVar,double>) ||
+                          (std::is_same_v<TVar,std::complex<float>>) ||
+                          (std::is_same_v<TVar,std::complex<double>>)
+                         )){
+            SECTION("TPZFYsmpMatrixPardiso"){
+              TestingMultAdd<TPZFYsmpMatrixPardiso<TVar>, TVar>(dim, SymProp::NonSym, ELU);
+            }
+            SECTION("TPZSYsmpMatrixPardiso"){
+              TestingMultAdd<TPZSYsmpMatrixPardiso<TVar>, TVar>(dim, SymProp::Herm, ECholesky);
+            }
+          }
+#endif
       }
     }
 #ifdef PZ_USING_LAPACK
     template <class TVar> void GeneralisedEigenvaluesAutoFill() {
         for (int dim = 5; dim < 6; dim += 10) {
             SECTION("TPZFMatrix"){
-                TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, 1);
+                TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, SymProp::Sym);
+                TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, SymProp::Herm);
             }
             SECTION("TPZSBMatrix"){
-                TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<TVar>, TVar>(dim, 1);
+                TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<TVar>, TVar>(dim, SymProp::Sym);
+                TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<TVar>, TVar>(dim, SymProp::Herm);
             }
         }
     }
@@ -669,14 +784,17 @@ template<class TVar>
     template<class TVar>
     void EigenDecompositionAutoFill(){
         for (int dim = 5; dim < 6; dim += 10) {
+            
             SECTION("TPZSBMatrix sym"){
-                TestingEigenDecompositionAutoFill<TPZSBMatrix<TVar>, TVar>(dim, 1);
+                TestingEigenDecompositionAutoFill<TPZSBMatrix<TVar>, TVar>(dim, SymProp::Sym);
+                TestingEigenDecompositionAutoFill<TPZSBMatrix<TVar>, TVar>(dim, SymProp::Herm);
             }
             SECTION("TPZFMatrix sym"){
-                TestingEigenDecompositionAutoFill<TPZFMatrix<TVar>, TVar>(dim, 1);
+                TestingEigenDecompositionAutoFill<TPZFMatrix<TVar>, TVar>(dim, SymProp::Sym);
+                TestingEigenDecompositionAutoFill<TPZFMatrix<TVar>, TVar>(dim, SymProp::Herm);
             }
             SECTION("TPZFMatrix nsym"){
-                TestingEigenDecompositionAutoFill<TPZFMatrix<TVar>, TVar>(dim, 0);
+                TestingEigenDecompositionAutoFill<TPZFMatrix<TVar>, TVar>(dim, SymProp::NonSym);
             }
         }
     }
@@ -693,6 +811,26 @@ template<class TVar>
         }
     }
 #endif
+  
+  template<class TVar>
+  void BlockDiagLUPivot(){
+    //we will create a matrix with 2x2 blocks that will require pivoting
+    const int nblocks = 5;
+    const int dim = 2*nblocks;
+    TPZFMatrix<TVar> fmat(dim,dim,0);
+    for(int i = 0; i < nblocks; i++){
+      fmat.PutVal(2*i, 2*i, 0);
+      fmat.PutVal(2*i, 2*i+1, 1);
+      fmat.PutVal(2*i+1, 2*i, 1);
+      fmat.PutVal(2*i+1, 2*i+1, 0);
+    }
+    TPZVec<int> blocksizes(nblocks,2);
+    TPZBlockDiagonal<TVar> blckmat(blocksizes,fmat);
+    TestingInverse<TPZBlockDiagonal<TVar>, TVar>(blckmat, ELU);
+  }
+
+  template<class TVar>
+  void SparseBlockDiagInverse();
 };
 
 
@@ -945,6 +1083,20 @@ TEMPLATE_TEST_CASE("Singular Value Decomposition (REAL)","[matrix_tests]",
                    ) {
     testmatrix::SingularValueDecomposition_Real<TestType>();
 }
+
+TEMPLATE_TEST_CASE("Additional Block Diagonal tests","[matrix_tests]",
+                   float,
+                   double,
+                   std::complex<float>,
+                   std::complex<double>
+                   ) {
+  SECTION("LU Pivot"){
+    testmatrix::BlockDiagLUPivot<TestType>();
+  }
+  SECTION("Sparse Block Inverse"){
+    testmatrix::SparseBlockDiagInverse<TestType>();
+  }
+}
 #endif
 
 
@@ -973,12 +1125,12 @@ void CheckDiagonalDominantMatrix(matx &matr) {
 }
 
 template<class matx>
-void TestGeneratingDiagonalDominantMatrix(bool symmetric){
+void TestGeneratingDiagonalDominantMatrix(SymProp sp){
     for(int dim = 3; dim<100;dim+=7){
         const auto nrows = dim;
         const auto ncols = dim;
         matx mat;
-        mat.AutoFill(nrows,ncols,symmetric);
+        mat.AutoFill(nrows,ncols,sp);
         CheckDiagonalDominantMatrix(mat);
     }
 }
@@ -987,9 +1139,8 @@ template <class matx, class TVar>
 void TestGeneratingHermitianMatrix() {
     const auto nrows = 10;
     const auto ncols = 10;
-    constexpr bool symmetric{true};
     matx mat;
-    mat.AutoFill(nrows,ncols,symmetric);
+    mat.AutoFill(nrows,ncols,SymProp::Herm);
     for (auto i = 0; i < nrows; i++) {
         auto j = i;
         if constexpr (is_complex<TVar>::value){
@@ -1005,14 +1156,23 @@ void TestGeneratingHermitianMatrix() {
 }
 
 template <class matx, class TVar>
-void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
+void TestingInverseWithAutoFill(int dim, SymProp sp, DecomposeType dec) {
   int i, j;
-  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
-  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   matx ma;
-  ma.AutoFill(dim, dim, symmetric);  
+  ma.AutoFill(dim, dim, sp);
+  TestingInverse<matx,TVar>(ma,dec);
+}
+
+template <class matx, class TVar>
+void TestingInverse(matx ma, DecomposeType dec) {
+  const auto symmetric = SymPropName(ma.GetSymmetry());
+  if(ma.Rows() != ma.Cols()){
+    const bool is_square_mat{false};
+    REQUIRE(is_square_mat);
+  }
   // Making ma copy because ma is modified by Inverse method (it's decomposed)
   matx cpma(ma);
+  const int dim = ma.Rows();
   TPZFMatrix<TVar> inv(dim, dim), invkeep;
   TPZFMatrix<TVar> res(inv);
   // getting inverse twice
@@ -1022,32 +1182,39 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
   //    ma.Print("skyl2 =",std::cout,EMathematicaInput);
   bool check = true;
   /// Checking whether the res matrix is identical to m1 matrix
-  for (i = 0; i < dim; i++) {
-      for (j = 0; j < dim; j++) {
+  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
+  for (int i = 0; i < dim; i++) {
+      for (int j = 0; j < dim; j++) {
           RTVar diff =
               fabs(cpma.Get(i, j) - res.Get(i, j));
         
           bool loccheck = IsZero(diff / (RTVar) 100.);
           if (loccheck == false) {
               CAPTURE(i, j, diff);
-              std::cout << "diff " << diff << std::endl;
+              std::cout << " i " << i << " j " << j << "diff " << diff << std::endl;
           }
           check &= loccheck;
       }
   }
-    CAPTURE(dim,symmetric,dec);
+  CAPTURE(dim,symmetric,dec);
+    if(!check) {
+        cpma.Print(" block mat ",std::cout);
+        inv.Print(" inv mat ", std::cout);
+        res.Print(" inv inv mat ",std::cout);
+    }
   REQUIRE(check);
   Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
 
 template <class matx, class TVar>
-void TestingMultiplyOperatorWithAutoFill(int dim, int symmetric) {
+void TestingMultiplyOperatorWithAutoFill(int dim, SymProp sp) {
     // ma times inv must to be a identity matrix
     matx ma;
-    ma.AutoFill(dim, dim, symmetric);
+    ma.AutoFill(dim, dim, sp);
 
-    TPZFMatrix<TVar> duplicate(ma);
-    TPZFMatrix<TVar> square, square2;
+    TPZFNMatrix<10,TVar> duplicate(ma);
+    TPZFNMatrix<10,TVar> square, square2;
 
     square2 = duplicate*duplicate;
     square = ma*duplicate;
@@ -1069,10 +1236,11 @@ void TestingMultiplyOperatorWithAutoFill(int dim, int symmetric) {
 }
 
 template <class matx, class TVar>
-void TestingMultiplyWithAutoFill(int dim, int symmetric) {
+void TestingMultiplyWithAutoFill(int dim, SymProp sp) {
+    const auto sp_str = SymPropName(sp);
     // ma times inv must to be a identity matrix
     matx ma;
-    ma.AutoFill(dim, dim, symmetric);
+    ma.AutoFill(dim, dim, sp);
 
     TPZFMatrix<TVar> duplicate(ma), square, square2;
 
@@ -1082,16 +1250,15 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
     duplicate.Multiply(duplicate, square2);
     auto oldPrecision = Catch::StringMaker<RTVar>::precision;
     Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
-    // Checking whether result matrix is the identity matrix
+    // Checking whether result matrix is the same
     bool check = true;
-    constexpr RTVar tol = [](){
-        if constexpr (std::is_same_v<RTVar,float>) return (RTVar)100;
-        else return (RTVar)1;
-    }();
+    constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*2000;
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
-            if (!IsZero(fabs(square(i, j) - square2(i, j))/tol)) {
-                CAPTURE(i,j,square(i,j));
+            const auto diff = fabs(square(i, j) - square2(i, j));
+            CAPTURE(i,j,square(i,j), square2(i,j), diff, tol, dim, sp_str, typeid(matx).name());
+            REQUIRE((diff == Approx(0).margin(tol)));
+            if(diff > tol){
                 check = false;
             }
         }
@@ -1172,7 +1339,7 @@ void TestingDotNorm(int dim){
 
   
 template <class matx, class TVar>
-void TestingAdd(int row, int col, int symmetric) {
+void TestingAdd(int row, int col, SymProp symmetric) {
   auto oldPrecision = Catch::StringMaker<RTVar>::precision;
   Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   matx ma1, res;
@@ -1201,11 +1368,11 @@ void TestingAdd(int row, int col, int symmetric) {
 }
 
 template <class matx, class TVar>
-void TestingSubtract(int row, int col, int symmetric) {
+void TestingSubtract(int row, int col, SymProp sp) {
   auto oldPrecision = Catch::StringMaker<RTVar>::precision;
   Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   matx ma1, res;
-  ma1.AutoFill(row, col, symmetric);
+  ma1.AutoFill(row, col, sp);
   //this is to ensure that they have the same sparsity pattern
   matx ma2(ma1);
 
@@ -1230,11 +1397,11 @@ void TestingSubtract(int row, int col, int symmetric) {
 }
 
 template <class matx, class TVar>
-void TestingMultiplyByScalar(int row, int col, int symmetric) {
+void TestingMultiplyByScalar(int row, int col, SymProp sp) {
   auto oldPrecision = Catch::StringMaker<RTVar>::precision;
   Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   matx ma1, res;
-  ma1.AutoFill(row, col, symmetric);
+  ma1.AutoFill(row, col, sp);
   
   const TVar val = [](){
     constexpr RTVar lower_bound = 0;
@@ -1266,11 +1433,11 @@ void TestingMultiplyByScalar(int row, int col, int symmetric) {
 }
 
 template <class matx, class TVar>
-void TestingAddOperator(int row, int col, int symmetric) {
+void TestingAddOperator(int row, int col, SymProp sp) {
   auto oldPrecision = Catch::StringMaker<RTVar>::precision;
   Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   matx ma1;
-  ma1.AutoFill(row, col, symmetric);
+  ma1.AutoFill(row, col, sp);
   //this is to ensure that they have the same sparsity pattern
   matx ma2(ma1);
 
@@ -1296,11 +1463,11 @@ void TestingAddOperator(int row, int col, int symmetric) {
 }
 
 template <class matx, class TVar>
-void TestingSubtractOperator(int row, int col, int symmetric) {
+void TestingSubtractOperator(int row, int col, SymProp sp) {
   auto oldPrecision = Catch::StringMaker<RTVar>::precision;
   Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   matx ma1;
-  ma1.AutoFill(row, col, symmetric);
+  ma1.AutoFill(row, col, sp);
   //this is to ensure that they have the same sparsity pattern
   matx ma2(ma1);
 
@@ -1325,11 +1492,11 @@ void TestingSubtractOperator(int row, int col, int symmetric) {
 }
 
 template <class matx, class TVar>
-void TestingMultiplyByScalarOperator(int row, int col, int symmetric) {
+void TestingMultiplyByScalarOperator(int row, int col, SymProp sp) {
   auto oldPrecision = Catch::StringMaker<RTVar>::precision;
   Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   matx ma1;
-  ma1.AutoFill(row, col, symmetric);
+  ma1.AutoFill(row, col, sp);
   
   const TVar val = [](){
     constexpr RTVar lower_bound = 0;
@@ -1362,10 +1529,9 @@ void TestingMultiplyByScalarOperator(int row, int col, int symmetric) {
 
   
 template <class matx, class TVar>
-void TestingTransposeMultiply(int row, int col, int symmetric) {
-    // ma times inv must to be a identity matrix
+void TestingTransposeMultiply(int row, int col, SymProp sp) {
     matx ma;
-    ma.AutoFill(row, col, symmetric);
+    ma.AutoFill(row, col, sp);
 
     TPZFMatrix<TVar> duplicate(ma);
     TPZFMatrix<TVar> dup2(ma), square(col, col), square2(col, col);
@@ -1378,39 +1544,36 @@ void TestingTransposeMultiply(int row, int col, int symmetric) {
     //    square2.Print("square2",std::cout,EMathematicaInput);
     // Checking whether result matrix is the identity matrix
     bool check = true;
-    constexpr RTVar tol = [](){
-        if constexpr (std::is_same_v<RTVar,float>) return (RTVar)10;
-        else return (RTVar)1;
-    }();
+    constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*1000;
     for (int i = 0; i < col; i++) {
         for (int j = 0; j < col; j++) {
-            if (!IsZero(fabs(square(i, j) - square2(i, j))/tol)) {
-                check = false;
+            const auto diff = fabs(square(i, j) - square2(i, j));
+            if(diff > tol){
+              check = false;
+              ma.Print("ma");
+              duplicate.Print("ma2");
+              square.Print("sq");
+              square2.Print("sq2");
             }
+            CAPTURE(i,j,square(i,j), square2(i,j), diff);
+            REQUIRE((diff == Approx(0).margin(tol)));
         }
     }
-    if (!check) {
+    if(!check){
         std::cout<<typeid(matx).name()<<std::endl;
         std::cout << __PRETTY_FUNCTION__ << "failed \n";
-        // duplicate.Print("Full");
-        // ma.Print("Matrix");
-        // duplicate -=ma;
-        // duplicate.Print("Diff");
-        // square2.Print("Full");
-        // square.Print("Matrix");
-        // square2 -= square;
-        // square2.Print("Diff");
     }
+
     REQUIRE(check);
 
 }
 
 template <class matx, class TVar>
-void TestingTransposeWithAutoFill(int rows, int cols, int symmetric) {
+void TestingTransposeWithAutoFill(int rows, int cols, SymProp sp) {
     int i, j;
 
     matx ma;
-    ma.AutoFill(rows, cols, symmetric);
+    ma.AutoFill(rows, cols, sp);
 
     matx matransp(cols, rows);
     matx matransptransp(ma);
@@ -1426,13 +1589,15 @@ void TestingTransposeWithAutoFill(int rows, int cols, int symmetric) {
 }
 
 template <class matx, class TVar>
-void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
+void TestingMultAdd(int dim, SymProp sp, DecomposeType dec) {
+    const auto str_sp = SymPropName(sp);
+    
     int i, j;
 
     matx ma;
-    ma.AutoFill(dim, dim, symmetric);
+    ma.AutoFill(dim, dim, sp);
 
-    TPZFMatrix<TVar> cpy(ma);
+    TPZFMatrix<TVar> cpy(ma), cpy2(ma);
     TPZFMatrix<TVar> inv(dim, dim);
     TPZFMatrix<TVar> y(ma), z;
     y.Identity();
@@ -1455,9 +1620,15 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
         for (j = 0; j < dim; j++) {
             TVar zval = z(i, j);
             if (!IsZero(zval/tol)) {
-                CAPTURE(dim,symmetric,dec);
+                CAPTURE(dim,str_sp,dec);
                 CAPTURE(zval,tol);
-                std::cout << "i " << i << " j " << j << zval << std::endl;
+                std::cout << "i " << i << " j " << j << " zval " << zval << std::endl;
+                if(check) {
+                    cpy2.Print("FullMat = ",std::cout,EMathematicaInput);
+                    ma.Print("SparseMat = ",std::cout,EMathematicaInput);
+                    inv.Print("Inv = ",std::cout,EMathematicaInput);
+                    z.Print("zmat = ",std::cout,EMathematicaInput);
+                }
                 check = false;
             }
         }
@@ -1468,12 +1639,12 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
 #ifdef PZ_USING_LAPACK
 
 template <class matx, class TVar>
-void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
+void TestingGeneralisedEigenValuesWithAutoFill(int dim, SymProp sp) {
   auto oldPrecision = Catch::StringMaker<RTVar>::precision;
   Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   matx ma,mb;
-  ma.AutoFill(dim, dim, symmetric);
-  mb.AutoFill(dim, dim, symmetric);
+  ma.AutoFill(dim, dim, sp);
+  mb.AutoFill(dim, dim, sp);
 
   TPZFMatrix<CTVar> cpma(dim, dim), cpmb(dim,dim);
   for (int i = 0; i < dim; i++) {
@@ -1605,11 +1776,11 @@ void BasicEigenTests() {
 }
   
 template <class matx, class TVar>
-void TestingEigenDecompositionAutoFill(int dim, int symmetric) {
+void TestingEigenDecompositionAutoFill(int dim, SymProp sp) {
   auto oldPrecision = Catch::StringMaker<RTVar>::precision;
   Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   matx ma;
-  ma.AutoFill(dim, dim, symmetric);
+  ma.AutoFill(dim, dim, sp);
 
   TPZFMatrix<CTVar> cpma(dim, dim);
   for (int i = 0; i < dim; i++) {
@@ -1666,7 +1837,7 @@ void TestSVD_Simple(int nrows, int ncols) {
 
 	
 	mA.Resize(nrows,ncols);
-	mA.AutoFill(nrows,ncols,false);
+	mA.AutoFill(nrows,ncols,SymProp::NonSym);
 	mA_copy = mA;
 	mA.SingularValueDecomposition(U,S,VT,'A','A');
 	// S only gets the diagonal of Sigma
@@ -1871,7 +2042,7 @@ void TestSVD_Projection(int nrows, int ncols){
 		attempts++;
 
 		// Auto generate a random matrix
-		mA.AutoFill(nrows,ncols,false);
+		mA.AutoFill(nrows,ncols,SymProp::NonSym);
 			min = std::min(nrows,ncols);
 		    max = std::max(nrows,ncols);
 		for(int i=0; i<max; i++){
@@ -1947,7 +2118,7 @@ void TestSVD_Resizing(int nrows, int ncols){
 
 	TMatrix Sigma(nrows,ncols); 
 
-	mA.AutoFill(nrows,ncols,false);
+	mA.AutoFill(nrows,ncols,SymProp::NonSym);
 	mA_copy = mA;
 	int m = mA.Rows();
 	int n = mA.Cols();
@@ -2041,4 +2212,84 @@ void TestSVD(int nrows, int ncols){
 
 #endif // PZ_USING_LAPACK
 
+template<class TVar>
+void SparseBlockDiagInverse(){
+
+  constexpr int neq = 10;
+  constexpr int nblocks = 3;
+  constexpr int bsize = 2;
+
+  TPZFMatrix<TVar> fmat(neq,neq);
+  fmat.AutoFill(neq, neq, SymProp::NonSym);
+  //now we will extract a few blocks from the full matrix
+  //non-null equations
+  TPZVec<int64_t> blockgraph =
+    {
+      0,1,//first block
+      4,5,6,//second block
+      8,9//third block
+    };
+
+  //index in blockgraph of first equation of each block
+  TPZVec<int64_t> blockgraphindex =
+    {
+      0,//first block
+      2,//second block
+      5,//third block
+      7//size of blockgraph
+    };
+
+  TPZSparseBlockDiagonal<TVar> blmat(blockgraph,blockgraphindex,neq),
+    blcp(blockgraph,blockgraphindex, neq);
+  //now we remove the coupling from the full matrix
+  for (auto bleq : blockgraph){
+    int64_t block{0}, blockind{0};
+    blmat.FindBlockIndex(bleq, block, blockind);
+    for(int ieq : blockgraph){
+      int64_t blockother{0};
+      blmat.FindBlockIndex(ieq, blockother, blockind);
+      if(blockother != -1 && blockother != block){
+        fmat.PutVal(bleq, ieq, 0);
+        fmat.PutVal(ieq, bleq, 0);
+      }
+    }
+  }
+  blmat.BuildFromMatrix(fmat);
+  blcp.BuildFromMatrix(fmat);
+
+  //rhs, initial solution, residual and sol update
+  TPZFMatrix<TVar> rhs(neq,1,0), u0(neq,1,0), res(neq,1,0),
+    du(neq,1,0), resblck(neq,1,0);
+  rhs.AutoFill(neq,1,SymProp::NonSym);
+
+  fmat.Residual(u0, rhs, res);
+
+  // fmat.Print("full",std::cout,EMathematicaInput);
+  // blmat.Print("blck",std::cout,EMathematicaInput);
+  // blmat.Print("blck",std::cout,EFormatted);
+  
+  du = res;
+  blmat.Solve_LU(&du);
+
+  
+  constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*2000;
+  //now we check if the residual is null for every eq in a block
+  SECTION("Residual (full mat)"){
+    fmat.Residual(du,rhs,res);
+    for(auto ieq : blockgraph){
+      CAPTURE(ieq);
+      CAPTURE(res);
+      REQUIRE((std::abs(res.GetVal(ieq,0)) == Approx(0).margin(tol)));
+    }
+  }
+
+  SECTION("Residual (block mat)"){
+    blcp.Residual(du,rhs,resblck);
+    for(auto ieq : blockgraph){
+      CAPTURE(ieq);
+      CAPTURE(res);
+      REQUIRE((std::abs(resblck.GetVal(ieq,0)) == Approx(0).margin(tol)));
+    }
+  }
+}   
 };

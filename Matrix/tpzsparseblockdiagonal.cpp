@@ -30,6 +30,7 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 		this->fBlockSize[ibl] = blockgraphindex[ibl+1]-blockgraphindex[ibl];
 	}
 	this->Initialize(this->fBlockSize);
+	//initialize from parent class will set fRow and fCol as the number of equations
 	this->fRow = rows;
 	this->fCol = rows;
 }
@@ -38,7 +39,9 @@ template<class TVar>
 TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows, int color, TPZVec<int> &colors) : TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId)
 {
 #ifdef PZ_LOG
-	LOGPZ_DEBUG(logger, "Constructor of TPZSparseBlockDiagonal");
+	if(logger.isDebugEnabled()){
+		LOGPZ_DEBUG(logger, "Constructor of TPZSparseBlockDiagonal");
+	}
 #endif
 	int64_t numbl = blockgraphindex.NElements()-1;
 	this->fBlockSize.Resize(numbl);
@@ -151,7 +154,7 @@ int TPZSparseBlockDiagonal<TVar>::Substitution(TPZFMatrix<TVar>* B) const
 	Gather(*B,BG);
 	int result = TPZBlockDiagonal<TVar>::Substitution(&BG);
 	B->Zero();
-	Scatter(BG,*B);
+	ScatterAdd(BG,*B);
 	return result;
 	
 }
@@ -199,7 +202,9 @@ template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::BuildFromMatrix(TPZMatrix<TVar>& matrix)
 {
 #ifdef PZ_LOG
-	LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::BuildFromMatrix");
+	if(logger.isDebugEnabled()){
+		LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::BuildFromMatrix");
+	}
 #endif
 	TPZManVector<int64_t> indices;
 	TPZFNMatrix<10000,TVar> submat(0,0);
@@ -226,7 +231,9 @@ template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt) const
 {
 #ifdef PZ_LOG
-	LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::MultAdd");
+	if(logger.isDebugEnabled()){
+		LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::MultAdd");
+	}
 #endif
 	TPZFNMatrix<1000,TVar> xsc(0,0),ysc(0,0,0.),zsc(0,0);
 	xsc.Resize(this->fBlock.NElements(),x.Cols());
@@ -234,9 +241,14 @@ void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZF
 	if(abs(beta) != 0.) ysc.Resize(fBlock.NElements(),y.Cols());
 	zsc.Resize(fBlock.NElements(),z.Cols());
 	Gather(x,xsc);
-	if(abs(beta) != 0.) Scatter(y,ysc);
+	if(abs(beta) != 0.) Gather(y,ysc);
+	const auto rows = this->fRow;
+	/*sorry for non-constness*/
+	TPZSparseBlockDiagonal<TVar> *other = (TPZSparseBlockDiagonal<TVar> *)this;
+	other->fRow = other->fCol = this->fBlock.NElements();
 	TPZBlockDiagonal<TVar>::MultAdd(xsc, ysc, zsc, alpha, beta, opt);
-	Scatter(zsc,z);
+	ScatterAdd(zsc,z);
+	other->fRow = other->fCol = rows;
 }
 
 /*!
@@ -245,7 +257,7 @@ void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZF
 template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::FindBlockIndex(int64_t glob, int64_t &block, int64_t &blockind) const
 {
-    int64_t numbl = fBlockIndex.NElements()-2;
+    int64_t numbl = fBlockIndex.NElements()-1;
     int64_t ieq,ibl;
     for(ibl = 0; ibl<numbl; ibl++)
     {
@@ -267,7 +279,7 @@ void TPZSparseBlockDiagonal<TVar>::FindBlockIndex(int64_t glob, int64_t &block, 
  \fn TPZSparseBlockDiagonal::Scatter(TPZFMatrix<>&in, TPZFMatrix<>&out) const
  */
 template<class TVar>
-void TPZSparseBlockDiagonal<TVar>::Scatter(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const
+void TPZSparseBlockDiagonal<TVar>::ScatterAdd(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const
 {
     int64_t neq = fBlock.NElements();
     int64_t nc = in.Cols();
@@ -300,7 +312,9 @@ template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZMatrix<TVar> &mat)
 {
 #ifdef PZ_LOG
-	LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::UpdateFrom");
+	if(logger.isDebugEnabled()){
+		LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::UpdateFrom");
+	}
 #endif
 	if(!&mat) 
 	{
