@@ -1012,7 +1012,7 @@ const TPZIntPoints &TPZCompElDisc::GetIntegrationRule() const {
 }
 
 TPZIntPoints &TPZCompElDisc::GetIntegrationRule() {
-	if(this->fIntRule == 0){
+	if(this->fIntRule == nullptr){
 		DebugStop();
 	}
   if (fIntegrationRule)
