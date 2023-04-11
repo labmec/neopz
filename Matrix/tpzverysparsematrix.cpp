@@ -218,12 +218,7 @@ void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid) const
 {
     // The write method should call the write function of the super class
     // @TODO needs to be reconsidered
-    DebugStop();
-	buf.Write(&this->fCol, 1);
-    int dec = (int)this->fDecomposed;
-	buf.Write(&dec, 1);
-	buf.Write(&this->fDefPositive, 1);
-	buf.Write(&this->fRow, 1);
+  DebugStop();
 	WriteMap(buf, withclassid, this->fExtraSparseData);
 	
 }
@@ -250,14 +245,7 @@ void TPZVerySparseMatrix<TVar>::Read(TPZStream &buf, void *context)
     // The write method should call the write function of the super class
     // @TODO needs to be reconsidered
     DebugStop();
-
-	buf.Read(&this->fCol, 1);
-    int dec;
-	buf.Read(&dec, 1);
-    this->fDecomposed = (DecomposeType) dec;
-	buf.Read(&this->fDefPositive, 1);
-	buf.Read(&this->fRow, 1);
-	ReadMap(buf, context, this->fExtraSparseData);
+    ReadMap(buf, context, this->fExtraSparseData);
 	
 }
 template<class TVar>

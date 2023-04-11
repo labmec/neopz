@@ -14,18 +14,20 @@ void TPZBaseMatrix::SetSymmetry(SymProp sp){
 void TPZBaseMatrix::Read(TPZStream &buf, void *context){
   buf.Read(&fRow);
   buf.Read(&fCol);
-    int temp;
+  int temp;
   buf.Read(&temp);
-    fDecomposed = (DecomposeType) temp;
-  buf.Read(&fDefPositive);
+  fDecomposed = (DecomposeType) temp;
+  buf.Read(&temp);
+  fDefPositive = temp == 1 ? 1 : 0;
 }
 
 void TPZBaseMatrix::Write(TPZStream &buf, int withclassid) const{
   buf.Write(&fRow);
   buf.Write(&fCol);
-    int temp;
+  int temp = (int) fDecomposed;
   buf.Write(&temp);
-  buf.Write(&fDefPositive);
+  temp = fDefPositive ? 1 : 0;
+  buf.Write(&temp);
 }
 
 

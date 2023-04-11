@@ -130,8 +130,13 @@ public:
    * simetric */
 //  virtual void Simetrize() = 0;
 
+  /** @brief Sets current matrix as definite positive */
+  void SetDefPositive(bool v) {
+    fDefPositive = v;
+  }
+  
   /** @brief Checks if current matrix is definite positive */
-  virtual int IsDefPositive() const {
+  virtual bool IsDefPositive() const {
     return fDefPositive;
   }
   /** @brief Checks if current matrix is already decomposed */
@@ -177,7 +182,7 @@ protected:
   /** @brief Symmetry property of the matrix*/
   SymProp fSymProp{SymProp::NonSym};
   /** @brief Definite Posistiveness of current matrix */
-  char fDefPositive;
+  bool fDefPositive;
 };
 
 //! Convert enum to string
