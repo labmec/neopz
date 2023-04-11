@@ -72,8 +72,11 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
     // update the matrix to which the preconditioner refers
     if(fPrecond)
     {
-        
-        fPrecond->UpdateFrom(this->Matrix());
+        if(this->fReferenceMatrix){
+            fPrecond->UpdateFrom(this->fReferenceMatrix);
+        }else{
+            fPrecond->UpdateFrom(this->Matrix());
+        }
     }
     
 	if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {

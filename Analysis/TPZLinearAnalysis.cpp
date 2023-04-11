@@ -89,8 +89,6 @@ void TPZLinearAnalysis::AssembleT()
         LOGPZ_DEBUG(logger,sout.str())
     }
 #endif
-    
-	mySolver->UpdateFrom(mySolver->Matrix());
 }
 
 void TPZLinearAnalysis::AssembleResidual()

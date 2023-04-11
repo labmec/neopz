@@ -79,8 +79,9 @@ public:
 	/** @brief Updates the values of the current matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZBaseMatrix> mat_base)
 	{
-        auto matrix =
-            TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(mat_base);
+    auto matrix =
+      TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(mat_base);
+    //it wont update unless matrix unless it is the same as ref matrix
 		if (fReferenceMatrix == matrix && matrix)
 		{
 			if(this->fContainer) this->fContainer->UpdateFrom(matrix);
