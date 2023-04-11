@@ -309,14 +309,14 @@ void TPZSparseBlockDiagonal<TVar>::Gather(const TPZFMatrix<TVar> &in, TPZFMatrix
  * Updates the values of the matrix based on the values of the matrix
  */
 template<class TVar>
-void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZMatrix<TVar> &mat)
+void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 {
 #ifdef PZ_LOG
 	if(logger.isDebugEnabled()){
 		LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::UpdateFrom");
 	}
 #endif
-	if(!&mat) 
+	if(!mat) 
 	{
 		cout << __PRETTY_FUNCTION__ << " called with zero argument\n";
 		return;
@@ -332,7 +332,7 @@ void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZMatrix<TVar> &mat)
 		pos = this->fBlockPos[b];
 		for(r=0; r<bsize; r++) indices[r] = fBlock[fBlockIndex[b]+r]; 
 		TPZFMatrix<TVar> block(bsize,bsize,&this->fStorage[pos],bsize*bsize);
-		mat.GetSub(indices,block);
+		mat->GetSub(indices,block);
 	}
 	
 }

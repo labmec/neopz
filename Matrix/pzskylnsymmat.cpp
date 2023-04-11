@@ -345,10 +345,10 @@ void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatri
 
 /** @brief Updates the values of the matrix based on the values of the matrix */
 template <class TVar>
-void TPZSkylNSymMatrix<TVar>::UpdateFrom(TPZMatrix<TVar> &mat)
+void TPZSkylNSymMatrix<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 
 {
-    TPZMatrix<TVar> *matrix = &mat;
+    TPZMatrix<TVar> *matrix = mat.operator->();
     TPZSkylNSymMatrix<TVar> *skylmat = dynamic_cast<TPZSkylNSymMatrix<TVar> *>(matrix);
     if (!skylmat) {
         DebugStop();
