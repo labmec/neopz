@@ -67,10 +67,11 @@ private:
     /// Creates the rotation space for elasticity problems
     TPZCompMesh * CreateRotationSpace(){
         DebugStop();
+        return nullptr;
     }
 
     /// Group and condense computational elements
-    void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh);
+    void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) override;
 
     /// Associate elements with a volumetric element in hybridized spaces;
     /// Groups volumetric, wrap and interface elements in standard hybridizations;

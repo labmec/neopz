@@ -38,6 +38,7 @@ public:
     TPZMatError &operator = (const TPZMatError & copy) {
         fExactSol = copy.fExactSol;
         fExactPOrder = copy.fExactPOrder;
+        return *this;
 //        std::cout << __PRETTY_FUNCTION__ << std::endl;
     }
     //!@name Error
