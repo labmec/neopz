@@ -3,6 +3,7 @@
 #include "tpzautopointer.h"
 #include "pzvec.h"
 
+// #define PZGMRESDEBUG
 
 template<class TVar>
 void GeneratePlaneRotation(const TVar dx, const TVar dy, TVar &cs, TVar &sn);
@@ -18,7 +19,15 @@ template<class TVar>
 int GMRES(const TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> &b,
 					TPZMatrixSolver<TVar> &M, TPZFMatrix<TVar> &H, const int krylovdim,
 					int64_t &max_iter, RTVar &tol,
-					TPZFMatrix<TVar> *residual, const int fromcurrent){  
+					TPZFMatrix<TVar> *residual, const int fromcurrent){
+
+  //for printing in full precision
+  std::ios cout_state(nullptr);
+  cout_state.copyfmt(std::cout);
+    
+  std::cout << std::setprecision(std::numeric_limits<STATE>::max_digits10);
+
+  
   TPZSimpleTimer gmres("GMRES");
   //allocating structures
   TPZVec<TPZFMatrix<TVar>> v(krylovdim+1);
@@ -48,7 +57,10 @@ int GMRES(const TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> 
     max_iter = 0;
     return 0;
   }
-
+#ifdef PZGMRESDEBUG
+  TPZFMatrix<TVar> xcp = x;
+  TPZFMatrix<TVar> rcp = r;
+#endif
 	//we avoid allocating w at every step
 	TPZFMatrix<TVar> w(r.Rows(),1,0), w1;
   int iter = 1;
@@ -86,9 +98,20 @@ int GMRES(const TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> 
 				i++;
         break;
       }
-      std::cout << iter << "\t" << std::scientific << resid << std::endl;
-			// if(iter % 5 == 0){
-			// }
+#ifdef PZGMRESDEBUG
+      xcp = x;
+      Update(xcp,i,H,s,v);
+      A.MultAdd(xcp,b,rcp,-1,1);
+      M.Solve(rcp,rcp);
+      auto nres = Norm(rcp);
+      std::cout << iter
+                <<"\n\t|s(i+1)|   :" << std::abs(s[i+1])
+                <<"\n\t|res|      :" << nres
+                <<"\n\t|res|/normb:" << nres/normb
+                << std::endl;
+#else      
+      std::cout << iter << "\t" << resid << std::endl;
+#endif
     }
     Update(x, i - 1, H, s, v);
 		//r = b-A*x without dynamic allocation
@@ -104,6 +127,8 @@ int GMRES(const TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> 
   }
   
   tol = resid;
+
+  std::cout.copyfmt(cout_state);
   return 1;
 }
 
