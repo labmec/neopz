@@ -9,12 +9,9 @@ set(public_headers
     TPZMatrixSolver.h
     TPZEigenSolver.h
     TPZPardisoSolver.h
+    TPZIdentitySolver.h
     pzstepsolver.h
     pzseqsolver.h
-    )
-set(headers
-    ${public_headers}
-    TPZCopySolve.h
     )
 
 set(sources
@@ -37,7 +34,7 @@ endif()
     
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Solvers)
 
-target_sources(pz PRIVATE ${headers} ${sources})
+target_sources(pz PRIVATE ${public_headers} ${sources})
 
 #for doxygen
 foreach(header ${public_headers})
