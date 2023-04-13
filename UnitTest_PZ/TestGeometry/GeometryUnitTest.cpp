@@ -481,8 +481,9 @@ TEST_CASE("changeel_tests","[geometry_tests]") {
         TestPts(trig_el);
         section_name = "Cylinder";
     }
-
+#ifdef NOISYVTK
     if(section_name.size() != 0){
         PlotRefinedMesh(gmesh, "change_el"+section_name+".vtk");
     }
+#endif
 }

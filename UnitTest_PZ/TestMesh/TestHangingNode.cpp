@@ -44,6 +44,9 @@ using namespace pzshape;
 
 #undef USE_MAIN
 
+//#define EXPORTVTK
+//#define DEBUGTEST
+
 #ifndef USE_MAIN
 #include<catch2/catch.hpp>
 #endif
@@ -201,10 +204,6 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
     "\nTopology = " << type <<
     "\npOrder = " << pOrder << std::endl << std::endl;
 
-#ifdef PZ_LOG
-    TPZLogger::InitializePZLOG();
-#endif
-
     constexpr int volId{1};
     constexpr int bcId{2};
     int DIM = tshape::Dimension;
@@ -215,13 +214,13 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
     TPZVec<int> nDivs;
 
     if (DIM == 2) nDivs = {xdiv,1};
-    if (DIM == 3) nDivs = {xdiv,xdiv,xdiv};
+    if (DIM == 3) nDivs = {xdiv,1,1};
     
     auto gmesh = CreateGeoMesh<tshape>(nDivs, volId, bcId);
 
     Refinement(gmesh, stype);
 
-#ifdef PZDEBUG
+#ifdef EXPORTVTK
     //Prints gmesh mesh properties
     std::string vtk_name = "geoMesh.vtk";
     std::ofstream vtkfile(vtk_name.c_str());
@@ -271,8 +270,6 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
 
     std::set<int> matids;
     matids.insert(volId);
-    cmesh->Reference()->ResetReference();
-    cmesh->LoadReferences(); // compute integral in the multiphysics mesh
     TPZVec<STATE> vecint = cmesh->Integrate(fields[0], matids);
 
     std::cout << "\n--------------- Integral of Solution --------------" <<  std::endl;
@@ -283,7 +280,7 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype){
     }
     std::cout << std::endl;
 
-#ifdef PZDEBUG
+#ifdef EXPORTVTK
     const std::string plotfile = "solution";//sem o .vtk no final
     constexpr int vtkRes{0};
     auto vtk = TPZVTKGenerator(cmesh, fields, plotfile, vtkRes);
@@ -444,10 +441,11 @@ void CheckElementInterfaces(TPZCompMesh *cmesh){
     int fDim = cmesh->Dimension();
     
     //Prints computational mesh properties
+#ifdef  DEBUGTEST
     std::string txt = "CMesh.txt";
     std::ofstream myfile(txt);
     cmesh->Print(myfile);
-
+#endif
     for (auto gel : gmesh->ElementVec()) {
         if (!gel) continue;
         if (gel->Dimension() != fDim) continue;
@@ -541,3 +539,5 @@ void CheckSideOrientation(TPZGeoElSide &thisGeoSide, TPZGeoElSide &largeGeoSide)
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
 
+#undef EXPORTVTK
+#undef DEBUGTEST

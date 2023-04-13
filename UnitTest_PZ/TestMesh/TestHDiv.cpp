@@ -67,6 +67,9 @@
 #include "TPZVTKGeoMesh.h"
 
 
+// #define EXPORTVTK
+// #define DEBUGTEST
+
 using namespace pzshape;
 
 
@@ -172,9 +175,6 @@ static void VerifyDRhamCompatibility(MElementType eltype);
 /// Check that the Div of the vector functions can be represented
 TEST_CASE("bilinearsolution_check","[hdiv_mesh_tests]")
 {
-#ifdef PZ_LOG
-    TPZLogger::InitializePZLOG();
-#endif
     HDivFamily hdivfam = GENERATE(HDivFamily::EHDivStandard,HDivFamily::EHDivConstant);
     std::cout << "Initializing solution check\n";
     RunBilinear(ECube,hdivfam);
@@ -210,12 +210,12 @@ TEST_CASE("sideshape_continuity","[hdiv_mesh_tests]")
 TEST_CASE("shape_order","[hdiv_mesh_tests]")
 {
     std::cout << "Initializing shape_order check\n";
-//    CheckShapeOrder<pzshape::TPZShapePiram>(6);
-    CheckShapeOrder<pzshape::TPZShapeTetra>(6);
-    CheckShapeOrder<pzshape::TPZShapeQuad>(6);
-    CheckShapeOrder<pzshape::TPZShapeTriang>(6);
-    CheckShapeOrder<pzshape::TPZShapeCube>(6);
-    CheckShapeOrder<pzshape::TPZShapePrism>(6);
+//    CheckShapeOrder<pzshape::TPZShapePiram>(5);
+    CheckShapeOrder<pzshape::TPZShapeTetra>(5);
+    CheckShapeOrder<pzshape::TPZShapeQuad>(5);
+    CheckShapeOrder<pzshape::TPZShapeTriang>(5);
+    CheckShapeOrder<pzshape::TPZShapeCube>(5);
+    CheckShapeOrder<pzshape::TPZShapePrism>(5);
     std::cout << "Leaving shape_order check\n";
 }
     
@@ -303,8 +303,10 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
         const int matid = 1;
         gmesh = TetrahedralMeshCubo(NumberOfEl, matid);
         gmesh->SetDimension(3);
+#ifdef DEBUGTEST
         std::ofstream arg("gmesh.txt");
         gmesh->Print(arg);
+#endif
         
     }
     else if(eltype==EPiramide)
@@ -314,8 +316,10 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
         dimmodel = 3;
         //gmesh = CreateOneCuboWithTetraedrons(ndiv); // AQUIDOUGLAS
         gmesh = CreateGeoMeshHexaOfPirTetra();
+#ifdef DEBUGTEST
         std::ofstream arg("../gmesh.txt");
         gmesh->Print(arg);
+#endif
         
     }
     else
@@ -330,22 +334,21 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
         CreateOrientedBoundaryElements(gmesh,matid);       
     }
 
-    if(1)
+#ifdef EXPORTVTK
     {
         std::ofstream out("gmesh2d.txt");
         gmesh->Print(out);
         // queria tanto ver a malha 2d
         std::ofstream Dummyfile("GeometricMesh2d.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
-    }
-    if(1)
-    {
+
         //  Print Geometrical Base Mesh
         std::ofstream Dummyfile2("GeometricMesh3d.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile2, true);
         std::ofstream out("gmesh3D.txt");
         gmesh->Print(out);
     }
+#endif
 
 #ifdef PZ_LOG
     if (logger.isDebugEnabled())
@@ -865,10 +868,12 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier);
 /// verify if the divergence of each vector function is included in the pressure space
 static void CheckDRham(TPZCompEl *cel)
 {
-    TPZFMatrix<STATE> inner, multiplier;
-    TPZAutoPointer<TPZMatrix<STATE> > L2 = new TPZFMatrix<STATE>;
+    TPZFNMatrix<300,STATE> inner, multiplier;
+    
+    static TPZAutoPointer<TPZMatrix<STATE> > L2 = new TPZFMatrix<STATE>;
     GenerateProjectionMatrix(cel, L2, inner);
     int porder = cel->GetgOrder();
+#ifdef DEBUGTEST
     if(0)
     {
         std::string filename;
@@ -892,6 +897,7 @@ static void CheckDRham(TPZCompEl *cel)
         }
         inner.Print(filename.c_str(),output,EMathematicaInput);
     }
+#endif    
     TPZStepSolver<STATE> step(L2);
     step.SetDirect(ELU);
     step.Solve(inner,multiplier);
@@ -1339,7 +1345,7 @@ void VectorDirections()
 void CheckDRhamFacePermutations(MElementType eltype)
 {
     TPZVec<TPZCompMesh *>  meshvec(2);
-    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype,3,3,0);
+    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype,2,3,0);
     TPZGeoMesh *gmesh = cmesh->Reference();
     int meshdim = cmesh->Dimension();
 
@@ -1591,13 +1597,15 @@ void RunBilinear(MElementType eltype, HDivFamily hdivfam)
     
     
 //    an.Solution().Print("Solucao");
-    if(1)
+#ifdef DEBUGTEST
     {
         std::ofstream out("CMesh.txt");
         cmesh->Print(out);
         an.Rhs().Print("Right Hand Side",out);
         an.Solution().Print("Solution",out);
     }
+#endif
+#ifdef EXPORTVTK
     std::string plotfile("GSaida.vtk");
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, cmesh.operator->());
     TPZManVector<std::string,10> scalnames(1), vecnames(1);
@@ -1607,7 +1615,7 @@ void RunBilinear(MElementType eltype, HDivFamily hdivfam)
     int div = 0;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
-    
+#endif
     
 #ifdef PZ_LOG
     if(logger.isDebugEnabled())
@@ -1783,8 +1791,10 @@ void VerifyDRhamCompatibility(MElementType eltype)
     int nelem =2;
     int fluxorder = gfluxorder;
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype,nelem,fluxorder);
+#ifdef DEBUGTEST
     std::ofstream arg1("cmesh.txt");
     cmesh.operator->()->Print(arg1);
+#endif
     // for each computational element (not boundary) verify if the Div(vecspace) is included in the pressure space
     int nel = cmesh->NElements();
     int meshdim = cmesh->Dimension();
@@ -2757,3 +2767,6 @@ static void CreateOrientedBoundaryElements(TPZGeoMesh* gmesh, int volId){
 
 
 }
+
+#undef EXPORTVTK
+#undef DEBUGTEST

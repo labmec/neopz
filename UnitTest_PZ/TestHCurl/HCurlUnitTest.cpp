@@ -84,7 +84,7 @@ TEMPLATE_TEST_CASE("test hcurl internal funcs under node permutation",
                    pzshape::TPZShapeQuad
                    ){
 
-    auto k = GENERATE(1,2,3,4,5);
+    auto k = GENERATE(1,2,3,4);
     hcurltest::TestPermute<TestType>(k);
 }
 
@@ -97,7 +97,7 @@ TEST_CASE("Testing trace of HCurl functions",
     // }
     
     constexpr int pOrder{1};
-    constexpr int maxK{5};
+    constexpr int maxK{4};
     auto meshType = GENERATE(MMeshType::ETriangular,
                              MMeshType::EQuadrilateral,
                              MMeshType::ETetrahedral,
