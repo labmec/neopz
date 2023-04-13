@@ -19,7 +19,8 @@ int main( int argc, char* argv[] ) {
 struct EventListener : Catch::TestEventListenerBase
 {
   std::vector<std::string> failed_sections;
-    using TestEventListenerBase::TestEventListenerBase;
+  std::vector<std::string> failed_but_ok_sections;
+  using TestEventListenerBase::TestEventListenerBase;
 
   std::string lastCase="";
   bool no_fails{true};
@@ -43,12 +44,31 @@ struct EventListener : Catch::TestEventListenerBase
         no_fails = false;
       }
     }
+    else if (sectionStats.assertions.failedButOk > 0){
+      /*a test case will always have one implicit section (full case).
+        this logic aims to avoid printing the implicit section in case
+        inner sections have already failed*/
+      if(sectionStats.sectionInfo.name != lastCase || no_fails){
+        failed_but_ok_sections.push_back(
+          lastCase
+          +' '
+          +sectionStats.sectionInfo.name);
+        no_fails = false;
+      }
+    }
   }
 
   void testRunEnded(Catch::TestRunStats const&) final
   {
+    if(failed_but_ok_sections.size() > 0){
+      std::cout<<"The following cases have failed (and were already failing before):\n";
+      for(auto &s : failed_but_ok_sections){
+        std::cout<<'\t'<<s<<'\n';
+      }
+      std::cout<<std::flush;
+    }
     if(failed_sections.size() > 0){
-      std::cout<<"The following cases have failed:\n";
+      std::cout<<"The following cases have failed (and were NOT failing before):\n";
       for(auto &s : failed_sections){
         std::cout<<'\t'<<s<<'\n';
       }
