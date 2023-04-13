@@ -39,10 +39,10 @@ public:
 
 	/**
 	 * @brief Constructor with initialization parameter
-	 * @param Refmat Sets reference matrix to `nullptr`
+	 * @param mat Matrix to be solved. Reference matrix is set to nullptr.
 	 */
 	
-	TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> >  Refmat);
+	TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> >  mat);
 	
 	TPZMatrixSolver();
 	
@@ -129,14 +129,14 @@ public:
     
 protected:
     /** @brief Reference matrix used to update the current matrix */
-    TPZAutoPointer<TPZMatrix<TVar>> fReferenceMatrix;
+    TPZAutoPointer<TPZMatrix<TVar>> fReferenceMatrix{nullptr};
 
     /** @brief Manipulation matrix */
     TPZFMatrix<TVar> fScratch;
 
 private:
     /** @brief Container classes */
-    TPZAutoPointer<TPZMatrix<TVar>> fContainer;	
+    TPZAutoPointer<TPZMatrix<TVar>> fContainer{nullptr};	
 };
 
 extern template class TPZMatrixSolver<float>;

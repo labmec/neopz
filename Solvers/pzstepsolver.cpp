@@ -16,8 +16,8 @@ static TPZLogger logger("pz.converge");
 #endif
 
 template <class TVar>
-TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat) : TPZRegisterClassId(&TPZStepSolver::ClassId),TPZMatrixSolver<TVar>(refmat), fNumIterations(-1) {
-	fPrecond = 0;
+TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > mat) : TPZRegisterClassId(&TPZStepSolver::ClassId),TPZMatrixSolver<TVar>(mat), fNumIterations(-1) {
+	fPrecond = nullptr;
 	ResetSolver();
 }
 
