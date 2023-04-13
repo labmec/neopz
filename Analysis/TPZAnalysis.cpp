@@ -992,7 +992,8 @@ void TPZAnalysis::PostProcessTable(std::ostream &out_file) {
 }
 
 template<class TVar>
-TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool overlap)
+TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditioner,
+                                                        bool overlap)
 {
   TPZSimpleTimer build("BuildPreconditioner");
   auto mySolver = dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
@@ -1005,7 +1006,7 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner,
 #endif
 		
 	}
-	if(preconditioner == EJacobi)
+	if(preconditioner == Precond::Jacobi)
 	{
 	}
 	else
@@ -1023,15 +1024,15 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner,
 		TPZStack<int64_t> blockgraph,blockgraphindex;
 		switch(preconditioner)
 		{
-			case EJacobi:
+    case Precond::Jacobi:
 				return 0;
-			case EBlockJacobi:
+    case Precond::BlockJacobi:
 				nodeset.BuildNodeGraph(blockgraph,blockgraphindex);
 				break;
-			case  EElement:
+    case Precond::Element:
 				nodeset.BuildElementGraph(blockgraph,blockgraphindex);
 				break;
-			case ENodeCentered:
+    case Precond::NodeCentered:
 				nodeset.BuildVertexGraph(blockgraph,blockgraphindex);
 				break;
 		}
@@ -1062,7 +1063,7 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner,
         }
 #endif
 #endif
-		if(overlap && !(preconditioner == EBlockJacobi))
+    if(overlap && !(preconditioner == Precond::BlockJacobi))
 		{
       TPZSimpleTimer build("BuildPreconditioner::Create");
 			TPZSparseBlockDiagonal<TVar> *sp = new TPZSparseBlockDiagonal<TVar>(expblockgraph,expblockgraphindex,neq);
@@ -1322,7 +1323,7 @@ TPZAnalysis::ThreadData::~ThreadData()
 
 template
 TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner<STATE>(
-    EPrecond preconditioner,bool overlap);
+    Precond::Type preconditioner,bool overlap);
 template
 TPZMatrixSolver<CSTATE> *TPZAnalysis::BuildPreconditioner<CSTATE>(
-    EPrecond preconditioner,bool overlap);
+    Precond::Type preconditioner,bool overlap);
