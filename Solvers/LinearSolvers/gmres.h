@@ -80,7 +80,8 @@ int GMRES(const TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> 
       }
       const auto normw = Norm(w);
       if(IsZero(normw)){
-        DebugStop();
+        i++;
+        break;
       }
       H(i+1, i) = normw;
       w *= ((TVar)1.0 / H(i+1, i));
