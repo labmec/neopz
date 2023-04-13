@@ -54,7 +54,16 @@ void TPZMatrixSolver<TVar>::ShareMatrix(TPZMatrixSolver<TVar> &other)
 {
 	if (this == &other)
 		return;
-	fContainer = other.fContainer;
+#ifdef PZDEBUG
+  if(this->fContainer == nullptr){
+    PZError<<__PRETTY_FUNCTION__
+           <<"\nTrying to share null matrix."
+           <<"\nProbably something wrong is going on."
+           <<"\nAborting..."<<std::endl;
+    DebugStop();
+  }
+#endif
+	other.fContainer = this->fContainer;
 }
 
 template <class TVar>

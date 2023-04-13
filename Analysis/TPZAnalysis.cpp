@@ -1110,7 +1110,7 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildSequenceSolver(TPZVec<int64_t> &graph, 
 	}
 	if(numcolors == 1) return steps[0];
 	TPZSequenceSolver<TVar> *result = new TPZSequenceSolver<TVar>;
-	result->ShareMatrix(*mySolver);
+  mySolver->ShareMatrix(*result);
 	for(c=numcolors-1; c>=0; c--)
 	{
 		result->AppendSolver(*steps[c]);
