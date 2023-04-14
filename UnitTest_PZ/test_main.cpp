@@ -6,6 +6,8 @@
 #include "pzlog.h"
 #endif
 
+#include <iostream>
+
 int main( int argc, char* argv[] ) {
   // global setup...
 #ifdef PZ_LOG
