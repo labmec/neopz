@@ -51,6 +51,7 @@
 #include "TPZMatError.h"
 #include "TPZSimpleTimer.h"
 #include "pzelementgroup.h"
+#include "TPZJacobiPrecond.h"
 #ifdef WIN32
 #include "pzsloan.h"                       // for TPZSloan
 #endif
@@ -1008,6 +1009,7 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
 	}
 	if(preconditioner == Precond::Jacobi)
 	{
+    return new TPZJacobiPrecond<TVar>(mySolver->Matrix());
 	}
 	else
 	{
@@ -1025,7 +1027,7 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
 		switch(preconditioner)
 		{
     case Precond::Jacobi:
-				return 0;
+        DebugStop();
     case Precond::BlockJacobi:
 				nodeset.BuildNodeGraph(blockgraph,blockgraphindex);
 				break;
