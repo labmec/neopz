@@ -66,6 +66,7 @@ TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph,
 #elif USING_EIGEN
     TPZEigenSparseMatrix<TVar> * mat = new TPZEigenSparseMatrix<TVar>(neq,neq);
 #else
+    TPZFYsmpMatrix<TVar> *mat = new TPZFYsmpMatrix<TVar>(neq,neq);
     DebugStop();
 #endif
     

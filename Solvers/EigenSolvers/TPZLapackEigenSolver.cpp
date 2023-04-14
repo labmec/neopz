@@ -138,6 +138,7 @@ int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
                                                             TPZFMatrix<CTVar> &vecs,
                                                             bool calcVecs)
 {
+#ifdef USING_LAPACK
   int nrows = A.Rows();
   if(nrows != A.Cols()){
     PZError<<__PRETTY_FUNCTION__;
@@ -177,7 +178,6 @@ int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
 
   TPZManVector<lapack_int,20> select(n,1);//which eigenvectors to compute in the next step
   TPZVec<TVar> wrVec, wiVec;
-#ifdef USING_LAPACK
   if constexpr (std::is_same_v<TVar,RTVar>){
     wrVec.Resize(n);
     wiVec.Resize(n);
@@ -209,7 +209,6 @@ int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
               (vardoublecomplex*)&work[0],&lwork,&info);
     }
   }
-#endif
 
   if(info != 0){
     PZError<<__PRETTY_FUNCTION__;
@@ -243,7 +242,6 @@ int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
   TPZVec<lapack_int> ifailr(mm,-1);
 
 
-#ifdef USING_LAPACK
   if constexpr(std::is_same_v<TVar,RTVar>){//real types
     TPZFMatrix<TVar> VR(ldvr,mm,-1);
     
@@ -292,13 +290,15 @@ int TPZLapackEigenSolver<TVar>::SolveHessenbergEigenProblem(TPZFMatrix<TVar> &A,
               &ifaill[0],&ifailr[0],&info);
     }
   }
-#endif
   if(info != 0){
     PZError<<__PRETTY_FUNCTION__;
     PZError<<"Lapack returned with info : "<<info<<std::endl;
   }
 
   return info;
+#else
+  return 0;
+#endif
 }
 
 
@@ -310,6 +310,7 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZFMatrix<TVar> &A,
                                                   TPZVec <CTVar> &eigenValues,
                                                   TPZFMatrix <CTVar> &eigenVectors,
                                                   bool calcVectors){
+#ifdef USING_LAPACK
   if (A.Rows() != A.Cols()) {
     PZError<<__PRETTY_FUNCTION__;
     PZError<<"\nERROR:Unsupported dimensions for matrix A\nAborting...\n";
@@ -330,7 +331,6 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZFMatrix<TVar> &A,
 
   eigenValues.Resize(dim,0.);
   if(calcVectors) eigenVectorsLapack.Redim(dim,dim);
-#ifdef USING_LAPACK
   if constexpr(std::is_same_v<RTVar,TVar>){//real types
     TPZVec<TVar> realeigen(dim,0.);
     TPZVec<TVar> imageigen(dim,0.);
@@ -386,7 +386,6 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZFMatrix<TVar> &A,
     DebugStop();
     }
   }
-#endif
   if (info != 0) {
     PZError<<__PRETTY_FUNCTION__;
     PZError<<"\nERROR:LAPACK call returned with info: "<<info<<"\n";
@@ -409,6 +408,9 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZFMatrix<TVar> &A,
     if(calcVectors) eigenVectors = std::move(eigenVectorsLapack);
   }
   return info;
+#else
+  return 0;
+#endif
 }
 
 template<class TVar>
@@ -427,6 +429,7 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
     TPZFMatrix <CTVar> &eigenVectors,
     bool calcVectors)
 {
+#ifdef USING_LAPACK
   if (  A.Rows() != B.Rows() || A.Cols() != B.Cols() || A.Cols() != A.Cols() )
   {
     PZError<<__PRETTY_FUNCTION__;
@@ -445,7 +448,6 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
   TPZVec<TVar> beta(dim);
   TPZVec<TVar> work(lwork);
 
-#ifdef USING_LAPACK
   
   if(calcVectors) eigenVectorsLapack.Redim(dim,dim);
   eigenValues.Resize(dim,0.);
@@ -518,7 +520,6 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
       PZError<<"\nERROR:Unsupported type\nAborting...\n";
       DebugStop();
     }
-#endif
 
   if (info != 0) {
     PZError<<__PRETTY_FUNCTION__;
@@ -543,6 +544,9 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
     if(calcVectors) eigenVectors = std::move(eigenVectorsLapack);
   }
   return info;
+#else
+  return 0;
+#endif
 }
 
 template<class TVar>
@@ -564,6 +568,7 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZSBMatrix<TVar> &A,
                                                   TPZVec <CTVar> &eigenValues,
                                                   TPZFMatrix <CTVar> &eigenVectors,
                                                   bool calcVectors){
+#ifdef USING_LAPACK
   if (A.Rows() != A.Cols())
   {
     PZError<<__PRETTY_FUNCTION__;
@@ -582,7 +587,6 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZSBMatrix<TVar> &A,
   lapack_int ldz = n;
 
   lapack_int info = -666;
-#ifdef USING_LAPACK
   eigenValues.Resize(n);
   if(calcVectors) eigenVectorsLapack.Redim(n, n);
   
@@ -624,7 +628,6 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZSBMatrix<TVar> &A,
     PZError<<"\nERROR:Unsupported type\nAborting...\n";
     DebugStop();
   }
-#endif
 
   if(info != 0){
     PZError<<__PRETTY_FUNCTION__;
@@ -652,6 +655,9 @@ int TPZLapackEigenSolver<TVar>::SolveEigenProblem(TPZSBMatrix<TVar> &A,
     if(calcVectors) eigenVectors = std::move(eigenVectorsLapack);
   }
   return info;
+#else
+  return 0;
+#endif
 }
   
 template<class TVar>
@@ -668,6 +674,7 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
     TPZVec <CTVar> &eigenValues, TPZFMatrix <CTVar> &eigenVectors,
     bool calcVectors)
 {  
+#ifdef USING_LAPACK
   if (  A.Rows() != B.Rows() && A.Cols() != B.Cols() )
   {
     PZError<<__PRETTY_FUNCTION__;
@@ -687,7 +694,6 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
   w.Resize( n );
   lapack_int ldz = n;
   lapack_int info = -666;
-#ifdef USING_LAPACK
   eigenValues.Resize(n);
   if(calcVectors) eigenVectorsLapack.Redim(n, n);
   
@@ -733,7 +739,6 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
     PZError<<"\nERROR:Unsupported type\nAborting...\n";
     DebugStop();
   }
-#endif
   if(info != 0){
     PZError<<__PRETTY_FUNCTION__;
     PZError<<"\nERROR:LAPACK call returned with info: "<<info<<"\n";
@@ -758,6 +763,9 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
     eigenVectors = std::move(eigenVectorsLapack);
   }
   return info;
+#else
+  return 0;
+#endif
 }
 
 template<class TVar>
