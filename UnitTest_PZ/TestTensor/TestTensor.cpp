@@ -15,7 +15,7 @@
 #include "TPZSYSMPMatrix.h"
 #include "TPZTensor.h"
 #include "fstream"
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 /// Testing Eigenvalues of a tensor
 

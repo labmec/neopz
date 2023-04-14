@@ -30,7 +30,9 @@
 //#define USE_MAIN
 
 #ifndef USE_MAIN
-#include<catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 #endif
 
 using namespace std;
@@ -546,8 +548,8 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamil
     std::cout << std::endl;
 #ifndef USE_MAIN
     if (probType == ProblemType::EElastic){
-        if (dim == 2) REQUIRE(fabs(vecint[0]) == Approx( 2.0 ));
-        if (dim == 3) REQUIRE(fabs(vecint[0]) == Approx( 4.0 ));
+        if (dim == 2) REQUIRE(fabs(vecint[0]) == Catch::Approx( 2.0 ));
+        if (dim == 3) REQUIRE(fabs(vecint[0]) == Catch::Approx( 4.0 ));
         for (int i = 1; i < vecint.size(); i++) REQUIRE(fabs(vecint[i]) < 1.e-10);
     }   
 #endif
@@ -560,16 +562,16 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamil
             std::cout << "Integral(" << i << ") = "  << vecintp[i] << std::endl;
 #ifndef USE_MAIN
             if (probType == ProblemType::EDarcy){
-                if (dim == 2) REQUIRE(fabs(vecintp[i]) == Approx( 4.0 ));
-                if (dim == 3) REQUIRE(fabs(vecintp[i]) == Approx( 8.0 ));
+                if (dim == 2) REQUIRE(fabs(vecintp[i]) == Catch::Approx( 4.0 ));
+                if (dim == 3) REQUIRE(fabs(vecintp[i]) == Catch::Approx( 8.0 ));
             }
 #endif
         }
         std::cout << std::endl;
 #ifndef USE_MAIN
         if (probType == ProblemType::EElastic){
-            if (dim == 2) REQUIRE(fabs(vecintp[0]) == Approx( 2.0 ));
-            if (dim == 3) REQUIRE(fabs(vecintp[0]) == Approx( 4.0 ));
+            if (dim == 2) REQUIRE(fabs(vecintp[0]) == Catch::Approx( 2.0 ));
+            if (dim == 3) REQUIRE(fabs(vecintp[0]) == Catch::Approx( 4.0 ));
             REQUIRE(fabs(vecintp[1]) < 1.e-10);
             REQUIRE(fabs(vecintp[2]) < 1.e-10);
         }
@@ -617,10 +619,10 @@ void CheckError(TPZMultiphysicsCompMesh *cmesh, TPZVec<REAL> &error, ProblemType
         if( pType == ProblemType::EElastic && i == 6 ) {
             // In Elastic mat i == 6 means energy error of the exact solution
             if(dim == 2){
-                REQUIRE(error[i] == Approx(1.));
+                REQUIRE(error[i] == Catch::Approx(1.));
             }
             else if(dim == 3) {
-                REQUIRE(error[i] == Approx(M_SQRT2));
+                REQUIRE(error[i] == Catch::Approx(M_SQRT2));
             }
             continue;
         }

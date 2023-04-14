@@ -46,7 +46,9 @@ static TPZLogger logger("pz.mesh.testgeom");
 
 #include "fad.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 //#define NOISY //outputs x and grad comparisons
 //#define NOISYVTK //prints all elements in .vtk format
 
@@ -420,7 +422,7 @@ TEST_CASE("changeel_tests","[geometry_tests]") {
             REAL norm = sqrt(dist_cross[0]*dist_cross[0] +
                              dist_cross[1]*dist_cross[1] +
                              dist_cross[2]*dist_cross[2]);
-            REQUIRE(norm== Approx(radius).epsilon(tol));
+            REQUIRE(norm== Catch::Approx(radius).epsilon(tol));
         }
     };
 

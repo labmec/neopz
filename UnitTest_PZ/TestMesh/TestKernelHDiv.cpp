@@ -6,7 +6,6 @@
 //  Copyright 2022 UNICAMP. All rights reserved.
 //
 
-#include<catch2/catch.hpp>
 #include <TPZGeoMeshTools.h>
 #include <pzcmesh.h>
 #include <pzbuildmultiphysicsmesh.h>
@@ -48,6 +47,10 @@ using namespace pzshape;
 
 #include "pznoderep.h"
 #include "pzlog.h"
+
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
 
 #undef PZ_KERNELHDIV_DEBUG
 

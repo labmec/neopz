@@ -16,7 +16,7 @@
 #include "pzmanvector.h"
 #include "pzquad.h"
 #include "TPZCurve.h"
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 static unsigned int NDigitsPrec = 13;
 static int NTypes = 2;

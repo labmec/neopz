@@ -13,7 +13,10 @@
 #include "TPZSSpStructMatrix.h" //symmetric sparse matrix storage
 #include "pzskylstrmatrix.h" //symmetric skyline matrix storage
 #include "pzstepsolver.h" //for TPZStepSolver
-#include <catch2/catch.hpp>
+
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 
 void CheckErrorPoisson(const int pOrder, TPZVec<REAL>&error);
 
@@ -37,7 +40,8 @@ TEST_CASE("error_poisson","[error_tests]")
   //the solution is contained in the p=4 approx space
   for(auto ier : lastError){
     CAPTURE(ier);
-      auto precisonrequired = Approx(0.0).margin(std::numeric_limits<REAL>::epsilon()*1000000);
+    auto precisonrequired =
+      Catch::Approx(0.0).margin(std::numeric_limits<REAL>::epsilon()*1000000);
       CAPTURE(precisonrequired);
     REQUIRE(ier == precisonrequired);
   }

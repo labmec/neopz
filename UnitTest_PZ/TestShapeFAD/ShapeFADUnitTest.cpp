@@ -29,7 +29,7 @@ static TPZLogger logger("pz.mesh.testgeom");
 #include "fad.h"
 
 
-#include<catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 //#define SHAPEFAD_VERBOSE //outputs x and grad comparisons
 //#define SHAPEFAD_OUTPUT_TXT//prints all elements in .txt format

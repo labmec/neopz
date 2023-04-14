@@ -1,5 +1,7 @@
-#define CATCH_CONFIG_RUNNER
-#include <catch2/catch.hpp>
+#include <catch2/catch_session.hpp>
+#include <catch2/reporters/catch_reporter_event_listener.hpp>
+#include <catch2/reporters/catch_reporter_registrars.hpp>
+#include <catch2/catch_test_case_info.hpp>
 #ifdef PZ_LOG
 #include "pzlog.h"
 #endif
@@ -16,11 +18,11 @@ int main( int argc, char* argv[] ) {
   return result;
 }
 
-struct EventListener : Catch::TestEventListenerBase
+struct EventListener : Catch::EventListenerBase
 {
   std::vector<std::string> failed_sections;
   std::vector<std::string> failed_but_ok_sections;
-  using TestEventListenerBase::TestEventListenerBase;
+  using EventListenerBase::EventListenerBase;
 
   std::string lastCase="";
   bool no_fails{true};

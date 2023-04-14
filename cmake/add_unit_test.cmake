@@ -11,4 +11,7 @@ function(add_unit_test testName)
     add_test(${testName} ${testName})
     add_executable(${testName} ${ARGN})
     target_link_libraries(${testName} PUBLIC test_library)
+    # not working properly, log4cxx calls are detected as tests
+    # include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
+    # catch_discover_tests(${testName})
 endfunction()

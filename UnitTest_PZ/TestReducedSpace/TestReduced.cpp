@@ -73,7 +73,8 @@ using namespace pzshape;
 static TPZLogger logger("pz.mesh.testhdiv");
 #endif
 
-#include<catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 
 static int tetraedra_2[6][4]=
 {

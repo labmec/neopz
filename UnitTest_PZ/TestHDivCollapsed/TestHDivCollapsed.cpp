@@ -28,8 +28,8 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-#include <catch2/catch.hpp>
-
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 // ----- Run tests with or without main -----
 #define RUNWITHMAIN
 
@@ -320,7 +320,7 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     
     const std::string qvarname = "Flux";
     STATE integratedflux = ComputeIntegralOverDomain(cmesh,qvarname);
-    if (fabs(integratedflux) < 1.e-14 ) integratedflux = 0.; // to make Approx(0.) work
+    if (fabs(integratedflux) < 1.e-14 ) integratedflux = 0.; // to make Catch::Approx(0.) work
     std::cout << "\nintegral of flux  = " << integratedflux << std::endl;
     
     // ----- Comparing with analytical solution -----
@@ -330,18 +330,18 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     // Domain volume is 2*2=4. If p cte: 1*4 = 4. If p varies linearly from 2 to 0: ((2-0)/2) * 4 = 8
 #ifndef RUNWITHMAIN
     if (is3D) {
-        REQUIRE( integratedpressure == Approx( 8.0 ) ); // Approx is from catch2 lib
+        REQUIRE( integratedpressure == Catch::Approx( 8.0 ) ); // Approx is from catch2 lib
         if (isLinPVar)
-            REQUIRE( integratedflux == Approx( 8./3. ) ); // Approx is from catch2 lib
+            REQUIRE( integratedflux == Catch::Approx( 8./3. ) ); // Approx is from catch2 lib
         else
-            REQUIRE( integratedflux == Approx( 0.) ); // Approx is from catch2 lib
+            REQUIRE( integratedflux == Catch::Approx( 0.) ); // Approx is from catch2 lib
     }
     else{
-        REQUIRE( integratedpressure == Approx( 4.0 ) ); // Approx is from catch2 lib
+        REQUIRE( integratedpressure == Catch::Approx( 4.0 ) ); // Approx is from catch2 lib
         if (isLinPVar)
-            REQUIRE( integratedflux == Approx( 4./3. ) ); // Approx is from catch2 lib
+            REQUIRE( integratedflux == Catch::Approx( 4./3. ) ); // Approx is from catch2 lib
         else
-            REQUIRE( integratedflux == Approx( 0.) ); // Approx is from catch2 lib
+            REQUIRE( integratedflux == Catch::Approx( 0.) ); // Approx is from catch2 lib
     }
 #endif
     

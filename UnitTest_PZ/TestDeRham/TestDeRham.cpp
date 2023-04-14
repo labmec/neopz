@@ -3,7 +3,6 @@
  * @brief Contains Unit Tests for checking compatibility of approx spaces
  */
 
-#include <catch2/catch.hpp>
 #include "TPZMatDeRhamH1.h"
 #include "TPZMatDeRhamHCurl.h"
 #include "TPZMatDeRhamHDiv.h"
@@ -23,6 +22,10 @@
 #include "MMeshType.h"
 #include "pzintel.h"
 
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
 
 enum class ESpace{H1,HCurl,HDiv,L2};
 

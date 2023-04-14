@@ -15,7 +15,9 @@
 #include "TPZSYSMPMatrix.h"
 #include "TPZKrylovEigenSolver.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 
 template<>
 struct Catch::StringMaker<long double> {
@@ -248,19 +250,19 @@ void TestArnoldiIteration(SymProp sp)
     const auto & qi = *qVecs[i];
     const auto norm = Norm(qi);
     CAPTURE(i,norm);
-    REQUIRE(norm == Approx(1.0));
+    REQUIRE(norm == Catch::Approx(1.0));
     for(auto j = 0; j < i; j++){
       const auto &qj = *qVecs[j];
       const auto qiqj = Dot(qi,qj);
       CAPTURE(j,qiqj);
-      REQUIRE(qiqj == Approx(0.0).margin(tol));
+      REQUIRE(qiqj == Catch::Approx(0.0).margin(tol));
     }
   }
   for(auto i = 0; i < dimKrylov; i++){
     for(auto j = 0; j < i-1; j++){
       const auto val = hMat.GetVal(i,j);
       CAPTURE(i,j,val);
-      REQUIRE(val == Approx(0.0));
+      REQUIRE(val == Catch::Approx(0.0));
     }
   }
 
@@ -280,7 +282,7 @@ void TestArnoldiIteration(SymProp sp)
   for(auto i = 0; i < dim; i++)
     for(auto j = 0; j < dim; j++){
       CAPTURE(i,j,aMat(i,j),A.GetVal(i,j));
-      REQUIRE(aMat(i,j)-A.GetVal(i,j)== Approx(0.0).margin(tol));
+      REQUIRE(aMat(i,j)-A.GetVal(i,j)== Catch::Approx(0.0).margin(tol));
     }
   Catch::StringMaker<RTVar>::precision = oldPrecision;
 }

@@ -11,7 +11,8 @@
 #include "TPZShapeDisc.h"
 #include "iostream"
 #include "fstream"
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 
 /**
  * @brief Create the stiffness matrix of a quadrilaterial in master element space
@@ -103,7 +104,7 @@ TEST_CASE("test_matriz_darcy","[material_tests]")
 		for (int j = 0 ; j < 4 ; j++)
 		{
 			dif = fabs(stiff(i,j) - RightStiff[i][j]);
-			REQUIRE(dif == Approx(0.0).margin(0.00001));
+			REQUIRE(dif == Catch::Approx(0.0).margin(0.00001));
 		}
 	}
 }
@@ -131,7 +132,7 @@ TEST_CASE("test_matriz_hybriddarcy","[material_tests]")
         for (int j = 0 ; j < 6 ; j++)
         {
             dif = fabs(stiff(i,j) - RightStiff[i][j]);
-            REQUIRE(dif == Approx(0.0).margin(0.00001));
+            REQUIRE(dif == Catch::Approx(0.0).margin(0.00001));
         }
     }
 }

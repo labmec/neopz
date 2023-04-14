@@ -25,7 +25,9 @@
 //#define USE_MAIN
 
 #ifndef USE_MAIN
-#include<catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 #endif
 
 /// Creates a simple mesh used for testing
@@ -271,7 +273,7 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, H1Family 
     {
         std::cout << "Integral(" << i << ") = "  << vecintp[i] << std::endl;
 #ifndef USE_MAIN
-        REQUIRE(fabs(vecintp[i]) == Approx( 4.0 ));
+        REQUIRE(fabs(vecintp[i]) == Catch::Approx( 4.0 ));
 #endif
     }
     std::cout << std::endl;

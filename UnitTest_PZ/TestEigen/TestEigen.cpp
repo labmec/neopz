@@ -60,7 +60,8 @@ TPZCompMesh* CreateCMeshH1(TPZGeoMesh* gmesh, const int pOrder, const int volId,
 
 
 #ifndef RUNWITHMAIN
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 
 TEST_CASE("Eigen_inversion", "[eigen_test]") {
     InvertUsingEigen();
@@ -207,8 +208,8 @@ void TestSparseClass() {
     std::cout << "solution " << F << std::endl;
     
 #ifndef RUNWITHMAIN
-    REQUIRE(F[0] == Approx(1.0));
-    REQUIRE(F[1] == Approx(2.0));
+    REQUIRE(F[0] == Catch::Approx(1.0));
+    REQUIRE(F[1] == Catch::Approx(2.0));
 #endif
 #endif
 }
@@ -274,7 +275,7 @@ void TestH1Problem() {
     average /= nel;
     std::cout << "\n=> Sol average = " << average << std::endl;
 #ifndef RUNWITHMAIN
-    REQUIRE(average == Approx(2.)); // ONLY WORKS FOR P=1
+    REQUIRE(average == Catch::Approx(2.)); // ONLY WORKS FOR P=1
 #endif
     
     delete matstruct;
@@ -409,8 +410,8 @@ void TestSparseMatrixOperations() {
     std::cout << "\nsolution = \n" << z << std::endl;
 
 #ifndef RUNWITHMAIN
-    REQUIRE(z[0] == Approx(5.0));
-    REQUIRE(z[1] == Approx(6.0));
+    REQUIRE(z[0] == Catch::Approx(5.0));
+    REQUIRE(z[1] == Catch::Approx(6.0));
 #endif
 #endif
 }

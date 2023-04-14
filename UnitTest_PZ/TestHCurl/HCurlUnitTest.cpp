@@ -42,7 +42,9 @@ static TPZLogger logger("pz.mesh.testhcurl");
 #include "TPZVTKGeoMesh.h"
 
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
 
 #define REQUIRE_MESSAGE(cond, msg) do { INFO(msg); REQUIRE(cond); } while((void)0, 0)
 

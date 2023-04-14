@@ -77,7 +77,9 @@ using namespace pzshape;
 static TPZLogger logger("pz.mesh.testhdiv");
 #endif
 
-#include<catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 
 static int tetraedra_2[6][4]=
 {
@@ -769,7 +771,7 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         gelsideA.Element()->X(pointElA, xA);
         gelsideB.Element()->X(pointElB, xB);
         for (int i=0; i<3; i++) {
-            REQUIRE((xA[i]-xB[i])==Approx(0.0).margin(1.e-6));
+            REQUIRE((xA[i]-xB[i])==Catch::Approx(0.0).margin(1.e-6));
         }
         TPZManVector<REAL,3> delxA(3),delxB(3);
         delxA = xA-xcenterA;

@@ -18,7 +18,12 @@
 #include "TPZSYSMPPardiso.h"
 #endif
 #include "tpzsparseblockdiagonal.h"
-#include <catch2/catch.hpp>
+#include <random>
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
 
 template<>
 struct Catch::StringMaker<long double> {
@@ -1257,7 +1262,7 @@ void TestingMultiplyWithAutoFill(int dim, SymProp sp) {
         for (int j = 0; j < dim; j++) {
             const auto diff = fabs(square(i, j) - square2(i, j));
             CAPTURE(i,j,square(i,j), square2(i,j), diff, tol, dim, sp_str, typeid(matx).name());
-            REQUIRE((diff == Approx(0).margin(tol)));
+            REQUIRE((diff == Catch::Approx(0).margin(tol)));
             if(diff > tol){
                 check = false;
             }
@@ -1329,9 +1334,9 @@ void TestingDotNorm(int dim){
     const auto norm2 = Norm(ma2);
     CAPTURE(dot1);
     CAPTURE(dot2);
-    REQUIRE(std::abs(dot1) == Approx(norm1*norm1).margin(tol));
-    REQUIRE(std::abs(dot1) == Approx(norm2*norm2).margin(tol));
-    REQUIRE(std::abs(dot1-dot2) == Approx(0).margin(tol));
+    REQUIRE(std::abs(dot1) == Catch::Approx(norm1*norm1).margin(tol));
+    REQUIRE(std::abs(dot1) == Catch::Approx(norm2*norm2).margin(tol));
+    REQUIRE(std::abs(dot1-dot2) == Catch::Approx(0).margin(tol));
   }
   
   Catch::StringMaker<RTVar>::precision = oldPrecision;
@@ -1556,7 +1561,7 @@ void TestingTransposeMultiply(int row, int col, SymProp sp) {
               square2.Print("sq2");
             }
             CAPTURE(i,j,square(i,j), square2(i,j), diff);
-            REQUIRE((diff == Approx(0).margin(tol)));
+            REQUIRE((diff == Catch::Approx(0).margin(tol)));
         }
     }
     if(!check){
@@ -2279,7 +2284,7 @@ void SparseBlockDiagInverse(){
     for(auto ieq : blockgraph){
       CAPTURE(ieq);
       CAPTURE(res);
-      REQUIRE((std::abs(res.GetVal(ieq,0)) == Approx(0).margin(tol)));
+      REQUIRE((std::abs(res.GetVal(ieq,0)) == Catch::Approx(0).margin(tol)));
     }
   }
 
@@ -2288,7 +2293,7 @@ void SparseBlockDiagInverse(){
     for(auto ieq : blockgraph){
       CAPTURE(ieq);
       CAPTURE(res);
-      REQUIRE((std::abs(resblck.GetVal(ieq,0)) == Approx(0).margin(tol)));
+      REQUIRE((std::abs(resblck.GetVal(ieq,0)) == Catch::Approx(0).margin(tol)));
     }
   }
 }   

@@ -70,7 +70,7 @@ using namespace pzshape;
 static TPZLogger logger("pz.mesh.testhdivconstant");
 #endif
 
-#include<catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 static int tetraedra_2[6][4]=
 {

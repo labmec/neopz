@@ -8,7 +8,7 @@
 
 #include <thread>
 #include <chrono>
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 namespace autoptrtest{
     //! stress test for autopointer

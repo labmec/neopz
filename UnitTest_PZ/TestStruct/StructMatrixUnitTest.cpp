@@ -32,7 +32,9 @@
 #include "TPZSSpStructMatrix.h"
 
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 using namespace Catch::literals;
 
 
@@ -240,7 +242,7 @@ namespace structTest{
     const auto normDiff = Norm(matDiff);
     auto oldPrecision = Catch::StringMaker<STATE>::precision;
     CAPTURE(normDiff);
-    REQUIRE(normDiff == Approx(0.0).margin(
+    REQUIRE(normDiff == Catch::Approx(0.0).margin(
                 10*std::numeric_limits<STATE>::epsilon()));
     Catch::StringMaker<STATE>::precision = oldPrecision;
   }
@@ -318,7 +320,7 @@ namespace structTest{
     const auto normDiff = Norm(matDiff);
     auto oldPrecision = Catch::StringMaker<STATE>::precision;
     CAPTURE(normDiff);
-    REQUIRE(normDiff == Approx(0.0).margin(
+    REQUIRE(normDiff == Catch::Approx(0.0).margin(
                 10*std::numeric_limits<STATE>::epsilon()));
     Catch::StringMaker<STATE>::precision = oldPrecision;
   }
