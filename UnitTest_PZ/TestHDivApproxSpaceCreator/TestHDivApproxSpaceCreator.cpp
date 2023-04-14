@@ -139,9 +139,6 @@ TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test]") {
     // bool isRef = GENERATE(true);
     bool isMHM = GENERATE(false);
     
-#ifdef PZ_LOG
-    TPZLogger::InitializePZLOG();
-#endif
     TestHdivApproxSpaceCreator(sType,pType,pOrder,isRBSpaces,mType,extraporder,isCondensed,hType,isRef,isMHM);
     std::cout << "Finish test HDiv Approx Space Creator \n";
 }

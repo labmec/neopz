@@ -91,10 +91,6 @@ int main(){
 template<class tshape>
 void TesteSideShapeFunction(const int &pOrder, SpaceType stype){
 
-#ifdef PZ_LOG
-    TPZLogger::InitializePZLOG();
-#endif
-
     const  int64_t pOrderIntRule = 5;
     const auto nSides = tshape::NSides;
     const auto nCorner = tshape::NCornerNodes;

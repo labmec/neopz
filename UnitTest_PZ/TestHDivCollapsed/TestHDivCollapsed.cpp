@@ -235,9 +235,6 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     if(isLinPVar) header << "  LinP";
     std::cout << "\n ============ Running Problem " << header.str() << " ============\n" << std::endl;
     
-#ifdef PZ_LOG
-    TPZLogger::InitializePZLOG();
-#endif
     TPZGeoMesh* gmesh = nullptr;
     if (is3D){
         if (isFracIntersect) {
