@@ -713,7 +713,9 @@ void TPZMatrix<TVar>::SolveCG(int64_t &numiterations, TPZSolver &preconditioner,
 						TPZFMatrix<TVar> *residual, REAL &tol, const int FromCurrent) {
     if constexpr(std::is_floating_point<TVar>::value){
         TPZMatrixSolver<TVar> &precond = dynamic_cast<TPZMatrixSolver<TVar> &>(preconditioner);
-        CG(*this, result, F, precond, residual, numiterations, tol, FromCurrent);
+        RTVar loctol = tol;
+        CG(*this, result, F, precond, residual, numiterations, loctol, FromCurrent);
+        tol = loctol;
     }else{
         PZError<<__PRETTY_FUNCTION__<<" is currently not implemented ";
         PZError<<"for this type\nAborting...";
