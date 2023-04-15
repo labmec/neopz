@@ -10,6 +10,7 @@ set(public_headers
     TPZEigenSolver.h
     TPZPardisoSolver.h
     TPZIdentitySolver.h
+    TPZJacobiPrecond.h
     pzstepsolver.h
     pzseqsolver.h
     )
@@ -19,6 +20,7 @@ set(sources
     TPZMatrixSolver.cpp
     TPZEigenSolver.cpp
     TPZPardisoSolver.cpp
+    TPZJacobiPrecond.cpp
     pzstepsolver.cpp
     pzseqsolver.cpp
     )
