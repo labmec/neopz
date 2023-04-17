@@ -835,6 +835,25 @@ template<class TVar>
   }
 
   template<class TVar>
+  void BlockDiagZeroSizedBlock(){
+    //we will create a matrix with 2x2 blocks that will require pivoting
+    const int nblocks = 5;
+    const int dim = 2*nblocks;
+    TPZFMatrix<TVar> fmat(dim,dim,0);
+    for(int i = 0; i < nblocks; i++){
+      fmat.PutVal(2*i, 2*i, 0);
+      fmat.PutVal(2*i, 2*i+1, 1);
+      fmat.PutVal(2*i+1, 2*i, 1);
+      fmat.PutVal(2*i+1, 2*i+1, 0);
+    }
+    //create additional block with size 0 at the end of block list
+    TPZVec<int> blocksizes(nblocks+1,2);
+    blocksizes[nblocks] = 0;
+    TPZBlockDiagonal<TVar> blckmat(blocksizes,fmat);
+    REQUIRE(true);
+  }
+
+  template<class TVar>
   void SparseBlockDiagInverse();
 };
 
@@ -1097,6 +1116,9 @@ TEMPLATE_TEST_CASE("Additional Block Diagonal tests","[matrix_tests]",
                    ) {
   SECTION("LU Pivot"){
     testmatrix::BlockDiagLUPivot<TestType>();
+  }
+  SECTION("BlockDiag block with zero size"){
+    testmatrix::BlockDiagZeroSizedBlock<TestType>();
   }
   SECTION("Sparse Block Inverse"){
     testmatrix::SparseBlockDiagInverse<TestType>();
