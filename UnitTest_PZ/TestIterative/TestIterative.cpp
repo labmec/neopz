@@ -37,6 +37,10 @@ std::string Catch::StringMaker<long double>::convert(long double value) {
 namespace testiterative{
   //! Creates computational mesh for 2d poisson problem
   TPZCompMesh *CreateCMesh();
+  //! Creates vector of active equations by removing all dirichlet bc eqs
+  void
+  FilterBoundaryEquations(TPZCompMesh * cmesh,
+                          TPZVec<int64_t> &activeEquations);
 }
 
 TEST_CASE("Poisson equation","[iterative_testss]") {
@@ -95,6 +99,70 @@ TEST_CASE("Poisson equation","[iterative_testss]") {
                            Precond::Element,
                            Precond::NodeCentered);
 
+  const bool overlap = GENERATE(true,false);
+  const auto precondname = std::string(Precond::Name(pre_type)) +
+                                       (overlap ? " with overlap" : " without overlap");
+  SECTION(precondname){
+    std::cout<<"testing "<<precondname<<std::endl;
+    TPZAutoPointer<TPZMatrixSolver<STATE>> pre =
+      an.BuildPreconditioner<STATE>(pre_type, overlap);
+    const bool created_precond = pre;
+    REQUIRE(created_precond);
+    solver->SetCG(niter, *pre, tol, fromCurrent);
+    an.Solve();
+    const auto tol_res = solver->GetTolerance();
+    REQUIRE(tol_res <= tol);
+  }
+  Catch::StringMaker<STATE>::precision = oldPrecision;
+}
+
+TEST_CASE("Equation filter and precond","[iterative_testss]") {
+  auto oldPrecision = Catch::StringMaker<STATE>::precision;
+  Catch::StringMaker<STATE>::precision = std::numeric_limits<STATE>::max_digits10;
+  TPZAutoPointer<TPZCompMesh> cmesh = testiterative::CreateCMesh();
+  constexpr bool optimizeBandwidth{false};
+  TPZLinearAnalysis an(cmesh,optimizeBandwidth);
+  {
+    TPZStepSolver<STATE> solv;
+    solv.SetDirect(ECholesky);
+    an.SetSolver(solv);
+  }
+  TPZSSpStructMatrix<STATE> str(cmesh);
+  TPZVec<int64_t> active_eqs;
+  testiterative::FilterBoundaryEquations(cmesh.operator->(), active_eqs);
+  str.EquationFilter().SetActiveEquations(active_eqs);
+  an.SetStructuralMatrix(str);
+  an.Assemble();
+
+  auto *solver = dynamic_cast<TPZStepSolver<STATE>*>(an.Solver());
+
+  solver->Matrix()->SetSymmetry(SymProp::Herm);
+  solver->Matrix()->SetDefPositive(true);
+
+
+  constexpr int niter{20};
+  constexpr REAL tol{1e-12};
+  constexpr int64_t fromCurrent{0};
+  SECTION("Exact inverse as precond"){
+    std::cout<<"testing exact inverse as precond"<<std::endl;
+    //we copy the original matrix
+    TPZAutoPointer<TPZMatrix<STATE>> mtrxcp = solver->Matrix()->Clone();
+    //we use a direct solver as a precond
+    TPZStepSolver<STATE> pre(mtrxcp);
+    pre.SetDirect(ECholesky);
+    solver->SetCG(niter, pre, tol, fromCurrent);
+    an.Solve();
+    const auto niter_res = solver->NumIterations();
+    REQUIRE(niter_res == 1);
+    const auto tol_res = solver->GetTolerance();
+    REQUIRE(tol_res <= tol);
+  }
+
+  auto pre_type = GENERATE(Precond::Jacobi,
+                           Precond::BlockJacobi,
+                           Precond::Element,
+                           Precond::NodeCentered);
+  
   const bool overlap = GENERATE(true,false);
   const auto precondname = std::string(Precond::Name(pre_type)) +
                                        (overlap ? " with overlap" : " without overlap");
@@ -187,5 +255,53 @@ namespace testiterative{
     cmesh->SetDefaultOrder(pOrder);
     cmesh->AutoBuild();
     return cmesh;
+  }
+
+  void FilterBoundaryEquations(TPZCompMesh *cmesh,
+                               TPZVec<int64_t> &activeEquations) {
+    TPZManVector<int64_t, 1000> allConnects;
+    std::set<int64_t> boundConnects;
+
+    for (int iel = 0; iel < cmesh->NElements(); iel++) {
+      TPZCompEl *cel = cmesh->ElementVec()[iel];
+      if (cel == nullptr) {
+        continue;
+      }
+      if (cel->Reference() == nullptr) {//there is no associated geometric el
+        continue;
+      }
+      TPZBndCond *mat = dynamic_cast<TPZBndCond *>(
+        cmesh->MaterialVec()[cel->Reference()->MaterialId()]);
+      if (mat && mat->Type() == 0) {//check for dirichlet bcs
+        std::set<int64_t> boundConnectsEl;
+        cel->BuildConnectList(boundConnectsEl);
+        for(auto val : boundConnectsEl){
+          if (boundConnects.find(val) == boundConnects.end()) {
+            boundConnects.insert(val);
+          }
+        }
+      }
+    }
+
+    //certainly we have less equations than this, but we will avoid repeated resizes
+    activeEquations.Resize(cmesh->NEquations());
+    int neq = 0;
+    for (int iCon = 0; iCon < cmesh->NConnects(); iCon++) {
+      if (boundConnects.find(iCon) == boundConnects.end()) {
+        TPZConnect &con = cmesh->ConnectVec()[iCon];
+        const auto hasdep = con.HasDependency();
+        const auto seqnum = con.SequenceNumber();
+        const auto pos = cmesh->Block().Position(seqnum);
+        const auto blocksize = cmesh->Block().Size(seqnum);
+      
+        if(hasdep || seqnum < 0 || !blocksize) { continue; }
+        const auto vs = neq;
+        for (auto ieq = 0; ieq < blocksize; ieq++) {
+          activeEquations[vs + ieq] = pos + ieq;
+        }
+        neq += blocksize;
+      }
+    }
+    activeEquations.Resize(neq);
   }
 }
