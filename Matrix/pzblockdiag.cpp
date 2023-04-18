@@ -98,11 +98,15 @@ void TPZBlockDiagonal<TVar>::Initialize(const TPZVec<int> &blocksize){
 	this->fDecomposed = ENoDecompose;
 	this->fRow = neq;
 	this->fCol = neq;
-
+	
 	for(b=0; b<nblock; b++) {
 		const auto bsize = blocksize[b];
 		const auto pos = fBlockPos[b];
-		fBlockMats[b] = new TPZFMatrix<TVar>(bsize,bsize, &fStorage[pos], bsize*bsize);
+		if(bsize){
+			fBlockMats[b] = new TPZFMatrix<TVar>(bsize,bsize, &fStorage[pos], bsize*bsize);
+		}else{
+			fBlockMats[b] = nullptr;
+		}
 	}
 }
 
