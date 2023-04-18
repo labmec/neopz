@@ -33,6 +33,7 @@
 
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 
 using namespace pztopology;
 using namespace pzshape;
@@ -386,7 +387,7 @@ namespace topologytests{
                 CAPTURE(phi_shape);
                 CAPTURE(phi_topol);
                 for (int i = 0; i < dim; i++){
-                    REQUIRE(phiHCurl(i,j)-N0Function(i,j) == Approx(0).margin(tol));
+                    REQUIRE(phiHCurl(i,j)-N0Function(i,j) == Catch::Approx(0).margin(tol));
                 }
             }
             for (int j = 0; j < nEdges; j++){
@@ -398,7 +399,7 @@ namespace topologytests{
                 CAPTURE(curl_shape);
                 CAPTURE(curl_topol);
                 for (int i = 0; i < 3; i++){
-                    REQUIRE(curlHCurl(i,j)-curlN0(i,j) == Approx(0).margin(tol));
+                    REQUIRE(curlHCurl(i,j)-curlN0(i,j) == Catch::Approx(0).margin(tol));
                 }
             }
         }
