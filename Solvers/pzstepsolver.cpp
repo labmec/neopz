@@ -93,7 +93,6 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
   auto IterativeSolverPrint = [](const auto name, const auto neq,
                                  const auto niters, const auto tol,
                                  const auto maxiter, const auto reftol){
-#ifdef PZ_LOG
     std::stringstream sout;
     sout << "Number of equations " << neq << std::endl;
     sout << "Number of "<<name<<" iterations " << niters << " tol = " << tol << endl;
@@ -102,6 +101,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
       sout << name <<" tolerance was not achieved : maxiter " << maxiter <<
 				" reftol " << reftol << endl;
     }
+#ifdef PZ_LOG
     if(logger.isDebugEnabled()){
       LOGPZ_DEBUG(logger,sout.str().c_str());
     }
