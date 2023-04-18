@@ -129,7 +129,3 @@ template class TPZMatrixSolver<std::complex<double> >;
 
 template class TPZMatrixSolver<long double>;
 template class TPZMatrixSolver<std::complex<long double> >;
-
-template class TPZMatrixSolver<Fad<float> >;
-template class TPZMatrixSolver<Fad<double> >;
-template class TPZMatrixSolver<Fad<long double> >;

@@ -141,8 +141,4 @@ extern template class TPZMatrixSolver<std::complex<double> >;
 
 extern template class TPZMatrixSolver<long double>;
 extern template class TPZMatrixSolver<std::complex<long double> >;
-
-extern template class TPZMatrixSolver<Fad<float> >;
-extern template class TPZMatrixSolver<Fad<double> >;
-extern template class TPZMatrixSolver<Fad<long double> >;
 #endif  // TPZMATRIXSOLVER_H

@@ -240,4 +240,6 @@ template class TPZSYsmpMatrixPardiso<std::complex<float>>;
 template class TPZSYsmpMatrixPardiso<std::complex<double>>;
 
 
+template class TPZSYsmpMatrixPardiso<long double>;
+template class TPZSYsmpMatrixPardiso<std::complex<long double>>;
 #endif

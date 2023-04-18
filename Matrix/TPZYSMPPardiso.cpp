@@ -253,12 +253,12 @@ int TPZFYsmpMatrixPardiso<TVar>::SolveDirect ( TPZFMatrix<TVar>& F , const Decom
   return 0;
 }
 
-
 template class TPZFYsmpMatrixPardiso<double>;
 template class TPZFYsmpMatrixPardiso<float>;
-template class TPZFYsmpMatrixPardiso<long double>;
 template class TPZFYsmpMatrixPardiso<std::complex<float>>;
 template class TPZFYsmpMatrixPardiso<std::complex<double>>;
-template class TPZFYsmpMatrixPardiso<std::complex<long double>>;
 
+
+template class TPZFYsmpMatrixPardiso<long double>;
+template class TPZFYsmpMatrixPardiso<std::complex<long double>>;
 #endif
