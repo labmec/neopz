@@ -32,12 +32,12 @@ function(enable_eigen target)
         # if eigen was downloaded, the target was not created
         if(NOT TARGET Eigen3::Eigen)
 #            add_library(Eigen3::Eigen IMPORTED INTERFACE)
-			target_link_library(target PUBLIC Eigen3::Eigen)
-			target_compile_definitions(target PUBLIC USING_EIGEN)
+			target_link_library(${target} PUBLIC Eigen3::Eigen)
+			target_compile_definitions(${target} PRIVATE USING_EIGEN)
+      target_compile_definitions(${target} INTERFACE PZ_USING_EIGEN)
  #           set_property(TARGET Eigen3::Eigen PROPERTY INTERFACE_INCLUDE_DIRECTORIES
  #               "${EIGEN3_INCLUDE_DIR}")
         endif()
-	    target_compile_definitions(${target} PRIVATE USING_EIGEN)
 
         # Eigen 3.3.1+ cmake sets EIGEN3_VERSION_STRING (and hard codes the version when installed
         # rather than looking it up in the cmake script); older versions, and the
