@@ -86,7 +86,7 @@ TEMPLATE_TEST_CASE("test hcurl internal funcs under node permutation",
                    pzshape::TPZShapeQuad
                    ){
 
-    auto k = GENERATE(1,2,3,4);
+    auto k = GENERATE(0,1,2,3,4);
     hcurltest::TestPermute<TestType>(k);
 }
 
@@ -98,7 +98,7 @@ TEST_CASE("Testing trace of HCurl functions",
     //     hcurltest::PrintShapeFunctions<pztopology::TPZQuadrilateral>(pOrder);
     // }
     
-    constexpr int pOrder{1};
+    constexpr int pOrder{0};
     constexpr int maxK{4};
     auto meshType = GENERATE(MMeshType::ETriangular,
                              MMeshType::EQuadrilateral,
@@ -111,7 +111,7 @@ TEST_CASE("Testing trace of HCurl functions",
     // SECTION("Vector traces"+MMeshType_Name(meshType)){
     //     hcurltest::TestVectorTracesUniformMesh(cmesh,meshType);
     // }
-    for(int k = 1; k < maxK; k++){
+    for(int k = 0; k < maxK; k++){
         SECTION("Funcion traces "+MMeshType_Name(meshType)+" p"+std::to_string(k)){
             hcurltest::TestFunctionTracesUniformMesh(cmesh,meshType,k);
         }
@@ -309,7 +309,7 @@ namespace hcurltest{
             }
         }();
 
-        if(pOrder > 1 ){
+        if(pOrder > 0 ){
             cmesh->SetDefaultOrder(pOrder);
             for(auto cel : cmesh->ElementVec()){
                 TPZInterpolatedElement *intel =
