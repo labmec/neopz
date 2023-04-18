@@ -1,0 +1,54 @@
+name: Run Unit Tests with MKL
+on: [push]
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  Run_unit_tests_with_MKL:
+    runs-on: ubuntu-latest
+    steps:
+      - name: cache install oneAPI
+        id: cache-install
+        uses: actions/cache@v3
+        with:
+          path: |
+            /opt/intel/oneapi
+          key: install-mkl
+      - name: non-cache install oneAPI
+        if: steps.cache-install.outputs.cache-hit != 'true'
+        timeout-minutes: 5
+        run: |
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          rm GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+          sudo apt-get install intel-oneapi-mkl intel-oneapi-mkl-devel
+      - name: Setup Intel oneAPI environment
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          printenv >> $GITHUB_ENV
+      - name: install Ninja
+        run: sudo apt-get install ninja-build
+      - name: Checkout NeoPZ
+        uses: actions/checkout@v3
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{github.workspace}}/build
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{github.workspace}}/build
+        run: |
+          cmake -GNinja $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DUSING_MKL=ON -DMKL_ROOT=$MKLROOT
+      - name: Build
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: cmake --build . --config $BUILD_TYPE
+        env:
+          MAKEFLAGS: "-j4"
+      - name: Run Unit Tests
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: ctest -C $BUILD_TYPE
+        env:
+          CTEST_OUTPUT_ON_FAILURE: 1
