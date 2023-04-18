@@ -7,6 +7,7 @@
 #include <tpzgeoelrefpattern.h>
 #include "TPZSSpStructMatrix.h"
 #include "TPZSpStructMatrix.h"
+#include "TPZSkylineNSymStructMatrix.h"
 
 #include <pzcmesh.h>
 #include <TPZMultiphysicsCompMesh.h>
@@ -31,7 +32,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_all.hpp>
 // ----- Run tests with or without main -----
-#define RUNWITHMAIN
+//#define RUNWITHMAIN
 
 // ----- Functions -----
 void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLinPVar, const bool& isFracIntersect);
@@ -771,9 +772,13 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
 void SolveProblemDirect(TPZLinearAnalysis &an, TPZCompMesh *cmesh)
 {
     constexpr int nThreads{0};
-//    TPZSkylineStructMatrix<STATE> matskl(cmesh);
 //    TPZFStructMatrix<STATE> matskl(cmesh);
+//    TPZSkylineStructMatrix<STATE> matskl(cmesh);
+#if defined (USING_MKL) || (USING_EIGEN)
     TPZSpStructMatrix<STATE> matskl(cmesh);
+#else
+    TPZSkylineNSymStructMatrix<STATE> matskl(cmesh);
+#endif
 //    TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>> matskl(cmesh);
     matskl.SetNumThreads(nThreads);
     an.SetStructuralMatrix(matskl);

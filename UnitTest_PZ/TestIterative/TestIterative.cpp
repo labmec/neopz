@@ -7,6 +7,7 @@
 #include "pzcmesh.h"
 #include "TPZGeoMeshTools.h"
 #include "TPZLinearAnalysis.h"
+#include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 #include "TPZIdentitySolver.h"
 #include "Poisson/TPZMatPoisson.h"
@@ -51,13 +52,19 @@ TEST_CASE("Poisson equation","[iterative_testss]") {
   TPZAutoPointer<TPZCompMesh> cmesh = testiterative::CreateCMesh();
   constexpr bool optimizeBandwidth{false};
   TPZLinearAnalysis an(cmesh,optimizeBandwidth);
+#if defined (PZ_USING_MKL) || (PZ_USING_EIGEN)
+  TPZSSpStructMatrix<STATE> str(cmesh);
+#else
+  TPZSkylineStructMatrix<STATE>str(cmesh);
+#endif
+
+  an.SetStructuralMatrix(str);
+  
   {
     TPZStepSolver<STATE> solv;
     solv.SetDirect(ECholesky);
     an.SetSolver(solv);
   }
-  TPZSSpStructMatrix<STATE> str(cmesh);
-  an.SetStructuralMatrix(str);
   an.Assemble();
 
   auto *solver = dynamic_cast<TPZStepSolver<STATE>*>(an.Solver());
@@ -127,7 +134,11 @@ TEST_CASE("Equation filter and precond","[iterative_testss]") {
     solv.SetDirect(ECholesky);
     an.SetSolver(solv);
   }
+#if defined (PZ_USING_MKL) || (PZ_USING_EIGEN)
   TPZSSpStructMatrix<STATE> str(cmesh);
+#else
+  TPZSkylineStructMatrix<STATE>str(cmesh);
+#endif
   TPZVec<int64_t> active_eqs;
   testiterative::FilterBoundaryEquations(cmesh.operator->(), active_eqs);
   str.EquationFilter().SetActiveEquations(active_eqs);

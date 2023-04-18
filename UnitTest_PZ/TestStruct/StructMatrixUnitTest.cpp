@@ -94,6 +94,7 @@ TEMPLATE_TEST_CASE("Assemble known matrix",
       structTest::CheckStiffnessMatrices<TPZSkylineStructMatrix<STATE, TestType>>(cMesh, nThreads);
     }
   }
+#if defined (PZ_USING_MKL) || defined (PZ_USING_EIGEN)
   SECTION("Testing Sparse matrices"){
     SECTION("Non-Symmetric"){
       structTest::CheckStiffnessMatrices<TPZSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
@@ -102,6 +103,7 @@ TEMPLATE_TEST_CASE("Assemble known matrix",
       structTest::CheckStiffnessMatrices<TPZSSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
     }
   }
+#endif
   cMesh = nullptr;
 }
 
@@ -136,6 +138,7 @@ TEMPLATE_TEST_CASE("Compare parallel and serial matrices","[struct_tests][struct
       structTest::CompareSerialParallelStiffMat<TPZSkylineStructMatrix<STATE, TestType>>(cMesh, nThreads);
     }
   }
+#if defined (PZ_USING_MKL) || defined (PZ_USING_EIGEN)
   SECTION("Testing Sparse matrices"){
     SECTION("Non-Symmetric"){
       structTest::CompareSerialParallelStiffMat<TPZSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
@@ -144,6 +147,7 @@ TEMPLATE_TEST_CASE("Compare parallel and serial matrices","[struct_tests][struct
       structTest::CompareSerialParallelStiffMat<TPZSSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
     }
   }
+#endif
   cMesh = nullptr;
 }
 
