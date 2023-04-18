@@ -1062,57 +1062,9 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
     if(this->StructMatrix()->EquationFilter().IsActive()){
       //now we need to convert the graphs as we have a filtered system,
       //therefore the eq nums have changed
-      const auto eqfilt = this->StructMatrix()->EquationFilter();
-      const auto nblocks = expblockgraphindex.size()-1;
-      
-      //copy old data structures
-      auto ebgindex = expblockgraphindex;
-      auto ebg = expblockgraph;
-      /*
-        we avoid resizing it for now, but fill with -1
-        for easier error checking
-       */
-      expblockgraph.Fill(-1);
-      expblockgraphindex.Fill(0);
-
-      int64_t indexcount = 0, blcount = 0;
-      for(auto ibl = 0; ibl < nblocks; ibl++){
-        
-        /*
-          the prefix o will stand for old (before eq filter),
-          and n for new (after eq filter).
-        */
-        const int ofirst = ebgindex[ibl];
-        const int olast = ebgindex[ibl+1];
-        const int oneqbl = olast - ofirst;
-        TPZVec<int64_t> orig(oneqbl), filt(oneqbl);
-        for(auto i = 0; i < oneqbl; i++){
-          orig[i]=filt[i]=ebg[ofirst+i];
-        }
-        eqfilt.Filter(orig,filt);
-        const int nneqbl = filt.size();
-        if(nneqbl){
-          expblockgraphindex[blcount] = indexcount;
-          for(int ieq = 0; ieq < nneqbl; ieq++){
-            expblockgraph[indexcount+ieq] = filt[ieq];
-          }
-          indexcount += nneqbl;
-          expblockgraphindex[blcount+1] = indexcount;
-          blcount++;
-        }
-      }
-      auto lasteq = expblockgraphindex[blcount];
-#ifdef PZDEBUG
-      if(lasteq != neq){//maybe all eqs are active eqs
-        if(expblockgraph[lasteq-1] == -1 || expblockgraph[lasteq] != -1){
-          PZError<<__PRETTY_FUNCTION__
-                 <<"\nError while filtering graphs.Aborting..."<<std::endl;
-          DebugStop();
-        }
-      }
-      expblockgraphindex.Resize(blcount+1);
-      expblockgraph.Resize(lasteq);
-#endif
+      TPZStack<int64_t> bgcp = expblockgraph,bgicp = expblockgraphindex;
+      TPZNodesetCompute::FilterGraph(bgcp,bgicp,this->StructMatrix()->EquationFilter(),
+                                     expblockgraph,expblockgraphindex);
     }
 #ifdef PZ_LOG
 #ifdef PZDEBUG2

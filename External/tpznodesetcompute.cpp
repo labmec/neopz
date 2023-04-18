@@ -16,6 +16,7 @@
 #include "tpznodesetcompute.h"
 #include "pzstack.h"
 #include "pzblock.h"
+#include "TPZEquationFilter.h"
 #include <set>
 #include <map>
 #include <algorithm>
@@ -598,6 +599,51 @@ void TPZNodesetCompute::ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &gra
     if(expgraphindex[blcounter] != counter) expgraphindex[++blcounter] = counter;
   }
   expgraphindex.Resize(blcounter+1);
+}
+
+void TPZNodesetCompute::FilterGraph(TPZVec<int64_t> &ebg, TPZVec<int64_t> &ebgindex,
+                                    TPZEquationFilter &eqfilt, TPZVec<int64_t> &newgraph,
+                                    TPZVec<int64_t> &newgraphindex)
+{
+  
+  const auto nblocks = ebgindex.size()-1;
+  /*
+    we avoid resizing it for now, but fill with -1
+    for easier error checking
+  */
+  newgraph.Fill(-1);
+  newgraphindex.Fill(0);
+
+  int64_t indexcount = 0, blcount = 0;
+  for(auto ibl = 0; ibl < nblocks; ibl++){
+        
+    /*
+      the prefix o will stand for old (before eq filter),
+      and n for new (after eq filter).
+    */
+    const int ofirst = ebgindex[ibl];
+    const int olast = ebgindex[ibl+1];
+    const int oneqbl = olast - ofirst;
+    TPZVec<int64_t> orig(oneqbl), filt(oneqbl);
+    for(auto i = 0; i < oneqbl; i++){
+      orig[i]=filt[i]=ebg[ofirst+i];
+    }
+    eqfilt.Filter(orig,filt);
+    const int nneqbl = filt.size();
+    //check for empty block
+    if(nneqbl){
+      newgraphindex[blcount] = indexcount;
+      for(int ieq = 0; ieq < nneqbl; ieq++){
+        newgraph[indexcount+ieq] = filt[ieq];
+      }
+      indexcount += nneqbl;
+      newgraphindex[blcount+1] = indexcount;
+      blcount++;
+    }
+  }
+  auto lasteq = newgraphindex[blcount];
+  newgraphindex.Resize(blcount+1);
+  newgraph.Resize(lasteq);
 }
 
   /**
