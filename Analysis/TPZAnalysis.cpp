@@ -1011,6 +1011,23 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
 	{
     return new TPZJacobiPrecond<TVar>(mySolver->Matrix());
 	}
+  else if(preconditioner == Precond::BlockJacobi && overlap == true)
+  {
+    TPZSimpleTimer build("BuildPreconditioner::Create");
+    TPZBlockDiagonalStructMatrix<TVar> blstr(fCompMesh);
+    //now we check if equation filter is active
+    if(this->StructMatrix()->EquationFilter().IsActive()){
+      const int64_t nTotalEq = fCompMesh->NEquations();
+      auto active_eqs = fStructMatrix->EquationFilter().GetActiveEquations();
+      blstr.EquationFilter().SetActiveEquations(active_eqs);
+    }
+    TPZBlockDiagonal<TVar> *sp = new TPZBlockDiagonal<TVar>();
+    blstr.AssembleBlockDiagonal(*sp);
+    TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(sp);
+    step->SetDirect(ELU);
+    step->SetReferenceMatrix(mySolver->Matrix());
+    return step;
+  }
 	else
 	{
 		TPZNodesetCompute nodeset;
@@ -1121,13 +1138,20 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
         }
 #endif
 #endif
-    if(overlap && !(preconditioner == Precond::BlockJacobi))
+    //update neq
+    if(this->StructMatrix()->EquationFilter().IsActive()){
+      neq = fStructMatrix->NReducedEquations();
+    }
+    if(overlap)
 		{
-      TPZSimpleTimer build("BuildPreconditioner::Create");
-      //update neq
-      if(this->StructMatrix()->EquationFilter().IsActive()){
-        neq = fStructMatrix->NReducedEquations();
+#ifdef PZDEBUG
+      if(preconditioner == Precond::BlockJacobi){
+        //why did the function reach here? with BlockJacobi + overlap
+        //there is no need to create all these graphs
+        DebugStop();
       }
+#endif
+      TPZSimpleTimer build("BuildPreconditioner::Create");
       /*this create a sparse block diagonal matrix structure! the values are not initialized yet*/
 			TPZSparseBlockDiagonal<TVar> *sp = new TPZSparseBlockDiagonal<TVar>(expblockgraph,expblockgraphindex,neq);
 			TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(sp);
@@ -1136,24 +1160,7 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
 			step->SetReferenceMatrix(mySolver->Matrix());
 			return step;
 		}
-		else if (overlap)
-		{
-      TPZSimpleTimer build("BuildPreconditioner::Create");
-			TPZBlockDiagonalStructMatrix<TVar> blstr(fCompMesh);
-      //now we check if equation filter is active
-      if(this->StructMatrix()->EquationFilter().IsActive()){
-        const int64_t nTotalEq = fCompMesh->NEquations();
-        auto active_eqs = fStructMatrix->EquationFilter().GetActiveEquations();
-        blstr.EquationFilter().SetActiveEquations(active_eqs);
-      }
-			TPZBlockDiagonal<TVar> *sp = new TPZBlockDiagonal<TVar>();
-			blstr.AssembleBlockDiagonal(*sp);
-			TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(sp);
-			step->SetDirect(ELU);
-      step->SetReferenceMatrix(mySolver->Matrix());
-			return step;
-		}
-		else
+    else
 		{
       TPZSimpleTimer build("BuildPreconditioner::Create");
 			TPZVec<int> blockcolor;
