@@ -16,8 +16,8 @@ static TPZLogger logger("pz.converge");
 #endif
 
 template <class TVar>
-TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat) : TPZRegisterClassId(&TPZStepSolver::ClassId),TPZMatrixSolver<TVar>(refmat), fNumIterations(-1) {
-	fPrecond = 0;
+TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > mat) : TPZRegisterClassId(&TPZStepSolver::ClassId),TPZMatrixSolver<TVar>(mat), fNumIterations(-1) {
+	fPrecond = nullptr;
 	ResetSolver();
 }
 
@@ -72,8 +72,11 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
     // update the matrix to which the preconditioner refers
     if(fPrecond)
     {
-        
-        fPrecond->UpdateFrom(this->Matrix());
+        if(this->fReferenceMatrix){
+            fPrecond->UpdateFrom(this->fReferenceMatrix);
+        }else{
+            fPrecond->UpdateFrom(this->Matrix());
+        }
     }
     
 	if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
@@ -86,6 +89,29 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 	
 	REAL tol = fTol;
 	int64_t numiterations = fMaxIterations;
+
+  auto IterativeSolverPrint = [](const auto name, const auto neq,
+                                 const auto niters, const auto tol,
+                                 const auto maxiter, const auto reftol){
+#ifdef PZ_LOG
+    std::stringstream sout;
+    sout << "Number of equations " << neq << std::endl;
+    sout << "Number of "<<name<<" iterations " << niters << " tol = " << tol << endl;
+    if(niters >= maxiter || tol >= reftol)
+    {
+      sout << name <<" tolerance was not achieved : maxiter " << maxiter <<
+				" reftol " << reftol << endl;
+    }
+    if(logger.isDebugEnabled()){
+      LOGPZ_DEBUG(logger,sout.str().c_str());
+    }
+#endif
+    std::cout<<sout.str()<<std::endl;
+  };
+
+  //if this string changes, it means an iterative solver was used
+  std::string name{"noname"};
+  const auto reftol = tol;
 	switch(fSolver) {
 		case TPZStepSolver::ENoSolver:
 		default:
@@ -94,67 +120,29 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 		case TPZStepSolver::EJacobi:
 			//    cout << "fScratch dimension " << fScratch.Rows() << ' ' << fScratch.Cols() << endl;
 			mat->SolveJacobi(numiterations,F,result,residual,this->fScratch,tol,fFromCurrent);
-            fNumIterations = numiterations;
+      name = "Jacobi";
 			break;
 		case TPZStepSolver::ESOR:
 			mat->SolveSOR(numiterations,F,result,residual,this->fScratch,fOverRelax,tol,fFromCurrent);
-            fNumIterations = numiterations;
+      name = "SOR";
 			break;
 		case TPZStepSolver::ESSOR:
 			mat->SolveSSOR(numiterations,F,result,residual,this->fScratch,fOverRelax,tol,fFromCurrent);
-            fNumIterations = numiterations;
+      name = "SSOR";
 			break;
 		case TPZStepSolver::ECG:
 			mat->SolveCG(numiterations,*fPrecond,F,result,residual,tol,fFromCurrent);
-			cout << "Number of equations " << mat->Rows() << std::endl;
-			cout << "Number of CG iterations " << numiterations << " tol = " << tol << endl;
-            fNumIterations = numiterations;
-            fTol = tol;
-#ifdef PZ_LOG
-            if(logger.isDebugEnabled())
-            {
-                std::stringstream sout;
-                sout << "Number of equations " << mat->Rows() << std::endl;
-                sout << "Number of CG iterations " << numiterations << " tol = " << tol;
-                LOGPZ_DEBUG(logger,sout.str().c_str());
-            }
-#endif
+      name = "CG";
 			break;
-		case TPZStepSolver::EGMRES: {
-			TPZFMatrix<TVar> H(fNumVectors+1,fNumVectors+1,0.);
-			mat->SolveGMRES(numiterations,*fPrecond,H,fNumVectors,F,result,residual,tol,fFromCurrent);
-            fNumIterations = numiterations;
-            cout << "Number of GMRES iterations " << numiterations << " tol = " << tol;
-			if(numiterations == fMaxIterations || tol >= fTol)
-			{
-				std::cout << "GMRes tolerance was not achieved : numiter " << numiterations <<
-				" tol " << tol << endl;
-			}
-#ifdef PZ_LOG
-			{
-				std::stringstream sout;
-				sout << "Number of GMRES iterations " << numiterations << " tol = " << tol;
-				if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,sout.str().c_str());
-			}
-#endif
-		}
+    case TPZStepSolver::EGMRES: {
+      TPZFMatrix<TVar> H(fNumVectors+1,fNumVectors+1,0.);
+      mat->SolveGMRES(numiterations,*fPrecond,H,fNumVectors,F,result,residual,tol,fFromCurrent);
+      name = "GMRES";
 			break;
+    }
 		case TPZStepSolver::EBICGSTAB: 
 			mat->SolveBICGStab(numiterations, *fPrecond, F, result,residual,tol,fFromCurrent);
-            fNumIterations = numiterations;
-			
-			if(numiterations == fMaxIterations || tol >= fTol)
-			{
-				std::cout << "BiCGStab tolerance was not achieved : numiter " << numiterations <<
-				" tol " << tol << endl;
-			}
-#ifdef PZ_LOG
-		{
-			std::stringstream sout;
-			sout << "Number of BiCGStab iterations " << numiterations << " tol = " << tol;
-			LOGPZ_DEBUG(logger,sout.str().c_str());
-		}
-#endif
+      name = "BiCGStab";
 			break;
 		case TPZStepSolver::EDirect:
 			result = F;
@@ -166,6 +154,12 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 			if(residual) mat->Residual(result,F,*residual);
 			
 	}
+  //iterative solver was used
+  if(name!="noname"){
+    fNumIterations = numiterations;
+    fTol = tol;
+    IterativeSolverPrint(name, mat->Rows(), numiterations,tol,fMaxIterations,reftol);
+  }
 }
 template<class TVar>
 void TPZStepSolver<TVar>::ResetSolver() {

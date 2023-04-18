@@ -17,10 +17,10 @@ static TPZLogger logger("pz.matrix.tpzmatred");
 using namespace std;
 
 template <class TVar>
-TPZMatrixSolver<TVar>::TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> > Refmat) :
+TPZMatrixSolver<TVar>::TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> > mat) :
 fScratch()
 {
-	fContainer = Refmat;
+	fContainer = mat;
 }
 
 template<class TVar>
@@ -47,14 +47,6 @@ void TPZMatrixSolver<TVar>::ResetMatrix()
 {
 	TPZAutoPointer<TPZMatrix<TVar> > reset;
 	fContainer = reset;
-}
-
-template <class TVar>
-void TPZMatrixSolver<TVar>::ShareMatrix(TPZMatrixSolver<TVar> &other)
-{
-	if (this == &other)
-		return;
-	fContainer = other.fContainer;
 }
 
 template <class TVar>

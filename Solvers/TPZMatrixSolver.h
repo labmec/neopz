@@ -39,10 +39,10 @@ public:
 
 	/**
 	 * @brief Constructor with initialization parameter
-	 * @param Refmat Sets reference matrix to `nullptr`
+	 * @param mat Matrix to be solved. Reference matrix is set to nullptr.
 	 */
 	
-	TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> >  Refmat);
+	TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> >  mat);
 	
 	TPZMatrixSolver();
 	
@@ -79,8 +79,9 @@ public:
 	/** @brief Updates the values of the current matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZBaseMatrix> mat_base)
 	{
-        auto matrix =
-            TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(mat_base);
+    auto matrix =
+      TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(mat_base);
+    //it wont update unless matrix unless it is the same as ref matrix
 		if (fReferenceMatrix == matrix && matrix)
 		{
 			if(this->fContainer) this->fContainer->UpdateFrom(matrix);
@@ -104,13 +105,7 @@ public:
     void ReallocMatrix() {
         fContainer.ReallocForNuma(0);
     }
-    
-	/**
-	 * @brief Shares the current matrix with another object of same type
-	 * @param other Object that will share current matrix
-	 */
-	void ShareMatrix(TPZMatrixSolver<TVar> & other);
-	
+  
     virtual MSolver Solver()
     {
         return ENoSolver;
@@ -128,14 +123,14 @@ public:
     
 protected:
     /** @brief Reference matrix used to update the current matrix */
-    TPZAutoPointer<TPZMatrix<TVar>> fReferenceMatrix;
+    TPZAutoPointer<TPZMatrix<TVar>> fReferenceMatrix{nullptr};
 
     /** @brief Manipulation matrix */
     TPZFMatrix<TVar> fScratch;
 
 private:
     /** @brief Container classes */
-    TPZAutoPointer<TPZMatrix<TVar>> fContainer;	
+    TPZAutoPointer<TPZMatrix<TVar>> fContainer{nullptr};	
 };
 
 extern template class TPZMatrixSolver<float>;

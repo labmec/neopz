@@ -28,17 +28,26 @@ class TPZGraphMesh;
 template <class TVar>
 class TPZMatrixSolver;
 
+/** @brief  Preconditioners which can be created by TPZAnalysis instances*/
+namespace Precond{
+  //! Preconditioner type
+  enum Type { Jacobi, BlockJacobi, Element, NodeCentered };
+  //! Preconditioner name
+  constexpr auto Name(Type p){
+    switch(p){
+    case Jacobi: return "Jacobi";
+    case BlockJacobi: return "BlockJacobi";
+    case Element: return "Element";
+    case NodeCentered: return "NodeCentered";
+    }
+  }
+}
+
 /**
  * @ingroup analysis
  * @brief Abstract class defining the interface for performing a Finite Element Analysis.*/
 class TPZAnalysis : public TPZSavable {
-	
-public:
-	
-	/** @brief  Preconditioners which can be created by objects of this class */
-	enum EPrecond { EJacobi, EBlockJacobi, EElement, ENodeCentered };
-	
-	
+
 protected:
 	/** @brief Geometric Mesh */
 	TPZGeoMesh *fGeoMesh{nullptr};
@@ -161,7 +170,7 @@ protected:
   /** @brief Define the type of preconditioner used */
 	/** This method will create the stiffness matrix but without assembling */
   template<class TVar>
-	TPZMatrixSolver<TVar> *BuildPreconditioner(EPrecond preconditioner, bool overlap);
+	TPZMatrixSolver<TVar> *BuildPreconditioner(Precond::Type preconditioner, bool overlap);
   /// deletes all data structures
   void CleanUp();
     
@@ -359,8 +368,8 @@ private:
 };
 extern template
 TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner<STATE>(
-    EPrecond preconditioner,bool overlap);
+    Precond::Type preconditioner,bool overlap);
 extern template
 TPZMatrixSolver<CSTATE> *TPZAnalysis::BuildPreconditioner<CSTATE>(
-    EPrecond preconditioner,bool overlap);
+    Precond::Type preconditioner,bool overlap);
 #endif

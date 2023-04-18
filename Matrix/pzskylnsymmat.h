@@ -112,7 +112,7 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
     
     
     /** @brief Updates the values of the matrix based on the values of the matrix */
-    virtual void UpdateFrom(TPZMatrix<TVar> &mat) override;
+    virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
 
   // Operadores com matrizes SKY LINE.
 

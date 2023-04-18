@@ -16,12 +16,14 @@
 #include "tpznodesetcompute.h"
 #include "pzstack.h"
 #include "pzblock.h"
+#include "TPZEquationFilter.h"
 #include <set>
 #include <map>
 #include <algorithm>
 #include <iterator>
 #include <fstream>
 #include "pzlog.h"
+#include "TPZSimpleTimer.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.nodesetcompute");
@@ -46,6 +48,7 @@ TPZNodesetCompute::~TPZNodesetCompute()
     */
 void TPZNodesetCompute::AnalyseGraph()
 {
+  TPZSimpleTimer analyse("AnalyseGraph");
   fMaxSeqNum = -1;
   fMaxLevel = -1;
   int64_t nnodes = fNodegraphindex.NElements()-1;
@@ -57,16 +60,21 @@ void TPZNodesetCompute::AnalyseGraph()
   fLevel.Fill(0);
   TPZVec<std::set<int64_t> > nodeset(nnodes);
   int64_t in;
+  int count{0};//for displaying info
+  const char* spinner = "-\\|/";
+  const int spin_len = 4;
   for(in=0; in<nnodes; in++) 
   {
 	  if(!(in%1000))
 	  {
-		  std::cout << "*";
+		  std::cout <<'\r'<<"TPZNodesetCompute::AnalyseGraph "<<spinner[count++%spin_len];
 		  std::cout.flush();
 	  }
 	  AnalyseNode(in,nodeset);
   }
-	std::cout << std::endl;
+  if(count > 0){
+    std::cout << '\r'<< "TPZNodesetCompute::AnalyseGraph done!"<<std::endl;
+  }
   
 }
 
@@ -112,7 +120,9 @@ void TPZNodesetCompute::AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &n
 			std::stringstream sout;
 			sout << "The level of " << node << " is increased because of " << othernode << " ";
 			sout << "Level of othernode " << fLevel[othernode] << " Seqnumber othernode " << fSeqNumber[othernode];
-			LOGPZ_DEBUG(logger,sout.str())
+      if(logger.isDebugEnabled()){
+        LOGPZ_DEBUG(logger,sout.str());
+      }
 		}
 #endif
     }
@@ -145,7 +155,9 @@ void TPZNodesetCompute::AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &n
 	{
 		std::stringstream sout;
 		sout << "Assigning Seq Number " << fMaxSeqNum << " and level " << minlevel << " to nodes " << node << " " << equalnodes;
-		LOGPZ_DEBUG(logger,sout.str())
+    if(logger.isDebugEnabled()){
+      LOGPZ_DEBUG(logger,sout.str());
+    }
 	}
 #endif
   fSeqCard.Push(1);
@@ -189,6 +201,7 @@ void TPZNodesetCompute::AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &n
 
 void TPZNodesetCompute::BuildNodeGraph(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex)
 {
+  TPZSimpleTimer timer("TPZNodesetCompute::BuildNodeGraph");
   int64_t nnodes = fSeqNumber.NElements();
   blockgraphindex.Resize(fSeqCard.NElements()+1);
   blockgraph.Resize(nnodes);
@@ -210,6 +223,7 @@ void TPZNodesetCompute::BuildNodeGraph(TPZVec<int64_t> &blockgraph, TPZVec<int64
 
 void TPZNodesetCompute::BuildVertexGraph(TPZStack<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex)
 {
+  TPZSimpleTimer timer("TPZNodesetCompute::BuildVertexGraph");
   std::map<int64_t,int64_t> vertices;
   int64_t nnodes = fSeqNumber.NElements();
   int64_t in;
@@ -297,7 +311,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " Original set of nodes ";
 		Print(sout,vertices,0);
-		LOGPZ_DEBUG(logger,sout.str())
+		if(logger.isDebugEnabled()){
+      LOGPZ_DEBUG(logger,sout.str());
+    }
 	}
 #endif
   for(intit = vertices.begin(); intit != vertices.end(); intit++)
@@ -317,7 +333,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 			std::stringstream sout;
 			sout << "Difference after taking the intersection with " << *intit;
 			Print(sout,diffset," Difference set");
-			LOGPZ_DEBUG(logger,sout.str())
+			if(logger.isDebugEnabled()){
+        LOGPZ_DEBUG(logger,sout.str());
+      }
 		}
 #endif
     // some unions need to be made before calling this method
@@ -338,7 +356,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 		{
 			std::stringstream sout;
 			Print(sout,diffset,"First set to be reanalised");
-			LOGPZ_DEBUG(logger,sout.str())
+			if(logger.isDebugEnabled()){
+        LOGPZ_DEBUG(logger,sout.str());
+      }
 		}
 #endif
       set_intersection(vertices.begin(),vertices.end(),locset.begin(),locset.end(),inserter(interset,interset.begin()));
@@ -346,7 +366,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 		{
 			std::stringstream sout;
 			Print(sout,interset,"Second set to be reanalised");
-			LOGPZ_DEBUG(logger,sout.str())
+			if(logger.isDebugEnabled()){
+        LOGPZ_DEBUG(logger,sout.str());
+      }
 		}
 #endif
       AnalyseForElements(diffset,elements);
@@ -374,7 +396,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 		  std::stringstream sout;
 		  sout << "Discarding a vertex set as incomplete";
 		  Print(sout,vertices,0);
-		  LOGPZ_DEBUG(logger,sout.str())
+		  if(logger.isDebugEnabled()){
+        LOGPZ_DEBUG(logger,sout.str());
+      }
 	  }
 #endif
   }
@@ -384,7 +408,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 	  {
 		  std::stringstream sout;
 		  Print(sout,elem,"Inserted element");
-		  LOGPZ_DEBUG(logger,sout.str())
+		  if(logger.isDebugEnabled()){
+        LOGPZ_DEBUG(logger,sout.str());
+      }
 	  }
 #endif
     elements.insert(elem);
@@ -393,11 +419,14 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 
 void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStack<int64_t> &blockgraphindex)
 {
+  TPZSimpleTimer timer("TPZNodesetCompute::BuildElementGraph");
 #ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " entering build element graph\n";
-		LOGPZ_DEBUG(logger,sout.str())
+		if(logger.isDebugEnabled()){
+      LOGPZ_DEBUG(logger,sout.str());
+    }
 	}
 #endif
   blockgraph.Resize(0);
@@ -415,7 +444,9 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStac
 		  std::stringstream sout;
 		  sout << "Nodeset for " << in << ' ';
 		  Print(sout,nodeset,"Nodeset");
-		  LOGPZ_DEBUG(logger,sout.str())
+		  if(logger.isDebugEnabled()){
+        LOGPZ_DEBUG(logger,sout.str());
+      }
 	  }
 #endif
     SubtractLowerNodes(in,nodeset);
@@ -423,7 +454,9 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStac
 		  {
 			  std::stringstream sout;
 			  Print(sout,nodeset,"LowerNodes result");
-			  LOGPZ_DEBUG(logger,sout.str())
+			  if(logger.isDebugEnabled()){
+          LOGPZ_DEBUG(logger,sout.str());
+        }
 		  }
 #endif
     AnalyseForElements(nodeset,elements);
@@ -449,7 +482,9 @@ void TPZNodesetCompute::SubtractLowerNodes(int64_t node, std::set<int64_t> &node
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__;
 		Print(sout,nodeset," Incoming nodeset");
-		LOGPZ_DEBUG(logger,sout.str())
+		if(logger.isDebugEnabled()){
+      LOGPZ_DEBUG(logger,sout.str());
+    }
 	}
 #endif
   for(it=nodeset.begin(); it != nodeset.end() && *it < node; it++)
@@ -464,7 +499,9 @@ void TPZNodesetCompute::SubtractLowerNodes(int64_t node, std::set<int64_t> &node
 	{
 		std::stringstream sout;
 		Print(sout,lownode," What is left after substracting the influence of lower numbered nodes ");
-		LOGPZ_DEBUG(logger,sout.str())
+		if(logger.isDebugEnabled()){
+      LOGPZ_DEBUG(logger,sout.str());
+    }
 	}
 #endif
   unionset.clear();
@@ -481,7 +518,9 @@ void TPZNodesetCompute::SubtractLowerNodes(int64_t node, std::set<int64_t> &node
 	{
 		std::stringstream sout;
 		Print(sout,lownode," Resulting lower nodeset");
-		LOGPZ_DEBUG(logger,sout.str())
+		if(logger.isDebugEnabled()){
+      LOGPZ_DEBUG(logger,sout.str());
+    }
 	}
 #endif
   nodeset = lownode;
@@ -528,6 +567,7 @@ void TPZNodesetCompute::Print(std::ostream &file, const std::set<int64_t> &nodes
 void TPZNodesetCompute::ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZBlock &block,
     TPZVec<int64_t> &expgraph, TPZVec<int64_t> &expgraphindex)
 {
+  TPZSimpleTimer timer("TPZNodesetCompute::ExpandGraph");
   int64_t expgraphsize = 0;
   int64_t nbl = graph.NElements();
   expgraphindex.Resize(graphindex.NElements());
@@ -559,6 +599,51 @@ void TPZNodesetCompute::ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &gra
     if(expgraphindex[blcounter] != counter) expgraphindex[++blcounter] = counter;
   }
   expgraphindex.Resize(blcounter+1);
+}
+
+void TPZNodesetCompute::FilterGraph(TPZVec<int64_t> &ebg, TPZVec<int64_t> &ebgindex,
+                                    TPZEquationFilter &eqfilt, TPZVec<int64_t> &newgraph,
+                                    TPZVec<int64_t> &newgraphindex)
+{
+  
+  const auto nblocks = ebgindex.size()-1;
+  /*
+    we avoid resizing it for now, but fill with -1
+    for easier error checking
+  */
+  newgraph.Fill(-1);
+  newgraphindex.Fill(0);
+
+  int64_t indexcount = 0, blcount = 0;
+  for(auto ibl = 0; ibl < nblocks; ibl++){
+        
+    /*
+      the prefix o will stand for old (before eq filter),
+      and n for new (after eq filter).
+    */
+    const int ofirst = ebgindex[ibl];
+    const int olast = ebgindex[ibl+1];
+    const int oneqbl = olast - ofirst;
+    TPZVec<int64_t> orig(oneqbl), filt(oneqbl);
+    for(auto i = 0; i < oneqbl; i++){
+      orig[i]=filt[i]=ebg[ofirst+i];
+    }
+    eqfilt.Filter(orig,filt);
+    const int nneqbl = filt.size();
+    //check for empty block
+    if(nneqbl){
+      newgraphindex[blcount] = indexcount;
+      for(int ieq = 0; ieq < nneqbl; ieq++){
+        newgraph[indexcount+ieq] = filt[ieq];
+      }
+      indexcount += nneqbl;
+      newgraphindex[blcount+1] = indexcount;
+      blcount++;
+    }
+  }
+  auto lasteq = newgraphindex[blcount];
+  newgraphindex.Resize(blcount+1);
+  newgraph.Resize(lasteq);
 }
 
   /**

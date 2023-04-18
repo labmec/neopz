@@ -3,6 +3,7 @@
 #include "Hash/TPZHash.h"
 #include "TPZMatrixSolver.h"
 #include "TPZSkylineNSymStructMatrix.h"    // for TPZSkylineNSymStructMatrix
+#include "TPZSpStructMatrix.h"             // for  TPZSpStructMatrix
 #include "pzstepsolver.h"
 #include "pzdxmesh.h"                      // for TPZDXGraphMesh
 #include "pzlog.h"
@@ -54,9 +55,16 @@ void TPZLinearAnalysis::AssembleT()
     return;
   }
   if(!this->fStructMatrix){
-    std::cout<<"Setting default struct matrix: skyline(non-symmetric)"<<std::endl;
-    TPZSkylineNSymStructMatrix<TVar> defaultMatrix(fCompMesh);
-    this->SetStructuralMatrix(defaultMatrix);
+    std::cout<<"Setting default struct matrix: ";
+    TPZAutoPointer<TPZStructMatrix> str{nullptr};
+#if defined(USING_MKL) || defined(USING_EIGEN)
+    std::cout<<"sparse(non-symmetric)"<<std::endl;
+    str = new TPZSpStructMatrix<TVar>(fCompMesh);
+#else
+    std::cout<<"skyline(non-symmetric)"<<std::endl;
+    str = new TPZSkylineNSymStructMatrix<TVar>(fCompMesh);
+#endif
+    this->SetStructuralMatrix(str);
   }
   if(!fSolver){
     std::cout<<"Setting default solver: LU"<<std::endl;
@@ -89,8 +97,6 @@ void TPZLinearAnalysis::AssembleT()
         LOGPZ_DEBUG(logger,sout.str())
     }
 #endif
-    
-	mySolver->UpdateFrom(mySolver->Matrix());
 }
 
 void TPZLinearAnalysis::AssembleResidual()
@@ -254,7 +260,7 @@ void TPZLinearAnalysis::AnimateRunT(
   auto mySolver = dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
 	for(auto i=1; i<=num_iter;i+=steps){
 		TPZStepSolver<TVar> sol;
-		sol.ShareMatrix(*mySolver);
+    sol.SetMatrix(mySolver->Matrix());
 		sol.SetJacobi(i,0.,0);
 		SetSolver(sol);
 		mySolver->Solve(fRhs, fSolution);

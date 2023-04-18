@@ -81,6 +81,10 @@ void TPZBlockDiagonal<TVar>::Initialize(const TPZVec<int> &blocksize){
 	for(b=0; b<nblock; b++) {
 		bsize = blocksize[b];
 		fBlockPos[b+1] = fBlockPos[b]+bsize*bsize;
+		//position doesnt matter if blocksize is zero,
+		//and this will avoid runtime errors if zero sized blocks are at
+		//the end of block list
+		if(bsize==0){fBlockPos[b] = 0;}
 		ndata += bsize*bsize;
 		neq += bsize;
 	}
@@ -558,9 +562,9 @@ void TPZBlockDiagonal<TVar>::Print(const char *msg, std::ostream &out, const Mat
  * Updates the values of the matrix based on the values of the matrix
  */
 template<class TVar>
-void TPZBlockDiagonal<TVar>::UpdateFrom(TPZMatrix<TVar> &mat)
+void TPZBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 {
-	if(!&mat) 
+	if(!mat) 
 	{
 		cout << "TPZBlockDiagonal::UpdateFrom" << " called with zero argument\n";
 		return;
@@ -570,11 +574,13 @@ void TPZBlockDiagonal<TVar>::UpdateFrom(TPZMatrix<TVar> &mat)
 	int64_t b,bsize,pos,firsteq = 0;
 	for(b=0; b<nblock; b++) {
 		bsize = fBlockSize[b];
-		//    int r,c;
-		pos = fBlockPos[b];
-		TPZFMatrix<TVar> block(bsize,bsize,&fStorage[pos],bsize*bsize);
-		mat.GetSub(firsteq,firsteq,bsize,bsize,block);
-		firsteq += bsize;
+		if(bsize){
+			//    int r,c;
+			pos = fBlockPos[b];
+			TPZFMatrix<TVar> block(bsize,bsize,&fStorage[pos],bsize*bsize);
+			mat->GetSub(firsteq,firsteq,bsize,bsize,block);
+			firsteq += bsize;
+		}
 	}
 }
 

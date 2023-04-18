@@ -20,6 +20,7 @@
 #include <set>
 
 class TPZBlock;
+class TPZEquationFilter;
 
 /**
  * @brief Computes the cardinality of a nodegraph, identifying nodes as vertices, lines, faces or volumes. \ref util "Utility"
@@ -52,6 +53,9 @@ public:
 	/** @brief Expand the graph acording to the block structure */
 	static void ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZBlock &block,
 							TPZVec<int64_t> &expgraph, TPZVec<int64_t> &expgraphindex);
+	/** @brief Filter the graph according to a given equation filter*/
+	static void FilterGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZEquationFilter &eqfilt,
+							TPZVec<int64_t> &newgraph, TPZVec<int64_t> &newgraphindex);
 	/** @brief Color the graph into mutually independent blocks */
 	static int ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq,
 						  TPZVec<int> &colors);
