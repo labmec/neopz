@@ -50,23 +50,6 @@ void TPZMatrixSolver<TVar>::ResetMatrix()
 }
 
 template <class TVar>
-void TPZMatrixSolver<TVar>::ShareMatrix(TPZMatrixSolver<TVar> &other)
-{
-	if (this == &other)
-		return;
-#ifdef PZDEBUG
-  if(this->fContainer == nullptr){
-    PZError<<__PRETTY_FUNCTION__
-           <<"\nTrying to share null matrix."
-           <<"\nProbably something wrong is going on."
-           <<"\nAborting..."<<std::endl;
-    DebugStop();
-  }
-#endif
-	other.fContainer = this->fContainer;
-}
-
-template <class TVar>
 void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
 #ifdef PZ_LOG
     {
