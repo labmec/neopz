@@ -260,7 +260,7 @@ void TPZLinearAnalysis::AnimateRunT(
   auto mySolver = dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
 	for(auto i=1; i<=num_iter;i+=steps){
 		TPZStepSolver<TVar> sol;
-		sol.ShareMatrix(*mySolver);
+    sol.SetMatrix(mySolver->Matrix());
 		sol.SetJacobi(i,0.,0);
 		SetSolver(sol);
 		mySolver->Solve(fRhs, fSolution);
