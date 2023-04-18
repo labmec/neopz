@@ -192,6 +192,8 @@ constexpr auto SymPropName(SymProp sp){
   case SymProp::Sym: return "Sym";
   case SymProp::Herm: return "Herm";
   }
+  //avoids compiler warning
+  unreachable();
 }
 
 /** @} */

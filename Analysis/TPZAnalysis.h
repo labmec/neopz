@@ -40,6 +40,8 @@ namespace Precond{
     case Element: return "Element";
     case NodeCentered: return "NodeCentered";
     }
+    unreachable();
+    return "ERROR";
   }
 }
 

@@ -73,6 +73,7 @@ public:
     case Type::vec: return "VECTORS";
     case Type::tens: return "TENSORS";
     }
+    unreachable();
   }
   
   int Dimension() const {
@@ -81,6 +82,7 @@ public:
     case Type::vec: return 3;
     case Type::tens: return 9;
     }
+    unreachable();
   }
   void SetName(std::string name) { fName = name; }
   std::string Name() const{ return fName; }

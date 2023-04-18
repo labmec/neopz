@@ -79,6 +79,7 @@ TEST_CASE("test_matriz_rigidez_cubo","[material_tests]")
 		case SymProp::Sym: return "Sym";
 		case SymProp::Herm: return "Herm";
 		}
+		unreachable();//silences compiler warning on gcc
 	}();
 	std::cout << str_sp << std::endl;
 	REQUIRE(sp!=SymProp::NonSym);		// Verify the symmetry of the stiffness matrix

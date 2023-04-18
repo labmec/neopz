@@ -250,6 +250,7 @@ TPZGeoMesh *TPZGeoMeshTools::CreateGeoMeshSingleEl(const MMeshType meshType,
     case MMeshType::ENoType:
       return nullptr;
     }
+    unreachable();
   }();
   return gmesh;
 }

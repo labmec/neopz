@@ -72,6 +72,7 @@ constexpr const char* HDivFamilyToChar(HDivFamily hdivfam) {
         case HDivFamily::EHDivKernel: return "EHDivKernel";
         default: std::invalid_argument("Unimplemented item");
     }
+    return "Unimplemented item";//silences compiler warning on gcc
 }
 constexpr const char* HybridizationTypeToChar(HybridizationType hType) {
     switch (hType){
@@ -81,6 +82,7 @@ constexpr const char* HybridizationTypeToChar(HybridizationType hType) {
         case HybridizationType::ESemi: return "ESemi";
         default: std::invalid_argument("Unimplemented item");
     }
+    return "Unimplemented item";//silences compiler warning on gcc
 }
 constexpr const char* ProblemTypeToChar(ProblemType ptype) {
     switch (ptype){
@@ -90,6 +92,7 @@ constexpr const char* ProblemTypeToChar(ProblemType ptype) {
         case ProblemType::ENone: return "ENone";
         default: std::invalid_argument("Unimplemented item");
     }
+    return "Unimplemented item";//silences compiler warning on gcc
 }
 
 auto exactSolDarcy = [](const TPZVec<REAL> &loc,

@@ -602,6 +602,7 @@ bool TPZVTKGenerator::IsValidEl(TPZCompEl *cel)
     case ENoType: /*17*/	
       return false;
     }
+  return false;
 }
 
 void TPZVTKGenerator::Do(REAL time)

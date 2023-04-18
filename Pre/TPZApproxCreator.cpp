@@ -350,6 +350,7 @@ void TPZApproxCreator::Print(std::ostream &ofs){
                 return "ESemi";
             default:
                 DebugStop();
+                return "garbage";//avoids compiler warning on gcc
         }
     }(this->fHybridType);
 
@@ -365,6 +366,7 @@ void TPZApproxCreator::Print(std::ostream &ofs){
                 return "EStokes";
             default:
                 DebugStop();
+                return "garbage";//avoids compiler warning on gcc
         }
     }(this->fProbType);
 

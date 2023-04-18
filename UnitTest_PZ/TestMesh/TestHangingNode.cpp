@@ -93,6 +93,8 @@ constexpr const char* STypeToChar(SpaceType stype) {
     case SpaceType::EHCurlNoGrads: return "EHCurlNoGrads";
     default: std::invalid_argument("Unimplemented item");
   }
+  DebugStop();
+  return "Unimplemented item";
 }
 
 // Test Hanging Nodes: FOR DEBUGGING PURPOSES
