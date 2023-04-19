@@ -1313,6 +1313,7 @@ int TPZFMatrix<std::complex<double>>::Decompose_LU(TPZVec<int> &index) {
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LU(TPZVec<int> &index) {
     
+    if (this->fDecomposed == ELUPivot) return 1;
     if (this->fDecomposed) return 0;
     
     if ( this->Rows() != this->Cols() ) {
