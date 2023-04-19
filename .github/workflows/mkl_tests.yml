@@ -1,5 +1,10 @@
 name: Run Unit Tests with MKL
-on: [push]
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches: [main, develop]
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
