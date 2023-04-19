@@ -564,24 +564,31 @@ void TPZBlockDiagonal<TVar>::Print(const char *msg, std::ostream &out, const Mat
 template<class TVar>
 void TPZBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 {
-	if(!mat) 
-	{
-		cout << "TPZBlockDiagonal::UpdateFrom" << " called with zero argument\n";
-		return;
-	}
-	this->fDecomposed = ENoDecompose;
-	int64_t nblock = fBlockSize.NElements();
-	int64_t b,bsize,pos,firsteq = 0;
-	for(b=0; b<nblock; b++) {
-		bsize = fBlockSize[b];
-		if(bsize){
-			//    int r,c;
-			pos = fBlockPos[b];
-			TPZFMatrix<TVar> block(bsize,bsize,&fStorage[pos],bsize*bsize);
-			mat->GetSub(firsteq,firsteq,bsize,bsize,block);
-			firsteq += bsize;
-		}
-	}
+  if(!mat)
+  {
+    cout << "TPZBlockDiagonal::UpdateFrom" << " called with zero argument\n";
+    return;
+  }
+  TPZMatrix<TVar>& matref = mat;
+  UpdateFrom(matref);
+}
+
+template<class TVar>
+void TPZBlockDiagonal<TVar>::UpdateFrom(TPZMatrix<TVar>& matref)
+{
+  this->fDecomposed = ENoDecompose;
+  int64_t nblock = fBlockSize.NElements();
+  int64_t b,bsize,pos,firsteq = 0;
+  for(b=0; b<nblock; b++) {
+    bsize = fBlockSize[b];
+    if(bsize){
+      //    int r,c;
+      pos = fBlockPos[b];
+      TPZFMatrix<TVar> block(bsize,bsize,&fStorage[pos],bsize*bsize);
+      matref.GetSub(firsteq,firsteq,bsize,bsize,block);
+      firsteq += bsize;
+    }
+  }
 }
 
 /** Fill the matrix with random values (non singular matrix) */

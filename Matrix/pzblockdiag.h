@@ -138,6 +138,8 @@ public:
 	
 	/** @brief Updates the values of the matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
+  
+  void UpdateFrom(TPZMatrix<TVar>& mat);
 	
 	/** @brief This method checks the working of the class */
 	static int main();
