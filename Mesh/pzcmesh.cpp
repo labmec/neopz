@@ -1601,12 +1601,8 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum, std::s
 	}
 	
 	int64_t nerrors = errorSum.NElements();
-    std::cout << __PRETTY_FUNCTION__ << " DELETE THIS!!!\n";
-    for(int64_t ii = 0; ii < nerrors; ii++) {
-        if(ii < 7) {
-            errorSum[ii] = sqrt(errorSum[ii]);
-        }
-    }
+	for(int64_t ii = 0; ii < nerrors; ii++)
+		errorSum[ii] = sqrt(errorSum[ii]);
 }
 
 void TPZCompMesh::AdjustBoundaryElements() {
