@@ -119,6 +119,14 @@ TPZPardisoSolver<TVar> *TPZMatrixSolver<TVar>::GetPardisoControl(){
   }
   return nullptr;
 }
+#else
+template<class TVar>
+TPZPardisoSolver<TVar> *TPZMatrixSolver<TVar>::GetPardisoControl(){
+  std::cout<<__PRETTY_FUNCTION__
+           <<"\nNeoPZ was not configured with MKL!"
+           <<std::endl;
+  return nullptr;
+}
 #endif
 
 template class TPZMatrixSolver<float>;

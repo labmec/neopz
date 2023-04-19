@@ -116,10 +116,8 @@ public:
     void Write(TPZStream &buf, int withclassid) const override;
     void Read(TPZStream &buf, void *context) override;
 
-#ifdef USING_MKL
     //!Returns nullptr if not applicable (non-sparse matrix or matrix not set)
     virtual TPZPardisoSolver<TVar> *GetPardisoControl();
-#endif
     
 protected:
     /** @brief Reference matrix used to update the current matrix */

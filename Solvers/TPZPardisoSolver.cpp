@@ -6,7 +6,6 @@
 //
 //
 
-#ifdef USING_MKL
 #include "TPZPardisoSolver.h"
 
 #include "TPZSYSMPPardiso.h"
@@ -65,6 +64,8 @@ void TPZPardisoSolver<TVar>::FreePardisoMemory()
     }
     fPardisoInitialized = false;
     mkl_verbose(0);
+#else
+    NOMKL
 #endif
 }
 
@@ -530,4 +531,3 @@ template class TPZPardisoSolver<float>;
 template class TPZPardisoSolver<std::complex<float>>;
 template class TPZPardisoSolver<std::complex<double>>;
 template class TPZPardisoSolver<std::complex<long double>>;
-#endif
