@@ -143,7 +143,6 @@ public:
   //! Resets Matrices
   void ResetMatrix() override;
 
-#ifdef USING_MKL
   /** @name Pardiso*/
   /** @{*/
   //!Gets PARDISO control of Matrix A
@@ -156,13 +155,10 @@ public:
   virtual TPZPardisoSolver<TVar> *GetPardisoControlB(){
     return GetPardisoControl(fMatrixB);
   }
-#endif
   /** @}*/
 protected:
     
-#ifdef USING_MKL
   TPZPardisoSolver<TVar> *GetPardisoControl(TPZAutoPointer<TPZMatrix<TVar>> mat);
-#endif
   /**
      @brief Sort the calculated eigenvalues and return a vector with
      size given by the NEigenvalues() method
