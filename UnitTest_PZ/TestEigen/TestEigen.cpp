@@ -9,13 +9,13 @@
 #include <Accelerate/Accelerate.h>
 #endif
 
-#ifdef USING_EIGEN
+#ifdef PZ_USING_EIGEN
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 #endif
 #include <vector>
 #include <iostream>
-#ifdef USING_EIGEN
+#ifdef PZ_USING_EIGEN
 #include "TPZEigenSparseMatrix.h"
 #endif
 #include "TPZGeoMeshTools.h"
@@ -36,7 +36,7 @@
 #include <Eigen/AccelerateSupport>
 #endif
 
-#ifdef USING_EIGEN
+#ifdef PZ_USING_EIGEN
 typedef Eigen::SparseMatrix<double,0,long long> SpMat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> T;
 #endif
@@ -97,7 +97,7 @@ int main(){
 
 #endif
 
-#ifdef USING_EIGEN
+#ifdef PZ_USING_EIGEN
 void buildProblem(std::vector<T>& coefficients, Eigen::VectorXd& b, int n)
 {
 #ifndef RUNWITHMAIN
@@ -126,7 +126,7 @@ void buildProblem(std::vector<T>& coefficients, Eigen::VectorXd& b, int n)
 
 void InvertUsingEigen()
 {
-#ifdef USING_EIGEN
+#ifdef PZ_USING_EIGEN
     std::cout << "We re all happy\n";
     int n = 3;  // size of the image
    
@@ -153,7 +153,7 @@ void InvertUsingEigen()
 
 void CreateSparse()
 {
-#ifdef USING_EIGEN
+#ifdef PZ_USING_EIGEN
     long long ia[] = {0,1,3};
     long long ja[] = {0,0,1};
     double val[] = {1.,0.,2.};
@@ -171,7 +171,7 @@ void CreateSparse()
 
 void AccelerateSparse()
 {
-#ifdef USING_EIGEN
+#ifdef PZ_USING_EIGEN
     long long ia[] = {0,1,3};
     long long ja[] = {0,0,1};
     double val[] = {1.,0.,2.};
@@ -189,7 +189,7 @@ void AccelerateSparse()
 }
 
 void TestSparseClass() {
-#ifdef USING_EIGEN
+#ifdef PZ_USING_EIGEN
     const int64_t nrows = 2;
     int64_t ia[] = {0,1,3};
     int64_t ja[] = {0,0,1};
@@ -380,7 +380,7 @@ void TestAppleAccelerate() {
 }
 
 void TestSparseMatrixOperations() {
-#ifdef USING_EIGEN
+#ifdef PZ_USING_EIGEN
     const int nrows = 2;
     long long ia[] = {0,1,3};
     long long ja[] = {0,0,1};
