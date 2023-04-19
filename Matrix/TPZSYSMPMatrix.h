@@ -139,6 +139,7 @@ public :
         /** @brief decompose the system of equations acording to the decomposition
          * scheme */
         virtual int Decompose(const DecomposeType dt) override {
+            std::cout << "ERROR! Trying to Decompose base class TPZSYSMPMatrix. To do so, you should use one of its child classes." << std::endl;
             DebugStop();
             return 0;
         }
@@ -149,10 +150,12 @@ public :
          */
         virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override
         {
+            std::cout << "ERROR! Trying to SolveDirect on base class TPZSYSMPMatrix. To do so, you should use one of its child classes." << std::endl;
             DebugStop();
             return 0;
         }
         virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
+            std::cout << "ERROR! Trying to SolveDirect on base class TPZSYSMPMatrix. To do so, you should use one of its child classes." << std::endl;
             DebugStop();
             return 0;
         }
