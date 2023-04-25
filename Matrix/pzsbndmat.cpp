@@ -53,6 +53,7 @@ void TPZSBMatrix<TVar>::SetSymmetry (SymProp sp){
                <<"Aborting..."<<std::endl;
         DebugStop();
     }
+    TPZBaseMatrix::SetSymmetry(sp);
 }
 
 /** Fill the matrix with random values (non singular matrix) */
