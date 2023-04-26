@@ -1472,7 +1472,8 @@ int TPZMatrix<TVar>::Inverse(TPZFMatrix<TVar>&Inv, DecomposeType dec){
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
 void TPZMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym) {
-    Resize(nrow,ncol);
+  Resize(nrow,ncol);
+  this->SetSymmetry(sym);  
 	int64_t i, j;
 	TVar val, sum;
 	/** Fill data */
