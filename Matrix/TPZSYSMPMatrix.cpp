@@ -310,6 +310,7 @@ void TPZSYsmpMatrix<TVar>::SetSymmetry (SymProp sp){
                <<"Aborting..."<<std::endl;
         DebugStop();
     }
+    TPZBaseMatrix::SetSymmetry(sp);
 }
 
 /** @brief Fill matrix storage with randomic values */

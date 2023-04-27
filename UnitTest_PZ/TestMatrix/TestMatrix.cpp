@@ -1124,6 +1124,52 @@ TEMPLATE_TEST_CASE("Additional Block Diagonal tests","[matrix_tests]",
     testmatrix::SparseBlockDiagInverse<TestType>();
   }
 }
+TEMPLATE_TEST_CASE("Symmetry test","[matrix_tests]",
+                   TPZSFMatrix<CSTATE>,
+                   TPZSBMatrix<CSTATE>,
+                   TPZSkylMatrix<CSTATE>,
+                   TPZSYsmpMatrix<CSTATE>){
+  constexpr int nrows = 3;
+  TPZAutoPointer<TPZMatrix<CSTATE>> mat{nullptr};
+  if constexpr(std::is_same_v<TestType,TPZSFMatrix<CSTATE>>){
+    auto mymat = new TPZSFMatrix<CSTATE>(nrows);
+    mat = mymat;
+  } else if constexpr(std::is_same_v<TestType,TPZSBMatrix<CSTATE>>){
+    constexpr int band = 2;
+    auto mymat = new TPZSBMatrix<CSTATE>(nrows,band);
+    mat = mymat;
+  } else if constexpr(std::is_same_v<TestType,TPZSkylMatrix<CSTATE>>){
+    auto mymat = new TPZSkylMatrix<CSTATE>(nrows);
+    TPZVec<int64_t> skylvec(nrows,0);
+    mymat->SetSkyline(skylvec);
+    mat = mymat;
+  } else if constexpr(std::is_same_v<TestType,TPZSYsmpMatrix<CSTATE>>){
+    auto mymat = new TPZSYsmpMatrix<CSTATE>(nrows,nrows);
+    TPZVec<int64_t> ia = {0,3,5,6}, ja = {0,1,2,1,2,2};
+    TPZVec<CSTATE> aa = {0,0,0,0,0,0};
+    mymat->SetData(ia,ja,aa);
+    mat = mymat;
+  }else {
+    constexpr bool validType{false};
+    REQUIRE(validType);
+  }
+  SECTION("Symmetric"){
+    mat->SetSymmetry(SymProp::Sym);
+    REQUIRE(mat->GetSymmetry() == SymProp::Sym);
+    const auto val = CSTATE(0,1);
+    mat->PutVal(2,0,val);
+    auto cval = mat->GetVal(0,2);
+    REQUIRE(val == cval);
+  }
+  SECTION("Hermitian"){
+    mat->SetSymmetry(SymProp::Herm);
+    REQUIRE(mat->GetSymmetry() == SymProp::Herm);
+    const auto val = CSTATE(0,1);
+    mat->PutVal(2,0,val);
+    auto cval = mat->GetVal(0,2);
+    REQUIRE(val == std::conj(cval));
+  }
+}
 #endif
 
 

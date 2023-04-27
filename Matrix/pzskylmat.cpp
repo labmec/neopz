@@ -264,8 +264,15 @@ TPZSkylMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & value )
 {
 	// inicializando row e col para trabalhar com a triangular superior
 	int64_t row(r),col(c);
-	if ( row > col )
+  TVar val = value;
+	if ( row > col ){
 		this->Swap( &row, &col );
+    if constexpr (is_complex<TVar>::value){
+      if(this->fSymProp == SymProp::Herm){
+        val = std::conj(value);
+      }
+    }
+  }
 	
 	// Indice do vetor coluna.
 	int64_t index = col - row;
@@ -276,7 +283,7 @@ TPZSkylMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & value )
 		cout.flush();
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Index out of range");
 	} else if(index >= Size(col)) return 1;
-	fElem[col][index] = value;
+	fElem[col][index] = val;
 	//  delete[]newVet;
 	return( 1 );
 }
@@ -1792,6 +1799,7 @@ void TPZSkylMatrix<TVar>::SetSymmetry (SymProp sp){
                <<"Aborting..."<<std::endl;
         DebugStop();
     }
+    TPZBaseMatrix::SetSymmetry(sp);
 }
 
 template <class TVar>

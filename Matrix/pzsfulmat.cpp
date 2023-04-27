@@ -41,7 +41,7 @@ TPZMatrix<TVar>( dim, dim )
 template<class TVar>
 TPZSFMatrix<TVar> ::TPZSFMatrix (const TPZSFMatrix<TVar>  & A)
 : TPZRegisterClassId(&TPZSFMatrix::ClassId),
-TPZMatrix<TVar> ( A.Dim(), A.Dim() )
+TPZMatrix<TVar> ( A )
 {
     int64_t size = Size();
 	fElem = new TVar[size] ;
@@ -108,6 +108,7 @@ void TPZSFMatrix<TVar>::SetSymmetry (SymProp sp){
                <<"Aborting..."<<std::endl;
         DebugStop();
     }
+		TPZBaseMatrix::SetSymmetry(sp);
 }
 
 
@@ -126,7 +127,7 @@ TPZSFMatrix<TVar> ::operator=(const TPZSFMatrix<TVar>  &A )
 		if ( fElem == NULL )
 			TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Operator= <memory allocation error>." );
     }
-	
+	this->fSymProp = A.fSymProp;
 	this->fRow = this->fCol =  A.Dim();
 	
 	// Copia a matriz
@@ -167,6 +168,7 @@ TPZSFMatrix<TVar> ::operator+(const TPZSFMatrix<TVar>  &A ) const
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Operator+ <matrixs with different dimensions>" );
 	
 	TPZSFMatrix<TVar>  res( this->Dim() );
+	res.SetSymmetry(this->GetSymmetry());
 	TVar *pm  = fElem;
 	TVar *pa  = A.fElem;
 	TVar *pr  = res.fElem;

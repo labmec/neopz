@@ -255,12 +255,17 @@ template<class TVar>
 inline int
 TPZSFMatrix<TVar> ::PutVal(const int64_t row,const int64_t col,const TVar &value )
 {
-	int64_t locrow = row, loccol = col;
-	if ( locrow < loccol )
-		this->Swap( &locrow, &loccol );
+  int64_t locrow = row, loccol = col;
+  TVar val = value;
+  if ( locrow < loccol ){
+    this->Swap( &locrow, &loccol );
+    if constexpr (is_complex<TVar>::value){
+      if(this->GetSymmetry() == SymProp::Herm){ val = std::conj(value);}
+    }
+  }
 	
-	this->fElem[ ((locrow*(locrow+1)) >> 1) + loccol ] = value;
-	return( 1 );
+  this->fElem[ ((locrow*(locrow+1)) >> 1) + loccol ] = val;
+  return( 1 );
 }
 
 /**************/
@@ -269,15 +274,19 @@ template<class TVar>
 inline const TVar 
 TPZSFMatrix<TVar> ::GetVal(const int64_t row,const int64_t col ) const
 {
-	if ( row < col ){
-        if constexpr (is_complex<TVar>::value){
-            return( std::conj(fElem[ ((col*(col+1)) >> 1) + row ]) );
-        }else{
-            return( fElem[ ((col*(col+1)) >> 1) + row ] );
-        }
+  if ( row < col ){
+    if constexpr (is_complex<TVar>::value){
+      if(this->GetSymmetry() == SymProp::Herm){
+        return( std::conj(fElem[ ((col*(col+1)) >> 1) + row ]) );
+      }else{
+        return(fElem[ ((col*(col+1)) >> 1) + row ]);
+      }
+    }else{
+      return( fElem[ ((col*(col+1)) >> 1) + row ] );
     }
+  }
 	
-	return( fElem[ ((row*(row+1)) >> 1) + col ] );
+  return( fElem[ ((row*(row+1)) >> 1) + col ] );
 }
 
 /**************************/

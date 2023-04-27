@@ -10,6 +10,7 @@ void TPZBaseMatrix::SetSymmetry(SymProp sp){
            <<"Aborting..."<<std::endl;
     DebugStop();
   }
+  fSymProp = sp;
 }
 void TPZBaseMatrix::Read(TPZStream &buf, void *context){
   buf.Read(&fRow);
