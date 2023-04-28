@@ -14,6 +14,7 @@
 #include "TPZSSpStructMatrix.h"
 #include "pzfstrmatrix.h"
 #include "TPZVTKGenerator.h"
+#include "TPZSimpleTimer.h"
 #include <iostream>
 
 
@@ -42,6 +43,9 @@ namespace testiterative{
   void
   FilterBoundaryEquations(TPZCompMesh * cmesh,
                           TPZVec<int64_t> &activeEquations);
+  constexpr int niter_wo_eqfilt{40};
+  constexpr int niter{40};
+  constexpr STATE tol{std::numeric_limits<STATE>::epsilon() * 10000};
 }
 
 TEST_CASE("Poisson equation","[iterative_testss]") {
@@ -73,15 +77,14 @@ TEST_CASE("Poisson equation","[iterative_testss]") {
   solver->Matrix()->SetDefPositive(true);
 
 
-
-  constexpr int niter{40};
-  constexpr REAL tol{1e-12};
   constexpr int64_t fromCurrent{0};
   SECTION("Identity matrix as precond"){
     std::cout<<"testing identity matrix as a precond"<<std::endl;
     bool success = false;
     TPZIdentitySolver<STATE> pre;
-    solver->SetCG(niter, pre, tol, fromCurrent);
+    solver->SetGMRES(testiterative::niter_wo_eqfilt,
+                     testiterative::niter_wo_eqfilt, pre,
+                     testiterative::tol, fromCurrent);
     an.Solve();
     success = true;
     REQUIRE(success);
@@ -93,12 +96,14 @@ TEST_CASE("Poisson equation","[iterative_testss]") {
     //we use a direct solver as a precond
     TPZStepSolver<STATE> pre(mtrxcp);
     pre.SetDirect(ECholesky);
-    solver->SetCG(niter, pre, tol, fromCurrent);
+    solver->SetGMRES(testiterative::niter,
+                     testiterative::niter, pre,
+                     testiterative::tol, fromCurrent);
     an.Solve();
     const auto niter_res = solver->NumIterations();
     REQUIRE(niter_res == 1);
     const auto tol_res = solver->GetTolerance();
-    REQUIRE(tol_res <= tol);
+    REQUIRE(tol_res <= testiterative::tol);
   }
 
   auto pre_type = GENERATE(Precond::Jacobi,
@@ -115,10 +120,12 @@ TEST_CASE("Poisson equation","[iterative_testss]") {
       an.BuildPreconditioner<STATE>(pre_type, overlap);
     const bool created_precond = pre;
     REQUIRE(created_precond);
-    solver->SetCG(niter, *pre, tol, fromCurrent);
+    solver->SetGMRES(testiterative::niter_wo_eqfilt,
+                     testiterative::niter_wo_eqfilt,
+                     *pre, testiterative::tol, fromCurrent);
     an.Solve();
     const auto tol_res = solver->GetTolerance();
-    REQUIRE(tol_res <= tol);
+    REQUIRE(tol_res <= testiterative::tol);
   }
   Catch::StringMaker<STATE>::precision = oldPrecision;
 }
@@ -151,8 +158,6 @@ TEST_CASE("Equation filter and precond","[iterative_testss]") {
   solver->Matrix()->SetDefPositive(true);
 
 
-  constexpr int niter{20};
-  constexpr REAL tol{1e-12};
   constexpr int64_t fromCurrent{0};
   SECTION("Exact inverse as precond"){
     std::cout<<"testing exact inverse as precond"<<std::endl;
@@ -161,12 +166,13 @@ TEST_CASE("Equation filter and precond","[iterative_testss]") {
     //we use a direct solver as a precond
     TPZStepSolver<STATE> pre(mtrxcp);
     pre.SetDirect(ECholesky);
-    solver->SetCG(niter, pre, tol, fromCurrent);
+    solver->SetGMRES(testiterative::niter, testiterative::niter, pre,
+                     testiterative::tol, fromCurrent);
     an.Solve();
     const auto niter_res = solver->NumIterations();
     REQUIRE(niter_res == 1);
     const auto tol_res = solver->GetTolerance();
-    REQUIRE(tol_res <= tol);
+    REQUIRE(tol_res <= testiterative::tol);
   }
 
   auto pre_type = GENERATE(Precond::Jacobi,
@@ -179,14 +185,16 @@ TEST_CASE("Equation filter and precond","[iterative_testss]") {
                                        (overlap ? " with overlap" : " without overlap");
   SECTION(precondname){
     std::cout<<"testing "<<precondname<<std::endl;
+    TPZSimpleTimer timer(precondname,true);
     TPZAutoPointer<TPZMatrixSolver<STATE>> pre =
       an.BuildPreconditioner<STATE>(pre_type, overlap);
     const bool created_precond = pre;
     REQUIRE(created_precond);
-    solver->SetCG(niter, *pre, tol, fromCurrent);
+    solver->SetGMRES(testiterative::niter, testiterative::niter,
+                     *pre, testiterative::tol, fromCurrent);
     an.Solve();
     const auto tol_res = solver->GetTolerance();
-    REQUIRE(tol_res <= tol);
+    REQUIRE(tol_res <= testiterative::tol);
   }
   Catch::StringMaker<STATE>::precision = oldPrecision;
 }
@@ -206,9 +214,9 @@ namespace testiterative{
     //dimension of the problem
     constexpr int dim{2};
     //n divisions in x direction
-    constexpr int nDivX{4};
+    constexpr int nDivX{3};
     //n divisions in y direction
-    constexpr int nDivY{4};
+    constexpr int nDivY{3};
   
     //TPZManVector<Type,N> is a vector container with static + dynamic storage. one can also use TPZVec<Type> for dynamic storage
     TPZManVector<int,2> nDivs={nDivX,nDivY};
@@ -232,7 +240,7 @@ namespace testiterative{
 
 
     //polynomial order of elements
-    constexpr int pOrder{2};
+    constexpr int pOrder{3};
     //defining the geometry of the problem
     //TPZAutoPointer is a smart pointer from the NeoPZ library
     TPZAutoPointer<TPZGeoMesh> gmesh =
