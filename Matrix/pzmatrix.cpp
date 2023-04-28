@@ -643,12 +643,20 @@ template<class TVar>
 void TPZMatrix<TVar>::SolveSOR(int64_t & numiterations, const TPZFMatrix<TVar> &F,
 							   TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &/*scratch*/, const REAL overrelax,
 							   REAL &tol,const int FromCurrent,const int direction) {
-	
+
+  auto normsq = [](const TVar var) -> RTVar {
+    if constexpr(is_complex<TVar>::value){
+      return (var * std::conj(var)).real();
+    }else{
+      return var * var;
+    }
+  };
+  
 	if(residual == &F) {
 		cout << "TPZMatrix::SolveSOR called with residual and F equal, no solution\n";
 		return;
 	}
-	TVar res = (TVar)2*(TVar)tol+(TVar)1.;
+	RTVar res = 2*tol+1;
 	if(residual) res = Norm(*residual);
 	if(!FromCurrent) {
 		result.Zero();
@@ -671,7 +679,7 @@ void TPZMatrix<TVar>::SolveSOR(int64_t & numiterations, const TPZFMatrix<TVar> &
 				for(int64_t j=0; j<r; j++) {
 					eqres -= GetVal(i,j)*result(j,ic);
 				}
-				res += eqres*eqres;
+				res += normsq(eqres);
 				result(i,ic) += (TVar)overrelax*eqres/GetVal(i,i);
 			}
 		}
