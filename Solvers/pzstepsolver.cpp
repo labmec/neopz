@@ -82,10 +82,18 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 	if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
 		result.Redim(mat->Rows(),F.Cols());
 	}
-	
-	if(this->fScratch.Rows() != result.Rows() || this->fScratch.Cols() != result.Cols()) {
-		this->fScratch.Redim(result.Rows(),result.Cols());
-	}
+  //not every solver need to resize fScratch
+	switch(fSolver) {
+		case TPZStepSolver::EJacobi:
+		case TPZStepSolver::ESOR:
+		case TPZStepSolver::ESSOR:
+      if(this->fScratch.Rows() != result.Rows() ||
+         this->fScratch.Cols() != result.Cols()) {
+        this->fScratch.Redim(result.Rows(),result.Cols());
+      }
+  default:
+    break;
+  }
 	
 	REAL tol = fTol;
 	int64_t numiterations = fMaxIterations;
