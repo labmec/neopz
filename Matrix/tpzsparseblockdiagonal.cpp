@@ -50,10 +50,11 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 	{
 		if(colors[ibl]==color) 
 		{
-			this->fBlockSize[iblcount++] = blockgraphindex[ibl+1]-blockgraphindex[ibl];
-			graphsize += this->fBlockSize[iblcount-1];
+			this->fBlockSize[iblcount] = blockgraphindex[ibl+1]-blockgraphindex[ibl];
+			graphsize += this->fBlockSize[iblcount++];
 		}
 	}
+	this->fBlockSize.Resize(iblcount);
 	fBlock.Resize(graphsize);
 	fBlockIndex.Resize(iblcount+1);
 	fBlockIndex[0] = 0;
@@ -74,7 +75,21 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 			iblcount++;
 		}
 	}
-	this->fBlockSize.Resize(iblcount);
+#ifdef PZDEBUG
+	std::set<int64_t> eqset;
+	for(auto eq : fBlock){
+		eqset.insert(eq);
+	}
+
+	if(eqset.size() != fBlock.NElements()){
+		std::cout<<__PRETTY_FUNCTION__
+						 <<"\ncoloring is not correct!\n"
+						 <<"set of equations has  "<<eqset.size()<<" eqs\n"
+						 <<"fBlock has size "<<fBlock.NElements()
+						 <<std::endl;
+	}
+#endif
+	
 	this->Initialize(this->fBlockSize);
 	this->fRow = rows;
 	this->fCol = rows;
@@ -237,7 +252,6 @@ void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZF
 #endif
 	TPZFNMatrix<1000,TVar> xsc(0,0),ysc(0,0,0.),zsc(0,0);
 	xsc.Resize(this->fBlock.NElements(),x.Cols());
-	z.Zero();
 	if(abs(beta) != 0.) ysc.Resize(fBlock.NElements(),y.Cols());
 	zsc.Resize(fBlock.NElements(),z.Cols());
 	Gather(x,xsc);
@@ -247,6 +261,7 @@ void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZF
 	TPZSparseBlockDiagonal<TVar> *other = (TPZSparseBlockDiagonal<TVar> *)this;
 	other->fRow = other->fCol = this->fBlock.NElements();
 	TPZBlockDiagonal<TVar>::MultAdd(xsc, ysc, zsc, alpha, beta, opt);
+	z.Zero();
 	ScatterAdd(zsc,z);
 	other->fRow = other->fCol = rows;
 }

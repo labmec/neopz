@@ -25,7 +25,8 @@ public:
     TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows, int color, TPZVec<int> &colors);
 	
     ~TPZSparseBlockDiagonal();
-	
+
+    CLONEDEF(TPZSparseBlockDiagonal)
     const TVar Get(const int64_t row, const int64_t col) const override;
     const TVar GetVal(const int64_t row, const int64_t col) const override;
     int Put(const int64_t row, const int64_t col, const TVar& value) override;
