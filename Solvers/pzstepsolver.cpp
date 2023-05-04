@@ -79,8 +79,8 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
         }
     }
     
-	if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
-		result.Redim(mat->Rows(),F.Cols());
+	if(result.Rows() != mat->Cols() || result.Cols() != F.Cols()) {
+		result.Redim(mat->Cols(),F.Cols());
 	}
   //not every solver need to resize fScratch
 	switch(fSolver) {

@@ -44,8 +44,8 @@ void TPZSequenceSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> 
 		cout << "TPZSequenceSolver::Solve called without a matrix pointer\n";
 	}
 	TPZAutoPointer<TPZMatrix<TVar> > mat = this->Matrix();
-	if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
-		result.Redim(mat->Rows(),F.Cols());
+	if(result.Rows() != mat->Cols() || result.Cols() != F.Cols()) {
+		result.Redim(mat->Cols(),F.Cols());
 	}
 	
 	this->fScratch = F;
@@ -54,16 +54,17 @@ void TPZSequenceSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> 
 	TPZFMatrix<TVar> resloc(F.Rows(),F.Cols(),0.);
 	result.Zero();
 	if(this->fScratch.Rows() != result.Rows() || this->fScratch.Cols() != result.Cols()) {
-		this->fScratch.Redim(result.Rows(),result.Cols());
+    //if scratch holds F then it cannot be resized
+		DebugStop();
 	}
-    int nums = fSolvers.NElements();
-    int s;
-    for(s=0; s<nums; s++) {
-        fSolvers[s]->Solve(this->fScratch,delu,&resloc);
-        result += delu;
-        mat->Residual(result,fcp,this->fScratch);
-    }
-    if(residual) *residual = this->fScratch;
+  int nums = fSolvers.NElements();
+  int s;
+  for(s=0; s<nums; s++) {
+    fSolvers[s]->Solve(this->fScratch,delu,&resloc);
+    result += delu;
+    mat->Residual(result,fcp,this->fScratch);
+  }
+  if(residual) *residual = this->fScratch;
 }
 
 
