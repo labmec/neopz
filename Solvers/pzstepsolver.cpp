@@ -152,11 +152,13 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 			mat->SolveBICGStab(numiterations, *fPrecond, F, result,residual,tol,fFromCurrent);
       name = "BiCGStab";
 			break;
-		case TPZStepSolver::EDirect:
-			result = F;
-			mat->SolveDirect(result,fDecompose);
-			if(residual) residual->Redim(F.Rows(),F.Cols());
+    case TPZStepSolver::EDirect:{
+      result = F;
+      mat->SolveDirect(result,fDecompose);
+      //mat has been decomposed, we cannot compute the residual
+      if(residual) {residual->Redim(F.Rows(),F.Cols());}
 			break;
+    }
 		case TPZStepSolver::EMultiply:
 			mat->Multiply(F,result);
 			if(residual) mat->Residual(result,F,*residual);
