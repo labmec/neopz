@@ -347,7 +347,7 @@ void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > m
 			int64_t r;
 			pos = this->fBlockPos[b];
 			for(r=0; r<bsize; r++) indices[r] = fBlock[fBlockIndex[b]+r]; 
-			TPZFMatrix<TVar> block(bsize,bsize,&this->fStorage[pos],bsize*bsize);
+			auto &block = *(this->fBlockMats[b]);
 			mat->GetSub(indices,block);
 		}
 	}
