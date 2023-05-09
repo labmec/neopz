@@ -45,6 +45,8 @@ public:
   void SetSolver(const TPZSolver &solver) override;
   /** @} */
 
+  void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) override;
+
   /** @name Graphical */
   /** @{ */
   /** @brief Run and print the solution step by step */

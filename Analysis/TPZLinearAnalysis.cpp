@@ -289,6 +289,11 @@ void TPZLinearAnalysis::SetSolver(const TPZSolver &solver){
     DebugStop();
 }
 
+void TPZLinearAnalysis::SetCompMesh(TPZCompMesh *cmesh, bool optimize){
+  TPZAnalysis::SetCompMesh(cmesh,optimize);
+  fRhs.SetSolType(this->fSolType);
+}
+
 
 template<class TVar>
 TPZMatrixSolver<TVar> &TPZLinearAnalysis::MatrixSolver(){
