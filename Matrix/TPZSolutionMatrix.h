@@ -69,6 +69,10 @@ public:
   operator TPZBaseMatrix& ();
 
 
+  ESolType GetSolType() const {return fSolType;}
+
+  void SetSolType(ESolType st);
+
   //@{
   //!Arithmetic operators. Throws error if incompatible.
   template<class TVar>
