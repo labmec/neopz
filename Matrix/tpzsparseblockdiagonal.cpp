@@ -28,6 +28,7 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 	for(ibl=0; ibl<numbl; ibl++)
 	{
 		this->fBlockSize[ibl] = blockgraphindex[ibl+1]-blockgraphindex[ibl];
+		fGlobalBlockIndex[ibl] = ibl;
 	}
 	this->Initialize(this->fBlockSize);
 	//initialize from parent class will set fRow and fCol as the number of equations
@@ -62,6 +63,7 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 	{
 		if(colors[ibl]==color) 
 		{
+			fGlobalBlockIndex[ibl] = iblcount;
 			int64_t first = blockgraphindex[ibl];
 			int64_t last = blockgraphindex[ibl+1];
 			int64_t firstcp = fBlockIndex[iblcount];
@@ -340,6 +342,16 @@ void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > m
 		}
 	}
 	
+}
+
+template<class TVar>
+int64_t TPZSparseBlockDiagonal<TVar>::HasBlock(const int64_t global) const
+{
+	if(fGlobalBlockIndex.count(global)){
+		return fGlobalBlockIndex.at(global);
+	}else{
+		return -1;
+	}
 }
 
 template <class TVar>
