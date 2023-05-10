@@ -23,8 +23,6 @@ public:
     TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows);
     
     TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows, int color, TPZVec<int> &colors);
-	
-    ~TPZSparseBlockDiagonal();
 
     CLONEDEF(TPZSparseBlockDiagonal)
     const TVar Get(const int64_t row, const int64_t col) const override;
@@ -37,7 +35,6 @@ public:
     virtual TVar &s(const int64_t row, const int64_t col) override;
     
     virtual void Print(const char* message, std::ostream& out=std::cout, const MatrixOutputFormat=EFormatted) const override;
-    void AddBlock(int64_t i, TPZFMatrix<TVar>& block);
     void BuildFromMatrix(TPZMatrix<TVar>& matrix);
     void GetBlock(int64_t i, TPZFMatrix<TVar>& block);
     void MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt) const override;

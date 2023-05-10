@@ -95,12 +95,6 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 	this->fCol = rows;
 }
 
-
-template<class TVar>
-TPZSparseBlockDiagonal<TVar>::~TPZSparseBlockDiagonal()
-{
-}
-
 template<class TVar>
 const TVar TPZSparseBlockDiagonal<TVar>::Get(const int64_t row, const int64_t col) const
 {
@@ -205,12 +199,6 @@ void TPZSparseBlockDiagonal<TVar>::Print(const char* message, std::ostream& out,
 			out << endl;
 		}
 	}
-}
-
-template<class TVar>
-void TPZSparseBlockDiagonal<TVar>::AddBlock(int64_t i, TPZFMatrix<TVar>& block)
-{
-    TPZBlockDiagonal<TVar>::AddBlock(i, block);
 }
 
 template<class TVar>
