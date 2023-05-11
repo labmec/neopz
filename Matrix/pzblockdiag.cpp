@@ -39,7 +39,12 @@ template<class TVar>
 void TPZBlockDiagonal<TVar>::SetBlock(int64_t i, TPZFMatrix<TVar> &block){
 	int64_t firstpos = fBlockPos[i];
 	int64_t bsize = fBlockSize[i];
-	
+
+#ifdef PZDEBUG
+	if(block.Rows() != bsize || block.Cols() != bsize){
+		DebugStop();
+	}
+#endif
 	int64_t r,c;
 	for(r=0; r<bsize; r++) {
 		for(c=0; c<bsize; c++) {
