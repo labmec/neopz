@@ -65,6 +65,18 @@ void TPZBlockDiagonal<TVar>::GetBlock(int64_t i, TPZFMatrix<TVar> &block){
         }
     }
 }
+
+template<class TVar>
+TPZAutoPointer<TPZFMatrix<TVar>>
+TPZBlockDiagonal<TVar>::GetBlockPtr(int64_t i){
+	if(i > -1 && i < this->NumberofBlocks()){
+		return fBlockMats[i];
+	}else{
+		return nullptr;
+	}
+}
+
+
 template<class TVar>
 void TPZBlockDiagonal<TVar>::Initialize(const TPZVec<int> &blocksize){
 	int64_t nblock = blocksize.NElements();
