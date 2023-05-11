@@ -989,11 +989,23 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
         TPZFNMatrix<9,Fad<REAL>> gradxfad(3,dim);
         this->Reference()->GradX(qsifad,gradxfad);
         TPZFMatrix<Fad<REAL>> phiMasterFad, divphiFad;
-
-        if(fhdivfam == HDivFamily::EHDivStandard)
+        switch (fhdivfam)
         {
-            TPZShapeHDiv<TSHAPE>::Shape(qsifad, shapedata, phiMasterFad, divphiFad);
+        case HDivFamily::EHDivStandard:
+                TPZShapeHDiv<TSHAPE>::Shape(qsifad, shapedata, phiMasterFad, divphiFad);
+            break;
+
+        case HDivFamily::EHDivConstant:
+            phiMasterFad.Resize(TSHAPE::Dimension,nshape);
+            divphiFad.Resize(nshape,1);
+            TPZShapeHDivConstant<TSHAPE>::Shape(qsifad, shapedata, phiMasterFad, divphiFad);
+            break;
+
+        default:
+            DebugStop();
+            break;
         }
+
         Fad<REAL> detjacFad;
         this->Reference()->ComputeDetjac(gradxfad,detjacFad);
         gradxfad.MultAdd(phiMasterFad,data.fDeformedDirectionsFad,data.fDeformedDirectionsFad,1./abs(detjacFad));
