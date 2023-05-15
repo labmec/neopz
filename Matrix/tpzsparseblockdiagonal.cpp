@@ -44,7 +44,16 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 		LOGPZ_DEBUG(logger, "Constructor of TPZSparseBlockDiagonal");
 	}
 #endif
-	int64_t numbl = blockgraphindex.NElements()-1;
+	const int64_t numbl = blockgraphindex.NElements()-1;
+#ifdef PZ_LOG
+	if(numbl != colors.size()){
+		PZError<<__PRETTY_FUNCTION__
+					 <<"\nInvalid input! number of blocks "<<numbl
+					 <<"\nSize of color vec: "<<colors.size()
+					 <<std::endl;
+		DebugStop();
+	}
+#endif
 	this->fBlockSize.Resize(numbl);
 	int64_t ibl,iblcount,graphsize = 0;
 	for(ibl=0, iblcount=0; ibl<numbl; ibl++)
