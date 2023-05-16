@@ -43,6 +43,19 @@ void TPZFYsmpMatrix<TVar>::MultiplyDummy(TPZFYsmpMatrix<TVar> & B, TPZFYsmpMatri
     }
 }
 
+template<class TVar>
+void TPZFYsmpMatrix<TVar>::GetRowIndices(const int64_t i, TPZVec<int64_t> &indices) const{
+    if (i < 0 || i >= this->Rows()) {
+		DebugStop();
+	}
+
+	const auto first = fIA[i];
+	const auto last = fIA[i+1];
+	const auto nv = last - first;
+	indices.Resize(nv);
+	for(int i = 0; i < nv; i++){indices[i] = fJA[first+i];}
+}
+
 // ****************************************************************************
 //
 // Constructor

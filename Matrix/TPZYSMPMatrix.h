@@ -168,7 +168,8 @@ public:
 	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex) override;
 	
 	void MultiplyDummy(TPZFYsmpMatrix<TVar> & B, TPZFYsmpMatrix<TVar> & Res);
-	
+
+    void GetRowIndices(const int64_t i, TPZVec<int64_t>& indices) const override;
 	virtual int Zero() override;
 	
     /// this is a class that doesn't implement direct decompostion
