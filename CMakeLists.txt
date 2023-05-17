@@ -102,12 +102,6 @@ mark_as_advanced(CMAKE_TBB_DEBUG)
 include(cmake/EnableThreads.cmake)
 enable_threads(pz)
 
-IF(APPLE)
-   # Mac OS X specific code
-   find_library(ACCELERATE_LIB Accelerate)
-   target_link_libraries(pz PRIVATE ${ACCELERATE_LIB})
-ENDIF(APPLE)
-
 #To enable unit test using Catch2 UnitTest framework
 option(BUILD_UNITTESTING "Whether the Catch2 UnitTest will be linked in" OFF)
 if(BUILD_UNITTESTING)
@@ -193,6 +187,12 @@ option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
     include(cmake/EnableMKL.cmake)
     enable_mkl(pz)
+else()
+    IF(APPLE)
+        # Mac OS X specific code
+        find_library(ACCELERATE_LIB Accelerate)
+        target_link_libraries(pz PRIVATE ${ACCELERATE_LIB})
+    ENDIF(APPLE)
 endif(USING_MKL)
 
 
