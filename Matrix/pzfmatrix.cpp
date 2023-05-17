@@ -1206,6 +1206,10 @@ int TPZFMatrix<float>::Decompose_LU(TPZVec<int> &index) {
     
     
     sgesv_(&nRows,&zero,fElem,&nRows,pivot.begin(),&b,&nRows,&info);
+    if(info){
+        std:cout << "\ninfo " << info << std::endl;
+        DebugStop();
+    }
     index.Resize(nRows);
     for(int i = 0; i < nRows; i++){
         index[i] = fPivot[i] = pivot[i];
@@ -1251,6 +1255,10 @@ int TPZFMatrix<double>::Decompose_LU(TPZVec<int> &index) {
     
     
     dgetrf_(&nRows,&nRows,fElem,&nRows,&pivot[0],&info);
+    if(info){
+        std:cout << "\ninfo " << info << std::endl;
+        DebugStop();
+    }
 //    dgesv_(&nRows,&zero,fElem,&nRows,&fPivot[0],&b,&nRows,&info);
     index.Resize(nRows);
     for(int i = 0; i < nRows; i++){
@@ -1300,6 +1308,10 @@ int TPZFMatrix<std::complex<double>>::Decompose_LU(TPZVec<int> &index) {
     static_assert(sizeof(vardoublecomplex) == sizeof(std::complex<double>),
                   "Incompatible types");
     zgetrf_(&nRows,&nRows,(vardoublecomplex*)fElem,&nRows,&pivot[0],&info);
+    if(info){
+        std:cout << "\ninfo " << info << std::endl;
+        DebugStop();
+    }
 //    dgesv_(&nRows,&zero,fElem,&nRows,&fPivot[0],&b,&nRows,&info);
     index.Resize(nRows);
     for(int i = 0; i < nRows; i++){
@@ -1788,7 +1800,8 @@ int TPZFMatrix<float>::Decompose_Cholesky() {
     spotrf_(&uplo, &dim, A, &dim, &info);
     this->fDecomposed = ECholesky;
     
-    if (info != 0) {
+    if(info){
+        std:cout << "\ninfo " << info << std::endl;
         DebugStop();
     }
     return 1;
@@ -1808,7 +1821,8 @@ int TPZFMatrix<double>::Decompose_Cholesky() {
     dpotrf_(&uplo, &dim, A, &dim, &info);
     this->fDecomposed = ECholesky;
     
-    if (info != 0) {
+    if(info){
+        std:cout << "\ninfo " << info << std::endl;
         DebugStop();
     }
     return 1;
@@ -2011,8 +2025,15 @@ int TPZFMatrix<float>::Decompose_LDLt() {
     TPZManVector<lapack_int,2000> pivot(dim);
     for(int i = 0 ; i < dim ; i++){pivot[i] = fPivot[i];}
     ssysv_(&uplo, &dim, &nrhs, fElem, &dim, &pivot[0], &B, &dim, &fWork[0], &worksize, &info);
+    
+    if(info){
+        std:cout << "\ninfo " << info << std::endl;
+        DebugStop();
+    }
+    
     for(int i = 0; i < dim; i++){fPivot[i] = pivot[i];}
     fDecomposed = ELDLt;
+    
     return 1;
 }
 
@@ -2044,6 +2065,12 @@ int TPZFMatrix<double>::Decompose_LDLt() {
     TPZManVector<lapack_int,2000> pivot(dim);
     for(int i = 0 ; i < dim ; i++){pivot[i] = fPivot[i];}
     dsysv_(&uplo, &dim, &nrhs, fElem, &dim, &pivot[0], &B, &dim, &fWork[0], &worksize, &info);
+    
+    if(info){
+        std:cout << "\ninfo " << info << std::endl;
+        DebugStop();
+    }
+    
     for(int i = 0; i < dim; i++){fPivot[i] = pivot[i];}
     fDecomposed = ELDLt;
     return 1;
