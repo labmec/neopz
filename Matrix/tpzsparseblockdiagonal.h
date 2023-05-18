@@ -20,9 +20,10 @@ class TPZSparseBlockDiagonal : public TPZBlockDiagonal<TVar>
 {
 public:
     TPZSparseBlockDiagonal();
-    TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows);
+    TPZSparseBlockDiagonal(const TPZVec<int64_t> &blockgraph, const TPZVec<int64_t> &blockgraphindex, const int64_t rows);
     
-    TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows, int color, TPZVec<int> &colors);
+    TPZSparseBlockDiagonal(const TPZVec<int64_t> &blockgraph, const TPZVec<int64_t> &blockgraphindex,
+                           const int64_t rows, const int color, const TPZVec<int> &colors);
 
     CLONEDEF(TPZSparseBlockDiagonal)
     const TVar Get(const int64_t row, const int64_t col) const override;

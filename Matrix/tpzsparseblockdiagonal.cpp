@@ -20,7 +20,10 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal() : TPZRegisterClassId(&TPZ
 {
 }
 template<class TVar>
-TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows) : TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId), fBlock(blockgraph), fBlockIndex(blockgraphindex)
+TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(const TPZVec<int64_t> &blockgraph,
+													 const TPZVec<int64_t> &blockgraphindex,
+													 const int64_t rows) :
+	TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId), fBlock(blockgraph), fBlockIndex(blockgraphindex)
 {
 	int64_t numbl = blockgraphindex.NElements()-1;
 	this->fBlockSize.Resize(numbl);
@@ -37,7 +40,11 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 }
 
 template<class TVar>
-TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows, int color, TPZVec<int> &colors) : TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId)
+TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(const TPZVec<int64_t> &blockgraph,
+													 const TPZVec<int64_t> &blockgraphindex,
+													 const int64_t rows, const int color,
+													 const TPZVec<int> &colors) :
+	TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId)
 {
 #ifdef PZ_LOG
 	if(logger.isDebugEnabled()){
