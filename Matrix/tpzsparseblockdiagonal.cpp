@@ -370,6 +370,34 @@ int64_t TPZSparseBlockDiagonal<TVar>::HasBlock(const int64_t global) const
 	}
 }
 
+template<class TVar>
+void TPZSparseBlockDiagonal<TVar>::GetBlockList(TPZVec<int64_t> &loc_ind, TPZVec<int64_t> &glob_ind) const
+{
+	const int nbl = fGlobalBlockIndex.size();
+	loc_ind.Resize(nbl);
+	glob_ind.Resize(nbl);
+	int i = 0;
+	for(auto it : fGlobalBlockIndex){
+		glob_ind[i] = it.first;
+		loc_ind[i++] = it.second;
+	}
+}
+
+template<class TVar>
+void TPZSparseBlockDiagonal<TVar>::GetBlockEqs(const int64_t global_ibl, TPZVec<int64_t> &eqs) const{
+	const auto loc_ibl = HasBlock(global_ibl);
+	if (loc_ibl < 0){eqs.Resize(0);}
+	else{
+		const auto first = fBlockIndex[loc_ibl];
+		const auto last = fBlockIndex[loc_ibl+1];
+		const auto sz = last-first;
+		eqs.Resize(sz);
+		for(int i = first; i < last; i++){
+			eqs[i-first] = fBlock[i];
+		}
+	}
+}
+
 template <class TVar>
 int TPZSparseBlockDiagonal<TVar>::ClassId() const{
     return Hash("TPZSparseBlockDiagonal") ^ TPZBlockDiagonal<TVar>::ClassId() << 1;

@@ -47,6 +47,11 @@ public:
     /** @brief Checks if current matrix has a given block. Returns -1 if it does not
         @note This function only makes sense for colored matrices*/
     int64_t HasBlock(const int64_t global) const;
+
+    /** @brief Gets local and global indices of blocks present in this matrix*/
+    void GetBlockList(TPZVec<int64_t> &loc, TPZVec<int64_t> &glob) const;
+    /** @brief For a given global id, returns equation numbers*/
+    void GetBlockEqs(const int64_t global_ibl, TPZVec<int64_t> &eqs) const;
     public:
 int ClassId() const override;
 
