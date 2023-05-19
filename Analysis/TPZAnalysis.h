@@ -167,12 +167,15 @@ protected:
   
   /** @} */
 
-  /** @name Utils */
-  /** @{ */
-  /** @brief Define the type of preconditioner used */
-	/** This method will create the stiffness matrix but without assembling */
+  /** @name Utils 
+      @{ */
+  /** @brief Define the type of preconditioner used 
+      @param preconditioner [input] precond type
+      @param overlap [input] if false, matrix will be colored and Gauss Seidel-like iteration will happen
+  */
   template<class TVar>
-	TPZMatrixSolver<TVar> *BuildPreconditioner(Precond::Type preconditioner, bool overlap);
+	TPZMatrixSolver<TVar> *BuildPreconditioner(Precond::Type preconditioner,
+                                             bool overlap);
   /// deletes all data structures
   void CleanUp();
     
@@ -351,12 +354,12 @@ protected:
 
   /** @brief Common steps in setting a computational mesh. */
 	void SetCompMeshInit(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
-private:
   /** @brief Build a sequence solver based on the block graph and its colors */
   template <class TVar>
   TPZMatrixSolver<TVar> *
-  BuildSequenceSolver(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex,
-                      int64_t neq, int numcolors, TPZVec<int> &colors);
+  BuildSequenceSolver(const TPZVec<int64_t> &graph, const TPZVec<int64_t> &graphindex,
+                      const int64_t neq, const int numcolors, const TPZVec<int> &colors);
+private:
 
   template <class TVar>
   void
