@@ -153,9 +153,9 @@ void TPZNodesetCompute::AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &n
   fSeqNumber[node] = fMaxSeqNum;
 #ifdef PZ_LOG
 	{
-		std::stringstream sout;
-		sout << "Assigning Seq Number " << fMaxSeqNum << " and level " << minlevel << " to nodes " << node << " " << equalnodes;
-    if(logger.isDebugEnabled()){
+		if(logger.isDebugEnabled()){
+      std::stringstream sout;
+      sout << "Assigning Seq Number " << fMaxSeqNum << " and level " << minlevel << " to nodes " << node << " " << equalnodes;
       LOGPZ_DEBUG(logger,sout.str());
     }
 	}
@@ -308,10 +308,10 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 #ifdef PZ_LOG
     if(logger.isDebugEnabled())
 	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " Original set of nodes ";
-		Print(sout,vertices,0);
 		if(logger.isDebugEnabled()){
+      std::stringstream sout;
+      sout << __PRETTY_FUNCTION__ << " Original set of nodes ";
+      Print(sout,vertices,0);
       LOGPZ_DEBUG(logger,sout.str());
     }
 	}
@@ -354,9 +354,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
       set_intersection(unionset.begin(),unionset.end(),vertices.begin(),vertices.end(),inserter(diffset,diffset.begin()));
 #ifdef PZ_LOG
 		{
-			std::stringstream sout;
-			Print(sout,diffset,"First set to be reanalised");
 			if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        Print(sout,diffset,"First set to be reanalised");
         LOGPZ_DEBUG(logger,sout.str());
       }
 		}
@@ -364,9 +364,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
       set_intersection(vertices.begin(),vertices.end(),locset.begin(),locset.end(),inserter(interset,interset.begin()));
 #ifdef PZ_LOG
 		{
-			std::stringstream sout;
-			Print(sout,interset,"Second set to be reanalised");
 			if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        Print(sout,interset,"Second set to be reanalised");
         LOGPZ_DEBUG(logger,sout.str());
       }
 		}
@@ -393,10 +393,10 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
   {
 #ifdef PZ_LOG
 	  {
-		  std::stringstream sout;
-		  sout << "Discarding a vertex set as incomplete";
-		  Print(sout,vertices,0);
 		  if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        sout << "Discarding a vertex set as incomplete";
+        Print(sout,vertices,0);
         LOGPZ_DEBUG(logger,sout.str());
       }
 	  }
@@ -406,9 +406,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
   {
 #ifdef PZ_LOG
 	  {
-		  std::stringstream sout;
-		  Print(sout,elem,"Inserted element");
 		  if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        Print(sout,elem,"Inserted element");
         LOGPZ_DEBUG(logger,sout.str());
       }
 	  }
@@ -422,9 +422,9 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStac
   TPZSimpleTimer timer("TPZNodesetCompute::BuildElementGraph");
 #ifdef PZ_LOG
 	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " entering build element graph\n";
 		if(logger.isDebugEnabled()){
+      std::stringstream sout;
+      sout << __PRETTY_FUNCTION__ << " entering build element graph\n";
       LOGPZ_DEBUG(logger,sout.str());
     }
 	}
@@ -441,23 +441,23 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStac
     BuildNodeSet(in,nodeset);
 #ifdef PZ_LOG
 	  {
-		  std::stringstream sout;
-		  sout << "Nodeset for " << in << ' ';
-		  Print(sout,nodeset,"Nodeset");
 		  if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        sout << "Nodeset for " << in << ' ';
+        Print(sout,nodeset,"Nodeset");
         LOGPZ_DEBUG(logger,sout.str());
       }
 	  }
 #endif
     SubtractLowerNodes(in,nodeset);
 #ifdef PZ_LOG
-		  {
-			  std::stringstream sout;
-			  Print(sout,nodeset,"LowerNodes result");
-			  if(logger.isDebugEnabled()){
-          LOGPZ_DEBUG(logger,sout.str());
-        }
-		  }
+    {
+      if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        Print(sout,nodeset,"LowerNodes result");
+        LOGPZ_DEBUG(logger,sout.str());
+      }
+    }
 #endif
     AnalyseForElements(nodeset,elements);
     std::set< std::set<int64_t> >::iterator itel;
@@ -479,10 +479,10 @@ void TPZNodesetCompute::SubtractLowerNodes(int64_t node, std::set<int64_t> &node
   std::set<int64_t>::iterator it;
 #ifdef PZ_LOG
 	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__;
-		Print(sout,nodeset," Incoming nodeset");
 		if(logger.isDebugEnabled()){
+      std::stringstream sout;
+      sout << __PRETTY_FUNCTION__;
+      Print(sout,nodeset," Incoming nodeset");
       LOGPZ_DEBUG(logger,sout.str());
     }
 	}
@@ -497,9 +497,9 @@ void TPZNodesetCompute::SubtractLowerNodes(int64_t node, std::set<int64_t> &node
     inserter(lownode,lownode.begin()));
 #ifdef PZ_LOG
 	{
-		std::stringstream sout;
-		Print(sout,lownode," What is left after substracting the influence of lower numbered nodes ");
 		if(logger.isDebugEnabled()){
+      std::stringstream sout;
+      Print(sout,lownode," What is left after substracting the influence of lower numbered nodes ");
       LOGPZ_DEBUG(logger,sout.str());
     }
 	}
@@ -516,9 +516,9 @@ void TPZNodesetCompute::SubtractLowerNodes(int64_t node, std::set<int64_t> &node
     inserter(lownode,lownode.begin()));
 #ifdef PZ_LOG
 	{
-		std::stringstream sout;
-		Print(sout,lownode," Resulting lower nodeset");
 		if(logger.isDebugEnabled()){
+      std::stringstream sout;
+      Print(sout,lownode," Resulting lower nodeset");
       LOGPZ_DEBUG(logger,sout.str());
     }
 	}
