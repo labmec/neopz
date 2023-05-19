@@ -659,9 +659,30 @@ void TPZAnalysis::PostProcessTable( TPZFMatrix<REAL> &,std::ostream & )//pos,out
 	return;
 }
 
+
 void TPZAnalysis::SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)>f,int p){
-    //TODOCOMPLEX
-    TPZAnalysis::SetExactInternal<STATE>(f,p);
+    
+    if(fCompMesh->GetSolType() == ESolType::EReal){
+        TPZAnalysis::SetExactInternal<STATE>(f,p);
+    }else{
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nError: incompatible type. Trying to set real solution in complex mesh.\n"
+               <<"Aborting..."<<std::endl;
+        DebugStop();
+    }
+}
+
+
+void TPZAnalysis::SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<CSTATE> &result, TPZFMatrix<CSTATE> &deriv)>f,int p){
+    
+    if(fCompMesh->GetSolType() == ESolType::EComplex){
+        TPZAnalysis::SetExactInternal<CSTATE>(f,p);
+    }else{
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nError: incompatible type. Trying to set complex solution in real mesh.\n"
+               <<"Aborting..."<<std::endl;
+        DebugStop();
+    }
 }
 
 template<class TVar>

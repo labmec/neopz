@@ -234,6 +234,8 @@ protected:
     
 	//! Sets an exact solution in all the materials of the associated mesh
   void SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f, int pOrder = 1);
+  //! Sets an exact solution in all the materials of the associated mesh
+  void SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<CSTATE> &result, TPZFMatrix<CSTATE> &deriv)> f, int pOrder = 1);
 	/** @brief Compute the local error over all elements and global errors in several norms and print out */
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
   /**
