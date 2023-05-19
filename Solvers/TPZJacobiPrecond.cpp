@@ -11,7 +11,6 @@ TPZJacobiPrecond<TVar>::TPZJacobiPrecond(TPZAutoPointer<TPZMatrix<TVar> >  refma
   }
   this->fReferenceMatrix = refmat;
   this->SetMatrix(new TPZFMatrix<TVar>());
-  UpdateFrom(refmat);
 }
 
 
@@ -43,16 +42,60 @@ void TPZJacobiPrecond<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &
            <<"Aborting..."<<std::endl;
     DebugStop();
   }
+
 #endif
   const auto nc = F.Cols();
-  if(result.Rows() != nr || result.Cols() != nc){
-    result.Resize(nr,nc);
-  }
-  auto ms = this->Matrix()->Storage().Elem();
-  for(int ic = 0; ic < nc; ic++){
-    for(int ir = 0; ir < nr; ir++){
-      result.PutVal(ir,ic, F.GetVal(ir,ic)*ms[ir]);
+  this->fScratch = F;
+  const TPZFMatrix<TVar> fcp = F;//F and result might be the sme
+
+  result.Redim(nr,nc);
+
+  const int ncolors = this->fColorVec.size();
+  if(ncolors > 0){
+    for(int ic = 0; ic < nc; ic++){
+      for(int ico = 0; ico < ncolors; ico++){
+        auto &current_nodes = this->fColorVec[ico];
+        for(auto ir : current_nodes){
+          //we opt for bound checking in this loop
+          const auto res =
+            result(ir,ic) + this->fScratch(ir,ic)*this->Matrix()->operator()(ir,0);
+          result.PutVal(ir,ic, res);
+        }
+        this->Matrix()->Residual(result, fcp, this->fScratch);
+      }
+    }  
+  }else{
+    //we performed bound checking at the beginning of this function
+    auto ms = this->Matrix()->Storage().Elem();
+    auto ss = this->fScratch.Storage().Elem();
+    auto rs = result.Storage().Elem();
+    for(int ic = 0; ic < nc; ic++){
+      for(auto ir = 0; ir < nr; ir++){
+        rs[nr*ic+ir] += ss[nr*ic+ir] * ms[ir];
+      }
     }
+  }
+  if(residual) *residual = this->fScratch;
+}
+
+template<class TVar>
+void TPZJacobiPrecond<TVar>::SetColoring(const TPZVec<int64_t> &colors,
+                                         const int numcolors)
+{
+  fColorVec.Resize(numcolors);
+  TPZVec<int64_t> colorcount(numcolors,0);
+  for(auto c : colors){
+    colorcount[c]++;
+  }
+  for(auto c = 0; c < numcolors; c++){
+    fColorVec[c].Resize(colorcount[c]);
+  }
+  colorcount.Fill(0);
+  const int nbl = colors.size();
+  for(auto ibl = 0; ibl < nbl; ibl++){
+    auto c = colors[ibl];
+    auto pos = (colorcount[c])++;
+    fColorVec[c][pos] = ibl;
   }
 }
 
