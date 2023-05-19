@@ -52,14 +52,19 @@ public:
 	
 	/** @brief Expand the graph acording to the block structure */
 	static void ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZBlock &block,
-							TPZVec<int64_t> &expgraph, TPZVec<int64_t> &expgraphindex);
-	/** @brief Filter the graph according to a given equation filter*/
-	static void FilterGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZEquationFilter &eqfilt,
-							TPZVec<int64_t> &newgraph, TPZVec<int64_t> &newgraphindex);
 	/** @brief Color the graph into mutually independent blocks */
 	static int ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq,
 						  TPZVec<int> &colors);
 	
+							TPZVec<int64_t> &expgraph, TPZVec<int64_t> &expgraphindex,
+							TPZVec<int64_t> &removed_blocks);
+	/** @brief Filter the graph according to a given equation filter
+			@note UpdateGraph will likely need to be called after this call*/
+	static void FilterGraph(const TPZEquationFilter &eqfilt, TPZVec<int64_t> &newgraph,
+													TPZVec<int64_t> &newgraphindex,TPZVec<int64_t> &removed_blocks);
+	/** @brief Filter the graph based on removed blocks(should be called after filtergraph)*/
+	static void UpdateGraph(TPZVec<int64_t> &graphindex,TPZVec<int64_t> &graph,
+													const TPZVec<int64_t> &removed_blocks);
 	/** @brief Returns the level of the nodes */
 	TPZVec<int> &Levels()
 	{
@@ -75,6 +80,9 @@ public:
 	void Print(std::ostream &file) const;
 	
 	static void Print(std::ostream &file, const TPZVec<int64_t> &graphindex, const TPZVec<int64_t> &graph);
+
+	static void Print(std::ostream &file, const TPZVec<int64_t> &graphindex,
+										const TPZVec<int64_t> &graph,const TPZVec<int> &color);
 	
 	static void Print(std::ostream &file, const std::set<int64_t> &nodeset, const char *text);
 	
@@ -115,7 +123,7 @@ private:
 	 * @brief This method will analyse the set inclusion of the current node, calling the method \n
 	 * recursively if another node need to be analysed first
 	 */
-	void AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &nodeset);  
+	void AnalyseNode(const int64_t node);
 	
 	/** @brief Look for elements formed by vertices, intersecting with the intersectvertices, one by one */
 	/** If the intersection does not remove any of the intersectvertices, we found an element! */
