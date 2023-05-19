@@ -52,10 +52,6 @@ public:
 	
 	/** @brief Expand the graph acording to the block structure */
 	static void ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZBlock &block,
-	/** @brief Color the graph into mutually independent blocks */
-	static int ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq,
-						  TPZVec<int> &colors);
-	
 							TPZVec<int64_t> &expgraph, TPZVec<int64_t> &expgraphindex,
 							TPZVec<int64_t> &removed_blocks);
 	/** @brief Filter the graph according to a given equation filter
@@ -65,6 +61,10 @@ public:
 	/** @brief Filter the graph based on removed blocks(should be called after filtergraph)*/
 	static void UpdateGraph(TPZVec<int64_t> &graphindex,TPZVec<int64_t> &graph,
 													const TPZVec<int64_t> &removed_blocks);
+	/** @brief Color the graph into mutually independent blocks
+			@note Should be called before expanding the connect graph*/
+	int ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex,
+								 const int64_t nnodes, TPZVec<int> &colors);
 	/** @brief Returns the level of the nodes */
 	TPZVec<int> &Levels()
 	{

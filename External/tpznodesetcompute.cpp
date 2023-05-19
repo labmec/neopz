@@ -647,33 +647,90 @@ void TPZNodesetCompute::FilterGraph(const TPZEquationFilter &eqfilt, TPZVec<int6
     const int oneqbl = olast - ofirst;
     TPZVec<int64_t> orig(oneqbl), filt(oneqbl);
     for(auto i = 0; i < oneqbl; i++){
-      orig[i]=filt[i]=ebg[ofirst+i];
+      orig[i]=filt[i]=graph[ofirst+i];
     }
     eqfilt.Filter(orig,filt);
     const int nneqbl = filt.size();
     //check for empty block
     if(nneqbl){
-      newgraphindex[blcount] = indexcount;
+      graphindex[blcount] = indexcount;
       for(int ieq = 0; ieq < nneqbl; ieq++){
-        newgraph[indexcount+ieq] = filt[ieq];
+        graph[indexcount+ieq] = filt[ieq];
       }
       indexcount += nneqbl;
-      newgraphindex[blcount+1] = indexcount;
-      blcount++;
+      graphindex[++blcount] = indexcount;
+    }else{
+      AppendToVec(removed_blocks,ibl);
     }
   }
-  auto lasteq = newgraphindex[blcount];
-  newgraphindex.Resize(blcount+1);
-  newgraph.Resize(lasteq);
+  auto lasteq = graphindex[blcount];
+  graphindex.Resize(blcount+1);
+  graph.Resize(lasteq);
+}
+
+void TPZNodesetCompute::UpdateGraph(TPZVec<int64_t> &graph,
+                                    TPZVec<int64_t> &graphindex,
+                                    const TPZVec<int64_t> &removed_blocks_vec)
+{
+  //nothing to do here
+  if(removed_blocks_vec.size() == 0){return;}
+  /*
+    it is easier to copy all removed blocks to a set
+   */
+  std::set<int64_t> removed_blocks;
+  for(auto n : removed_blocks_vec){removed_blocks.insert(n);}
+
+  const auto nnodes_old = graphindex.size()-1;
+  const auto nr = removed_blocks.size();
+  const auto nnodes = nnodes_old - nr;
+  const auto gicp = graphindex;
+  
+  
+  graphindex.Resize(nnodes+1);
+  graphindex[0] = 0;
+
+  //in = new node numbering
+  int64_t in = 0;
+  for(auto in_old = 0; in_old < nnodes_old; in_old++){
+    //node size old
+    if(!removed_blocks.count(in_old)){
+      const auto first_old = gicp[in_old];
+      const auto last_old = gicp[in_old+1];
+      const auto ns = last_old - first_old;
+      const auto first = graphindex[in];
+      for(auto ii = 0; ii < ns; ii++){
+        const auto node = graph[first_old+ii];
+        const auto pos = first+ii;
+        graph[pos] = node;
+      }
+      graphindex[in+1] = graphindex[in]+ns;
+      //update new node numbering
+      in++;
+    }
+  }
+  
+  if(in != nnodes){
+    DebugStop();
+  }
+
+  graph.Resize(graphindex[nnodes]);
 }
 
   /**
   * Color the graph into mutually independent blocks
   */
-int TPZNodesetCompute::ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq,
-    TPZVec<int> &colors)
+int TPZNodesetCompute::ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex,
+                                  const int64_t nnodes, TPZVec<int> &colors)
 {
-  TPZVec<int> eqcolor(neq);
+#ifdef PZDEBUG
+  if(nnodes != fNodegraphindex.size() - 1){
+    PZError<<__PRETTY_FUNCTION__
+           <<"\nInvalid data!"
+           <<std::endl;
+    DebugStop();
+  }
+#endif
+  TPZVec<int> nodecolor(nnodes);
   int color = 0;
   bool hasuncolored = true;
   int64_t nblocks = graphindex.NElements()-1;
