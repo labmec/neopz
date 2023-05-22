@@ -30,10 +30,11 @@ void ParallelFor( int ibeg, int iend, const TFunc & f )
 {
   const auto nthreads = std::thread::hardware_concurrency();
   std::vector<std::thread> threadvec;
+  const int sz = (iend-ibeg)/nthreads;
   for (int i=0; i<nthreads; i++)
   {
-    const int myibeg = ibeg + (iend-ibeg)*i/nthreads;
-    const int myiend = ibeg + (iend-ibeg)*(i+1)/nthreads;
+    const int myibeg = ibeg + i*sz;
+    const int myiend = ibeg + (i+1)*sz;
     threadvec.push_back(
       std::thread( [myibeg,myiend,&f] ()
       {
@@ -44,6 +45,11 @@ void ParallelFor( int ibeg, int iend, const TFunc & f )
 
   for (int i=0; i<nthreads; i++)
     {threadvec[i].join();}
+  //possible remainder
+  const int lastbeg = ibeg + nthreads*sz;
+  for(int it = lastbeg; it < iend; it++){
+    f(it);
+  }
 }
 
 
