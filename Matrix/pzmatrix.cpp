@@ -158,6 +158,25 @@ void TPZMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &
 }
 
 template<class TVar>
+TVar TPZMatrix<TVar>::RowTimesVector(const int row, const TPZFMatrix<TVar> &v) const
+{
+#ifdef PZDEBUG
+  if(v.Rows() != this->Cols()){
+    DebugStop();
+  }
+  if(row < 0 || row >= this->Rows()){
+    DebugStop();
+  }
+#endif
+  TVar res = 0;
+  const int nc = this->Cols();
+  for(int ic = 0; ic < nc; ic++){
+    res += this->GetVal(row,ic)*v.GetVal(ic,0);
+  }
+  return res;
+}
+
+template<class TVar>
 void TPZMatrix<TVar>::Identity() {
 	
     if ( Cols() != Rows() ) {

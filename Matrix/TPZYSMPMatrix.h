@@ -104,6 +104,8 @@ public:
 	
 	virtual void MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						   const TVar alpha=1.,const TVar beta = 0., const int opt = 0);
+
+  TVar RowTimesVector(const int row, const TPZFMatrix<TVar> &v) const override;
 	/** @} */
 	// this method is not working! default version does work
 	// virtual int GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,

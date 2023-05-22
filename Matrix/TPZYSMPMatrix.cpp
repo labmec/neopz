@@ -45,7 +45,7 @@ void TPZFYsmpMatrix<TVar>::MultiplyDummy(TPZFYsmpMatrix<TVar> & B, TPZFYsmpMatri
 
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::GetRowIndices(const int64_t i, TPZVec<int64_t> &indices) const{
-    if (i < 0 || i >= this->Rows()) {
+	if (i < 0 || i >= this->Rows()) {
 		DebugStop();
 	}
 
@@ -632,6 +632,27 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
     allthreads[i].join();
 	}
 	
+}
+
+
+template<class TVar>
+TVar TPZFYsmpMatrix<TVar>::RowTimesVector(const int row, const TPZFMatrix<TVar> &v) const
+{
+#ifdef PZDEBUG
+  if(v.Rows() != this->Cols()){
+    DebugStop();
+  }
+  if(row < 0 || row >= this->Rows()){
+    DebugStop();
+  }
+#endif
+  TVar res = 0;
+  const auto first = fIA[row];
+	const auto last = fIA[row+1];
+  for(int ic = first; ic < last; ic++){
+    res += fA[ic] * v.GetVal(fJA[ic],0);
+  }
+  return res;
 }
 
 // ****************************************************************************
