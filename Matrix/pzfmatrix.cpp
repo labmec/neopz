@@ -759,6 +759,9 @@ void TPZFMatrix<float>::MultAdd(const TPZFMatrix<float> &x,const TPZFMatrix<floa
     if (beta != (float)0.) {
         z = y;
     }
+    if (Rows() == 0 || Cols() == 0 || x.Rows() == 0 || x.Cols() == 0) {
+        return;
+    }
     if (!opt) {
         cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
                     alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
@@ -778,7 +781,7 @@ void TPZFMatrix<std::complex<double> >::MultAdd(const TPZFMatrix<std::complex<do
         Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
         return;
     }
-    if(beta.real() != 0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+    if(abs(beta) != 0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
         Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
         return;
     }
@@ -795,9 +798,14 @@ void TPZFMatrix<std::complex<double> >::MultAdd(const TPZFMatrix<std::complex<do
     if(this->Cols() == 0) {
         z.Zero();
     }
-    if (beta.real() != 0.) {
+    if (abs(beta) != 0.) {
         z = y;
     }
+
+    if (Rows() == 0 || Cols() == 0 || x.Rows() == 0 || x.Cols() == 0) {
+        return;
+    }
+    
     if (!opt) {
         cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
                     &alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), &beta, z.fElem, z.Rows());
@@ -805,7 +813,6 @@ void TPZFMatrix<std::complex<double> >::MultAdd(const TPZFMatrix<std::complex<do
         cblas_zgemm(CblasColMajor, CblasTrans, CblasNoTrans, this->Cols(), x.Cols(), this->Rows(),
                     &alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), &beta, z.fElem, z.Rows());
     }
-    
 }
 
 #endif // USING_LAPACK
