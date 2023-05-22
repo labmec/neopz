@@ -16,8 +16,141 @@ static TPZLogger logger("pz.mesh.tpzcondensedcompel");
 
 #include "TPZLapack.h"
 
-TPZCondensedCompEl::TPZCondensedCompEl(TPZCompEl *ref, bool keepmatrix) :
-TPZRegisterClassId(&TPZCondensedCompEl::ClassId)
+
+TPZCondensedCompEl::~TPZCondensedCompEl()
+{
+    if (fMesh->ElementVec()[fIndex] == this) {
+        fMesh->ElementVec()[fIndex] = fReferenceCompEl;
+        delete fReferenceCompEl;
+    }
+}
+
+
+/** @brief unwrap the condensed element from the computational element and delete the condensed element */
+void TPZCondensedCompEl::Unwrap()
+{
+    int64_t myindex = fIndex;
+    fMesh->ElementVec()[myindex] = 0;
+    TPZCompEl *ReferenceEl = fReferenceCompEl;
+    int ncon = NConnects();
+    for (int ic=0; ic<ncon ; ic++) {
+        Connect(ic).SetCondensed(false);
+    }
+    TPZGeoEl *gel = Reference();
+    if (gel) {
+        gel->ResetReference();
+    }
+    delete this;
+    ReferenceEl->Mesh()->ElementVec()[myindex] = ReferenceEl;
+    if (gel) {
+        gel->SetReference(ReferenceEl);
+    }
+}
+
+/**
+ * @brief Set the index i to node inode
+ * @param inode node to set index
+ * @param index index to be seted
+ */
+void TPZCondensedCompEl::SetConnectIndex(int inode, int64_t index)
+{
+    LOGPZ_ERROR(logger,"SetConnectIndex should never be called")
+    DebugStop();
+}
+
+
+/** @brief Verifies if the material associated with the element is contained in the set */
+bool TPZCondensedCompEl::HasMaterial(const std::set<int> &materialids) const {
+    if(!fReferenceCompEl){
+        return false;
+    }
+    bool has_material_Q = fReferenceCompEl->HasMaterial(materialids);
+    return has_material_Q;
+}
+
+/**
+ * @brief Prints element data
+ * @param out Indicates the device where the data will be printed
+ */
+void TPZCondensedCompEl::Print(std::ostream &out) const
+{
+    out << "Output for a condensed element\n";
+    TPZCompEl::Print(out);
+    out << "Connect indices (Condensed or not)\n";
+    for(int i=0; i<NConnects(); i++){
+        TPZConnect &c = Connect(i);
+        out << ConnectIndex(i) << "/" << c.IsCondensed() << ' ';
+    }
+    out << std::endl;
+    TPZElementGroup *eg = dynamic_cast<TPZElementGroup *>(fReferenceCompEl);
+    if(eg)
+    {
+        out << "Index of grouped elements: ";
+        int nel = eg->GetElGroup().size();
+        for(int i=0; i<nel-1; i++){
+            out << eg->GetElGroup()[i]->Index() <<", ";
+        }
+        out << eg->GetElGroup()[nel-1]->Index() <<std::endl;
+        out << "Connect indexes of the contained elements \n";
+        for(int i=0; i<nel; i++){
+            TPZCompEl *cel = eg->GetElGroup()[i];
+            TPZGeoEl *gel = cel->Reference();
+            out << "cel index " << cel->Index() << " cindex ";
+            int nc = cel->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                out << cel->ConnectIndex(ic) << " ";
+            }
+            if (gel) {
+                out << "\ngelindex " << gel->Index() << " ";
+                out << "matid " << gel->MaterialId();
+                TPZManVector<REAL,3> xi(gel->Dimension()), xco(3);
+                gel->CenterPoint(gel->NSides()-1, xi);
+                gel->X(xi,xco);
+                out << " center x " << xco;
+            }
+            out << std::endl;
+        }
+    }
+    else
+    {
+        if (fReferenceCompEl) {
+            fReferenceCompEl->Print(out);
+        }
+        else
+        {
+            DebugStop();
+        }
+    }
+    out << "Internal index resequencing: " << fIndexes << std::endl;
+//    fCondensed.Print("Condensed matrix",out,EMathematicaInput);
+}
+
+
+/** @brief adds the connect indexes associated with base shape functions to the set */
+void TPZCondensedCompEl::BuildCornerConnectList(std::set<int64_t> &connectindexes) const
+{
+    int nc = NConnects();
+    std::set<int64_t> refconn;
+    fReferenceCompEl->BuildCornerConnectList(refconn);
+    for (int ic=0; ic<nc ; ic++) {
+        TPZConnect &c = Connect(ic);
+        if (!c.IsCondensed() || !c.HasDependency()) {
+            int64_t index = ConnectIndex(ic);
+            if (refconn.find(index) != refconn.end()) {
+                connectindexes.insert(index);
+            }
+        }
+    }
+}
+
+int TPZCondensedCompEl::ClassId() const{
+    return Hash("TPZCondensedCompEl") ^ TPZCompEl::ClassId() << 1;
+}
+
+
+template<class TVar>
+TPZCondensedCompElT<TVar>::TPZCondensedCompElT(TPZCompEl *ref, bool keepmatrix) :
+TPZRegisterClassId(&TPZCondensedCompElT<TVar>::ClassId)
 {
     fKeepMatrix = keepmatrix;
     if(!ref)
@@ -67,17 +200,11 @@ TPZRegisterClassId(&TPZCondensedCompEl::ClassId)
 #endif
 }
 
-
-TPZCondensedCompEl::~TPZCondensedCompEl()
-{
-    if (fMesh->ElementVec()[fIndex] == this) {
-        fMesh->ElementVec()[fIndex] = fReferenceCompEl;
-        delete fReferenceCompEl;
-    }
-}
-
 /** @brief create a copy of the condensed computational element in the other mesh */
-TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh) : TPZRegisterClassId(&TPZCondensedCompEl::ClassId)
+template<class TVar>
+TPZCondensedCompElT<TVar>::TPZCondensedCompElT(const TPZCondensedCompElT<TVar> &copy,
+                                               TPZCompMesh &mesh)
+    : TPZRegisterClassId(&TPZCondensedCompElT<TVar>::ClassId)
 {
     TPZCompEl *ref = fReferenceCompEl->Clone(mesh);
     if(!ref)
@@ -97,39 +224,6 @@ TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMe
     }
 }
 
-
-/** @brief unwrap the condensed element from the computational element and delete the condensed element */
-void TPZCondensedCompEl::Unwrap()
-{
-    int64_t myindex = fIndex;
-    fMesh->ElementVec()[myindex] = 0;
-    TPZCompEl *ReferenceEl = fReferenceCompEl;
-    int ncon = NConnects();
-    for (int ic=0; ic<ncon ; ic++) {
-        Connect(ic).SetCondensed(false);
-    }
-    TPZGeoEl *gel = Reference();
-    if (gel) {
-        gel->ResetReference();
-    }
-    delete this;
-    ReferenceEl->Mesh()->ElementVec()[myindex] = ReferenceEl;
-    if (gel) {
-        gel->SetReference(ReferenceEl);
-    }
-}
-
-/**
- * @brief Set the index i to node inode
- * @param inode node to set index
- * @param index index to be seted
- */
-void TPZCondensedCompEl::SetConnectIndex(int inode, int64_t index)
-{
-    LOGPZ_ERROR(logger,"SetConnectIndex should never be called")
-    DebugStop();
-}
-
 /**
  * @brief Method for creating a copy of the element in a patch mesh
  * @param mesh Patch clone mesh
@@ -141,18 +235,20 @@ void TPZCondensedCompEl::SetConnectIndex(int inode, int64_t index)
  * copy entire mesh. Therefore it needs to map the connect index
  * from the both meshes - original and patch
  */
-TPZCompEl *TPZCondensedCompEl::ClonePatchEl(TPZCompMesh &mesh,
+template<class TVar>
+TPZCompEl *TPZCondensedCompElT<TVar>::ClonePatchEl(TPZCompMesh &mesh,
                                 std::map<int64_t,int64_t> & gl2lcConMap,
                                 std::map<int64_t,int64_t> & gl2lcElMap) const
 {
     TPZCompEl *cel = fReferenceCompEl->ClonePatchEl(mesh,gl2lcConMap,gl2lcElMap);
-    TPZCondensedCompEl *result = new TPZCondensedCompEl(cel);
+    auto *result = new TPZCondensedCompElT<TVar>(cel);
     result->fIndexes = fIndexes;
     result->fCondensed = fCondensed;
     return result;
 }
 
-void TPZCondensedCompEl::Resequence()
+template<class TVar>
+void TPZCondensedCompElT<TVar>::Resequence()
 {
     TPZStack<int> condensed;
     TPZStack<int> notcondensed;
@@ -205,23 +301,23 @@ void TPZCondensedCompEl::Resequence()
         fIndexes[i+ncond] = notcondensed[i];
         fActiveConnectIndexes[i] = fReferenceCompEl->ConnectIndex(notcondensed[i]);
     }
-    //TPZAutoPointer<TPZMatrix<STATE> > k00 = new TPZFMatrix<STATE>(nint,nint,0.);
+    //TPZAutoPointer<TPZMatrix<TVar> > k00 = new TPZFMatrix<TVar>(nint,nint,0.);
     if (fKeepMatrix == false) {
         nint = 0;
     }
-	TPZAutoPointer<TPZMatrix<STATE> > k00 = new TPZFMatrix<STATE>(nint, nint, 0.);
-    //TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
-    TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
+	TPZAutoPointer<TPZMatrix<TVar> > k00 = new TPZFMatrix<TVar>(nint, nint, 0.);
+    //TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(k00);
+    TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(k00);
     if(0)
     {
-        TPZAutoPointer<TPZMatrix<STATE> > mat2 = k00->Clone();
-        TPZStepSolver<STATE> *gmrs = new TPZStepSolver<STATE>(mat2);
+        TPZAutoPointer<TPZMatrix<TVar> > mat2 = k00->Clone();
+        TPZStepSolver<TVar> *gmrs = new TPZStepSolver<TVar>(mat2);
         step->SetReferenceMatrix(mat2);
         gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
-        TPZAutoPointer<TPZMatrixSolver<STATE> > autogmres = gmrs;
+        TPZAutoPointer<TPZMatrixSolver<TVar> > autogmres = gmrs;
     }
     step->SetDirect(ELU);
-    TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
+    TPZAutoPointer<TPZMatrixSolver<TVar> > autostep = step;
     
 
     
@@ -234,14 +330,15 @@ void TPZCondensedCompEl::Resequence()
 }
 
 /// Assemble the stiffness matrix in locally kept datastructure
-void TPZCondensedCompEl::Assemble()
+template<class TVar>
+void TPZCondensedCompElT<TVar>::Assemble()
 {
     fCondensed.K00()->Redim(fNumInternalEqs, fNumInternalEqs);
     fCondensed.Redim(fNumTotalEqs, fNumInternalEqs);
 
     fCondensed.Zero();
-    //TODOCOMPLEX
-    TPZElementMatrixT<STATE> ek,ef;
+    
+    TPZElementMatrixT<TVar> ek,ef;
     
     fReferenceCompEl->CalcStiff(ek,ef);
     ek.PermuteGather(fIndexes);
@@ -265,7 +362,8 @@ void TPZCondensedCompEl::Assemble()
  * @param ef element load vector
  */
 template<class TVar>
-void TPZCondensedCompEl::CalcStiffInternal(TPZElementMatrixT<TVar> &ekglob,TPZElementMatrixT<TVar> &efglob)
+void TPZCondensedCompElT<TVar>::CalcStiff(TPZElementMatrixT<TVar> &ekglob,
+                                          TPZElementMatrixT<TVar> &efglob)
 {
     if(fKeepMatrix == false)
     {
@@ -275,7 +373,6 @@ void TPZCondensedCompEl::CalcStiffInternal(TPZElementMatrixT<TVar> &ekglob,TPZEl
         fKeepMatrix = false;
     }
     InitializeElementMatrix(ekglob, efglob);
-    //TODOCOMPLEX
     TPZElementMatrixT<TVar> ek, ef;
     
     fReferenceCompEl->CalcStiff(ek,ef);
@@ -543,7 +640,7 @@ void TPZCondensedCompEl::CalcStiffInternal(TPZElementMatrixT<TVar> &ekglob,TPZEl
  * @param ef element load vector(s)
  */
 template<class TVar>
-void TPZCondensedCompEl::CalcResidualInternal(TPZElementMatrixT<TVar> &ef)
+void TPZCondensedCompElT<TVar>::CalcResidual(TPZElementMatrixT<TVar> &ef)
 {
     // we need the stiffness matrix computed to compute the residual
     if (fKeepMatrix == false) {
@@ -568,79 +665,13 @@ void TPZCondensedCompEl::CalcResidualInternal(TPZElementMatrixT<TVar> &ef)
     }
 }
 
-/** @brief Verifies if the material associated with the element is contained in the set */
-bool TPZCondensedCompEl::HasMaterial(const std::set<int> &materialids) const {
-    if(!fReferenceCompEl){
-        return false;
-    }
-    bool has_material_Q = fReferenceCompEl->HasMaterial(materialids);
-    return has_material_Q;
-}
-
-/**
- * @brief Prints element data
- * @param out Indicates the device where the data will be printed
- */
-void TPZCondensedCompEl::Print(std::ostream &out) const
-{
-    out << "Output for a condensed element\n";
-    TPZCompEl::Print(out);
-    out << "Connect indices (Condensed or not)\n";
-    for(int i=0; i<NConnects(); i++){
-        TPZConnect &c = Connect(i);
-        out << ConnectIndex(i) << "/" << c.IsCondensed() << ' ';
-    }
-    out << std::endl;
-    TPZElementGroup *eg = dynamic_cast<TPZElementGroup *>(fReferenceCompEl);
-    if(eg)
-    {
-        out << "Index of grouped elements: ";
-        int nel = eg->GetElGroup().size();
-        for(int i=0; i<nel-1; i++){
-            out << eg->GetElGroup()[i]->Index() <<", ";
-        }
-        out << eg->GetElGroup()[nel-1]->Index() <<std::endl;
-        out << "Connect indexes of the contained elements \n";
-        for(int i=0; i<nel; i++){
-            TPZCompEl *cel = eg->GetElGroup()[i];
-            TPZGeoEl *gel = cel->Reference();
-            out << "cel index " << cel->Index() << " cindex ";
-            int nc = cel->NConnects();
-            for (int ic=0; ic<nc; ic++) {
-                out << cel->ConnectIndex(ic) << " ";
-            }
-            if (gel) {
-                out << "\ngelindex " << gel->Index() << " ";
-                out << "matid " << gel->MaterialId();
-                TPZManVector<REAL,3> xi(gel->Dimension()), xco(3);
-                gel->CenterPoint(gel->NSides()-1, xi);
-                gel->X(xi,xco);
-                out << " center x " << xco;
-            }
-            out << std::endl;
-        }
-    }
-    else
-    {
-        if (fReferenceCompEl) {
-            fReferenceCompEl->Print(out);
-        }
-        else
-        {
-            DebugStop();
-        }
-    }
-    out << "Internal index resequencing: " << fIndexes << std::endl;
-//    fCondensed.Print("Condensed matrix",out,EMathematicaInput);
-}
-
-
 /** @brief Loads the solution within the internal data structure of the element */
 /**
  * Is used to initialize the solution of connect objects with dependency \n
  * Is also used to load the solution within SuperElements
  */
-void TPZCondensedCompEl::LoadSolution()
+template<class TVar>
+void TPZCondensedCompElT<TVar>::LoadSolution()
 {
 //    if (fKeepMatrix == false) {
 //        fKeepMatrix = true;
@@ -683,12 +714,12 @@ void TPZCondensedCompEl::LoadSolution()
     dim1 = fNumTotalEqs-dim0;
     //TPZBlock &bl = Mesh()->Block();
 	TPZBlock &bl = Mesh()->Block();
-    TPZFMatrix<STATE> &sol = Mesh()->Solution();
+    TPZFMatrix<TVar> &sol = Mesh()->Solution();
     int64_t count = 0;
     //TPZFMatrix<REAL> u1(dim1,1,0.);
-	TPZFMatrix<STATE> u1(dim1,1,0.);
+	TPZFMatrix<TVar> u1(dim1,1,0.);
     //TPZFMatrix<REAL> elsol(dim0+dim1,1,0.);
-	TPZFNMatrix<60,STATE> elsol(dim0+dim1,1,0.);
+	TPZFNMatrix<60,TVar> elsol(dim0+dim1,1,0.);
     for (int ic=0; ic<nc1 ; ic++) {
         TPZConnect &c = Connect(ic);
         int64_t seqnum = c.SequenceNumber();
@@ -720,7 +751,7 @@ void TPZCondensedCompEl::LoadSolution()
         std::stringstream sout;
         sout << "Computing UGlobal Index " << Index();
         sout << " Norm fK01 " << Norm(fCondensed.K01()) << std::endl;
-        TPZVec<STATE> u1vec(dim1);
+        TPZVec<TVar> u1vec(dim1);
         for(int i=0; i<u1vec.size(); i++) u1vec[i] = u1(i,0);
         sout << "u1 " << u1vec << std::endl;
         sout << "u1 eq " << u1eq << std::endl;
@@ -744,7 +775,7 @@ void TPZCondensedCompEl::LoadSolution()
         std::stringstream sout;
         sout << "After Computing UGlobal Index " << Index() ;
         sout << " Norm fK01 " << Norm(fCondensed.K01()) << std::endl;
-        TPZVec<STATE> u1vec(dim1+dim0);
+        TPZVec<TVar> u1vec(dim1+dim0);
         for(int i=0; i<u1vec.size(); i++) u1vec[i] = elsol(i,0);
         sout << "elsol " << u1vec;
         LOGPZ_DEBUG(logger, sout.str())
@@ -758,28 +789,8 @@ void TPZCondensedCompEl::LoadSolution()
 
 }
 
-/** @brief adds the connect indexes associated with base shape functions to the set */
-void TPZCondensedCompEl::BuildCornerConnectList(std::set<int64_t> &connectindexes) const
-{
-    int nc = NConnects();
-    std::set<int64_t> refconn;
-    fReferenceCompEl->BuildCornerConnectList(refconn);
-    for (int ic=0; ic<nc ; ic++) {
-        TPZConnect &c = Connect(ic);
-        if (!c.IsCondensed() || !c.HasDependency()) {
-            int64_t index = ConnectIndex(ic);
-            if (refconn.find(index) != refconn.end()) {
-                connectindexes.insert(index);
-            }
-        }
-    }
-}
-
-int TPZCondensedCompEl::ClassId() const{
-    return Hash("TPZCondensedCompEl") ^ TPZCompEl::ClassId() << 1;
-}
-
-void TPZCondensedCompEl::PermuteActiveConnects(TPZManVector<int64_t> &perm)
+template<class TVar>
+void TPZCondensedCompElT<TVar>::PermuteActiveConnects(TPZManVector<int64_t> &perm)
 {
     auto ncon = NConnects();
     auto nint = fNumInternalEqs;
@@ -792,10 +803,10 @@ void TPZCondensedCompEl::PermuteActiveConnects(TPZManVector<int64_t> &perm)
     {
         nint = 0;
     }
-	TPZAutoPointer<TPZMatrix<STATE> > k00 = new TPZFMatrix<STATE>(nint, nint, 0.);
-    TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
+	TPZAutoPointer<TPZMatrix<TVar> > k00 = new TPZFMatrix<TVar>(nint, nint, 0.);
+    TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(k00);
     step->SetDirect(ELU);
-    TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
+    TPZAutoPointer<TPZMatrixSolver<TVar> > autostep = step;
     
     fCondensed.SetSolver(autostep);
     if(fKeepMatrix == true)
@@ -803,3 +814,13 @@ void TPZCondensedCompEl::PermuteActiveConnects(TPZManVector<int64_t> &perm)
         fCondensed.Redim(fNumTotalEqs,fNumInternalEqs);
     }
 }
+
+template<class TVar>
+int TPZCondensedCompElT<TVar>::ClassId() const{
+    return Hash("TPZCondensedCompElT")
+        ^ ClassIdOrHash<TVar>() << 1
+        ^ TPZCondensedCompEl::ClassId() << 2;
+}
+
+template class TPZCondensedCompElT<STATE>;
+template class TPZCondensedCompElT<CSTATE>;

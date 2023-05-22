@@ -712,6 +712,11 @@ void TPZHybridizeHDiv::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &el
 
 void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh) {
 
+    const bool real_sol = cmesh->GetSolType()!=ESolType::EComplex;
+    if(!real_sol){
+        //we are not creating cplx condensed els yet
+        DebugStop();
+    }
     int64_t nel = cmesh->NElements();
     TPZVec<int64_t> groupnumber(nel,-1);
     /// compute a groupnumber associated with each element
@@ -739,7 +744,7 @@ void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *> (cel);
         if (elgr) {
-            TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+            TPZCondensedCompEl *cond = new TPZCondensedCompElT<STATE>(elgr);
             cond->SetKeepMatrix(false);
         }
     }
@@ -783,7 +788,7 @@ void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh, int lagrange
                     break;
                 }
             }
-            TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+            TPZCondensedCompEl *cond = new TPZCondensedCompElT<STATE>(elgr);
             cond->SetKeepMatrix(false);
         }
     }

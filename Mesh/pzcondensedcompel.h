@@ -21,28 +21,15 @@ class TPZCondensedCompEl : public TPZCompEl
 {
 
 protected:
-    
-    //TPZMatRed<REAL, TPZFMatrix<REAL> > fCondensed;
     int64_t fNumInternalEqs = 0;
     int64_t fNumTotalEqs = 0;
-	TPZMatRed<STATE, TPZFMatrix<STATE> > fCondensed;
     TPZCompEl *fReferenceCompEl;
     TPZManVector<int64_t,62> fIndexes;
     TPZManVector<int64_t,55> fCondensedConnectIndexes;
     TPZManVector<int64_t,10> fActiveConnectIndexes;
     bool fKeepMatrix = true;
-    void Resequence();
-
-    template<class TVar>
-    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
-    template<class TVar>
-    void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
+    virtual void Resequence() = 0;
 public:
-    
-    TPZCondensedCompEl(TPZCompEl *ref, bool keepmatrix = true);
-    
-    /** @brief create a copy of the condensed computational element in the other mesh */
-    TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh);
     
     virtual ~TPZCondensedCompEl();
 
@@ -53,7 +40,7 @@ public:
 	virtual void Print(std::ostream &out = std::cout) const override;
 
     /** @brief unwrap the condensed element from the computational element and delete the condensed element */
-    void Unwrap();
+    virtual void Unwrap();
     
     /**
 	 * @brief Set the index i to node inode
@@ -124,21 +111,11 @@ public:
     {
         fKeepMatrix = keep;
     }
-    
-    TPZMatRed<STATE, TPZFMatrix<STATE> > &Matrix()
-    {
-        return fCondensed;
-    }
 
 	/** @brief Dimension of the element */
 	virtual int Dimension() const override
     {
         return fReferenceCompEl->Dimension();
-    }
-	/** @brief Method for creating a copy of the element */
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override
-    {
-        return new TPZCondensedCompEl(*this,mesh);
     }
 
     /** @brief Loads the solution within the internal data structure of the element */ 
@@ -146,7 +123,7 @@ public:
 	 * Is used to initialize the solution of connect objects with dependency \n
 	 * Is also used to load the solution within SuperElements
 	 */
-	virtual void LoadSolution() override;
+	virtual void LoadSolution() override = 0;
     
     virtual void TransferMultiphysicsElementSolution() override
     {
@@ -156,21 +133,6 @@ public:
         }
     }
 
-
-	/**
-	 * @brief Method for creating a copy of the element in a patch mesh
-	 * @param mesh Patch clone mesh
-	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
-	 * @param gl2lcElMap map the computational elements
-     */
-	/**
-	 * Otherwise of the previous clone function, this method don't
-	 * copy entire mesh. Therefore it needs to map the connect index
-	 * from the both meshes - original and patch
-	 */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-									std::map<int64_t,int64_t> & gl2lcConMap,
-									std::map<int64_t,int64_t> & gl2lcElMap) const override;
     
     /**
      * @brief Compute the integral of a variable defined by the string if the material id is included in matids
@@ -189,24 +151,7 @@ public:
 
     
     /// Assemble the stiffness matrix in locally kept datastructure
-    virtual void Assemble() override;
-	/**
-	 * @brief Computes the element stifness matrix and right hand side
-	 * @param ek element stiffness matrix
-	 * @param ef element load vector
-	 */
-	void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override{
-        return CalcStiffInternal(ek,ef);
-    }
-	
-	
-	/**
-	 * @brief Computes the element right hand side
-	 * @param ef element load vector(s)
-	 */
-	void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
-        return CalcResidualInternal(ef);
-    }
+    virtual void Assemble() override = 0;
     
     /** @brief Verifies if the material associated with the element is contained in the set */
     virtual bool HasMaterial(const std::set<int> &materialids) const override;
@@ -237,11 +182,77 @@ public:
 		return 0;
     }
 
-    void PermuteActiveConnects(TPZManVector<int64_t> &perm);
+    virtual void PermuteActiveConnects(TPZManVector<int64_t> &perm) = 0;
 
 virtual int ClassId() const override;
 
 
+};
+
+template<class TVar>
+class TPZCondensedCompElT : public TPZCondensedCompEl{
+protected:
+    
+	TPZMatRed<TVar, TPZFMatrix<TVar> > fCondensed;
+    void Resequence() override;
+public:
+    
+    TPZCondensedCompElT(TPZCompEl *ref, bool keepmatrix = true);
+    
+    /** @brief create a copy of the condensed computational element in the other mesh */
+    TPZCondensedCompElT(const TPZCondensedCompElT<TVar> &copy, TPZCompMesh &mesh);
+
+    TPZMatRed<TVar, TPZFMatrix<TVar> > &Matrix()
+    {
+        return fCondensed;
+    }
+
+	/** @brief Method for creating a copy of the element */
+	class TPZCompEl *Clone(TPZCompMesh &mesh) const override
+    {
+        return new TPZCondensedCompElT<TVar>(*this,mesh);
+    }
+    /**
+	 * @brief Method for creating a copy of the element in a patch mesh
+	 * @param mesh Patch clone mesh
+	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
+	 * @param gl2lcElMap map the computational elements
+     */
+	/**
+	 * Otherwise of the previous clone function, this method don't
+	 * copy entire mesh. Therefore it needs to map the connect index
+	 * from the both meshes - original and patch
+	 */
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
+									std::map<int64_t,int64_t> & gl2lcConMap,
+									std::map<int64_t,int64_t> & gl2lcElMap) const override;
+
+
+    /// Assemble the stiffness matrix in locally kept datastructure
+    void Assemble() override;
+    /** @brief Loads the solution within the internal data structure of the element */ 
+	/** 
+	 * Is used to initialize the solution of connect objects with dependency \n
+	 * Is also used to load the solution within SuperElements
+	 */
+	virtual void LoadSolution() override;
+	/**
+	 * @brief Computes the element stifness matrix and right hand side
+	 * @param ek element stiffness matrix
+	 * @param ef element load vector
+	 */
+	void CalcStiff(TPZElementMatrixT<TVar> &ek,TPZElementMatrixT<TVar> &ef) override;
+	
+	
+	/**
+	 * @brief Computes the element right hand side
+	 * @param ef element load vector(s)
+	 */
+	void CalcResidual(TPZElementMatrixT<TVar> &ef) override;
+
+    void PermuteActiveConnects(TPZManVector<int64_t> &perm) override;
+    
+    virtual int ClassId() const override;
 };
 
 #endif
