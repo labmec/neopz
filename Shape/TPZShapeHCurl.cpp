@@ -836,7 +836,8 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
 template<class TSHAPE>
 int TPZShapeHCurl<TSHAPE>::MaxOrder(const int ordh1){
 
-    if constexpr (std::is_same_v<TSHAPE,pzshape::TPZShapeCube> ||
+    if constexpr (std::is_same_v<TSHAPE,pzshape::TPZShapePrism> ||
+                  std::is_same_v<TSHAPE,pzshape::TPZShapeCube> ||
                   std::is_same_v<TSHAPE,pzshape::TPZShapeQuad>){
         return ordh1+1;
     }else{
