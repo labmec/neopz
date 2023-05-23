@@ -151,29 +151,11 @@ int TPZCompElHCurl<TSHAPE>::SideConnectLocId(int con,int side) const {
         return -1;
     }
 #endif
-    int conSide = -1;
-    TPZStack<int> sideClosure;
-    TSHAPE::LowerDimensionSides(side,sideClosure);
-    sideClosure.Push(side);
-    int iCon = -1;
-    for(auto &subSide :sideClosure){
-        if(TSHAPE::SideDimension(subSide)) iCon++;
-        if(iCon == con) {
-            conSide = subSide;
-            break;
-        }
-    }
-    if(conSide<0){
-        std::stringstream sout;
-        sout << __PRETTY_FUNCTION__ << " ERROR: could not find subside associated with connect "<<con<<" on side "<<side << std::endl;
-        PZError<<sout.str();
-#ifdef PZ_LOG
-        LOGPZ_ERROR(logger,sout.str())
-#endif
-        DebugStop();
-        return -1;
-    }
-    return conSide-TSHAPE::NCornerNodes;
+
+    const auto nnodes = TSHAPE::NCornerNodes;
+    const auto nsidenodes = TSHAPE::NSideNodes(side);
+    const auto locside = TSHAPE::ContainedSideLocId(side,nsidenodes+con);
+    return locside - nnodes;
 }
 
 template<class TSHAPE>
@@ -188,14 +170,9 @@ int TPZCompElHCurl<TSHAPE>::NSideConnects(int side) const{
 #endif
     }
 #endif
-    int nCons = 0;
-    TPZStack<int> sideClosure;
-    TSHAPE::LowerDimensionSides(side,sideClosure);
-    sideClosure.Push(side);
-    for(auto &subSide :sideClosure){
-        if(TSHAPE::SideDimension(subSide)) nCons++;
-    }
-    return nCons;
+    const auto nsidenodes = TSHAPE::NSideNodes(side);
+    const auto nsidesides = TSHAPE::NContainedSides(side);
+    return nsidesides - nsidenodes;
 }
 
 template<class TSHAPE>
@@ -269,21 +246,7 @@ int TPZCompElHCurl<TSHAPE>::ConnectOrder(int connect) const {
 template<class TSHAPE>
 int TPZCompElHCurl<TSHAPE>::EffectiveSideOrder(int side) const{
 	if(!NSideConnects(side)) return -1;
-	const auto connect = this->MidSideConnectLocId( side);
-	if(connect >= 0 || connect < NConnects()){
-        return ConnectOrder(connect);
-	}
-    else{
-        std::stringstream sout;
-        sout << __PRETTY_FUNCTION__<<std::endl;
-        sout << "Connect index out of range connect " << connect << " nconnects " << NConnects();
-        PZError<<sout.str()<<std::endl;
-#ifdef PZ_LOG
-        LOGPZ_ERROR(logger, sout.str())
-#endif
-        DebugStop();
-    }
-	return -1;
+  return ConnectOrder(side-TSHAPE::NCornerNodes);
 }
 
 template<class TSHAPE>
@@ -310,25 +273,12 @@ void TPZCompElHCurl<TSHAPE>::SetSideOrder(int side, int order){
     TPZConnect &c = this->Connect(connect);
     c.SetOrder(order,this->fConnectIndexes[connect]);
     int64_t seqnum = c.SequenceNumber();
-    const int nStateVars = [&](){
-        TPZMaterial * mat =this-> Material();
-        if(mat) return mat->NStateVariables();
-        else {
-#ifdef PZ_LOG
-            std::stringstream sout;
-            sout << __PRETTY_FUNCTION__<<"\tAssuming only one state variable since no material has been set";
-            LOGPZ_DEBUG(logger,sout.str())
-#endif
-            return 1;
-        }
-    }();
-    c.SetNState(nStateVars);
+    TPZMaterial * mat =this-> Material();
+    const int nvars = mat ? mat->NStateVariables() : 1;
+    c.SetNState(nvars);
     const int nshape =this->NConnectShapeF(connect,order);
     c.SetNShape(nshape);
-    this-> Mesh()->Block().Set(seqnum,nshape*nStateVars);
-    this->AdjustIntegrationRule();
-    //for the hcurl and hdiv spaces to be compatible, the approximation order of a face must be max(k,ke), where
-    //k is the (attempted) order of the face, and ke the maximum order of the edges contained in it.
+    this-> Mesh()->Block().Set(seqnum,nshape*nvars);
 }
 
 template<class TSHAPE>
@@ -657,7 +607,12 @@ void TPZCompElHCurl<TSHAPE>::CreateHCurlConnects(TPZCompMesh &mesh){
         mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
         this->IdentifySideOrder(sideId);
     }
-    this->AdjustIntegrationRule();
+    int sideorder = 2*EffectiveSideOrder(TSHAPE::NSides-1);
+    if (sideorder > this->fIntRule.GetMaxOrder()){
+        sideorder = this->fIntRule.GetMaxOrder();
+    }
+    TPZManVector<int,3> order(3,sideorder);
+    this->fIntRule.SetOrder(order);
 }
 
 template<class TSHAPE>
