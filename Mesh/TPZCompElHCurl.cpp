@@ -509,8 +509,8 @@ void TPZCompElHCurl<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZF
         }
     }();
     
-    TPZFMatrix<REAL> phiref(sidedim,nshape);
-    TPZFMatrix<REAL> curlphiref(curldim,nshape);
+    TPZFNMatrix<1000, REAL> phiref(sidedim,nshape);
+    TPZFNMatrix<1000, REAL> curlphiref(curldim,nshape);
     
     switch(sidetype){
     case EOned:
@@ -563,7 +563,7 @@ void TPZCompElHCurl<TSHAPE>::TransformShape(const TPZFMatrix<REAL> &phiref,
 {
 
     //applies covariant piola transform and compute the deformed vectors
-    TPZFMatrix<REAL> axest, jacinvt;
+    TPZFNMatrix<9,REAL> axest, jacinvt;
     jacinv.Transpose(&jacinvt);
     axes.Transpose(&axest);
 
