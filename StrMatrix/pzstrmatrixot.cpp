@@ -684,9 +684,17 @@ TPZStructMatrixOT<TVar>::ThreadData::ThreadData(
 
 //#define DRY_RUN
 
+#ifdef USING_MKL
+#include <mkl.h>
+#endif
+
 template<class TVar>
 void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
 {
+#ifdef USING_MKL
+    //we keep the current value of n threads
+    auto mkl_threads = mkl_set_num_threads_local(1);
+#endif
     ThreadData *data = (ThreadData *) datavoid;
 //    TPZStructMatrixOT *strmat = data->fStruct;
     TPZVec<int64_t> &ComputedElements = *(data->fComputedElements);
@@ -975,6 +983,10 @@ void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
 #endif
     data->fConditionVar.notify_all();
     SomeoneIsSleeping = 0;
+#ifdef USING_MKL
+    //we restore the previous value of n threads
+    mkl_set_num_threads_local(mkl_threads);
+#endif
     return 0;
 }
 

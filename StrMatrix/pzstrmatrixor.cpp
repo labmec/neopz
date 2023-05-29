@@ -581,12 +581,19 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadData(
   fGlobRhs(&rhs), fNextElement(0), fComputeRhs(computeRhs) {
 }
 
+#ifdef USING_MKL
+#include <mkl.h>
+#endif
 //#define DRY_RUN
 template<class TVar>
 void *
 TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
 #ifdef PZDEBUG
     TExceptionManager activateExceptions;
+#endif
+#ifdef USING_MKL
+    //we keep the previous value
+    auto mkl_threads = mkl_set_num_threads_local(1);
 #endif
     ThreadData *data = (ThreadData *) datavoid;
     const bool computeRhs = data->fComputeRhs;
@@ -690,7 +697,10 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
       std::scoped_lock lock(data->fMutexAccessElement);
       data->fAssembly.Post();
     }
-
+#ifdef USING_MKL
+    //we restore the previous value
+    mkl_set_num_threads_local(mkl_threads);
+#endif
     return 0;
 }
 
