@@ -517,7 +517,9 @@ void IntegralNormal()
         TPZManVector<int> orders(TSHAPE::NFacets+1,1);
         TPZManVector<int> sideorient(TSHAPE::NFacets,1);
         shape.Initialize(ids, orders, sideorient, data);
-        data.fSideTransformationId.Resize(TSHAPE::NFacets, 0);
+        // comment this out because it will break hcurl shape funcs
+        // why was it here?
+        // data.fSideTransformationId.Resize(TSHAPE::NFacets, 0);
         data.fSideOrient.Resize(TSHAPE::NFacets, 1);
         int nshape = shape.NHDivShapeF(data);
         TPZManVector<REAL> pt(3,0.);
