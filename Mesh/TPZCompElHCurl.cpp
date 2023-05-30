@@ -278,7 +278,7 @@ void TPZCompElHCurl<TSHAPE>::SetSideOrder(int side, int order){
     c.SetNState(nvars);
     const int nshape =this->NConnectShapeF(connect,order);
     c.SetNShape(nshape);
-    this-> Mesh()->Block().Set(seqnum,nshape*nvars);
+    this->Mesh()->Block().Set(seqnum,nshape*nvars);
 }
 
 template<class TSHAPE>
@@ -591,7 +591,7 @@ template<class TSHAPE>
 void TPZCompElHCurl<TSHAPE>::CreateHCurlConnects(TPZCompMesh &mesh){
     constexpr int nNodes = TSHAPE::NCornerNodes;
     constexpr int nConnects = TSHAPE::NSides - nNodes;
-    this->fConnectIndexes.Resize(nConnects);
+    
     for(auto i = 0; i < nConnects; i++){
         const int sideId = nNodes + i;
         this->fConnectIndexes[i] = this->CreateMidSideConnect(sideId);
@@ -607,12 +607,7 @@ void TPZCompElHCurl<TSHAPE>::CreateHCurlConnects(TPZCompMesh &mesh){
         mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
         this->IdentifySideOrder(sideId);
     }
-    int sideorder = 2*EffectiveSideOrder(TSHAPE::NSides-1);
-    if (sideorder > this->fIntRule.GetMaxOrder()){
-        sideorder = this->fIntRule.GetMaxOrder();
-    }
-    TPZManVector<int,3> order(3,sideorder);
-    this->fIntRule.SetOrder(order);
+    this->AdjustIntegrationRule();
 }
 
 template<class TSHAPE>
