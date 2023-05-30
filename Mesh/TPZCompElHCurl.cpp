@@ -509,8 +509,8 @@ void TPZCompElHCurl<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZF
         }
     }();
     
-    TPZFNMatrix<1000, REAL> phiref(sidedim,nshape);
-    TPZFNMatrix<1000, REAL> curlphiref(curldim,nshape);
+    TPZFNMatrix<1000, REAL> phiref(sidedim,nshape,0.);
+    TPZFNMatrix<1000, REAL> curlphiref(curldim,nshape,0.);
     
     switch(sidetype){
     case EOned:
@@ -530,7 +530,7 @@ void TPZCompElHCurl<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZF
 
     //get the jacobian of the side transformation
     TPZGeoElSide gelside = TPZGeoElSide(this->Reference(),side);
-    TPZFNMatrix<9,REAL> jac(sideDim,sideDim),jacinv(sideDim,sideDim),axes(sideDim,3);
+    TPZFNMatrix<9,REAL> jac(sideDim,sideDim,0.),jacinv(sideDim,sideDim,0.),axes(sideDim,3,0.);
     REAL detjac = 0;
     gelside.Jacobian(point, jac, axes, detjac, jacinv);
 

@@ -148,8 +148,8 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
     constexpr int nvol = dim == 3 ? 1 : 0;
     constexpr int nedges = nsides - nvol - nfaces - ncorner;
     
-    TPZFNMatrix<100,T> locphi(data.fPhi.Rows(),data.fPhi.Cols());
-    TPZFNMatrix<100*dim,T> dphi(data.fDPhi.Rows(),data.fDPhi.Cols());
+    TPZFNMatrix<100,T> locphi(data.fPhi.Rows(),data.fPhi.Cols(),0.);
+    TPZFNMatrix<100*dim,T> dphi(data.fDPhi.Rows(),data.fDPhi.Cols(),0.);
     
     TPZShapeH1<TSHAPE>::Shape(pt,data, locphi, dphi);
 
