@@ -29,7 +29,7 @@ namespace pzshape{
 	class TPZShapeQuad  : public pztopology::TPZQuadrilateral{
 
 	public:
-		
+        using TTOPOL=pztopology::TPZQuadrilateral;
         
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction

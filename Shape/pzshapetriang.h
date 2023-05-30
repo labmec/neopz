@@ -25,7 +25,7 @@ namespace pzshape {
 	class TPZShapeTriang : public pztopology::TPZTriangle {
 		
 	public:
-
+        using TTOPOL=pztopology::TPZTriangle;
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
          */

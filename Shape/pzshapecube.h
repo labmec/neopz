@@ -28,7 +28,7 @@ namespace pzshape {
 	class TPZShapeCube : public pztopology::TPZCube {
 		
 	public:
-		
+    using TTOPOL=pztopology::TPZCube;
         
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
