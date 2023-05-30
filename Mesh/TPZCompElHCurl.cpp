@@ -366,8 +366,8 @@ void TPZCompElHCurl<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &da
 //          }();
 
     const int nshape = this->NShapeF();
-    TPZFNMatrix<dim*80,REAL> phiref(dim,nshape);
-    TPZFNMatrix<curldim*80,REAL> curlphiref(curldim,nshape);
+    TPZFNMatrix<dim*80,REAL> phiref(dim,nshape,0.);
+    TPZFNMatrix<curldim*80,REAL> curlphiref(curldim,nshape,0.);
 
     TPZShapeData &shapedata = data;
     switch (fhcurlfam)
