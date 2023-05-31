@@ -1006,7 +1006,63 @@ void TPZFYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym)
     SetData(IA, JA, A);
 }
 
-
+template<class TVar>
+void
+TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &indices,
+										 TPZVec<int64_t> &ia,
+										 TPZVec<int64_t> &ja,
+										 TPZVec<TVar> &aa){
+#ifdef PZDEBUG
+	auto max_el = std::max_element(indices.begin(), indices.end());
+	auto min_el = std::min_element(indices.begin(), indices.end());
+	if(*min_el < 0 || *max_el >= this->Rows()){
+		DebugStop();
+	}
+	const bool is_sort= std::is_sorted(indices.begin(), indices.end());
+	if(!is_sort){
+		DebugStop();
+	}
+#endif
+	const int neq = indices.size();
+	ia.Resize(neq+1,-1);
+	int64_t nentries{0};
+	//first we count the number of entries
+	for(int i = 0; i < neq; i++){
+		const auto eq = indices[i];
+		ia[i] = nentries;
+		const auto first = fIA[eq];
+		const auto last = fIA[eq+1];
+		for(auto ieq = first; ieq < last; ieq++){
+			const auto col = fJA[ieq];
+			//std::lower_bound uses a binary search and indices is already sorted.
+			const auto pos = std::lower_bound(indices.begin(), indices.end(), col)-
+				indices.begin();
+			if(pos != neq && indices[pos] == col){
+				nentries++;
+			}
+		}
+	}
+	ia[neq] = nentries;
+	//now we fill ja, aa;
+	ja.Resize(nentries,-1);
+	aa.Resize(nentries,-1);
+	nentries = 0;
+	for(int i = 0; i < neq; i++){
+		const auto eq = indices[i];
+		const auto first = fIA[eq];
+		const auto last = fIA[eq+1];
+		for(auto ieq = first; ieq < last; ieq++){
+			const auto col = fJA[ieq];
+			//std::lower_bound uses a binary search and indices is already sorted.
+			const auto pos = std::lower_bound(indices.begin(), indices.end(), col)-
+				indices.begin();
+			if(pos != neq && indices[pos] == col){
+				aa[nentries] = fA[ieq];
+				ja[nentries++] = pos;
+			}
+		}
+	}
+}
 
 
 template<class TVar>
