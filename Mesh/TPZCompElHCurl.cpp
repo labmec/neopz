@@ -567,7 +567,13 @@ void TPZCompElHCurl<TSHAPE>::TransformShape(const TPZFMatrix<REAL> &phiref,
     jacinv.Transpose(&jacinvt);
     axes.Transpose(&axest);
 
-    (axest * (jacinvt * phiref)).Transpose(&phi);
+    //2000 should take care of up to a 6th order tetrahedral el
+    TPZFNMatrix<2000,REAL> tmp1,tmp2;
+    //we want to do (axest * (jacinvt * phiref)).Transpose(&phi);
+    //with no mem alloc
+    jacinvt.Multiply(phiref, tmp1);
+    axest.Multiply(tmp1,tmp2);
+    tmp2.Transpose(&phi);
 }
 
 template<class TSHAPE>
@@ -578,7 +584,7 @@ void TPZCompElHCurl<TSHAPE>::TransformCurl(const TPZFMatrix<REAL> &curlphiref,
                                            TPZFMatrix<REAL> &curlphi)
 {
     if constexpr(TDIM==3){
-        curlphi = jacobian * curlphiref;
+        jacobian.Multiply(curlphiref, curlphi);
         curlphi *= 1./detjac;
     }else {
         curlphi = curlphiref;
