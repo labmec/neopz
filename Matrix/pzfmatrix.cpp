@@ -198,6 +198,7 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(TPZFMatrix<TVar> &&A ) {
         for(int64_t i = 0; i<size; i++) fElem[i] = A.fElem[i];
     } else {
         // A does not have or does not use preallocated memory
+        if (fElem && fElem != A.fElem && fElem != fGiven) delete[]( fElem );
         fElem=A.fElem;
         fPivot = A.fPivot;
         fWork = A.fWork;
