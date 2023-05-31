@@ -74,7 +74,6 @@ TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph,
     TPZRenumbering graph;
     graph.SetElementsNodes(elgraphindex.NElements() -1 ,
                            this->fMesh->NIndependentConnects());
-    graph.SetElementGraph(elgraph,elgraphindex);
 	
     TPZManVector<int64_t> nodegraph;
     TPZManVector<int64_t> nodegraphindex;
