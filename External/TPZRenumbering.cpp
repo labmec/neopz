@@ -143,6 +143,8 @@ void TPZRenumbering::ConvertGraph(const TPZVec<int64_t> &elgraph, const TPZVec<i
         
         nodegraphindex[nod + 1] = nextfreeindex;
     }
+    //we want to avoid a zero sized nodegraph. nodegraphindex will have all entries 0
+    if(nodegraph.size() == 0){nodegraph.Resize(1,-1);}
     //    std::cout << convert.processName().c_str()  << convert << std::endl;
 }
 
