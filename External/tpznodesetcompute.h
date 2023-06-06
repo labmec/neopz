@@ -61,10 +61,15 @@ public:
 	/** @brief Filter the graph based on removed blocks(should be called after filtergraph)*/
 	static void UpdateGraph(TPZVec<int64_t> &graphindex,TPZVec<int64_t> &graph,
 													const TPZVec<int64_t> &removed_blocks);
-	/** @brief Color the graph into mutually independent blocks
-			@note Should be called before expanding the connect graph*/
+	/** @brief Color the graph into mutually independent blocks.
+		Set strictcoloring to true to ensure that the nodes of the same color don't
+		have any connectivity in common.
+		Otherwise, both nodes A and B might affect the residual of node C. A and B
+		can be of the same color as long as they don't affect each other's residual.
+		@note Should be called before expanding the connect graph*/
 	int ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex,
-								 const int64_t nnodes, TPZVec<int> &colors);
+				   const int64_t nnodes, TPZVec<int> &colors,
+				   bool strictcoloring=false);
 	/** @brief Returns the level of the nodes */
 	TPZVec<int> &Levels()
 	{

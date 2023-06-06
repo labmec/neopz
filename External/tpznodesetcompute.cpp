@@ -720,7 +720,8 @@ void TPZNodesetCompute::UpdateGraph(TPZVec<int64_t> &graph,
   * Color the graph into mutually independent blocks
   */
 int TPZNodesetCompute::ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex,
-                                  const int64_t nnodes, TPZVec<int> &colors)
+                                  const int64_t nnodes, TPZVec<int> &colors,
+                                  bool strictcolor)
 {
 #ifdef PZDEBUG
   if(nnodes != fNodegraphindex.size() - 1){
@@ -754,14 +755,16 @@ int TPZNodesetCompute::ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graph
         auto node = graph[inode];
         if(nodecolor[node] == color) break;
         //now we check the connected nodes
-        const int fneigh = fNodegraphindex[node];
-        const int lneigh = fNodegraphindex[node+1];
-        int in;
-        for(in = fneigh; in < lneigh; in++){
-          auto neigh = fNodegraph[in];
-          if(nodecolor[neigh] == color) break;
+        if(strictcolor){
+          const int fneigh = fNodegraphindex[node];
+          const int lneigh = fNodegraphindex[node+1];
+          int in;
+          for(in = fneigh; in < lneigh; in++){
+            auto neigh = fNodegraph[in];
+            if(nodecolor[neigh] == color) break;
+          }
+          if(in != lneigh){break;}
         }
-        if(in != lneigh){break;}
       }
       if(inode != last)
       {
