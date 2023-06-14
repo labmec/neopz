@@ -9,6 +9,7 @@ set(public_headers
     TPZLapackEigenSolver.h
     TPZKrylovEigenSolver.h
     TPZLinearEigenSolver.h
+    TPZQuadEigenSolver.h
     TPZSpectralTransform.h
     )
 set(headers
@@ -19,6 +20,7 @@ set(sources
     TPZLapackEigenSolver.cpp
     TPZKrylovEigenSolver.cpp
     TPZLinearEigenSolver.cpp
+    TPZQuadEigenSolver.cpp
     TPZSpectralTransform.cpp
     )
 
