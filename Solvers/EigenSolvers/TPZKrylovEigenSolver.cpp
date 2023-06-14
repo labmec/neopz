@@ -89,7 +89,6 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   
   if(fUserTarget) AdjustTargetST();
   
-  TPZAutoPointer<TPZMatrix<TVar>> arnoldiMat{nullptr};
   auto st = this->SpectralTransform();
   if(st){
     TPZSimpleTimer calcMat("ST Calculating matrix",true);
@@ -107,11 +106,10 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
       DebugStop();
 #endif
     if(this->IsGeneralised())
-      arnoldiMat = st->CalcMatrix(this->MatrixA(),this->MatrixB());
+      st->CalcMatrix(this->MatrixA(),this->MatrixB());
     else
-      arnoldiMat = st->CalcMatrix(this->MatrixA());
+      st->CalcMatrix(this->MatrixA());
   }else{
-    arnoldiMat = this->MatrixA();
     if(this->IsGeneralised()){
       TPZSimpleTimer binvert("invert B mat",true);
 #ifdef USING_MKL
@@ -135,15 +133,15 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
   }
   
   const int &n = this->NEigenpairs();
-  if(KrylovDim() == -1){
-    SetKrylovDim(10*n);
+  if(this->KrylovDim() == -1){
+    this->SetKrylovDim(10*n);
   }
-  const int &krylovDim = KrylovDim();
+  const int &krylovDim = this->KrylovDim();
   TPZManVector<TPZAutoPointer<TPZFMatrix<TVar>>,20> qVecs;
   TPZFNMatrix<400,TVar> h(krylovDim,krylovDim,0.);
 
   
-  auto success = ArnoldiIteration(*arnoldiMat,qVecs,h);
+  auto success = this->ArnoldiIteration(qVecs,h);
   if(!success){
     return -1;
   }
@@ -217,9 +215,41 @@ int TPZKrylovEigenSolver<TVar>::SolveGeneralisedEigenProblem(TPZVec<CTVar> &w)
 }
 
 
+//! Applies (maybe matrix-free) operator on a given vector
 template<class TVar>
-bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
-  const TPZMatrix<TVar> &A,
+void TPZKrylovEigenSolver<TVar>::ApplyOperator(const TPZFMatrix<TVar> &x, TPZFMatrix<TVar> &res) const
+{
+  auto shift_invert = TPZAutoPointerDynamicCast<TPZSTShiftAndInvert<TVar>>(this->fST);
+  if(this->fIsGeneralised){
+    if(shift_invert){
+      this->fMatrixB->Multiply(x,res);
+      auto dectype = this->fMatrixA->IsDecomposed();
+      this->fMatrixA->SolveDirect(res,dectype);
+    }else{
+      this->fMatrixA->Multiply(x,res);
+      auto dectype = this->fMatrixB->IsDecomposed();
+      this->fMatrixB->SolveDirect(res,dectype);
+    }
+  }else{
+    if(shift_invert){
+      res = x;
+      auto dectype = this->fMatrixA->IsDecomposed();
+      this->fMatrixA->SolveDirect(res,dectype);
+    }else{
+      this->fMatrixA->Multiply(x,res);
+    }
+  }
+}
+//! System size (number of rows)
+template<class TVar>
+int64_t TPZKrylovEigenSolver<TVar>::SystemSize() const
+{
+  return this->fMatrixA->Rows();
+}
+
+
+template<class TVar>
+bool TPZKrylovEigenSolverBase<TVar>::ArnoldiIteration(
   TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> &Q,
   TPZFMatrix<TVar> &H)
 {
@@ -227,8 +257,7 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
   if(KrylovDim() < 2){
     fKrylovDim = 10;
   }
-  const int64_t nRows = A.Rows();
-  const TPZMatrix<TVar> &B = this->fMatrixB.operator*();
+  const int64_t nRows = this->SystemSize();
   const int n = std::min(fKrylovDim,nRows);
   std::cout<<"Calculating Krylov subspace of dimension "<<n<<'\n';
   H.Redim(n,n);
@@ -239,19 +268,6 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
   }
   
   for(int i = 0; i < n; i++) Q[i]= new TPZFMatrix<TVar>;
-
-  //deciding whether to multiply by b before, after and dont multiply at all
-  enum class EWhichB{ENoB, EBBefore, EBAfter};
-
-  EWhichB whichB = [this](){
-    if(this->fIsGeneralised){
-      auto st = this->SpectralTransform().operator->();
-      auto stshiftinvert = dynamic_cast<TPZSTShiftAndInvert<TVar>*>(st);
-      if(stshiftinvert) return EWhichB::EBBefore;
-      else return EWhichB::EBAfter;
-    }
-    return EWhichB::ENoB;
-  }();
   
   /*see Chapter 2 of slepc manual(EPS) or search for Arnoldi Iteration*/
 
@@ -261,24 +277,13 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
   TPZSimpleTimer arnoldiIteration("ArnoldiIteration");
   const auto &tol = Tolerance();
 
+  TPZFMatrix<TVar> w(nRows,1,0.);
+
   for(auto k = 1; k < n+1; k++){
     // TPZSimpleTimer arnoldiStep("step"+std::to_string(k),true);
 
-
     //let us generate a first guess for w: w = A.q_{k-1}
-    TPZFMatrix<TVar> w = [&A,&B,&Q,k,whichB]()
-    {
-      // TPZSimpleTimer matMult("matmult",true);
-      switch(whichB){
-      case EWhichB::ENoB:
-        return  A  * *(Q[k-1]);
-      case EWhichB::EBBefore:
-        return A * (B * *(Q[k-1]));
-      case EWhichB::EBAfter:
-        return B * (A * *(Q[k-1]));
-      }
-      unreachable();
-    }();
+    this->ApplyOperator(*Q[k-1],w);
 
     RTVar normW{1};
     bool success = false;
@@ -308,7 +313,7 @@ bool TPZKrylovEigenSolver<TVar>::ArnoldiIteration(
     if(k < n){
       H.PutVal(k,k-1,normW);
       w *= (TVar)1./normW;
-      (*(Q[k])) = std::move(w);
+      (*(Q[k])) = w;
     }
 
     
