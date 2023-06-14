@@ -181,7 +181,7 @@ int ClassId() const override;
     
     /** by Caju */
     /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
-    TPZGeoEl * FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim);
+    TPZGeoEl * FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim, int iniIndex);
     
     /** @brief find an element/parameter close to the point */
     TPZGeoEl *FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim) const;

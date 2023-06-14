@@ -290,6 +290,7 @@ void TPZMixedDarcyFractureFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>>
         }
 
         ef(iq + first_q) += weight * ( kappa_inv_q_dot_phi_q_i - p * div_phi(iq,0));
+        
         for (int jq = first_transverse_q; jq < second_transverse_q; jq++)
         {
 

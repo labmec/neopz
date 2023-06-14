@@ -25,6 +25,6 @@ void pzinternal::DebugStopImpl(const char *fileName, const std::size_t lineN)
 //    free(strs);
 
 
-    throw std::bad_exception();
+        throw std::bad_exception();
 	
 }

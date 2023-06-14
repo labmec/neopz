@@ -309,4 +309,3 @@ void TPZSloanRenumbering::Resequence2(TPZVec<int64_t> &permGather, TPZVec<int64_
     }
     std::cout << "number of elements sequenced " << countnumbered << std::endl;
 }
-

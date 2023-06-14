@@ -405,13 +405,13 @@ void TPZPardisoSolver<TVar>::ResetParam(){
 template<class TVar>
 void TPZPardisoSolver<TVar>::SetMatrixType(MSystemType systemtype, MProperty prop)
 {
-    if(fSystemType != MSystemType::ENonInitialized){
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"\nERROR:\n";
-        PZError<<"this function should not be called on an initialized instance.\n";
-        PZError<<"Aborting..."<<std::endl;
-        DebugStop();
-    }
+//    if(fSystemType != MSystemType::ENonInitialized){
+//        PZError<<__PRETTY_FUNCTION__;
+//        PZError<<"\nERROR:\n";
+//        PZError<<"this function should not be called on an initialized instance.\n";
+//        PZError<<"Aborting..."<<std::endl;
+//        DebugStop();
+//    }
     fSystemType = systemtype;
     fProperty = prop;
     fMatrixType = MatrixType();

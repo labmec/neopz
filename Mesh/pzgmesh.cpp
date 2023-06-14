@@ -600,9 +600,10 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t 
     return res;
 }
 
-TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim)
+TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim, int iniIndex)
 {
-    FindCloseElement(x, InitialElIndex, targetDim);
+   // FindCloseElement(x, InitialElIndex, targetDim);
+    InitialElIndex=iniIndex;
     TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
     
     qsi.Resize(targetDim, 0.);

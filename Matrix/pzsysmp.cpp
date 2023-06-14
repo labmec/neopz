@@ -474,10 +474,10 @@ int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<int64_t> &singular)
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
 {
-    if(this->IsDecomposed() == ELDLt) return 1;
-    if (this->IsDecomposed() != ENoDecompose) {
-        DebugStop();
-    }
+//    if(this->IsDecomposed() == ELDLt) return 1;
+//    if (this->IsDecomposed() != ENoDecompose) {
+//        DebugStop();
+//    }
     if(!fPardisoControl.HasCustomSettings()){
       typename TPZPardisoSolver<TVar>::MStructure str =
         TPZPardisoSolver<TVar>::MStructure::ESymmetric;
