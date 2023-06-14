@@ -9,7 +9,7 @@
 #include "pzmatrix.h"       //For TPZFMatrix
 
 template<typename TVar>
-class TPZEigenSolver;
+class TPZLinearEigenSolver;
 
 /**
  * @ingroup Analysis
@@ -34,7 +34,7 @@ public:
     /** @{ */
     /** @brief Gets the eigensolver */
     template<class TVar>
-    TPZEigenSolver<TVar> &EigenSolver();
+    TPZLinearEigenSolver<TVar> &EigenSolver();
     /** @brief Set the solver
       @note In this function it will be checked if the solver is a TPZEigenSolver*/
     void SetSolver(const TPZSolver &solver) override;
@@ -113,7 +113,7 @@ bool TPZEigenAnalysis::ComputeEigenvectors() const
 }
 
 #define INSTANTIATE_TEMPLATES(TVar)                                            \
-  extern template TPZEigenSolver<TVar> &TPZEigenAnalysis::EigenSolver<TVar>();
+  extern template TPZLinearEigenSolver<TVar> &TPZEigenAnalysis::EigenSolver<TVar>();
 
 INSTANTIATE_TEMPLATES(STATE)
 INSTANTIATE_TEMPLATES(CSTATE)

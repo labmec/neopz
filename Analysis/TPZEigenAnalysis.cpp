@@ -3,7 +3,7 @@
 // Created by Francisco Teixeira Orlandini on 11/17/17.
 
 #include "TPZEigenAnalysis.h"
-#include "TPZEigenSolver.h"
+#include "TPZLinearEigenSolver.h"
 #include "TPZKrylovEigenSolver.h"
 #include "TPZSpStructMatrix.h"
 #include "TPZYSMPMatrix.h"
@@ -42,9 +42,9 @@ TPZEigenAnalysis::TPZEigenAnalysis(TPZAutoPointer<TPZCompMesh> mesh,
 }
 
 template<class TVar>
-TPZEigenSolver<TVar> &TPZEigenAnalysis::EigenSolver()
+TPZLinearEigenSolver<TVar> &TPZEigenAnalysis::EigenSolver()
 {
-    const auto tmp = dynamic_cast<TPZEigenSolver<TVar>*>(fSolver);
+    const auto tmp = dynamic_cast<TPZLinearEigenSolver<TVar>*>(fSolver);
     if(fSolver && !tmp){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<" incompatible Solver type! Aborting\n";
@@ -282,8 +282,8 @@ void TPZEigenAnalysis::Read(TPZStream &buf, void *context)
 }
 
 
-#define INSTANTIATE_TEMPLATES(TVar)                                            \
-  template TPZEigenSolver<TVar> &TPZEigenAnalysis::EigenSolver<TVar>();        \
+#define INSTANTIATE_TEMPLATES(TVar)                                     \
+  template TPZLinearEigenSolver<TVar> &TPZEigenAnalysis::EigenSolver<TVar>(); \
 
 INSTANTIATE_TEMPLATES(STATE)
 INSTANTIATE_TEMPLATES(CSTATE)
