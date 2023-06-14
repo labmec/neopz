@@ -7,6 +7,7 @@ target_include_directories(pz PUBLIC
 set(public_headers
     TPZAnalysis.h
     TPZLinearAnalysis.h
+    TPZEigenAnalysisBase.h
     TPZEigenAnalysis.h
     pznonlinanalysis.h
     pzsmanal.h #TPZSubMeshAnalysis
@@ -24,6 +25,7 @@ set(headers
 set(sources
     TPZAnalysis.cpp
     TPZLinearAnalysis.cpp
+    TPZEigenAnalysisBase.cpp
     TPZEigenAnalysis.cpp
     pznonlinanalysis.cpp
     pzsmanal.cpp

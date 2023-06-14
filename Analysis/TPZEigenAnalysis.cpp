@@ -3,6 +3,7 @@
 // Created by Francisco Teixeira Orlandini on 11/17/17.
 
 #include "TPZEigenAnalysis.h"
+#include "TPZEigenAnalysisBase.h"
 #include "TPZLinearEigenSolver.h"
 #include "TPZKrylovEigenSolver.h"
 #include "TPZSpStructMatrix.h"
@@ -21,14 +22,14 @@ static TPZLogger loggerError("pz.analysis.error");
 #endif
 
 TPZEigenAnalysis::TPZEigenAnalysis()
-  : TPZRegisterClassId(&TPZEigenAnalysis::ClassId),TPZAnalysis()
+  : TPZRegisterClassId(&TPZEigenAnalysis::ClassId),TPZEigenAnalysisBase()
 {
 
 }
 
 TPZEigenAnalysis::TPZEigenAnalysis(TPZCompMesh *mesh,
                                    const RenumType& renumtype, std::ostream &out)
-  : TPZAnalysis(mesh, renumtype,out)
+  : TPZEigenAnalysisBase(mesh, renumtype,out)
 {
 
 }
@@ -36,7 +37,7 @@ TPZEigenAnalysis::TPZEigenAnalysis(TPZCompMesh *mesh,
 TPZEigenAnalysis::TPZEigenAnalysis(TPZAutoPointer<TPZCompMesh> mesh,
                                    const RenumType& renumtype,
                                    std::ostream &out)
-  : TPZAnalysis(mesh, renumtype, out)
+  : TPZEigenAnalysisBase(mesh, renumtype, out)
 {
 
 }
@@ -224,61 +225,10 @@ void TPZEigenAnalysis::AssembleT()
   }
 }
 
-void TPZEigenAnalysis::Solve()
-{
-  if(fSolType == EReal)
-    SolveT<STATE>();
-  else
-    SolveT<CSTATE>();
-}
-
-template<class TVar>
-void TPZEigenAnalysis::SolveT()
-{
-    const auto nEq = fCompMesh->NEquations();
-    const auto nReducedEq = fStructMatrix->NReducedEquations();
-    const bool isReduced = nReducedEq == nEq ? false : true;
-    auto &eigSolver = this->EigenSolver<TVar>();
-    const auto nev = eigSolver.NEigenpairs();
-    fEigenvalues.Resize(nev);
-    if (ComputeEigenvectors()) {
-      TPZFMatrix<CTVar> *eigvectors = &fEigenvectors;
-      if(isReduced){
-        eigvectors = new TPZFMatrix<CTVar>;
-      }
-      //if there is no equation filter nReducedEq == numeq
-      eigvectors->Redim(nReducedEq, nev);
-      eigSolver.Solve(fEigenvalues, *eigvectors);
-      if(isReduced){
-        fEigenvectors.Redim(nEq,nev);
-        fStructMatrix->EquationFilter().Scatter(*eigvectors,fEigenvectors);
-        delete eigvectors;
-      }
-    } else {
-      eigSolver.Solve(fEigenvalues);
-    }
-}
-
 int TPZEigenAnalysis::ClassId() const
 {
   return Hash("TPZEigenAnalysis") ^
-    TPZAnalysis::ClassId() << 1;
-}
-  
-void TPZEigenAnalysis::Write(TPZStream &buf, int withclassid) const
-{
-  TPZAnalysis::Write(buf,withclassid);
-  buf.Write(fEigenvalues);
-  fEigenvectors.Write(buf,withclassid);
-  buf.Write(fCalcVectors);
-}
-
-void TPZEigenAnalysis::Read(TPZStream &buf, void *context)
-{
-  TPZAnalysis::Read(buf,context);
-  buf.Read(fEigenvalues);
-  fEigenvectors.Read(buf,context);
-  buf.Read(fCalcVectors);
+    TPZEigenAnalysisBase::ClassId() << 1;
 }
 
 
