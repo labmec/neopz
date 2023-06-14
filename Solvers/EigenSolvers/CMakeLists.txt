@@ -8,6 +8,7 @@ target_include_directories(pz PUBLIC
 set(public_headers
     TPZLapackEigenSolver.h
     TPZKrylovEigenSolver.h
+    TPZLinearEigenSolver.h
     TPZSpectralTransform.h
     )
 set(headers
@@ -17,6 +18,7 @@ set(headers
 set(sources
     TPZLapackEigenSolver.cpp
     TPZKrylovEigenSolver.cpp
+    TPZLinearEigenSolver.cpp
     TPZSpectralTransform.cpp
     )
 

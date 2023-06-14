@@ -1,6 +1,6 @@
 #ifndef TPZKRYLOVEIGENSOLVER_H
 #define TPZKRYLOVEIGENSOLVER_H
-#include "TPZEigenSolver.h"
+#include "TPZLinearEigenSolver.h"
 #include "TPZSpectralTransform.h"
 
 /** @brief Base class for solvers for eigenvalue problems using Krylov methods.
@@ -101,11 +101,11 @@ TPZFMatrix<TVar> TPZKrylovEigenSolverBase<TVar>::KrylovInitialVector() const
     obtained by an Arnoldi iteration. 
     See TPZSpectralTransform for possible spectral transformations*/
 template<class TVar>
-class TPZKrylovEigenSolver : public TPZEigenSolver<TVar>,
+class TPZKrylovEigenSolver : public TPZLinearEigenSolver<TVar>,
   public TPZKrylovEigenSolverBase<TVar>
 {
 public:
-  using TPZEigenSolver<TVar>::TPZEigenSolver;
+  using TPZLinearEigenSolver<TVar>::TPZLinearEigenSolver;
 
   TPZKrylovEigenSolver<TVar> * Clone() const override
   {return new TPZKrylovEigenSolver<TVar>(*this);}

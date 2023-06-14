@@ -8,48 +8,10 @@
 #include "TPZSYSMPPardiso.h"
 #include <numeric>
 
-template <class TVar>
-void TPZEigenSolver<TVar>::SetAsGeneralised(bool isGeneralised) {
-  fIsGeneralised = isGeneralised;
-}
-
 template <class TVar> int TPZEigenSolver<TVar>::ClassId() const {
   return Hash("TPZEigenSolver") ^ ClassIdOrHash<TVar>() << 1 ^
          TPZSolver::ClassId() << 2;
 }
-
-template<class TVar>
-void TPZEigenSolver<TVar>::ResetMatrix()
-{
-  TPZAutoPointer<TPZMatrix<TVar>> newA, newB;
-  fMatrixA = newA;
-  fMatrixB = newB;
-}
-
-#ifdef USING_MKL
-template<class TVar>
-TPZPardisoSolver<TVar> *
-TPZEigenSolver<TVar>::GetPardisoControl(TPZAutoPointer<TPZMatrix<TVar>> mat){
-  auto sym = TPZAutoPointerDynamicCast<TPZSYsmpMatrixPardiso<TVar>>(mat);
-  if(sym){
-    return  &(sym->GetPardisoControl());
-  }
-  auto nsym = TPZAutoPointerDynamicCast<TPZFYsmpMatrixPardiso<TVar>>(mat);
-  if(nsym){
-    return  &(nsym->GetPardisoControl());
-  }
-  return nullptr;
-}
-#else
-template<class TVar>
-TPZPardisoSolver<TVar> *
-TPZEigenSolver<TVar>::GetPardisoControl(TPZAutoPointer<TPZMatrix<TVar>> mat){
-  std::cout<<__PRETTY_FUNCTION__
-           <<"\nNeoPZ was not configured with MKL!"
-           <<std::endl;
-  return nullptr;
-}
-#endif
 
 template<class TVar>
 void TPZEigenSolver<TVar>::SortEigenvalues(TPZVec<CTVar> &w, TPZVec<int> &indices)
