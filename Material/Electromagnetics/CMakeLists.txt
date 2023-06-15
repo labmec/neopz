@@ -2,6 +2,7 @@
 
 set(public_headers
     TPZWgma.h
+    TPZAnisoWgma.h
     TPZPlanarWgScatt.h
     TPZPlanarWgScattSrc.h
     TPZPeriodicWgma.h
@@ -15,6 +16,7 @@ set(public_headers
 
 set(headers
     TPZWgma.h
+    TPZAnisoWgma.h
     TPZPlanarWgScatt.h
     TPZPlanarWgScattSrc.h
     TPZPeriodicWgma.h
@@ -27,6 +29,7 @@ set(headers
    )
 set(sources
     TPZWgma.cpp
+    TPZAnisoWgma.cpp
     TPZPlanarWgScatt.cpp
     TPZPlanarWgScattSrc.cpp
     TPZPeriodicWgma.cpp
