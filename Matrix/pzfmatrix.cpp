@@ -814,7 +814,6 @@ void TPZFMatrix<std::complex<double> >::MultAdd(const TPZFMatrix<std::complex<do
                     &alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), &beta, z.fElem, z.Rows());
     }
 }
-
 #endif // USING_LAPACK
 
 /**
@@ -907,7 +906,74 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
             }
         }
     }
-    
+}
+
+template <class TVar>
+void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, bool transpA, const TPZFMatrix<TVar>& B, 
+						 		       bool transpB, const TVar alpha)
+{
+    #ifndef USING_LAPACK
+        Error( "AddContribution must be used with LAPACK!\n");
+    #else
+        if constexpr (!std::is_floating_point_v<RTVar>)
+            Error( "AddContribution must be used with LAPACK!\n");
+
+    int64_t nrows = A.Rows();
+    int64_t ncols = B.Cols();
+    int64_t seconddimA = A.Cols();
+    int64_t seconddimB = B.Rows();
+    CBLAS_TRANSPOSE transposeA = CblasNoTrans;
+    CBLAS_TRANSPOSE transposeB = CblasNoTrans;
+
+
+    if (transpA)
+    {
+        nrows = A.Cols();
+        seconddimA = A.Rows();
+        transposeA = CblasTrans;
+    }
+    if (transpB)
+    {
+        ncols = B.Rows();
+        seconddimB = B.Cols();
+        transposeB = CblasTrans;
+    }
+
+#ifdef PZDEBUG
+    if (seconddimA != seconddimB)
+    {
+        std::stringstream out;
+        out << "AddContribution Matrices A and B have incompatible dimensions. ";
+        out << "Second dimension of A: " << seconddimA << ". Second dimension of B: " << seconddimB;
+        Error( out.str().c_str() );
+        return;
+    }
+    else if ((i+nrows > this->Rows()) || (j+ncols > this->Cols()))
+    {
+        std::stringstream out;
+        out << "AddContribution trying to add a submatrix out of the full matrix bounds. ";
+        out << "Submatrix bigger row: " << i+nrows << ". Full matrix size: " << this->Rows();
+        out << "Submatrix bigger column: " << j+ncols << ". Full matrix size: " << this->Cols();
+        Error( "AddContribution trying to add a submatrix out of the original matrix bounds" );
+        return;
+    }
+#endif
+
+    TVar* ptr = &(*this)(i,j);
+    const TVar beta = 1.0;
+    if constexpr(std::is_same_v<TVar,double>){
+        cblas_dgemm(CblasColMajor, transposeA, transposeB, nrows, ncols, seconddimA, alpha, A.fElem, A.Rows(), B.fElem, B.Rows(), beta, ptr, this->Rows());
+    }
+    else if constexpr(std::is_same_v<TVar,float>){
+        cblas_sgemm(CblasColMajor, transposeA, transposeB, nrows, ncols, seconddimA, alpha, A.fElem, A.Rows(), B.fElem, B.Rows(), beta, ptr, this->Rows());
+    }
+    else if constexpr(std::is_same_v<TVar,std::complex<double>>){
+        cblas_zgemm(CblasColMajor, transposeA, transposeB, nrows, ncols, seconddimA, &alpha, A.fElem, A.Rows(), B.fElem, B.Rows(), &beta, ptr, this->Rows());
+    }
+    else if constexpr(std::is_same_v<TVar,std::complex<float>>){
+        cblas_cgemm(CblasColMajor, transposeA, transposeB, nrows, ncols, seconddimA, &alpha, A.fElem, A.Rows(), B.fElem, B.Rows(), &beta, ptr, this->Rows());
+    }
+#endif //USING LAPACK
 }
 
 /********************************/
