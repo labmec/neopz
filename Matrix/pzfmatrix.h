@@ -217,6 +217,9 @@ public:
     static void MultAdd(const TVar *ptr, int64_t rows, int64_t cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
                         const TVar alpha=1.,const TVar beta = 0.,const int opt = 0);
     
+    virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, bool transpA, const TPZFMatrix<TVar>& B, 
+						 		 bool transpB, const TVar alpha = 1.0) override;
+
     /**
      * @name Generic operator with TVar type
      * @{
