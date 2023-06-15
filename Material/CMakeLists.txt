@@ -20,6 +20,7 @@ set(public_headers
     TPZMatWithMem.h
     TPZMatLoadCases.h
     TPZMatGeneralisedEigenVal.h
+    TPZMatQuadraticEigenVal.h
     #single space materials
     TPZMatSingleSpace.h
     TPZMatErrorSingleSpace.h
@@ -53,6 +54,7 @@ set(headers
     TPZMatWithMem.h
     TPZMatLoadCases.h
     TPZMatGeneralisedEigenVal.h
+    TPZMatQuadraticEigenVal.h
     #single space materials
     TPZMatSingleSpace.h
     TPZMatErrorSingleSpace.h
@@ -80,6 +82,7 @@ set(sources
     TPZMatError.cpp
     TPZMatLoadCases.cpp
     TPZMatGeneralisedEigenVal.cpp
+    TPZMatQuadraticEigenVal.cpp
     #single space materials
     TPZMatSingleSpace.cpp
     TPZMatErrorSingleSpace.cpp
