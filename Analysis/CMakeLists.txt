@@ -9,6 +9,7 @@ set(public_headers
     TPZLinearAnalysis.h
     TPZEigenAnalysisBase.h
     TPZEigenAnalysis.h
+    TPZQuadEigenAnalysis.h
     pznonlinanalysis.h
     pzsmanal.h #TPZSubMeshAnalysis
   )
@@ -27,6 +28,7 @@ set(sources
     TPZLinearAnalysis.cpp
     TPZEigenAnalysisBase.cpp
     TPZEigenAnalysis.cpp
+    TPZQuadEigenAnalysis.cpp
     pznonlinanalysis.cpp
     pzsmanal.cpp
     TPZNLMultGridAnalysis.cpp
