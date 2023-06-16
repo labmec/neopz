@@ -23,10 +23,12 @@ using namespace std;
 
 TPZMetis::TPZMetis() : TPZRenumbering()
 {
+#ifndef USING_METIS
     PZError<<"TPZMetis depends on the Metis library\n";
     PZError<<"Please reconfigure NeoPZ library using:\n";
     PZError<<"USING_METIS=ON"<<std::endl;
     DebugStop();
+#endif
 }
 
 void TPZMetis::Print(std::ostream &out,char * title) {
@@ -119,10 +121,11 @@ void TPZMetis::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm) {
 	TPZVec<int> nodegraphInt(0),nodegraphindexInt(0);
 	int NNodes = (int) fNNodes;
 	int64_t n, sz = nodegraph.NElements();
-	nodegraph.Resize(sz);
+    nodegraphInt.Resize(sz);
 	for(n=0;n<sz;n++)
 		nodegraphInt[n] = (int)nodegraph[n];
 	sz = nodegraphindex.NElements();
+    nodegraphindexInt.Resize(sz);
 	for(n=0;n<sz;n++)
 		nodegraphindexInt[n] = (int)nodegraphindex[n];
 
