@@ -172,22 +172,31 @@ TPZSYsmpMatrix<TVar> TPZSYsmpMatrix<TVar>::operator*(const TVar alpha) const
 template<class TVar>
 TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator+=(const TPZSYsmpMatrix<TVar> &A )
 {
-	TPZSYsmpMatrix<TVar> res((*this)+A);
-	*this = res;
+#ifdef PZDEBUG
+	CheckTypeCompatibility(this, &A);
+#endif
+	const int nnzero = this->fA.size();
+	for(int i = 0; i < nnzero; i++){
+		this->fA[i] += A.fA[i];
+	}
 	return *this;
 }
 template<class TVar>
 TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator-=(const TPZSYsmpMatrix<TVar> &A )
 {
-	TPZSYsmpMatrix<TVar> res((*this)-A);
-	*this = res;
+#ifdef PZDEBUG
+	CheckTypeCompatibility(this, &A);
+#endif
+	const int nnzero = this->fA.size();
+	for(int i = 0; i < nnzero; i++){
+		this->fA[i] -= A.fA[i];
+	}
 	return *this;
 }
 template<class TVar>
 TPZMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator*=(const TVar val)
 {
-	TPZSYsmpMatrix<TVar> res((*this)*val);
-	*this = res;
+	for(auto &el : this->fA) el *= val;
 	return *this;
 }
 
