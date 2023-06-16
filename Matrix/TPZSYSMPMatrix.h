@@ -53,6 +53,27 @@ public :
         DebugStop();                                          
       }                                                       
   }
+    
+  /**
+   * @brief This method will fill the matrix passed as parameter with a representation of the fillin of the global stiffness matrix, based on the sparse structure of the stiffness matrix
+   * @param resolution Number of rows and columns of the matrix
+   * @param fillin Matrix which is mapped onto the global system of equations and represents the fillin be assigning a value between 0. and 1. in each element
+    */
+  void ComputeFillIn(const int64_t resolution, TPZFMatrix<REAL> &fillin) const;
+
+  /**
+   * @brief This method will fill the matrix passed as parameter with a representation of the fillin of the global stiffness matrix, based on the sparse structure of the stiffness matrix and the permutation vector perm
+   * @param resolution Number of rows and columns of the matrix
+   * @param perm permutation vector that is to be used to calculate the fillin
+   * @param fillin Matrix which is mapped onto the global system of equations and represents the fillin be assigning a value between 0. and 1. in each element
+    */
+  void ComputeFillIn(const int64_t resolution, const TPZVec<long long>& perm, TPZFMatrix<REAL> &fillin) const;
+
+  /**
+   * @brief Permutes the sparse matrix structure (ia, ja, val) using the supplied perm vector
+   * @param perm permutation vector
+   */
+  void Permute(const TPZVec<long long>& perm);
   
   /** @brief Sets symmetry property of current matrix (only hermitian/symmetric allowed)*/
   void SetSymmetry (SymProp sp) override;

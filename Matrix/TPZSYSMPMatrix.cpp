@@ -486,6 +486,103 @@ void TPZSYsmpMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> 
 }
 
 template<class TVar>
+void TPZSYsmpMatrix<TVar>::ComputeFillIn(const int64_t resolution, TPZFMatrix<REAL> &fillin) const{
+    int64_t nequations = this->Rows();
+    int64_t divider = nequations/resolution;
+    if(divider*resolution != nequations) divider++;
+    REAL factor = 1./(divider*divider);
+    fillin.Redim(resolution,resolution);
+    
+    for(int64_t i = 0; i < nequations ; i++) {
+        int64_t indexfirst = fIA[i];
+        int64_t indexlast = fIA[i+1];
+        for(int64_t c = indexfirst; c < indexlast ; c++) {
+            int64_t j = fJA[c];
+            fillin(i/divider,j/divider) += factor;
+            fillin(j/divider,i/divider) += factor;
+        }
+    }
+}
+
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::ComputeFillIn(const int64_t resolution, const TPZVec<long long>& perm, TPZFMatrix<REAL> &fillin) const{
+    int64_t nequations = this->Rows();
+    if(perm.size() != nequations) DebugStop();
+    int64_t divider = nequations/resolution;
+    if(divider*resolution != nequations) divider++;
+    REAL factor = 1./(divider*divider);
+    fillin.Redim(resolution,resolution);
+    
+    TPZVec<long long> invperm(perm.size());
+    for (int64_t i = 0; i < nequations; i++) {
+        invperm[perm[i]] = i;
+    }
+    
+    
+    for(int64_t i = 0; i < nequations ; i++) {
+        int64_t indexfirst = fIA[i];
+        int64_t indexlast = fIA[i+1];
+        for(int64_t c = indexfirst; c < indexlast ; c++) {
+            int64_t j = fJA[c];
+            fillin(invperm[i]/divider,invperm[j]/divider) += factor;
+            fillin(invperm[j]/divider,invperm[i]/divider) += factor;
+        }
+    }
+}
+
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::Permute(const TPZVec<long long>& perm) {
+            
+    int64_t nequations = this->Rows();
+    if(perm.size() != nequations) DebugStop();
+    TPZVec<int64_t> tempIA(fIA.size()), tempJA(fJA.size(),-1);
+    TPZVec<TVar> tempA(fA.size());
+    TPZVec<int64_t> nterms(nequations);
+    
+    TPZVec<long long> invperm(perm.size());
+    for (int64_t i = 0; i < nequations; i++) {
+        invperm[perm[i]] = i;
+    }
+    
+    for(int64_t i = 0 ; i < nequations ; i++) {
+        int64_t indexfirst = fIA[i];
+        int64_t indexlast = fIA[i+1];
+        const int64_t linesize = indexlast - indexfirst;
+        nterms[invperm[i]] = linesize;
+    }
+        
+    int64_t JAsize = 0;
+    tempIA[0] = 0;
+    for(int64_t i = 0 ; i < nequations ; i++) {
+        tempIA[i+1] = tempIA[i] + nterms[i];
+    }
+    
+    for(int64_t i = 0 ; i < nequations ; i++) {
+        int64_t indexfirst = fIA[i];
+        int64_t indexlast = fIA[i+1];
+        
+        for(int64_t c = indexfirst; c < indexlast ; c++) {
+            int64_t j = fJA[c];
+            int64_t inew = invperm[i], jnew = invperm[j];
+            int64_t indexfirstnew = tempIA[inew];
+            int64_t indexlastnew = tempIA[inew+1];
+            for(int64_t cnew = indexfirstnew; cnew < indexlastnew ; cnew++) {
+                if(tempJA[cnew] == -1){
+                    tempJA[cnew] = jnew;
+                    tempA[cnew] = fA[c];
+                    break;
+                }
+                if(tempJA[cnew] == jnew) DebugStop();
+            }
+        }
+    }
+    
+    fIA = tempIA;
+    fJA = tempJA;
+    fA = tempA;
+}
+
+template<class TVar>
 int TPZSYsmpMatrix<TVar>::ClassId() const{
     return Hash("TPZSYsmpMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
