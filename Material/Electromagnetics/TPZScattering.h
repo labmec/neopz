@@ -31,7 +31,7 @@ public:
   TPZScattering(int id, const CSTATE er, const CSTATE ur, const STATE lambda,
           const REAL scale = 1.);
 
-  TPZScattering(int id, const TPZVec<CSTATE>& er, const TPZVec<CSTATE>& ur, const STATE lambda,
+  TPZScattering(int id, const TPZFMatrix<CSTATE>& er, const TPZFMatrix<CSTATE>& ur, const STATE lambda,
           const REAL scale = 1.);
   
   TPZScattering * NewMaterial() const override;
@@ -67,17 +67,17 @@ public:
   //! Sets the permeability of the material
   void SetPermeability(CSTATE ur);
   //! Sets the permeability of the material
-  void SetPermeability(const TPZVec<CSTATE> &ur);
+  void SetPermeability(const TPZFMatrix<CSTATE> &ur);
   //! Gets the permeability of the material
   virtual void GetPermeability([[maybe_unused]] const TPZVec<REAL> &x,
-                               TPZVec<CSTATE> &ur) const;
+                               TPZFMatrix<CSTATE> &ur) const;
   //! Sets the permittivity of the material
   void SetPermittivity(CSTATE er);
   //! Sets the permittivity of the material
-  void SetPermittivity(const TPZVec<CSTATE> &er);
+  void SetPermittivity(const TPZFMatrix<CSTATE> &er);
   //! Gets the permittivity of the material
   virtual void GetPermittivity([[maybe_unused]] const TPZVec<REAL> &x,
-                               TPZVec<CSTATE> &er) const;
+                               TPZFMatrix<CSTATE> &er) const;
   /**@}*/
   
   /**
@@ -99,9 +99,9 @@ public:
 protected:
   TPZScattering() = default;
   //! Relative magnetic permeability (xx, yy, zz)
-  TPZManVector<CSTATE,3> fUr{{1.,1.,1.}};
+  TPZFNMatrix<9,CSTATE> fUr{{1.,0,0},{0,1,0},{0,0,1}};
   //! Relative electric permittivity (xx, yy, zz)
-  TPZManVector<CSTATE,3> fEr{{1.,1.,1.}};
+  TPZFNMatrix<9,CSTATE> fEr{{1.,0,0},{0,1,0},{0,0,1}};
   //! Wavelength being analysed
   STATE fLambda{1.55e-9};
   //! Scale factor for the domain (helps with floating point arithmetic on small domains)

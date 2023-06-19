@@ -12,8 +12,8 @@ TPZScattering::TPZScattering(int id, const CSTATE er,
   SetPermeability(ur);
   SetPermittivity(er);
 }
-TPZScattering::TPZScattering(int id, const TPZVec<CSTATE>& er,
-                             const TPZVec<CSTATE> &ur,
+TPZScattering::TPZScattering(int id, const TPZFMatrix<CSTATE>& er,
+                             const TPZFMatrix<CSTATE> &ur,
                              const STATE lambda,
                              const REAL scale)
   : TBase(id),fLambda(lambda), fScaleFactor(scale)
@@ -29,66 +29,49 @@ TPZScattering * TPZScattering::NewMaterial() const
 
 
 void TPZScattering::GetPermittivity(
-  [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &er) const
+  [[maybe_unused]] const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &er) const
 {
     er = fEr;
 }
 
 void TPZScattering::GetPermeability(
-  [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &ur) const
+  [[maybe_unused]] const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const
 {
     ur = fUr;
 }
 
 void TPZScattering::SetPermeability(CSTATE ur)
 {
-    if (std::real(ur) <0){
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"Setting negative permeability. Aborting..\n";
-        DebugStop();
-    }
-    fUr = {ur,ur,ur};
+  fUr.Redim(3,3);
+  fUr.PutVal(0,0,ur);
+  fUr.PutVal(1,1,ur);
+  fUr.PutVal(2,2,ur);
 }
 
-void TPZScattering::SetPermeability(const TPZVec<CSTATE>& ur)
+
+void TPZScattering::SetPermeability(const TPZFMatrix<CSTATE>& ur)
 {
-    if(ur.size()!=3){
+    if(ur.Rows()!=3 || ur.Cols()!= 3){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<"\nSize of ur != 3. Aborting...\n";
         DebugStop();
-    }
-    for(const auto &iur : ur){
-        if (std::real(iur) <0){
-            PZError<<__PRETTY_FUNCTION__;
-            PZError<<"Setting negative permeability. Aborting..\n";
-            DebugStop();
-        }
     }
     fUr = ur;
 }
 void TPZScattering::SetPermittivity(CSTATE er)
 {
-    if (std::real(er) <0){
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"Setting negative permeability. Aborting..\n";
-        DebugStop();
-    }
-    fEr = {er,er,er};
+    fEr.Redim(3,3);
+    fEr.PutVal(0,0,er);
+    fEr.PutVal(1,1,er);
+    fEr.PutVal(2,2,er);
 }
 
-void TPZScattering::SetPermittivity(const TPZVec<CSTATE>&er)
+void TPZScattering::SetPermittivity(const TPZFMatrix<CSTATE>&er)
 {
-    if(er.size()!=3){
+    if(er.Rows()!=3 || er.Cols()!= 3){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<"\nSize of er != 3. Aborting...\n";
         DebugStop();
-    }
-    for(const auto &ier : er){
-        if (std::real(ier) <0){
-            PZError<<__PRETTY_FUNCTION__;
-            PZError<<"Setting negative permitivitty. Aborting..\n";
-            DebugStop();
-        }
     }
     fEr = er;
 }
@@ -98,38 +81,32 @@ void TPZScattering::Contribute(const TPZMaterialDataT<CSTATE> &data,
                                        TPZFMatrix<CSTATE> &ek,
                                        TPZFMatrix<CSTATE> &ef)
 {
-  TPZManVector<CSTATE,3> er,ur;
-  GetPermittivity(data.x,er);
-  GetPermeability(data.x,ur);
+  TPZFNMatrix<9,CSTATE> er_mat,ur_inv_mat;
+  GetPermittivity(data.x,er_mat);
+  GetPermeability(data.x,ur_inv_mat);
+  ur_inv_mat.Decompose(ELU);
   const int nshape = data.phi.Rows();
   const auto &phi_real = data.phi;
   const auto &curl_phi_real = data.curlphi;
   
   const STATE k0 = fScaleFactor * 2*M_PI/fLambda;
-  TPZFNMatrix<9,CSTATE> er_mat(3,3,0.);
-  TPZFNMatrix<9,CSTATE> ur_inv_mat(3,3,0.);
-  for(int x = 0; x < 3; x++){
-    er_mat(x,x) = er[x] * k0 * k0;
-    ur_inv_mat(x,x) = 1./ur[x];
-  }
   
   //making complex version of phi
-  TPZFNMatrix<3000,CSTATE> phi(nshape,3);
+  TPZFNMatrix<3000,CSTATE> phi(3,nshape);
   TPZFNMatrix<3000,CSTATE> curl_phi(3,nshape);
   for(int i = 0; i < nshape; i++){
     for(int x = 0; x < 3; x++){
-      phi.PutVal(i,x,phi_real.GetVal(i,x));
+      phi.PutVal(x,i,phi_real.GetVal(i,x));
       curl_phi.PutVal(x,i,curl_phi_real.GetVal(x,i));
     }
   }
-  //initializing with correct dimensions
-  TPZFNMatrix<3000,CSTATE> phi_t(3, nshape);
-  TPZFNMatrix<3000,CSTATE> curl_phi_t(nshape, 3);
 
-  phi.Transpose(&phi_t);
-  curl_phi.Transpose(&curl_phi_t);
-    
-  ek += ((curl_phi_t * (ur_inv_mat * curl_phi)) -  phi*(er_mat*phi_t))*weight;
+  TPZFNMatrix<3000,CSTATE> tmp;
+  tmp = curl_phi;
+  ur_inv_mat.Substitution(&tmp);
+  ek.AddContribution(0, 0, curl_phi, true, tmp, false, weight);
+  er_mat.Multiply(phi, tmp);
+  ek.AddContribution(0, 0, phi, true, tmp, false, -k0*k0*weight);
 }
 
 void TPZScattering::ContributeBC(const TPZMaterialDataT<CSTATE> &data,

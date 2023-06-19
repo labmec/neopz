@@ -44,9 +44,9 @@ public:
   //! Sets information regarding the attenuation of the PML in the z-direction
   void SetAttZ(const REAL pmlBegin, const STATE alpha, const REAL d);
   //! Gets the permeability of the material
-  void GetPermeability(const TPZVec<REAL> &x,TPZVec<CSTATE> &ur) const override;
+  void GetPermeability(const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const override;
   //! Gets the permittivity of the material
-  void GetPermittivity(const TPZVec<REAL> &x,TPZVec<CSTATE> &er) const override;
+  void GetPermittivity(const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &er) const override;
     
   TPZMatPML * NewMaterial() const override;
     

@@ -13,11 +13,11 @@ TPZWgma::TPZWgma(int id) : TBase(id){
 }
 
 TPZWgma::TPZWgma(int id, 
-                                                     const CSTATE er,
-                                                     const CSTATE ur,
-                                                     const STATE lambda,
-                                                     const REAL &scale) :
-    TBase(id), fUr(3), fEr(3), fScaleFactor(scale),
+                 const CSTATE er,
+                 const CSTATE ur,
+                 const STATE lambda,
+                 const REAL &scale) :
+    TBase(id), fScaleFactor(scale),
     fLambda(lambda)
 {
     SetMatrixA();
@@ -42,11 +42,11 @@ TPZWgma::TPZWgma(int id,
 }
 
 TPZWgma::TPZWgma(int id, 
-                                                     const TPZVec<CSTATE> &er,
-                                                     const TPZVec<CSTATE> &ur,
-                                                     const STATE lambda,
-                                                     const REAL &scale) :
-    TBase(id), fUr(3), fEr(3), fScaleFactor(scale),
+                 const TPZFMatrix<CSTATE> &er,
+                 const TPZFMatrix<CSTATE> &ur,
+                 const STATE lambda,
+                 const REAL &scale) :
+    TBase(id), fScaleFactor(scale),
     fLambda(lambda)
 {
     SetMatrixA();
@@ -80,53 +80,35 @@ void TPZWgma::SetWavelength(STATE lambda)
 
 void TPZWgma::SetPermeability(CSTATE ur)
 {
-    if (std::real(ur) <0){
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"Setting negative permeability. Aborting..\n";
-        DebugStop();
-    }
-    fUr = {ur,ur,ur};
+    fUr.Redim(3,3);
+    fUr.PutVal(0,0,ur);
+    fUr.PutVal(1,1,ur);
+    fUr.PutVal(2,2,ur);
 }
 
-void TPZWgma::SetPermeability(const TPZVec<CSTATE>& ur)
+void TPZWgma::SetPermeability(const TPZFMatrix<CSTATE>& ur)
 {
-    if(ur.size()!=3){
+    if(ur.Rows()!=3 || ur.Cols()!= 3){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<"\nSize of ur != 3. Aborting...\n";
         DebugStop();
-    }
-    for(const auto &iur : ur){
-        if (std::real(iur) <0){
-            PZError<<__PRETTY_FUNCTION__;
-            PZError<<"Setting negative permeability. Aborting..\n";
-            DebugStop();
-        }
     }
     fUr = ur;
 }
 void TPZWgma::SetPermittivity(CSTATE er)
 {
-    if (std::real(er) <0){
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"Setting negative permeability. Aborting..\n";
-        DebugStop();
-    }
-    fEr = {er,er,er};
+    fEr.Redim(3,3);
+    fEr.PutVal(0,0,er);
+    fEr.PutVal(1,1,er);
+    fEr.PutVal(2,2,er);
 }
 
-void TPZWgma::SetPermittivity(const TPZVec<CSTATE>&er)
+void TPZWgma::SetPermittivity(const TPZFMatrix<CSTATE>&er)
 {
-    if(er.size()!=3){
+    if(er.Rows()!=3 || er.Cols()!= 3){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<"\nSize of er != 3. Aborting...\n";
         DebugStop();
-    }
-    for(const auto &ier : er){
-        if (std::real(ier) <0){
-            PZError<<__PRETTY_FUNCTION__;
-            PZError<<"Setting negative permitivitty. Aborting..\n";
-            DebugStop();
-        }
     }
     fEr = er;
 }
@@ -157,13 +139,13 @@ void TPZWgma::SetMatrixB()
 }
 
 void TPZWgma::GetPermittivity(
-  [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &er) const
+  [[maybe_unused]] const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &er) const
 {
     er = fEr;
 }
 
 void TPZWgma::GetPermeability(
-  [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &ur) const
+  [[maybe_unused]] const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const
 {
     ur = fUr;
 }
@@ -174,9 +156,10 @@ TPZWgma::Contribute(
     REAL weight,
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef)
 {
-    TPZManVector<CSTATE,3> er(3,0.),ur(3,0.);
+    TPZFNMatrix<9,CSTATE> er(3,3,0.),ur(3,3,0.);
     GetPermittivity(datavec[0].x, er);
     GetPermeability(datavec[0].x, ur);
+    ur.Decompose(ELU);
     fCurrentContribute(datavec,weight,ek,ef,er,ur);
 }
 
@@ -194,37 +177,59 @@ TPZWgma::ContributeA(
     const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
     REAL weight,
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
-    const TPZVec<CSTATE> &er, const TPZVec<CSTATE> &ur)
+    const TPZFMatrix<CSTATE> &er, const TPZFMatrix<CSTATE> &ur)
 {
-    const CSTATE &exx = er[0];
-    const CSTATE &eyy = er[1];
+    
+    const auto &phi_hcurl_real = datavec[fHCurlMeshIndex].phi;
+    const auto &curl_phi_real = datavec[fHCurlMeshIndex].curlphi;
+    const int nhcurl  = phi_hcurl_real.Rows();
+    //making complex version of phi
+    TPZFNMatrix<3000,CSTATE> phi_hcurl(3,nhcurl,0.);
+    TPZFNMatrix<3000,CSTATE> rot_phi_hcurl(3,nhcurl,0.);
+    TPZFNMatrix<3000,CSTATE> curl_phi(3,nhcurl,0.);
+    for(int i = 0; i < nhcurl; i++){
+        for(int x = 0; x < 2; x++){
+            phi_hcurl.PutVal(x,i,phi_hcurl_real.GetVal(i,x));
+        }
+        rot_phi_hcurl.PutVal(0,i,phi_hcurl.GetVal(1,i));
+        rot_phi_hcurl.PutVal(1,i,-1.*phi_hcurl.GetVal(0,i));
+        curl_phi.PutVal(2,i,curl_phi_real.GetVal(0,i));
+    }
 
-    const CSTATE uzz_inv = 1./ur[2];
+    const auto &phi_h1_real = datavec[fH1MeshIndex].phi;
+    const int nh1  = phi_h1_real.Rows();
+    TPZFNMatrix<3,REAL> grad_phi_real(3, nh1, 0.);
+    {
+        const TPZFMatrix<REAL> &gradPhiH1axes = datavec[fH1MeshIndex].dphix;
+        TPZAxesTools<REAL>::Axes2XYZ(gradPhiH1axes, grad_phi_real, datavec[fH1MeshIndex].axes);
+    }
+
     
-    const auto &phiHCurl = datavec[fHCurlMeshIndex].phi;
+    //making complex version of phi
+    TPZFNMatrix<3000,CSTATE> phi_h1(3,nh1,0.);
+    TPZFNMatrix<3000,CSTATE> rot_grad_phi(3,nh1,0.);
+    for(int i = 0; i < nh1; i++){
+        phi_h1.PutVal(2,i,phi_h1_real.GetVal(i,0));
+        rot_grad_phi.PutVal(0,i,grad_phi_real.GetVal(1,i));
+        rot_grad_phi.PutVal(1,i,-1.*grad_phi_real.GetVal(0,i));
+    }
     
-    const auto & curlPhi = datavec[fHCurlMeshIndex].curlphi;
+    
     const REAL k0 = fScaleFactor * 2*M_PI/fLambda;
     /*****************ACTUAL COMPUTATION OF CONTRIBUTION****************/
-
-    const int nhcurl  = phiHCurl.Rows();
-    const int nh1  = datavec[fH1MeshIndex].phi.Rows();
     const int firsthcurl = fHCurlMeshIndex * nh1;
+    const int firsth1 = fH1MeshIndex * nhcurl;
+    TPZFNMatrix<3000,CSTATE> tmp;
 
-    for (int iv = 0; iv < nhcurl; iv++) {
-        for (int jv = 0; jv < nhcurl; jv++) {
-            const STATE curlIzdotCurlJz =
-                curlPhi(0 , iv) * curlPhi(0 , jv);
-            const STATE phiIdotPhiJx = phiHCurl(iv , 0) * phiHCurl(jv , 0);
-            const STATE phiIdotPhiJy = phiHCurl(iv , 1) * phiHCurl(jv , 1);
-
-            CSTATE stiffAtt = 0.;
-            stiffAtt += uzz_inv * curlIzdotCurlJz;
-            stiffAtt -= k0 * k0 * exx * phiIdotPhiJx;
-            stiffAtt -= k0 * k0 * eyy * phiIdotPhiJy;
-            ek( firsthcurl + iv , firsthcurl + jv ) += stiffAtt * weight ;
-        }
-    }
+    //Att term
+    tmp = curl_phi;
+    ur.Substitution(&tmp);
+    tmp *= weight;
+    ek.AddContribution(firsthcurl, firsthcurl, tmp, true, curl_phi, false);
+    //Ctt term
+    er.Multiply(phi_hcurl,tmp);
+    tmp *= -k0*k0*weight;
+    ek.AddContribution(firsthcurl,firsthcurl,tmp,true,phi_hcurl,false);
 }
 
 void
@@ -232,73 +237,74 @@ TPZWgma::ContributeB(
     const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
     REAL weight,
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
-    const TPZVec<CSTATE> &er, const TPZVec<CSTATE> &ur)
+    const TPZFMatrix<CSTATE> &er, const TPZFMatrix<CSTATE> &ur)
 {
 
-    const CSTATE &ezz = er[2];
-    
-    const CSTATE uxx_inv = 1./ur[0];
-    const CSTATE uyy_inv = 1./ur[1];
-    //get h1 functions
-    const TPZFMatrix<REAL> &phiH1 = datavec[fH1MeshIndex].phi;
-    TPZFNMatrix<3,REAL> gradPhiH1(3, phiH1.Rows(), 0.);
+    const auto &phi_hcurl_real = datavec[fHCurlMeshIndex].phi;
+    const auto &curl_phi_real = datavec[fHCurlMeshIndex].curlphi;
+    const int nhcurl  = phi_hcurl_real.Rows();
+    //making complex version of phi
+    TPZFNMatrix<3000,CSTATE> phi_hcurl(3,nhcurl,0.);
+    TPZFNMatrix<3000,CSTATE> rot_phi_hcurl(3,nhcurl,0.);
+    TPZFNMatrix<3000,CSTATE> curl_phi(3,nhcurl,0.);
+    for(int i = 0; i < nhcurl; i++){
+        for(int x = 0; x < 2; x++){
+            phi_hcurl.PutVal(x,i,phi_hcurl_real.GetVal(i,x));
+        }
+        rot_phi_hcurl.PutVal(0,i,phi_hcurl.GetVal(1,i));
+        rot_phi_hcurl.PutVal(1,i,-1.*phi_hcurl.GetVal(0,i));
+        curl_phi.PutVal(2,i,curl_phi_real.GetVal(0,i));
+    }
+
+    const auto &phi_h1_real = datavec[fH1MeshIndex].phi;
+    const int nh1  = phi_h1_real.Rows();
+    TPZFNMatrix<3,REAL> grad_phi_real(3, nh1, 0.);
     {
         const TPZFMatrix<REAL> &gradPhiH1axes = datavec[fH1MeshIndex].dphix;
-        TPZAxesTools<REAL>::Axes2XYZ(gradPhiH1axes, gradPhiH1, datavec[fH1MeshIndex].axes);
+        TPZAxesTools<REAL>::Axes2XYZ(gradPhiH1axes, grad_phi_real, datavec[fH1MeshIndex].axes);
+    }
+
+    
+    //making complex version of phi
+    TPZFNMatrix<3000,CSTATE> phi_h1(3,nh1,0.);
+    TPZFNMatrix<3000,CSTATE> rot_grad_phi(3,nh1,0.);
+    for(int i = 0; i < nh1; i++){
+        phi_h1.PutVal(2,i,phi_h1_real.GetVal(i,0));
+        rot_grad_phi.PutVal(0,i,grad_phi_real.GetVal(1,i));
+        rot_grad_phi.PutVal(1,i,-1.*grad_phi_real.GetVal(0,i));
     }
     
-    const auto &phiHCurl = datavec[fHCurlMeshIndex].phi;
     
     const REAL k0 = fScaleFactor * 2*M_PI/fLambda;
     /*****************ACTUAL COMPUTATION OF CONTRIBUTION****************/
-
-    const int nhcurl  = phiHCurl.Rows();
-    const int nh1  = phiH1.Rows();
-    const int firsth1 = fH1MeshIndex * nhcurl;
     const int firsthcurl = fHCurlMeshIndex * nh1;
+    const int firsth1 = fH1MeshIndex * nhcurl;
+    TPZFNMatrix<3000,CSTATE> tmp;
 
-    for (int iv = 0; iv < nhcurl; iv++) {
-        for (int jv = 0; jv < nhcurl; jv++) {
-            const STATE phiIdotPhiJx = phiHCurl(iv , 0) * phiHCurl(jv , 0);
-            const STATE phiIdotPhiJy = phiHCurl(iv , 1) * phiHCurl(jv , 1);
-            CSTATE stiffBtt = 0.;
-            stiffBtt += uxx_inv * phiIdotPhiJx;
-            stiffBtt += uyy_inv * phiIdotPhiJy;
-            ek( firsthcurl + iv , firsthcurl + jv ) += stiffBtt * weight ;
-
-        }
-        for (int js = 0; js < nh1; js++) {
-            const STATE phiVecDotGradPhiScax = phiHCurl(iv , 0) * gradPhiH1(0,js);
-            const STATE phiVecDotGradPhiScay = phiHCurl(iv , 1) * gradPhiH1(1,js);
-
-            CSTATE stiffBzt = 0.;
-            stiffBzt += uxx_inv * phiVecDotGradPhiScax;
-            stiffBzt += uyy_inv * phiVecDotGradPhiScay;
-            ek( firsthcurl + iv , firsth1 + js ) += stiffBzt * weight ;
-        }
-    }
-    for (int is = 0; is < nh1; is++) {
-        for (int jv = 0; jv < nhcurl; jv++) {
-            const STATE phiVecDotGradPhiScax = phiHCurl(jv , 0) * gradPhiH1(0,is);
-            const STATE phiVecDotGradPhiScay = phiHCurl(jv , 1) * gradPhiH1(1,is);
-
-            CSTATE stiffBtz = 0.;
-            stiffBtz += uxx_inv * phiVecDotGradPhiScax;
-            stiffBtz += uyy_inv * phiVecDotGradPhiScay;
-            ek( firsth1 + is , firsthcurl +  jv ) += stiffBtz * weight ;
-        }
-        for (int js = 0; js < nh1; js++) {
-            const STATE gradPhiScaDotGradPhiScax = gradPhiH1(0,is) * gradPhiH1(0,js);
-            const STATE gradPhiScaDotGradPhiScay = gradPhiH1(1,is) * gradPhiH1(1,js);
-
-            CSTATE stiffBzz = 0.;
-            stiffBzz +=  uxx_inv * gradPhiScaDotGradPhiScax;
-            stiffBzz +=  uyy_inv * gradPhiScaDotGradPhiScay;
-            stiffBzz -=  k0 * k0 * ezz * phiH1( is , 0 ) * phiH1( js , 0 );
-
-            ek( firsth1 + is , firsth1 + js) += stiffBzz * weight ;
-        }
-    }
+    //Btt term
+    tmp = rot_phi_hcurl;
+    ur.Substitution(&tmp);
+    tmp *= weight;
+    ek.AddContribution(firsthcurl, firsthcurl, tmp, true, rot_phi_hcurl, false);
+    //Atz term
+    tmp = rot_phi_hcurl;
+    ur.Substitution(&tmp);
+    tmp *= weight;
+    ek.AddContribution(firsthcurl,firsth1,tmp,true,rot_grad_phi,false);
+    //Azt term
+    tmp = rot_grad_phi;
+    ur.Substitution(&tmp);
+    tmp *= weight;
+    ek.AddContribution(firsth1,firsthcurl,tmp, true, rot_phi_hcurl, false);
+    //Azz term
+    tmp = rot_grad_phi;
+    ur.Substitution(&tmp);
+    tmp *= weight;
+    ek.AddContribution(firsth1,firsth1,tmp,true,rot_grad_phi,false);
+    //Czz term
+    er.Multiply(phi_h1,tmp);
+    tmp *= -k0*k0*weight;
+    ek.AddContribution(firsth1,firsth1,tmp,true,phi_h1,false);
 }
 
 
@@ -412,7 +418,7 @@ void TPZWgma::Solution(
     int var,
     TPZVec<CSTATE> &solout)
 {
-    TPZManVector<CSTATE,3> er(3,0.), ur(3,0.);
+    TPZFNMatrix<9,CSTATE> er(3,3,0.), ur(3,3,0.);
 
     GetPermittivity(datavec[0].x, er);
     GetPermeability(datavec[0].x, ur);

@@ -48,21 +48,17 @@ void TPZScatteringSrc::Contribute(const TPZMaterialDataT<CSTATE> &data,
 
 
   //making complex version of phi
-  TPZFNMatrix<3000,CSTATE> phi(nshape,3);
+  TPZFNMatrix<3000,CSTATE> phi(3,nshape);
   for(int i = 0; i < nshape; i++){
     for(int x = 0; x < 3; x++){
-      phi.PutVal(i,x,phi_real.GetVal(i,x));
+      phi.PutVal(x,i,phi_real.GetVal(i,x));
     }
   }
   
 
-  TPZManVector<CSTATE,3> ur;
-  GetPermeability(data.x,ur);
-  
-  TPZFNMatrix<9,CSTATE> ur_inv(3,3,0.);
-  for(int x = 0; x < 3; x++){
-    ur_inv(x,x) = 1./ur[x];
-  }
+  TPZFNMatrix<9,CSTATE> ur_inv;
+  GetPermeability(data.x,ur_inv);
+  ur_inv.Decompose(ELU);
   
   ///Source term
   const auto src_cte = 2. * 1i * beta * fScaleFactor;
@@ -73,7 +69,8 @@ void TPZScatteringSrc::Contribute(const TPZMaterialDataT<CSTATE> &data,
   src_mat(1,0) =  1.*src_cte * sol[1];
 
   //Contribution
-  ef += phi * (ur_inv * src_mat) * weight;
+  ur_inv.Substitution(&src_mat);
+  ef.AddContribution(0, 0, phi, true, src_mat, false, weight);
 }
 
 TPZScatteringSrc * TPZScatteringSrc::NewMaterial() const

@@ -36,8 +36,8 @@ public:
        @note the `scale` param might help with floating point arithmetics on really small domains.
     */
     TPZWgma(int id, const CSTATE er,
-                              const CSTATE ur, const STATE lambda,
-                              const REAL &scale = 1.);
+            const CSTATE ur, const STATE lambda,
+            const REAL &scale = 1.);
     /**
        @brief Constructor taking a few material parameters
        @param[in] id Material identifier.
@@ -47,10 +47,10 @@ public:
        @note the `scale` param might help with floating point arithmetics on really small domains.
     */
     TPZWgma(int id,
-                              const TPZVec<CSTATE> & er,
-                              const TPZVec<CSTATE> & ur,
-                              STATE lambda,
-                              const REAL &scale = 1.);
+            const TPZFMatrix<CSTATE> & er,
+            const TPZFMatrix<CSTATE> & ur,
+            STATE lambda,
+            const REAL &scale = 1.);
     explicit TPZWgma(int id);
 
     TPZWgma * NewMaterial() const override;
@@ -78,17 +78,17 @@ public:
     //! Sets the permeability of the material
     void SetPermeability(CSTATE ur);
     //! Sets the permeability of the material
-    void SetPermeability(const TPZVec<CSTATE> &ur);
+    void SetPermeability(const TPZFMatrix<CSTATE> &ur);
     //! Gets the permeability of the material
     virtual void GetPermeability([[maybe_unused]] const TPZVec<REAL> &x,
-                                 TPZVec<CSTATE> &ur) const;
+                                 TPZFMatrix<CSTATE> &ur) const;
     //! Sets the permittivity of the material
     void SetPermittivity(CSTATE ur);
     //! Sets the permittivity of the material
-    void SetPermittivity(const TPZVec<CSTATE> &er);
+    void SetPermittivity(const TPZFMatrix<CSTATE> &er);
     //! Gets the permittivity of the material
     virtual void GetPermittivity([[maybe_unused]] const TPZVec<REAL> &x,
-                                 TPZVec<CSTATE> &er) const;
+                                 TPZFMatrix<CSTATE> &er) const;
     /**@}*/
     /**
        @name ContributeMethods
@@ -142,17 +142,18 @@ protected:
         std::function<void (const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
                             REAL weight,
                             TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
-                            const TPZVec<CSTATE> & er, const TPZVec<CSTATE> & ur)>;
+                            const TPZFMatrix<CSTATE> & er,
+                            const TPZFMatrix<CSTATE> & ur)>;
     using TContributeBCType =
         std::function<void (const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
                             REAL weight,
                             TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
                             TPZBndCondT<CSTATE> &bc)>;
     /** @} */
-    //! Relative magnetic permeability (xx, yy, zz)
-    TPZManVector<CSTATE,3> fUr{{1.,1.,1.}};
-    //! Relative electric permittivity in the x direction
-    TPZManVector<CSTATE,3> fEr{{1.,1.,1.}};
+    //! Relative magnetic permeability
+    TPZFNMatrix<9,CSTATE> fUr{{1.,0,0},{0,1,0},{0,0,1}};
+    //! Relative electric permittivity
+    TPZFNMatrix<9,CSTATE> fEr{{1.,0,0},{0,1,0},{0,0,1}};
     //! Wavelength being analysed
     STATE fLambda{1.55e-9};
     //! Scale factor for the domain (helps with floating point arithmetic on small domains)
@@ -176,7 +177,7 @@ protected:
     //! Contribution of the A Matrix
     void ContributeA(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
                      TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
-                     const TPZVec<CSTATE> & er, const TPZVec<CSTATE> & ur);
+                     const TPZFMatrix<CSTATE> & er, const TPZFMatrix<CSTATE> & ur);
     //! Boundary contribution of the A Matrix
     void ContributeBCA(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
                       TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
@@ -184,7 +185,7 @@ protected:
     //! Contribution of the B Matrix
     void ContributeB(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
                      TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
-                     const TPZVec<CSTATE> & er, const TPZVec<CSTATE> & ur);
+                     const TPZFMatrix<CSTATE> & er, const TPZFMatrix<CSTATE> & ur);
     //! Boundary contribution of the B Matrix
     void ContributeBCB(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
                       TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,

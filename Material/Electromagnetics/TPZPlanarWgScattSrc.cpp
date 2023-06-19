@@ -53,16 +53,16 @@ void TPZPlanarWgScattSrc::Contribute(const TPZMaterialDataT<CSTATE> &data,
   const auto &dsol = mem_item.dsol;
   const auto &n = data.normal;
 
-  TPZManVector<CSTATE,3> er,ur;
+  TPZFNMatrix<9,CSTATE> er,ur;
   GetPermittivity(data.x,er);
   GetPermeability(data.x,ur);
   CSTATE cGx{0};
   switch(fMode){
   case ModeType::TE:
-    cGx = 1./ur[1];
+    cGx = 1./ur.GetVal(1,1);
     break;
   case ModeType::TM:
-    cGx = 1./er[1];
+    cGx = 1./er.GetVal(1,1);
     break;
   }
 
