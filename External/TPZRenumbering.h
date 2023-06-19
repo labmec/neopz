@@ -100,7 +100,7 @@ public:
         static int64_t ColorElements(const TPZCompMesh *cmesh, const TPZVec<int64_t> &elementIndices, TPZVec<int64_t> &elementColors);
 	
 	/** @brief Prints graph */
-	void Print(TPZVec<int64_t> &grapho, TPZVec<int64_t> &graphoindex, const char *name = 0, std::ostream &out = std::cout);
+	static void Print(TPZVec<int64_t> &grapho, TPZVec<int64_t> &graphoindex, const std::string name = "", std::ostream &out = std::cout);
 	
     /**
             Group the elements in sets and print the result graphically

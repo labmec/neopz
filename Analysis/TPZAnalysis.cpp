@@ -19,6 +19,10 @@
 #include <utility>                         // for pair
 #include "TPZLagrangeMultiplier.h"         // for TPZLagrangeMultiplier
 #include "TPZSloanRenumbering.h"           // for TPZSloanRenumbering
+#include "TPZCutHillMcKee.h"
+#ifdef USING_METIS
+#include "pzmetis.h"
+#endif
 #include "pzadmchunk.h"                    // for TPZAdmChunkVector
 #include "pzbdstrmatrix.h"                 // for TPZBlockDiagonalStructMatrix
 #include "pzblock.h"                       // for TPZBlock
@@ -75,8 +79,15 @@ static TPZLogger loggerError("pz.analysis.error");
  * @brief Renumbering will use sloan library.
  * @ingroup analysis
  */
+
+#ifdef USING_METIS
+#define RENUMBER TPZMetis()
+#else
 #define RENUMBER TPZSloanRenumbering()
-//#define RENUMBER TPZCutHillMcKee()
+#endif
+//#define RENUMBER TPZCutHillMcKee() //TPZCutHillMcKee usually performs worse than metis and sloan. Use carefully
+
+
 #endif
 
 using namespace std;

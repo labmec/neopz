@@ -273,7 +273,7 @@ int64_t TPZRenumbering::ColorElements(const TPZCompMesh *cmesh, const TPZVec<int
     return n_colors;
 }
 
-void TPZRenumbering::Print(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, const char *name, std::ostream& out) {
+void TPZRenumbering::Print(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, const std::string name, std::ostream& out) {
     out << "Graph: " << name << endl;
     for (int64_t i = 0; i < graphindex.NElements() - 1; i++) {
         out << "Graph item: " << i << "\t";
