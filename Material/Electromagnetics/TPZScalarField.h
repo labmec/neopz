@@ -42,12 +42,12 @@ public:
   void SetPermeability(const CSTATE ur);
   //! Gets the permeability of the material
   virtual void GetPermeability([[maybe_unused]] const TPZVec<REAL> &x,
-                               TPZVec<CSTATE> &ur) const;
+                               TPZFMatrix<CSTATE> &ur) const;
   //! Sets the permittivity of the material
   void SetPermittivity(const CSTATE er);
   //! Gets the permittivity of the material
   virtual void GetPermittivity([[maybe_unused]] const TPZVec<REAL> &x,
-                               TPZVec<CSTATE> &er) const;
+                               TPZFMatrix<CSTATE> &er) const;
   /**
      @name SolutionMethods
      @{*/

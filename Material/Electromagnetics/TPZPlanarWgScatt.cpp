@@ -13,20 +13,20 @@ void TPZPlanarWgScatt::Contribute(const TPZMaterialDataT<CSTATE> &data,
                                        TPZFMatrix<CSTATE> &ek,
                                        TPZFMatrix<CSTATE> &ef)
 {
-  TPZManVector<CSTATE,3> er,ur;
+  TPZFNMatrix<9,CSTATE> er,ur;
   GetPermittivity(data.x,er);
   GetPermeability(data.x,ur);
   CSTATE cGx{0}, cGy{0}, cS{0};
-  switch(fMode){
+  switch (fMode) {
   case ModeType::TE:
-    cGx = 1./ur[1];
-    cGy = 1./ur[0];
-    cS = er[2];
+    cGx = 1. / ur.GetVal(1,1);
+    cGy = 1. / ur.GetVal(0,0);
+    cS = er.GetVal(2,2);
     break;
   case ModeType::TM:
-    cGx = 1./er[1];
-    cGy = 1./er[0];
-    cS = ur[2];
+    cGx = 1. / er.GetVal(1,1);
+    cGy = 1. / er.GetVal(0,0);
+    cS =  ur.GetVal(2,2);
     break;
   }
   const int nshape = data.phi.Rows();

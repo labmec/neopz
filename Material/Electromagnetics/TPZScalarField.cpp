@@ -25,9 +25,12 @@ void TPZScalarField::SetWavelength(STATE lambda)
 }
 
 void TPZScalarField::GetPermeability(
-  [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &ur) const
+  [[maybe_unused]] const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const
 {
-  ur = {fUr,fUr,fUr};
+  ur.Redim(3,3);
+  ur.PutVal(0,0,fUr);
+  ur.PutVal(1,1,fUr);
+  ur.PutVal(2,2,fUr);
 }
 
 
@@ -42,9 +45,12 @@ void TPZScalarField::GetPermeability(
 }
 
 void TPZScalarField::GetPermittivity(
-  [[maybe_unused]] const TPZVec<REAL> &x,TPZVec<CSTATE> &er) const
+  [[maybe_unused]] const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &er) const
 {
-  er = {fEr,fEr,fEr};
+  er.Redim(3,3);
+  er.PutVal(0,0,fEr);
+  er.PutVal(1,1,fEr);
+  er.PutVal(2,2,fEr);
 }
 
 void TPZScalarField::SetPermittivity(const CSTATE er)
