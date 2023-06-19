@@ -38,7 +38,7 @@ void TPZEigenSolver<TVar>::SortEigenvalues(TPZVec<CTVar> &w, TPZVec<int> &indice
     case TPZEigenSort::TargetImagPart:
       return fabs(a.imag() - target.imag()) < fabs(b.imag() - target.imag());
     case TPZEigenSort::TargetMagnitude:
-      return fabs(fabs(a) - fabs(target)) < fabs(fabs(b) - fabs(target));
+      return fabs(a-target) < fabs(b-target);
     }
     unreachable();
   };
