@@ -7,7 +7,10 @@ set(public_headers
     TPZPlanarWgScattSrc.h
     TPZPeriodicWgma.h
     TPZMatPML.h
-    TPZMatPML_impl.h
+    TPZCartesianPML.h
+    TPZCartesianPML_impl.h
+    TPZCylindricalPML.h
+    TPZCylindricalPML_impl.h
     TPZScalarField.h
     TPZPlanarWgma.h
     TPZScattering.h
@@ -21,7 +24,10 @@ set(headers
     TPZPlanarWgScattSrc.h
     TPZPeriodicWgma.h
     TPZMatPML.h
-    TPZMatPML_impl.h
+    TPZCartesianPML.h
+    TPZCartesianPML_impl.h
+    TPZCylindricalPML.h
+    TPZCylindricalPML_impl.h
     TPZScalarField.h
     TPZPlanarWgma.h
     TPZScattering.h
