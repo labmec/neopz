@@ -27,16 +27,16 @@ TPZEigenAnalysis::TPZEigenAnalysis()
 }
 
 TPZEigenAnalysis::TPZEigenAnalysis(TPZCompMesh *mesh,
-                                   bool mustOptimizeBandwidth, std::ostream &out)
-  : TPZAnalysis(mesh, mustOptimizeBandwidth,out)
+                                   const RenumType& renumtype, std::ostream &out)
+  : TPZAnalysis(mesh, renumtype,out)
 {
 
 }
 
 TPZEigenAnalysis::TPZEigenAnalysis(TPZAutoPointer<TPZCompMesh> mesh,
-                                   bool mustOptimizeBandwidth,
+                                   const RenumType& renumtype,
                                    std::ostream &out)
-  : TPZAnalysis(mesh, mustOptimizeBandwidth, out)
+  : TPZAnalysis(mesh, renumtype, out)
 {
 
 }
