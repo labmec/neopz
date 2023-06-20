@@ -1,18 +1,10 @@
-#ifndef _TPZMATPML_IMPL_H_
-#define _TPZMATPML_IMPL_H_
-#include "TPZMatPML.h"
+#ifndef _TPZCARTESIANPML_IMPL_H_
+#define _TPZCARTESIANPML_IMPL_H_
+#include "TPZCartesianPML.h"
 #include "TPZMaterialDataT.h"
 
 template<class TMAT>
-TPZMatPML<TMAT>::TPZMatPML(
-  const int id, const TMAT &mat):
-  TMAT(mat)
-{
-  this->SetId(id);
-}
-
-template<class TMAT>
-void TPZMatPML<TMAT>::SetAttX(const REAL pmlBegin,
+void TPZCartesianPML<TMAT>::SetAttX(const REAL pmlBegin,
                               const STATE alpha,
                               const REAL d)
 {
@@ -33,7 +25,7 @@ void TPZMatPML<TMAT>::SetAttX(const REAL pmlBegin,
 }
 
 template<class TMAT>
-void TPZMatPML<TMAT>::SetAttY(const REAL pmlBegin,
+void TPZCartesianPML<TMAT>::SetAttY(const REAL pmlBegin,
                               const STATE alpha,
                               REAL d)
 {
@@ -54,7 +46,7 @@ void TPZMatPML<TMAT>::SetAttY(const REAL pmlBegin,
 }
 
 template<class TMAT>
-void TPZMatPML<TMAT>::SetAttZ(const REAL pmlBegin,
+void TPZCartesianPML<TMAT>::SetAttZ(const REAL pmlBegin,
                               const STATE alpha,
                               REAL d)
 {
@@ -75,13 +67,13 @@ void TPZMatPML<TMAT>::SetAttZ(const REAL pmlBegin,
 }
 
 template<class TMAT>
-TPZMatPML<TMAT> * TPZMatPML<TMAT>::NewMaterial() const
+TPZCartesianPML<TMAT> * TPZCartesianPML<TMAT>::NewMaterial() const
 {
-  return new TPZMatPML<TMAT>(*this);
+  return new TPZCartesianPML<TMAT>(*this);
 }
 
 template<class TMAT>
-void TPZMatPML<TMAT>::ComputeSParameters(const TPZVec<REAL> &x,
+void TPZCartesianPML<TMAT>::ComputeSParameters(const TPZVec<REAL> &x,
                                          CSTATE &sx,
                                          CSTATE &sy,
                                          CSTATE &sz) const
@@ -106,7 +98,7 @@ void TPZMatPML<TMAT>::ComputeSParameters(const TPZVec<REAL> &x,
 }
 
 template<class TMAT>
-void TPZMatPML<TMAT>::GetPermittivity(
+void TPZCartesianPML<TMAT>::GetPermittivity(
   const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &er) const
 {
   TMAT::GetPermittivity(x,er);
@@ -123,7 +115,7 @@ void TPZMatPML<TMAT>::GetPermittivity(
 }
 
 template<class TMAT>
-void TPZMatPML<TMAT>::GetPermeability(
+void TPZCartesianPML<TMAT>::GetPermeability(
   const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const
 {
   TMAT::GetPermeability(x,ur);
@@ -140,34 +132,11 @@ void TPZMatPML<TMAT>::GetPermeability(
 }
 
 template<class TMAT>
-int TPZMatPML<TMAT>::ClassId() const
+int TPZCartesianPML<TMAT>::ClassId() const
 {
-  return Hash("TPZMatPML") ^
+  return Hash("TPZCartesianPML") ^
     TMAT::ClassId() << 1;
 }
 
-
-template<class TMAT>
-int TPZSingleSpacePML<TMAT>::IntegrationRuleOrder(const int elPMaxOrder) const
-{
-  const int integrationorder = 2+2*elPMaxOrder;
-
-  return  integrationorder;
-}
-
-
-template<class TMAT>
-int TPZCombinedSpacesPML<TMAT>::IntegrationRuleOrder(const TPZVec<int> &elPMaxOrder) const
-{
-  int pmax = 0;
-  for (int ip=0;  ip<elPMaxOrder.size(); ip++)
-    {
-      if(elPMaxOrder[ip] > pmax) pmax = elPMaxOrder[ip];
-    }
-
-  const int integrationorder = 2+2*pmax;
-
-  return  integrationorder;
-}
-#endif /* _TPZMATPML_IMPL_H_ */
+#endif /* _TPZCARTESIANPML_IMPL_H_ */
 

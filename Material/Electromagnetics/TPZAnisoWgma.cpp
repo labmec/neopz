@@ -510,3 +510,6 @@ void TPZAnisoWgma::Solution(
         break;
     }
 }
+
+#include "TPZCartesianPML.h"
+template class TPZCombinedSpacesCartesianPML<TPZAnisoWgma>;

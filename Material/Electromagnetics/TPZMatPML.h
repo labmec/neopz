@@ -8,7 +8,7 @@
 #include "pzreal.h"
 /**
  * @ingroup material
- * @brief This class implements a rectangular UPML for a given existing material.
+ * @brief This class implements the interface for an anisotropic PML for a given existing material.
  * The material should access its permittivity and permeability through
  * methods called GetPermeability and GetPermittivity
  * with the same signature as shown here.
@@ -17,58 +17,24 @@ template<class TMAT>
 class  TPZMatPML : public TMAT
 {
 protected:
-  bool fAttX{false};
-  REAL fPmlBeginX{-1};
-  bool fAttY{false};
-  REAL fPmlBeginY{-1};
-  bool fAttZ{false};
-  REAL fPmlBeginZ{-1};
-  
-  STATE fAlphaMaxX{-1};
-  STATE fAlphaMaxY{-1};
-  STATE fAlphaMaxZ{-1};
-  STATE fDX{-1};
-  STATE fDY{-1};
-  STATE fDZ{-1};
+  //! For single space materials
+  int MyIntegrationRuleOrder(const int elPMaxOrder) const{
+    return 2 + TMAT::IntegrationRuleOrder(elPMaxOrder);
+  }
+  //! For combined spaces materials
+  int MyIntegrationRuleOrder(const TPZVec<int> &elPMaxOrder) const{
+    return 2 + TMAT::IntegrationRuleOrder(elPMaxOrder);
+  }
   TPZMatPML() = default;
-
-  void ComputeSParameters(const TPZVec<REAL> &x,
-                          CSTATE&sx, CSTATE& sy, CSTATE& sz) const;
 public:
   //! Creates PML based on another domain region
-  TPZMatPML(const int id, const TMAT &mat);
-  //! Sets information regarding the attenuation of the PML in the x-direction
-  void SetAttX(const REAL pmlBegin, const STATE alpha, const REAL d);
-  //! Sets information regarding the attenuation of the PML in the y-direction
-  void SetAttY(const REAL pmlBegin, const STATE alpha, const REAL d);
-  //! Sets information regarding the attenuation of the PML in the z-direction
-  void SetAttZ(const REAL pmlBegin, const STATE alpha, const REAL d);
+  TPZMatPML(const int id, const TMAT &mat) : TMAT(mat) {this->SetId(id);};
   //! Gets the permeability of the material
-  void GetPermeability(const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const override;
+  void GetPermeability(const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const override = 0;
   //! Gets the permittivity of the material
-  void GetPermittivity(const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &er) const override;
-    
-  TPZMatPML * NewMaterial() const override;
+  void GetPermittivity(const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &er) const override = 0;
     
   std::string Name() const override { return "TPZMatPML";}
-  
-  int ClassId() const override;
 };
 
-template<class T>
-class TPZSingleSpacePML : public virtual TPZMatPML<T>{
-public:
-  using TPZMatPML<T>::TPZMatPML;
-  [[nodiscard]] int IntegrationRuleOrder(const int elPMaxOrder) const override;
-};
-
-template<class T>
-class TPZCombinedSpacesPML : public virtual TPZMatPML<T>{
-public:
-  using TPZMatPML<T>::TPZMatPML;
-  [[nodiscard]] int IntegrationRuleOrder(const TPZVec<int> &elPMaxOrder) const override;
-};
-
-
-#include "TPZMatPML_impl.h"
 #endif /* _TPZMATPML_H_ */
