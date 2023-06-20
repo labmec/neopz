@@ -541,3 +541,5 @@ void TPZAnisoWgma::Solution(
 
 #include "TPZCartesianPML.h"
 template class TPZCombinedSpacesCartesianPML<TPZAnisoWgma>;
+#include "TPZCylindricalPML.h"
+template class TPZCombinedSpacesCylindricalPML<TPZAnisoWgma>;
