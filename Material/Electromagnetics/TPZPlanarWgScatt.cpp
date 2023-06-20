@@ -103,5 +103,5 @@ int TPZPlanarWgScatt::ClassId() const {
 
 }
 
-#include "TPZMatPML.h"
-template class TPZSingleSpacePML<TPZPlanarWgScatt>;
+#include "TPZCartesianPML.h"
+template class TPZSingleSpaceCartesianPML<TPZPlanarWgScatt>;

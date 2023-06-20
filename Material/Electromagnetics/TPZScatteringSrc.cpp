@@ -102,5 +102,5 @@ void TPZScatteringSrc::Read(TPZStream &buf, void *context)
   buf.Read(&fBeta);
 }
 
-#include "TPZMatPML.h"
-template class TPZSingleSpacePML<TPZScatteringSrc>;
+#include "TPZCartesianPML.h"
+template class TPZSingleSpaceCartesianPML<TPZScatteringSrc>;

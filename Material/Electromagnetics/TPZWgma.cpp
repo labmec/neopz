@@ -488,5 +488,5 @@ void TPZWgma::Solution(
         break;
     }
 }
-#include "TPZMatPML.h"
-template class TPZCombinedSpacesPML<TPZWgma>;
+#include "TPZCartesianPML.h"
+template class TPZCombinedSpacesCartesianPML<TPZWgma>;

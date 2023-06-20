@@ -224,5 +224,5 @@ void TPZScattering::Solution(const TPZMaterialDataT<CSTATE> &data,
   }
 }
 
-#include "TPZMatPML.h"
-template class TPZSingleSpacePML<TPZScattering>;
+#include "TPZCartesianPML.h"
+template class TPZSingleSpaceCartesianPML<TPZScattering>;
