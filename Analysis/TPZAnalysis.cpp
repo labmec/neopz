@@ -1092,7 +1092,10 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
 				nodeset.BuildNodeGraph(blockgraph,blockgraphindex);
 				break;
     case Precond::Element:
-				nodeset.BuildElementGraph(blockgraph,blockgraphindex);
+                blockgraph = elementgraph;
+                blockgraphindex = elementgraphindex;
+                //@orlandini: BuildElementGraph is broken. elgraph should temporarily suffice
+				//nodeset.BuildElementGraph(blockgraph,blockgraphindex);
 				break;
     case Precond::NodeCentered:
 				nodeset.BuildVertexGraph(blockgraph,blockgraphindex);

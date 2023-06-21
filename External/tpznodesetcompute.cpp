@@ -411,6 +411,10 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 
 void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStack<int64_t> &blockgraphindex)
 {
+  PZError<<__PRETTY_FUNCTION__
+         <<"\nThis function is currently broken! Use TPZCompMesh::BuildElementGraph for now\n"
+         <<"(or fix it, if you are feeling really good today)"<<std::endl;
+  DebugStop();
   TPZSimpleTimer timer("TPZNodesetCompute::BuildElementGraph");
 #ifdef PZ_LOG
 	{
