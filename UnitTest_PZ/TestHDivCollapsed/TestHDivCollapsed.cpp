@@ -297,7 +297,7 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     std::cout << "Number of equations = " << cmesh->NEquations() << std::endl;
 
     // ----- Solve system -----
-    TPZLinearAnalysis an(cmesh,false);
+    TPZLinearAnalysis an(cmesh,RenumType::ENone);
     SolveProblemDirect(an,cmesh);
 
     // ----- Print results -----

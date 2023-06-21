@@ -537,7 +537,7 @@ namespace hcurltest{
          *              the following lines might be useful for analysing the basis functions
          ***********************************************************************************************************/
 
-        // TPZLinearAnalysis an(cmesh, false);
+        // TPZLinearAnalysis an(cmesh, RenumType::ENone);
         // const int postProcessResolution = 3;
         // const std::string executionInfo = [&]() {
         //   std::string name("");
@@ -579,7 +579,7 @@ namespace hcurltest{
         cmesh->AutoBuild();
         cmesh->CleanUpUnconnectedNodes();
 
-        TPZLinearAnalysis an(cmesh,false);
+        TPZLinearAnalysis an(cmesh,RenumType::ENone);
         const int postProcessResolution = 3;
         const std::string executionInfo = [&](){
             std::string name("");

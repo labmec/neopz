@@ -225,10 +225,9 @@ void CheckRankKerDim(int kRight) {
 
   {
     
-    constexpr bool reorderEqs{false};
     constexpr int nThreads{4};
-    TPZLinearAnalysis anL(cmeshL,reorderEqs);
-    TPZLinearAnalysis anR(cmeshR, reorderEqs);
+    TPZLinearAnalysis anL(cmeshL,RenumType::ENone);
+    TPZLinearAnalysis anR(cmeshR, RenumType::ENone);
       
     TPZFStructMatrix<STATE> strmtrxL(cmeshL);
     strmtrxL.SetNumThreads(nThreads);
@@ -361,8 +360,7 @@ void CheckInclusion(int kRight) {
   cmeshMF->ExpandSolution();
   cmeshMF->ComputeNodElCon();
   cmeshMF->CleanUpUnconnectedNodes();
-  constexpr bool optimizeBandwidth{false};
-  TPZLinearAnalysis analysis(cmeshMF, optimizeBandwidth);
+  TPZLinearAnalysis analysis(cmeshMF, RenumType::ENone);
   TPZFStructMatrix<STATE> strmtrx(cmeshMF);
   analysis.SetStructuralMatrix(strmtrx);
   TPZStepSolver<STATE> step;
