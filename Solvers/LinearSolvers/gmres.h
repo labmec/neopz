@@ -21,7 +21,8 @@ template<class TVar>
 int GMRES(const TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> &b,
           TPZMatrixSolver<TVar> &M, TPZFMatrix<TVar> &H, const int krylovdim,
           int64_t &max_iter, RTVar &tol,
-          TPZFMatrix<TVar> *residual, const int fromcurrent){
+          TPZFMatrix<TVar> *residual, const int fromcurrent,
+          bool print_res=true){
 
   constexpr RTVar ztol = 10*std::numeric_limits<RTVar>::epsilon();
   //for printing in full precision
@@ -119,7 +120,7 @@ int GMRES(const TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> 
                 <<"\n\t|du|:" << du
                 << std::endl;
 #else      
-      std::cout << iter << "\t" << resid << std::endl;
+      if(print_res){std::cout << iter << "\t" << resid << std::endl;}
 #endif
     }
     Update(x, i - 1, H, s, v);
@@ -128,7 +129,7 @@ int GMRES(const TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> 
     M.Solve(r,r);
     beta = Norm(r);
     resid = beta/normb;
-    std::cout<<"beta "<<beta<<" resid "<<resid<<" normb "<<normb<<std::endl;
+    if(print_res){std::cout<<"beta "<<beta<<" resid "<<resid<<" normb "<<normb<<std::endl;}
     if (resid < tol) {
       break;
     }
