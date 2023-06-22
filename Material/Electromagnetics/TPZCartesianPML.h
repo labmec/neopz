@@ -25,9 +25,9 @@ protected:
   bool fAttZ{false};
   REAL fPmlBeginZ{-1};
   
-  STATE fAlphaMaxX{-1};
-  STATE fAlphaMaxY{-1};
-  STATE fAlphaMaxZ{-1};
+  STATE fAlphaMaxX{0};
+  STATE fAlphaMaxY{0};
+  STATE fAlphaMaxZ{0};
   STATE fDX{-1};
   STATE fDY{-1};
   STATE fDZ{-1};
@@ -44,6 +44,16 @@ public:
   void SetAttY(const REAL pmlBegin, const STATE alpha, const REAL d);
   //! Sets information regarding the attenuation of the PML in the z-direction
   void SetAttZ(const REAL pmlBegin, const STATE alpha, const REAL d);
+
+  //! Gets information regarding the attenuation of the PML in the x-direction
+  void GetAttX(REAL& pmlBegin, STATE& alpha, REAL& d) const
+  {pmlBegin=fPmlBeginX;alpha=fAlphaMaxX;d=fDX;}
+  //! Gets information regarding the attenuation of the PML in the y-direction
+  void GetAttY(REAL& pmlBegin, STATE& alpha, REAL& d) const
+  {pmlBegin=fPmlBeginY;alpha=fAlphaMaxY;d=fDY;}
+  //! Gets information regarding the attenuation of the PML in the z-direction
+  void GetAttZ(REAL& pmlBegin, STATE& alpha, REAL& d) const
+  {pmlBegin=fPmlBeginZ;alpha=fAlphaMaxZ;d=fDZ;}
   //! Gets the permeability of the material
   void GetPermeability(const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const override;
   //! Gets the permittivity of the material

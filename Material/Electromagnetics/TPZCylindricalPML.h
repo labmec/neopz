@@ -23,8 +23,8 @@ protected:
   bool fAttZ{false};
   REAL fPmlBeginZ{-1};
   
-  STATE fAlphaMaxR{-1};
-  STATE fAlphaMaxZ{-1};
+  STATE fAlphaMaxR{0};
+  STATE fAlphaMaxZ{0};
   STATE fDR{-1};
   STATE fDZ{-1};
   TPZCylindricalPML() = default;
@@ -38,6 +38,11 @@ public:
   void SetAttR(const REAL pmlBegin, const STATE alpha, const REAL d);
   //! Sets information regarding the attenuation of the PML in the z-direction
   void SetAttZ(const REAL pmlBegin, const STATE alpha, const REAL d);
+  //! Gets information regarding the attenuation of the PML in the r-direction
+  void GetAttR(REAL& pmlBegin, STATE& alpha, REAL& d) const
+  {pmlBegin=fPmlBeginR;alpha=fAlphaMaxR;d=fDR;}
+  void GetAttZ(REAL& pmlBegin, STATE& alpha, REAL& d) const
+  {pmlBegin=fPmlBeginZ;alpha=fAlphaMaxZ;d=fDZ;}
   //! Gets the permeability of the material
   void GetPermeability(const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const override;
   //! Gets the permittivity of the material
