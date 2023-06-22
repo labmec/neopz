@@ -3,6 +3,11 @@
 #include "Hash/TPZHash.h"
 
 
+void TPZBaseMatrix::GetRowIndices(const int64_t i, TPZVec<int64_t> &indices) const{
+  indices.Resize(fCol);
+  for(int i = 0; i < fCol; i++){indices[i] = i;}
+}
+
 void TPZBaseMatrix::SetSymmetry(SymProp sp){
   if(fRow!=fCol && sp != SymProp::NonSym){
     PZError<<__PRETTY_FUNCTION__

@@ -37,6 +37,9 @@ enum DecomposeType { ENoDecompose, ELU, ELUPivot, ECholesky, ELDLt };
  */
 enum class SymProp{NonSym, Sym, Herm};
 
+template<class TVar>
+class TPZVec;
+
 /** @brief Root matrix class (abstract). \ref matrix "Matrix"
  * Abstract class TPZBaseMatrix which is agnostic with respect to
  * the arithmetic type being used. */
@@ -108,6 +111,7 @@ public:
   /** @brief Zeroes the matrix */
   virtual int Zero() = 0;
 
+  virtual void GetRowIndices(const int64_t i, TPZVec<int64_t> &indices) const;
 
   /** @brief Gets symmetry property of current matrix
       @note This flag is set by the user. Use VerifySymmetry for actually checking values.*/

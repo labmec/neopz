@@ -41,6 +41,11 @@ public:
 	{
 		return new TPZJacobiPrecond(*this);
 	}
+  /** @brief Sets coloring of blocks (for GS-like iteration)*/
+  void SetColoring(const TPZVec<int64_t> &colors, const int numcolors);
+protected:
+  //! Vector storing coloring info
+  TPZVec<TPZVec<int64_t>> fColorVec;
 };
 
 #endif //TPZJACOBIPRECOND_H

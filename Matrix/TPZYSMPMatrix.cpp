@@ -43,6 +43,19 @@ void TPZFYsmpMatrix<TVar>::MultiplyDummy(TPZFYsmpMatrix<TVar> & B, TPZFYsmpMatri
     }
 }
 
+template<class TVar>
+void TPZFYsmpMatrix<TVar>::GetRowIndices(const int64_t i, TPZVec<int64_t> &indices) const{
+	if (i < 0 || i >= this->Rows()) {
+		DebugStop();
+	}
+
+	const auto first = fIA[i];
+	const auto last = fIA[i+1];
+	const auto nv = last - first;
+	indices.Resize(nv);
+	for(int i = 0; i < nv; i++){indices[i] = fJA[first+i];}
+}
+
 // ****************************************************************************
 //
 // Constructor
@@ -621,6 +634,27 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	
 }
 
+
+template<class TVar>
+TVar TPZFYsmpMatrix<TVar>::RowTimesVector(const int row, const TPZFMatrix<TVar> &v) const
+{
+#ifdef PZDEBUG
+  if(v.Rows() != this->Cols()){
+    DebugStop();
+  }
+  if(row < 0 || row >= this->Rows()){
+    DebugStop();
+  }
+#endif
+  TVar res = 0;
+  const auto first = fIA[row];
+	const auto last = fIA[row+1];
+  for(int ic = first; ic < last; ic++){
+    res += fA[ic] * v.GetVal(fJA[ic],0);
+  }
+  return res;
+}
+
 // ****************************************************************************
 //
 // Print the matrix
@@ -857,47 +891,21 @@ static int64_t  FindCol(int64_t *colf, int64_t *coll, int64_t col)
 	return -1;
 }
 
-template<class TVar>
-int TPZFYsmpMatrix<TVar>::GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
-								 const int64_t colSize, TPZFMatrix<TVar> & A ) const {
-	int64_t ir;
-	for(ir=0; ir<rowSize; ir++)
-	{
-		int64_t row = sRow+ir;
-		int64_t colfirst = fIA[row];
-		int64_t collast = fIA[row+1];
-		int64_t iacol = FindCol(&fJA[0]+colfirst,&fJA[0]+collast-1,sCol);
-		int64_t ic;
-		for(ic=0; ic<colSize; ic++) A(ir,ic) = fA[iacol+colfirst];
-	}
-	return 0;
-}
-
-
-template<class TVar>
-void TPZFYsmpMatrix<TVar>::GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar> &block) const
-{
-	std::map<int64_t,int64_t> indord;
-	int64_t i,size = indices.NElements();
-	for(i=0; i<size; i++)
-	{
-		indord[indices[i]] = i;
-	}
-	std::map<int64_t,int64_t>::iterator itset,jtset;
-	for(itset = indord.begin(); itset != indord.end(); itset++)
-	{
-		int64_t *jfirst = &fJA[0]+fIA[(*itset).first];
-		int64_t *jlast = &fJA[0]+fIA[(*itset).first+1]-1;
-		//    int row = (*itset).first;
-		for(jtset = indord.begin(); jtset != indord.end(); jtset++)
-		{
-			int64_t col = FindCol(jfirst,jlast,(*jtset).first);
-			int64_t dist = jfirst+col-&fJA[0];
-			block((*itset).second,(*jtset).second) = fA[dist];
-			jfirst += col+1;
-		}
-	}
-}
+// template<class TVar>
+// int TPZFYsmpMatrix<TVar>::GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
+// 								 const int64_t colSize, TPZFMatrix<TVar> & A ) const {
+// 	int64_t ir;
+// 	for(ir=0; ir<rowSize; ir++)
+// 	{
+// 		int64_t row = sRow+ir;
+// 		int64_t colfirst = fIA[row];
+// 		int64_t collast = fIA[row+1];
+// 		int64_t iacol = FindCol(&fJA[0]+colfirst,&fJA[0]+collast-1,sCol);
+// 		int64_t ic;
+// 		for(ic=0; ic<colSize; ic++) A(ir,ic) = fA[iacol+colfirst];
+// 	}
+// 	return 0;
+// }
 
 /*
  * Perform row update of the sparse matrix

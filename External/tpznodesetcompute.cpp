@@ -24,7 +24,7 @@
 #include <fstream>
 #include "pzlog.h"
 #include "TPZSimpleTimer.h"
-
+#include "pzvec_extras.h"
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.nodesetcompute");
 #endif
@@ -58,7 +58,6 @@ void TPZNodesetCompute::AnalyseGraph()
 	fIsIncluded.Resize(nnodes);
 	fIsIncluded.Fill(0);
   fLevel.Fill(0);
-  TPZVec<std::set<int64_t> > nodeset(nnodes);
   int64_t in;
   int count{0};//for displaying info
   const char* spinner = "-\\|/";
@@ -70,7 +69,7 @@ void TPZNodesetCompute::AnalyseGraph()
 		  std::cout <<'\r'<<"TPZNodesetCompute::AnalyseGraph "<<spinner[count++%spin_len];
 		  std::cout.flush();
 	  }
-	  AnalyseNode(in,nodeset);
+	  AnalyseNode(in);
   }
   if(count > 0){
     std::cout << '\r'<< "TPZNodesetCompute::AnalyseGraph done!"<<std::endl;
@@ -82,70 +81,83 @@ void TPZNodesetCompute::AnalyseGraph()
  * This method will analyse the set inclusion of the current node, calling the method
  * recursively if another node need to be analysed first
  */
-void TPZNodesetCompute::AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &nodeset)
+void TPZNodesetCompute::AnalyseNode(const int64_t node)
 {
   if(fSeqNumber[node] != -1) return;
-  if(! nodeset[node].size()) 
-  {
-    nodeset[node].insert(&fNodegraph[fNodegraphindex[node]],&fNodegraph[fNodegraphindex[node+1]]);
-    nodeset[node].insert(node);
-  }
+
   int minlevel = 0;
-  std::set<int64_t>::iterator it;
   TPZStack<int64_t> equalnodes;
-  for(it = nodeset[node].begin(); it != nodeset[node].end(); it++)
+
+  const auto mysz =  fNodegraphindex[node+1] - fNodegraphindex[node];
+  TPZManVector<int64_t,1000> mynodeset(mysz+1);
   {
-    int64_t othernode = *it;
+    const auto first = fNodegraphindex[node];
+    for(auto i = 0; i < mysz; i++){
+      mynodeset[i] = fNodegraph[first+i];
+    }
+    mynodeset[mysz] = node;
+    std::sort(mynodeset.begin(),mynodeset.end());
+  }
+  
+  for(auto othernode : mynodeset)
+  {
     if(othernode == node) continue;
     // build the data structure of the connected node
-    if(! nodeset[othernode].size())
+    const auto othersz =  fNodegraphindex[othernode+1] - fNodegraphindex[othernode];
+    TPZManVector<int64_t,1000> othernodeset(othersz+1);
     {
-      nodeset[othernode].insert(&fNodegraph[fNodegraphindex[othernode]],&fNodegraph[fNodegraphindex[othernode+1]]);
-      nodeset[othernode].insert(othernode);
+      const auto first = fNodegraphindex[othernode];
+      for(auto i = 0; i < othersz; i++){
+        othernodeset[i] = fNodegraph[first+i];
+      }
+      othernodeset[othersz] = othernode;
+      std::sort(othernodeset.begin(),othernodeset.end());
     }
-    // the other node is included in my connectivity
-    bool inc = includes(nodeset[node].begin(),nodeset[node].end(),nodeset[othernode].begin(),nodeset[othernode].end());
+    
+    
+    // connectivity of the other node is included in my connectivity
+    const bool inc = std::includes(mynodeset.begin(),mynodeset.end(), othernodeset.begin(), othernodeset.end());
     // the other node has a different connectivity
-    bool diff = nodeset[node] != nodeset[othernode];
-    if( inc && diff) 
+    const bool diff = !std::equal(mynodeset.begin(),mynodeset.end(), othernodeset.begin(), othernodeset.end());
+    if(inc && diff) 
     {
       // Analyse the connectivity graph of the other node
       // Its graph is smaller than mine
-		fIsIncluded[othernode] = 1;
-      AnalyseNode(othernode,nodeset);
-      minlevel = minlevel < fLevel[othernode]+1 ? fLevel[othernode]+1 : minlevel;
+      fIsIncluded[othernode] = 1;
+      AnalyseNode(othernode);
 #ifdef PZ_LOG
-		if(fLevel[othernode] >= 0)
-		{
-			std::stringstream sout;
-			sout << "The level of " << node << " is increased because of " << othernode << " ";
-			sout << "Level of othernode " << fLevel[othernode] << " Seqnumber othernode " << fSeqNumber[othernode];
-      if(logger.isDebugEnabled()){
-        LOGPZ_DEBUG(logger,sout.str());
+      if(fLevel[othernode] >= minlevel)
+      {
+        if(logger.isDebugEnabled()){
+          std::stringstream sout;
+          sout << "The level of " << node << " is increased because of " << othernode << " ";
+          sout << "Level of othernode " << fLevel[othernode] << " Seqnumber othernode " << fSeqNumber[othernode];
+          LOGPZ_DEBUG(logger,sout.str());
+        }
       }
-		}
 #endif
+      minlevel = minlevel < fLevel[othernode]+1 ? fLevel[othernode]+1 : minlevel;
     }
     else if(!diff)
     {
       // The graphs are equal. These nodes should be grouped
-		if(fIsIncluded[node]) 
-		{
-			fIsIncluded[othernode] = 1;
-		}
+      if(fIsIncluded[node]) 
+      {
+        fIsIncluded[othernode] = 1;
+      }
       equalnodes.Push(othernode);
     }
     // the other node has been analysed (and is probably not equal...)
     if(inc && diff && fSeqNumber[othernode] != -1)
     {
-		fIsIncluded[othernode] = 1;
+      fIsIncluded[othernode] = 1;
       minlevel = minlevel < fLevel[othernode]+1 ? fLevel[othernode]+1 : minlevel;
     } else if(!diff && fSeqNumber[othernode] != -1)
     {
       // the level should be at least the level of the other node
       minlevel = minlevel < fLevel[othernode] ? fLevel[othernode] : minlevel;
-		// should not happen because if the nodes are equal, they both have the same sequence number
-		DebugStop();
+      // should not happen because if the nodes are equal, they both have the same sequence number
+      DebugStop();
     }
   }
   // assign a sequence number to the node
@@ -153,9 +165,9 @@ void TPZNodesetCompute::AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &n
   fSeqNumber[node] = fMaxSeqNum;
 #ifdef PZ_LOG
 	{
-		std::stringstream sout;
-		sout << "Assigning Seq Number " << fMaxSeqNum << " and level " << minlevel << " to nodes " << node << " " << equalnodes;
-    if(logger.isDebugEnabled()){
+		if(logger.isDebugEnabled()){
+      std::stringstream sout;
+      sout << "Assigning Seq Number " << fMaxSeqNum << " and level " << minlevel << " to nodes " << node << " " << equalnodes;
       LOGPZ_DEBUG(logger,sout.str());
     }
 	}
@@ -165,26 +177,7 @@ void TPZNodesetCompute::AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &n
   fMaxLevel = fMaxLevel < minlevel ? minlevel : fMaxLevel;
   // assign the level of the node
   fLevel[node] = minlevel;
-	nodeset[node].erase(node);
-  
-  // memory clean up
-  for(it = nodeset[node].begin(); it != nodeset[node].end(); it++)
-  {
-    int64_t othernode = *it;
-	  int level = fLevel[othernode];
-	  int64_t seq = fSeqNumber[othernode];
-    if(seq != -1 && level <= minlevel) 
-	{
-		nodeset[othernode].clear();
-		if(othernode == node)
-		{
-			LOGPZ_ERROR(logger," othernode equal to node!!")
-			DebugStop();
-			break;
-		}
-	}
-  }
-  nodeset[node].clear();
+	
   // initialize the datastructure of the nodes which have the same connectivity
   int64_t neq = equalnodes.NElements();
   int64_t ieq;
@@ -192,8 +185,6 @@ void TPZNodesetCompute::AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &n
   {
     fSeqNumber[equalnodes[ieq]] = fMaxSeqNum;
     fLevel[equalnodes[ieq]] = minlevel;
-    // I think this is overkill : this nodeset should already be empty...
-    nodeset[equalnodes[ieq]].clear();
     // the number of nodes associated with this sequence number
     fSeqCard[fMaxSeqNum]++;
   }
@@ -291,7 +282,8 @@ void TPZNodesetCompute::BuildVertexGraph(TPZStack<int64_t> &blockgraph, TPZVec<i
 void TPZNodesetCompute::BuildNodeSet(int64_t node, std::set<int64_t> &nodeset)
 {
   nodeset.clear();
-  nodeset.insert(&fNodegraph[fNodegraphindex[node]],&fNodegraph[fNodegraphindex[node+1]]);
+  const auto lastpos = fNodegraphindex[node+1];
+  nodeset.insert(&fNodegraph[fNodegraphindex[node]],&fNodegraph[0]+lastpos);
   nodeset.insert(node);
 }
 
@@ -308,10 +300,10 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 #ifdef PZ_LOG
     if(logger.isDebugEnabled())
 	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " Original set of nodes ";
-		Print(sout,vertices,0);
 		if(logger.isDebugEnabled()){
+      std::stringstream sout;
+      sout << __PRETTY_FUNCTION__ << " Original set of nodes ";
+      Print(sout,vertices,0);
       LOGPZ_DEBUG(logger,sout.str());
     }
 	}
@@ -330,10 +322,10 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
     {
 #ifdef PZ_LOG
 		{
-			std::stringstream sout;
-			sout << "Difference after taking the intersection with " << *intit;
-			Print(sout,diffset," Difference set");
 			if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        sout << "Difference after taking the intersection with " << *intit;
+        Print(sout,diffset," Difference set");
         LOGPZ_DEBUG(logger,sout.str());
       }
 		}
@@ -354,9 +346,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
       set_intersection(unionset.begin(),unionset.end(),vertices.begin(),vertices.end(),inserter(diffset,diffset.begin()));
 #ifdef PZ_LOG
 		{
-			std::stringstream sout;
-			Print(sout,diffset,"First set to be reanalised");
 			if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        Print(sout,diffset,"First set to be reanalised");
         LOGPZ_DEBUG(logger,sout.str());
       }
 		}
@@ -364,9 +356,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
       set_intersection(vertices.begin(),vertices.end(),locset.begin(),locset.end(),inserter(interset,interset.begin()));
 #ifdef PZ_LOG
 		{
-			std::stringstream sout;
-			Print(sout,interset,"Second set to be reanalised");
 			if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        Print(sout,interset,"Second set to be reanalised");
         LOGPZ_DEBUG(logger,sout.str());
       }
 		}
@@ -393,10 +385,10 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
   {
 #ifdef PZ_LOG
 	  {
-		  std::stringstream sout;
-		  sout << "Discarding a vertex set as incomplete";
-		  Print(sout,vertices,0);
 		  if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        sout << "Discarding a vertex set as incomplete";
+        Print(sout,vertices,0);
         LOGPZ_DEBUG(logger,sout.str());
       }
 	  }
@@ -406,9 +398,9 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
   {
 #ifdef PZ_LOG
 	  {
-		  std::stringstream sout;
-		  Print(sout,elem,"Inserted element");
 		  if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        Print(sout,elem,"Inserted element");
         LOGPZ_DEBUG(logger,sout.str());
       }
 	  }
@@ -419,12 +411,16 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 
 void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStack<int64_t> &blockgraphindex)
 {
+  PZError<<__PRETTY_FUNCTION__
+         <<"\nThis function is currently broken! Use TPZCompMesh::BuildElementGraph for now\n"
+         <<"(or fix it, if you are feeling really good today)"<<std::endl;
+  DebugStop();
   TPZSimpleTimer timer("TPZNodesetCompute::BuildElementGraph");
 #ifdef PZ_LOG
 	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " entering build element graph\n";
 		if(logger.isDebugEnabled()){
+      std::stringstream sout;
+      sout << __PRETTY_FUNCTION__ << " entering build element graph\n";
       LOGPZ_DEBUG(logger,sout.str());
     }
 	}
@@ -441,23 +437,23 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStac
     BuildNodeSet(in,nodeset);
 #ifdef PZ_LOG
 	  {
-		  std::stringstream sout;
-		  sout << "Nodeset for " << in << ' ';
-		  Print(sout,nodeset,"Nodeset");
 		  if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        sout << "Nodeset for " << in << ' ';
+        Print(sout,nodeset,"Nodeset");
         LOGPZ_DEBUG(logger,sout.str());
       }
 	  }
 #endif
     SubtractLowerNodes(in,nodeset);
 #ifdef PZ_LOG
-		  {
-			  std::stringstream sout;
-			  Print(sout,nodeset,"LowerNodes result");
-			  if(logger.isDebugEnabled()){
-          LOGPZ_DEBUG(logger,sout.str());
-        }
-		  }
+    {
+      if(logger.isDebugEnabled()){
+        std::stringstream sout;
+        Print(sout,nodeset,"LowerNodes result");
+        LOGPZ_DEBUG(logger,sout.str());
+      }
+    }
 #endif
     AnalyseForElements(nodeset,elements);
     std::set< std::set<int64_t> >::iterator itel;
@@ -479,10 +475,10 @@ void TPZNodesetCompute::SubtractLowerNodes(int64_t node, std::set<int64_t> &node
   std::set<int64_t>::iterator it;
 #ifdef PZ_LOG
 	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__;
-		Print(sout,nodeset," Incoming nodeset");
 		if(logger.isDebugEnabled()){
+      std::stringstream sout;
+      sout << __PRETTY_FUNCTION__;
+      Print(sout,nodeset," Incoming nodeset");
       LOGPZ_DEBUG(logger,sout.str());
     }
 	}
@@ -497,9 +493,9 @@ void TPZNodesetCompute::SubtractLowerNodes(int64_t node, std::set<int64_t> &node
     inserter(lownode,lownode.begin()));
 #ifdef PZ_LOG
 	{
-		std::stringstream sout;
-		Print(sout,lownode," What is left after substracting the influence of lower numbered nodes ");
 		if(logger.isDebugEnabled()){
+      std::stringstream sout;
+      Print(sout,lownode," What is left after substracting the influence of lower numbered nodes ");
       LOGPZ_DEBUG(logger,sout.str());
     }
 	}
@@ -516,9 +512,9 @@ void TPZNodesetCompute::SubtractLowerNodes(int64_t node, std::set<int64_t> &node
     inserter(lownode,lownode.begin()));
 #ifdef PZ_LOG
 	{
-		std::stringstream sout;
-		Print(sout,lownode," Resulting lower nodeset");
 		if(logger.isDebugEnabled()){
+      std::stringstream sout;
+      Print(sout,lownode," Resulting lower nodeset");
       LOGPZ_DEBUG(logger,sout.str());
     }
 	}
@@ -544,10 +540,28 @@ void TPZNodesetCompute::Print(std::ostream &file, const TPZVec<int64_t> &graphin
   int64_t in;
   for(in =0; in<nnode; in++)
   {
-    file << "Node Number " << in;
+    file << "Node Number " << in << ':' ;
     int64_t first = graphindex[in];
     int64_t last = graphindex[in+1];
     int64_t jn;
+    for(jn = first; jn< last; jn++) file << " " << graph[jn];
+    file << std::endl;
+  }
+}
+
+void TPZNodesetCompute::Print(std::ostream &file,
+                              const TPZVec<int64_t> &graphindex,
+                              const TPZVec<int64_t> &graph,
+                              const TPZVec<int> &color)
+{
+  int64_t nnode = graphindex.NElements()-1;
+  int64_t in;
+  for(in =0; in<nnode; in++)
+  {
+    int64_t first = graphindex[in];
+    int64_t last = graphindex[in+1];
+    int64_t jn;
+    file << "Node Number " << in << "(size "<<last-first<<" color "<<color[in]<<" ) :" ;
     for(jn = first; jn< last; jn++) file << " " << graph[jn];
     file << std::endl;
   }
@@ -564,8 +578,9 @@ void TPZNodesetCompute::Print(std::ostream &file, const std::set<int64_t> &nodes
   /**
   * Expand the graph acording to the block structure
   */
-void TPZNodesetCompute::ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZBlock &block,
-    TPZVec<int64_t> &expgraph, TPZVec<int64_t> &expgraphindex)
+void TPZNodesetCompute::ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex,
+                                    TPZBlock &block, TPZVec<int64_t> &expgraph,
+                                    TPZVec<int64_t> &expgraphindex, TPZVec<int64_t> &removed_blocks)
 {
   TPZSimpleTimer timer("TPZNodesetCompute::ExpandGraph");
   int64_t expgraphsize = 0;
@@ -581,6 +596,7 @@ void TPZNodesetCompute::ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &gra
   int64_t numblocks = graphindex.NElements()-1;
   expgraphindex[0] = counter;
   int64_t blcounter = 0;
+  removed_blocks.Resize(0);
   for(ibl=0; ibl < numblocks; ibl++)
   {
     int64_t first = graphindex[ibl];
@@ -596,24 +612,33 @@ void TPZNodesetCompute::ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &gra
         expgraph[counter++] =  pos+b;
       }
     }
-    if(expgraphindex[blcounter] != counter) expgraphindex[++blcounter] = counter;
+    if(expgraphindex[blcounter] != counter) {
+      const auto first = expgraphindex[blcounter];
+      std::sort(&expgraph[0]+first,&expgraph[0]+counter);
+      expgraphindex[++blcounter] = counter;
+    }else{
+      removed_blocks.push_back(ibl);
+    }
   }
   expgraphindex.Resize(blcounter+1);
+  if (counter != expgraphsize){
+    DebugStop();
+  }
 }
 
-void TPZNodesetCompute::FilterGraph(TPZVec<int64_t> &ebg, TPZVec<int64_t> &ebgindex,
-                                    TPZEquationFilter &eqfilt, TPZVec<int64_t> &newgraph,
-                                    TPZVec<int64_t> &newgraphindex)
+void TPZNodesetCompute::FilterGraph(const TPZEquationFilter &eqfilt, TPZVec<int64_t> &graph,
+                                    TPZVec<int64_t> &graphindex, TPZVec<int64_t> &removed_blocks)
 {
-  
-  const auto nblocks = ebgindex.size()-1;
-  /*
-    we avoid resizing it for now, but fill with -1
-    for easier error checking
-  */
-  newgraph.Fill(-1);
-  newgraphindex.Fill(0);
 
+  /*
+    we need to make a copy of graphindex
+    since we update graphindex[ibl+1] when
+    analysing block ibl
+  */
+  const auto ebgindex = graphindex;
+  const auto nblocks = ebgindex.size()-1;
+  
+  removed_blocks.Resize(0);
   int64_t indexcount = 0, blcount = 0;
   for(auto ibl = 0; ibl < nblocks; ibl++){
         
@@ -626,33 +651,91 @@ void TPZNodesetCompute::FilterGraph(TPZVec<int64_t> &ebg, TPZVec<int64_t> &ebgin
     const int oneqbl = olast - ofirst;
     TPZVec<int64_t> orig(oneqbl), filt(oneqbl);
     for(auto i = 0; i < oneqbl; i++){
-      orig[i]=filt[i]=ebg[ofirst+i];
+      orig[i]=filt[i]=graph[ofirst+i];
     }
     eqfilt.Filter(orig,filt);
     const int nneqbl = filt.size();
     //check for empty block
     if(nneqbl){
-      newgraphindex[blcount] = indexcount;
+      graphindex[blcount] = indexcount;
       for(int ieq = 0; ieq < nneqbl; ieq++){
-        newgraph[indexcount+ieq] = filt[ieq];
+        graph[indexcount+ieq] = filt[ieq];
       }
       indexcount += nneqbl;
-      newgraphindex[blcount+1] = indexcount;
-      blcount++;
+      graphindex[++blcount] = indexcount;
+    }else{
+      AppendToVec(removed_blocks,ibl);
     }
   }
-  auto lasteq = newgraphindex[blcount];
-  newgraphindex.Resize(blcount+1);
-  newgraph.Resize(lasteq);
+  auto lasteq = graphindex[blcount];
+  graphindex.Resize(blcount+1);
+  graph.Resize(lasteq);
+}
+
+void TPZNodesetCompute::UpdateGraph(TPZVec<int64_t> &graph,
+                                    TPZVec<int64_t> &graphindex,
+                                    const TPZVec<int64_t> &removed_blocks_vec)
+{
+  //nothing to do here
+  if(removed_blocks_vec.size() == 0){return;}
+  /*
+    it is easier to copy all removed blocks to a set
+   */
+  std::set<int64_t> removed_blocks;
+  for(auto n : removed_blocks_vec){removed_blocks.insert(n);}
+
+  const auto nnodes_old = graphindex.size()-1;
+  const auto nr = removed_blocks.size();
+  const auto nnodes = nnodes_old - nr;
+  const auto gicp = graphindex;
+  
+  
+  graphindex.Resize(nnodes+1);
+  graphindex[0] = 0;
+
+  //in = new node numbering
+  int64_t in = 0;
+  for(auto in_old = 0; in_old < nnodes_old; in_old++){
+    //node size old
+    if(!removed_blocks.count(in_old)){
+      const auto first_old = gicp[in_old];
+      const auto last_old = gicp[in_old+1];
+      const auto ns = last_old - first_old;
+      const auto first = graphindex[in];
+      for(auto ii = 0; ii < ns; ii++){
+        const auto node = graph[first_old+ii];
+        const auto pos = first+ii;
+        graph[pos] = node;
+      }
+      graphindex[in+1] = graphindex[in]+ns;
+      //update new node numbering
+      in++;
+    }
+  }
+  
+  if(in != nnodes){
+    DebugStop();
+  }
+
+  graph.Resize(graphindex[nnodes]);
 }
 
   /**
   * Color the graph into mutually independent blocks
   */
-int TPZNodesetCompute::ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq,
-    TPZVec<int> &colors)
+int TPZNodesetCompute::ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex,
+                                  const int64_t nnodes, TPZVec<int> &colors,
+                                  bool strictcolor)
 {
-  TPZVec<int> eqcolor(neq);
+#ifdef PZDEBUG
+  if(nnodes != fNodegraphindex.size() - 1){
+    PZError<<__PRETTY_FUNCTION__
+           <<"\nInvalid data!"
+           <<std::endl;
+    DebugStop();
+  }
+#endif
+  TPZVec<int> nodecolor(nnodes);
   int color = 0;
   bool hasuncolored = true;
   int64_t nblocks = graphindex.NElements()-1;
@@ -661,28 +744,42 @@ int TPZNodesetCompute::ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graph
   while(hasuncolored)
   {
     hasuncolored = false;
-    eqcolor.Fill(-1);
+    nodecolor.Fill(-1);
     int64_t ibl;
+    //we iterate over the blocks of the input graph
     for(ibl=0; ibl<nblocks; ibl++)
     {
       if(colors[ibl] != -1) continue;
       int64_t first = graphindex[ibl];
       int64_t last = graphindex[ibl+1];
-      int64_t ieq;
-      for(ieq=first; ieq<last; ieq++)    
+      int64_t inode;
+      //we look over the nodes of the graph block
+      for(inode=first; inode<last; inode++)    
       {
-        if(eqcolor[graph[ieq]] == color) break;
+        auto node = graph[inode];
+        if(nodecolor[node] == color) break;
+        //now we check the connected nodes
+        if(strictcolor){
+          const int fneigh = fNodegraphindex[node];
+          const int lneigh = fNodegraphindex[node+1];
+          int in;
+          for(in = fneigh; in < lneigh; in++){
+            auto neigh = fNodegraph[in];
+            if(nodecolor[neigh] == color) break;
+          }
+          if(in != lneigh){break;}
+        }
       }
-      if(ieq != last)
+      if(inode != last)
       {
         hasuncolored = true;
       }
       else
       {
         colors[ibl] = color;
-        for(ieq=first; ieq<last; ieq++)    
+        for(inode=first; inode<last; inode++)    
         {
-          eqcolor[graph[ieq]] = color;
+          nodecolor[graph[inode]] = color;
         }
       }
     }

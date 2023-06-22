@@ -20,7 +20,10 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal() : TPZRegisterClassId(&TPZ
 {
 }
 template<class TVar>
-TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows) : TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId), fBlock(blockgraph), fBlockIndex(blockgraphindex)
+TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(const TPZVec<int64_t> &blockgraph,
+													 const TPZVec<int64_t> &blockgraphindex,
+													 const int64_t rows) :
+	TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId), fBlock(blockgraph), fBlockIndex(blockgraphindex)
 {
 	int64_t numbl = blockgraphindex.NElements()-1;
 	this->fBlockSize.Resize(numbl);
@@ -28,6 +31,7 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 	for(ibl=0; ibl<numbl; ibl++)
 	{
 		this->fBlockSize[ibl] = blockgraphindex[ibl+1]-blockgraphindex[ibl];
+		fGlobalBlockIndex[ibl] = ibl;
 	}
 	this->Initialize(this->fBlockSize);
 	//initialize from parent class will set fRow and fCol as the number of equations
@@ -36,24 +40,38 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 }
 
 template<class TVar>
-TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows, int color, TPZVec<int> &colors) : TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId)
+TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(const TPZVec<int64_t> &blockgraph,
+													 const TPZVec<int64_t> &blockgraphindex,
+													 const int64_t rows, const int color,
+													 const TPZVec<int> &colors) :
+	TPZRegisterClassId(&TPZSparseBlockDiagonal::ClassId)
 {
 #ifdef PZ_LOG
 	if(logger.isDebugEnabled()){
 		LOGPZ_DEBUG(logger, "Constructor of TPZSparseBlockDiagonal");
 	}
 #endif
-	int64_t numbl = blockgraphindex.NElements()-1;
+	const int64_t numbl = blockgraphindex.NElements()-1;
+#ifdef PZ_LOG
+	if(numbl != colors.size()){
+		PZError<<__PRETTY_FUNCTION__
+					 <<"\nInvalid input! number of blocks "<<numbl
+					 <<"\nSize of color vec: "<<colors.size()
+					 <<std::endl;
+		DebugStop();
+	}
+#endif
 	this->fBlockSize.Resize(numbl);
 	int64_t ibl,iblcount,graphsize = 0;
 	for(ibl=0, iblcount=0; ibl<numbl; ibl++)
 	{
 		if(colors[ibl]==color) 
 		{
-			this->fBlockSize[iblcount++] = blockgraphindex[ibl+1]-blockgraphindex[ibl];
-			graphsize += this->fBlockSize[iblcount-1];
+			this->fBlockSize[iblcount] = blockgraphindex[ibl+1]-blockgraphindex[ibl];
+			graphsize += this->fBlockSize[iblcount++];
 		}
 	}
+	this->fBlockSize.Resize(iblcount);
 	fBlock.Resize(graphsize);
 	fBlockIndex.Resize(iblcount+1);
 	fBlockIndex[0] = 0;
@@ -61,6 +79,7 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 	{
 		if(colors[ibl]==color) 
 		{
+			fGlobalBlockIndex[ibl] = iblcount;
 			int64_t first = blockgraphindex[ibl];
 			int64_t last = blockgraphindex[ibl+1];
 			int64_t firstcp = fBlockIndex[iblcount];
@@ -74,16 +93,24 @@ TPZSparseBlockDiagonal<TVar>::TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph
 			iblcount++;
 		}
 	}
-	this->fBlockSize.Resize(iblcount);
+#ifdef PZDEBUG
+	std::set<int64_t> eqset;
+	for(auto eq : fBlock){
+		eqset.insert(eq);
+	}
+
+	if(eqset.size() != fBlock.NElements()){
+		std::cout<<__PRETTY_FUNCTION__
+						 <<"\ncoloring is not correct!\n"
+						 <<"set of equations has  "<<eqset.size()<<" eqs\n"
+						 <<"fBlock has size "<<fBlock.NElements()
+						 <<std::endl;
+	}
+#endif
+	
 	this->Initialize(this->fBlockSize);
 	this->fRow = rows;
 	this->fCol = rows;
-}
-
-
-template<class TVar>
-TPZSparseBlockDiagonal<TVar>::~TPZSparseBlockDiagonal()
-{
 }
 
 template<class TVar>
@@ -193,12 +220,6 @@ void TPZSparseBlockDiagonal<TVar>::Print(const char* message, std::ostream& out,
 }
 
 template<class TVar>
-void TPZSparseBlockDiagonal<TVar>::AddBlock(int64_t i, TPZFMatrix<TVar>& block)
-{
-    TPZBlockDiagonal<TVar>::AddBlock(i, block);
-}
-
-template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::BuildFromMatrix(TPZMatrix<TVar>& matrix)
 {
 #ifdef PZ_LOG
@@ -237,7 +258,6 @@ void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZF
 #endif
 	TPZFNMatrix<1000,TVar> xsc(0,0),ysc(0,0,0.),zsc(0,0);
 	xsc.Resize(this->fBlock.NElements(),x.Cols());
-	z.Zero();
 	if(abs(beta) != 0.) ysc.Resize(fBlock.NElements(),y.Cols());
 	zsc.Resize(fBlock.NElements(),z.Cols());
 	Gather(x,xsc);
@@ -247,6 +267,7 @@ void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZF
 	TPZSparseBlockDiagonal<TVar> *other = (TPZSparseBlockDiagonal<TVar> *)this;
 	other->fRow = other->fCol = this->fBlock.NElements();
 	TPZBlockDiagonal<TVar>::MultAdd(xsc, ysc, zsc, alpha, beta, opt);
+	z.Zero();
 	ScatterAdd(zsc,z);
 	other->fRow = other->fCol = rows;
 }
@@ -332,11 +353,49 @@ void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > m
 			int64_t r;
 			pos = this->fBlockPos[b];
 			for(r=0; r<bsize; r++) indices[r] = fBlock[fBlockIndex[b]+r]; 
-			TPZFMatrix<TVar> block(bsize,bsize,&this->fStorage[pos],bsize*bsize);
+			auto &block = *(this->fBlockMats[b]);
 			mat->GetSub(indices,block);
 		}
 	}
 	
+}
+
+template<class TVar>
+int64_t TPZSparseBlockDiagonal<TVar>::HasBlock(const int64_t global) const
+{
+	if(fGlobalBlockIndex.count(global)){
+		return fGlobalBlockIndex.at(global);
+	}else{
+		return -1;
+	}
+}
+
+template<class TVar>
+void TPZSparseBlockDiagonal<TVar>::GetBlockList(TPZVec<int64_t> &loc_ind, TPZVec<int64_t> &glob_ind) const
+{
+	const int nbl = fGlobalBlockIndex.size();
+	loc_ind.Resize(nbl);
+	glob_ind.Resize(nbl);
+	int i = 0;
+	for(auto it : fGlobalBlockIndex){
+		glob_ind[i] = it.first;
+		loc_ind[i++] = it.second;
+	}
+}
+
+template<class TVar>
+void TPZSparseBlockDiagonal<TVar>::GetBlockEqs(const int64_t global_ibl, TPZVec<int64_t> &eqs) const{
+	const auto loc_ibl = HasBlock(global_ibl);
+	if (loc_ibl < 0){eqs.Resize(0);}
+	else{
+		const auto first = fBlockIndex[loc_ibl];
+		const auto last = fBlockIndex[loc_ibl+1];
+		const auto sz = last-first;
+		eqs.Resize(sz);
+		for(int i = first; i < last; i++){
+			eqs[i-first] = fBlock[i];
+		}
+	}
 }
 
 template <class TVar>

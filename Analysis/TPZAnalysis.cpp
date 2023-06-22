@@ -63,6 +63,7 @@
 #ifdef PZ_LOG
 static TPZLogger logger("pz.analysis");
 static TPZLogger loggerError("pz.analysis.error");
+static TPZLogger loggerPrecond("pz.analysis.precondgraph");
 #endif
 
 //@orlandini: does anyone know if boost renumbering still works?
@@ -188,6 +189,7 @@ void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, bool mustOptimizeBandwidth)
         }
         if(mustOptimizeBandwidth)
         {
+            TPZSimpleTimer bd("Optimize bandwidth",false);
             OptimizeBandwidth();
         }
         if(neq > 20000 && mustOptimizeBandwidth)
@@ -1039,12 +1041,14 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
 #endif
 		
 	}
-	if(preconditioner == Precond::Jacobi)
-	{
+  /*
+    First we treat two special cases in which the precond
+    is simpler to create
+   */
+	if(preconditioner == Precond::Jacobi){
     return new TPZJacobiPrecond<TVar>(mySolver->Matrix());
 	}
-  else if(preconditioner == Precond::BlockJacobi && overlap == true)
-  {
+  else if(preconditioner == Precond::BlockJacobi && overlap){
     TPZSimpleTimer build("BuildPreconditioner::Create");
     TPZBlockDiagonalStructMatrix<TVar> blstr(fCompMesh);
     //now we check if equation filter is active
@@ -1053,22 +1057,29 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
       auto active_eqs = fStructMatrix->EquationFilter().GetActiveEquations();
       blstr.EquationFilter().SetActiveEquations(active_eqs);
     }
+    TPZVec<int> blocksizes;
+    blstr.BlockSizes(blocksizes);
     TPZBlockDiagonal<TVar> *sp = new TPZBlockDiagonal<TVar>();
-    blstr.AssembleBlockDiagonal(*sp);
+    sp->Initialize(blocksizes);
     TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(sp);
     step->SetDirect(ELU);
     step->SetReferenceMatrix(mySolver->Matrix());
     return step;
   }
-	else
-	{
+  else{
 		TPZNodesetCompute nodeset;
 		TPZStack<int64_t> elementgraph,elementgraphindex;
 		int64_t nindep = fCompMesh->NIndependentConnects();
 		int64_t neq = fCompMesh->NEquations();
+    /*
+      note: this graph will have even elements with no active connects.
+      if such an element is at position i, then elemengraphindex[i] = elementgraphindex[i+1]
+     */
 		fCompMesh->ComputeElGraph(elementgraph,elementgraphindex);
 		int64_t nel = elementgraphindex.NElements()-1;
 		TPZRenumbering renum(nel,nindep);
+        //this call will generate, based on the element graph, a graph that illustrates
+        //connectivity between nodes
 		renum.ConvertGraph(elementgraph,elementgraphindex,nodeset.Nodegraph(),nodeset.Nodegraphindex());
 		nodeset.AnalyseGraph();
 
@@ -1081,23 +1092,29 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
 				nodeset.BuildNodeGraph(blockgraph,blockgraphindex);
 				break;
     case Precond::Element:
-				nodeset.BuildElementGraph(blockgraph,blockgraphindex);
+                blockgraph = elementgraph;
+                blockgraphindex = elementgraphindex;
+                //@orlandini: BuildElementGraph is broken. elgraph should temporarily suffice
+				//nodeset.BuildElementGraph(blockgraph,blockgraphindex);
 				break;
     case Precond::NodeCentered:
 				nodeset.BuildVertexGraph(blockgraph,blockgraphindex);
 				break;
 		}
-		TPZStack<int64_t> expblockgraph,expblockgraphindex;
-		
-		nodeset.ExpandGraph(blockgraph,blockgraphindex,fCompMesh->Block(),expblockgraph,expblockgraphindex);
 
-    if(this->StructMatrix()->EquationFilter().IsActive()){
-      //now we need to convert the graphs as we have a filtered system,
-      //therefore the eq nums have changed
-      TPZStack<int64_t> bgcp = expblockgraph,bgicp = expblockgraphindex;
-      TPZNodesetCompute::FilterGraph(bgcp,bgicp,this->StructMatrix()->EquationFilter(),
-                                     expblockgraph,expblockgraphindex);
-    }
+    
+		TPZStack<int64_t> expblockgraph,expblockgraphindex;
+		/*
+      blockgraph and blockgraph indexes refer to CONNECTS (or equation blocks)
+      now we expand them to equation numbers
+     */
+        {
+            TPZManVector<int64_t> removed_blocks;
+            nodeset.ExpandGraph(blockgraph,blockgraphindex,fCompMesh->Block(),
+                                expblockgraph,expblockgraphindex,removed_blocks);
+            TPZNodesetCompute::UpdateGraph(blockgraph,blockgraphindex,removed_blocks);
+        }
+    
 #ifdef PZ_LOG
 #ifdef PZDEBUG2
         if (logger.isDebugEnabled())
@@ -1122,22 +1139,30 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
         }
 #endif
 #endif
-    //update neq
     if(this->StructMatrix()->EquationFilter().IsActive()){
+      //now we need to convert the graphs as we have a filtered system,
+      //therefore the eq nums have changed
+      TPZManVector<int64_t> removed_blocks;
+      TPZNodesetCompute::FilterGraph(this->StructMatrix()->EquationFilter(),
+                                     expblockgraph,expblockgraphindex, removed_blocks);
+      TPZNodesetCompute::UpdateGraph(blockgraph, blockgraphindex, removed_blocks);
       neq = fStructMatrix->NReducedEquations();
     }
+      
+    std::cout<<"Building "<<expblockgraphindex.size()-1<<" blocks"<<std::endl;
     if(overlap)
 		{
-#ifdef PZDEBUG
-      if(preconditioner == Precond::BlockJacobi){
-        //why did the function reach here? with BlockJacobi + overlap
-        //there is no need to create all these graphs
-        DebugStop();
+#ifdef PZ_LOG
+      if(loggerPrecond.isDebugEnabled()){
+        std::stringstream sout;
+        sout << "Precond type :" <<Precond::Name(preconditioner)<<'\n';
+        sout << "Overlap : true\n";
+        TPZNodesetCompute::Print(sout,blockgraphindex,blockgraph);
+        LOGPZ_DEBUG(loggerPrecond,sout.str());
       }
 #endif
       TPZSimpleTimer build("BuildPreconditioner::Create");
-      /*this create a sparse block diagonal matrix structure! the values are not initialized yet*/
-			TPZSparseBlockDiagonal<TVar> *sp = new TPZSparseBlockDiagonal<TVar>(expblockgraph,expblockgraphindex,neq);
+      TPZSparseBlockDiagonal<TVar> *sp = new TPZSparseBlockDiagonal<TVar>(expblockgraph,expblockgraphindex,neq);
 			TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(sp);
 			step->SetDirect(ELU);
       //this will allow the TPZAnalysis::Solve to call UpdateFrom and insert values
@@ -1147,8 +1172,25 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
     else
 		{
       TPZSimpleTimer build("BuildPreconditioner::Create");
-			TPZVec<int> blockcolor;
-			int numcolors = nodeset.ColorGraph(expblockgraph,expblockgraphindex,neq,blockcolor);
+      TPZVec<int> blockcolor;
+      //we must use the number of INDEPENDENT connects!
+      int numcolors = nodeset.ColorGraph(blockgraph,blockgraphindex,nindep,blockcolor);
+#ifdef PZ_LOG
+      if(loggerPrecond.isDebugEnabled()){
+        std::stringstream sout;
+        sout << "Precond type :" <<Precond::Name(preconditioner)<<'\n';
+        sout << "Overlap : false\n";
+        sout << "Number of precond colors :"<<numcolors<<'\n';
+        TPZNodesetCompute::Print(sout,blockgraphindex,blockgraph,blockcolor);
+        LOGPZ_DEBUG(loggerPrecond,sout.str());
+      }else if(loggerPrecond.isInfoEnabled()){
+        std::stringstream sout;
+        sout << "Precond type :" <<Precond::Name(preconditioner)<<'\n';
+        sout << "Number of precond colors :"<<numcolors<<'\n';
+        LOGPZ_INFO(loggerPrecond,sout.str());
+      }
+#endif
+      std::cout<<"Blocks divided into "<<numcolors<<" colors"<<std::endl;
 			return BuildSequenceSolver<TVar>(expblockgraph,expblockgraphindex,neq,numcolors,blockcolor);
 		}
 	}
@@ -1157,7 +1199,10 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(Precond::Type preconditi
 
 /** @brief Build a sequence solver based on the block graph and its colors */
 template<class TVar>
-TPZMatrixSolver<TVar> *TPZAnalysis::BuildSequenceSolver(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq, int numcolors, TPZVec<int> &colors)
+TPZMatrixSolver<TVar> *TPZAnalysis::BuildSequenceSolver(const TPZVec<int64_t> &graph,
+                                                        const TPZVec<int64_t> &graphindex,
+                                                        const int64_t neq, const int numcolors,
+                                                        const TPZVec<int> &colors)
 {
 	TPZVec<TPZMatrix<TVar> *> blmat(numcolors);
 	TPZVec<TPZStepSolver<TVar> *> steps(numcolors);
@@ -1174,13 +1219,23 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildSequenceSolver(TPZVec<int64_t> &graph, 
 	if(numcolors == 1) return steps[0];
 	TPZSequenceSolver<TVar> *result = new TPZSequenceSolver<TVar>;
   result->SetMatrix(mySolver->Matrix());
-	for(c=numcolors-1; c>=0; c--)
+  for(c=0; c<numcolors; c++)
 	{
 		result->AppendSolver(*steps[c]);
 	}
-	for(c=1; c<numcolors; c++)
+  for(c=numcolors-2; c>=0; c--)
 	{
-		steps[c]->SetReferenceMatrix(0);
+    /*
+      append solver will copy the solver
+      steps[c] has already been added to the
+      sequence solver
+      there is no need to update the matrix
+      twice
+
+      setting SetReferenceMatrix to nullptr
+      will prevent this duplicate update
+     */
+		steps[c]->SetReferenceMatrix(nullptr);
 		result->AppendSolver(*steps[c]);
 	}
 	for(c=0; c<numcolors; c++)

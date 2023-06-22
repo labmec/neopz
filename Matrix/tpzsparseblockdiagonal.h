@@ -20,12 +20,12 @@ class TPZSparseBlockDiagonal : public TPZBlockDiagonal<TVar>
 {
 public:
     TPZSparseBlockDiagonal();
-    TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows);
+    TPZSparseBlockDiagonal(const TPZVec<int64_t> &blockgraph, const TPZVec<int64_t> &blockgraphindex, const int64_t rows);
     
-    TPZSparseBlockDiagonal(TPZVec<int64_t> &blockgraph, TPZVec<int64_t> &blockgraphindex,int64_t rows, int color, TPZVec<int> &colors);
-	
-    ~TPZSparseBlockDiagonal();
-	
+    TPZSparseBlockDiagonal(const TPZVec<int64_t> &blockgraph, const TPZVec<int64_t> &blockgraphindex,
+                           const int64_t rows, const int color, const TPZVec<int> &colors);
+
+    CLONEDEF(TPZSparseBlockDiagonal)
     const TVar Get(const int64_t row, const int64_t col) const override;
     const TVar GetVal(const int64_t row, const int64_t col) const override;
     int Put(const int64_t row, const int64_t col, const TVar& value) override;
@@ -36,7 +36,6 @@ public:
     virtual TVar &s(const int64_t row, const int64_t col) override;
     
     virtual void Print(const char* message, std::ostream& out=std::cout, const MatrixOutputFormat=EFormatted) const override;
-    void AddBlock(int64_t i, TPZFMatrix<TVar>& block);
     void BuildFromMatrix(TPZMatrix<TVar>& matrix);
     void GetBlock(int64_t i, TPZFMatrix<TVar>& block);
     void MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt) const override;
@@ -44,7 +43,15 @@ public:
 	
 	/** @brief Updates the values of the matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
-	
+
+    /** @brief Checks if current matrix has a given block. Returns -1 if it does not
+        @note This function only makes sense for colored matrices*/
+    int64_t HasBlock(const int64_t global) const;
+
+    /** @brief Gets local and global indices of blocks present in this matrix*/
+    void GetBlockList(TPZVec<int64_t> &loc, TPZVec<int64_t> &glob) const;
+    /** @brief For a given global id, returns equation numbers*/
+    void GetBlockEqs(const int64_t global_ibl, TPZVec<int64_t> &eqs) const;
     public:
 int ClassId() const override;
 
@@ -53,6 +60,9 @@ protected:
     TPZVec<int64_t> fBlock;
 	/** @brief Index to first element of each block in fBlock */
     TPZVec<int64_t> fBlockIndex;
+    /** @brief keys are the global indices of blocks and values are the local indices, if present
+     @note This only really makes sense for colored matrices*/
+    std::map<int64_t,int64_t> fGlobalBlockIndex;
 	
     void ScatterAdd(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const;
     void Gather(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const;

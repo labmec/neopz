@@ -177,6 +177,12 @@ public:
      * @param block Contains returned block
 	 */
 	void GetBlock(int64_t i, TPZFMatrix<TVar> &block);
+
+    /**
+     * @brief Gets a pointer to the actual block from current matrix
+     * @param i Returns teh ith block
+	 */
+	TPZAutoPointer<TPZFMatrix<TVar>> GetBlockPtr(int64_t i);
 	
 	/**
      @brief Builds a block from matrix

@@ -76,15 +76,17 @@ public:
 	
 	/**
 	 * @brief Will convert an element graph defined by elgraph and elgraphindex
-	 * into a node graph defined by nodegraph and nodegraphindex
+	 * into a node (connect) graph defined by nodegraph and nodegraphindex providing node connectivity
 	 */
-	void ConvertGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZManVector<int64_t> &nodegraph, TPZManVector<int64_t> &nodegraphindex);
+	void ConvertGraph(const TPZVec<int64_t> &elgraph, const TPZVec<int64_t> &elgraphindex,
+										TPZManVector<int64_t> &nodegraph, TPZManVector<int64_t> &nodegraphindex);
 	
 	/** @brief Convert a traditional elgraph to an element to element graph */
 	void ConvertToElementoToElementGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZVec<int64_t> &eltotelgraph, TPZVec<int> &eltoelweight, TPZVec<int64_t> &eltoelgraphindex);
 
 	/** @brief Stores the graph of nodes to elements */
-	void NodeToElGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZVec<int64_t> &nodetoelgraph, TPZVec<int64_t> &nodetoelgraphindex);
+	void NodeToElGraph(const TPZVec<int64_t> &elgraph, const TPZVec<int64_t> &elgraphindex,
+										 TPZVec<int64_t> &nodetoelgraph, TPZVec<int64_t> &nodetoelgraphindex);
 	
 	/**
 	 * @brief Will assign a color to the nodes in the graph such that no two connected nodes have the same color

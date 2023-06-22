@@ -7,13 +7,14 @@
 #include "pzvec.h"
 #include "pzerror.h"
 #include "pzstack.h"
+#include "pzvec_extras.h"
 #include <map>
 #include <set>
 #include <algorithm>
 #include "pzlog.h"
 #include <algorithm>
 
-#include "TPZTimer.h"
+#include "TPZSimpleTimer.h"
 #include "Hash/TPZHash.h"
 #include "TPZStream.h"
 #include "pzcmesh.h"
@@ -27,24 +28,34 @@ static TPZLogger logger("pz.renumbering");
 
 using namespace std;
 
-void TPZRenumbering::NodeToElGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZVec<int64_t> &nodtoelgraph, TPZVec<int64_t> &nodtoelgraphindex) {
-	
+void TPZRenumbering::NodeToElGraph(const TPZVec<int64_t> &elgraph, const TPZVec<int64_t> &elgraphindex,
+                                   TPZVec<int64_t> &nodtoelgraph, TPZVec<int64_t> &nodtoelgraphindex) {
+    
+    /*
+      nelcon: number of elements connected to a given node
+     */
 	TPZVec<int64_t> nelcon(fNNodes+1,0);
   	int64_t nod,last = elgraphindex[fNElements];
   	for(nod = 0; nod<last; nod++) {
 		nelcon[elgraph[nod]]++;
   	}
 	nodtoelgraphindex = nelcon;
-	
+	//shifts one position to the right
   	for(nod=fNNodes; nod>0; nod--) nodtoelgraphindex[nod] = nodtoelgraphindex[nod-1];
   	nodtoelgraphindex[0] = 0;
+    //accumulate values
   	for(nod=1;nod<=fNNodes;nod++) nodtoelgraphindex[nod] += nodtoelgraphindex[nod-1];
 	
 	nodtoelgraph.Resize(nodtoelgraphindex[fNNodes]);
 	nodtoelgraph.Fill (-1);
 	
+
+    //this structure has the first (free) position for a given node on nodetoelgraph
+    //initially, it coincides with nodetoelgraphindex (but we will ignore last position)
     TPZVec<int64_t> nodtoelgraphposition(nodtoelgraphindex);
-    
+    nodtoelgraphposition.Resize(fNNodes);
+
+    //now we just need to figure out which elements are connected to each node
 	int64_t el;
   	for(el=0; el<fNElements; el++) {
 		int64_t firstnode = elgraphindex[el];
@@ -71,41 +82,69 @@ void TPZRenumbering::NodeToElGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &el
             */
 		}
   	}
+#ifdef PZDEBUG
+    for(int in = 0; in < fNNodes; in++){
+        if(nodtoelgraphposition[in] != nodtoelgraphindex[in+1]){
+            DebugStop();
+        }
+    }
+#endif
 }
 
-void TPZRenumbering::ConvertGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZManVector<int64_t> &nodegraph, TPZManVector<int64_t> &nodegraphindex) {
-    TPZTimer convert("Converting graph ");
-    convert.start();
+void TPZRenumbering::ConvertGraph(const TPZVec<int64_t> &elgraph, const TPZVec<int64_t> &elgraphindex,
+                                  TPZManVector<int64_t> &nodegraph, TPZManVector<int64_t> &nodegraphindex) {
+    TPZSimpleTimer convert("TPZRenumbering::ConvertGraph");
     int64_t nod, el;
     TPZVec<int64_t> nodtoelgraphindex;
     TPZVec<int64_t> nodtoelgraph;
 
+    //now we have a graph that states, for each node, which elements are connected to it
     NodeToElGraph(elgraph, elgraphindex, nodtoelgraph, nodtoelgraphindex);
 
     nodegraphindex.Resize(fNNodes + 1);
     nodegraphindex.Fill(0);
 
-    int64_t nodegraphincrement = 100000;
+    /** MEMORY ALLOC
+        a small test (80k elements) didn't show a lot of difference,
+        since now TPZVec will always allocate memory with a given margin.
+        therefore we are allocating the correct size
+
+        
+    constexpr int64_t nodegraphincrement = 100000;
     nodegraph.Resize(nodegraphincrement);
+    */
     int64_t nextfreeindex = 0;
     for (nod = 0; nod < fNNodes; nod++) {
         int64_t firstel = nodtoelgraphindex[nod];
         int64_t lastel = nodtoelgraphindex[nod + 1];
-        std::set<int64_t> nodecon;
+        TPZManVector<int64_t,1000> nodecon;
         for (el = firstel; el < lastel; el++) {
             int64_t gel = nodtoelgraph[el];
             int64_t firstelnode = elgraphindex[gel];
             int64_t lastelnode = elgraphindex[gel + 1];
-            nodecon.insert(&elgraph[firstelnode], &elgraph[(lastelnode - 1)] + 1);
+            for(auto in = firstelnode; in < lastelnode; in++){
+                nodecon.push_back(elgraph[in]);
+            }
         }
-        nodecon.erase(nod);
+        {
+            //we erase ourselves from the node graph
+            auto new_end = std::remove(nodecon.begin(),nodecon.end(),nod);
+            auto new_size = new_end - nodecon.begin();
+            nodecon.Resize(new_size);
+            RemoveDuplicates(nodecon);
+            std::sort(nodecon.begin(),nodecon.end());
+        }
+        /** MEMORY ALLOC
         while (nextfreeindex + nodecon.size() >= nodegraph.size()) nodegraph.Resize(nodegraph.NElements() + nodegraphincrement,0);
-        std::set<int64_t>::iterator it;
-        for (it = nodecon.begin(); it != nodecon.end(); it++) nodegraph[nextfreeindex++] = *it;
+        */
+        nodegraph.Resize(nodegraph.size()+nodecon.size());
+        
+        for (auto it = nodecon.begin(); it != nodecon.end(); it++) nodegraph[nextfreeindex++] = *it;
         
         nodegraphindex[nod + 1] = nextfreeindex;
     }
-    convert.stop();
+    //we want to avoid a zero sized nodegraph. nodegraphindex will have all entries 0
+    if(nodegraph.size() == 0){nodegraph.Resize(1,-1);}
     //    std::cout << convert.processName().c_str()  << convert << std::endl;
 }
 
