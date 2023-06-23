@@ -249,10 +249,10 @@ TPZAnisoWgma::ContributeK(
     ek.AddContribution(firsth1,firsthcurl,tmp,true, curl_phi, false,weight);
     //Gtz term
     er.Multiply(phi_hcurl,tmp);
-    ek.AddContribution(firsthcurl, firsth1, tmp, true, phi_h1, false,k0*k0*weight);
+    ek.AddContribution(firsthcurl, firsth1, tmp, true, phi_h1, false,-k0*k0*weight);
     //Gzt term
     er.Multiply(phi_h1,tmp);
-    ek.AddContribution(firsth1, firsthcurl, tmp, true, phi_hcurl, false,k0*k0*weight);
+    ek.AddContribution(firsth1, firsthcurl, tmp, true, phi_hcurl, false,-k0*k0*weight);
 }
 
 void
@@ -287,11 +287,8 @@ TPZAnisoWgma::ContributeL(
     }
 
     
-    //making complex version of phi
-    TPZFNMatrix<3000,CSTATE> phi_h1(3,nh1,0.);
     TPZFNMatrix<3000,CSTATE> rot_grad_phi(3,nh1,0.);
     for(int i = 0; i < nh1; i++){
-        phi_h1.Put(2,i,phi_h1_real.Get(i,0));
         rot_grad_phi.Put(0,i,grad_phi_real.Get(1,i));
         rot_grad_phi.Put(1,i,-1.*grad_phi_real.Get(0,i));
     }
@@ -327,43 +324,18 @@ TPZAnisoWgma::ContributeM(
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
     const TPZFMatrix<CSTATE> &er, const TPZFMatrix<CSTATE> &ur)
 {
-     const auto &phi_hcurl_real = datavec[fHCurlMeshIndex].phi;
+    const auto &phi_hcurl_real = datavec[fHCurlMeshIndex].phi;
     const auto &curl_phi_real = datavec[fHCurlMeshIndex].curlphi;
     const int nhcurl  = phi_hcurl_real.Rows();
     //making complex version of phi
-    TPZFNMatrix<3000,CSTATE> phi_hcurl(3,nhcurl,0.);
     TPZFNMatrix<3000,CSTATE> rot_phi_hcurl(3,nhcurl,0.);
-    TPZFNMatrix<3000,CSTATE> curl_phi(3,nhcurl,0.);
     for(int i = 0; i < nhcurl; i++){
-        for(int x = 0; x < 2; x++){
-            phi_hcurl.Put(x,i,phi_hcurl_real.Get(i,x));
-        }
-        rot_phi_hcurl.Put(0,i,phi_hcurl.Get(1,i));
-        rot_phi_hcurl.Put(1,i,-1.*phi_hcurl.Get(0,i));
-        curl_phi.Put(2,i,curl_phi_real.Get(0,i));
+        rot_phi_hcurl.Put(0,i,phi_hcurl_real.Get(i,1));
+        rot_phi_hcurl.Put(1,i,-1.*phi_hcurl_real.Get(i,0));
     }
 
-    const auto &phi_h1_real = datavec[fH1MeshIndex].phi;
-    const int nh1  = phi_h1_real.Rows();
-    TPZFNMatrix<3000,REAL> grad_phi_real(3, nh1, 0.);
-    {
-        const TPZFMatrix<REAL> &gradPhiH1axes = datavec[fH1MeshIndex].dphix;
-        TPZAxesTools<REAL>::Axes2XYZ(gradPhiH1axes, grad_phi_real, datavec[fH1MeshIndex].axes);
-    }
-
-    
-    //making complex version of phi
-    TPZFNMatrix<3000,CSTATE> phi_h1(3,nh1,0.);
-    TPZFNMatrix<3000,CSTATE> rot_grad_phi(3,nh1,0.);
-    for(int i = 0; i < nh1; i++){
-        phi_h1.Put(2,i,phi_h1_real.Get(i,0));
-        rot_grad_phi.Put(0,i,grad_phi_real.Get(1,i));
-        rot_grad_phi.Put(1,i,-1.*grad_phi_real.Get(0,i));
-    }
-    
-    
-    const REAL k0 = fScaleFactor * 2*M_PI/fLambda;
     /*****************ACTUAL COMPUTATION OF CONTRIBUTION****************/
+    const int nh1  = datavec[fH1MeshIndex].phi.Rows();
     const int firsthcurl = fHCurlMeshIndex * nh1;
     const int firsth1 = fH1MeshIndex * nhcurl;
     TPZFNMatrix<3000,CSTATE> tmp;
