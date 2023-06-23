@@ -198,7 +198,7 @@ void TestH1ApproxSpaceCreator(H1Family h1Fam, HybridizationType hybtype ,Problem
 
     std::cout <<"porder:\t" << pOrder <<  "\tplusOrder:\t" << plusOrder << "\tIsRigidBodySpaces:\t"<< IsRigidBodySpaces << "\tshouldCondense:\t" << shouldCondense <<"\n";
     std::cout << "Number of equations = " << cmesh->NEquations() << std::endl;
-    TPZLinearAnalysis an(cmesh,true);
+    TPZLinearAnalysis an(cmesh);
     an.Run();
 
     CheckIntegralOverDomain(cmesh,probType,h1Fam);

@@ -20,7 +20,7 @@
 #include "TPZLagrangeMultiplier.h"         // for TPZLagrangeMultiplier
 #include "TPZSloanRenumbering.h"           // for TPZSloanRenumbering
 #include "TPZCutHillMcKee.h"
-#ifdef USING_METIS
+#ifdef PZ_USING_METIS
 #include "pzmetis.h"
 #endif
 #include "pzadmchunk.h"                    // for TPZAdmChunkVector
@@ -67,6 +67,7 @@ static TPZLogger loggerPrecond("pz.analysis.precondgraph");
 #endif
 
 //@orlandini: does anyone know if boost renumbering still works?
+//@shauer: I don't think so. This #define structure is also now deprecated. I vote for deleting
 #undef USE_BOOST_RENUMBERING
 #if defined(USING_BOOST) && defined(USE_BOOST_RENUMBERING)
 #include "TPZBoostGraph.h"
@@ -81,13 +82,12 @@ static TPZLogger loggerPrecond("pz.analysis.precondgraph");
  * @ingroup analysis
  */
 
-#ifdef USING_METIS
-#define RENUMBER TPZMetis()
-#else
-#define RENUMBER TPZSloanRenumbering()
-#endif
+//#ifdef PZ_USING_METIS
+//#define RENUMBER TPZMetis()
+//#else
+//#define RENUMBER TPZSloanRenumbering()
+//#endif
 //#define RENUMBER TPZCutHillMcKee() //TPZCutHillMcKee usually performs worse than metis and sloan. Use carefully
-
 
 #endif
 
@@ -133,31 +133,56 @@ void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix)
 // #endif
 }
 TPZAnalysis::TPZAnalysis() :
-    TPZRegisterClassId(&TPZAnalysis::ClassId),
-    fRenumber(new RENUMBER){
+    TPZRegisterClassId(&TPZAnalysis::ClassId){
 }
 
-
-TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth, std::ostream &out) :
+TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, const RenumType& renumtype, std::ostream &out) :
 TPZRegisterClassId(&TPZAnalysis::ClassId),
 fSolType(mesh->GetSolType()),
 // fRhs(fSolType == EComplex ? true : false),
-fSolution(fSolType == EComplex ? true : false),
-fRenumber(new RENUMBER)
+fSolution(fSolType == EComplex ? true : false)
 {
   //we must not call virtual methods in constructor
+  bool mustOptimizeBandwidth = false;
+  if (renumtype != RenumType::ENone){
+    CreateRenumberObject(renumtype);
+    mustOptimizeBandwidth = true;
+  }
   this->SetCompMeshInit(mesh, mustOptimizeBandwidth);
 }
 
-TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
+TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype, std::ostream &out) :
 TPZRegisterClassId(&TPZAnalysis::ClassId),
 fSolType(mesh->GetSolType()),
 // fRhs(fSolType == EComplex ? true : false),
-fSolution(fSolType == EComplex ? true : false),
-fRenumber(new RENUMBER)
+fSolution(fSolType == EComplex ? true : false)
 {
   //we must not call virtual methods in constructor
+  bool mustOptimizeBandwidth = false;
+  if (renumtype != RenumType::ENone){
+    CreateRenumberObject(renumtype);
+    mustOptimizeBandwidth = true;
+  }
 	this->SetCompMeshInit(mesh.operator ->(), mustOptimizeBandwidth);
+}
+
+void TPZAnalysis::CreateRenumberObject(const RenumType& renumtype) {
+  switch (renumtype) {
+    case RenumType::ESloan:
+      fRenumber = new TPZSloanRenumbering;
+      break;
+    case RenumType::ECutHillMcKee:
+      fRenumber = new TPZCutHillMcKee;
+      break;
+#ifdef PZ_USING_METIS
+    case RenumType::EMetis:
+      fRenumber = new TPZMetis;
+      break;
+#endif
+    default:
+      DebugStop(); // Should not arrive here
+      break;
+  }
 }
 
 void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, bool mustOptimizeBandwidth)

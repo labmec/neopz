@@ -45,6 +45,8 @@ namespace Precond{
   }
 }
 
+enum class RenumType {ENone, ESloan, ECutHillMcKee, EMetis};
+
 /**
  * @ingroup analysis
  * @brief Abstract class defining the interface for performing a Finite Element Analysis.*/
@@ -104,12 +106,21 @@ protected:
 	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();
 
-	/** @brief Create an TPZAnalysis object from one mesh pointer */
-	TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
+	
+#ifdef PZ_USING_METIS
+  /** @brief Create an TPZAnalysis object from one mesh pointer */
+	TPZAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::EMetis, std::ostream &out = std::cout);
+  /** @brief Create an TPZAnalysis object from one mesh auto pointer object */
+  TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::EMetis, std::ostream &out = std::cout);
+#else
+  /** @brief Create an TPZAnalysis object from one mesh pointer */
+  TPZAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::ESloan, std::ostream &out = std::cout);
+  /** @brief Create an TPZAnalysis object from one mesh auto pointer object */
+  TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::ESloan, std::ostream &out = std::cout);
+#endif
     	
-	/** @brief Create an TPZAnalysis object from one mesh auto pointer object */
-	TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
-
+  void CreateRenumberObject(const RenumType& renumtype);
+    
   /** @} */
   /** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
