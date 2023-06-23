@@ -191,7 +191,8 @@ namespace structTest{
   {
 
     TPZAutoPointer<TPZMatrix<STATE>> mat = [&cMesh,nThreads](){
-      TPZLinearAnalysis an(cMesh, RenumType::ENone);
+      constexpr bool optimizeBandwidth{false};
+      TPZLinearAnalysis an(cMesh, optimizeBandwidth);
       TSTMAT matskl(cMesh);
       matskl.SetNumThreads(nThreads);
       an.SetStructuralMatrix(matskl);
@@ -223,7 +224,8 @@ namespace structTest{
   {
 
     auto GetMatrix = [cMesh](const int nThreads){
-      TPZLinearAnalysis an(cMesh, RenumType::ENone);
+      constexpr bool optimizeBandwidth{false};
+      TPZLinearAnalysis an(cMesh, optimizeBandwidth);
       TSTMAT matskl(cMesh);
       matskl.SetNumThreads(nThreads);
       an.SetStructuralMatrix(matskl);
@@ -255,7 +257,8 @@ namespace structTest{
   {
 
     auto GetMatrix = [cMesh](const int nThreads){
-      TPZLinearAnalysis an(cMesh, RenumType::ENone);
+      constexpr bool optimizeBandwidth{false};
+      TPZLinearAnalysis an(cMesh, optimizeBandwidth);
       const auto neqOld = cMesh->NEquations();
       const int neq = neqOld/2;
       TPZVec<int64_t> activeEqs(neq);
@@ -293,7 +296,8 @@ namespace structTest{
   {
     
     auto GetMatrix = [cMesh](const int nThreads, bool first){
-      TPZLinearAnalysis an(cMesh, RenumType::ENone);
+      constexpr bool optimizeBandwidth{false};
+      TPZLinearAnalysis an(cMesh, optimizeBandwidth);
       TPZAutoPointer<TPZStructMatrix>strmat;
       if(first){
         strmat = new TPZSkylineStructMatrix<STATE, TSTMAT1>(cMesh);

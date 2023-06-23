@@ -480,9 +480,9 @@ void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol) {
 
     std::cout << "\n=====> Number of equations = " << cmesh->NEquations() << std::endl << std::endl;
 #ifdef USE_MAIN
-    TPZLinearAnalysis an(cmesh,RenumType::ENone);
+    TPZLinearAnalysis an(cmesh,false);
 #else
-    TPZLinearAnalysis an(cmesh);
+    TPZLinearAnalysis an(cmesh,true);
 #endif
 
     an.SetStructuralMatrix(matsp);

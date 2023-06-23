@@ -175,7 +175,7 @@ void SBFemTest::SBFemElasticity3D(const int nThreads){
   TPZAutoPointer<TPZGeoMesh> gMesh = CreateGMesh(nDiv, dim);
   auto *cmesh = CreateCMesh(gMesh, false);
 
-  TPZLinearAnalysis an(cmesh);
+  TPZLinearAnalysis an(cmesh, true);
   an.SetExact(ElastExact.ExactSolution());
 
   TPZManVector<REAL> errorVecPar;
@@ -207,7 +207,7 @@ void SBFemTest::SBFemBubblesDarcy(const int nThreads) {
   TPZAutoPointer<TPZGeoMesh> gMesh = CreateGMesh(nDiv, dim);
   auto *cmesh = CreateCMesh(gMesh, true);
 
-  TPZLinearAnalysis an(cmesh);
+  TPZLinearAnalysis an(cmesh, true);
   an.SetExact(SBFemTest::LaplaceExact.ExactSolution());
 
   auto start = std::chrono::system_clock::now();

@@ -648,7 +648,7 @@ void TestKernelHDiv(const int &xdiv, const int &pOrder, MShapeType shapeType){
     TPZVTKGeoMesh::PrintCMeshVTK(cmesh, vtkfile, true);
 #endif
     // Solve the problem
-    TPZLinearAnalysis an(cmesh,RenumType::ENone);
+    TPZLinearAnalysis an(cmesh,false);
 
     TPZSkylineStructMatrix<REAL> matskl(cmesh);
 

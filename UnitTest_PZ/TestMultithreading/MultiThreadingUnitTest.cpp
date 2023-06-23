@@ -107,8 +107,9 @@ void threadTest::ComparePostProcError(const int nThreads) {
   int matIdBC;
   auto *gMesh = CreateGMesh(nDiv, matIdVol, matIdBC);
   auto *cMesh = CreateCMesh(gMesh, pOrder, matIdVol, matIdBC);
-  auto GetErrorVec = [cMesh](const int nThreads) {
-    TPZLinearAnalysis an(cMesh, RenumType::ENone);
+  constexpr bool optimizeBandwidth{false};
+  auto GetErrorVec = [cMesh, optimizeBandwidth](const int nThreads) {
+    TPZLinearAnalysis an(cMesh, optimizeBandwidth);
     TSTMAT matskl(cMesh);
     matskl.SetNumThreads(nThreads);
     an.SetStructuralMatrix(matskl);

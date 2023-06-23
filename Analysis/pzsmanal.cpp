@@ -20,7 +20,7 @@ using namespace std;
 // Construction/Destruction
 
 TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZRegisterClassId(&TPZSubMeshAnalysis::ClassId),
-TPZLinearAnalysis(mesh), fReducableStiff(0){
+TPZLinearAnalysis(mesh,true), fReducableStiff(0){
 	fMesh = mesh;
     if (fMesh)
     {

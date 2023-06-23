@@ -1570,7 +1570,7 @@ void RunBilinear(MElementType eltype, HDivFamily hdivfam)
 //    }
     
     // cmesh->SaddlePermute();
-    TPZLinearAnalysis an(cmesh,RenumType::ENone);
+    TPZLinearAnalysis an(cmesh,false);
     // para resolver o sistema
     // escolhe entre isso
 //    TPZFStructMatrix str(cmesh);

@@ -5,7 +5,7 @@
 
 #include "pzmetis.h"
 
-#ifdef PZ_USING_METIS
+#ifdef USING_METIS
 #include <math.h>
 extern "C" {
 #include "metis.h"
@@ -23,10 +23,10 @@ using namespace std;
 
 TPZMetis::TPZMetis() : TPZRenumbering()
 {
-#ifndef PZ_USING_METIS
+#ifndef USING_METIS
     PZError<<"TPZMetis depends on the Metis library\n";
     PZError<<"Please reconfigure NeoPZ library using:\n";
-    PZError<<"PZ_USING_METIS=ON"<<std::endl;
+    PZError<<"USING_METIS=ON"<<std::endl;
     DebugStop();
 #endif
 }
@@ -123,7 +123,7 @@ void TPZMetis::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm) {
 		perm[nod] = inverseperm[nod] = nod;
 	}
 
-#ifdef PZ_USING_METIS
+#ifdef USING_METIS
 	TPZVec<idx_t> nodegraphInt(0),nodegraphindexInt(0);
     idx_t NNodes = (idx_t) fNNodes;
 	int64_t n, sz = nodegraph.NElements();
@@ -186,7 +186,7 @@ void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 	}
 #endif
 	
-#ifdef PZ_USING_METIS
+#ifdef USING_METIS
 	TPZManVector<int> AdjacencyInt,AdjacencyIndexInt;
 	int64_t n, nVertices = AdjacencyIndex.NElements();
 	AdjacencyIndexInt.Resize(nVertices,0);

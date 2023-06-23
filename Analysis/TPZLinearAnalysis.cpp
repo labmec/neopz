@@ -17,17 +17,17 @@ TPZLinearAnalysis::TPZLinearAnalysis() : TPZAnalysis()
 }
 
 TPZLinearAnalysis::TPZLinearAnalysis(TPZCompMesh *mesh,
-                                     const RenumType& renumtype,
+                                     bool mustOptimizeBandwidth,
                                      std::ostream &out) :
-  TPZAnalysis(mesh,renumtype,out),
+  TPZAnalysis(mesh,mustOptimizeBandwidth,out),
   fRhs(fSolType == EComplex ? true : false)
 {
 }
 
 TPZLinearAnalysis::TPZLinearAnalysis(TPZAutoPointer<TPZCompMesh> mesh,
-                                     const RenumType& renumtype,
+                                     bool mustOptimizeBandwidth,
                                      std::ostream &out) :
-  TPZAnalysis(mesh,renumtype,out),
+  TPZAnalysis(mesh,mustOptimizeBandwidth,out),
   fRhs(fSolType == EComplex ? true : false)
 {
 }

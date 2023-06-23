@@ -22,19 +22,10 @@ public:
     /** @{ */
     /** @brief Create an empty TPZEigenAnalysis object*/
     TPZEigenAnalysis();
-    
-#ifdef PZ_USING_METIS
     /** @brief Create an TPZEigenAnalysis object from one mesh pointer */
-    TPZEigenAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::EMetis, std::ostream &out = std::cout);
+    TPZEigenAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
     /** @brief Create an TPZEigenAnalysis object from one mesh auto pointer object */
-    TPZEigenAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::EMetis, std::ostream &out = std::cout);
-#else
-  /** @brief Create an TPZEigenAnalysis object from one mesh pointer */
-  TPZEigenAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::ESloan, std::ostream &out = std::cout);
-  /** @brief Create an TPZEigenAnalysis object from one mesh auto pointer object */
-  TPZEigenAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::ESloan, std::ostream &out = std::cout);
-
-#endif
+    TPZEigenAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
 
     /** @} */
     /** @name FEM*/

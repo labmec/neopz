@@ -60,7 +60,8 @@ TEST_CASE("Poisson equation","[iterative_testss]") {
   
 
   TPZAutoPointer<TPZCompMesh> cmesh = testiterative::CreateCMesh();
-  TPZLinearAnalysis an(cmesh,RenumType::ENone);
+  constexpr bool optimizeBandwidth{false};
+  TPZLinearAnalysis an(cmesh,optimizeBandwidth);
 #if defined (PZ_USING_MKL) || (PZ_USING_EIGEN)
   TPZSSpStructMatrix<STATE> str(cmesh);
 #else
@@ -139,7 +140,8 @@ TEST_CASE("Equation filter and precond","[iterative_testss]") {
   auto oldPrecision = Catch::StringMaker<STATE>::precision;
   Catch::StringMaker<STATE>::precision = std::numeric_limits<STATE>::max_digits10;
   TPZAutoPointer<TPZCompMesh> cmesh = testiterative::CreateCMesh();
-  TPZLinearAnalysis an(cmesh,RenumType::ENone);
+  constexpr bool optimizeBandwidth{false};
+  TPZLinearAnalysis an(cmesh,optimizeBandwidth);
   {
     TPZStepSolver<STATE> solv;
     solv.SetDirect(ECholesky);

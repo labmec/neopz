@@ -202,13 +202,13 @@ void TPZPardisoSolver<TVar>::Decompose(TPZMatrix<TVar> *mat)
           (the first step or last step with a failure)
           in a sequence of solutions needed for identical sparsity patterns. 
         */
-        //fParam[4]  No user fill-in reducing permutation. 0 uses pardiso reordering, 1 uses ours, 2 uses pardiso and returns perm
+        //fParam[4]  No user fill-in reducing permutation
         if constexpr (!is_complex<TVar>::value){
             fParam[3] = fSymmetry == SymProp::NonSym ? 10*6+1 : 10*6+2;
-            if(fProperty == MProperty::EIndefinite) fParam[4] = 1; // 0 uses pardiso reordering, 1 uses ours
+            if(fProperty == MProperty::EIndefinite) fParam[4] =1;
         }else{
             fParam[3] = 0;
-            fParam[4] = 0; // 0 uses pardiso reordering, 1 uses ours
+            fParam[4] = 0;
         }
         //fParam[9]  Perturb the pivot elements with 1E-fParam[9]
         fParam[9] = 13;

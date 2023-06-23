@@ -82,13 +82,13 @@ static void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<TVar> > su
 #define NOMETIS \
     PZError<<"TPZDohrStructMatrix requires Metis library\n";\
     PZError<<"Please reconfigure NeoPZ library with:\n";\
-    PZError<<"PZ_USING_METIS=ON"<<std::endl;\
+    PZError<<"USING_METIS=ON"<<std::endl;\
     DebugStop();
 template<class TVar, class TPar>
  TPZDohrStructMatrix<TVar,TPar>::TPZDohrStructMatrix() :
 TPZStructMatrixT<TVar>(), fDohrAssembly(0), fDohrPrecond(0), fAccessElement()
 {
-#ifndef PZ_USING_METIS
+#ifndef USING_METIS
     NOMETIS
 #endif
 }
@@ -98,7 +98,7 @@ template<class TVar, class TPar>
 TPZStructMatrixT<TVar>(cmesh), fDohrAssembly(0),
 fDohrPrecond(0), fAccessElement()
 {
-#ifndef PZ_USING_METIS
+#ifndef USING_METIS
     NOMETIS
 #endif
 }
@@ -107,7 +107,7 @@ template<class TVar, class TPar>
  TPZDohrStructMatrix<TVar,TPar>::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) :
 TPZStructMatrixT<TVar>(copy), fDohrAssembly(copy.fDohrAssembly), fDohrPrecond(copy.fDohrPrecond), fAccessElement()
 {
-#ifndef PZ_USING_METIS
+#ifndef USING_METIS
     NOMETIS
 #endif
 }
@@ -122,7 +122,7 @@ template<class TVar, class TPar>
 template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZDohrStructMatrix<TVar,TPar>::Create()
 {
-#ifndef PZ_USING_METIS
+#ifndef USING_METIS
     NOMETIS
 #endif    
 	TPZSimpleTimer timeforcopute; // init of timer for compute
