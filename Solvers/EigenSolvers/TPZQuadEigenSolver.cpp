@@ -152,75 +152,23 @@ void TPZQuadEigenSolver<TVar>::ApplyOperator(const TPZFMatrix<TVar> &x, TPZFMatr
 }
 
 template<class TVar>
-int TPZQuadEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
-                                        TPZFMatrix<CTVar> &eigenVectors,
-                                        bool computeVectors)
+void
+TPZQuadEigenSolver<TVar>::PreSolve()
 {
-    TPZSimpleTimer total("Quadratic EVP Solver",true);
-
-    if(this->NEigenpairs() < 1) this->SetNEigenpairs(1);
-
-
     ComputeAndDecomposeDelta();
-  
-    const int &krylovDim = this->KrylovDim();
-    TPZManVector<TPZAutoPointer<TPZFMatrix<TVar>>,20> qVecs;
-    TPZFNMatrix<400,TVar> h(krylovDim,krylovDim,0.);
-
-  
-    auto success = this->ArnoldiIteration(qVecs,h);
-    if(!success){
-        return -1;
+    if(this->KrylovDim() == -1){
+        this->SetKrylovDim(this->NEigenpairs()*10);
     }
+}
 
-    const int &n = this->NEigenpairs();
-  
-    TPZFNMatrix<400,CTVar> lapackEV(n,n,0.);
-  
-
-    auto lapackres = [&h,&w,&lapackEV]()
-    {
-        TPZSimpleTimer lapacktimer("Hessenberg EVP");
-        TPZLapackEigenSolver<TVar> lapack;
-        return lapack.SolveHessenbergEigenProblem(h, w, lapackEV);
-    }();
-    if(lapackres) return lapackres;
-
-    
-    //transform eigenvalues
+template<class TVar>
+void
+TPZQuadEigenSolver<TVar>::TransformEigenvalues(TPZVec<CTVar> &w)
+{
     const auto &s = this->fShift;
     for(auto &mappedw : w) mappedw = ((CTVar)1.0)/mappedw + s;
-
-
-    TPZManVector<int,20> indices;
-    this->SortEigenvalues(w,indices);
-  
-    if(!computeVectors) return lapackres;
-
-    const int nRows = this->SystemSize()/2;
-    eigenVectors.Redim(nRows,n);
-    {
-        TPZSimpleTimer evTimer("Computing eigenvectors");
-        for (int i = 0; i< n; i++){//which eigenvector from A
-            auto il = indices[i];
-            for (int j = 0; j < krylovDim; j++){//which vector from Q
-                CTVar *ev = &eigenVectors.g(0,i);
-                const auto lev = lapackEV(j,il);
-                TVar *q = &qVecs[j]->g(0,0);
-                /*
-                  The following loop computes
-                  eigenVectors(k,i) += lev * qvec.GetVal(k,0),
-                  with const auto qvec = *qVecs[j],
-                  but twice as fast
-                */
-                for(int k = 0; k < nRows; k++)
-                    *ev++ += lev * *q++;
-            }
-        }
-    }
-  
-    return lapackres;
 }
+
 
 template<class TVar>
 TPZQuadEigenSolver<TVar> *

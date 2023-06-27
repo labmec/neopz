@@ -1,102 +1,11 @@
 #ifndef TPZKRYLOVEIGENSOLVER_H
 #define TPZKRYLOVEIGENSOLVER_H
+#include "TPZKrylovEigenSolverBase.h"
 #include "TPZLinearEigenSolver.h"
 #include "TPZSpectralTransform.h"
 
-/** @brief Base class for solvers for eigenvalue problems using Krylov methods.
-    It basically implements the Arnoldi iteration.
-    See TPZKrylovEigenSolver for usage and TPZSpectralTransform for possible spectral transformations*/
-template<class TVar>
-class TPZKrylovEigenSolverBase
-{
-public:
-  /** @brief Sets the dimension of the Krylov subspace. 
-      @note If not set, defaults to `10*nev`, where `nev` is the number 
-      of sought eigenvalues.*/
-  inline void SetKrylovDim(int d);
-  //! Gets the dimension of the Krylov subspace
-  inline int KrylovDim() const;
-  //! Sets tolerance for norm of the Krylov vectors
-  inline void SetTolerance(RTVar s);
-  //! Gets tolerances
-  inline RTVar Tolerance() const;
-  /** @brief Sets the first vector to be used in the Krylov subspace
-      @note The input vector will be normalized. If not set, a random 
-      vector will be generated.
-  */
-  inline void SetKrylovInitialVector(TPZFMatrix<TVar> q);
-  //! Gets the first vector used in the Krylov subspace
-  inline TPZFMatrix<TVar> KrylovInitialVector() const;
-  
 
-  /** @brief Performs the Arnoldi iteration on a given matrix. 
-      This iteration creates an orthonormal basis of the Krylov subspace of A. 
-      The first vector of the Krylov basis can be set through 
-      SetKrylovInitialVector method. The dimension of the Krylov subspace 
-      can be set throught SetKrylovDim
-      @param[in] A Matrix in which the algorithm is performed
-      @param[out] Q Arnoldi vectors of A
-      @param[out] H Representation of A in basis Q
-      @return returns true if succeeded, false otherwise
-  */
-  [[nodiscard]] bool ArnoldiIteration(TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> &Q,
-                                      TPZFMatrix<TVar> &H);
-
-  //! Applies (maybe matrix-free) operator on a given vector
-  virtual void ApplyOperator(const TPZFMatrix<TVar> &x, TPZFMatrix<TVar> &res) const = 0;
-  //! System size (number of rows)
-  [[nodiscard]] virtual int64_t SystemSize() const = 0;
-protected:
-  //! Dimension of the Krylov subspace to calculate
-  int64_t fKrylovDim{-1};
-  //! Initial vector to be used to create Krylov subspace
-  TPZFMatrix<TVar> fKrylovVector;
-  //! Tolerance
-  RTVar fTolerance{std::numeric_limits<RTVar>::epsilon()};
-  //! Implementation of Solve methods
-  int SolveImpl(TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors, bool computeVectors);
-};
-
-
-template<class TVar>
-void TPZKrylovEigenSolverBase<TVar>::SetKrylovDim(int k)
-{
-  fKrylovDim = k;
-}
-
-template<class TVar>
-int TPZKrylovEigenSolverBase<TVar>::KrylovDim() const
-{
-  return fKrylovDim;
-}
-
-
-template<class TVar>
-void TPZKrylovEigenSolverBase<TVar>::SetTolerance(RTVar tol)
-{
-  fTolerance = tol;
-}
-  
-template<class TVar>
-RTVar TPZKrylovEigenSolverBase<TVar>::Tolerance() const
-{
-  return fTolerance;
-}
-
-template<class TVar>
-void TPZKrylovEigenSolverBase<TVar>::SetKrylovInitialVector(TPZFMatrix<TVar> q)
-{
-  fKrylovVector = q;
-}
-
-template<class TVar>
-TPZFMatrix<TVar> TPZKrylovEigenSolverBase<TVar>::KrylovInitialVector() const
-{
-  return fKrylovVector;
-}
-
-
-/** @brief Solvers for eigenvalue problems using Krylov methods.
+/** @brief Solvers for linear eigenvalue problems using Krylov methods.
     The eigenvalue problem is solved in the projected Krylov subspace 
     obtained by an Arnoldi iteration. 
     See TPZSpectralTransform for possible spectral transformations*/
@@ -160,12 +69,15 @@ public:
 
   //! Applies (maybe matrix-free) operator on a given vector
   void ApplyOperator(const TPZFMatrix<TVar> &x, TPZFMatrix<TVar> &res) const override;
-  //! System size (number of rows)
-  [[nodiscard]] int64_t SystemSize() const override;
+  //! Algebraic size (number of rows)
+  [[nodiscard]] int64_t SystemSize() const override {return NRows();}
+  //! Number of rows of the eigenvector
+  [[nodiscard]] int64_t NRows() const override;
 protected:
-  int SolveImpl(TPZVec<CTVar> &w,
-                TPZFMatrix<CTVar> &eigenVectors,
-                bool computeVectors);
+  //! Operations to be performed at the beginning of SolveImpl call
+  void PreSolve() override;
+  //! Transforms eigenvalues based on spectral transforms
+  void  TransformEigenvalues(TPZVec<CTVar>&w) override;
   //! Spectral Transformation
   TPZAutoPointer<TPZSpectralTransform<TVar>> fST;
   //! Set target of spectral transformation equal to user-defined target
@@ -184,7 +96,7 @@ void TPZKrylovEigenSolver<TVar>::SetSpectralTransform(TPZSpectralTransform<TVar>
 template<class TVar>
 TPZAutoPointer<TPZSpectralTransform<TVar> >
 TPZKrylovEigenSolver<TVar>::SpectralTransform()
-{
+ {
   return fST;
 }
 
