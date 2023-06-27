@@ -2,6 +2,10 @@
 #define TPZLINEAREIGENSOLVER_H
 #include "TPZEigenSolver.h"
 
+
+template<class T>
+class TPZPardisoSolver;
+
 /**
    @brief This class implements a solver for the
    linear (possibily generalised) Eigenvalue Problem

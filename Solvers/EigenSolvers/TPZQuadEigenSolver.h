@@ -1,7 +1,7 @@
 #ifndef TPZQUADEVPSOLVER_H
 #define TPZQUADEVPSOLVER_H
-#include "TPZLinearEigenSolver.h"
-#include "TPZKrylovEigenSolver.h"
+#include "TPZEigenSolver.h"
+#include "TPZKrylovEigenSolverBase.h"
 
 /**
    @brief This class implements a solver for the generalised quadratic EVP
@@ -61,12 +61,12 @@ public:
 
     inline int Solve(TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors) override
     {
-        return SolveImpl(w,eigenVectors,true);
+        return this->SolveImpl(w,eigenVectors,true);
     }
     inline int Solve(TPZVec<CTVar> &w) override
     {
         TPZFMatrix<CTVar> ev;
-        return SolveImpl(w,ev,false);
+        return this->SolveImpl(w,ev,false);
     }
 
     void SetMatrixK(TPZAutoPointer<TPZMatrix<TVar>> K);
@@ -92,9 +92,13 @@ public:
     TVar Shift() const {return fShift;}    
     //! Applies (maybe matrix-free) operator on a given vector
     void ApplyOperator(const TPZFMatrix<TVar> &x, TPZFMatrix<TVar> &res) const override;
-    //! System size (twice the number of rows)
+    //! Number of rows of the eigenvector
+    [[nodiscard]] int64_t NRows() const override{
+        return this->fM->Rows();
+    }
+    //! Algebraic size (twice the number of rows)
     [[nodiscard]] int64_t SystemSize() const override{
-        return fM->Rows()*2;
+        return this->NRows()*2;
     }
 
     TPZQuadEigenSolver<TVar> * Clone() const override;
@@ -103,10 +107,9 @@ public:
 protected:
     //!Computes the only matrix to be decomposed delta = -(s^2 M + sL + K), where s is the shift
     void ComputeAndDecomposeDelta();
-    //! Solves the quadratic EVP
-    int SolveImpl(TPZVec<CTVar> &w,
-                  TPZFMatrix<CTVar> &eigenVectors,
-                  bool computeVectors);
+
+    void PreSolve() override;
+    void TransformEigenvalues(TPZVec<CTVar> &w) override;
     //! Matrices of the EVP
     TPZAutoPointer<TPZMatrix<TVar>> fM,fL,fK;
     //! Only matrix to be decomposed, delta = -(s^2 M + sL + K), where s is the shift

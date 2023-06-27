@@ -23,7 +23,8 @@ enum class TPZEigenSort{
 
 
 template <class T>
-class TPZPardisoSolver;
+class TPZKrylovEigenSolverBase;
+
 
 /**
 * @ingroup solver
@@ -90,6 +91,8 @@ public:
   /** @}*/
   //! Class identifier
   int ClassId() const override;
+
+  friend class TPZKrylovEigenSolverBase<TVar>;
 protected:
   /**
      @brief Sort the calculated eigenvalues and return a vector with
