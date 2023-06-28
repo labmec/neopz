@@ -14,7 +14,6 @@ bool TPZKrylovEigenSolverBase<TVar>::ArnoldiIteration(
   }
   const int64_t nRows = this->SystemSize();
   const int n = std::min(fKrylovDim,nRows);
-  std::cout<<"Calculating Krylov subspace of dimension "<<n<<'\n';
 
 
   if(Q.size() != n){
@@ -27,26 +26,31 @@ bool TPZKrylovEigenSolverBase<TVar>::ArnoldiIteration(
   if(first_k == n){
     DebugStop();
   }
-  H.Redim(n,n);
-  Q.Resize(n, nullptr);
 
-  if(fKrylovVector.Rows() != nRows || fKrylovVector.Cols() != 1){
-    fKrylovVector.AutoFill(nRows,1,SymProp::NonSym);
+  if(H.Rows() != n || H.Cols() != n){
+    H.Redim(n,n);
+  }else{
+    for(int i = first_k; i < n; i++){
+      auto *hptr = &H.g(0,i);
+      for(int row = 0; row < n; row++){
+        *hptr++ = 0;
+      }
+    }
   }
   
-  for(int i = 0; i < n; i++) Q[i]= new TPZFMatrix<TVar>;
+  for(int i = first_k; i < n; i++) Q[i]= new TPZFMatrix<TVar>;
   
   /*see Chapter 2 of slepc manual(EPS) or search for Arnoldi Iteration*/
 
   //initializing first vector
-  *(Q[0]) = fKrylovVector * (TVar)(1./Norm(fKrylovVector));
+  *(Q[first_k]) = fKrylovVector * (TVar)(1./Norm(fKrylovVector));
   
   TPZSimpleTimer arnoldiIteration("ArnoldiIteration");
-  const auto &tol = Tolerance();
+  const auto tol = std::numeric_limits<RTVar>::epsilon();
 
   TPZFMatrix<TVar> w(nRows,1,0.);
 
-  for(auto k = 1; k < n+1; k++){
+  for(auto k = first_k+1; k < n+1; k++){
     // TPZSimpleTimer arnoldiStep("step"+std::to_string(k),true);
 
     //let us generate a first guess for w: w = A.q_{k-1}
@@ -114,51 +118,117 @@ int TPZKrylovEigenSolverBase<TVar>::SolveImpl(TPZVec<CTVar> &w,
   TPZManVector<TPZAutoPointer<TPZFMatrix<TVar>>,20> qVecs(krylovDim, nullptr);
   TPZFNMatrix<400,TVar> h(krylovDim,krylovDim,0.);
 
+  //this will be used as the first krylov vector
   if(fKrylovVector.Rows() != size || fKrylovVector.Cols() != 1){
     fKrylovVector.AutoFill(size,1,SymProp::NonSym);
   }
-  //we initialise the first vector
-  qVecs[0] = new TPZFMatrix<TVar>(fKrylovVector * (TVar)(1./Norm(fKrylovVector)));
-  
-
-  TVar beta;
-  auto success = this->ArnoldiIteration(qVecs,h, beta);
-  if(!success){
-    return -1;
-  }
-
 
   auto myself = dynamic_cast<TPZEigenSolver<TVar>*>(this);
   if(!myself){
     DebugStop();
   }
-  
-  const int n = myself->NEigenpairs();
-  
-  TPZFNMatrix<400,CTVar> lapackEV(n,n,0.);
-  
+  const int n = myself->NEigenpairs(); 
+  bool all_converged = false;
 
-  auto lapackres = [&h,&w,&lapackEV]()
-  {
-    TPZSimpleTimer lapacktimer("Hessenberg EVP");
-    TPZLapackEigenSolver<TVar> lapack;
-    return lapack.SolveHessenbergEigenProblem(h, w, lapackEV);
-  }();
-  if(lapackres) return lapackres;
-
-  this->TransformEigenvalues(w);
-
+  TVar beta{0};
+  int lapackres{-1};
+  int n_iter{0};
+  const int max_iter = this->GetMaxIterations();
+  const auto tol = this->Tolerance();
+  TPZFNMatrix<400,CTVar> lapackEV(krylovDim,krylovDim,0.);
   TPZManVector<int,20> indices;
 
-  myself->SortEigenvalues(w,indices);
-
-  {
-    for(int i = 0; i < n; i++){
-      auto il = indices[i];
-      const auto res = std::abs(beta*lapackEV.Get(krylovDim-1,il));
-      std::cout<<"w "<<i<<" w "<<w[i]
-               <<" res "<<res<<std::endl;
+  std::cout<<"max it: "<<max_iter<<" tol: "<<tol<<std::endl;
+  while(!all_converged && n_iter < max_iter){
+    auto success = this->ArnoldiIteration(qVecs,h, beta);
+    if(!success){
+      return -1;
     }
+
+    lapackEV.Zero();
+  
+
+    lapackres = [&h,&w,&lapackEV]()
+    {
+      TPZSimpleTimer lapacktimer("Hessenberg EVP");
+      TPZLapackEigenSolver<TVar> lapack;
+      return lapack.SolveHessenbergEigenProblem(h, w, lapackEV);
+    }();
+    if(lapackres) return lapackres;
+
+    this->TransformEigenvalues(w);
+
+    indices.Fill(0);
+    myself->SortEigenvalues(w,indices);
+
+    {
+      std::set<int> converged_pairs;
+      //minimum residual of non converged pairs
+      STATE min_res{1e15};
+      int min_index{0};
+      for(int i = 0; i < n; i++){
+        auto il = indices[i];
+        const auto res = std::abs(beta*lapackEV.Get(krylovDim-1,il));
+        if(res < tol){converged_pairs.insert(il);}
+        else{
+          if(res < min_res){
+            min_res = res;
+          }
+        }
+      }
+      const int nconv = converged_pairs.size();
+      std::cout<<"\riter "<<n_iter<<": "<<nconv<<" converged eigenpairs"
+               <<" min res of non conv pair: "<<min_res<<std::flush;
+      n_iter++;
+      if(nconv >= n || n_iter >= max_iter){all_converged=true; break;}
+      //now we compute the initial vector of the next arnoldi iteration
+      //we choose it as the dominant eigenvector of H
+      fKrylovVector.Zero();
+      if constexpr (std::is_same_v<TVar,CTVar>){
+        for (int j = 0; j < krylovDim; j++){//which vector from Q
+          TVar *ev = &fKrylovVector.g(0,0);
+          const auto lev = lapackEV(j,min_index);
+          TVar *q = &qVecs[j]->g(0,0);
+          /*
+            The following loop computes
+            eigenVectors(k,i) += lev * qvec.GetVal(k,0),
+            with const auto qvec = *qVecs[j],
+            but twice as fast
+          */
+          for(int k = 0; k < size; k++)
+            *ev++ += lev * *q++;
+        }
+      }else{
+        fKrylovVector.AutoFill(size,1,SymProp::NonSym);
+      }
+      //now we lock the converged eigenpairs
+      TPZManVector<TPZAutoPointer<TPZFMatrix<TVar>>,20> qcp = qVecs;
+      int count = 0;
+      auto hcp = h;
+      h.Zero();
+      for(auto conv : converged_pairs){
+        qVecs[count] = qcp[conv];
+        int ccount = 0;
+        for(auto cconv : converged_pairs){
+          const auto val = hcp.Get(conv,cconv);
+          h.Put(count,ccount,val);
+          ccount++;
+        }
+        count++;
+      }
+      
+      //now we erase all other vectors
+      for(int i = nconv; i < krylovDim; i++){
+        qVecs[i] = nullptr;
+      }
+    }
+  }
+
+  std::cout<<"\rfinished!"<<std::endl;
+  for(int i = 0; i < n; i++){
+    auto il = indices[i];
+    const auto res = std::abs(beta*lapackEV.Get(krylovDim-1,il));
+    std::cout<<"w :"<<w[i]<<" res "<<res<<std::endl;
   }
   
   if(!computeVectors) return lapackres;
