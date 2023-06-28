@@ -242,7 +242,8 @@ void TestArnoldiIteration(SymProp sp)
   arnoldi.SetKrylovDim(dimKrylov);
   TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> qVecs;
   TPZFMatrix<TVar> hMat;
-  bool success = arnoldi.ArnoldiIteration(qVecs,hMat);
+  TVar beta{0};
+  bool success = arnoldi.ArnoldiIteration(qVecs,hMat, beta);
   
   REQUIRE(success);
   
@@ -269,7 +270,7 @@ void TestArnoldiIteration(SymProp sp)
 
   dimKrylov = dim;
   arnoldi.SetKrylovDim(dimKrylov);
-  success = arnoldi.ArnoldiIteration(qVecs,hMat);
+  success = arnoldi.ArnoldiIteration(qVecs,hMat,beta);
   REQUIRE(success);
   TPZFMatrix<TVar> qMat(dim,dimKrylov);
   for(int i = 0; i < dimKrylov; i++){
