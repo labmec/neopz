@@ -77,6 +77,10 @@ void TPZKrylovEigenSolver<TVar>::PreSolve()
   };
 #endif
   if(this->NEigenpairs() < 1) SetNEigenpairs(1);
+  
+  if(this->KrylovDim() < this->NEigenpairs()) {
+    this->SetKrylovDim(this->NEigenpairs());
+  }
 #ifndef USING_LAPACK
   PZError<<__PRETTY_FUNCTION__;
   PZError<<"\nERROR: NeoPZ was not linked against LAPACK. Aborting...\n";
