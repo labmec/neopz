@@ -6,7 +6,7 @@
 template<class TVar>
 bool TPZKrylovEigenSolverBase<TVar>::ArnoldiIteration(
   TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> &Q,
-  TPZFMatrix<TVar> &H)
+  TPZFMatrix<TVar> &H, TVar &beta)
 {
 
   if(KrylovDim() < 2){
@@ -81,6 +81,8 @@ bool TPZKrylovEigenSolverBase<TVar>::ArnoldiIteration(
       H.PutVal(k,k-1,normW);
       w *= (TVar)1./normW;
       (*(Q[k])) = w;
+    }else{
+      beta = normW;
     }
 
     
@@ -118,8 +120,9 @@ int TPZKrylovEigenSolverBase<TVar>::SolveImpl(TPZVec<CTVar> &w,
   //we initialise the first vector
   qVecs[0] = new TPZFMatrix<TVar>(fKrylovVector * (TVar)(1./Norm(fKrylovVector)));
   
-  
-  auto success = this->ArnoldiIteration(qVecs,h);
+
+  TVar beta;
+  auto success = this->ArnoldiIteration(qVecs,h, beta);
   if(!success){
     return -1;
   }
@@ -147,9 +150,16 @@ int TPZKrylovEigenSolverBase<TVar>::SolveImpl(TPZVec<CTVar> &w,
 
   TPZManVector<int,20> indices;
 
-
-  
   myself->SortEigenvalues(w,indices);
+
+  {
+    for(int i = 0; i < n; i++){
+      auto il = indices[i];
+      const auto res = std::abs(beta*lapackEV.Get(krylovDim-1,il));
+      std::cout<<"w "<<i<<" w "<<w[i]
+               <<" res "<<res<<std::endl;
+    }
+  }
   
   if(!computeVectors) return lapackres;
   const auto nRows = this->NRows();
@@ -173,7 +183,6 @@ int TPZKrylovEigenSolverBase<TVar>::SolveImpl(TPZVec<CTVar> &w,
       }
     }
   }
-  
   return lapackres;
 }
 
