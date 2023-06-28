@@ -32,6 +32,11 @@ public:
   inline void SetTolerance(RTVar s);
   //! Gets tolerances
   inline RTVar Tolerance() const;
+  //! Sets maximum number of iterations of the deflated Arnoldi iteration
+  inline void SetMaxIterations(int max);
+  //! Gets maximum number of iterations of the deflated Arnoldi iteration
+  inline int GetMaxIterations() const;
+  
   /** @brief Sets the first vector to be used in the Krylov subspace
       @note The input vector will be normalized. If not set, a random 
       vector will be generated.
@@ -66,7 +71,9 @@ protected:
   //! Initial vector to be used to create Krylov subspace
   TPZFMatrix<TVar> fKrylovVector;
   //! Tolerance
-  RTVar fTolerance{std::numeric_limits<RTVar>::epsilon()};
+  RTVar fTolerance{std::numeric_limits<RTVar>::epsilon()*100};
+  //! Maximum number of iterations of the deflated Arnoldi iteration
+  int fMaxIter{10};
   //! Implementation of Solve methods. Need not be implemented in derived classes.
   virtual int SolveImpl(TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors, bool computeVectors);
 
@@ -100,6 +107,18 @@ template<class TVar>
 RTVar TPZKrylovEigenSolverBase<TVar>::Tolerance() const
 {
   return fTolerance;
+}
+
+template<class TVar>
+void TPZKrylovEigenSolverBase<TVar>::SetMaxIterations(int max)
+{
+  fMaxIter = max;
+}
+  
+template<class TVar>
+int TPZKrylovEigenSolverBase<TVar>::GetMaxIterations() const
+{
+  return fMaxIter;
 }
 
 template<class TVar>
