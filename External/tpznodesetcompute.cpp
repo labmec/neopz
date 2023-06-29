@@ -229,11 +229,11 @@ void TPZNodesetCompute::BuildVertexGraph(TPZStack<int64_t> &blockgraph, TPZVec<i
   std::map<int64_t,int64_t>::iterator it;
   for(it=vertices.begin(); it != vertices.end(); it++)
   {
-    int node = (*it).second;
+    int64_t node = (*it).second;
     blockgraph.Push(node);
     std::set<int64_t> vertexset;
-    std::set<int> included;
-    std::set<int> notincluded;
+    std::set<int64_t> included;
+    std::set<int64_t> notincluded;
     // The set will contain the connectivity of the node
     BuildNodeSet(node,vertexset);
     included.insert((*it).first);
