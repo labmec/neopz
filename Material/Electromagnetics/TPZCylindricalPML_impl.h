@@ -77,9 +77,9 @@ void TPZCylindricalPML<TMAT>::ComputeTransformMat(TPZFMatrix<CSTATE> &mat,
     sz = 1. - imag * fAlphaMaxZ * dz * dz;
   }
   mat.Redim(3,3);
-  mat.Put(0,0,sphi*sz/sr);
-  mat.Put(1,1,sr*sz/sphi);
-  mat.Put(2,2,sr*sphi/sz);
+  mat.Put(0,0,1./sr);
+  mat.Put(1,1,1./sphi);
+  mat.Put(2,2,1./sz);
 }
 
 template<class TMAT>
@@ -87,15 +87,17 @@ void TPZCylindricalPML<TMAT>::GetPermittivity(
   const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &er) const
 {
   const auto rho = sqrt(x[0]*x[0]+x[1]*x[1]);
-  const auto phi = std::atan2(x[0],x[1]);
+  const auto phi = std::atan2(x[1],x[0]);
   const auto z = x[2];
   TPZFNMatrix<9,CSTATE> smat,t1,t2;
+  //this is actually J^-1, not J (just to avoid inverting it)
   this->ComputeTransformMat(smat,rho,phi,z);
-  CSTATE detmat = smat.Get(0,0)*smat.Get(1,1)*smat.Get(2,2);
+  
+  const CSTATE detmatinv = smat.Get(0,0)*smat.Get(1,1)*smat.Get(2,2);
   TMAT::GetPermittivity(x,er);
   smat.Multiply(er,t1);
   t1.Multiply(smat,er);
-  er *= 1./detmat;
+  er *= 1./detmatinv;
   //now we convert back to cartesian coords
   auto RotationMatrix = [](TPZFMatrix<CSTATE> &mat, STATE theta){
     mat.Redim(3,3);
@@ -116,15 +118,17 @@ void TPZCylindricalPML<TMAT>::GetPermeability(
   const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const
 {
   const auto rho = sqrt(x[0]*x[0]+x[1]*x[1]);
-  const auto phi = std::atan2(x[0],x[1]);
+  const auto phi = std::atan2(x[1],x[0]);
   const auto z = x[2];
   TPZFNMatrix<9,CSTATE> smat,t1,t2;
+  //this is actually J^-1, not J (just to avoid inverting it)
   this->ComputeTransformMat(smat,rho,phi,z);
-  CSTATE detmat = smat.Get(0,0)*smat.Get(1,1)*smat.Get(2,2);
+  
+  const CSTATE detmatinv = smat.Get(0,0)*smat.Get(1,1)*smat.Get(2,2);
   TMAT::GetPermeability(x,ur);
   smat.Multiply(ur,t1);
   t1.Multiply(smat,ur);
-  ur *= 1./detmat;
+  ur *= 1./detmatinv;
   //now we convert back to cartesian coords
   auto RotationMatrix = [](TPZFMatrix<CSTATE> &mat, STATE theta){
     mat.Redim(3,3);
