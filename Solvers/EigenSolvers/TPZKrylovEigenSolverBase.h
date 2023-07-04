@@ -57,7 +57,7 @@ public:
       @return returns true if succeeded, false otherwise
   */
   [[nodiscard]] bool ArnoldiIteration(TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> &Q,
-                                      TPZFMatrix<TVar> &H, TVar& beta);
+                                      TPZFMatrix<TVar> &H);
 
   //! Applies (maybe matrix-free) operator on a given vector
   virtual void ApplyOperator(const TPZFMatrix<TVar> &x, TPZFMatrix<TVar> &res) const = 0;
