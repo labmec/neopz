@@ -104,14 +104,14 @@ void TPZCartesianPML<TMAT>::GetPermittivity(
   TMAT::GetPermittivity(x,er);
   CSTATE sx{1}, sy{1}, sz{1};
   ComputeSParameters(x,sx,sy,sz);
-  const auto dets = sx*sy*sz;
+  const auto detsinv = sx*sy*sz;
   TPZFNMatrix<9,CSTATE> smat(3,3,0.), tmp(3,3,0.);
-  smat.PutVal(0,0,sx);
-  smat.PutVal(1,1,sy);
-  smat.PutVal(2,2,sz);
+  smat.PutVal(0,0,1./sx);
+  smat.PutVal(1,1,1./sy);
+  smat.PutVal(2,2,1./sz);
   smat.Multiply(er,tmp);
   tmp.Multiply(smat,er);
-  er *= dets;
+  er *= detsinv;
 }
 
 template<class TMAT>
@@ -121,14 +121,14 @@ void TPZCartesianPML<TMAT>::GetPermeability(
   TMAT::GetPermeability(x,ur);
   CSTATE sx{1}, sy{1}, sz{1};
   ComputeSParameters(x,sx,sy,sz);
-  const auto dets = sx*sy*sz;
+  const auto detsinv = sx*sy*sz;
   TPZFNMatrix<9,CSTATE> smat(3,3,0.), tmp(3,3,0.);
-  smat.PutVal(0,0,sx);
-  smat.PutVal(1,1,sy);
-  smat.PutVal(2,2,sz);
+  smat.PutVal(0,0,1./sx);
+  smat.PutVal(1,1,1./sy);
+  smat.PutVal(2,2,1./sz);
   smat.Multiply(ur,tmp);
   tmp.Multiply(smat,ur);
-  ur *= dets;
+  ur *= detsinv;
 }
 
 template<class TMAT>
