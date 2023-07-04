@@ -29,8 +29,10 @@ protected:
   STATE fDZ{-1};
   TPZCylindricalPML() = default;
 
-  void ComputeSParameters(const REAL&r, const REAL&z,
-                          CSTATE&sr, CSTATE& sz) const;
+  void ComputeTransformMat(TPZFMatrix<CSTATE> &mat,
+                           const REAL rho,
+                           const REAL phi,
+                           const REAL z) const;
 public:
   //! Creates PML based on another domain region
   TPZCylindricalPML(const int id, const TMAT &mat) : TPZMatPML<TMAT>(id,mat) {};
