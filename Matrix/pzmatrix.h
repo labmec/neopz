@@ -9,7 +9,6 @@
 #include "pzbasematrix.h"
 #include "pzreal.h"
 
-
 template<class TVar>
 class TPZVec;
 template<class TVar>

@@ -910,10 +910,10 @@ void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TV
         if constexpr (!std::is_floating_point_v<RTVar>)
             Error( "AddContribution must be used with LAPACK!\n");
 
-    int64_t nrows = A.Rows();
-    int64_t ncols = B.Cols();
-    int64_t seconddimA = A.Cols();
-    int64_t seconddimB = B.Rows();
+    lapack_int nrows = A.Rows();
+    lapack_int ncols = B.Cols();
+    lapack_int seconddimA = A.Cols();
+    lapack_int seconddimB = B.Rows();
     CBLAS_TRANSPOSE transposeA = CblasNoTrans;
     CBLAS_TRANSPOSE transposeB = CblasNoTrans;
 

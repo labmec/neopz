@@ -2730,3 +2730,184 @@ void TStokesAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMa
 
 }
 
+template<class TVar>
+void TAxisymmetricStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
+{
+    TVar r = x[0];
+    TVar z = x[1];
+    flux[2] = 0.0;
+    
+    switch(fExactSol)
+    {
+        case ERadialFlow:
+            flux[0] = 1.0 / r;
+            flux[1] = 0.0;
+            break;
+        case EAxialFlow:
+            flux[0] = 0.0;
+            flux[1] = 1.0 / r;
+            break;
+        case ESlidingCouetteFlow:
+            flux[0] = 0.0;
+            flux[1] = fvel * log(fRe / r) / (log(fRe / fRi));
+            break;
+        case EHagenPoiseuilleFlow:
+            flux[0] = 0.0;
+            flux[1] = -0.25 * fgradp * (fRe * fRe - r * r) / fviscosity;
+            break;
+        default:
+            DebugStop();
+    }
+}
+
+template<class TVar>
+void TAxisymmetricStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
+{
+    TVar r = x[0];
+    TVar z = x[1];
+
+    switch(fExactSol)
+    {
+        case ERadialFlow:
+            p = fp + 2.0 * fviscosity / (fRe * fRe);
+            break;
+        case EAxialFlow:
+            p = fp;
+            break;
+        case ESlidingCouetteFlow:
+            p = fp;
+            break;
+        case EHagenPoiseuilleFlow:
+            p = fgradp * z;
+            break;
+        default:
+            DebugStop();
+    }
+}
+
+template<class TVar>
+void TAxisymmetricStokesAnalytic::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &gradu) const
+{
+    TVar r = x[0];
+    TVar z = x[1];
+
+    gradu = 0.0;
+    
+    switch(fExactSol)
+    {
+        case ERadialFlow:
+            gradu(0,0) = -1.0 / (r * r);
+            gradu(2,2) = 1.0 / (r * r);
+            break;
+        case EAxialFlow:
+            gradu(1,0) = -1.0 / (r * r);
+            break;
+        case ESlidingCouetteFlow:
+            gradu(1,0) = -fvel / (r * log(fRe/fRi));
+            break;
+        case EHagenPoiseuilleFlow:
+            gradu(1,0) = -r / (2.0 * fviscosity);
+            break;
+        default:
+            DebugStop();
+    }
+}
+
+template<class TVar>
+void TAxisymmetricStokesAnalytic::Duxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &Du) const
+{
+    TPZFMatrix<TVar> gradu(x.size(), x.size());
+    graduxy(x, gradu);
+
+    for (int64_t i = 0; i < 3; i++)
+        for (int64_t j = 0; j < 3; j++)
+            Du(i,j) = 0.5 * (gradu(i,j) + gradu(j,i));
+}
+
+template<class TVar>
+void TAxisymmetricStokesAnalytic::Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const
+{
+    TPZFMatrix<TVar> Du(sigma.Rows(),sigma.Cols());
+    TPZFMatrix<TVar> Identity(sigma.Rows(),sigma.Cols());
+
+    TVar p = 0.0;
+    Duxy(x,Du);
+    Du *= 2.0 * fviscosity;
+    pressure(x, p);
+    Identity *= p;
+    
+    sigma = Du-Identity;
+}
+
+void TAxisymmetricStokesAnalytic::Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
+{
+    REAL r = x[0];
+
+    switch(fExactSol)
+    {
+        case ERadialFlow:
+            force[0] = 0.0;
+            force[1] = 0.0;
+            force[2] = 0.0;
+            break;
+        case EAxialFlow:
+            force[0] = 0.0;
+            force[1] = -fviscosity / (r * r * r);
+            force[2] = 0.0;
+            break;
+        case ESlidingCouetteFlow:
+            force[0] = 0.0;
+            force[1] = 0.0;
+            force[2] = 0.0;
+            break;
+        case EHagenPoiseuilleFlow:
+            force[0] = 0.0;
+            force[1] = 0.0;
+            force[2] = 0.0;
+            break;
+        default:
+            DebugStop();
+    }
+}
+
+void TAxisymmetricStokesAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &gradsol) const
+{
+    sol.resize(4); //solution vector containing velocity and pressure
+    gradsol.Redim(3,3); //velocity gradient solution matrix
+
+    TPZManVector<STATE,3> u_exact(3);
+    uxy(x, u_exact);
+   
+    for (int i = 0; i < 3; i++) {
+        sol[i] = u_exact[i];
+    }
+
+    graduxy(x, gradsol);
+
+    STATE p_exact = 0.0;
+    pressure(x, p_exact);
+    sol[3] = p_exact;
+}
+
+void TAxisymmetricStokesAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const
+{
+    typedef STATE TVar;
+    TPZFMatrix<TVar> Du, pIdentity(sigma.Rows(),sigma.Cols());
+    TVar p=0.;
+    TPZManVector<STATE,3> xstate(3);
+    for(int i=0; i<3; i++) xstate[i] = x[i];
+    Duxy(xstate,Du);
+    for(int i=0; i<Du.Rows(); i++)
+    {
+        for(int j=0; j<Du.Cols(); j++)
+        {
+            Du(i,j) *= 2.0 * fviscosity;
+        }
+    }
+    pressure(xstate, p);
+    for (int i=0; i< pIdentity.Rows(); i++) {
+        pIdentity(i,i) = p;
+    }
+    sigma = Du-pIdentity;
+    
+}

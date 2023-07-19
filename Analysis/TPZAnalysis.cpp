@@ -52,6 +52,8 @@
 #include "TPZSimpleTimer.h"
 #include "pzelementgroup.h"
 #include "TPZJacobiPrecond.h"
+#include "pzmetis.h"
+
 #ifdef WIN32
 #include "pzsloan.h"                       // for TPZSloan
 #endif
@@ -77,7 +79,9 @@ static TPZLogger loggerError("pz.analysis.error");
  */
 #define RENUMBER TPZSloanRenumbering()
 //#define RENUMBER TPZCutHillMcKee()
+//#define RENUMBER TPZMetis()
 #endif
+
 
 using namespace std;
 

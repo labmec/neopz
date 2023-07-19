@@ -522,5 +522,55 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     
 };
 
+struct TAxisymmetricStokesAnalytic : public TPZAnalyticSolution
+{
+    enum EExactSol {ENone, ERadialFlow, EAxialFlow, ESlidingCouetteFlow, EHagenPoiseuilleFlow};
+    
+    int64_t fDimension = 2;
+
+    EExactSol fExactSol = ENone;
+    
+    REAL fviscosity = 1.0; //viscosity
+
+    REAL fp = 0.0; //imposed pressure, if it is needed for the solution
+
+    REAL fgradp = 0.0; //imposed pressure gradient, if it is needed for the solution
+
+    REAL fvel = 0.0; //imposed velocity, if it is needed for the solution
+
+    REAL fL = 1.0; //axial length
+
+    REAL fRi = 0.0; //internal radius
+
+    REAL fRe = 1.0; //external radius
+
+    REAL Pi = M_PI;
+    
+    TAxisymmetricStokesAnalytic() : TPZAnalyticSolution() {}
+    
+    virtual ~TAxisymmetricStokesAnalytic() {}
+    
+    template<class TVar>
+    void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const;
+
+    template<class TVar>
+    void pressure(const TPZVec<TVar> &x, TVar &p) const;
+    
+    template<class TVar>
+    void graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &gradu) const;
+
+    template<class TVar>
+    void Duxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &Du) const;
+    
+    template<class TVar>
+    void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
+    
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const override;
+
+    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &gradsol) const override;
+
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const override;
+};
+
 #endif
 

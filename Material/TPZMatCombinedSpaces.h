@@ -40,6 +40,8 @@ public:
         @param[in] elPMaxOrder maximum element order for each space
         @return adjusted integration rule order*/
     [[nodiscard]]virtual int IntegrationRuleOrder(const TPZVec<int> &elPMaxOrder) const = 0;
+
+    [[nodiscard]]virtual int IntegrationRuleOrderBC(const TPZVec<int> &elPMaxOrder) const = 0;
     
     [[nodiscard]] int ClassId() const override;
 };
@@ -147,6 +149,8 @@ public:
                           int var, TPZVec<TVar> &sol) = 0;
 
     [[nodiscard]] int IntegrationRuleOrder(const TPZVec<int> &elPMaxOrder) const override;
+
+    [[nodiscard]] int IntegrationRuleOrderBC(const TPZVec<int>& elPMaxOrder) const override;
     
     [[nodiscard]] int ClassId() const override;
 
@@ -173,6 +177,10 @@ public:
     void ContributeBC(const TPZVec<TPZMaterialDataT<TVar>> &datavec, REAL weight,
                       TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef,
                       TPZBndCondT<TVar> &bc) override;
+
+    [[nodiscard]] int IntegrationRuleOrder(const TPZVec<int> &elPMaxOrder) const override;
+
+    [[nodiscard]] int IntegrationRuleOrderBC(const TPZVec<int>& elPMaxOrder) const override;
     
     /** @brief This method passes the call to the associated material.*/
     virtual void Solution(const TPZVec<TPZMaterialDataT<TVar>> &datavec, int var,
