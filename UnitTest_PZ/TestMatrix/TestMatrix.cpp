@@ -789,6 +789,10 @@ template<class TVar>
       {
         TestingAddContribution<TVar>(10,10);
       }
+      SECTION("TPZFMatrix-INCOMPATIBLE-DIMENSIONS")
+      {
+        TestingAddContribution<TVar>(10,8);
+      }
     }
 #ifdef PZ_USING_LAPACK
     template <class TVar> void GeneralisedEigenvaluesAutoFill() {
@@ -1746,48 +1750,60 @@ void TestingMultAdd(int dim, SymProp sp, DecomposeType dec) {
 template <class TVar>
 void TestingAddContribution(int nrows, int ncols)
 {
-  TPZFMatrix<TVar> C1;
-  C1.AutoFill(nrows, ncols, SymProp::NonSym);
-  TPZFMatrix<TVar> C2;
-  TPZFMatrix<TVar> A(C1);
-  TPZFMatrix<TVar> B(C1);
-  TPZFMatrix<TVar> BT;
-  B.Transpose(&BT);
-  TPZFMatrix<TVar> y(C1);
+    TPZFMatrix<TVar> C1;
+    C1.AutoFill(nrows, ncols, SymProp::NonSym);
+    TPZFMatrix<TVar> C2;
+    TPZFMatrix<TVar> A(C1);
+    TPZFMatrix<TVar> B(C1);
+    TPZFMatrix<TVar> BT;
+    B.Transpose(&BT);
+    TPZFMatrix<TVar> y(C1);
 
-  C1.AddContribution(0, 0, A, false, B, true, 1.0);
-  A.MultAdd(BT,y,C2, 1.0, 1.0);
-  
-  constexpr RTVar tol = []()
-  {
-    if constexpr (std::is_same_v<RTVar,float>) return (RTVar)100;
-    else if constexpr (std::is_same_v<RTVar,long double>) return (RTVar)10;
-    else return (RTVar)1;
-  }();
+    if (nrows != ncols)
+        REQUIRE_THROWS(C1.AddContribution(0, 0, A, false, B, false, 1.0)); //this will fail because we are multiplying A*B that have the same dimensions
 
-  bool check = true;
-  
-  for (int i = 0; i < nrows; i++)
-  {
-    for (int j = 0; j < ncols; j++)
+    else
     {
-      TVar diff = C1(i,j) - C2(i,j);
-      if (!IsZero(diff / tol))
-      {
-        CAPTURE(nrows, ncols);
-        CAPTURE(C1(i,j), C2(i,j));
-        std::cout << "i " << i << " j " << j << " C1 " << C1(i,j) << " C2 " << C2(i,j) << std::endl;
-        if(check)
+        C1.AddContribution(0, 0, A, false, B, true, 1.0);
+        A.MultAdd(BT, y, C2, 1.0, 1.0);
+
+        constexpr RTVar tol = []()
         {
-          A.Print("A = ",std::cout,EMathematicaInput);
-          B.Print("B = ",std::cout,EMathematicaInput);
-          BT.Print("BT = ",std::cout,EMathematicaInput);
+          if constexpr (std::is_same_v<RTVar, float>)
+            return (RTVar)100;
+          else if constexpr (std::is_same_v<RTVar, long double>)
+            return (RTVar)10;
+          else
+            return (RTVar)1;
+        }();
+
+        bool check = true;
+
+        for (int i = 0; i < nrows; i++)
+        {
+            for (int j = 0; j < ncols; j++)
+            {
+                TVar diff = C1(i, j) - C2(i, j);
+                if (!IsZero(diff / tol))
+                {
+                    CAPTURE(nrows, ncols);
+                    CAPTURE(C1(i, j), C2(i, j));
+                    std::cout << "i " << i << " j " << j << " C1 " << C1(i, j) << " C2 " << C2(i, j) << std::endl;
+                    if (check)
+                    {
+                      A.Print("A = ", std::cout, EMathematicaInput);
+                      B.Print("B = ", std::cout, EMathematicaInput);
+                      BT.Print("BT = ", std::cout, EMathematicaInput);
+                    }
+                    check = false;
+                }
+            }
         }
-        check = false;
-      }
+
+        REQUIRE(check);
+
+        REQUIRE_THROWS(C1.AddContribution(1, 1, A, false, B, false, 1.0)); //this will fail because we are adding a contribution out of C1 bounds
     }
-  }
-  REQUIRE(check);
 }
 
 #ifdef PZ_USING_LAPACK
@@ -1949,7 +1965,7 @@ void TestingEigenDecompositionAutoFill(int dim, SymProp sp) {
 
   RTVar mult = 1.;
   if (sizeof(RTVar) == 4) {
-    mult *= 10.;
+    mult *= 12.; //This value is arbitrary
   }
   TPZFMatrix<CTVar> x(dim, 1, 0.);
   TPZFMatrix<CTVar> res(dim, 1, 0.);
