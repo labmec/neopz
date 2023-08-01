@@ -70,12 +70,6 @@ int TPZMatCombinedSpacesT<TVar>::IntegrationRuleOrder(const TPZVec<int>& elPMaxO
 }
 
 template<class TVar>
-int TPZMatCombinedSpacesT<TVar>::IntegrationRuleOrderBC(const TPZVec<int>& elPMaxOrder) const
-{
-    return IntegrationRuleOrder(elPMaxOrder);
-}
-
-template<class TVar>
 int TPZMatCombinedSpacesT<TVar>::ClassId() const{
     return Hash("TPZMatCombinedSpacesT") ^
         ClassIdOrHash<TVar>() << 1 ^
@@ -112,20 +106,6 @@ void TPZMatCombinedSpacesBC<TVar>::Contribute(const TPZVec<TPZMaterialDataT<TVar
 {
     auto *tmp = dynamic_cast<TPZBndCondT<TVar>*>(this);
     fMatCombinedSpaces->ContributeBC(datavec,weight,ef,*tmp);
-}
-
-template<class TVar>
-int TPZMatCombinedSpacesBC<TVar>::IntegrationRuleOrder(const TPZVec<int> &elPMaxOrder) const
-{
-    return fMatCombinedSpaces->IntegrationRuleOrderBC(elPMaxOrder);
-}
-
-template<class TVar>
-int TPZMatCombinedSpacesBC<TVar>::IntegrationRuleOrderBC(const TPZVec<int>& elPMaxOrder) const
-{
-    PZError<<__PRETTY_FUNCTION__;
-    PZError<< "should not be called! Aborting...\n";
-    DebugStop();
 }
 
 /**

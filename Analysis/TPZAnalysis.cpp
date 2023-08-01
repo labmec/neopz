@@ -56,8 +56,6 @@
 #include "TPZSimpleTimer.h"
 #include "pzelementgroup.h"
 #include "TPZJacobiPrecond.h"
-#include "pzmetis.h"
-
 #ifdef WIN32
 #include "pzsloan.h"                       // for TPZSloan
 #endif
@@ -92,7 +90,6 @@ static TPZLogger loggerPrecond("pz.analysis.precondgraph");
 //#define RENUMBER TPZCutHillMcKee() //TPZCutHillMcKee usually performs worse than metis and sloan. Use carefully
 
 #endif
-
 
 using namespace std;
 
