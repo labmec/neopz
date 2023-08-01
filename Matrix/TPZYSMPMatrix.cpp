@@ -43,6 +43,19 @@ void TPZFYsmpMatrix<TVar>::MultiplyDummy(TPZFYsmpMatrix<TVar> & B, TPZFYsmpMatri
     }
 }
 
+template<class TVar>
+void TPZFYsmpMatrix<TVar>::GetRowIndices(const int64_t i, TPZVec<int64_t> &indices) const{
+	if (i < 0 || i >= this->Rows()) {
+		DebugStop();
+	}
+
+	const auto first = fIA[i];
+	const auto last = fIA[i+1];
+	const auto nv = last - first;
+	indices.Resize(nv);
+	for(int i = 0; i < nv; i++){indices[i] = fJA[first+i];}
+}
+
 // ****************************************************************************
 //
 // Constructor
@@ -407,22 +420,31 @@ TPZFYsmpMatrix<TVar> TPZFYsmpMatrix<TVar>::operator*(const TVar alpha) const
 template<class TVar>
 TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator+=(const TPZFYsmpMatrix<TVar> &A )
 {
-	TPZFYsmpMatrix<TVar> res((*this)+A);
-	*this = res;
+#ifdef PZDEBUG
+	CheckTypeCompatibility(this, &A);
+#endif
+	const int nnzero = this->fA.size();
+	for(int i = 0; i < nnzero; i++){
+		this->fA[i] += A.fA[i];
+	}
 	return *this;
 }
 template<class TVar>
 TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator-=(const TPZFYsmpMatrix<TVar> &A )
 {
-	TPZFYsmpMatrix<TVar> res((*this)-A);
-	*this = res;
+#ifdef PZDEBUG
+	CheckTypeCompatibility(this, &A);
+#endif
+	const int nnzero = this->fA.size();
+	for(int i = 0; i < nnzero; i++){
+		this->fA[i] -= A.fA[i];
+	}
 	return *this;
 }
 template<class TVar>
 TPZMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator*=(const TVar val)
 {
-	TPZFYsmpMatrix<TVar> res((*this)*val);
-	*this = res;
+	for(auto &el : this->fA) el *= val;
 	return *this;
 }
 
@@ -619,6 +641,27 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
     allthreads[i].join();
 	}
 	
+}
+
+
+template<class TVar>
+TVar TPZFYsmpMatrix<TVar>::RowTimesVector(const int row, const TPZFMatrix<TVar> &v) const
+{
+#ifdef PZDEBUG
+  if(v.Rows() != this->Cols()){
+    DebugStop();
+  }
+  if(row < 0 || row >= this->Rows()){
+    DebugStop();
+  }
+#endif
+  TVar res = 0;
+  const auto first = fIA[row];
+	const auto last = fIA[row+1];
+  for(int ic = first; ic < last; ic++){
+    res += fA[ic] * v.GetVal(fJA[ic],0);
+  }
+  return res;
 }
 
 // ****************************************************************************
@@ -857,47 +900,21 @@ static int64_t  FindCol(int64_t *colf, int64_t *coll, int64_t col)
 	return -1;
 }
 
-template<class TVar>
-int TPZFYsmpMatrix<TVar>::GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
-								 const int64_t colSize, TPZFMatrix<TVar> & A ) const {
-	int64_t ir;
-	for(ir=0; ir<rowSize; ir++)
-	{
-		int64_t row = sRow+ir;
-		int64_t colfirst = fIA[row];
-		int64_t collast = fIA[row+1];
-		int64_t iacol = FindCol(&fJA[0]+colfirst,&fJA[0]+collast-1,sCol);
-		int64_t ic;
-		for(ic=0; ic<colSize; ic++) A(ir,ic) = fA[iacol+colfirst];
-	}
-	return 0;
-}
-
-
-template<class TVar>
-void TPZFYsmpMatrix<TVar>::GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar> &block) const
-{
-	std::map<int64_t,int64_t> indord;
-	int64_t i,size = indices.NElements();
-	for(i=0; i<size; i++)
-	{
-		indord[indices[i]] = i;
-	}
-	std::map<int64_t,int64_t>::iterator itset,jtset;
-	for(itset = indord.begin(); itset != indord.end(); itset++)
-	{
-		int64_t *jfirst = &fJA[0]+fIA[(*itset).first];
-		int64_t *jlast = &fJA[0]+fIA[(*itset).first+1]-1;
-		//    int row = (*itset).first;
-		for(jtset = indord.begin(); jtset != indord.end(); jtset++)
-		{
-			int64_t col = FindCol(jfirst,jlast,(*jtset).first);
-			int64_t dist = jfirst+col-&fJA[0];
-			block((*itset).second,(*jtset).second) = fA[dist];
-			jfirst += col+1;
-		}
-	}
-}
+// template<class TVar>
+// int TPZFYsmpMatrix<TVar>::GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
+// 								 const int64_t colSize, TPZFMatrix<TVar> & A ) const {
+// 	int64_t ir;
+// 	for(ir=0; ir<rowSize; ir++)
+// 	{
+// 		int64_t row = sRow+ir;
+// 		int64_t colfirst = fIA[row];
+// 		int64_t collast = fIA[row+1];
+// 		int64_t iacol = FindCol(&fJA[0]+colfirst,&fJA[0]+collast-1,sCol);
+// 		int64_t ic;
+// 		for(ic=0; ic<colSize; ic++) A(ir,ic) = fA[iacol+colfirst];
+// 	}
+// 	return 0;
+// }
 
 /*
  * Perform row update of the sparse matrix
@@ -989,7 +1006,63 @@ void TPZFYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym)
     SetData(IA, JA, A);
 }
 
-
+template<class TVar>
+void
+TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &indices,
+										 TPZVec<int64_t> &ia,
+										 TPZVec<int64_t> &ja,
+										 TPZVec<TVar> &aa){
+#ifdef PZDEBUG
+	auto max_el = std::max_element(indices.begin(), indices.end());
+	auto min_el = std::min_element(indices.begin(), indices.end());
+	if(*min_el < 0 || *max_el >= this->Rows()){
+		DebugStop();
+	}
+	const bool is_sort= std::is_sorted(indices.begin(), indices.end());
+	if(!is_sort){
+		DebugStop();
+	}
+#endif
+	const int neq = indices.size();
+	ia.Resize(neq+1,-1);
+	int64_t nentries{0};
+	//first we count the number of entries
+	for(int i = 0; i < neq; i++){
+		const auto eq = indices[i];
+		ia[i] = nentries;
+		const auto first = fIA[eq];
+		const auto last = fIA[eq+1];
+		for(auto ieq = first; ieq < last; ieq++){
+			const auto col = fJA[ieq];
+			//std::lower_bound uses a binary search and indices is already sorted.
+			const auto pos = std::lower_bound(indices.begin(), indices.end(), col)-
+				indices.begin();
+			if(pos != neq && indices[pos] == col){
+				nentries++;
+			}
+		}
+	}
+	ia[neq] = nentries;
+	//now we fill ja, aa;
+	ja.Resize(nentries,-1);
+	aa.Resize(nentries,-1);
+	nentries = 0;
+	for(int i = 0; i < neq; i++){
+		const auto eq = indices[i];
+		const auto first = fIA[eq];
+		const auto last = fIA[eq+1];
+		for(auto ieq = first; ieq < last; ieq++){
+			const auto col = fJA[ieq];
+			//std::lower_bound uses a binary search and indices is already sorted.
+			const auto pos = std::lower_bound(indices.begin(), indices.end(), col)-
+				indices.begin();
+			if(pos != neq && indices[pos] == col){
+				aa[nentries] = fA[ieq];
+				ja[nentries++] = pos;
+			}
+		}
+	}
+}
 
 
 template<class TVar>

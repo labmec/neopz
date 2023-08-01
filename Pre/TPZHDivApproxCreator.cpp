@@ -618,7 +618,10 @@ TPZCompMesh * TPZHDivApproxCreator::CreateRotationSpace(const int pOrder, const 
 }
 
 void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) {
-        
+    if(mcmesh->GetSolType()==ESolType::EComplex){
+        //we dont create condensed complex elements yet
+        DebugStop();
+    }
     const int dim = mcmesh->Dimension();
     
     TPZVec<int64_t> elementgroup; // it is resized inside AssociateElements()
@@ -662,7 +665,7 @@ void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcm
         TPZCompEl *cel = mcmesh->Element(el);
         TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *> (cel);
         if (elgr) {
-            TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+            TPZCondensedCompEl *cond = new TPZCondensedCompElT<STATE>(elgr);
             cond->SetKeepMatrix(false);
         }
     }

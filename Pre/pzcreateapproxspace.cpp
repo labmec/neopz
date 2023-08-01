@@ -1030,6 +1030,8 @@ void TPZCreateApproximationSpace::SetCreateFunctions(TPZVec<TCreateFunction> &cr
  */
 void TPZCreateApproximationSpace::CondenseLocalEquations(TPZCompMesh &cmesh)
 {
+    const bool real_sol = cmesh.GetSolType()!=ESolType::EComplex;
+
     int64_t nel = cmesh.NElements();
     int64_t iel;
     for (iel=0; iel<nel; iel++) {
@@ -1037,7 +1039,11 @@ void TPZCreateApproximationSpace::CondenseLocalEquations(TPZCompMesh &cmesh)
         if(!cel) {
             continue;
         }
-        new TPZCondensedCompEl(cel);
+        if(real_sol){
+            new TPZCondensedCompElT<STATE>(cel);
+        }else{
+            new TPZCondensedCompElT<CSTATE>(cel);
+        }
     }
     
 }

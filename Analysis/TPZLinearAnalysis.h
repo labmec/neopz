@@ -16,11 +16,17 @@ public:
   /** @brief Create an empty TPZLinearAnalysis object */
 	TPZLinearAnalysis();
 
+#ifdef PZ_USING_METIS
 	/** @brief Create an TPZLinearAnalysis object from one mesh pointer */
-	TPZLinearAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
-    	
+	TPZLinearAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::EMetis, std::ostream &out = std::cout);
 	/** @brief Create an TPZLinearAnalysis object from one mesh auto pointer object */
-	TPZLinearAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
+	TPZLinearAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::EMetis, std::ostream &out = std::cout);
+#else
+  /** @brief Create an TPZLinearAnalysis object from one mesh pointer */
+  TPZLinearAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::ESloan, std::ostream &out = std::cout);
+  /** @brief Create an TPZLinearAnalysis object from one mesh auto pointer object */
+  TPZLinearAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::ESloan, std::ostream &out = std::cout);
+#endif
   /** @} */
   
   /** @name FEM */
@@ -44,6 +50,8 @@ public:
       @note In this function it will be checked if the solver is a TPZMatrixSolver*/
   void SetSolver(const TPZSolver &solver) override;
   /** @} */
+
+  void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) override;
 
   /** @name Graphical */
   /** @{ */

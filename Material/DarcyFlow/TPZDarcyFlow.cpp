@@ -127,6 +127,9 @@ int TPZDarcyFlow::VariableIndex(const std::string &name) const {
     if (!strcmp("ExactDiv", name.c_str())) return 12;
     if (!strcmp("ExactDivergence", name.c_str())) return 12;
     if (!strcmp("FluxL2", name.c_str())) return 13;
+    if (!strcmp("EstimatedError", name.c_str())) return 100;
+    if (!strcmp("TrueError", name.c_str())) return 101;
+    if (!strcmp("EffectivityIndex", name.c_str())) return 102;
 
     return TPZMatBase::VariableIndex(name);
 }
@@ -146,6 +149,10 @@ int TPZDarcyFlow::NSolutionVariables(int var) const {
     if (var == 11) return 1;     // Div/Divergence
     if (var == 12) return 1;     // ExactDiv/ExactDivergence
     if (var == 13) return fDim;  // FluxL2
+    if (var == 100) return 1;  // EstimatedError
+    if (var == 101) return 1;  // TrueError
+    if (var == 102) return 1;  // EffectivityIndex
+
 
     return TPZMatBase::NSolutionVariables(var);
 }
@@ -313,9 +320,10 @@ void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
     }
     diff = 0;
     for (int id = 0; id < fDim; id++) {
-        diff += perm * graduDiff[id];
+        REAL aux = perm * graduDiff[id];
+        diff += aux * aux;
     }
-    errors[2] += abs(diff * diff);
+    errors[2] += abs(diff);
 
     // errors[0] - H1/Energy norm
     errors[0] = errors[1] + errors[2];

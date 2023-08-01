@@ -108,6 +108,11 @@ void TPZSBFemMultiphysicsElGroup::Print(std::ostream &out) const
 
 void TPZSBFemMultiphysicsElGroup::GroupandCondense(set<int> & condensedmatid)
 {
+    const bool real_sol = this->Mesh()->GetSolType() != ESolType::EComplex;
+    if(!real_sol){
+        //we are not creating cplx condensed els yet
+        DebugStop();
+    }
 #ifdef PZDEBUG
     if (fElGroup.size() == 0 || condensedmatid.size() == 0) DebugStop();
 #endif
@@ -170,7 +175,7 @@ void TPZSBFemMultiphysicsElGroup::GroupandCondense(set<int> & condensedmatid)
     }
 
     bool keepmatrix = true;
-    fCondEl = new TPZCondensedCompEl(fCondensedEls, keepmatrix);
+    fCondEl = new TPZCondensedCompElT<STATE>(fCondensedEls, keepmatrix);
 
     AdjustConnectivities();
 
@@ -390,7 +395,10 @@ void TPZSBFemMultiphysicsElGroup::CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElem
     }
 
     // FLUX
-    TPZFMatrix<double> k01 = fCondEl->Matrix().K01();
+    auto *condel =
+        dynamic_cast<TPZCondensedCompElT<STATE>*>(fCondEl);
+    
+    TPZFMatrix<double> k01 = condel->Matrix().K01();
     n = fPhi.Rows();
 
     TPZFMatrix<std::complex<double>> fPhiD(2*n, 2*n,0.);

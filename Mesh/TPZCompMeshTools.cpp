@@ -534,6 +534,9 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
 {
 //    cmesh->ComputeNodElCon();
     int64_t nel = cmesh->NElements();
+    
+    const bool real_sol = cmesh->GetSolType() != ESolType::EComplex;
+    
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         if (!cel) {
@@ -572,7 +575,11 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
         bool cancondense = (ic != nc);
         if(cancondense)
         {
-            TPZCondensedCompEl *cond = new TPZCondensedCompEl(cel, keepmatrix);
+            if(real_sol){
+                new TPZCondensedCompElT<STATE>(cel, keepmatrix);
+            }else{
+                new TPZCondensedCompElT<CSTATE>(cel, keepmatrix);
+            }
         }
         
     }
@@ -586,6 +593,7 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
 // keeping a connect out the condensation loop
 void TPZCompMeshTools::CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNotCondensed, bool keepmatrix)
 {
+    const bool real_sol = cmesh->GetSolType() != ESolType::EComplex;
     //    cmesh->ComputeNodElCon();
     int64_t nel = cmesh->NElements();
     for (int64_t el=0; el<nel; el++) {
@@ -621,7 +629,11 @@ void TPZCompMeshTools::CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNo
         if(cancondense)
         {
             if(LagrangeLevelNotCondensed >= 0 && !found) DebugStop();
-            TPZCondensedCompEl *cond = new TPZCondensedCompEl(cel, keepmatrix);
+            if(real_sol){
+                new TPZCondensedCompElT<STATE>(cel, keepmatrix);
+            }else{
+                new TPZCondensedCompElT<CSTATE>(cel, keepmatrix);
+            }
         }
         
     }

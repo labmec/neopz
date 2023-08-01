@@ -45,6 +45,8 @@ namespace Precond{
   }
 }
 
+enum class RenumType {ENone, ESloan, ECutHillMcKee, EMetis};
+
 /**
  * @ingroup analysis
  * @brief Abstract class defining the interface for performing a Finite Element Analysis.*/
@@ -104,12 +106,21 @@ protected:
 	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();
 
-	/** @brief Create an TPZAnalysis object from one mesh pointer */
-	TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
+	
+#ifdef PZ_USING_METIS
+  /** @brief Create an TPZAnalysis object from one mesh pointer */
+	TPZAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::EMetis, std::ostream &out = std::cout);
+  /** @brief Create an TPZAnalysis object from one mesh auto pointer object */
+  TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::EMetis, std::ostream &out = std::cout);
+#else
+  /** @brief Create an TPZAnalysis object from one mesh pointer */
+  TPZAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::ESloan, std::ostream &out = std::cout);
+  /** @brief Create an TPZAnalysis object from one mesh auto pointer object */
+  TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::ESloan, std::ostream &out = std::cout);
+#endif
     	
-	/** @brief Create an TPZAnalysis object from one mesh auto pointer object */
-	TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
-
+  void CreateRenumberObject(const RenumType& renumtype);
+    
   /** @} */
   /** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
@@ -167,12 +178,15 @@ protected:
   
   /** @} */
 
-  /** @name Utils */
-  /** @{ */
-  /** @brief Define the type of preconditioner used */
-	/** This method will create the stiffness matrix but without assembling */
+  /** @name Utils 
+      @{ */
+  /** @brief Define the type of preconditioner used 
+      @param preconditioner [input] precond type
+      @param overlap [input] if false, matrix will be colored and Gauss Seidel-like iteration will happen
+  */
   template<class TVar>
-	TPZMatrixSolver<TVar> *BuildPreconditioner(Precond::Type preconditioner, bool overlap);
+	TPZMatrixSolver<TVar> *BuildPreconditioner(Precond::Type preconditioner,
+                                             bool overlap);
   /// deletes all data structures
   void CleanUp();
     
@@ -234,6 +248,8 @@ protected:
     
 	//! Sets an exact solution in all the materials of the associated mesh
   void SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f, int pOrder = 1);
+  //! Sets an exact solution in all the materials of the associated mesh
+  void SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<CSTATE> &result, TPZFMatrix<CSTATE> &deriv)> f, int pOrder = 1);
 	/** @brief Compute the local error over all elements and global errors in several norms and print out */
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
   /**
@@ -349,12 +365,12 @@ protected:
 
   /** @brief Common steps in setting a computational mesh. */
 	void SetCompMeshInit(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
-private:
   /** @brief Build a sequence solver based on the block graph and its colors */
   template <class TVar>
   TPZMatrixSolver<TVar> *
-  BuildSequenceSolver(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex,
-                      int64_t neq, int numcolors, TPZVec<int> &colors);
+  BuildSequenceSolver(const TPZVec<int64_t> &graph, const TPZVec<int64_t> &graphindex,
+                      const int64_t neq, const int numcolors, const TPZVec<int> &colors);
+private:
 
   template <class TVar>
   void

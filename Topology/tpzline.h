@@ -270,9 +270,8 @@ namespace pztopology {
             DebugStop();
         };
 
-        static void ComputeConstantHCurl(const TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds){
-            DebugStop();
-        };
+        template<class T>
+        static void ComputeConstantHCurl(const TPZVec<T> &point, TPZFMatrix<T> &vecDiv, TPZFMatrix<T> &curl, const TPZVec<int> &transformationIds);
         
         /**
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )

@@ -17,17 +17,17 @@ TPZLinearAnalysis::TPZLinearAnalysis() : TPZAnalysis()
 }
 
 TPZLinearAnalysis::TPZLinearAnalysis(TPZCompMesh *mesh,
-                                     bool mustOptimizeBandwidth,
+                                     const RenumType& renumtype,
                                      std::ostream &out) :
-  TPZAnalysis(mesh,mustOptimizeBandwidth,out),
+  TPZAnalysis(mesh,renumtype,out),
   fRhs(fSolType == EComplex ? true : false)
 {
 }
 
 TPZLinearAnalysis::TPZLinearAnalysis(TPZAutoPointer<TPZCompMesh> mesh,
-                                     bool mustOptimizeBandwidth,
+                                     const RenumType& renumtype,
                                      std::ostream &out) :
-  TPZAnalysis(mesh,mustOptimizeBandwidth,out),
+  TPZAnalysis(mesh,renumtype,out),
   fRhs(fSolType == EComplex ? true : false)
 {
 }
@@ -287,6 +287,11 @@ void TPZLinearAnalysis::SetSolver(const TPZSolver &solver){
     PZError<<" Incompatible types!\n";
     PZError<<" Aborting...\n";
     DebugStop();
+}
+
+void TPZLinearAnalysis::SetCompMesh(TPZCompMesh *cmesh, bool optimize){
+  TPZAnalysis::SetCompMesh(cmesh,optimize);
+  fRhs.SetSolType(this->fSolType);
 }
 
 

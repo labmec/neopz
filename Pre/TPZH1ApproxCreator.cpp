@@ -596,6 +596,10 @@ void TPZH1ApproxCreator::InsertL2MaterialObjects(TPZCompMesh * L2Mesh){
 }
 
 void TPZH1ApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh){
+    if(mcmesh->GetSolType()==ESolType::EComplex){
+        //we dont create condensed complex elements yet
+        DebugStop();
+    }
     /// same procedure as hybridize hdiv
     int64_t nel = mcmesh->NElements();
     TPZVec<int64_t> groupnumber(nel,-1);
@@ -635,7 +639,7 @@ void TPZH1ApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmes
         TPZCompEl *cel = mcmesh->Element(el);
         TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *> (cel);
         if (elgr) {
-            TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+            TPZCondensedCompEl *cond = new TPZCondensedCompElT<STATE>(elgr);
             cond->SetKeepMatrix(false);
         }
     }

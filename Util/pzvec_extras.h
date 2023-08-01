@@ -25,6 +25,16 @@ void AppendToVec(TPZVec<T> &vec, R t){
   vec[sz] = (T)t;
 }
 
+//! Removes duplicates AND sort vector contents
+template<class T>
+void RemoveDuplicates(TPZVec<T> &v)
+{
+    std::sort( v.begin(), v.end() );
+    auto newend = std::unique( v.begin(), v.end() );
+    const auto p = newend - v.begin();
+    v.Resize(p);
+}
+
 /**
  * @since Jan 9, 2002
  * @author Cantao!

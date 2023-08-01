@@ -216,6 +216,8 @@ public:
 
 	virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, bool transpA, const TPZFMatrix<TVar>& B, 
 						 		 bool transpB, const TVar alpha = 1.0);
+
+  	virtual TVar RowTimesVector(const int row, const TPZFMatrix<TVar> &v) const;
 	
 	/** @brief Computes res = rhs - this * x */
 	virtual void Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res ) ;

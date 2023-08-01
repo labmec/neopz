@@ -104,11 +104,13 @@ public:
 	
 	virtual void MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						   const TVar alpha=1.,const TVar beta = 0., const int opt = 0);
+
+  TVar RowTimesVector(const int row, const TPZFMatrix<TVar> &v) const override;
 	/** @} */
-	virtual int GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
-					   const int64_t colSize, TPZFMatrix<TVar> & A ) const override;
+	// this method is not working! default version does work
+	// virtual int GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
+	// 				   const int64_t colSize, TPZFMatrix<TVar> & A ) const override;
 	
-	void GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar> &block) const override;
 
 
   
@@ -124,6 +126,9 @@ public:
   /** @brief Get the mem location of data from the class*/
   virtual void GetData(int64_t* &IA, int64_t* &JA, TVar* &A);
 
+  //! Creates a sparse matrix containing only the eqs given in indices
+  void GetSubSparseMatrix(const TPZVec<int64_t> &indices, TPZVec<int64_t> &ia,
+                          TPZVec<int64_t> &ja, TPZVec<TVar> &aa);
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const override;
 	
@@ -168,7 +173,8 @@ public:
 	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex) override;
 	
 	void MultiplyDummy(TPZFYsmpMatrix<TVar> & B, TPZFYsmpMatrix<TVar> & Res);
-	
+
+    void GetRowIndices(const int64_t i, TPZVec<int64_t>& indices) const override;
 	virtual int Zero() override;
 	
     /// this is a class that doesn't implement direct decompostion

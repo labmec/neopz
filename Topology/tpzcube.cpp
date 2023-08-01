@@ -1441,16 +1441,16 @@ namespace pztopology {
     }
 
     /// Compute the directions of the HDiv vectors
-    // template <class TVar>
-    void TPZCube::ComputeConstantHCurl(const TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
+    template <class TVar>
+    void TPZCube::ComputeConstantHCurl(const TPZVec<TVar> &point, TPZFMatrix<TVar> &N0function, TPZFMatrix<TVar> &curl, const TPZVec<int> &transformationIds)
     {
-        REAL scale = 2.;    
-        REAL qsi = point[0];
-        REAL eta = point[1];
-        REAL zeta = point[2];
+        const TVar scale = 2.;    
+        const TVar &qsi = point[0];
+        const TVar &eta = point[1];
+        const TVar &zeta = point[2];
 
         constexpr auto nEdges{12};
-        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        TPZManVector<TVar,nEdges> edgeSign(nEdges,0);
         for(auto iEdge = 0; iEdge < nEdges; iEdge++){
             edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
         }
@@ -1822,31 +1822,15 @@ namespace pztopology {
 
 }
 
-/**********************************************************************************************************************
- * The following are explicit instantiation of member function template of this class, both with class T=REAL and its
- * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
- * in BOTH cases.    @orlandini
- **********************************************************************************************************************/
-template bool pztopology::TPZCube::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
+#define TEMPL(T) \
+    template bool pztopology::TPZCube::CheckProjectionForSingularity<T>(const int &side, const TPZVec<T> &xiInterior); \
+    template void pztopology::TPZCube::MapToSide<T>(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide); \
+    template void pztopology::TPZCube::BlendFactorForSide<T>(const int &, const TPZVec<T> &, T &, TPZVec<T> &); \
+    template void pztopology::TPZCube::TShape<T>(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi); \
+    template void pztopology::TPZCube::ComputeHDivDirections<T>(TPZFMatrix<T> &gradx, TPZFMatrix<T> &directions); \
+    template void pztopology::TPZCube::ComputeHCurlDirections<T>(TPZFMatrix<T> &gradx, TPZFMatrix<T> &directions, const TPZVec<int> &transformationIds); \
+    template void pztopology::TPZCube::ComputeConstantHCurl(const TPZVec<T> &point, TPZFMatrix<T> &vecDiv, TPZFMatrix<T> &curl, const TPZVec<int> &transformationIds);
 
-template void pztopology::TPZCube::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
-
-template void pztopology::TPZCube::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
-
-template void pztopology::TPZCube::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-
-template void pztopology::TPZCube::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
-
-template void pztopology::TPZCube::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, const TPZVec<int> &transformationIds);
-
-template bool pztopology::TPZCube::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
-
-template void pztopology::TPZCube::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
-
-template void pztopology::TPZCube::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
-                                                                   TPZVec<Fad<REAL>> &);
-template void pztopology::TPZCube::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
-
-template void pztopology::TPZCube::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
-
-template void pztopology::TPZCube::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions, const TPZVec<int> &transformationIds);
+TEMPL(REAL)
+TEMPL(Fad<REAL>)
+#undef TEMPL

@@ -225,7 +225,7 @@ void SBFemTest::SBFemHdivDarcy2D(const int nThreads){
 
   build.BuildMultiphysicsCompMesh(*cmeshm);
 
-  TPZLinearAnalysis an(cmeshm, false);
+  TPZLinearAnalysis an(cmeshm, RenumType::ENone);
   an.SetExact(LaplaceExact.ExactSolution());
 
   TPZManVector<REAL> errorVecPar;

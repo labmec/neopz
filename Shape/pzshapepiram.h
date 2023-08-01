@@ -29,7 +29,7 @@ namespace pzshape {
 	class TPZShapePiram  : public pztopology::TPZPyramid{
 		
 	public:
-		
+      using TTOPOL=pztopology::TPZPyramid;
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
          */

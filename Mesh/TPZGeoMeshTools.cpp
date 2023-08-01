@@ -3,6 +3,7 @@
 #include "TPZRefPatternDataBase.h"
 #include "TPZGenGrid2D.h"
 #include "TPZGenGrid3D.h"
+#include "tpzline.h"
 #include "tpztriangle.h"
 #include "tpzquadrilateral.h"
 #include "tpztetrahedron.h"
@@ -289,3 +290,18 @@ TPZGeoMesh *TPZGeoMeshTools::CreateGeoMeshSingleElT(const int matid,
   }
   return gmesh;
 }
+
+#define CREATE_TEMPL(TTOPOL) \
+    template \
+    TPZGeoMesh * \
+    TPZGeoMeshTools::CreateGeoMeshSingleElT<TTOPOL>(const int,  \
+                                                    const bool, \
+                                                    const int);
+
+CREATE_TEMPL(pztopology::TPZLine);
+CREATE_TEMPL(pztopology::TPZTriangle);
+CREATE_TEMPL(pztopology::TPZQuadrilateral);
+CREATE_TEMPL(pztopology::TPZTetrahedron);
+CREATE_TEMPL(pztopology::TPZCube);
+CREATE_TEMPL(pztopology::TPZPrism);
+CREATE_TEMPL(pztopology::TPZPyramid);

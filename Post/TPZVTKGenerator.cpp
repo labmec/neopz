@@ -554,7 +554,19 @@ void TPZVTKGenerator::PrintFieldDataLegacy()
       }
     }
     
-    
+      if(field->TypeName()=="TENSORS"){
+          *fFileout << "METADATA\n"
+                    << "COMPONENT_NAMES\n"
+                    << "XX\n"
+                    << "XY\n"
+                    << "XZ\n"
+                    << "YX\n"
+                    << "YY\n"
+                    << "YZ\n"
+                    << "ZX\n"
+                    << "ZY\n"
+                    << "ZZ\n";
+      }
   }
 }
 

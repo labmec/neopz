@@ -28,6 +28,7 @@ namespace pzshape {
 	class TPZShapeTetra : public pztopology::TPZTetrahedron{
 		
 	public:
+      using TTOPOL=pztopology::TPZTetrahedron;
 
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction

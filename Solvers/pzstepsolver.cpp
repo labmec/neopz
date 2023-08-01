@@ -79,13 +79,21 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
         }
     }
     
-	if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
-		result.Redim(mat->Rows(),F.Cols());
+	if(result.Rows() != mat->Cols() || result.Cols() != F.Cols()) {
+		result.Redim(mat->Cols(),F.Cols());
 	}
-	
-	if(this->fScratch.Rows() != result.Rows() || this->fScratch.Cols() != result.Cols()) {
-		this->fScratch.Redim(result.Rows(),result.Cols());
-	}
+  //not every solver need to resize fScratch
+	switch(fSolver) {
+		case TPZStepSolver::EJacobi:
+		case TPZStepSolver::ESOR:
+		case TPZStepSolver::ESSOR:
+      if(this->fScratch.Rows() != result.Rows() ||
+         this->fScratch.Cols() != result.Cols()) {
+        this->fScratch.Redim(result.Rows(),result.Cols());
+      }
+  default:
+    break;
+  }
 	
 	REAL tol = fTol;
 	int64_t numiterations = fMaxIterations;
@@ -144,11 +152,13 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 			mat->SolveBICGStab(numiterations, *fPrecond, F, result,residual,tol,fFromCurrent);
       name = "BiCGStab";
 			break;
-		case TPZStepSolver::EDirect:
-			result = F;
-			mat->SolveDirect(result,fDecompose);
-			if(residual) residual->Redim(F.Rows(),F.Cols());
+    case TPZStepSolver::EDirect:{
+      result = F;
+      mat->SolveDirect(result,fDecompose);
+      //mat has been decomposed, we cannot compute the residual
+      if(residual) {residual->Redim(F.Rows(),F.Cols());}
 			break;
+    }
 		case TPZStepSolver::EMultiply:
 			mat->Multiply(F,result);
 			if(residual) mat->Residual(result,F,*residual);

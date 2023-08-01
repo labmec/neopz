@@ -143,6 +143,7 @@ void TPZMHMHDivApproxCreator::PutinSubstructures(TPZCompMesh &cmesh)
 
 void TPZMHMHDivApproxCreator::CondenseElements(TPZCompMesh &cmesh)
 {
+    const bool real_sol = cmesh.GetSolType()!=ESolType::EComplex;
     cmesh.ComputeNodElCon();
     int64_t nel = cmesh.NElements();
     cmesh.ElementSolution().Resize(nel, 5);
@@ -167,7 +168,11 @@ void TPZMHMHDivApproxCreator::CondenseElements(TPZCompMesh &cmesh)
                         c.IncrementElConnected();
                     }
                 }
-                auto *cond = new TPZCondensedCompEl(cel);
+                if(real_sol){
+                    new TPZCondensedCompElT<STATE>(cel);
+                }else{
+                    new TPZCondensedCompElT<CSTATE>(cel);
+                }
             }
         }
     }

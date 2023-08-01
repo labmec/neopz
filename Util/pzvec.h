@@ -30,6 +30,9 @@ inline std::ostream &operator<<(std::ostream &out, const std::pair<int,int> &ele
 template< class T >
 class TPZVec {
 public:
+    using iterator=T*;
+    using const_iterator=T const*;
+    using value_type=T;
 	/** @brief Creates a vector with size 0. */
 	TPZVec();
 	
@@ -229,7 +232,10 @@ public:
     
     /** @brief Empty the vector, make its size zero */
     virtual void clear();
-	
+
+    void push_back(T v);
+
+    iterator insert(iterator pos, const T&v);
 protected:
 	/** @brief Allocated storage for the vector object */
 	T* fStore;
@@ -508,6 +514,26 @@ template<class T>
 void TPZVec<T>::clear()
 {
     this->Resize(0);
+}
+
+template<class T>
+void TPZVec<T>::push_back(T v)
+{
+    const auto sz = this->size();
+    
+    this->Resize(sz+1);
+    fStore[sz] = v;
+}
+
+template<class T>
+typename TPZVec<T>::iterator TPZVec<T>::insert(TPZVec<T>::iterator pos, const T&v){
+    const auto p = pos-this->begin();
+    if(pos == this->end()){
+        const auto sz = this->size();
+        this->Resize(sz+1);
+    }
+    fStore[p] = v;
+    return this->end();
 }
 
 template<class T>

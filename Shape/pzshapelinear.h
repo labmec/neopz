@@ -33,7 +33,7 @@ namespace pzshape {
 	class TPZShapeLinear : public pztopology::TPZLine{
 		
 	public:
-
+        using TTOPOL=pztopology::TPZLine;
 		/** @{
 		 * @name Orthogonal polynomials family 
 		 */

@@ -18,6 +18,8 @@
 #include "TPZSYSMPPardiso.h"
 #endif
 #include "tpzsparseblockdiagonal.h"
+#include "pzseqsolver.h"
+#include "pzstepsolver.h"
 #include <random>
 
 #include <catch2/catch_test_macros.hpp>
@@ -883,6 +885,8 @@ template<class TVar>
 
   template<class TVar>
   void SparseBlockDiagInverse();
+  template<class TVar>
+  void SparseBlockColorInverse();
 };
 
 
@@ -1166,6 +1170,7 @@ TEMPLATE_TEST_CASE("Additional Block Diagonal tests","[matrix_tests]",
   }
   SECTION("Sparse Block Inverse"){
     testmatrix::SparseBlockDiagInverse<TestType>();
+    testmatrix::SparseBlockColorInverse<TestType>();
   }
 }
 TEMPLATE_TEST_CASE("Symmetry test","[matrix_tests]",
@@ -2481,5 +2486,92 @@ void SparseBlockDiagInverse(){
       REQUIRE((std::abs(resblck.GetVal(ieq,0)) == Catch::Approx(0).margin(tol)));
     }
   }
-}   
+}
+
+template<class TVar>
+void SparseBlockColorInverse(){
+
+  constexpr int neq = 10;
+  constexpr int nblocks = 4;
+  //expected solution is {1,1,1,1,1,1,1,1,1,1}^T
+  TPZAutoPointer<TPZFMatrix<TVar>> fmat =
+    new TPZFMatrix<TVar>({
+        {1, 2, 0, 1, 0, 0, 0, 0, 0, 0},
+        {3, 1, 0, 2, 0, 0, 0, 0, 0, 0},
+        {0, 0, 1, 0, 4, 1, 0, 0, 0, 0},
+        {3, 2, 0, 3, 0, 0, 0, 0, 0, 0},
+        {0, 0, 2, 0, 1, 1, 0, 0, 0, 0},
+        {0, 0, 3, 0, 5, 4, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 1, 0, 2, 0},
+        {0, 0, 0, 0, 0, 0, 0, 6, 0, 2},
+        {0, 0, 0, 0, 0, 0, 3, 0, 4, 0},
+        {0, 0, 0, 0, 0, 0, 0, 2, 0, 5}
+    });
+
+  // TPZAutoPointer<TPZFYsmpMatrix<TVar>> smat = new TPZFYsmpMatrix<TVar>(neq,neq);
+  // TPZVec<int64_t> ia = {0,3,6,9,12,15,18,20,22,24,26};
+  // TPZVec<int64_t> ja = {0,1,3,0,1,3,2,4,5,0,1,3,2,4,5,2,4,5,6,8,7,9,6,8,7,9};
+  // TPZVec<TVar> aa =    {1,2,1,3,1,2,1,4,1,3,2,3,2,1,1,3,5,4,1,2,6,2,3,4,2,5};
+  // smat->SetData(ia,ja,aa);
+  
+  TPZFMatrix<TVar> rhs = {4,6,6,8,4,12,3,8,7,7};
+  //now we will extract a few blocks from the full matrix
+  //non-null equations
+  TPZVec<int64_t> blockgraph =
+    {
+      0,1,3,//first block
+      2,4,5,//second block
+      6,8,//third block
+      7,9//fourth block
+    };
+
+  //index in blockgraph of first equation of each block
+  TPZVec<int64_t> blockgraphindex =
+    {
+      0,//first block
+      3,//second block
+      6,//third block
+      8,//fourth block
+      10//size of blockgraph
+    };
+  constexpr int numcolors{2};
+  //block colors
+  TPZVec<int> colors =
+    {
+      0,//first block
+      1,//second block
+      0,//third block
+      1//fourth bock
+    };
+
+  TPZSequenceSolver<TVar> seqsolv;
+  for(int c = 0; c < numcolors; c++){
+    
+    TPZAutoPointer<TPZSparseBlockDiagonal<TVar>> blmat
+      = new TPZSparseBlockDiagonal<TVar>(blockgraph,blockgraphindex,neq,c,colors);
+    blmat->BuildFromMatrix(*fmat);
+    
+    TPZStepSolver<TVar> step(blmat);
+    step.SetDirect(ELU);
+    seqsolv.AppendSolver(step);
+  }
+  seqsolv.SetMatrix(fmat);
+  TPZFMatrix<TVar> res = rhs;
+
+
+
+  constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*2000;
+  /*
+  //just to ensure that the solution is correct
+  TPZAutoPointer<TPZMatrix<TVar>> fmatcp = fmat->Clone();
+  fmatcp->SolveDirect(res,ELU);
+  for(int i = 0; i < neq; i++){
+    REQUIRE(std::abs(res.GetVal(i,0)-(TVar)1.)==Catch::Approx(0).margin(tol));
+  }
+  */
+  seqsolv.Solve(rhs, res);
+  for(int i = 0; i < neq; i++){
+    REQUIRE(std::abs(res.GetVal(i,0)-(TVar)1.)==Catch::Approx(0).margin(tol));
+  }
+}
 };

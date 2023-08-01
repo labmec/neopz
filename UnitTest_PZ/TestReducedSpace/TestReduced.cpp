@@ -341,7 +341,7 @@ TPZFMatrix<STATE> ComputeSolution(TLaplaceExample1 &config, TPZCompMesh *cmesh)
 {
     SetExactSolution(config, cmesh);
     // avoid renumbering the equations
-    TPZLinearAnalysis an(cmesh,false);
+    TPZLinearAnalysis an(cmesh,RenumType::ENone);
 #ifdef PZ_USING_MKL
     TPZSSpStructMatrix<STATE> strmat(cmesh);
     an.SetStructuralMatrix(strmat);

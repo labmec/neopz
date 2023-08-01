@@ -120,6 +120,21 @@ TPZSolutionMatrix &TPZSolutionMatrix::operator+=(const TPZFMatrix<TVar> &mat){
   return *this;
 }
 
+void TPZSolutionMatrix::SetSolType(ESolType st){
+  if (fSolType == EUndefined){
+    fSolType = st;
+    if(st == EReal){
+      fBaseMatrix = &fRealMatrix;
+    }else if (st == EComplex){
+      fBaseMatrix = &fComplexMatrix;
+    }
+  }else{
+    PZError << __PRETTY_FUNCTION__;
+    PZError << " called but a type was already set\n";
+    DebugStop();
+  }
+}
+
 TPZSolutionMatrix &TPZSolutionMatrix::operator+=(const TPZSolutionMatrix &sol){
   if(fSolType == EReal && sol.fSolType == EReal){
     fRealMatrix += sol.fRealMatrix;

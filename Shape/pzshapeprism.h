@@ -26,7 +26,7 @@ namespace pzshape {
 	class TPZShapePrism : public pztopology::TPZPrism {
 		
 	public:
-		
+      using TTOPOL=pztopology::TPZPrism;
         
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction

@@ -31,7 +31,7 @@ TPZNonLinearAnalysis::TPZNonLinearAnalysis() : TPZLinearAnalysis() {
 	fSolution.Zero();
 }
 
-TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZLinearAnalysis(mesh,true,out) {
+TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZLinearAnalysis(mesh,RenumType::ESloan,out) {
 	if(Mesh()) Mesh()->Solution().Zero();
 	fSolution.Zero();
 }
