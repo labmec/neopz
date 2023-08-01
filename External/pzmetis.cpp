@@ -26,17 +26,9 @@ TPZMetis::TPZMetis() : TPZRenumbering()
 #ifndef PZ_USING_METIS
     PZError<<"TPZMetis depends on the Metis library\n";
     PZError<<"Please reconfigure NeoPZ library using:\n";
-<<<<<<< HEAD
-    PZError<<"USING_METIS=ON"<<std::endl;
-    // DebugStop();
-||||||| 37a509e76
-    PZError<<"USING_METIS=ON"<<std::endl;
-    DebugStop();
-=======
     PZError<<"PZ_USING_METIS=ON"<<std::endl;
     DebugStop();
 #endif
->>>>>>> develop
 }
 
 void TPZMetis::Print(std::ostream &out,char * title) {
