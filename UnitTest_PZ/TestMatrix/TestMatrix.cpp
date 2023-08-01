@@ -175,7 +175,7 @@ void TestingMultAdd(int dim, SymProp sp, DecomposeType dec);
  * @note Process: build a matrix C with randomic values, adds a contribution C += A*B of the same size as C. Compare the results with AddContribution and MultAdd.
  */
 template <class TVar>
-void TestingAddContribution(int nrows, int ncols);
+void TestingAddContribution(int nrows, int ncols, int ntype);
 #ifdef PZ_USING_LAPACK
 
 /**
@@ -785,13 +785,17 @@ template<class TVar>
     template<class TVar>
     void TestAddContribution()
     {
-      SECTION("TPZFMatrix-SQUARE")
+      SECTION("TPZFMatrix-SQUARE-MULTADD")
       {
-        TestingAddContribution<TVar>(10,10);
+        TestingAddContribution<TVar>(10,10,0);
       }
       SECTION("TPZFMatrix-INCOMPATIBLE-DIMENSIONS")
       {
-        TestingAddContribution<TVar>(10,8);
+        TestingAddContribution<TVar>(10,8,1);
+      }
+      SECTION("TPZFMatrix-OUT-OF-BOUNDS")
+      {
+        TestingAddContribution<TVar>(4,4,2);
       }
     }
 #ifdef PZ_USING_LAPACK
@@ -1748,7 +1752,7 @@ void TestingMultAdd(int dim, SymProp sp, DecomposeType dec) {
 }
 
 template <class TVar>
-void TestingAddContribution(int nrows, int ncols)
+void TestingAddContribution(int nrows, int ncols, int ntype)
 {
     TPZFMatrix<TVar> C1;
     C1.AutoFill(nrows, ncols, SymProp::NonSym);
@@ -1759,50 +1763,64 @@ void TestingAddContribution(int nrows, int ncols)
     B.Transpose(&BT);
     TPZFMatrix<TVar> y(C1);
 
-    if (nrows != ncols)
-        REQUIRE_THROWS(C1.AddContribution(0, 0, A, false, B, false, 1.0)); //this will fail because we are multiplying A*B that have the same dimensions
-
-    else
+    switch (ntype)
     {
-        C1.AddContribution(0, 0, A, false, B, true, 1.0);
-        A.MultAdd(BT, y, C2, 1.0, 1.0);
+      case 0: // Comparison between AddContribution and MultAdd
+      {
+          C1.AddContribution(0, 0, A, false, B, true, 1.0);
+          A.MultAdd(BT, y, C2, 1.0, 1.0);
 
-        constexpr RTVar tol = []()
-        {
-          if constexpr (std::is_same_v<RTVar, float>)
-            return (RTVar)100;
-          else if constexpr (std::is_same_v<RTVar, long double>)
-            return (RTVar)10;
-          else
-            return (RTVar)1;
-        }();
+          constexpr RTVar tol = []()
+          {
+            if constexpr (std::is_same_v<RTVar, float>)
+              return (RTVar)100;
+            else if constexpr (std::is_same_v<RTVar, long double>)
+              return (RTVar)10;
+            else
+              return (RTVar)1;
+          }();
 
-        bool check = true;
+          bool check = true;
 
-        for (int i = 0; i < nrows; i++)
-        {
-            for (int j = 0; j < ncols; j++)
-            {
-                TVar diff = C1(i, j) - C2(i, j);
-                if (!IsZero(diff / tol))
-                {
-                    CAPTURE(nrows, ncols);
-                    CAPTURE(C1(i, j), C2(i, j));
-                    std::cout << "i " << i << " j " << j << " C1 " << C1(i, j) << " C2 " << C2(i, j) << std::endl;
-                    if (check)
-                    {
-                      A.Print("A = ", std::cout, EMathematicaInput);
-                      B.Print("B = ", std::cout, EMathematicaInput);
-                      BT.Print("BT = ", std::cout, EMathematicaInput);
-                    }
-                    check = false;
-                }
-            }
-        }
+          for (int i = 0; i < nrows; i++)
+          {
+              for (int j = 0; j < ncols; j++)
+              {
+                  TVar diff = C1(i, j) - C2(i, j);
+                  if (!IsZero(diff / tol))
+                  {
+                      CAPTURE(nrows, ncols);
+                      CAPTURE(C1(i, j), C2(i, j));
+                      std::cout << "i " << i << " j " << j << " C1 " << C1(i, j) << " C2 " << C2(i, j) << std::endl;
+                      if (check)
+                      {
+                        A.Print("A = ", std::cout, EMathematicaInput);
+                        B.Print("B = ", std::cout, EMathematicaInput);
+                        BT.Print("BT = ", std::cout, EMathematicaInput);
+                      }
+                      check = false;
+                  }
+              }
+          }
 
-        REQUIRE(check);
-
-        REQUIRE_THROWS(C1.AddContribution(1, 1, A, false, B, false, 1.0)); //this will fail because we are adding a contribution out of C1 bounds
+          REQUIRE(check);
+          break;
+      }
+      case 1: // Multiplying matrices with incompatible dimensions
+      {
+          REQUIRE_THROWS(C1.AddContribution(0, 0, A, false, B, false, 1.0)); // this will fail because we are multiplying A*B that have the same dimensions
+          break;
+      }
+      case 2: // Adding a contribution out of matrix bounds
+      {
+          REQUIRE_THROWS(C1.AddContribution(1, 1, A, false, B, false, 1.0)); // this will fail because we are adding a contribution out of C1 bounds
+          break;
+      }
+      default:
+      {
+          std::cout << "Test type not implemented\n";
+          break;
+      }
     }
 }
 
