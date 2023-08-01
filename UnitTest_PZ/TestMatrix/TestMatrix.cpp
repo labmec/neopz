@@ -1815,7 +1815,7 @@ void TestingAddContribution(int nrows, int ncols, int ntype)
       }
       case 1: // Multiplying matrices with incompatible dimensions
       {
-          REQUIRE_THROWS(C1.AddContribution(0, 0, A, false, B, false, 1.0)); // this will fail because we are multiplying A*B that have the same dimensions
+          REQUIRE_THROWS(C1.AddContribution(0, 0, A, false, B, false, 1.0)); // this will fail for not square matrices, as A and B have the same sizes
           break;
       }
       case 2: // Adding a contribution out of matrix bounds
