@@ -784,21 +784,23 @@ template<class TVar>
       }
     }
 
-    template<class TVar>
+    template <class TVar>
     void TestAddContribution()
     {
       SECTION("TPZFMatrix-SQUARE-MULTADD")
       {
-        TestingAddContribution<TVar>(10,10,0);
+          TestingAddContribution<TVar>(10, 10, 0);
       }
+#ifdef PZDEBUG
       SECTION("TPZFMatrix-INCOMPATIBLE-DIMENSIONS")
       {
-        TestingAddContribution<TVar>(10,8,1);
+          TestingAddContribution<TVar>(10, 8, 1);
       }
       SECTION("TPZFMatrix-OUT-OF-BOUNDS")
       {
-        TestingAddContribution<TVar>(4,4,2);
+          TestingAddContribution<TVar>(4, 4, 2);
       }
+#endif
     }
 #ifdef PZ_USING_LAPACK
     template <class TVar> void GeneralisedEigenvaluesAutoFill() {
