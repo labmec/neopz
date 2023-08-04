@@ -215,7 +215,10 @@ public:
 	virtual void MultAdd(const TPZFMatrix<TVar> & x,const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,
 						 const TVar alpha=1., const TVar beta = 0., const int opt = 0) const;
 
-  virtual TVar RowTimesVector(const int row, const TPZFMatrix<TVar> &v) const;
+    virtual TVar RowTimesVector(const int row, const TPZFMatrix<TVar> &v) const;
+
+	virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, bool transpA, const TPZFMatrix<TVar>& B, 
+						 		 bool transpB, const TVar alpha = 1.0);
 	
 	/** @brief Computes res = rhs - this * x */
 	virtual void Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res ) ;

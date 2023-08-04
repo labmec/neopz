@@ -218,6 +218,19 @@ public:
                         const TVar alpha=1.,const TVar beta = 0.,const int opt = 0);
     
     /**
+     * @brief It computes this += alpha*(A * B), where A or B can be transposed.
+     * @param i Is the row of (this) where the first element of the matrices product should be added 
+     * @param j Is the column of (this) where the first element of the matrices product should be added 
+     * @param A Is A on the above operation
+     * @param transpA Indicates if A is Transpose or not
+     * @param B Is B on the above operation
+     * @param transpB Indicates if B is Transpose or not
+     * @param alpha Is alpha on the above operation
+     */
+    virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, bool transpA, const TPZFMatrix<TVar>& B, 
+						 		 bool transpB, const TVar alpha = 1.0) override;
+
+    /**
      * @name Generic operator with TVar type
      * @{
      */
