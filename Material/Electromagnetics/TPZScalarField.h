@@ -48,6 +48,8 @@ public:
   //! Gets the permittivity of the material
   virtual void GetPermittivity([[maybe_unused]] const TPZVec<REAL> &x,
                                TPZFMatrix<CSTATE> &er) const;
+  //! Gets scale factor
+  [[nodiscard]] REAL GetScaleFactor() const {return fScaleFactor;}
   /**
      @name SolutionMethods
      @{*/
