@@ -126,6 +126,9 @@ public:
     //! Set the propagation constant used for post processing the solution
     inline void SetKz(const CSTATE &kz)
     { fKz = kz;}
+
+    //! Gets scale factor
+    [[nodiscard]] REAL GetScaleFactor() const {return fScaleFactor;}
     /**@}*/
 
     /** @name GeneralisedMethods */
