@@ -1094,7 +1094,7 @@ void TPZMHMixedMeshControl::GroupandCondenseElements()
         TPZCompMeshTools::CondenseElements(subcmesh, keeplagrange, true);
 //        TPZCompMeshTools::CondenseElements(subcmesh, keeplagrange);
         subcmesh->CleanUpUnconnectedNodes();
-        int numthreads = 0;
+        int numthreads = 16;
         int preconditioned = 0;
 #ifdef PZ_LOG2
         if(logger.isDebugEnabled())
@@ -1105,8 +1105,9 @@ void TPZMHMixedMeshControl::GroupandCondenseElements()
         }
 #endif
         TPZAutoPointer<TPZGuiInterface> guiInterface;
-        subcmesh->SetAnalysisFStruct(numthreads);
+//        subcmesh->SetAnalysisFStruct(numthreads);
 //        subcmesh->SetAnalysisSkyline(numthreads, preconditioned, guiInterface);
+        subcmesh->SetAnalysisSparse(numthreads);
     }
     
 }
