@@ -6,6 +6,12 @@
 #define _TPZCYLINDRICALPML_H_
 
 #include "TPZMatPML.h"
+
+template<class T>
+class TPZVec;
+template<class T>
+class TPZFMatrix;
+
 /**
  * @ingroup material
  * @brief This class implements a cylindrical PML for a given existing material.
@@ -23,10 +29,10 @@ protected:
   bool fAttZ{false};
   REAL fPmlBeginZ{-1};
   
-  STATE fAlphaMaxR{0};
-  STATE fAlphaMaxZ{0};
-  STATE fDR{-1};
-  STATE fDZ{-1};
+  CSTATE fAlphaMaxR{0};
+  CSTATE fAlphaMaxZ{0};
+  REAL fDR{-1};
+  REAL fDZ{-1};
   TPZCylindricalPML() = default;
 
   void ComputeTransformMat(TPZFMatrix<CSTATE> &mat,
@@ -37,13 +43,13 @@ public:
   //! Creates PML based on another domain region
   TPZCylindricalPML(const int id, const TMAT &mat) : TPZMatPML<TMAT>(id,mat) {};
   //! Sets information regarding the attenuation of the PML in the r-direction
-  void SetAttR(const REAL pmlBegin, const STATE alpha, const REAL d);
+  void SetAttR(const REAL pmlBegin, const CSTATE alpha, const REAL d);
   //! Sets information regarding the attenuation of the PML in the z-direction
-  void SetAttZ(const REAL pmlBegin, const STATE alpha, const REAL d);
+  void SetAttZ(const REAL pmlBegin, const CSTATE alpha, const REAL d);
   //! Gets information regarding the attenuation of the PML in the r-direction
-  void GetAttR(REAL& pmlBegin, STATE& alpha, REAL& d) const
+  void GetAttR(REAL& pmlBegin, CSTATE& alpha, REAL& d) const
   {pmlBegin=fPmlBeginR;alpha=fAlphaMaxR;d=fDR;}
-  void GetAttZ(REAL& pmlBegin, STATE& alpha, REAL& d) const
+  void GetAttZ(REAL& pmlBegin, CSTATE& alpha, REAL& d) const
   {pmlBegin=fPmlBeginZ;alpha=fAlphaMaxZ;d=fDZ;}
   //! Gets the permeability of the material
   void GetPermeability(const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const override;

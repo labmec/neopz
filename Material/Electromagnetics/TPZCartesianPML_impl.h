@@ -5,7 +5,7 @@
 
 template<class TMAT>
 void TPZCartesianPML<TMAT>::SetAttX(const REAL pmlBegin,
-                              const STATE alpha,
+                              const CSTATE alpha,
                               const REAL d)
 {
   if(d < 0){ // pml width must be positive
@@ -13,7 +13,7 @@ void TPZCartesianPML<TMAT>::SetAttX(const REAL pmlBegin,
     PZError<<"PML width is invalid : "<<d<<std::endl;
     DebugStop();
   }
-  if(alpha < 0){//for the attenuation to happen this value must be positive
+  if(std::real(alpha) < 0){//for the attenuation to happen this value must be positive
     PZError<<__PRETTY_FUNCTION__;
     PZError<<"alpha max is invalid : "<<alpha<<std::endl;
     DebugStop();
@@ -26,7 +26,7 @@ void TPZCartesianPML<TMAT>::SetAttX(const REAL pmlBegin,
 
 template<class TMAT>
 void TPZCartesianPML<TMAT>::SetAttY(const REAL pmlBegin,
-                              const STATE alpha,
+                              const CSTATE alpha,
                               REAL d)
 {
   if(d < 0){ // pml width must be positive
@@ -34,7 +34,7 @@ void TPZCartesianPML<TMAT>::SetAttY(const REAL pmlBegin,
     PZError<<"PML width is invalid : "<<d<<std::endl;
     DebugStop();
   }
-  if(alpha < 0){//for the attenuation to happen this value must be positive
+  if(std::real(alpha) < 0){//for the attenuation to happen this value must be positive
     PZError<<__PRETTY_FUNCTION__;
     PZError<<"alpha max is invalid : "<<alpha<<std::endl;
     DebugStop();
@@ -47,7 +47,7 @@ void TPZCartesianPML<TMAT>::SetAttY(const REAL pmlBegin,
 
 template<class TMAT>
 void TPZCartesianPML<TMAT>::SetAttZ(const REAL pmlBegin,
-                              const STATE alpha,
+                              const CSTATE alpha,
                               REAL d)
 {
   if(d < 0){ // pml width must be positive
@@ -55,7 +55,7 @@ void TPZCartesianPML<TMAT>::SetAttZ(const REAL pmlBegin,
     PZError<<"PML width is invalid : "<<d<<std::endl;
     DebugStop();
   }
-  if(alpha < 0){//for the attenuation to happen this value must be positive
+  if(std::real(alpha) < 0){//for the attenuation to happen this value must be positive
     PZError<<__PRETTY_FUNCTION__;
     PZError<<"alpha max is invalid : "<<alpha<<std::endl;
     DebugStop();
