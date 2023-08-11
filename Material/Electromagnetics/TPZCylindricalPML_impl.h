@@ -6,7 +6,7 @@ using namespace std::complex_literals;
 
 template<class TMAT>
 void TPZCylindricalPML<TMAT>::SetAttR(const REAL pmlBegin,
-                              const STATE alpha,
+                              const CSTATE alpha,
                               const REAL d)
 {
   if(d < 0){ // pml width must be positive
@@ -14,7 +14,7 @@ void TPZCylindricalPML<TMAT>::SetAttR(const REAL pmlBegin,
     PZError<<"PML width is invalid : "<<d<<std::endl;
     DebugStop();
   }
-  if(alpha < 0){//for the attenuation to happen this value must be positive
+  if(std::real(alpha) < 0){//for the attenuation to happen this value must be positive
     PZError<<__PRETTY_FUNCTION__;
     PZError<<"alpha max is invalid : "<<alpha<<std::endl;
     DebugStop();
@@ -27,7 +27,7 @@ void TPZCylindricalPML<TMAT>::SetAttR(const REAL pmlBegin,
 
 template<class TMAT>
 void TPZCylindricalPML<TMAT>::SetAttZ(const REAL pmlBegin,
-                              const STATE alpha,
+                              const CSTATE alpha,
                               REAL d)
 {
   if(d < 0){ // pml width must be positive
@@ -35,7 +35,7 @@ void TPZCylindricalPML<TMAT>::SetAttZ(const REAL pmlBegin,
     PZError<<"PML width is invalid : "<<d<<std::endl;
     DebugStop();
   }
-  if(alpha < 0){//for the attenuation to happen this value must be positive
+  if(std::real(alpha) < 0){//for the attenuation to happen this value must be positive
     PZError<<__PRETTY_FUNCTION__;
     PZError<<"alpha max is invalid : "<<alpha<<std::endl;
     DebugStop();
@@ -99,7 +99,7 @@ void TPZCylindricalPML<TMAT>::GetPermittivity(
   t1.Multiply(smat,er);
   er *= 1./detmatinv;
   //now we convert back to cartesian coords
-  auto RotationMatrix = [](TPZFMatrix<CSTATE> &mat, STATE theta){
+  auto RotationMatrix = [](TPZFMatrix<CSTATE> &mat, CSTATE theta){
     mat.Redim(3,3);
     mat.Put(0,0, std::cos(theta));
     mat.Put(0,1,-std::sin(theta));
@@ -130,7 +130,7 @@ void TPZCylindricalPML<TMAT>::GetPermeability(
   t1.Multiply(smat,ur);
   ur *= 1./detmatinv;
   //now we convert back to cartesian coords
-  auto RotationMatrix = [](TPZFMatrix<CSTATE> &mat, STATE theta){
+  auto RotationMatrix = [](TPZFMatrix<CSTATE> &mat, CSTATE theta){
     mat.Redim(3,3);
     mat.Put(0,0, std::cos(theta));
     mat.Put(0,1,-std::sin(theta));

@@ -6,6 +6,11 @@
 #define _TPZCARTESIANPML_H_
 
 #include "TPZMatPML.h"
+
+template<class T>
+class TPZVec;
+template<class T>
+class TPZFMatrix;
 /**
  * @ingroup material
  * @brief This class implements a cartesian PML for a given existing material.
@@ -25,12 +30,12 @@ protected:
   bool fAttZ{false};
   REAL fPmlBeginZ{-1};
   
-  STATE fAlphaMaxX{0};
-  STATE fAlphaMaxY{0};
-  STATE fAlphaMaxZ{0};
-  STATE fDX{-1};
-  STATE fDY{-1};
-  STATE fDZ{-1};
+  CSTATE fAlphaMaxX{0};
+  CSTATE fAlphaMaxY{0};
+  CSTATE fAlphaMaxZ{0};
+  REAL fDX{-1};
+  REAL fDY{-1};
+  REAL fDZ{-1};
   TPZCartesianPML() = default;
 
   void ComputeSParameters(const TPZVec<REAL> &x,
@@ -39,20 +44,20 @@ public:
   //! Creates PML based on another domain region
   TPZCartesianPML(const int id, const TMAT &mat) : TPZMatPML<TMAT>(id,mat) {};
   //! Sets information regarding the attenuation of the PML in the x-direction
-  void SetAttX(const REAL pmlBegin, const STATE alpha, const REAL d);
+  void SetAttX(const REAL pmlBegin, const CSTATE alpha, const REAL d);
   //! Sets information regarding the attenuation of the PML in the y-direction
-  void SetAttY(const REAL pmlBegin, const STATE alpha, const REAL d);
+  void SetAttY(const REAL pmlBegin, const CSTATE alpha, const REAL d);
   //! Sets information regarding the attenuation of the PML in the z-direction
-  void SetAttZ(const REAL pmlBegin, const STATE alpha, const REAL d);
+  void SetAttZ(const REAL pmlBegin, const CSTATE alpha, const REAL d);
 
   //! Gets information regarding the attenuation of the PML in the x-direction
-  void GetAttX(REAL& pmlBegin, STATE& alpha, REAL& d) const
+  void GetAttX(REAL& pmlBegin, CSTATE& alpha, REAL& d) const
   {pmlBegin=fPmlBeginX;alpha=fAlphaMaxX;d=fDX;}
   //! Gets information regarding the attenuation of the PML in the y-direction
-  void GetAttY(REAL& pmlBegin, STATE& alpha, REAL& d) const
+  void GetAttY(REAL& pmlBegin, CSTATE& alpha, REAL& d) const
   {pmlBegin=fPmlBeginY;alpha=fAlphaMaxY;d=fDY;}
   //! Gets information regarding the attenuation of the PML in the z-direction
-  void GetAttZ(REAL& pmlBegin, STATE& alpha, REAL& d) const
+  void GetAttZ(REAL& pmlBegin, CSTATE& alpha, REAL& d) const
   {pmlBegin=fPmlBeginZ;alpha=fAlphaMaxZ;d=fDZ;}
   //! Gets the permeability of the material
   void GetPermeability(const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const override;
