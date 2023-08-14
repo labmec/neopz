@@ -115,14 +115,21 @@ void TPZHDivApproxCreator::CreateAtomicMeshes(TPZManVector<TPZCompMesh*,7>& mesh
     lagLevelCounter = 1;
     meshvec[countMesh++] = CreateL2Space(fDefaultPOrder,lagLevelCounter++);
 #ifdef PZDEBUG
-    // std::ofstream out("pressuremesh.txt");
-    // meshvec[1]->Print(out);
+    {
+        std::ofstream out1("hdivmesh.txt");
+        meshvec[0]->ComputeNodElCon();
+        meshvec[0]->Print(out1);
+        std::ofstream out("pressuremesh.txt");
+        meshvec[1]->Print(out);
+    }
 #endif
     if (isElastic){
         meshvec[countMesh++] = CreateRotationSpace(fDefaultPOrder+fExtraInternalPOrder,lagLevelCounter++);
 #ifdef PZDEBUG
-        // std::ofstream out("rotation.txt");
-        // meshvec[2]->Print(out);
+        {
+             std::ofstream out("rotation.txt");
+             meshvec[2]->Print(out);
+        }
 #endif
     }
     if (fIsRBSpaces){
