@@ -1059,6 +1059,7 @@ int TPZMixedElasticityND::NSolutionVariables(int var) const {
         case 31:
             return 1;
         case 33:
+        case 34:
             return 3;
         case 100:
             return 1;
