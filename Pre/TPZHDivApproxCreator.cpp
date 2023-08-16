@@ -467,6 +467,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(int pOrder, const int lagLevel
         cmesh->InsertMaterialObject(nullmat);
         
         int lagpord = pOrder;
+        if (fProbType == ProblemType::EElastic) lagpord -= fExtraInternalPOrder;
         if (fHybridType == HybridizationType::ESemi) lagpord = 0;
         if (lagpord > 0){
             cmesh->SetDefaultOrder(lagpord);
