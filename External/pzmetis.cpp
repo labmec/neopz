@@ -159,7 +159,7 @@ void TPZMetis::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm) {
     
 //	METIS_NodeND(&fNNodes,&nodegraphindex[0],&nodegraph[1],&numflag,&options,&perm[0],&inverseperm[0]);
     METIS_API(int) returnval = METIS_NodeND(&NNodes,&nodegraphindexInt[0],&nodegraphInt[0],&weights[0],options,permint,inversepermint);
-    std::cout << "returnval metis = " << returnval << std::endl;
+//    std::cout << "returnval metis = " << returnval << std::endl;
     
     for(idx_t i=0;i<nperms;i++) {
         perm[i] = inversepermint[i];

@@ -231,6 +231,13 @@ public:
   void SetStep(int st){fStep = st;}
   //! Gets the current step of next post-rpocessing round (if <0, fOutputCount is used)
   int Step() const {return fStep;}
+    
+private:
+  // No copy constructor allowed until someone implements it properly
+  TPZVTKGenerator(const TPZVTKGenerator& vtkgen);
+    
+  // No operator= allowed until someone implements it properly
+  TPZVTKGenerator& operator=(const TPZVTKGenerator& vtkgen);
 };
 
 #endif /* _TPZVTKGENERATOR_H_ */
