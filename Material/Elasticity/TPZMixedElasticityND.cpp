@@ -1009,6 +1009,7 @@ int TPZMixedElasticityND::VariableIndex(const std::string &name) const {
     if(!strcmp("Poisson",name.c_str()))        return 29;
     if (!strcmp("ExactDisplacement", name.c_str())) return 33;
     if (!strcmp("ExactStress", name.c_str())) return 34;
+    if (!strcmp("ElementSigmaError", name.c_str())) return 100;
 
     return TPZMaterial::VariableIndex(name);
 }
@@ -1059,6 +1060,8 @@ int TPZMixedElasticityND::NSolutionVariables(int var) const {
             return 1;
         case 33:
             return 3;
+        case 100:
+            return 1;
         default:
             return TPZMaterial::NSolutionVariables(var);
     }
