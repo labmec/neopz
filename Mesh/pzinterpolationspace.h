@@ -160,8 +160,8 @@ virtual int ClassId() const override;
 	 * @param[in/out] data stores all input data
      * @param[in] hasPhi whether the shape functions have been calculated.
 	 */
-    void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialDataT<CSTATE> &data, bool hasPhi);
-    void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialDataT<STATE> &data, bool hasPhi);
+    void ComputeSolution(const TPZVec<REAL> &qsi, TPZMaterialDataT<CSTATE> &data, bool hasPhi);
+    void ComputeSolution(const TPZVec<REAL> &qsi, TPZMaterialDataT<STATE> &data, bool hasPhi);
     //@}
     
     /** 
@@ -187,11 +187,11 @@ virtual int ClassId() const override;
     //@{
 	/** @brief Compute and fill data with requested attributes */
 	virtual void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
-									 TPZVec<REAL> &qsi){
+									 const TPZVec<REAL> &qsi){
         ComputeRequiredDataT(data,qsi);
     }
     virtual void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
-									 TPZVec<REAL> &qsi){
+									 const TPZVec<REAL> &qsi){
         ComputeRequiredDataT(data,qsi);
     }
     //@}
@@ -267,10 +267,10 @@ virtual int ClassId() const override;
 	 * @see TPZMaterial::Solution
 	 */
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
-	void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override{
+	virtual void Solution(const TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override{
     SolutionInternal(qsi,var,sol);
   }
-  void Solution(TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override{
+  virtual void Solution(const TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override{
     SolutionInternal(qsi,var,sol);
   }
 	
@@ -374,9 +374,9 @@ protected:
     void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
     template<class TVar>
     void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
-									 TPZVec<REAL> &qsi);
+									 const TPZVec<REAL> &qsi);
     template<class TVar>
-    void SolutionInternal(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
+    void SolutionInternal(const TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
     /// Preferred polynomial order
 	int fPreferredOrder;
     //@{

@@ -150,10 +150,10 @@ public:
 	 * @see TPZMaterial::Solution
 	 */
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
-	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override{
+	virtual void Solution(const TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override{
         SolutionT(qsi,var,sol);
     }
-    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override{
+    virtual void Solution(const TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override{
         SolutionT(qsi,var,sol);
     }
     //@}

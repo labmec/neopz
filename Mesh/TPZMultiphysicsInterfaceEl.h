@@ -37,7 +37,7 @@ protected:
                           std::map<int,TPZMaterialDataT<TVar>> &data_right);
     
     template<class TVar>
-    void SolutionT(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
+    void SolutionT(const TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
     //@}
 	/** @brief Element vector the left of the normal a interface */
 	TPZCompElSide 	fLeftElSide;
@@ -292,10 +292,10 @@ public:
 	 * @param var variable name
 	 * @param sol vetor for the solution
 	 */
-	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override{
+	virtual void Solution(const TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override{
         SolutionT(qsi,var,sol);
     }
-    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override{
+    virtual void Solution(const TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override{
         SolutionT(qsi,var,sol);
     }
     //@}

@@ -443,7 +443,7 @@ void TPZCompEl::EvaluateError(TPZVec<REAL> &/*errors*/, bool store_error) {
 
 
 template<class TVar>
-void TPZCompEl::SolutionInternal(TPZVec<REAL> &/*qsi*/,int var,TPZVec<TVar> &sol){
+void TPZCompEl::SolutionInternal(const TPZVec<REAL> &/*qsi*/,int var,TPZVec<TVar> &sol){
     if(var >= 100) {
         const int ind = Index();
         TPZFMatrix<TVar> &elementSol = fMesh->ElementSolution();
@@ -1220,7 +1220,7 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ef){
 
 #define INSTANTIATE(TVar) \
 template \
-void TPZCompEl::SolutionInternal<TVar>(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol); \
+void TPZCompEl::SolutionInternal<TVar>(const TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol); \
 template \
 void TPZCompEl::CalcBlockDiagonalInternal<TVar>(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<TVar> & block);
 

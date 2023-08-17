@@ -648,7 +648,7 @@ void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFM
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol)
+void TPZCompElHDiv<TSHAPE>:: Solution(const TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol)
 {
     //TODOCOMPLEX
     if (var == 99) {

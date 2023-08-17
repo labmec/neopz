@@ -193,8 +193,8 @@ public:
         return fActiveApproxSpace[space_index];
     }
     
-    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override  = 0 ;
-    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override  = 0 ;
+    virtual void Solution(const TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override  = 0 ;
+    virtual void Solution(const TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override  = 0 ;
     
     /// Add a shape restraint (meant to fit the pyramid to restraint
     virtual void AddShapeRestraint(TPZOneShapeRestraint restraint) override

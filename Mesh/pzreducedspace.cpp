@@ -206,7 +206,7 @@ void TPZReducedSpace::InitMaterialData(TPZMaterialData &data)
 
 /** @brief Compute and fill data with requested attributes */
 void TPZReducedSpace::ComputeRequiredData(TPZMaterialDataT<STATE> &data,
-                                 TPZVec<REAL> &qsi)
+                                 const TPZVec<REAL> &qsi)
 {
     data.intGlobPtIndex = -1;
     int dim = Reference()->Dimension();

@@ -1009,6 +1009,8 @@ int TPZMixedElasticityND::VariableIndex(const std::string &name) const {
     if(!strcmp("Poisson",name.c_str()))        return 29;
     if (!strcmp("ExactDisplacement", name.c_str())) return 33;
     if (!strcmp("ExactStress", name.c_str())) return 34;
+    if (!strcmp("ElementSigmaError", name.c_str())) return 100;
+
 
     return TPZMaterial::VariableIndex(name);
 }
@@ -1059,6 +1061,8 @@ int TPZMixedElasticityND::NSolutionVariables(int var) const {
             return 1;
         case 33:
             return 3;
+        case 100:
+            return 1;
         default:
             return TPZMaterial::NSolutionVariables(var);
     }
@@ -1302,6 +1306,7 @@ void TPZMixedElasticityND::Solution(const TPZVec<TPZMaterialDataT<STATE>> &data,
         }
         return;
     }
+    DebugStop();
 }
 
 
@@ -1509,7 +1514,7 @@ void TPZMixedElasticityND::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, T
         //Energy_Error: for the stress tensor (sigma)
         errors[1] += (SigmaV[i] - sigma_exactV[i])*(EPSZV[i] - eps_exactV[i]);
     }
-    if (errors[1] < 0.) {
+    if (errors[1] < 0. || errors[0] < 0.) {
         std::cout << "I should stop \n";
     }
 

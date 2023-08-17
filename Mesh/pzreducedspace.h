@@ -124,9 +124,9 @@ public:
 	
 	/** @brief Compute and fill data with requested attributes */
 	virtual void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
-									 TPZVec<REAL> &qsi) override;
+									 const TPZVec<REAL> &qsi) override;
     virtual void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
-									 TPZVec<REAL> &qsi) override{
+									 const TPZVec<REAL> &qsi) override{
         PZError<<__PRETTY_FUNCTION__;
         PZError<<" not available for complex types yet.\n";
         DebugStop();

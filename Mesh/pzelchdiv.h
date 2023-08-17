@@ -229,7 +229,7 @@ public:
     void ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
     
     /** @brief Compute the solution for a given variable */
-	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
+	virtual void Solution(const TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
 	
 	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) override;
 	

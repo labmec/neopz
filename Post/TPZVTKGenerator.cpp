@@ -774,6 +774,11 @@ void TPZPostProcEl<TVar>::ComputeRequiredData(TPZVec<REAL> &qsi){
 template<class TVar>
 void TPZPostProcEl<TVar>::Solution(const TPZVec<REAL> &qsi, const int id, TPZVec<TVar> &sol)
 {
+    if(id >= 100){
+        int idloc = id;
+        fCel->SolutionInternal(qsi,idloc,sol);
+        return;
+    }
   TPZMaterial * material = fCel->Material();
   if(fIsMultiphysics){
     auto mfcel = dynamic_cast<TPZMultiphysicsElement*>(fCel);

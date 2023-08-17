@@ -104,7 +104,7 @@ void TPZInterpolationSpace::ShortPrint(std::ostream &out) const {
 }
 
 
-void TPZInterpolationSpace::ComputeSolution(TPZVec<REAL> &qsi,
+void TPZInterpolationSpace::ComputeSolution(const TPZVec<REAL> &qsi,
 									TPZMaterialDataT<STATE> &data,
 									bool hasPhi){
 	if(hasPhi){
@@ -120,7 +120,7 @@ void TPZInterpolationSpace::ReallyComputeSolution(TPZMaterialDataT<STATE> &data)
     this->ReallyComputeSolutionT(data);
 }
 
-void TPZInterpolationSpace::ComputeSolution(TPZVec<REAL> &qsi,
+void TPZInterpolationSpace::ComputeSolution(const TPZVec<REAL> &qsi,
 									TPZMaterialDataT<CSTATE> &data,
 									bool hasPhi){
 	if(hasPhi){
@@ -269,7 +269,7 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 
 template<class TVar>
 void TPZInterpolationSpace::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
-                                                TPZVec<REAL> &qsi){
+                                                const TPZVec<REAL> &qsi){
   ///compute geometric mapping info
   TPZGeoEl * ref = this->Reference();
   if (!ref){
@@ -532,7 +532,7 @@ void TPZInterpolationSpace::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
 }//CalcResidual
 
 template<class TVar>
-void TPZInterpolationSpace::SolutionInternal(TPZVec<REAL> &qsi,int var,
+void TPZInterpolationSpace::SolutionInternal(const TPZVec<REAL> &qsi,int var,
                                              TPZVec<TVar> &sol) {
   //TODOCOMPLEX
 	if(var >= 100) {

@@ -36,8 +36,10 @@ void TPZLinearAnalysis::Assemble()
 {
   if(fSolType == EReal)
     AssembleT<STATE>();
+#ifndef USING_EIGEN
   else
     AssembleT<CSTATE>();
+#endif
 }
 
 template<class TVar>
@@ -129,9 +131,12 @@ void TPZLinearAnalysis::Solve()
 {
   if(fSolType == EReal)
     SolveT<STATE>();
+#ifndef USING_EIGEN
   else
     SolveT<CSTATE>();
+#endif
 }
+
 
 template<class TVar>
 void TPZLinearAnalysis::SolveT()
@@ -340,13 +345,21 @@ void TPZLinearAnalysis::Read(TPZStream &buf, void *context)
 
 #define INSTANTIATE_TEMPLATES(TVar)                                 \
   template                                                          \
-  TPZMatrixSolver<TVar> &TPZLinearAnalysis::MatrixSolver<TVar>();
+  TPZMatrixSolver<TVar> &TPZLinearAnalysis::MatrixSolver<TVar>(); \
+    template void TPZLinearAnalysis::AssembleT<TVar>(); \
+template void TPZLinearAnalysis::SolveT<TVar>(); \
+template void TPZLinearAnalysis::AnimateRunT<TVar>(int64_t num_iter, int steps, \
+                 TPZVec<std::string> &scalnames, \
+                 TPZVec<std::string> &vecnames, \
+                 const std::string &plotfile);
+
 
 
 
 INSTANTIATE_TEMPLATES(STATE)
+#ifndef USING_EIGEN
 INSTANTIATE_TEMPLATES(CSTATE)
-
+#endif
 
 #undef INSTANTIATE_TEMPLATES
 

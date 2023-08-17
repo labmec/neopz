@@ -111,7 +111,7 @@ protected:
   //! Number of subdivisions of each geometric element
   int fSubdivision{0};
   //! Post-processed quantities
-  TPZVec<TPZAutoPointer<TPZVTKField>> fFields;
+  TPZManVector<TPZAutoPointer<TPZVTKField>> fFields;
   //! Geometric coordinates of points in which quantities will be processed
   TPZVec<TPZManVector<REAL,3>> fPoints;
   /** @brief Domain triangulation after subdivisions.
