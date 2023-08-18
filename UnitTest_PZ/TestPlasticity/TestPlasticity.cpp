@@ -1419,6 +1419,7 @@ TEST_CASE("test_sandler_dimaggio", "[plasticity_tests]") {
     
     // Elastic response
     LECompareStressStrainResponse();
+    std::cout << "WARNING! PECompareStressStrainResponse() test need to be refactored.\nIt was commented in the last update of Plasticity materials." << std::endl;
     // PECompareStressStrainResponse();
 
     LEDSCompareStressStrainAlphaMType();
