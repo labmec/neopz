@@ -282,7 +282,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 
 // Generate an output of all geomesh to VTK, associating to each one the given data
 
-void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVec<int> &elData) {
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVec<int> &elData, bool finestmesh) {
     if (gmesh->NElements() != elData.NElements()) {
         std::cout << "Wrong vector size of elements data!" << std::endl;
         std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
@@ -305,6 +305,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 
     for (int64_t el = 0; el < nelements; el++) {
         gel = gmesh->ElementVec()[el];
+        
         if (!gel || (gel->Type() == EOned && !gel->IsLinearMapping()))//Exclude Arc3D and Ellipse3D
         {
             continue;
@@ -312,7 +313,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
         if (elData[el] == -999) {
             continue;
         }
-
+        if(gel->HasSubElement() && finestmesh) continue;
         MElementType elt = gel->Type();
         int elNnodes = MElementType_NNodes(elt);
 
@@ -375,7 +376,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 
 // Generate an output of all geomesh to VTK, associating to each one the given data
 
-void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVec<REAL> &elData) {
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVec<REAL> &elData, bool finestmesh) {
     if (gmesh->NElements() != elData.NElements()) {
         std::cout << "Wrong vector size of elements data!" << std::endl;
         std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
@@ -405,6 +406,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
         if (elData[el] == -999.) {
             continue;
         }
+        if(gel->HasSubElement() && finestmesh) continue;
 
         MElementType elt = gel->Type();
         int elNnodes = MElementType_NNodes(elt);
@@ -558,7 +560,7 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, TPZV
 
 // Generate an output of all geomesh to VTK, associating to each one the given data, creates a file with filename given
 
-void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVector<int> &elData) {
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVector<int> &elData, bool finestmesh) {
     std::ofstream file(filename);
 #ifdef PZDEBUG
     if (!file.is_open())
@@ -596,7 +598,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
         if (elData[el] == -999) {
             continue;
         }
-
+        if(gel->HasSubElement() && finestmesh) continue;
         MElementType elt = gel->Type();
         int elNnodes = MElementType_NNodes(elt);
 
@@ -656,7 +658,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 
 // Generate an output of all geomesh to VTK, associating to each one the given data, creates a file with filename given
 
-void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<REAL> &elData) {
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<REAL> &elData, bool finestmesh) {
     std::ofstream file(filename);
 #ifdef PZDEBUG
     if (!file.is_open())
@@ -695,6 +697,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<REA
             continue;
         }
 
+        if(gel->HasSubElement() && finestmesh) continue;
         MElementType elt = gel->Type();
         int elNnodes = MElementType_NNodes(elt);
 
@@ -751,7 +754,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<REA
 }
 // Generate an output of all geomesh to VTK, associating to each one the given data, creates a file with filename given
 
-void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<TPZVec<REAL> > &elData) {
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<TPZVec<REAL> > &elData, bool finestmesh) {
     std::ofstream file(filename);
 #ifdef PZDEBUG
     if (!file.is_open())
@@ -795,6 +798,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<TPZ
         if (elData[el][0] < 0.) {
             continue;
         }
+        if(gel->HasSubElement() && finestmesh) continue;
 
         MElementType elt = gel->Type();
         int elNnodes = MElementType_NNodes(elt);
