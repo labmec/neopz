@@ -112,8 +112,11 @@ void TPZHDivApproxCreator::CreateAtomicMeshes(TPZManVector<TPZCompMesh*,7>& mesh
     meshvec.Resize(fNumMeshes);
     int countMesh = 0;
     meshvec[countMesh++] = CreateHDivSpace();
+    meshvec[countMesh-1]->SetName("HDiv");
     lagLevelCounter = 1;
     meshvec[countMesh++] = CreateL2Space(fDefaultPOrder,lagLevelCounter++);
+    meshvec[countMesh-1]->SetName("Pressure");
+
 #ifdef PZDEBUG
     {
         std::ofstream out1("hdivmesh.txt");
@@ -125,16 +128,28 @@ void TPZHDivApproxCreator::CreateAtomicMeshes(TPZManVector<TPZCompMesh*,7>& mesh
 #endif
     if (isElastic){
         meshvec[countMesh++] = CreateRotationSpace(fDefaultPOrder+fExtraInternalPOrder,lagLevelCounter++);
+        meshvec[countMesh-1]->SetName("Rotation");
 #ifdef PZDEBUG
         {
              std::ofstream out("rotation.txt");
-             meshvec[2]->Print(out);
+             meshvec[countMesh-1]->Print(out);
         }
 #endif
     }
     if (fIsRBSpaces){
         meshvec[countMesh++] = CreateConstantSpace(lagLevelCounter++);
+        meshvec[countMesh-1]->SetName("DistFlux");
         meshvec[countMesh++] = CreateConstantSpace(lagLevelCounter++);
+        meshvec[countMesh-1]->SetName("AvPressure");
+#ifdef PZDEBUG
+        {
+             std::ofstream out("avpressure.txt");
+             meshvec[countMesh-2]->Print(out);
+            std::ofstream out2("distflux.txt");
+            meshvec[countMesh-3]->Print(out2);
+        }
+#endif
+
     }
     
 //    if(fShouldCondense && fHybridType != HybridizationType::ENone){
@@ -568,7 +583,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateRotationSpace(const int pOrder, const 
         TPZMaterial* mat = matpair.second;
         TPZBndCond *bnd = dynamic_cast<TPZBndCond *> (mat);
         if (!bnd){
-            if (mat->Dimension() != dim) DebugStop();
+            if (mat->Dimension() != dim) continue;
             const int matiddomain = mat->Id();
             TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(matiddomain,dim,mat->NStateVariables());
             if(dim == 3) nullmat->SetNStateVariables(3);
