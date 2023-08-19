@@ -209,7 +209,7 @@ void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, bool mustOptimizeBandwidth)
         int64_t neq = fCompMesh->NEquations();
         if(neq > 20000 && mustOptimizeBandwidth)
         {
-            std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth\n";
+            std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth neq = " << neq << "\n";
             std::cout.flush();
         }
         if(mustOptimizeBandwidth)
