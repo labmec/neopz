@@ -402,7 +402,15 @@ TPZCompMesh * TPZHDivApproxCreator::CreateConstantSpace(const int lagLevel) {
 
     cmesh->AutoBuild();
 
-    int ncon = cmesh->NConnects();
+    {
+        int64_t nel = cmesh->NElements();
+        for (int64_t el = 0; el<nel; el++) {
+            TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(cmesh->Element(el));
+            if(!disc) DebugStop();
+            disc->SetFalseUseQsiEta();
+        }
+    }
+    int64_t ncon = cmesh->NConnects();
     for(int i=0; i<ncon; i++)
     {
         TPZConnect &newnod = cmesh->ConnectVec()[i];
