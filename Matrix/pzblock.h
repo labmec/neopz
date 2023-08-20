@@ -136,21 +136,21 @@ public:
     void PrintStructure(std::ostream &out = std::cout);
 	
 	/** @brief Returns the max number of blocks on diagonal */
-	int MaxBlockSize() const {return fBlock.NElements();}
+	int64_t MaxBlockSize() const {return fBlock.NElements();}
 	/** @brief Returns number of blocks on diagonal */
-	int NBlocks() const {return fBlock.NElements();}
+	int64_t NBlocks() const {return fBlock.NElements();}
 	
 	/**
      * @brief Returns block dimension
      * @param block_diagonal Inquired block_diagonal
 	 */
-	int Size(const int block_diagonal) const { return fBlock[block_diagonal].dim; }
+	int Size(const int64_t block_diagonal) const { return fBlock[block_diagonal].dim; }
 	
 	/**
      * @brief Returns the position of first element block dependent on matrix diagonal
      * @param block_diagonal Inquired block_diagonal
 	 */
-	int Position(const int block_diagonal) const { return fBlock[block_diagonal].pos;}
+	int Position(const int64_t block_diagonal) const { return fBlock[block_diagonal].pos;}
 	
 	/** @brief Returns matrix dimension pointed by block */
 	int Dim() const {return fBlock.NElements() ? fBlock[fBlock.NElements()-1].pos+fBlock[fBlock.NElements()-1].dim : 0; }
