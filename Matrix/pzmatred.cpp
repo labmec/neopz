@@ -171,6 +171,7 @@ void TPZMatRed<TVar,TSideMatrix>::SetSolver(TPZAutoPointer<TPZMatrixSolver<TVar>
 {
 	fK00=solver->Matrix();
 	fSolver = solver;
+    this->fSymProp = fK00->GetSymmetry();
 }
 
 
