@@ -618,7 +618,7 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
     for(int it = 0 ; it < numthreads ; it++)
     {
         int locmin = threaddata.fvalues[it].NElements();
-        nerrors = nerrors < locmin ? nerrors : locmin;
+        nerrors = nerrors > locmin ? nerrors : locmin;
     }
   values.Resize(nerrors,0);
   // Summing up all the values of all threads
