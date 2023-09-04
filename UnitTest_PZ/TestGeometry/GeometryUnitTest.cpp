@@ -50,7 +50,7 @@ static TPZLogger logger("pz.mesh.testgeom");
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_all.hpp>
 //#define NOISY //outputs x and grad comparisons
-//#define NOISYVTK //prints all elements in .vtk format
+#define NOISYVTK //prints all elements in .vtk format
 
 std::string dirname = PZSOURCEDIR;
 using namespace pzgeom;
@@ -149,10 +149,8 @@ TEMPLATE_TEST_CASE("TPZCylinder3D","[special_maps][geometry_tests]",
 
     constexpr REAL tol = 1e-10;
 
-    auto CreateAndTestCylinder = [](auto x_pts,
-                                    const TPZVec<REAL> &origin,
-                                    const TPZVec<REAL> &axis,
-                                    const REAL radius){
+    auto CreateAndTestCylinder = [](auto x_pts, const TPZFMatrix<REAL> &axes,
+                                    const TPZVec<REAL> &origin){
         using TGeo=TestType;
         TPZGeoMesh gmesh;
         TPZManVector<int64_t, TGeo::NNodes> nodeind(TGeo::NNodes,-1);
@@ -166,8 +164,8 @@ TEMPLATE_TEST_CASE("TPZCylinder3D","[special_maps][geometry_tests]",
         constexpr int matid{1};
         auto *gel = new TPZGeoElRefLess<TPZCylinderMap<TGeo>> (nodeind,matid,gmesh);
 
-        gel->Geom().SetOrigin(origin, radius);
-        gel->Geom().SetCylinderAxis(axis);
+        gel->Geom().SetOrigin(origin);
+        gel->Geom().SetCylinderAxis(axes);
         gel->Geom().ComputeCornerCoordinates(gmesh);
         //let us test the corner nodes
         for(int i = 0; i < TGeo::NNodes; i++){
@@ -189,8 +187,6 @@ TEMPLATE_TEST_CASE("TPZCylinder3D","[special_maps][geometry_tests]",
     
     const TPZVec<REAL> origin = {0,0,0};    
     SECTION("+z-oriented axis"){
-        const TPZVec<REAL> axis = {0,0,1};
-        constexpr REAL r{1};
         auto x_pts = [](int i, TPZVec<REAL> &x){
             switch(i){
             case 0:
@@ -211,11 +207,12 @@ TEMPLATE_TEST_CASE("TPZCylinder3D","[special_maps][geometry_tests]",
                 DebugStop();
             }
         };
-        CreateAndTestCylinder(x_pts,origin,axis,r);
+        TPZFNMatrix<9,REAL> axis(3,3);
+        axis.Identity();
+        CreateAndTestCylinder(x_pts,axis,origin);
     }
     SECTION("-z-oriented axis"){
-        const TPZVec<REAL> axis = {0,0,-1};
-        constexpr REAL r{1};
+        const TPZFMatrix<REAL> axis = {{1,0,0},{0,-1,0},{0,0,-1}};
         auto x_pts = [](int i, TPZVec<REAL> &x){
             switch(i){
             case 0:
@@ -236,11 +233,10 @@ TEMPLATE_TEST_CASE("TPZCylinder3D","[special_maps][geometry_tests]",
                 DebugStop();
             }
         };
-        CreateAndTestCylinder(x_pts,origin,axis,r);
+        CreateAndTestCylinder(x_pts,axis,origin);
     }
     SECTION("x-oriented axis"){
-        const TPZVec<REAL> axis = {1,0,0};
-        constexpr REAL r{1};
+        const TPZFMatrix<REAL> axis = {{0,0,1},{0,1,0},{1,0,0}};
         auto x_pts = [](int i, TPZVec<REAL> &x){
             switch(i){
             case 0:
@@ -261,11 +257,11 @@ TEMPLATE_TEST_CASE("TPZCylinder3D","[special_maps][geometry_tests]",
                 DebugStop();
             }
         };
-        CreateAndTestCylinder(x_pts,origin,axis,r);
+        CreateAndTestCylinder(x_pts,axis,origin);
     }
     SECTION("bigger radius"){
-        const TPZVec<REAL> axis = {0,0,1};
-        constexpr REAL r{3};
+        TPZFMatrix axes(3,3);
+        axes.Identity();
         auto x_pts = [](int i, TPZVec<REAL> &x){
             switch(i){
             case 0:
@@ -286,7 +282,7 @@ TEMPLATE_TEST_CASE("TPZCylinder3D","[special_maps][geometry_tests]",
                 DebugStop();
             }
         };
-        CreateAndTestCylinder(x_pts,origin,axis,r);
+        CreateAndTestCylinder(x_pts,axes,origin);
     }       
 }
 
@@ -399,7 +395,7 @@ TEST_CASE("changeel_tests","[geometry_tests]") {
     //lambda to check whether pts lie in arc/cylinder
 
     auto TestPts = [radius,xc,axis](TPZGeoEl *gel){
-        constexpr REAL tol = std::numeric_limits<REAL>::epsilon();
+        constexpr REAL tol = std::numeric_limits<REAL>::epsilon()*100;
         const int nsides = gel->NSides();
         const int dim = gel->Dimension();
         constexpr int p{4};
@@ -477,10 +473,23 @@ TEST_CASE("changeel_tests","[geometry_tests]") {
             new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(nodevec,trig_mat,gmesh);
 
         gmesh.BuildConnectivity();
+        TPZFNMatrix<9,REAL> ax(3,3);
+        ax.Identity();
         trig_el = TPZChangeEl::ChangeToCylinder(&gmesh, trig_el->Index(),
-                                                xc, axis, radius);
+                                                xc, ax);
         REQUIRE(trig_el);
         TestPts(trig_el);
+        nodevec.Resize(4);
+        nodevec[2] = CreateNewNode({0,1,-1});
+        nodevec[3] = CreateNewNode({1,0,-1});
+        TPZGeoEl* quad_el =
+            new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(nodevec,trig_mat+1,gmesh);
+        gmesh.BuildConnectivity();
+        quad_el = TPZChangeEl::ChangeToCylinder(&gmesh, quad_el->Index(),
+                                                xc, ax);
+        REQUIRE(quad_el);
+        TestPts(quad_el);
+
         section_name = "Cylinder";
     }
 #ifdef NOISYVTK

@@ -497,12 +497,12 @@ TPZGeoEl * TPZChangeEl::ChangeToArc3D(TPZGeoMesh *mesh, const int64_t ElemIndex,
 
 TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemIndex,
                                          const TPZVec<REAL> &xcenter,
-                                         const TPZVec<REAL> &axis,
-                                         const REAL radius)
+                                         const TPZFMatrix<REAL> &axis
+                                         )
 {
 
-    auto SetCylData = [xcenter,radius,axis,mesh](auto &cyl){
-        cyl.SetOrigin(xcenter, radius);
+    auto SetCylData = [xcenter,axis,mesh](auto &cyl){
+        cyl.SetOrigin(xcenter);
         cyl.SetCylinderAxis(axis);
         cyl.ComputeCornerCoordinates(*mesh);
     };
@@ -519,7 +519,7 @@ TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemInd
         return nullptr;
     }
     const int64_t oldId = old_el->Id();
-    const int64_t oldMatId = old_el->MaterialId();
+    const int oldMatId = old_el->MaterialId();
     const int nsides = old_el->NSides();
     const int nnodes = old_el->NCornerNodes();
     
@@ -540,9 +540,11 @@ TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemInd
         new_el = cyl;
     }else if (oldType == EQuadrilateral){
         auto cyl =
-            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoTriangle>>(nodeindexes, oldMatId, *mesh);
+            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoQuad>>(nodeindexes, oldMatId, *mesh);
         SetCylData(cyl->Geom());
         new_el = cyl;
+    } else {
+        DebugStop();
     }
 
     RestoreNeighbours(new_el, oldNeigh);
