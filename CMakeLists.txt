@@ -38,7 +38,7 @@ ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}
 if(APPLE)
 set(basePoint @loader_path)
 else()
-set(basePoint $ORIGIN)
+set(basePoint ${ORIGIN})
 endif()
 set(CMAKE_MACOSX_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
