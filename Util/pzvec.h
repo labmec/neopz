@@ -383,19 +383,43 @@ TPZVec<T> &TPZVec<T>::operator=(const TPZVec<T> &copy){
 template< class T >
 TPZVec<T> &TPZVec<T>::operator=(TPZVec<T> &&rval){
 	if(this != &rval){
-        fNElements = rval.fNElements;
-        if(fStore) delete [] fStore;
-        if(rval.fNAlloc){
-            fStore = rval.fStore;
-        }else{
-            fStore = new T[fNElements];
-            for (int64_t i = 0; i < fNElements; i++)
-                fStore[i] = rval.fStore[i];
-        }
-        fNAlloc = fNElements;//perhaps rval.fNalloc was 0
-        rval.fStore = nullptr;
-        rval.fNElements = 0;
-        rval.fNAlloc = 0;
+
+    if(fNAlloc && rval.fNAlloc){
+      //scenario 1: both vectors have allocated dynamic memory
+      delete [] fStore;
+      fNAlloc = rval.fNAlloc;
+      fNElements = rval.fNElements;
+      fStore = rval.fStore;
+      rval.fStore = nullptr;
+      rval.fNAlloc = 0;
+      rval.fNElements = 0;
+      return *this;
+    }
+    if(!fNAlloc && fNElements >= rval.fNElements){
+      //scenario 2: our static memory can fit their elements
+      for (int64_t i = 0; i < fNElements; i++){
+        fStore[i] = rval.fStore[i];
+      }
+      fNElements = rval.fNElements;
+      //no need to modify rval, it was just a copy
+      return *this;
+    }
+    if(fNAlloc) delete [] fStore;
+    
+    
+    fNElements = rval.fNElements;
+    if(rval.fNAlloc){
+      fStore = rval.fStore;
+      rval.fStore = nullptr;
+      rval.fNElements = 0;
+      rval.fNAlloc = 0;
+    }else{
+      fStore = new T[fNElements];
+      for (int64_t i = 0; i < fNElements; i++){
+        fStore[i] = rval.fStore[i];
+      }
+    }
+    fNAlloc = fNElements;
 	}
 	return *this;
 }

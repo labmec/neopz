@@ -144,6 +144,20 @@ TEST_CASE("mixedvecs_tests","[test_vectypes]") {
     }
     REQUIRE(true);
 
+
+    try{
+        TPZManVector<int,3> manvec(3,0);
+
+        auto func = [](TPZVec<int> &vec){
+            TPZVec<int> myothervec(2,0);
+            vec = std::move(myothervec);
+        };
+
+        func(manvec);
+    }catch(...){
+        REQUIRE(false);
+    }
+    REQUIRE(true);
     
     //move assignment operator
     try{
