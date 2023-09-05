@@ -812,6 +812,15 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         disp[1] += (TVar) x[1];
         disp[2] = x[0]*TVar(0.);
     }
+    else if(fProblemType ==EStretchz)//strech z
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
+        disp[0] += (TVar) 0.;
+        disp[1] += x[0]*TVar(0.);
+        disp[2] += (TVar) x[2];
+    }
     else if(fProblemType==EDispx)
     {
         disp[0] = x[0]*0.;
@@ -961,6 +970,15 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[0] += (FADFADSTATE) 0.;
         disp[1] += (FADFADSTATE) x[1];
         disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType ==EStretchz)//strech z
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
+        disp[0] += (FADFADSTATE) 0.;
+        disp[1] += (FADFADSTATE) 0.;
+        disp[2] += (FADFADSTATE) x[2];
     }
     else if(fProblemType==EDispx)
     {
