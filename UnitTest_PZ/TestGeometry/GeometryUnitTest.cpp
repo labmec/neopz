@@ -100,12 +100,21 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
     AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
     AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
-    
+
     AddElement<TPZArc3D >(mesh,lowercorner,size);
     AddElement<TPZEllipse3D >(mesh,lowercorner,size);
 
+    lowercorner[0] = 1.;
+    lowercorner[1] = 4.;
+    AddElement<TPZCylinderMap<TPZGeoLinear>>(mesh,lowercorner,size);
     AddElement<TPZCylinderMap<TPZGeoTriangle>>(mesh,lowercorner,size);
     AddElement<TPZCylinderMap<TPZGeoQuad>>(mesh,lowercorner,size);
+    AddElement<TPZCylinderMap<TPZGeoTetrahedra>>(mesh,lowercorner,size);
+    AddElement<TPZCylinderMap<TPZGeoCube>>(mesh,lowercorner,size);
+    AddElement<TPZCylinderMap<TPZGeoPrism>>(mesh,lowercorner,size);
+    AddElement<TPZCylinderMap<TPZGeoPyramid>>(mesh,lowercorner,size);
+    
+    // TODO: Test these mappings
 //    AddElement<TPZWavyLine>(mesh,lowercorner,size);
 //    AddElement<TPZQuadTorus>(mesh,lowercorner,size);
 //    AddElement<TPZTriangleTorus>(mesh,lowercorner,size);

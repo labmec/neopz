@@ -533,7 +533,13 @@ TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemInd
     mesh->DeleteElement(old_el);
     TPZGeoEl *new_el{nullptr};
 
-    if(oldType == ETriangle){
+    if (oldType == EOned){
+        auto cyl =
+        new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoLinear>>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cyl->Geom());
+        new_el = cyl;
+    }
+    else if(oldType == ETriangle){
         auto cyl =
             new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoTriangle>>(nodeindexes, oldMatId, *mesh);
         SetCylData(cyl->Geom());
@@ -543,7 +549,29 @@ TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemInd
             new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoQuad>>(nodeindexes, oldMatId, *mesh);
         SetCylData(cyl->Geom());
         new_el = cyl;
-    } else {
+    }else if (oldType == ETetraedro){
+        auto cyl =
+            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoTetrahedra>>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cyl->Geom());
+        new_el = cyl;
+    }else if (oldType == ECube){
+        auto cyl =
+            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoCube>>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cyl->Geom());
+        new_el = cyl;
+    }else if (oldType == EPrisma){
+        auto cyl =
+            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoPrism>>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cyl->Geom());
+        new_el = cyl;
+    }
+    else if (oldType == EPiramide){
+        auto cyl =
+        new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoPyramid>>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cyl->Geom());
+        new_el = cyl;
+    }
+    else {
         DebugStop();
     }
 
