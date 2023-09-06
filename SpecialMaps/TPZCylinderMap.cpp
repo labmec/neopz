@@ -151,6 +151,17 @@ namespace pzgeom {
         for(int i=0; i<8; i++) for(int jc = 0; jc<3; jc++) {
             x(jc,i) += lowercorner[jc];
         }
+        
+        // inserting the nodes in the mesh
+        const int64_t firstnode = gmesh.NodeVec().NElements();
+        gmesh.NodeVec().Resize(firstnode + x.Cols());
+        for(int i = 0 ; i < x.Cols() ; i++) {
+            TPZManVector<REAL,3> coor(3,0.);
+            for(int in = 0 ; in < 3 ; in++){
+                coor[in] = x(in,i);
+            }
+            gmesh.NodeVec()[i+firstnode].Initialize(coor, gmesh);
+        }
 
         TPZManVector<int64_t,8> nodind(TGeo::NCornerNodes);
         switch(TGeo::Type()) {
@@ -178,6 +189,7 @@ namespace pzgeom {
             default:
                 DebugStop();
         }
+        for(auto& it : nodeind) it += firstnode;                
         
         auto *gel = new TPZGeoElRefPattern<TPZCylinderMap<TGeo>> (nodeind,matid,gmesh);
 
@@ -202,7 +214,12 @@ namespace pzgeom {
     template class TPZGeoElRefLess<pzgeom::TPZCylinderMap<TGEO> >;    \
     template class TPZGeoElRefPattern<pzgeom::TPZCylinderMap<TGEO> >;
 
+IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoLinear)
 IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoTriangle)
 IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoQuad)
+IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoTetrahedra)
+IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoCube)
+IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoPrism)
+IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoPyramid)
 
 #undef IMPLEMENTCYLINDERMAP
