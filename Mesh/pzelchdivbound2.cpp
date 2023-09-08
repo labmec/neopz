@@ -86,6 +86,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(1), fhdivfam(hdivfam){
         }
     }
 
+    DetermineSideOrient();
 #ifdef PZ_LOG
   if (logger.isDebugEnabled())
     {
@@ -211,7 +212,7 @@ MElementType TPZCompElHDivBound2<TSHAPE>::Type() {
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::SetSideOrient(int side, int sideorient)
 {
-    if (side != TSHAPE::NSides - 1) {
+    if (side != TSHAPE::NSides - 1 || std::abs(sideorient) != 1) {
         DebugStop();
     }
     fSideOrient = sideorient;
@@ -708,6 +709,52 @@ int TPZCompElHDivBound2<TSHAPE>::MaxOrder(){
 
     return maxorder + 1;
 }
+
+/// Set the sideorient value in accordance to the sideorient of the neighbouring element
+template<class TSHAPE>
+void TPZCompElHDivBound2<TSHAPE>::DetermineSideOrient() {
+    // find a neighbour as a computational element
+    TPZGeoElSide gelside(this->Reference());
+    int dim = gelside.Dimension();
+    TPZStack<TPZCompElSide> neigh;
+    gelside.EqualLevelCompElementList(neigh, 1, 1);
+    if(neigh.size() == 0) return;
+    TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(neigh[0].Element());
+    if(!intel) DebugStop();
+    int neighsideorient = intel->GetSideOrient(neigh[0].Side());
+    TPZGeoElSide neighside = neigh[0].Reference();
+    int64_t neighcon = intel->SideConnectIndex(0, neigh[0].Side());
+    if(neighcon == fConnectIndexes[0]) {
+        if(dim == 2) {
+            TPZManVector<REAL,3> neighcenter(neighside.Dimension()), neighnormal(3);
+            neighside.CenterPoint(neighcenter);
+            neighside.Normal(neighcenter, neighnormal);
+            TPZFNMatrix<9,REAL> gradx(3,2),jac(2,2),jacinv(2,2),axes(2,3);
+            REAL detjac;
+            TPZManVector<REAL,2> ksi(2);
+            TPZGeoEl *gelskel = gelside.Element();
+            gelskel->CenterPoint(gelskel->NSides()-1, ksi);
+            gelskel->GradX(ksi, gradx);
+            gelskel->Jacobian(gradx, jac, axes, detjac, jacinv);
+            TPZManVector<REAL,3> skelnormal(3);
+            for (int i = 0; i<3; i++) {
+                int j = (i+1)%3;
+                int k = (i+2)%3;
+                skelnormal[i] = axes(0,j)*axes(1,k)-axes(0,k)*axes(1,j);
+            }
+            REAL inner = 0.;
+            for(int i=0; i<3; i++) inner += skelnormal[i]*neighnormal[i];
+            if(fabs(fabs(inner)-1.) > 1.e-6) DebugStop();
+            if(inner > 0.) SetSideOrient(gelside.Side(), neighsideorient);
+            else SetSideOrient(gelside.Side(), -neighsideorient);
+        } else if (dim == 1) {
+            auto tr = gelside.SideToSideTransform(neighside);
+            if(tr.Mult()(0,0) > 0.) SetSideOrient(gelside.Side(), neighsideorient);
+            else SetSideOrient(gelside.Side(), -neighsideorient);
+        }
+    }
+}
+
 
 
 #include "pzshapetriang.h"
