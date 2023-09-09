@@ -472,7 +472,7 @@ public:
     }
     
     /// return the orientation of a face +1: counterclockwise -1:clockwise
-    virtual int GetSideOrientation(int face) const = 0;
+    virtual int GetFaceOrientation(int face) const = 0;
 	
 	/** @brief Get the transform id the face to face*/
 	int GetTransformId2dQ(TPZVec<int64_t> &idfrom,TPZVec<int64_t> &idto);

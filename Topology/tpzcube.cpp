@@ -1525,7 +1525,7 @@ namespace pztopology {
     }
 
     // Get face orientation
-    int TPZCube::GetSideOrient(const int &face){
+    int TPZCube::GetFaceOrient(const int &face){
         if(face<0 || face >= 6) DebugStop();
         return fSideOrient[face];
     }
