@@ -584,8 +584,21 @@ void TPZFMatrix<TVar>::DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &i
     int64_t r;
     for(r=0; r<this->Rows(); r++) inverse(r,r) = 1.;
     copy.Solve_LU(&inverse);
-    determinant = 1.;
-    for(r=0; r<this->Rows(); r++) determinant *= copy(r,r);
+    if(this->Rows() == 1) {
+        determinant = GetVal(0, 0);
+    } else if(this->Rows() == 2) {
+        determinant = g(0,0)*g(1,1)-g(0,1)*g(1,0);
+    } else if(this->Rows() == 3) {
+        determinant = 0.;
+        for(int i=0; i<3; i++) {
+            int j = (i+1)%3;
+            int k = (i+2)%3;
+            determinant += g(0,i)*g(1,j)*g(2,k);
+            determinant -= g(2,i)*g(1,j)*g(0,k);
+        }
+    } else {
+        DebugStop();
+    }
 }
 
 
