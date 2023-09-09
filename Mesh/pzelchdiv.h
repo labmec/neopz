@@ -251,8 +251,8 @@ public:
     virtual void PRefine(int order) override;
 
     //Checks the normal orientation of two neighbour GeoElSides; 
-    //Returns true if the sides have opposite normal vectors and false if they are equal. 
-    bool CheckRestrainedSideOrientation(TPZGeoElSide &thisGeoSide, TPZGeoElSide &largeGeoSide);
+    //Returns -1 if the sides have opposite normal vectors and 1 if they are equal. 
+    int CheckRestrainedSideOrientation(TPZGeoElSide &thisGeoSide, TPZGeoElSide &largeGeoSide);
 
     
 protected:
