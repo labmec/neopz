@@ -118,7 +118,7 @@ namespace pztopology {
 			return 0;
 		}
 
-        static int GetSideOrient(const int &face) {
+        static int GetFaceOrient(const int &face) {
             return 1;
         }
 

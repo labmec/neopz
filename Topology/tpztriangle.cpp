@@ -1186,7 +1186,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
     }
 
     // Get face orientation
-    int TPZTriangle::GetSideOrient(const int &face){
+    int TPZTriangle::GetFaceOrient(const int &face){
         return fSideOrient[face];
     }
 

@@ -452,7 +452,7 @@ static void Orthogonal(TPZFMatrix<REAL>&cornerco, TPZVec<REAL> &ortho){
             Orthogonal(faceco, normal);
             REAL inner = sdot(normal,dir);
             int faceorient = inner > 0 ? 1 : -1;
-            int faceorientStored = top::GetSideOrient(side-firstface);
+            int faceorientStored = top::GetFaceOrient(side-firstface);
             REQUIRE(faceorient == faceorientStored);
         }
     }
