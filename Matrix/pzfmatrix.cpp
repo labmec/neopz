@@ -597,7 +597,13 @@ void TPZFMatrix<TVar>::DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &i
             determinant -= g(2,i)*g(1,j)*g(0,k);
         }
     } else {
-        DebugStop();
+        // not sure if this is correct
+        determinant = 1.;
+        for(int64_t i=0; i<this->Rows(); i++) determinant *= copy.g(i,i);
+        if(copy.fPivot.size()) {
+            for(int64_t i=0; i<this->Rows(); i++) if(copy.fPivot[i] != i+1) determinant *= -1.;
+        }
+
     }
 }
 
