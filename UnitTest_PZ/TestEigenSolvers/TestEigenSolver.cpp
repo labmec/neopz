@@ -88,7 +88,7 @@ TEMPLATE_TEST_CASE("Arnoldi Iteration", "[eigen_tests]",
     }
 }
 
-#ifdef PZ_USING_LAPACK
+#ifdef PZ_USING_MKL
 TEMPLATE_TEST_CASE("Arnoldi Solver 1", "[eigen_tests]",
                    TPZFYsmpMatrix<double>,
                    TPZFMatrix<double>,
@@ -314,6 +314,9 @@ void TestArnoldiSolver(TPZAutoPointer<matx> A, const TPZFMatrix<CTVar> &sol)
   TPZFMatrix <CTVar> eigenVectors;
   
   const bool success = arnoldi.SolveEigenProblem(w,eigenVectors) == 0;
+    if(!success) {
+        std::cout << "SolveEigenProblem returned false\n";
+    }
   REQUIRE(success);
 
   const RTVar mult = sizeof(RTVar) == 4 ? 100 : 10;
