@@ -86,7 +86,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(1), fhdivfam(hdivfam){
         }
     }
 
-    DetermineSideOrient();
+//    DetermineSideOrient();
 #ifdef PZ_LOG
   if (logger.isDebugEnabled())
     {
@@ -714,6 +714,7 @@ int TPZCompElHDivBound2<TSHAPE>::MaxOrder(){
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::DetermineSideOrient() {
     // find a neighbour as a computational element
+
     TPZGeoElSide gelside(this->Reference());
     int dim = gelside.Dimension();
     TPZStack<TPZCompElSide> neigh;
@@ -748,7 +749,7 @@ void TPZCompElHDivBound2<TSHAPE>::DetermineSideOrient() {
             if(inner > 0.) SetSideOrient(gelside.Side(), neighsideorient);
             else SetSideOrient(gelside.Side(), -neighsideorient);
         } else if (dim == 1) {
-            auto tr = gelside.SideToSideTransform(neighside);
+            auto tr = gelside.NeighbourSideTransform(neighside);
             if(tr.Mult()(0,0) > 0.) SetSideOrient(gelside.Side(), neighsideorient);
             else SetSideOrient(gelside.Side(), -neighsideorient);
         }
