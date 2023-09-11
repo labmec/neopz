@@ -515,7 +515,7 @@ TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemInd
     }
     const MElementType oldType = old_el->Type();
     if (oldType == EPoint){
-        return;
+        return old_el;
     }
     
     const int64_t oldId = old_el->Id();
