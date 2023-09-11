@@ -657,7 +657,8 @@ void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &s
     TPZMaterialDataT<STATE> data;
     constexpr bool hasPhi{false};
     this->ComputeSolution(qsi,data,hasPhi);
-    sol = std::move(data.sol[0]);
+    //    sol = std::move(data.sol[0]);
+    sol = data.sol[0];
 }
 
 template<class TSHAPE>
