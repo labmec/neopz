@@ -89,8 +89,8 @@ namespace pzgeom {
             mintheta = 2*M_PI;
             maxtheta = -mintheta;
             for(auto in = 0 ; in < nnodes ; in++){
-                const REAL theta = std::fmod((fCylindricalCo(0,in)+2*M_PI),2*M_PI); 
-                fCylindricalCo(0,in) = theta;
+                const REAL theta = std::fmod((fCylindricalCo(1,in)+2*M_PI),2*M_PI); 
+                fCylindricalCo(1,in) = theta;
                 if(theta > maxtheta) {maxtheta = theta;}
                 if(theta < mintheta) {mintheta = theta;}
             }
@@ -107,7 +107,7 @@ namespace pzgeom {
                            <<"\n\t\tcartesian:";
                     for(int ix = 0; ix < 3; ix++){PZError<<' '<<co[ix];}
                     PZError<<"\n\t\tcylindrical:";
-                    for(int ix = 0; ix < 2; ix++){PZError<<' '<<fCylindricalCo(ix,in);}
+                    for(int ix = 0; ix < 3; ix++){PZError<<' '<<fCylindricalCo(ix,in);}
                 }
                 PZError <<"\nAborting...";
                 DebugStop();

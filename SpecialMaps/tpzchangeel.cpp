@@ -500,7 +500,7 @@ TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemInd
                                          const TPZFMatrix<REAL> &axis
                                          )
 {
-
+    
     auto SetCylData = [xcenter,axis,mesh](auto &cyl){
         cyl.SetOrigin(xcenter);
         cyl.SetCylinderAxis(axis);
@@ -514,10 +514,10 @@ TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemInd
         return nullptr;
     }
     const MElementType oldType = old_el->Type();
-    if(oldType != ETriangle && oldType != EQuadrilateral){
-        PZError << "Error at " << __PRETTY_FUNCTION__ << " geometric el is not 2d\n";
-        return nullptr;
+    if (oldType == EPoint){
+        return;
     }
+    
     const int64_t oldId = old_el->Id();
     const int oldMatId = old_el->MaterialId();
     const int nsides = old_el->NSides();
