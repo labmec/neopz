@@ -565,7 +565,7 @@ void TPZVTKGenerator::PrintFieldDataLegacy()
                     << "YZ\n"
                     << "ZX\n"
                     << "ZY\n"
-                    << "ZZ\n";
+                    << "ZZ\n\n";
       }
   }
 }
