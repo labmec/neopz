@@ -1073,9 +1073,9 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
 	}
 }
 //refinamento
-template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::PRefine(int order)
-{
+//template<class TSHAPE>
+//void TPZCompElHDiv<TSHAPE>::PRefine(int order)
+//{
     // This function has been deprecated since TPZCompElHDivPressure has been deprecated
     // TODO: Delete or update?
     /*
@@ -1141,7 +1141,7 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
     }
 
      */
-}
+//}
 
 /** @brief Prints the relevant data of the element to the output stream */
 template<class TSHAPE>
