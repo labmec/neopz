@@ -75,8 +75,6 @@ int TPZKrylovEigenSolver<TVar>::SolveImpl(TPZVec<CTVar> &w,
     param[59] = 0;
     pardiso_control->SetParam(param);
   };
-#else
-    DebugStop();
 #endif
   if(this->NEigenpairs() < 1) SetNEigenpairs(1);
 #ifndef USING_LAPACK
