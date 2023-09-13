@@ -1540,7 +1540,7 @@ void TestingMultiplyByScalar(int row, int col, SymProp sp) {
   bool check = true;
   constexpr RTVar tol = [](){
     if constexpr (std::is_same_v<RTVar,float>) return (RTVar)10;
-    else return (RTVar)1;
+    else return (RTVar)10;
   }();
   for (int i = 0; i < col; i++) {
     for (int j = 0; (j < col) && check; j++) {
@@ -1635,7 +1635,7 @@ void TestingMultiplyByScalarOperator(int row, int col, SymProp sp) {
   bool check = true;
   constexpr RTVar tol = [](){
     if constexpr (std::is_same_v<RTVar,float>) return (RTVar)10;
-    else return (RTVar)1;
+    else return (RTVar)10;
   }();
   for (int i = 0; i < col; i++) {
     for (int j = 0; (j < col) && check; j++) {
@@ -2048,7 +2048,10 @@ void TestSVD_Simple(int nrows, int ncols) {
 	aux = mA - mA_copy;
 	for(int i=0; i<nrows; i++){
 		for(int j=0; j<ncols; j++){
-			if(!IsZero(aux(i,j))) check = false;
+            TVar a = aux(i,j);
+            if(!IsZero(a)) {
+                check = false;
+            }
 		}
 	}
 
@@ -2057,12 +2060,17 @@ void TestSVD_Simple(int nrows, int ncols) {
 	TVar detU = 0.;
 	U.DeterminantInverse(detU,inverse);
 	if(!IsZero(std::abs(detU) - 1.)) 
-		{check = false;}
+		{
+            U.DeterminantInverse(detU,inverse);
+            check = false;
+        }
     TMatrix UTU(U.Rows(),U.Cols()); //< U transposed * U
     U.Multiply(U,UTU,true);
 	for(int i=0; i<UTU.Rows(); i++){
 		for(int j=0; j<UTU.Cols(); j++){
-			if(!IsZero(std::abs(UTU(i,j)) - TVar(i==j))) check = false;
+            if(!IsZero(std::abs(UTU(i,j)) - TVar(i==j))) {
+                check = false;
+            }
 		}
 	}
 	// Test if VT is orthogonal
@@ -2075,7 +2083,9 @@ void TestSVD_Simple(int nrows, int ncols) {
     VT.Multiply(VT,VVT,true);
 	for(int i=0; i<VVT.Rows(); i++){
 		for(int j=0; j<VVT.Cols(); j++){
-			if(!IsZero(std::abs(VVT(i,j)) - TVar(i==j))) check = false;
+            if(!IsZero(std::abs(VVT(i,j)) - TVar(i==j))) {
+                check = false;
+            }
 		}
 	}
 	

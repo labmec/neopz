@@ -1228,7 +1228,7 @@ TPZTransform<REAL> TPZQuadrilateral::ParametricTransform(int trans_id){
     }
 
     // Get face orientation
-    int TPZQuadrilateral::GetSideOrient(const int &face){
+    int TPZQuadrilateral::GetFaceOrient(const int &face){
         return fSideOrient[face];
     }
 

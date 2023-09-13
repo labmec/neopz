@@ -223,9 +223,9 @@ TPZGeoElRefLess<TGeo>::NSideSubElements(int side) const {
 /// return the orientation of a face +1: counterclockwise -1:clockwise
 
 template<class TGeo>
-int TPZGeoElRefLess<TGeo>::GetSideOrientation(int face) const
+int TPZGeoElRefLess<TGeo>::GetFaceOrientation(int face) const
 {
-    return TGeo::GetSideOrient(face);
+    return TGeo::GetFaceOrient(face);
 }
 
 template<class TGeo>
@@ -258,19 +258,19 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
         switch (TGeo::Type())
         {
         case ETriangle:
-            sideorient = pztopology::TPZTriangle::GetSideOrient(faceSide);
+            sideorient = pztopology::TPZTriangle::GetFaceOrient(faceSide);
             break;
         case EQuadrilateral:
-            sideorient = pztopology::TPZQuadrilateral::GetSideOrient(faceSide);
+            sideorient = pztopology::TPZQuadrilateral::GetFaceOrient(faceSide);
             break;
         case ETetraedro:
-            sideorient = pztopology::TPZTetrahedron::GetSideOrient(faceSide);
+            sideorient = pztopology::TPZTetrahedron::GetFaceOrient(faceSide);
             break;
         case ECube:
-            sideorient = pztopology::TPZCube::GetSideOrient(faceSide);
+            sideorient = pztopology::TPZCube::GetFaceOrient(faceSide);
             break;
         case EPrisma:
-            sideorient = pztopology::TPZPrism::GetSideOrient(faceSide);
+            sideorient = pztopology::TPZPrism::GetFaceOrient(faceSide);
             break;
         
         default:

@@ -1296,6 +1296,15 @@ void TPZGeoElSide::Normal(TPZVec<REAL> &point, TPZGeoEl *LeftEl, TPZGeoEl *Right
 /** @brief compute the normal to the point */
 void  TPZGeoElSide::Normal(TPZVec<REAL> &qsi_side, TPZVec<REAL> &normal) const{
     
+    if(Dimension() == 2 && fGeoEl->Dimension() == 2) {
+        TPZFNMatrix<9,REAL> gradx(3,2);
+        fGeoEl->GradX(qsi_side, gradx);
+        TPZFNMatrix<6,REAL> jac(2,2),jacinv(2,2),axes(2,3);
+        REAL detjac;
+        fGeoEl->Jacobian(gradx, jac, axes, detjac, jacinv);
+        for(int i=0; i<3; i++) normal[i] = axes(0,(i+1)%3)*axes(1,(i+2)%3)-axes(0,(i+2)%3)*axes(1,(i+1)%3);
+        return;
+    }
     if (Dimension() != fGeoEl->Dimension()-1) {
         DebugStop();
     }
@@ -1509,7 +1518,7 @@ bool TPZGeoElSide::IsNeighbourCounterClockWise(TPZGeoElSide &neighbour)
         DebugStop();
     }
     int face = fSide-fGeoEl->FirstSide(2);
-    int faceorient = fGeoEl->GetSideOrientation(face);
+    int faceorient = fGeoEl->GetFaceOrientation(face);
     if(faceorient == -1) trid = (trid+1)%2;
     return trid == 0;
 }

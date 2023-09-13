@@ -1870,7 +1870,7 @@ namespace pztopology {
     }
 
     // Get face orientation
-    int TPZPrism::GetSideOrient(const int &face){
+    int TPZPrism::GetFaceOrient(const int &face){
         return fSideOrient[face];
     }
 

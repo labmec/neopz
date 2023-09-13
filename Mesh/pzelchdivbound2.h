@@ -100,10 +100,13 @@ public:
 	
 	virtual int SideConnectLocId(int node, int side) const override;
     
-    
+    /// Allow to influence the normal direction of this element (-1 or 1)
     virtual void SetSideOrient(int side, int sideorient) override;
+    
     virtual int GetSideOrient(int side) override;
 	
+    /// Set the sideorient value in accordance to the sideorient of the neighbouring element
+    void DetermineSideOrient();
 	
 	/** @brief Identifies the interpolation order on the interior of the element*/
 	virtual void GetInterpolationOrder(TPZVec<int> &ord) override;

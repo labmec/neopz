@@ -984,7 +984,8 @@ void TPZElasticity3D::Solution(const TPZMaterialDataT<STATE> &data,
 		Solout[0] = ( PrincipalStress[0] - PrincipalStress[1] ) * ( PrincipalStress[0] - PrincipalStress[1] ) 
 		+ ( PrincipalStress[1] - PrincipalStress[2] ) * ( PrincipalStress[1] - PrincipalStress[2] )
 		+ ( PrincipalStress[2] - PrincipalStress[0] ) * ( PrincipalStress[2] - PrincipalStress[0] );
-		Solout[0] = Solout[0] / (2. * this->fFy * this->fFy);    
+//		Solout[0] = Solout[0] / (2. * this->fFy * this->fFy);
+        return;
 	}//TPZElasticity3D::EVonMisesStress
 	
 	if(var == TPZElasticity3D::EStress){
