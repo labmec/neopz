@@ -890,6 +890,7 @@ void TPZElasticity3D::Solution(const TPZMaterialDataT<STATE> &data,
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}
 #endif
+        return;
 	}//TPZElasticity3D::EPrincipalStress
 	
 	if(var == TPZElasticity3D::EStress1){
