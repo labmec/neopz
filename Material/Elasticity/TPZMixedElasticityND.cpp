@@ -79,7 +79,7 @@ int TPZMixedElasticityND::NStateVariables() const {
 
 // Divergence on deformed element
 
-void TPZMixedElasticityND::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi) {
+void TPZMixedElasticityND::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDataT<STATE>> &datavec, TPZFMatrix<STATE> &DivergenceofPhi) {
     //itapopo conferir esse método. Foi copiado do TPZDarcyFlow3D
     int sigmaBlock = 0;
 
