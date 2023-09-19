@@ -285,6 +285,7 @@ void TPZMatRed<TVar,TSideMatrix>::K11Reduced(TPZFMatrix<TVar> &K11, TPZFMatrix<T
         }
 		fK01IsComputed = true;
 	}
+    //make [K11]=[K11]-[K10][K01Invert]
 	fK10.MultAdd(fK01,fK11,(K11),-1.,1.);
     F1Red(F1);
 
@@ -325,7 +326,6 @@ void TPZMatRed<std::complex<double>, TPZVerySparseMatrix<std::complex<double> > 
 	return;
 }
 
-
 template<class TVar ,class TSideMatrix>
 void TPZMatRed<TVar,TSideMatrix>::U1(TPZFMatrix<TVar> & F)
 {
@@ -335,6 +335,33 @@ void TPZMatRed<TVar,TSideMatrix>::U1(TPZFMatrix<TVar> & F)
 	K1Red.SolveDirect( F ,ELU);
 	
 	
+}
+
+template<class TVar ,class TSideMatrix>
+void TPZMatRed<TVar,TSideMatrix>::U0(const TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & F)
+{
+	if(fK01IsComputed) //In this case, K01 is [K00^-1][K01]
+	{
+		//[U0]=[K00^-1][F0]-[K01][U1]
+        if(!fF0IsComputed) //compute [F0]=[K00^-1][F0]
+        {
+            DecomposeK00();
+            fSolver->Solve(fF0,fF0);
+            fF0IsComputed = true;
+        }
+		//make [U0]=[F0]-[K01][U1]
+		fK01.MultAdd(U1,(fF0),F,-1,1);
+	}
+    else //In this case, K00 was not decomposed
+    {
+        //[U0]=[K00^-1][F0]-[K00^-1][K01][U1]
+        TPZFMatrix<TVar> K00U0(fK01.Rows(),U1.Cols(),0.);
+        //[K00U0]=[F0]-[K01][U1]
+        fK01.MultAdd(U1,fF0,K00U0,-1.,1.);
+        DecomposeK00();
+        // [U0] = [K00^-1][K00U0]
+        fSolver->Solve(K00U0, F);
+	}
 }
 
 template<>
@@ -359,7 +386,7 @@ void TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::UGlobal(const TPZFMatrix<REAL>
 	
 	//make [u0]=[F0]-[U1]
 	TPZFMatrix<REAL> u0( fF0.Rows() , fF0.Cols() );
-	fK01.MultAdd(U1,(fF0),u0,-1,0);
+	fK01.MultAdd(U1,(fF0),u0,-1,0); //why beta is equal to 0? Shouldn't be equal to 1?
 	
 	result.Redim( fDim0+fDim1,fF0.Cols() );
 	int64_t c,r,r1;
@@ -490,6 +517,53 @@ void TPZMatRed<TVar, TSideMatrix>::UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TV
 	}
 }
 
+template<class TVar, class TSideMatrix>
+int TPZMatRed<TVar, TSideMatrix>::SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt)
+{
+    //Setting the decompisition type to invert k00
+    fK00->SetIsDecomposed(dt);
+
+    //Computing K11 and F1 reduced
+    TPZFNMatrix<1000,TVar> K11Red(fDim1,fDim1), f1Red(fDim1,fF1.Cols());
+    K11Reduced(K11Red, f1Red);
+
+    //make U1 = (K11reduced)^-1 * F1reduced
+    TPZFMatrix<TVar> u1(fDim1,f1Red.Cols());
+    K11Red.SolveDirect(u1, dt);
+
+    //make U0 = K00^1 * F0 - K00^1 * K01 * U1
+    TPZFMatrix<TVar> u0(fDim0,f1Red.Cols());
+    U0(u1, u0);
+
+    //Assemble the global solution vector in F
+    F.Redim(fDim0+fDim1,fF0.Cols());
+	int64_t r1;
+	
+	for(int64_t c=0; c<fF0.Cols(); c++)
+	{
+		r1=0;
+		for(int64_t r=0; r<fDim0; r++)
+		{
+			F.PutVal( r,c,u0.GetVal(r,c) ) ;
+		}
+		//Here r=fDim0
+		for(int64_t r = fDim0; r<fDim0+fDim1; r++)
+		{
+			F.PutVal( r,c,u1.GetVal(r1++,c) );
+		}
+	}
+
+    return 0; //Is it everything???
+}
+
+template<class TVar, class TSideMatrix>
+int TPZMatRed<TVar, TSideMatrix>::SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const
+{
+    //Implements me!
+
+    DebugStop();
+
+}
 
 template<class TVar,class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix>::Print(const char *name , std::ostream &out ,const MatrixOutputFormat form ) const

@@ -92,15 +92,10 @@ public:
      * @param F The right hand side of the system and where the solution is stored.
      * @param dt Indicates type of decomposition
      */
-    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override
-    {
-        DebugStop();
-        return 0;
-    }
-    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
-        DebugStop();
-        return 0;
-    }
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override;
+    
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override;
+  
 	/** @brief changes the declared dimension of the matrix to fDim1 */
 	void SetReduced()
 	{
@@ -223,6 +218,13 @@ public:
 	 * @param F contains second vector
 	 */
 	void U1(TPZFMatrix<TVar> & F);
+
+	/**
+	 * @brief Returns the first rhs vector, making [U0] = [K00^-1][F0]-[K00^-1][K01][U1]
+	 * @param U1 second rhs vector
+	 * @param F contains first vector
+	 */
+	void U0(const TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & F);
 	
 	/**
 	 * @brief Computes the complete vector based on the solution u1.
