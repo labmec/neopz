@@ -168,21 +168,34 @@ fSolution(fSolType == EComplex ? true : false)
 
 void TPZAnalysis::CreateRenumberObject(const RenumType& renumtype) {
   switch (renumtype) {
+    case RenumType::ENone:
+      fRenumber = nullptr;
+      return;
+    case RenumType::ECutHillMcKee:
+      fRenumber = new TPZCutHillMcKee(true);
+      return;
+    case RenumType::ECutHillMcKeeFast:
+      fRenumber = new TPZCutHillMcKee(false);
+      return;
+    case RenumType::EDefault:
+    case RenumType::EMetis:
+#ifdef PZ_USING_METIS
+      fRenumber = new TPZMetis;
+      return;
+#else
+      if(renumtype==RenumType::EMetis){
+        //maybe we ended up here because of EDefault,
+        //no need to print the message then
+        std::cout<<__PRETTY_FUNCTION__
+                 <<":\nMetis not available, setting Sloan for renumbering"
+                 <<std::endl;
+      }
+#endif
     case RenumType::ESloan:
       fRenumber = new TPZSloanRenumbering;
-      break;
-    case RenumType::ECutHillMcKee:
-      fRenumber = new TPZCutHillMcKee;
-      break;
-#ifdef PZ_USING_METIS
-    case RenumType::EMetis:
-      fRenumber = new TPZMetis;
-      break;
-#endif
-    default:
-      DebugStop(); // Should not arrive here
-      break;
+      return;
   }
+  DebugStop();
 }
 
 void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, bool mustOptimizeBandwidth)
