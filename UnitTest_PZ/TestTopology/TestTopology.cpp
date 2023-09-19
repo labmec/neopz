@@ -352,7 +352,7 @@ namespace topologytests{
         TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, shapedata);
 
         const int npts = intRule->NPoints();
-        auto nshape = shapedata.fSDVecShapeIndex.size();
+        auto nshape = TPZShapeHCurl<TSHAPE>::NHCurlShapeF(shapedata);
 
         for (auto ipt = 0; ipt < npts; ipt++) {
             REAL w;
