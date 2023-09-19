@@ -518,18 +518,22 @@ void TPZMatRed<TVar, TSideMatrix>::UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TV
 }
 
 template<class TVar, class TSideMatrix>
-int TPZMatRed<TVar, TSideMatrix>::SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt)
+int TPZMatRed<TVar, TSideMatrix>::SolveDirect(TPZFMatrix<TVar>& F , const DecomposeType dt)
 {
+    if (!fIsReduced) DebugStop();
+
     //Setting the decompisition type to invert k00
-    fK00->SetIsDecomposed(dt);
+    TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(fK00);
+    step->SetDirect(dt);
+    fSolver = step;
 
     //Computing K11 and F1 reduced
     TPZFNMatrix<1000,TVar> K11Red(fDim1,fDim1), f1Red(fDim1,fF1.Cols());
     K11Reduced(K11Red, f1Red);
 
     //make U1 = (K11reduced)^-1 * F1reduced
-    TPZFMatrix<TVar> u1(fDim1,f1Red.Cols());
-    K11Red.SolveDirect(u1, dt);
+    TPZFNMatrix<1000,TVar> u1 = f1Red;
+    K11Red.SolveDirect(u1, ELU);
 
     //make U0 = K00^1 * F0 - K00^1 * K01 * U1
     TPZFMatrix<TVar> u0(fDim0,f1Red.Cols());
@@ -552,7 +556,6 @@ int TPZMatRed<TVar, TSideMatrix>::SolveDirect ( TPZFMatrix<TVar>& F , const Deco
 			F.PutVal( r,c,u1.GetVal(r1++,c) );
 		}
 	}
-
     return 0; //Is it everything???
 }
 
