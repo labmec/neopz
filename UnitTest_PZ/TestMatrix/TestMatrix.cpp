@@ -13,6 +13,7 @@
 #include "pzskylmat.h"
 #include "TPZYSMPMatrix.h"
 #include "TPZSYSMPMatrix.h"
+#include "pzmatred.h"
 #ifdef PZ_USING_MKL
 #include "TPZYSMPPardiso.h"
 #include "TPZSYSMPPardiso.h"
@@ -178,6 +179,17 @@ void TestingMultAdd(int dim, SymProp sp, DecomposeType dec);
  */
 template <class TVar>
 void TestingAddContribution(int nrows, int ncols, int ntype);
+
+/**
+ * @brief Tests the MatRed::SolveDirect() method by comparing the solution obtained using reduced and full matrix
+ * @param dim0 dimension of the first submatrix K00
+ * @param dim dimension of the full matrix K
+ * @param ntype type of the test to be performed
+ * @note Process: build a matrix C with randomic values, adds a contribution C += A*B of the same size as C. Compare the results with AddContribution and MultAdd.
+ */
+template <class TVar>
+void TestingMatRedSolver(int dim0, int dim, int ntype);
+
 #ifdef PZ_USING_LAPACK
 
 /**
@@ -802,6 +814,18 @@ template<class TVar>
       }
 #endif
     }
+
+    template <class TVar>
+    void TestMatRedSolver()
+    {
+      SECTION("TPZMatRedMatrix")
+      {
+          TestingMatRedSolver<TVar>(2, 4, 0);
+      }
+    }
+
+
+
 #ifdef PZ_USING_LAPACK
     template <class TVar> void GeneralisedEigenvaluesAutoFill() {
         for (int dim = 5; dim < 6; dim += 10) {
@@ -1116,6 +1140,23 @@ TEMPLATE_TEST_CASE("AddContribution (CPLX)","[matrix_tests]",
                    ) {
     testmatrix::TestAddContribution<TestType>();
 }
+
+TEMPLATE_TEST_CASE("MatRed SolveDirect (REAL)","[matrix_tests]",
+                   float,
+                   double,
+                   long double
+                   ) {
+    testmatrix::TestMatRedSolver<TestType>();
+}
+
+TEMPLATE_TEST_CASE("MatRed SolveDirect (CPLX)","[matrix_tests]",
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+                   ) {
+    testmatrix::TestMatRedSolver<TestType>();
+}
+
 
 #ifdef PZ_USING_LAPACK
 /*There is no long double lapack interface in our code*/
@@ -1829,6 +1870,85 @@ void TestingAddContribution(int nrows, int ncols, int ntype)
           break;
       }
     }
+}
+
+template <class TVar>
+void TestingMatRedSolver(int dim0, int dim, int ntype)
+{
+  TPZMatRed<TVar, TPZFMatrix<TVar>> matred;
+  matred.SetSymmetry(SymProp::Sym);
+  matred.Redim(dim, dim0);
+
+  TPZAutoPointer<TPZMatrix<TVar>> k00 = new TPZFMatrix<TVar>(dim0, dim0, 0.);
+  matred.SetK00(k00);
+
+  matred(0, 0) = (TVar)(3);
+  matred(0, 1) = (TVar)(1);
+  matred(0, 2) = (TVar)(4);
+  matred(0, 3) = (TVar)(5);
+  matred(1, 0) = (TVar)(1);
+  matred(1, 1) = (TVar)(2);
+  matred(1, 2) = (TVar)(5);
+  matred(1, 3) = (TVar)(6);
+  matred(2, 2) = (TVar)(7);
+  matred(2, 3) = (TVar)(9);
+  matred(3, 3) = (TVar)(8);
+
+  matred.SimetrizeMatRed();
+
+  TPZFMatrix<TVar> fmatrix(dim, dim, 0.);
+  for (int i = 0; i < dim; i++)
+  {
+    for (int j = 0; j < dim; j++)
+    {
+      fmatrix(i, j) = matred(i, j);
+    }
+  }
+
+  TPZFMatrix<TVar> F(dim, 1);
+  F(0, 0) = (TVar)(1);
+  F(1, 0) = (TVar)(2);
+  F(2, 0) = (TVar)(3);
+  F(3, 0) = (TVar)(4);
+
+  matred.SetF(F);
+  matred.SetReduced();
+
+  TPZFMatrix<TVar> u(dim, 1, 0.);
+  matred.SolveDirect(u, ELU);
+
+  TPZFMatrix<TVar> u2(dim, 1, 0.);
+  u2 = F;
+  fmatrix.SolveDirect(u2, ELU);
+
+  constexpr RTVar tol = []()
+  {
+    if constexpr (std::is_same_v<RTVar, float>)
+      return (RTVar)100;
+    else if constexpr (std::is_same_v<RTVar, long double>)
+      return (RTVar)10;
+    else
+      return (RTVar)1;
+  }();
+
+  bool check = true;
+
+  for (int i = 0; i < dim; i++)
+  {
+    for (int j = 0; j < u.Cols(); j++)
+    {
+      TVar diff = u(i, j) - u2(i, j);
+      if (!IsZero(diff / tol))
+      {
+        CAPTURE(dim, u.Cols());
+        CAPTURE(u(i, j), u2(i, j));
+        std::cout << "i " << i << " j " << j << " u " << u(i, j) << " u2 " << u2(i, j) << std::endl;
+        check = false;
+      }
+    }
+  }
+
+  REQUIRE(check);
 }
 
 #ifdef PZ_USING_LAPACK
