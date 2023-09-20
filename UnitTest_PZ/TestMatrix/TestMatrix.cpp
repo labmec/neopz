@@ -1876,23 +1876,27 @@ template <class TVar>
 void TestingMatRedSolver(int dim0, int dim, int ntype)
 {
   TPZMatRed<TVar, TPZFMatrix<TVar>> matred;
-  matred.SetSymmetry(SymProp::Sym);
   matred.Redim(dim, dim0);
 
   TPZAutoPointer<TPZMatrix<TVar>> k00 = new TPZFMatrix<TVar>(dim0, dim0, 0.);
+  k00->SetSymmetry(SymProp::Sym);
   matred.SetK00(k00);
 
-  matred(0, 0) = (TVar)(3);
-  matred(0, 1) = (TVar)(1);
-  matred(0, 2) = (TVar)(4);
-  matred(0, 3) = (TVar)(5);
-  matred(1, 0) = (TVar)(1);
-  matred(1, 1) = (TVar)(2);
-  matred(1, 2) = (TVar)(5);
-  matred(1, 3) = (TVar)(6);
-  matred(2, 2) = (TVar)(7);
-  matred(2, 3) = (TVar)(9);
-  matred(3, 3) = (TVar)(8);
+  matred.K00()->AutoFill(dim0, dim0, SymProp::Sym);
+  matred.K11().AutoFill(dim-dim0, dim-dim0, SymProp::Sym);
+  matred.K01().AutoFill(dim0, dim-dim0, SymProp::Sym);
+
+  // matred(0, 0) = (TVar)(3);
+  // matred(0, 1) = (TVar)(1);
+  // matred(0, 2) = (TVar)(4);
+  // matred(0, 3) = (TVar)(5);
+  // matred(1, 0) = (TVar)(1);
+  // matred(1, 1) = (TVar)(2);
+  // matred(1, 2) = (TVar)(5);
+  // matred(1, 3) = (TVar)(6);
+  // matred(2, 2) = (TVar)(7);
+  // matred(2, 3) = (TVar)(9);
+  // matred(3, 3) = (TVar)(8);
 
   matred.SimetrizeMatRed();
 
@@ -1906,10 +1910,11 @@ void TestingMatRedSolver(int dim0, int dim, int ntype)
   }
 
   TPZFMatrix<TVar> F(dim, 1);
-  F(0, 0) = (TVar)(1);
-  F(1, 0) = (TVar)(2);
-  F(2, 0) = (TVar)(3);
-  F(3, 0) = (TVar)(4);
+  F.AutoFill(dim,1,SymProp::NonSym);
+  // F(0, 0) = (TVar)(1.);
+  // F(1, 0) = (TVar)(2.);
+  // F(2, 0) = (TVar)(3.);
+  // F(3, 0) = (TVar)(4.);
 
   matred.SetF(F);
   matred.SetReduced();
