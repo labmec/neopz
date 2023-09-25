@@ -12,7 +12,7 @@
 static TPZLogger logger("pz.InterfaceHybridElasticityStokes");
 #endif
 
-TPZMatInterfaceHybridElasticityStokes::TPZMatInterfaceHybridElasticityStokes(int matID, int dimension, bool isAxisymmetric) : TBase(matID), fdimension(dimension), faxisymmetry(isAxisymmetric) {}
+TPZMatInterfaceHybridElasticityStokes::TPZMatInterfaceHybridElasticityStokes(int matID, int dimension, bool isAxisymmetric) : TBase(matID), fdimension(dimension), faxisymmetric(isAxisymmetric) {}
 
 TPZMatInterfaceHybridElasticityStokes::~TPZMatInterfaceHybridElasticityStokes() {}
 
