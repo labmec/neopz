@@ -227,9 +227,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     fGeoMesh->ResetReference();
     int dim = fGeoMesh->Dimension();
     TPZCompMesh *cmesh = new TPZCompMesh(fGeoMesh);
-    if (fProbType == ProblemType::EDarcy) {
-        cmesh->SetDefaultOrder(fDefaultPOrder);
-    }else if (fProbType == ProblemType::EElastic){
+    if (fProbType == ProblemType::EDarcy || fProbType == ProblemType::EElastic){
         cmesh->SetDefaultOrder(fDefaultPOrder);
     } else {
         DebugStop();
