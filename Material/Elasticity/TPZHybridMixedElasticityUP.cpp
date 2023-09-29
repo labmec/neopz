@@ -125,7 +125,7 @@ void TPZHybridMixedElasticityUP::Contribute(const TPZVec<TPZMaterialDataT<STATE>
     factor = -(1.0 / fbulk) * weight;
     ek.AddContribution(nShapeU, nShapeU, PhiP, false, PhiP, true, factor);
     
-    if(datavec.size() > 2) //Static condensation
+    if(datavec.size() > 2) //Static condensation in incompressibility regime
     {
         TPZFMatrix<REAL>& PhiUM = datavec[EVMindex].phi;
         TPZFMatrix<REAL>& phipM = datavec[EPMindex].phi;
