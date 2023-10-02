@@ -2654,8 +2654,8 @@ TPZGeoEl::ComputeDetjac(TPZFMatrix<Fad<REAL> > &gradx, Fad<REAL> &detjac)
 }
 
 
-void TPZGeoEl::PrintVTK() {
-    std::string filename = "geoel_index_" + to_string(this->Index()) + ".vtk";
+void TPZGeoEl::PrintVTK(const std::string prefix) {
+    std::string filename = prefix + "geoel_index_" + to_string(this->Index()) + ".vtk";
     std::ofstream out(filename);
     out << "# vtk DataFile Version 3.0" << std::endl;
     out << "GeoEl VTK Visualization" << std::endl;

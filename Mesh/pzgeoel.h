@@ -415,7 +415,7 @@ public:
 	virtual  void Print(std::ostream & out = std::cout);
 
     /** @brief Prints the geoel to vtk format with the name geoel_index_#.vtk  */
-    void PrintVTK();
+    void PrintVTK(const std::string prefix="");
     
 	/**
 	 * @brief Prints the coordinates of all nodes (geometric)
