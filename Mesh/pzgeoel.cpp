@@ -2652,3 +2652,100 @@ TPZGeoEl::ComputeDetjac(TPZFMatrix<Fad<REAL> > &gradx, Fad<REAL> &detjac)
             (gradx(2,0)*gradx(1,1)*gradx(0,2) + gradx(0,1)*gradx(2,2)*gradx(1,0) + gradx(1,2)*gradx(0,0)*gradx(2,1));
     }
 }
+
+
+void TPZGeoEl::PrintVTK() {
+    std::string filename = "geoel_index_" + to_string(this->Index()) + ".vtk";
+    std::ofstream out(filename);
+    out << "# vtk DataFile Version 3.0" << std::endl;
+    out << "GeoEl VTK Visualization" << std::endl;
+    out << "ASCII" << std::endl;
+    out << "DATASET UNSTRUCTURED_GRID\n" << std::endl;
+    
+    int nnodes = this->NNodes();
+    out << "POINTS " << nnodes << " float" << std::endl;
+        
+    TPZFNMatrix<24,REAL> nodecoord(3,nnodes);
+    this->NodesCoordinates(nodecoord);
+    for(int in = 0 ; in < nnodes ; in++) {
+        for(int idim = 0 ; idim < 3 ; idim++) {
+            out << nodecoord(idim,in) << "\t";
+        }
+        out << std::endl;
+    }
+    
+    out << "\nCELLS 1 " << nnodes+1 << std::endl;
+    out << nnodes << " ";
+    for(int in = 0 ; in < nnodes ; in++) out << in << " ";
+    out << std::endl;
+    
+    out << "\nCELL_TYPES 1" << std::endl;
+    out << GetVTK_ElType(this) << std::endl;
+    
+    out << "\nCELL_DATA 1" << std::endl;
+    out << "FIELD FieldData 1" << std::endl;
+    out << "elIndex 1 1 int" << std::endl;
+    out << this->Index() << std::endl;
+}
+
+int TPZGeoEl::GetVTK_ElType(TPZGeoEl * gel) {
+    MElementType pzElType = gel->Type();
+
+    int elType = -1;
+    switch (pzElType) {
+        case(EPoint):
+        {
+            elType = 1;
+            break;
+        }
+        case(EOned):
+        {
+            elType = 3;
+            break;
+        }
+        case (ETriangle):
+        {
+            elType = 5;
+            break;
+        }
+        case (EQuadrilateral):
+        {
+            elType = 9;
+            break;
+        }
+        case (ETetraedro):
+        {
+            elType = 10;
+            break;
+        }
+        case (EPiramide):
+        {
+            elType = 14;
+            break;
+        }
+        case (EPrisma):
+        {
+            elType = 13;
+            break;
+        }
+        case (ECube):
+        {
+            elType = 12;
+            break;
+        }
+        default:
+        {
+            std::cout << "Element type not found on " << __PRETTY_FUNCTION__ << std::endl;
+            DebugStop();
+            break;
+        }
+    }
+    if (elType == -1) {
+        std::cout << "Element type not found on " << __PRETTY_FUNCTION__ << std::endl;
+        std::cout << "MIGHT BE CURVED ELEMENT (quadratic or quarter point)" << std::endl;
+        DebugStop();
+    }
+
+    return elType;
+}
+

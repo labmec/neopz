@@ -84,9 +84,6 @@ public:
 	
 	/** @brief Based on a given geomesh, just the elements that have the given material id will be exported to an VTK file */
 	static void PrintGMeshVTKmy_material(TPZGeoMesh *gmesh, std::ofstream &file, std::set<int> myMaterial, bool matColor = true, bool dimension = false);
-	
-	/** @brief Get type of the geometric element */
-	static int GetVTK_ElType(TPZGeoEl *gel);
     
     /** Print a pointmesh whose values are the polynomial orders */
     static void PrintPOrderPoints(TPZCompMesh &cmesh,std::set<int> dimensions, std::ofstream &outfile);
