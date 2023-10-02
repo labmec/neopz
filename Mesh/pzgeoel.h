@@ -413,6 +413,9 @@ public:
 	
 	/** @brief Print all relevant data of the element to cout*/
 	virtual  void Print(std::ostream & out = std::cout);
+
+    /** @brief Prints the geoel to vtk format with the name geoel_index_#.vtk  */
+    void PrintVTK(const std::string prefix="");
     
 	/**
 	 * @brief Prints the coordinates of all nodes (geometric)
@@ -738,6 +741,9 @@ public:
     {
         return fIndex;
     }
+    
+    /** @brief Get type of the geometric element */
+    static int GetVTK_ElType(TPZGeoEl *gel);
 	
 private:
 	/** @brief To be used after the buid connectivity. If some neighbour isn't initialized */
