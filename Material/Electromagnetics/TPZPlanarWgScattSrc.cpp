@@ -83,7 +83,7 @@ void TPZPlanarWgScattSrc::Contribute(const TPZMaterialDataT<CSTATE> &data,
   //Contribution
   for(int i = 0 ; i<nshape ; i++){
     const CSTATE load = src * cGx * phi(i,0);
-    ef(i,0) += weight * load * fScaleFactor * fScaleFactor;
+    ef(i,0) += weight * load;
   }
 }
 
