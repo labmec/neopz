@@ -7,19 +7,7 @@
 
 #include "TPZSolver.h"
 #include "pzfmatrix.h"
-
-//! Sorting method for calculated eigenvalues
-enum class TPZEigenSort{
-  AbsAscending,/*!< Ascending magnitude*/
-  AbsDescending,/*!< Descending magnitude*/
-  RealAscending,/*!< Ascending real part*/
-  RealDescending,/*!< Descending real part*/
-  ImagAscending,/*!< Ascending imaginary part*/
-  ImagDescending,/*!< Descending imaginary part*/
-  TargetRealPart,/*!< Real part closest to target*/
-  TargetImagPart,/*!< Imaginary part closest to target*/
-  TargetMagnitude/*!< Magnitude closest to target*/
-};
+#include "TPZEigenSort.h"
 
 
 template <class T>
