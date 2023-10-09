@@ -910,10 +910,10 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatr
             DebugStop();
         }
 #endif
-        sbfem->SetPhiEigVal(fPhi, fEigenvalues);
+        sbfem->SetPhiEigVal(fPhi, fPhiInverse, fEigenvalues);
         if (fInternalPolynomialOrder > 0)
         {
-            sbfem->SetCoefNonHomogeneous(fPhiBubble, fEigenvaluesBubble, fPhiInverse, fMatBubble);
+            sbfem->SetCoefNonHomogeneous(fPhiBubble, fEigenvaluesBubble, fMatBubble);
         }
     }
 
@@ -1501,7 +1501,12 @@ void TPZSBFemElementGroup::ComputeBubbleParameters()
     
     // ##################################################################################
     // UPDATING THE MATRIX THAR WILL COMPOSE THE LINEAR COMBINATIONS OF \xi^i
-    
+    // matbubble defines the linear combination of phi xi^lambda. It contains ones and zeroes
+    // the first columns are the rational functions
+    // nbbubleseig is equal to the number of rational functions 
+    // the next function is the hat function
+    // the next columns follow the skeleton functions (one by one) multiplying them by xi^lambda
+    // nbubbleseig is equal to the number of bubble functions for each skeleton function
     fMatBubble.Resize(nexp, neq);
     // Line represents the number of exponents - related to the basis functions
     // Column the number of bubbles - equations
@@ -1646,10 +1651,10 @@ void TPZSBFemElementGroup::OverwritePhis(TPZElementMatrixT<STATE> &E0, TPZElemen
             DebugStop();
         }
 #endif
-        sbfem->SetPhiEigVal(fPhi, fEigenvalues);
+        sbfem->SetPhiEigVal(fPhi, fPhiInverse, fEigenvalues);
         if (fInternalPolynomialOrder > 0)
         {
-            sbfem->SetCoefNonHomogeneous(fPhiBubble, fEigenvaluesBubble, fPhiInverse, fMatBubble);
+            sbfem->SetCoefNonHomogeneous(fPhiBubble, fEigenvaluesBubble, fMatBubble);
         }
     }
 

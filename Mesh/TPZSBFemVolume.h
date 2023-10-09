@@ -31,15 +31,18 @@ protected:
     TPZIntPoints *fIntRule = 0;
     
     /// Section of the phi vector associated with this volume element
+    /// the number of rows is equal to the number of functions of the skeleton
     TPZFNMatrix<30,std::complex<double> > fPhi;
     
     /// Section of the phi vector associated with this volume element
+    /// the number of rows is equal to the number of the functions of the skeleton
     TPZFNMatrix<30,std::complex<REAL> > fPhiBubble;
     
     /// Eigenvlues associated with the internal shape functions
     TPZManVector<std::complex<double> > fEigenvalues;
     
-    /// Eigenvlues associated with the internal shape functions
+    /// Eigenvalues associated with the internal shape functions
+    /// the size is equal to the number of distinct eigenvalues for bubbles
     TPZManVector<std::complex<REAL> > fEigenvaluesBubble;
     
     /// Inverse of fPhi and bubble coefficients
@@ -253,7 +256,7 @@ public:
 
 
     /// initialize the data structures of the eigenvectors and eigenvalues associated with this volume element
-    void SetPhiEigVal(TPZFMatrix<std::complex<double> > &phi, TPZManVector<std::complex<double> > &eigval);
+    void SetPhiEigVal(TPZFMatrix<std::complex<double> > &phi, TPZFMatrix<std::complex<double> > &phinv, TPZManVector<std::complex<double> > &eigval);
     
     TPZFMatrix<std::complex<double> > Phi()
     {
@@ -332,7 +335,7 @@ public:
      * This method uses the order of interpolation
      * of the element along the sides to compute the number of shapefunctions
      */
-    virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidxi) override;
+    virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidx) override;
     
     /** @brief Compute shape functions based on master element in the classical FEM manner. */
     virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
@@ -388,7 +391,7 @@ public:
     void ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
                                     TPZSolVec<STATE> &sol, TPZGradSolVec<STATE> &dsol, TPZFMatrix<REAL> &axes);
     
-    void SetCoefNonHomogeneous(TPZFNMatrix<100,std::complex<double>> &phi, TPZManVector<std::complex<double> > &eigval, TPZFNMatrix<100,std::complex<double> > &phiinv, TPZFNMatrix<100,std::complex<double> > &rot);
+    void SetCoefNonHomogeneous(TPZFNMatrix<100,std::complex<double>> &phi, TPZManVector<std::complex<double> > &eigval, TPZFNMatrix<100,std::complex<double> > &rot);
 
 
 };

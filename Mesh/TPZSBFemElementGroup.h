@@ -223,6 +223,11 @@ public:
         return fPhiInverse;
     }
     
+        /// Matrix that composes the bubble functions
+    TPZFNMatrix<100,std::complex<double> > &MatBubble(){
+        return fMatBubble;
+    }
+
     TPZFMatrix<STATE> &MassMatrix()
     {
         return fMassMatrix;
