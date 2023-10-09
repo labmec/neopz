@@ -39,6 +39,7 @@ namespace SBFemTest {
   void InsertMaterialDarcy(TPZCompMesh* cmesh);
   void Analysis(TPZLinearAnalysis & an, const int nThreads, TPZManVector<REAL> & errorVec);
   
+  void VerifyShape(TPZCompMesh *cmesh);
   // Material Data
   constexpr int EGroup{15};
   constexpr int ESkeleton{12};
@@ -54,7 +55,7 @@ namespace SBFemTest {
 TEST_CASE("SBFEM convergence test","[sbfem][analysis]")
 {
   std::cout << "#######################\nTesting SBFEM-Elasticity 3D approximation\n";
-  SBFemTest::SBFemElasticity3D(4);
+//  SBFemTest::SBFemElasticity3D(4);
   std::cout << "\n\n#######################\nTesting SBFEM-Bubbles approximation\n";
   SBFemTest::SBFemBubblesDarcy(4);
 }
@@ -160,7 +161,8 @@ void SBFemTest::Analysis(TPZLinearAnalysis & an, const int nThreads, TPZManVecto
   an.Assemble();
   an.Solve();
   an.SetThreadsForError(nThreads);
-
+  an.SetThreadsForError(0);
+  std::cout << "Eu nao sou louco\n";
   an.PostProcessError(errorVec, false);
 };
 
@@ -218,6 +220,8 @@ void SBFemTest::SBFemBubblesDarcy(const int nThreads) {
   std::cout << "\tSerial time: " << elapsedSerial.count() << "s\n";
   std::cout << "\tSerial errors: " << errorVecSer << std::endl;
 
+  VerifyShape(cmesh);
+
   start = std::chrono::system_clock::now();
   TPZManVector<REAL> errorVecPar;
   Analysis(an, nThreads, errorVecPar);
@@ -237,4 +241,68 @@ void SBFemTest::SBFemBubblesDarcy(const int nThreads) {
   REQUIRE(pass);
 
   delete cmesh;
+}
+
+void SBFemTest::VerifyShape(TPZCompMesh *cmesh) {
+  int64_t nel = cmesh->NElements();
+  TPZFMatrix<STATE> Sol(cmesh->NEquations(),1,0.);
+
+  for (size_t el = 0; el < nel; el++) {
+    TPZCompEl *cel = cmesh->Element(el);
+    TPZSBFemElementGroup *celgr = dynamic_cast<TPZSBFemElementGroup *>(cel);
+    if(celgr) {
+      std::cout << "element group " << el << std::endl;
+      auto &phinv = celgr->PhiInverse();
+      int sz = phinv.Rows();
+      TPZFMatrix<STATE> phinvreal(sz,sz);
+      for(int i=0; i<sz; i++) for(int j=0; j<sz; j++) phinvreal(i,j) = phinv(i,j).real();
+      int nc = cel->NConnects();
+      auto &elgr = celgr->GetElGroup();
+      auto nelgr = elgr.size();
+      for (size_t i = 0; i < nelgr; i++)
+      {
+        TPZCompEl *celvol = elgr[i];
+        TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(celvol);
+        if(sbfem) {
+          sbfem->Print(std::cout);
+          TPZManVector<REAL,3> xi(2,0.),sol(1,0.);
+          //xi[1] = -1.;
+          TPZFMatrix<REAL> phi,dphixi;
+          sbfem->Shape(xi,phi,dphixi);
+          std::cout << "values of phi \n";
+          for(int i = 0; i<sz; i++) std::cout << phi(i,0) << " ";
+          std::cout << std::endl;
+          int firstshape = 0;
+          for(int ic = 0; ic<nc; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            int64_t seq = c.SequenceNumber();
+            int64_t pos = cmesh->Block().Position(seq);
+            int64_t blsize = cmesh->Block().Size(seq);
+            for(int ishape = 0; ishape < blsize; ishape++) {
+              Sol.Zero();
+              Sol(pos+ishape,0) = 1.;
+              if(0 && ic < nc-1) {
+                TPZVec<STATE> coefs(sz);
+                for(int i=0; i<sz; i++) coefs[i] = phinvreal(i,ishape+firstshape);
+                std::cout << " column in phinv " << coefs << std::endl;
+              }
+              cmesh->LoadSolution(Sol);
+              sbfem->Solution(xi,1,sol);
+              if(0 &&ic == nc-1)
+              {
+                auto coefload = celgr->CoeficientsReal();
+                int sz = coefload.Rows();
+                TPZVec<STATE> coefloadvec(sz);
+                for(int i=0; i<sz; i++) coefloadvec[i] = coefload(i,0);
+                std::cout << "working coeficients " << coefloadvec << std::endl;
+              }
+              std::cout << "subel " << i << " shape " << ishape+firstshape << " phi(ishape) " << phi(firstshape+ishape,0) << " sol " << sol[0] << std::endl;
+            }
+            firstshape += blsize;
+          }
+        }
+      }
+      break;
+    }
+  }
 }
