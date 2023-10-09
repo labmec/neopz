@@ -630,8 +630,9 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
     int dim = Ref2D->Dimension();
     int nstate = mat2d->NStateVariables();
 
-    phi.Redim(CoefficientLoc.Cols() * nstate, 1);
-    dphidxi.Redim(dim*nstate, CoefficientLoc.Cols());
+    int nphi = CoefficientLoc.Cols() + fPhiInvBubbles.Cols();
+    phi.Redim(nphi * nstate, 1);
+    dphidxi.Redim(dim*nstate, CoefficientLoc.Cols() + fPhiInvBubbles.Cols());
 
     REAL sbfemparam = (1. - qsi[dim - 1]) / 2.;
     if (sbfemparam < 0.) {
@@ -668,7 +669,7 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
 
     int nshape = data1d.fPhi.Rows();
 #ifdef PZDEBUG
-    if (fPhi.Cols() != fCoeficients.Rows()) {
+    if (fPhi.Cols()+ fPhiBubble.Cols() != fCoeficients.Rows()) {
         DebugStop();
     }
 #endif
@@ -686,6 +687,7 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
     }
 #endif
 
+    //Computing shape functions phi for the homogeneous solution
     for (int s = 0; s < CoefficientLoc.Cols(); s++) {
         TPZManVector<std::complex<double>, 10> uh_xi(fPhi.Rows(), 0.), Duh_xi(fPhi.Rows(), 0.);
         int nphixi = fPhi.Rows();
@@ -708,15 +710,6 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
                 Duh_xi[i] += -CoefficientLoc(c, s)*(fEigenvalues[c] + 0.5 * (dim - 2)) * xiexpm1 * fPhi(i, c);
             }
         }
-#ifdef LOG4CXX2
-        if (s == 1 && logger->isDebugEnabled()) {
-            std::stringstream sout;
-            sout << "uh_xi " << uh_xi << std::endl;
-            sout << "Duh_xi " << Duh_xi << std::endl;
-            data1d.fPhi.Print(sout);
-            LOGPZ_DEBUG(logger, sout.str())
-        }
-#endif
         TPZFNMatrix<9, STATE> dsollow(dim - 1, nstate, 0.), dsolxieta(dim, nstate, 0.);
         TPZManVector<STATE, 3> dsolxi(nstate, 0.);
         for (int ishape = 0; ishape < nshape; ishape++) {
@@ -742,7 +735,56 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
             }
         }
     }
-
+    
+    //Computing shape functions phi for the bubble approximation
+    int nphi0 = CoefficientLoc.Cols();
+    for (int s = nphi0; s < nphi; s++) {
+        TPZManVector<std::complex<double>, 10> uh_xi(fPhiBubble.Rows(), 0.), Duh_xi(fPhiBubble.Rows(), 0.);
+        int nphixi = fPhiBubble.Rows();
+        int numeig = fPhiBubble.Cols();
+        for (int c = 0; c < numeig; c++) {
+            std::complex<double> xiexp;
+            std::complex<double> xiexpm1;
+            if (IsZero(fEigenvaluesBubble[c] + 0.5 * (dim - 2))) {
+                xiexp = 1;
+                xiexpm1 = 0;
+            } else if (IsZero(fEigenvaluesBubble[c] + 1. + 0.5 * (dim - 2))) {
+                xiexp = sbfemparam;
+                xiexpm1 = 1;
+            } else {
+                xiexp = pow(sbfemparam, -fEigenvaluesBubble[c] - 0.5 * (dim - 2));
+                xiexpm1 = pow(sbfemparam, -fEigenvaluesBubble[c] - 1. - 0.5 * (dim - 2));
+            }
+            for (int i = 0; i < nphixi; i++) {
+                uh_xi[i] += fPhiInvBubbles(c, s-nphi0) * xiexp * fPhiBubble(i, c);
+                Duh_xi[i] += -fPhiInvBubbles(c, s-nphi0)*(fEigenvaluesBubble[c] + 0.5 * (dim - 2)) * xiexpm1 * fPhiBubble(i, c);
+            }
+        }
+        TPZFNMatrix<9, STATE> dsollow(dim - 1, nstate, 0.), dsolxieta(dim, nstate, 0.);
+        TPZManVector<STATE, 3> dsolxi(nstate, 0.);
+        for (int ishape = 0; ishape < nshape; ishape++) {
+            for (int istate = 0; istate < nstate; istate++) {
+                phi(nphi0 + (s-nphi0) * nstate + istate, 0) += data1d.fPhi(ishape) * uh_xi[ishape * nstate + istate].real();
+                dsolxi[istate] += data1d.fPhi(ishape) * Duh_xi[ishape * nstate + istate].real();
+                for (int d = 0; d < dim - 1; d++) {
+                    dsollow(d, istate) += data1d.fDPhi(d, ishape) * uh_xi[ishape * nstate + istate].real();
+                }
+            }
+        }
+        for (int istate = 0; istate < nstate; istate++) {
+            for (int d = 0; d < dim - 1; d++) {
+                dsolxieta(d, istate) = dsollow(d, istate);
+            }
+            dsolxieta(dim - 1, istate) = -dsolxi[istate] / 2.;
+        }
+        for (int istate = 0; istate < nstate; istate++) {
+            for (int d1 = 0; d1 < dim; d1++) {
+                for (int d2 = 0; d2 < dim; d2++) {
+                    dphidxi(istate * nstate + d1, s) += data2d.jacinv(d2, d1) * dsolxieta(d2, istate);
+                }
+            }
+        }
+    }
 }
 
 /**

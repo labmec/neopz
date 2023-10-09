@@ -218,6 +218,23 @@ void SBFemTest::SBFemBubblesDarcy(const int nThreads) {
 
   std::cout << "\tSpeedup: " << elapsedSerial / elapsedParallel << "x\n";
 
+
+  for(auto cel:cmesh->ElementVec()){
+    if (!cel) continue;
+
+    auto sbfemgroup = dynamic_cast<TPZSBFemElementGroup *>(cel);
+    if(!sbfemgroup) continue;
+
+    for(auto sbfemvol:sbfemgroup->GetElGroup()){
+      auto vol = dynamic_cast<TPZSBFemVolume*>(sbfemvol);
+      if(!vol) continue;
+
+      TPZManVector<REAL> qsi(3,0.);
+      TPZFMatrix<REAL> phi, dphidxi;
+      vol->Shape(qsi, phi, dphidxi);
+    }
+  }
+
   bool pass = true;
   for (auto i = 0; i < errorVecSer.size(); i++) {
     if (!IsZero(errorVecSer[i] - errorVecPar[i])) {
