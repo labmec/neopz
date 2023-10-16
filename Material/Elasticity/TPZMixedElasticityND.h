@@ -202,10 +202,7 @@ public:
         return "TPZMixedElasticityND";
     }
     
-    REAL GetMaxCoalescenceEigenvalue(TPZVec<REAL> &x) const {
-        DebugStop();
-        return 0;
-    }
+    CSTATE GetMaxComplianceEigenvalue(TPZVec<CSTATE> &x) const;
     
     /** @name Contribute methods */
     /** @{ */
@@ -261,6 +258,18 @@ public:
 
     /// Transform a Voigt notation to a tensor
     void FromVoigt(const TPZVec<STATE> &Svoigt, TPZFMatrix<STATE> &S) const;
+
+    /// Transforms a second-order tensor to a Mandel notation
+    void MandelFromSecondOrderTensor(const TPZFMatrix<STATE> &S, TPZVec<STATE> &SMandel) const;
+
+    /// Transforms a Mandel notation to a second-order tensor
+    void SecondOrderTensorFromMandel(const TPZVec<STATE> &SMandel, TPZFMatrix<STATE> &S) const;
+
+    /// Transforms a symmetric second-order tensor to a Mandel notation
+    void MandelFromSymmetricSecondOrderTensor(const TPZFMatrix<STATE> &S, TPZVec<STATE> &SMandel) const;
+
+    /// Transforms a Mandel notation to a second-order symmetric tensor
+    void SymmetricSecondOrderTensorFromMandel(const TPZVec<STATE> &SMandel, TPZFMatrix<STATE> &S) const;
 
     /** inner product of two vectors. See Gurtin (2003), p. 5. */
     template<class TVar>
