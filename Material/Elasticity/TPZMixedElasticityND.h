@@ -202,7 +202,7 @@ public:
         return "TPZMixedElasticityND";
     }
     
-    CSTATE GetMaxComplianceEigenvalue(TPZVec<CSTATE> &x) const;
+    CSTATE GetMaxComplianceEigenvalue(TPZVec<REAL> &x) const;
     
     /** @name Contribute methods */
     /** @{ */

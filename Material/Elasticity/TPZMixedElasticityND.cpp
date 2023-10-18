@@ -261,7 +261,7 @@ void TPZMixedElasticityND::Print(std::ostream &out) const {
  * @param x
  * @return 
  */
-CSTATE TPZMixedElasticityND::GetMaxComplianceEigenvalue(TPZVec<CSTATE> &x) const {
+CSTATE TPZMixedElasticityND::GetMaxComplianceEigenvalue(TPZVec<REAL> &x) const {
     if (fElasticity){
         // Not implemented for variable elasticity coefficients yet!
         
