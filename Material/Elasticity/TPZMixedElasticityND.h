@@ -25,7 +25,6 @@ TPZMatErrorCombinedSpaces<STATE>> {
 using TBase = TPZMatBase<STATE, TPZMatCombinedSpacesT<STATE>,
     TPZMatErrorCombinedSpaces<STATE> >;
 
-
 public:
     
     struct TElasticityAtPoint
@@ -71,9 +70,7 @@ public:
      */
     TPZMixedElasticityND(int id, REAL E, REAL nu, REAL fx, REAL fy, int planestress = 1, int Dimension = 1);
 
-    /// dimension of the material
-
-    TPZMixedElasticityND(int id);
+    TPZMixedElasticityND(int id, int dimension = 2);
 
     /** @brief Copies the data of one TPZMixedElasticityND object to another */
     TPZMixedElasticityND(const TPZMixedElasticityND &copy);
@@ -101,7 +98,7 @@ public:
 
     virtual int NEvalErrors() const override;
     
-    void ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi);
+    void ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDataT<STATE>> &datavec, TPZFMatrix<STATE> &DivergenceofPhi);
 
     void ComputeDeformationVector(TPZVec<STATE> &PhiStress, TPZVec<STATE> &APhiStress, TElasticityAtPoint &elastb);
 
@@ -204,9 +201,9 @@ public:
     virtual std::string Name() const override {
         return "TPZMixedElasticityND";
     }
-
-
-
+    
+    CSTATE GetMaxComplianceEigenvalue(TPZVec<REAL> &x) const;
+    
     /** @name Contribute methods */
     /** @{ */
 
@@ -257,10 +254,22 @@ public:
     STATE Inner(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T);
 
     /// Transform a tensor to a Voigt notation
-    void ToVoigt(TPZFMatrix<STATE> &S, TPZVec<STATE> &Svoigt);
+    void ToVoigt(const TPZFMatrix<STATE> &S, TPZVec<STATE> &Svoigt) const;
 
     /// Transform a Voigt notation to a tensor
-    void FromVoigt(TPZVec<STATE> &Svoigt, TPZFMatrix<STATE> &S);
+    void FromVoigt(const TPZVec<STATE> &Svoigt, TPZFMatrix<STATE> &S) const;
+
+    /// Transforms a second-order tensor to a Mandel notation
+    void MandelFromSecondOrderTensor(const TPZFMatrix<STATE> &S, TPZVec<STATE> &SMandel) const;
+
+    /// Transforms a Mandel notation to a second-order tensor
+    void SecondOrderTensorFromMandel(const TPZVec<STATE> &SMandel, TPZFMatrix<STATE> &S) const;
+
+    /// Transforms a symmetric second-order tensor to a Mandel notation
+    void MandelFromSymmetricSecondOrderTensor(const TPZFMatrix<STATE> &S, TPZVec<STATE> &SMandel) const;
+
+    /// Transforms a Mandel notation to a second-order symmetric tensor
+    void SymmetricSecondOrderTensorFromMandel(const TPZVec<STATE> &SMandel, TPZFMatrix<STATE> &S) const;
 
     /** inner product of two vectors. See Gurtin (2003), p. 5. */
     template<class TVar>
@@ -335,7 +344,6 @@ protected:
     /** @brief Second Lame Parameter */
     REAL fmu_const;
     
-
     // Matrix A
     TPZFMatrix<STATE> fMatrixA;
 

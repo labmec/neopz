@@ -17,6 +17,7 @@
 #include "pzlog.h"
 //#include "meshgen.h"
 #include "TPZAnalyticSolution.h"
+#include "TPZLapackEigenSolver.h"
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.mixedelasticity"));
 #endif
@@ -37,7 +38,7 @@ TPZMixedElasticityND::TPZMixedElasticityND() : TBase() {
     fMatrixA = 0.;
 }
 
-TPZMixedElasticityND::TPZMixedElasticityND(int id) : TBase(id) {
+TPZMixedElasticityND::TPZMixedElasticityND(int id, int dimension) : TBase(id), fDimension(dimension) {
     fE_const = -1.; // Young modulus
     fnu_const = -1.; // Poisson coefficient
     fForce[0] = 0.; // X component of the body force
@@ -79,7 +80,7 @@ int TPZMixedElasticityND::NStateVariables() const {
 
 // Divergence on deformed element
 
-void TPZMixedElasticityND::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi) {
+void TPZMixedElasticityND::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDataT<STATE>> &datavec, TPZFMatrix<STATE> &DivergenceofPhi) {
     //itapopo conferir esse método. Foi copiado do TPZDarcyFlow3D
     int sigmaBlock = 0;
 
@@ -137,8 +138,7 @@ void TPZMixedElasticityND::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &
 
 void TPZMixedElasticityND::ElasticityModulusTensor(TPZFMatrix<STATE> &MatrixElast, TElasticityAtPoint &elast) {
     //Matrix modulus Voigt notation:
-    int matdim = 4;
-    if(fDimension == 3) matdim = 9;
+    int matdim = (fDimension == 3) ? 9 : 4;
     MatrixElast.Redim(matdim, matdim);
     REAL mu = elast.fmu;
     REAL lambda = elast.flambda;
@@ -202,8 +202,7 @@ void TPZMixedElasticityND::ElasticityModulusTensor(TPZFMatrix<STATE> &MatrixElas
 }
 
 void TPZMixedElasticityND::ComputeDeformationVector(TPZVec<STATE> &PhiStress, TPZVec<STATE> &APhiStress, TElasticityAtPoint &elast) {
-    int matdim = 4;
-    if(fDimension == 3) matdim = 9;
+    int matdim = (fDimension == 3) ? 9 : 4;
     TPZFNMatrix<81, STATE> MatrixElast(matdim, matdim, 0.);
     ElasticityModulusTensor(MatrixElast, elast);
     for (int iq = 0; iq < matdim; iq++) {
@@ -253,37 +252,208 @@ void TPZMixedElasticityND::Print(std::ostream &out) const {
     out << "\tF   = " << fForce[0] << ' ' << fForce[1] << endl;
 }
 
-/// Transform a tensor to a Voigt notation
-void TPZMixedElasticityND::ToVoigt(TPZFMatrix<STATE> &S, TPZVec<STATE> &Svoigt) {
-    {
-        Svoigt[Exx] = S(0, 0);
-        Svoigt[Exy] = S(0, 1);
-        Svoigt[Eyx] = S(1, 0);
-        Svoigt[Eyy] = S(1, 1);
+/**
+ * Computes the spectral radius of the compliance tensor using Mandel notation.
+ * Only the isotropic, minor-symmetric case is implemented.
+ * A sigma = 1/(2mu) * (sigma - lambda/(n*lambda+2mu) * tr sigma I)
+ * 
+ * A[ijkl] = 1/(2mu) * (.5*(delta[ik]*delta[jl]+delta[il]*delta[kj]) - lambda/(n*lambda+2mu) * delta[ij]*delta[kl])
+ * @param x
+ * @return 
+ */
+CSTATE TPZMixedElasticityND::GetMaxComplianceEigenvalue(TPZVec<REAL> &x) const {
+    if (fElasticity){
+        // Not implemented for variable elasticity coefficients yet!
+        
+    // routines for the non-symmetric case
+//    auto symsym = [&complianceElement](unsigned int i, unsigned int j, unsigned int k, unsigned int l) {
+//        auto Aijkl = complianceElement(i,j,k,l);
+//        auto Ajikl = complianceElement(j,i,k,l);
+//        auto Aijlk = complianceElement(i,j,l,k);
+//        auto Ajilk = complianceElement(j,i,l,k);
+//        return 0.25*(Aijkl + Ajikl + Aijlk + Ajilk);
+//    };
+//    
+//    auto symskw = [&complianceElement](unsigned int i, unsigned int j, unsigned int k, unsigned int l) {
+//        auto Aijkl = complianceElement(i,j,k,l);
+//        auto Ajikl = complianceElement(j,i,k,l);
+//        auto Aijlk = complianceElement(i,j,l,k);
+//        auto Ajilk = complianceElement(j,i,l,k);
+//        return 0.25*(Aijkl + Ajikl - Aijlk - Ajilk);
+//    };
+//    
+//    auto skwsym = [&complianceElement](unsigned int i, unsigned int j, unsigned int k, unsigned int l) {
+//        auto Aijkl = complianceElement(i,j,k,l);
+//        auto Ajikl = complianceElement(j,i,k,l);
+//        auto Aijlk = complianceElement(i,j,l,k);
+//        auto Ajilk = complianceElement(j,i,l,k);
+//        return 0.25*(Aijkl - Ajikl + Aijlk - Ajilk);
+//    };
+//    
+//    auto skwskw = [&complianceElement](unsigned int i, unsigned int j, unsigned int k, unsigned int l) {
+//        auto Aijkl = complianceElement(i,j,k,l);
+//        auto Ajikl = complianceElement(j,i,k,l);
+//        auto Aijlk = complianceElement(i,j,l,k);
+//        auto Ajilk = complianceElement(j,i,l,k);
+//        return 0.25*(Aijkl - Ajikl - Aijlk + Ajilk);
+//    };
+        DebugStop();
+    } else {
+        TPZAutoPointer<TPZMatrix<STATE>> A(new TPZFNMatrix<36, STATE>());
+
+        auto delta = [](unsigned int i, unsigned int j) {
+            return (i == j) ? 1. : 0.;
+        };
+
+        auto complianceElement = [&delta, this](unsigned int i, unsigned int j, unsigned int k, unsigned int l) {
+            return (1. / (2 * fmu_const))*((delta(j, k) * delta(j, l) + delta(i, l) * delta(k, j)) / 2. - fmu_const / (fDimension * flambda_const + 2 * fmu_const) * delta(i, j) * delta(k, l));
+        };
+
+        // Assuming the 4th order tensor is minor-symmetric (Aijkl=Ajikl=Ajilk), which is the case for linear elasticity
+        A->operator ()(0, 0) = complianceElement(1, 1, 1, 1);
+        A->operator ()(0, 1) = complianceElement(1, 1, 2, 2);
+        A->operator ()(0, 2) = complianceElement(1, 1, 3, 3);
+        A->operator ()(0, 3) = complianceElement(1, 1, 2, 3) * M_SQRT2;
+        A->operator ()(0, 4) = complianceElement(1, 1, 3, 1) * M_SQRT2;
+        A->operator ()(0, 5) = complianceElement(1, 1, 1, 2) * M_SQRT2;
+        A->operator ()(1, 0) = complianceElement(2, 2, 1, 1);
+        A->operator ()(1, 1) = complianceElement(2, 2, 2, 2);
+        A->operator ()(1, 2) = complianceElement(2, 2, 3, 3);
+        A->operator ()(1, 3) = complianceElement(2, 2, 2, 3) * M_SQRT2;
+        A->operator ()(1, 4) = complianceElement(2, 2, 3, 1) * M_SQRT2;
+        A->operator ()(1, 5) = complianceElement(2, 2, 1, 2) * M_SQRT2;
+        A->operator ()(2, 0) = complianceElement(3, 3, 1, 1);
+        A->operator ()(2, 1) = complianceElement(3, 3, 2, 2);
+        A->operator ()(2, 2) = complianceElement(3, 3, 3, 3);
+        A->operator ()(2, 3) = complianceElement(3, 3, 2, 3) * M_SQRT2;
+        A->operator ()(2, 4) = complianceElement(3, 3, 3, 1) * M_SQRT2;
+        A->operator ()(2, 5) = complianceElement(3, 3, 1, 2) * M_SQRT2;
+        A->operator ()(3, 0) = complianceElement(2, 3, 1, 1) * M_SQRT2;
+        A->operator ()(3, 1) = complianceElement(2, 3, 2, 2) * M_SQRT2;
+        A->operator ()(3, 2) = complianceElement(2, 3, 3, 3) * M_SQRT2;
+        A->operator ()(3, 3) = complianceElement(2, 3, 2, 3)*2;
+        A->operator ()(3, 4) = complianceElement(2, 3, 3, 1)*2;
+        A->operator ()(3, 5) = complianceElement(2, 3, 1, 2)*2;
+        A->operator ()(4, 0) = complianceElement(3, 1, 1, 1) * M_SQRT2;
+        A->operator ()(4, 1) = complianceElement(3, 1, 2, 2) * M_SQRT2;
+        A->operator ()(4, 2) = complianceElement(3, 1, 3, 3) * M_SQRT2;
+        A->operator ()(4, 3) = complianceElement(3, 1, 2, 3)*2;
+        A->operator ()(4, 4) = complianceElement(3, 1, 3, 1)*2;
+        A->operator ()(4, 5) = complianceElement(3, 1, 1, 2)*2;
+        A->operator ()(5, 0) = complianceElement(1, 2, 1, 1) * M_SQRT2;
+        A->operator ()(5, 1) = complianceElement(1, 2, 2, 2) * M_SQRT2;
+        A->operator ()(5, 2) = complianceElement(1, 2, 3, 3) * M_SQRT2;
+        A->operator ()(5, 3) = complianceElement(1, 2, 2, 3)*2;
+        A->operator ()(5, 4) = complianceElement(1, 2, 3, 1)*2;
+        A->operator ()(5, 5) = complianceElement(1, 2, 1, 2)*2;
+        
+        TPZLapackEigenSolver<STATE> eigensolver;
+        eigensolver.SetMatrixA(A);
+        TPZManVector<CSTATE, 6> eigenvalues;
+        eigensolver.Solve(eigenvalues);
+        unsigned int maxnormindex = 0;
+        STATE max_norm = norm(eigenvalues[maxnormindex]);
+        for (unsigned int i = 1; i < 6; ++i) {
+            STATE this_norm = norm(eigenvalues[i]);
+            if (this_norm > max_norm){
+                max_norm = this_norm;
+                maxnormindex = i;
+            }
+        }
+        return eigenvalues[maxnormindex];
     }
-    if(fDimension > 2)
-    {
-        Svoigt[Exz] = S(0,2);
-        Svoigt[Eyz] = S(1,2);
-        Svoigt[Ezx] = S(2,0);
-        Svoigt[Ezy] = S(2,1);
-        Svoigt[Ezz] = S(2,2);
+    return 0;
+}
+
+/// Transform a tensor to a Voigt notation
+
+void TPZMixedElasticityND::ToVoigt(const TPZFMatrix<STATE> &S, TPZVec<STATE> &Svoigt) const {
+    Svoigt[Exx] = S(0, 0);
+    Svoigt[Exy] = S(0, 1);
+    Svoigt[Eyx] = S(1, 0);
+    Svoigt[Eyy] = S(1, 1);
+    if (fDimension > 2) {
+        Svoigt[Exz] = S(0, 2);
+        Svoigt[Eyz] = S(1, 2);
+        Svoigt[Ezx] = S(2, 0);
+        Svoigt[Ezy] = S(2, 1);
+        Svoigt[Ezz] = S(2, 2);
     }
 }
 
 /// Transform a Voigt notation to a tensor
-void TPZMixedElasticityND::FromVoigt(TPZVec<STATE> &Svoigt, TPZFMatrix<STATE> &S) {
+
+void TPZMixedElasticityND::FromVoigt(const TPZVec<STATE> &Svoigt, TPZFMatrix<STATE> &S) const {
     S(0, 0) = Svoigt[Exx];
     S(0, 1) = Svoigt[Exy];
     S(1, 0) = Svoigt[Eyx];
     S(1, 1) = Svoigt[Eyy];
-    if(fDimension > 2)
-    {
-        S(0,2) = Svoigt[Exz];
-        S(1,2) = Svoigt[Eyz];
-        S(2,0) = Svoigt[Ezx];
-        S(2,1) = Svoigt[Ezy];
-        S(2,2) = Svoigt[Ezz];
+    if (fDimension > 2) {
+        S(0, 2) = Svoigt[Exz];
+        S(1, 2) = Svoigt[Eyz];
+        S(2, 0) = Svoigt[Ezx];
+        S(2, 1) = Svoigt[Ezy];
+        S(2, 2) = Svoigt[Ezz];
+    }
+}
+
+void TPZMixedElasticityND::MandelFromSecondOrderTensor(const TPZFMatrix<STATE> &S, TPZVec<STATE> &SMandel) const {
+    SMandel[0] = S(0, 0); // S[1,1]
+    SMandel[1] = S(1, 1); // S[2,2]
+    if (fDimension == 2){
+        SMandel[2] = M_SQRT2 * 0.5 * (S(0, 1)+S(1, 0)); // sqrt{2}/2 (S[1,2]+S[2,1])
+        SMandel[3] = M_SQRT2 * 0.5 * (S(1, 0)-S(0, 1)); // sqrt{2}/2 (S[2,1]-S[1,2])
+    } else {
+        SMandel[2] = S(2, 2); // S[3,3]
+        SMandel[3] = M_SQRT2 * 0.5 * (S(1, 2)+S(2, 1)); // sqrt{2}/2 (S[2,3]+S[3,2])
+        SMandel[4] = M_SQRT2 * 0.5 * (S(2, 0)+S(0, 2)); // sqrt{2}/2 (S[3,1]+S[1,3])
+        SMandel[5] = M_SQRT2 * 0.5 * (S(0, 1)+S(1, 0)); // sqrt{2}/2 (S[1,2]+S[2,1])
+        SMandel[6] = M_SQRT2 * 0.5 * (S(2, 1)-S(1, 2)); // sqrt{2}/2 (S[3,2]-S[2,3])
+        SMandel[7] = M_SQRT2 * 0.5 * (S(0, 2)-S(2, 0)); // sqrt{2}/2 (S[1,3]-S[3,1])
+        SMandel[8] = M_SQRT2 * 0.5 * (S(1, 0)-S(0, 1)); // sqrt{2}/2 (S[2,1]-S[1,2])
+    }
+}
+
+void TPZMixedElasticityND::SecondOrderTensorFromMandel(const TPZVec<STATE> &SMandel, TPZFMatrix<STATE> &S) const {
+    S(0, 0) = SMandel[0];
+    S(1, 1) = SMandel[1];
+    if (fDimension == 2){
+        S(0, 1) = M_SQRT1_2*(SMandel[2]-SMandel[3]);
+        S(1, 0) = M_SQRT1_2*(SMandel[2]+SMandel[3]);
+    } else {
+        S(0, 1) = M_SQRT1_2*(SMandel[5]-SMandel[8]);
+        S(1, 0) = M_SQRT1_2*(SMandel[5]+SMandel[8]);
+        S(0, 2) = M_SQRT1_2*(SMandel[4]+SMandel[7]);
+        S(1, 2) = M_SQRT1_2*(SMandel[3]-SMandel[6]);
+        S(2, 0) = M_SQRT1_2*(SMandel[4]-SMandel[7]);
+        S(2, 1) = M_SQRT1_2*(SMandel[3]+SMandel[6]);
+        S(2, 2) = SMandel[2];
+    }
+}
+
+void TPZMixedElasticityND::MandelFromSymmetricSecondOrderTensor(const TPZFMatrix<STATE> &S, TPZVec<STATE> &SMandel) const {
+    SMandel[0] = S(0, 0); // S[1,1]
+    SMandel[1] = S(1, 1); // S[2,2]
+    if (fDimension == 2){
+        SMandel[2] = M_SQRT2 * S(0, 1); // sqrt{2}/2 (S[1,2]+S[2,1])
+    } else {
+        SMandel[2] = S(2, 2); // S[3,3]
+        SMandel[3] = M_SQRT2 * S(2, 1); // sqrt{2}/2 (S[2,3]+S[3,2])
+        SMandel[4] = M_SQRT2 * S(2, 0); // sqrt{2}/2 (S[3,1]+S[1,3])
+        SMandel[5] = M_SQRT2 * S(0, 1); // sqrt{2}/2 (S[1,2]+S[2,1])
+    }
+}
+
+void TPZMixedElasticityND::SymmetricSecondOrderTensorFromMandel(const TPZVec<STATE> &SMandel, TPZFMatrix<STATE> &S) const {
+    S(0, 0) = SMandel[0];
+    S(1, 1) = SMandel[1];
+    if (fDimension == 2){
+        S(0, 1) = S(1, 0) = M_SQRT1_2 * SMandel[2];
+    } else {
+        S(2, 2) = SMandel[2];
+        S(1, 2) = S(2, 1) = M_SQRT1_2 * SMandel[3];
+        S(0, 2) = S(2, 0) = M_SQRT1_2 * SMandel[4];
+        S(0, 1) = S(1, 0) = M_SQRT1_2 * SMandel[5];
     }
 }
 
@@ -296,22 +466,18 @@ void TPZMixedElasticityND::Contribute_3spaces(const TPZVec<TPZMaterialDataT<STAT
     TPZFMatrix<REAL> &dphiS = datavec[0].dphix;
     // U
     TPZFMatrix<REAL> &phiU = datavec[1].phi;
-    TPZFMatrix<REAL> &dphiU = datavec[1].dphix;
+//    TPZFMatrix<REAL> &dphiU = datavec[1].dphix;
     // P
     TPZFMatrix<REAL> &phiP = datavec[2].phi;
 
-    
-    TElasticityAtPoint elast(fE_const,fnu_const);
-    if(fElasticity)
-    {
-        //TPZManVector<REAL,3> result(2);
-		TPZManVector<STATE, 3> result(2);
-		TPZFNMatrix<4,STATE> Dres(0,0);
+    TElasticityAtPoint elast(fE_const, fnu_const);
+    if (fElasticity) {
+        TPZManVector<STATE, 3> result(2);
+        TPZFNMatrix<4, STATE> Dres(0, 0);
         fElasticity(datavec[0].x, result, Dres);
         REAL E = result[0];
         REAL nu = result[1];
-        TElasticityAtPoint modify(E,nu);
-        elast = modify;
+        elast = TElasticityAtPoint(E, nu);
     }
     //    
 //    TPZFNMatrix<220, REAL> dphiSx(fDimension, dphiS.Cols());
@@ -329,11 +495,10 @@ void TPZMixedElasticityND::Contribute_3spaces(const TPZVec<TPZMaterialDataT<STAT
     nshapeP = datavec[2].phi.Rows();
     const int firstequation_S = 0;
     const int firstequation_U = firstequation_S + nshapeS*fDimension;
-    const int firstequation_P = firstequation_U + nshapeU*fDimension;
+    //const int firstequation_P = firstequation_U + nshapeU*fDimension;
     
     // number of asymetric tensors for each shape function
-    int nrotations = 1;
-    if(fDimension == 3) nrotations = 3;
+    int nrotations = (fDimension == 3) ? 3 : 1;
 
     TPZManVector<STATE, 3>  force(fDimension, 0.);
     
@@ -375,15 +540,12 @@ void TPZMixedElasticityND::Contribute_3spaces(const TPZVec<TPZMaterialDataT<STAT
     for (int i = 0; i < nshapeS; i++) {
         int iphi = datavec[0].fVecShapeIndex[i].second;
         int ivec = datavec[0].fVecShapeIndex[i].first;
-        TPZFNMatrix<4> GradSi(fDimension, fDimension);
 
         REAL divSi = 0.;
 
         for (int e = 0; e < 3; e++) {
-
             ivecS(e, 0) = datavec[0].fDeformedDirections(e, ivec);
             phiSi(e, 0) = phiS(iphi, 0) * ivecS(e, 0);
-
         }
 //        TPZFNMatrix<3, REAL> axesvec(fDimension, 1, 0.);
 //        datavec[0].axes.Multiply(ivecS, axesvec);
@@ -397,19 +559,16 @@ void TPZMixedElasticityND::Contribute_3spaces(const TPZVec<TPZMaterialDataT<STAT
         TPZFNMatrix<9, STATE> phiTensx(fDimension, fDimension, 0.), phiTensy(fDimension, fDimension, 0.),
         phiTensz(fDimension,fDimension,0.);
 
-        for(int d = 0; d< fDimension; d++)
-        {
-            phiTensx(0,d) = phiSi(d,0);
-            phiTensy(1,d) = phiSi(d,0);
-            if(fDimension == 3)
-            {
-                phiTensz(2,d) = phiSi(d,0);
+        for (int d = 0; d < fDimension; d++) {
+            phiTensx(0, d) = phiSi(d, 0);
+            phiTensy(1, d) = phiSi(d, 0);
+            if (fDimension == 3) {
+                phiTensz(2, d) = phiSi(d, 0);
             }
         }
         ToVoigt(phiTensx, phiSi1x);
         ToVoigt(phiTensy, phiSi1y);
-        if(fDimension == 3)
-        {
+        if (fDimension == 3) {
             ToVoigt(phiTensz, phiSi1z);
         }
 
@@ -449,11 +608,11 @@ void TPZMixedElasticityND::Contribute_3spaces(const TPZVec<TPZMaterialDataT<STAT
             //Multiply by Lamé parameters
             TPZManVector<STATE, 9> AphiSi1x(voigtdim, 0.0), AphiSi1y(voigtdim, 0.0), AphiSi1z(voigtdim, 0.0);
 
-            ComputeDeformationVector(phiSi1x, AphiSi1x,elast);
-            ComputeDeformationVector(phiSi1y, AphiSi1y,elast);
+            ComputeDeformationVector(phiSi1x, AphiSi1x, elast);
+            ComputeDeformationVector(phiSi1y, AphiSi1y, elast);
             if(fDimension == 3)
             {
-                ComputeDeformationVector(phiSi1z, AphiSi1z,elast);
+                ComputeDeformationVector(phiSi1z, AphiSi1z, elast);
             }
 
             STATE valxx = InnerVec(AphiSi1x, phiSj1x);
@@ -1051,8 +1210,8 @@ int TPZMixedElasticityND::NSolutionVariables(int var) const {
         case 24:
         case 25:
         case 26:
-        case 27:
-            return 3;
+        case 27: // Rotation 
+            return Dimension() == 3 ? 3 : 1;
         case 28:
         case 29:
         case 30:
@@ -1060,7 +1219,7 @@ int TPZMixedElasticityND::NSolutionVariables(int var) const {
             return 1;
         case 33:
         case 34:
-            return 3;
+            return nstate;
         case 100:
             return 1;
         default:
@@ -1348,8 +1507,6 @@ TVar TPZMixedElasticityND::InnerVec(const TPZVec<TVar> &S, const TPZVec<TVar> &T
 
 ////////////////////////////////////////////////////////////////////
 STATE TPZMixedElasticityND::Tr(TPZFMatrix<REAL> &GradU) {
-
-    int grr = GradU.Rows();
 #ifdef DEBUG
     if (GradU.Rows() != GradU.Cols()) {
         DebugStop();
@@ -1358,6 +1515,7 @@ STATE TPZMixedElasticityND::Tr(TPZFMatrix<REAL> &GradU) {
 
     STATE Val = 0.;
 
+    int grr = GradU.Rows();
     for (int i = 0; i < grr; i++) {
         Val += GradU(i, i);
     }

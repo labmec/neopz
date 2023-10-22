@@ -21,15 +21,15 @@ public:
   /** @name BasicUsage */
   /** @{*/  
   /**
-   * @brief Solves the Ax=w*x eigenvalue problem and does not calculate the eigenvectors
+   * @brief Solves the Ax=w*x eigenvalue problem, computing eigenvalues and eigenvectors
    * @param[out] w Eigenvalues in ascending magnitude order
-   * @param[out] eigenVectors Stores the correspondent eigenvectors
+   * @param[out] eigenVectors The correspondent eigenvectors
    * @return Returns 1 if executed correctly
    */
   int SolveEigenProblem(TPZVec<CTVar> &w,TPZFMatrix<CTVar> &eigenVectors) override;
 
   /**
-   * @brief Solves the Ax=w*x eigenvalue problem and does not calculate the eigenvectors
+   * @brief Solves the Ax=w*x eigenvalue problem computing only the eigenvalues
    * @param[out] w Eigenvalues in ascending magnitude order
    * @return Returns 1 if executed correctly
    */
@@ -45,7 +45,7 @@ public:
                                    TPZFMatrix<CTVar> &eigenVectors) override;
 
   /**
-   * @brief Solves the generalised Ax=w*B*x eigenvalue problem and does not calculates the eigenvectors
+   * @brief Solves the generalised Ax=w*B*x eigenvalue problem but does not calculate the eigenvectors
    * @param[out] w Eigenvalues in ascending magnitude order
    * @return Returns 1 if executed correctly
    */
