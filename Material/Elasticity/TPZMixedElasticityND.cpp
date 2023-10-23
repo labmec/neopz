@@ -299,7 +299,7 @@ CSTATE TPZMixedElasticityND::GetMaxComplianceEigenvalue(TPZVec<REAL> &x) const {
 //    };
         DebugStop();
     } else {
-        TPZAutoPointer<TPZMatrix<STATE>> A(new TPZFNMatrix<36, STATE>());
+        TPZAutoPointer<TPZMatrix<STATE>> A(new TPZFNMatrix<36, STATE>(6,6,0.));
 
         auto delta = [](unsigned int i, unsigned int j) {
             return (i == j) ? 1. : 0.;
