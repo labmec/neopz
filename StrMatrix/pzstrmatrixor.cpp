@@ -276,8 +276,13 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
             } else {
                 sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
             }
-            ek.Print(sout);
-            if(ComputeRhs()){ef.Print(sout);}
+            if(el->HasDependency()){
+                ek.fConstrMat.Print(sout);
+                if(ComputeRhs()){ef.fConstrMat.Print(sout);}
+            }else{
+                ek.fMat.Print(sout);
+                if(ComputeRhs()){ef.fMat.Print(sout);}
+            }
             LOGPZ_DEBUG(loggerel, sout.str())
         }
 #endif
@@ -429,7 +434,11 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointe
         if(loggerel.isDebugEnabled())
         {
             std::stringstream sout;
-            ef.Print(sout);
+            if(el->HasDependency()){
+                ef.fConstrMat.Print(sout);
+            }else{
+                ef.fMat.Print(sout);
+            }
             LOGPZ_DEBUG(loggerel, sout.str())
         }
 #endif
@@ -656,8 +665,14 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
             } else {
                 sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
             }
-            ek->Print(sout);
-            if(computeRhs){ef->Print(sout);}
+            if(el->HasDependency()){
+                ek->fConstrMat.Print(sout);
+                if(computeRhs){ef->fConstrMat.Print(sout);}
+            }else{
+                ek->fMat.Print(sout);
+                if(computeRhs){ef->fMat.Print(sout);}
+            }
+            
             LOGPZ_DEBUG(loggerel, sout.str())
         }
 #endif
