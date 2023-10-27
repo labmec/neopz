@@ -235,7 +235,7 @@ void TestArnoldiIteration(SymProp sp)
   
   TPZAutoPointer<matx> A = new matx;
   constexpr int dim{100};
-  int dimKrylov{100};
+  int dimKrylov{10};
   A->AutoFill(dim,dim,sp);
   TPZKrylovEigenSolver<TVar> arnoldi;
   arnoldi.SetMatrixA(A);
@@ -267,8 +267,11 @@ void TestArnoldiIteration(SymProp sp)
     }
   }
 
+  //now we test if using dimKrylov==dim we can recover the original matrix
   dimKrylov = dim;
   arnoldi.SetKrylovDim(dimKrylov);
+  //now we reset the qvecs
+  for (auto &q : qVecs){q = nullptr;}
   success = arnoldi.ArnoldiIteration(qVecs,hMat);
   REQUIRE(success);
   TPZFMatrix<TVar> qMat(dim,dimKrylov);
