@@ -21,6 +21,8 @@ void TPZEigenSolver<TVar>::SortEigenvalues(TPZVec<CTVar> &w, TPZVec<int> &indice
   const auto eigOrder = EigenSorting();
   auto sortFunc = [eigOrder,target](const CTVar a, const CTVar b) {
     switch (eigOrder) {
+    case TPZEigenSort::Invalid:
+      DebugStop();
     case TPZEigenSort::AbsAscending:
       return fabs(a) < fabs(b);
     case TPZEigenSort::AbsDescending:
