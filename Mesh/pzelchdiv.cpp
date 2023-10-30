@@ -1007,8 +1007,10 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
         }
 
         Fad<REAL> detjacFad;
+
         this->Reference()->ComputeDetjac(gradxfad,detjacFad);
-        gradxfad.MultAdd(phiMasterFad,data.fDeformedDirectionsFad,data.fDeformedDirectionsFad,1./abs(detjacFad));
+        auto b = detjacFad.val() > 0. ? detjacFad : -detjacFad;
+        gradxfad.MultAdd(phiMasterFad,data.fDeformedDirectionsFad,data.fDeformedDirectionsFad,1./b);
     }
     gradx.MultAdd(phiMaster,data.fDeformedDirections,data.fDeformedDirections,1./fabs(data.detjac));
     data.divphi *= 1/fabs(data.detjac);
