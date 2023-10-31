@@ -56,10 +56,10 @@ public:
     virtual void InsertPeriferalMaterialObjects() override;
     
     /// Insert the necessary H(div) material objects to create the flux mesh
-    virtual void InsertPeriferalHdivMaterialObjects() override;
+    virtual void InsertPeriferalHdivMaterialObjects();
     
     /// Insert the necessary pressure material objects to create the pressure mesh
-    virtual void InsertPeriferalPressureMaterialObjects() override;
+    virtual void InsertPeriferalPressureMaterialObjects();
     
     /// Create all data structures for the computational mesh
     virtual void BuildComputationalMesh(bool usersubstructure) override;
@@ -95,13 +95,13 @@ public:
     
 protected:
     // create the elements domain per domain with approximation spaces disconnected from each other
-    virtual void CreateInternalFluxElements() override;
+    virtual void CreateInternalFluxElements(); 
 
     // create the approximation space associated with the skeleton and restrain the connects
-    virtual void CreateSkeleton() override;
+    virtual void CreateSkeleton();
         
     /// Create the interfaces between the pressure elements of dimension dim
-    virtual void CreateMultiPhysicsInterfaceElements(int dim) override;
+    virtual void CreateMultiPhysicsInterfaceElements(int dim);
 
 
 public:
@@ -163,7 +163,7 @@ protected:
     
     /// hybridize the flux elements with the given material id - each flux element creates
     /// a pressure element
-    virtual void HybridizeSkeleton(int skeletonmatid, int pressurematid) override;
+    virtual void HybridizeSkeleton(int skeletonmatid, int pressurematid);
     
     /// Create lower dimension pressure elements (dim-2)
     /// The (dim-2) geometric elements have already been created.

@@ -38,13 +38,9 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
         DebugStop();
     }
     InsertPeriferalMaterialObjects();
-    CreateHDivMHMMesh();
+    DebugStop();
+//    CreateHDivMHMMesh();
     
-    {
-        std::ofstream out("BeforeOpeningChannel.txt");
-        FluxMesh()->ComputeNodElCon();
-        FluxMesh()->Print(out);
-    }
     if(OpenChannel==true){
         for(auto it:oppen_channel){
             fGMesh->ResetReference();
@@ -75,23 +71,8 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
             cto.RemoveDepend();
     //        FluxMesh()->Element(c_from_index)->Connect(connec_from_index).RemoveDepend();
     //        FluxMesh()->Element(c_to_index)->Connect(connec_to_index).RemoveDepend();
-            cel_to->SetConnectIndex(connec_to_index, cfrom_index);
-            TPZGeoElSide gelfromside(gel_from,side_from);
-            for (auto gelside = gelfromside.Neighbour(); gelside != gelfromside; gelside++) {
-                int matid = gelside.Element()->MaterialId();
-                if(!fFluxMesh->FindMaterial(matid)) {
-                    continue;
-                }
-                auto *intel = dynamic_cast<TPZInterpolatedElement *>(gelside.Element()->Reference());
-                if(!intel) DebugStop();
-                int64_t cindex = intel->SideConnectIndex(0, gelside.Side());
-                int locindex = intel->SideConnectLocId(0, gelside.Side());
-                if(cindex == cto_index || matid == fSkeletonMatId) {
-                    intel->SetConnectIndex(locindex, cfrom_index);
-                } else if(cindex != cfrom_index) {
-                    DebugStop();
-                }
-            }
+            auto conenec_from_to = cel_from->ConnectIndex(connec_from_index);
+            cel_to->SetConnectIndex(connec_to_index, conenec_from_to);
         }
     }
     
@@ -100,7 +81,8 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
     
     fFluxMesh->CleanUpUnconnectedNodes();
     fFluxMesh->ExpandSolution();
-    InsertPeriferalPressureMaterialObjects();
+    DebugStop();
+//    InsertPeriferalPressureMaterialObjects();
     
 #ifdef PZDEBUG
     if (fFluxMesh->Dimension() != fGMesh->Dimension()) {
@@ -121,11 +103,6 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
     {
         std::ofstream out("Friendly.txt");
         PrintFriendly(out);
-        std::ofstream out2("GeoMHMDomain.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(fGMesh.operator->(), out2, fGeoToMHMDomain);
-        fCMesh->ComputeNodElCon();
-        std::ofstream out3("BeforeSubstruct.txt");
-        fCMesh->Print(out3);
     }
     CheckMeshConsistency();
 #endif
@@ -134,7 +111,7 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
         HideTheElements();
     }
     fNumeq = fCMesh->NEquations();
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
     {
         int64_t nel = fCMesh->NElements();
         for(int64_t el = 0; el<nel; el++)
@@ -169,9 +146,9 @@ TPZMHMixedMeshControl::TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, s
 
 void TPZMHMixedMeshChannelControl::HideTheElements()
 {
-    int KeepOneLagrangian = 2;
+    bool KeepOneLagrangian = true;
     if (fHybridize) {
-        KeepOneLagrangian = 0;
+        KeepOneLagrangian = false;
     }
     typedef std::set<int64_t> TCompIndexes;
     std::map<int64_t, TCompIndexes> ElementGroups;
@@ -182,11 +159,7 @@ void TPZMHMixedMeshChannelControl::HideTheElements()
     int64_t nel = fCMesh->NElements();
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = fCMesh->Element(el);
-        TPZGeoEl *gel = cel->Reference();
         int64_t domain = WhichSubdomain(cel);
-        if(gel->Dimension() == dim && domain == -1) {
-            DebugStop();
-        }
         if (domain == -1) {
             continue;
         }
@@ -225,11 +198,6 @@ void TPZMHMixedMeshChannelControl::HideTheElements()
     }
     fCMesh->CleanUpUnconnectedNodes();
     
-    {
-        std::ofstream out("BeforeCondensing.txt");
-        fCMesh->Print(out);
-    }
-    
     GroupandCondenseElements();
     
     std::cout << "Finished substructuring\n";
@@ -237,16 +205,6 @@ void TPZMHMixedMeshChannelControl::HideTheElements()
 
 int64_t TPZMHMixedMeshChannelControl::WhichSubdomain(TPZCompEl *cel)
 {
-    TPZGeoEl *gel = cel->Reference();
-
-    if(gel) {
-        int64_t geldomain = fGeoToMHMDomain[gel->Index()];
-        if(geldomain != -1) return geldomain;
-    }
-    else
-    {
-        DebugStop();
-    }
     int ncon = cel->NConnects();
     std::set<int64_t> domains;
     TPZCompMesh *cmesh = cel->Mesh();

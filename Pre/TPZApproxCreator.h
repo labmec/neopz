@@ -189,6 +189,7 @@ protected:
     /// Changes the internal order of the volumetric connect of all CompEls in a given CMesh
     void ChangeInternalOrder(TPZCompMesh *cmesh, int pOrder) const;
 
+public:
     /// Determine the predominant element type in the GeoMesh
     void SetMeshElementType();
 };
