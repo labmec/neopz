@@ -194,6 +194,8 @@ public:
     // This method calculates the skeleton indexes
     void DefinePartition(TPZVec<int64_t> &partitionindex);
 
+    MProblemType &ProblemType(){return fProblemType;}
+
     /// Set the problem type of the simulation
     void SetProblemType(MProblemType problem)
     {
