@@ -113,7 +113,7 @@ public:
     
     virtual void Errors(const TPZVec<TPZMaterialDataT<STATE>>& data, TPZVec<REAL>& errors) override;
     
-    virtual int NEvalErrors(){return 6;}
+    int NEvalErrors() const override {return 8;}
 
     virtual void DeviatoricElasticityTensor(TPZFNMatrix<36,REAL>& D);
 

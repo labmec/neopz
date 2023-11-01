@@ -544,6 +544,8 @@ void TPZHybridMixedElasticityUP::FillBoundaryConditionDataRequirements(int type,
 
 void TPZHybridMixedElasticityUP::Errors(const TPZVec<TPZMaterialDataT<STATE>>& data, TPZVec<REAL>& errors){
     
+    // 0: L2 p, 1: L2 p_ex, 2: L2 u, 3: L2 u_ex, 4: L2 divu, 5: L2 divu_ex, 6: L2 sigma, 7: L2 sigma_Ex
+    
     if(!HasExactSol()) DebugStop();
 
     errors.Resize(NEvalErrors());
@@ -571,7 +573,8 @@ void TPZHybridMixedElasticityUP::Errors(const TPZVec<TPZMaterialDataT<STATE>>& d
     for(int i = 0; i < fdimension; i++)
     {
         diffv = u_h[i] - sol_exact[i];
-        errors[1] += diffv * diffv;
+        errors[2] += diffv * diffv;
+        errors[3] += sol_exact[i] * sol_exact[i];
     }
     
     STATE div_exact = 0.0, div_h = 0.0;
@@ -582,7 +585,21 @@ void TPZHybridMixedElasticityUP::Errors(const TPZVec<TPZMaterialDataT<STATE>>& d
     }
     
     diffdiv = div_h - div_exact;
-    errors[2] = diffdiv * diffdiv;
+    errors[4] = diffdiv * diffdiv;
+    errors[5] = div_exact * div_exact;
+
+    const int n = fdimension * (fdimension + 1) / 2;
+    TPZFNMatrix<6, REAL> sigma_exact(n,1), sigma_h(n,1);
+    StressTensor(gradsol_exact, sigma_exact);
+    StressTensor(gradv_h, sigma_h, p_h[0]);
+    
+    for(int i = 0; i < n; i++)
+    {
+        const STATE diffsig = sigma_h(i,0) - sigma_exact(i,0);
+        errors[6] += diffv * diffv;
+        errors[7] += sigma_exact(i,0) * sigma_exact(i,0);
+    }
+    
 }
 
 void TPZHybridMixedElasticityUP::DeviatoricElasticityTensor(TPZFNMatrix<36,REAL>& D)
