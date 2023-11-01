@@ -345,6 +345,9 @@ protected:
     int ftid;
       
     bool fStoreError = false;
+      
+    // Assuming no more than 100 threads
+    TPZManVector<bool,100> fIsUsed;
     
     // Vector with errors. Assuming no more than a 100 threads
     TPZManVector<TPZManVector<REAL,10>,100> fvalues;
