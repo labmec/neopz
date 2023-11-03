@@ -417,8 +417,10 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysicsT(TPZVec<TPZCompMesh *> &
     const int nsols = solMF.Cols();
     //resize every sol vector accordingly
     for(auto mesh : cmeshVec){
-        const int neqs = mesh->Solution().Rows();
-        mesh->Solution().Resize(neqs, nsols);
+        if (mesh) {
+            const int neqs = mesh->Solution().Rows();
+            mesh->Solution().Resize(neqs, nsols);
+        }
     }
     
     for(int64_t connect = 0; connect < nconnect; connect++)
