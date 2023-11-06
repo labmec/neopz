@@ -267,7 +267,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
 
         case 3: // Tangential Stress
         {
-            TPZManVector<REAL,3> sigma_nt = {0.0,0.0,0.0};
+            TPZManVector<REAL,3> sigma_nt(fdimension-1,0.);
             if (bc.HasForcingFunctionBC()) //if the bc is set through an analytic solution, we need to compute its tangential component from the displacement gradient
             {
                 const int n = fdimension * (fdimension + 1) / 2;
@@ -319,7 +319,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 for (int k = 0; k < fdimension-1; k++)
                 {
                     int64_t index1 = (fdimension-1)*j+k;
-                    ef(index1) += sigma_nt[k] * PhiP(j,0) * factor;
+                    ef(index1) += -sigma_nt[k] * PhiP(j,0) * factor;
 
                     for (int64_t i = 0; i < nShapeP; i++)
                     {
