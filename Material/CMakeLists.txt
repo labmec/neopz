@@ -25,6 +25,7 @@ set(public_headers
     TPZMatErrorSingleSpace.h
     TPZMatInterfaceSingleSpace.h
     TPZMatTransientSingleSpace.h
+    TPZMatSingleSpaceBCSol.h
     #combined spaces materials
     TPZMatCombinedSpaces.h
     TPZMatErrorCombinedSpaces.h
@@ -58,6 +59,7 @@ set(headers
     TPZMatErrorSingleSpace.h
     TPZMatInterfaceSingleSpace.h
     TPZMatTransientSingleSpace.h
+    TPZMatSingleSpaceBCSol.h
     #combined spaces materials
     TPZMatCombinedSpaces.h
     TPZMatErrorCombinedSpaces.h
@@ -85,6 +87,7 @@ set(sources
     TPZMatErrorSingleSpace.cpp
     TPZMatInterfaceSingleSpace.cpp
     TPZMatTransientSingleSpace.cpp
+    TPZMatSingleSpaceBCSol.cpp
     #combined spaces materials
     TPZMatCombinedSpaces.cpp
     TPZMatErrorCombinedSpaces.cpp
