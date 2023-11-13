@@ -376,6 +376,8 @@ protected:
     void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
 									 TPZVec<REAL> &qsi);
     template<class TVar>
+     void EvaluateErrorT(TPZVec<REAL> &errors, bool store_error );
+    template<class TVar>
     void SolutionInternal(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
     /// Preferred polynomial order
 	int fPreferredOrder;
