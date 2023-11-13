@@ -132,9 +132,9 @@ int TPZL2Projection<TVar>::VariableIndex(const std::string &name) const{
 
 template<class TVar>
 int TPZL2Projection<TVar>::NSolutionVariables(int var) const{
-	if(var == ESolution) return 1;
+	if(var == ESolution) return fNStateVars;
     if (var == EDerivative) {
-        return fDim;
+        return fDim*fNStateVars;
     }
 	
     return TPZMaterial::NSolutionVariables(var);
