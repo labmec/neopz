@@ -35,6 +35,7 @@ set(public_headers
     TPZLagrangeMultiplier.h
     TPZLagrangeMultiplierCS.h
     TPZMatTypes.h
+    TPZMatInterfaceHybridElasticityStokes.h
     )
 
 set(headers
@@ -66,6 +67,7 @@ set(headers
     TPZNullMaterialCS.h
     TPZLagrangeMultiplier.h
     TPZLagrangeMultiplierCS.h
+    TPZMatInterfaceHybridElasticityStokes.h
    )
 set(sources
     TPZMaterial.cpp
@@ -92,6 +94,7 @@ set(sources
     TPZNullMaterialCS.cpp
     TPZLagrangeMultiplier.cpp
     TPZLagrangeMultiplierCS.cpp
+    TPZMatInterfaceHybridElasticityStokes.cpp
    )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material)

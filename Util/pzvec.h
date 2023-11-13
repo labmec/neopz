@@ -233,7 +233,8 @@ public:
     /** @brief Empty the vector, make its size zero */
     virtual void clear();
 
-    void push_back(T v);
+    void push_back(const T& v);
+    void push_back(T&& v);
 
     iterator insert(iterator pos, const T&v);
 protected:
@@ -541,12 +542,21 @@ void TPZVec<T>::clear()
 }
 
 template<class T>
-void TPZVec<T>::push_back(T v)
+void TPZVec<T>::push_back(const T& v)
 {
     const auto sz = this->size();
     
     this->Resize(sz+1);
     fStore[sz] = v;
+}
+
+template<class T>
+void TPZVec<T>::push_back(T&& v)
+{
+    const auto sz = this->size();
+    
+    this->Resize(sz+1);
+    fStore[sz] = std::move(v);
 }
 
 template<class T>

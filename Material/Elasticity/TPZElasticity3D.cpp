@@ -890,6 +890,7 @@ void TPZElasticity3D::Solution(const TPZMaterialDataT<STATE> &data,
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}
 #endif
+        return;
 	}//TPZElasticity3D::EPrincipalStress
 	
 	if(var == TPZElasticity3D::EStress1){
@@ -906,6 +907,7 @@ void TPZElasticity3D::Solution(const TPZMaterialDataT<STATE> &data,
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}
 #endif
+        return;
 	}//TPZElasticity3D::EStress1  
 	
 	
@@ -925,6 +927,7 @@ void TPZElasticity3D::Solution(const TPZMaterialDataT<STATE> &data,
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}
 #endif
+        return;
 	}//TPZElasticity3D::EPrincipalStrain
 	
 	if(var == TPZElasticity3D::EStrain1){
@@ -984,7 +987,9 @@ void TPZElasticity3D::Solution(const TPZMaterialDataT<STATE> &data,
 		Solout[0] = ( PrincipalStress[0] - PrincipalStress[1] ) * ( PrincipalStress[0] - PrincipalStress[1] ) 
 		+ ( PrincipalStress[1] - PrincipalStress[2] ) * ( PrincipalStress[1] - PrincipalStress[2] )
 		+ ( PrincipalStress[2] - PrincipalStress[0] ) * ( PrincipalStress[2] - PrincipalStress[0] );
-		Solout[0] = Solout[0] / (2. * this->fFy * this->fFy);    
+        Solout[0] = sqrt(0.5 * Solout[0]);
+//		Solout[0] = Solout[0] / (2. * this->fFy * this->fFy);
+        return;
 	}//TPZElasticity3D::EVonMisesStress
 	
 	if(var == TPZElasticity3D::EStress){

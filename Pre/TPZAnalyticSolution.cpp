@@ -782,13 +782,26 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         disp[2] = x[0]*TVar(0.);
     }
     
-    else if(fProblemType == EShear)//pure shear
+    else if(fProblemType == EShearXY)//pure shear
     {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
         disp[0] += (TVar) x[1];
-        disp[1] += (TVar) 0. ;
-        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType == EShearYZ)//pure shear
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
+        disp[1] += (TVar) x[2];
+    }
+    else if(fProblemType == EShearXZ)//pure shear
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
+        disp[2] += (TVar) x[0];
     }
     else if(fProblemType == EStretchx)//strech x
     {
@@ -941,13 +954,26 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
 
     }
     
-    else if(fProblemType == EShear)//pure shear
+    else if(fProblemType == EShearXY)//pure shear
     {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
         disp[0] += (FADFADSTATE) x[1];
-        disp[1] += (FADFADSTATE) 0. ;
-        disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType == EShearYZ)//pure shear
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
+        disp[1] += (FADFADSTATE) x[2];
+    }
+    else if(fProblemType == EShearXZ)//pure shear
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
+        disp[2] += (FADFADSTATE) x[0];
     }
     else if(fProblemType == EStretchx)//strech x
     {

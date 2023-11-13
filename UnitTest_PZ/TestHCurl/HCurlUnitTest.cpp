@@ -44,6 +44,7 @@ static TPZLogger logger("pz.mesh.testhcurl");
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_template_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 #include <catch2/generators/catch_generators_all.hpp>
 
 #define REQUIRE_MESSAGE(cond, msg) do { INFO(msg); REQUIRE(cond); } while((void)0, 0)
@@ -61,6 +62,10 @@ namespace hcurltest{
      */
     template<class TSHAPE>
     void TestPermute(const int k);
+
+    template <class TSHAPE>
+    void TestEdgeCurl(const int pOrder);
+    
     /**
      * This unit test aims to verify the trace compatibility of the HCurl approximation space in a UNIFORM mesh.
      * @param type element type (triangle, quadrilateral, etc.
@@ -116,6 +121,19 @@ TEST_CASE("Testing trace of HCurl functions",
             hcurltest::TestFunctionTracesUniformMesh(cmesh,meshType,k);
         }
     }
+}
+
+TEMPLATE_TEST_CASE("Testing curl of high order HCurl functions",
+                   "[hcurl_tests][shape][topology][!mayfail]",
+                   pzshape::TPZShapeLinear,
+                   pzshape::TPZShapeTriang,
+                   pzshape::TPZShapeQuad,
+                   pzshape::TPZShapeTetra,
+                   pzshape::TPZShapeCube,
+                   pzshape::TPZShapePrism
+                   ){
+    constexpr int pOrder = 4;
+    hcurltest::TestEdgeCurl<TestType>(pOrder);
 }
 
 #include "TPZShapeHCurl.h"
@@ -605,6 +623,80 @@ namespace hcurltest{
         delete gmesh;
     }
 
+    template <class TSHAPE>
+    void TestEdgeCurl(const int pOrder){
+        using TTOPOL=typename TSHAPE::TTOPOL;
+        constexpr auto dim = TTOPOL::Dimension;
+        constexpr auto curldim = dim == 1 ? 1 : 2*dim - 3;
+        constexpr auto nsides = TTOPOL::NSides;
+        constexpr auto nnodes = TTOPOL::NCornerNodes;
+        constexpr auto ncon = TTOPOL::NSides-TTOPOL::NCornerNodes;
+
+        const auto ne = TTOPOL::NumSides(1);
+        const auto nefuncs = pOrder+1;
+        
+        TPZAutoPointer<TPZGeoMesh>gmesh =
+            TPZGeoMeshTools::CreateGeoMeshSingleElT<TTOPOL>(1,false);
+        TPZAutoPointer<TPZCompMesh>cmesh = new TPZCompMesh (gmesh);
+
+        cmesh->SetDefaultOrder(pOrder);
+        cmesh->SetDimModel(dim);
+
+        auto mat = new TPZHCurlProjection(1,dim);
+        cmesh->InsertMaterialObject(mat);
+        cmesh->SetAllCreateFunctionsHCurl();
+        cmesh->AutoBuild();
+        cmesh->CleanUpUnconnectedNodes();
+
+        auto cel = dynamic_cast<TPZInterpolationSpace*>(cmesh->Element(0));
+        TPZMaterialDataT<STATE> data;
+        cel->InitMaterialData(data);
+
+        const int nfuncs = TPZShapeHCurl<TSHAPE>::NHCurlShapeF(data);
+
+        TPZFNMatrix<1000,STATE> phi(dim,nfuncs,0.), curlphi(curldim,nfuncs,0.);
+        
+        auto gel = gmesh->Element(0);
+        TPZAutoPointer<TPZIntPoints> intrule =
+            gel->CreateSideIntegrationRule(nsides-1, pOrder);
+
+        auto oldPrecision = Catch::StringMaker<STATE>::precision;
+        Catch::StringMaker<STATE>::precision = std::numeric_limits<STATE>::max_digits10;
+        const int npts = intrule->NPoints();
+        TPZManVector<REAL,dim> pt(dim,0.);
+        REAL weight{0};
+        for(int i = 0; i < npts; i++){
+            intrule->Point(i, pt, weight);
+            TPZShapeHCurl<TSHAPE>::Shape(pt, data, phi, curlphi);
+            for(int ie = 0; ie < ne; ie++){
+                SECTION("LO"){
+                    const auto index = ie*nefuncs;
+                    STATE sum = 0;
+                    CAPTURE(ie);
+                    CAPTURE(index);
+                    for(auto x = 0; x < curldim; x++){
+                        sum+=abs(curlphi.GetVal(x,index));
+                    }
+                    REQUIRE(sum > tol);
+                }
+                SECTION("HO"){
+                    for(int f = 1; f < nefuncs; f++){
+                        const auto index = ie*nefuncs + f;
+                        STATE sum = 0;
+                        for(auto x = 0; x < curldim; x++){
+                            sum+=curlphi.GetVal(x,index);
+                        }
+                        CAPTURE(ie);
+                        CAPTURE(f);
+                        CAPTURE(index);
+                        REQUIRE(sum == Catch::Approx(0.));
+                    }
+                }
+            }
+        }
+        Catch::StringMaker<STATE>::precision = oldPrecision;
+    }
+    
 
     TPZAutoPointer<TPZCompMesh> CreateCMesh(MMeshType type, int pOrder){
         constexpr int ndiv{1};

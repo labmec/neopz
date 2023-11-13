@@ -90,6 +90,63 @@ namespace pzshape {
 #endif
 		
 	} //end of method
+
+    void TPZShapeLinear::IntegratedLegendre(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+		if (num <= 0) return;
+		phi.Put(0, 0, 1.0);
+		dphi.Put(0, 0, 0.0);
+		
+		if (num == 1) return;
+		
+		phi.Put(1, 0, x);
+		dphi.Put(0, 1, 1.0);
+
+        if(num == 2) return;
+
+        phi.Put(2,0,0.5*(x*x-1));
+        dphi.Put(0,2,x);
+
+		for (auto ord = 3; ord < num; ord++)
+		{
+            const auto coeff1 = 2*(ord-1)-1;
+            const auto coeff2 = ord-3;
+			const auto val = coeff1*x*phi.GetVal(ord-1,0) - coeff2*phi.GetVal(ord-2,0);
+			phi.Put(ord, 0, val/ord);
+			
+			const auto deriv = coeff1*phi.GetVal(ord-1,0) + coeff1*x*dphi.GetVal(0,ord-1)
+                - coeff2*dphi.GetVal(0,ord-2);
+			dphi.Put(0, ord, deriv/ord);
+		}
+	}
+    void TPZShapeLinear::ScaledIntegratedLegendre(const REAL x,const REAL t, int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+				if (num <= 0) return;
+		phi.Put(0, 0, 1.0);
+		dphi.Put(0, 0, 0.0);
+		
+		if (num == 1) return;
+		
+		phi.Put(1, 0, x);
+		dphi.Put(0, 1, 1.0);
+
+        if(num == 2) return;
+
+        phi.Put(2,0,0.5*(x*x-t*t));
+        dphi.Put(0,2,x);
+
+        TPZFNMatrix<300,REAL> phi_leg(num,1,0), dphi_leg(1,num,0);
+        TPZShapeLinear::IntegratedLegendre(x, num, phi_leg, dphi_leg);
+		for (auto ord = 3; ord < num; ord++)
+		{
+            const auto coeff1 = 2*(ord-1)-1;
+            const auto coeff2 = (ord-3)*t*t;
+			const auto val = coeff1*x*phi_leg.GetVal(ord-1,0) - coeff2*phi_leg.GetVal(ord-2,0);
+			phi.Put(ord, 0, val/ord);
+			
+			const auto deriv = coeff1*phi_leg.GetVal(ord-1,0) + coeff1*x*dphi_leg.GetVal(0,ord-1)
+                - coeff2*dphi_leg.GetVal(0,ord-2);
+			dphi.Put(0, ord, deriv/ord);
+		}
+	}
 	
 	void TPZShapeLinear::Legendre(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, int nderiv){
 		

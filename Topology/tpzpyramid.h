@@ -88,7 +88,7 @@ namespace pztopology {
 		/** @brief Returns the local connect number of the connect "c" along side "side" */
 		static int ContainedSideLocId(int side, int c);
 
-        static int GetSideOrient(const int &face) {
+        static int GetFaceOrient(const int &face) {
             DebugStop();
             return 1;
         }

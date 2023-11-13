@@ -1175,6 +1175,105 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &mat
 }
 
 
+void TPZRefPatternTools::RefineTowards(TPZGeoEl *gel, std::set<int> &matids, int maxlevel)
+{
+	if(gel->HasSubElement())
+	{
+		return;
+	}
+	int matid = gel->MaterialId();
+	if(matids.count(matid) == 0) return;
+
+	int nside = gel->NSides();
+	for (int side = 0; side < nside; side++)
+	{
+		TPZGeoElSide geoside(gel,side);
+		TPZGeoElSide neighbour = geoside.Neighbour();
+		while (neighbour != geoside)
+		{
+			int neigh_matid = neighbour.Element()->MaterialId();
+			int neigh_level = neighbour.Element()->Level();
+
+			if (neigh_level <= maxlevel && matids.count(neigh_matid) == 0)
+			{
+				TPZVec<TPZGeoEl*> subels;
+				neighbour.Element()->Divide(subels);
+			}
+			neighbour = neighbour.Neighbour();
+		}
+	}
+}
+
+void TPZRefPatternTools::RefineTowards(TPZGeoEl *gel, std::set<int> &matids, int gelMat, int maxlevel)
+{
+	if(gel->HasSubElement())
+	{
+		return;
+	}
+	int matid = gel->MaterialId();
+	if(matids.count(matid) == 0) return;
+
+	int nside = gel->NSides();
+	for (int side = 0; side < nside; side++)
+	{
+		TPZGeoElSide geoside(gel,side);
+		TPZGeoElSide neighbour = geoside.Neighbour();
+		while (neighbour != geoside)
+		{
+			int neigh_matid = neighbour.Element()->MaterialId();
+			int neigh_level = neighbour.Element()->Level();
+
+			if (neigh_level <= maxlevel && matids.count(neigh_matid) == 0)
+			{
+				TPZVec<TPZGeoEl*> subels;
+				neighbour.Element()->Divide(subels);
+				for (const auto& el : subels)
+				{
+					el->SetMaterialId(gelMat);
+				}
+			}
+			neighbour = neighbour.Neighbour();
+		}
+	}
+}
+
+void TPZRefPatternTools::RefineTowards(TPZGeoMesh *gmesh, std::set<int> &matids, int maxlevel)
+{
+	int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (!gel || matids.count(gel->MaterialId()) == 0) {
+            continue;
+        }
+        RefineTowards(gel, matids, maxlevel);
+
+		int gel_level = gel->Level();
+		if (gel_level <= maxlevel)
+		{
+			TPZVec<TPZGeoEl*> subels;
+			gel->Divide(subels);
+		}
+    }
+}
+
+void TPZRefPatternTools::RefineTowards(TPZGeoMesh *gmesh, std::set<int> &matids, int gelmat, int maxlevel)
+{
+	int64_t nel = gmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (!gel || matids.count(gel->MaterialId()) == 0) {
+            continue;
+        }
+        RefineTowards(gel, matids, gelmat, maxlevel);
+
+		int gel_level = gel->Level();
+		if (gel_level <= maxlevel)
+		{
+			TPZVec<TPZGeoEl*> subels;
+			gel->Divide(subels);
+		}
+    }
+}
 
 void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids, int gelMat)
 {

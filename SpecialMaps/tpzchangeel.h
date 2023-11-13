@@ -38,7 +38,7 @@ public:
     /** @brief Turns a regular 2D element into a TPZCylinderMap*/
     static TPZGeoEl * ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemIndex,
                                        const TPZVec<REAL> &xcenter,
-                                       const TPZVec<REAL> &axis, const REAL radius);
+                                       const TPZFMatrix<REAL> &axis);
 
     /** @brief Slide middle nodes of an quadratic geoelement to the quarterpoint with respect to a given side */
     static TPZGeoEl * ChangeToQuarterPoint(TPZGeoMesh *Mesh, int64_t ElemIndex, int targetSide);

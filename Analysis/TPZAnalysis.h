@@ -45,7 +45,14 @@ namespace Precond{
   }
 }
 
-enum class RenumType {ENone, ESloan, ECutHillMcKee, EMetis};
+//! Available options for renumbering equations
+enum class RenumType {ENone, ///< No renumbering scheme
+                      EDefault, ///< Default value (depends on NeoPZ settings. Metis or Sloan)
+                      ESloan,///< Sloan renumbering
+                      ECutHillMcKee,///< Traditional CutHill McKee
+                      ECutHillMcKeeFast,///< CutHill McKee iterating on neighbours just once (instead of twice)
+                      EMetis///< Metis (depnds on external package)
+};
 
 /**
  * @ingroup analysis
@@ -107,17 +114,10 @@ protected:
 	TPZAnalysis();
 
 	
-#ifdef PZ_USING_METIS
   /** @brief Create an TPZAnalysis object from one mesh pointer */
-	TPZAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::EMetis, std::ostream &out = std::cout);
+	TPZAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::EDefault, std::ostream &out = std::cout);
   /** @brief Create an TPZAnalysis object from one mesh auto pointer object */
-  TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::EMetis, std::ostream &out = std::cout);
-#else
-  /** @brief Create an TPZAnalysis object from one mesh pointer */
-  TPZAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::ESloan, std::ostream &out = std::cout);
-  /** @brief Create an TPZAnalysis object from one mesh auto pointer object */
-  TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::ESloan, std::ostream &out = std::cout);
-#endif
+  TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::EDefault, std::ostream &out = std::cout);
     	
   void CreateRenumberObject(const RenumType& renumtype);
     
@@ -345,6 +345,9 @@ protected:
     int ftid;
       
     bool fStoreError = false;
+      
+    // Assuming no more than 100 threads
+    TPZManVector<bool,100> fIsUsed;
     
     // Vector with errors. Assuming no more than a 100 threads
     TPZManVector<TPZManVector<REAL,10>,100> fvalues;

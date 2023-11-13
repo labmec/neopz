@@ -22,19 +22,12 @@ public:
     /** @{ */
     /** @brief Create an empty TPZEigenAnalysis object*/
     TPZEigenAnalysis();
-    
-#ifdef PZ_USING_METIS
-    /** @brief Create an TPZEigenAnalysis object from one mesh pointer */
-    TPZEigenAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::EMetis, std::ostream &out = std::cout);
-    /** @brief Create an TPZEigenAnalysis object from one mesh auto pointer object */
-    TPZEigenAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::EMetis, std::ostream &out = std::cout);
-#else
-  /** @brief Create an TPZEigenAnalysis object from one mesh pointer */
-  TPZEigenAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::ESloan, std::ostream &out = std::cout);
-  /** @brief Create an TPZEigenAnalysis object from one mesh auto pointer object */
-  TPZEigenAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::ESloan, std::ostream &out = std::cout);
 
-#endif
+  /** @brief Create an TPZEigenAnalysis object from one mesh pointer */
+  TPZEigenAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::EDefault, std::ostream &out = std::cout);
+  /** @brief Create an TPZEigenAnalysis object from one mesh auto pointer object */
+  TPZEigenAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::EDefault, std::ostream &out = std::cout);
+
 
     /** @} */
     /** @name FEM*/

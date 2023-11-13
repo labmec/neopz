@@ -148,8 +148,8 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
     constexpr int nvol = dim == 3 ? 1 : 0;
     constexpr int nedges = nsides - nvol - nfaces - ncorner;
     
-    TPZFNMatrix<100,T> locphi(data.fPhi.Rows(),data.fPhi.Cols());
-    TPZFNMatrix<100*dim,T> dphi(data.fDPhi.Rows(),data.fDPhi.Cols());
+    TPZFNMatrix<100,T> locphi(data.fPhi.Rows(),data.fPhi.Cols(),0.);
+    TPZFNMatrix<100*dim,T> dphi(data.fDPhi.Rows(),data.fDPhi.Cols(),0.);
     
     TPZShapeH1<TSHAPE>::Shape(pt,data, locphi, dphi);
 
@@ -207,55 +207,43 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
     int vs_index = 0;
     int phi_index = 0;
 
-    //tmp phi and curlphi
-    TPZFNMatrix<dim,T> phi_1(dim,1),phi_2(dim,1);
-    TPZFNMatrix<curldim,T> cphi_1(curldim,1),cphi_2(curldim,1);
+    //low order funcs
+    TPZFNMatrix<dim*nedges,T> phi_lo(dim,nedges,0.);
+    TPZFNMatrix<curldim*nedges,T> curlphi_lo(curldim,nedges,0.);
+
+    TSHAPE::ComputeConstantHCurl(pt, phi_lo, curlphi_lo, data.fSideTransformationId);
+
+
+    TPZManVector<int64_t,nedges> firstH1edgeFunc(nedges,0);
+    firstH1edgeFunc[0] = ncorner;
+    for (int icon = 1; icon < nedges; icon++){
+        firstH1edgeFunc[icon] = firstH1edgeFunc[icon-1] + data.fH1NumConnectShape[icon-1];
+    }
+    
     //we iterate through edges...
     for(int icon = 0; icon < nedges; icon++){
         const auto order = connectorders[icon];
-
-        {//gets phi_1
-            const auto &itf = data.fSDVecShapeIndex[vs_index];
-            const int fv = itf.first;
-            const int fs = itf.second;
-            ComputeShape(phi_1,0,fs,fv);
-            ComputeCurl(cphi_1,0,fs,fv);
-        }
-
-        {//gets phi_2
-            const auto &its = data.fSDVecShapeIndex[vs_index+1];
-            const int sv = its.first;
-            const int ss = its.second;
-            ComputeShape(phi_2,0,ss,sv);
-            ComputeCurl(cphi_2,0,ss,sv);
-        }
-
-        //constant trace
+        //constant traces
         for(auto x = 0; x < dim; x++){
-            phi(x,phi_index) =  phi_1.GetVal(x,0) + phi_2.GetVal(x,0);
+            phi(x,phi_index) =  phi_lo.GetVal(x,icon);
         }
         for(auto x = 0; x < curldim; x++){
-            curlphi(x,phi_index) =  cphi_1.GetVal(x,0) + cphi_2.GetVal(x,0);
+            curlphi(x,phi_index) =  curlphi_lo.GetVal(x,icon);
         }
-        phi_index++;
-        if(order>0){
-            //linear traces
+        phi_index++;vs_index++;
+        
+        if(order==0){vs_index++;}
+        vs_index += order;
+        
+        const int firstedgefunc = firstH1edgeFunc[icon];
+        for(int ord = 1; ord < order+1; ord++, phi_index++){
+            const int scalindex = firstedgefunc + ord-1;
             for(auto x = 0; x < dim; x++){
-                phi(x,phi_index) =  phi_1.GetVal(x,0) - phi_2.GetVal(x,0);
+                phi(x,phi_index) =  dphi.GetVal(x,scalindex);
             }
             for(auto x = 0; x < curldim; x++){
-                curlphi(x,phi_index) =  cphi_1.GetVal(x,0) - cphi_2.GetVal(x,0);
+                curlphi(x,phi_index) =  0;
             }
-            phi_index++;
-        }
-        vs_index+=2;
-        //higher order edge functions
-        for(int ord = 2; ord < order+1; ord++, phi_index++, vs_index++){
-            const auto &it = data.fSDVecShapeIndex[vs_index];
-            const int vecindex = it.first;
-            const int scalindex = it.second;
-            ComputeShape(phi,phi_index,scalindex,vecindex);
-            ComputeCurl(curlphi,phi_index,scalindex,vecindex);
         }
     }
 
@@ -269,8 +257,14 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
         ComputeShape(phi,phi_index,scalindex,vecindex);
         ComputeCurl(curlphi,phi_index,scalindex,vecindex);
     }
-
-
+// #ifdef PZDEBUG
+    if(vs_index!=data.fSDVecShapeIndex.size()){
+        DebugStop();
+    }
+    if(phi_index != phi.Cols()){
+        DebugStop();
+    }
+// #endif
 }
 
 
@@ -348,19 +342,23 @@ void TPZShapeHCurl<TSHAPE>::CalcH1ShapeOrders(
     for(auto iCon = 0; iCon < nConnects; iCon++){
         const auto iSide = iCon + TSHAPE::NCornerNodes;
         const auto sideDim = TSHAPE::SideDimension(iSide);
-        const bool quadSide =
+        const bool quadSideOrEdge =
+            TSHAPE::Type(iSide) == EOned ||
             TSHAPE::Type(iSide) == EQuadrilateral ||
             TSHAPE::Type(iSide) == ECube ||
             TSHAPE::Type(iSide) == EPrisma;
-        /*some H1 functions associated with the side iSide of dimension dim
+        /*
+          some H1 functions associated with the side iSide of dimension dim
           might be needed for computing the shape functions of a side with
           dimension dim+1 that contains the side iSide.
+          for instance, p+1 h1 edge functions are needed for p hcurl elements
+          
           It is also worth noting that quadrilateral sides require functions
           of ordH1er k+1*/
         TPZStack<int> highDimSides;
         TSHAPE::HigherDimensionSides(iSide, highDimSides);
         const auto sideOrder = ordHCurl[iCon];
-        auto maxOrder = quadSide ? sideOrder + 1: sideOrder;
+        auto maxOrder = quadSideOrEdge ? sideOrder + 1: sideOrder;
         for(auto &ihSide : highDimSides){
             if(TSHAPE::SideDimension(ihSide) != sideDim+1) break;
             else {
@@ -836,7 +834,8 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
 template<class TSHAPE>
 int TPZShapeHCurl<TSHAPE>::MaxOrder(const int ordh1){
 
-    if constexpr (std::is_same_v<TSHAPE,pzshape::TPZShapeCube> ||
+    if constexpr (std::is_same_v<TSHAPE,pzshape::TPZShapePrism> ||
+                  std::is_same_v<TSHAPE,pzshape::TPZShapeCube> ||
                   std::is_same_v<TSHAPE,pzshape::TPZShapeQuad>){
         return ordh1+1;
     }else{

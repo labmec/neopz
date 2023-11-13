@@ -16,55 +16,29 @@ namespace pzgeom {
     constexpr REAL tol = std::numeric_limits<REAL>::epsilon()*1000;
     /// axis direction with the vertical axis
     template<class TGeo>
-    void TPZCylinderMap<TGeo>::SetCylinderAxis(const TPZVec<REAL> &orig_axis)
+    void TPZCylinderMap<TGeo>::SetCylinderAxis(const TPZFMatrix<REAL> &orig_axis)
     {
         /**master cylinder has axis in the z-direction.
          therefore, a rotation matrix to convert from reference axis
         to cylinder's axis will have the cylinder's axis as the 3 column
         (for [0,0,1] is transformed to the cylinder's axis).
         we now need to find two orthonormal vectors to compose our matrix*/
-        TPZManVector<REAL,3> reference_axis = {0,0,1};
-
-        //let us normalize axis
-        REAL normaxis = 0;
-        for(const auto &ax : orig_axis){normaxis += ax*ax;}
-        normaxis = sqrt(normaxis);
-        const TPZManVector<REAL,3> axis = {orig_axis[0]/normaxis,
-                                           orig_axis[1]/normaxis,
-                                           orig_axis[2]/normaxis};
-        const auto &x = reference_axis;
-        const auto &y = axis;
-        TPZManVector<REAL,3> orth1(3,0.);
-        Cross(x,y,orth1);
-
-        //if they are aligned, then it is just a matter of sign
-        if(fabs(orth1[0]) < tol && fabs(orth1[1]) < tol && fabs(orth1[2]) < tol){
-            //x and y are aligned
-            //let us compute the inner product
-            REAL inner{0};
-            for(int ix = 0; ix < 3; ix++){inner += x[ix] * y[ix];}
-            const REAL sign = inner > 0 ? 1 : - 1;
-            for(int i = 0; i< 3; i++){
-                fRotation(i,i) = sign;
-            }
-        }else{
-            /**if they are not aligned, orth1 is already an orth vector,
-             we need to normalise it*/
-            {
-                REAL normorth1{0};
-                for(auto &xx : orth1) {normorth1 += xx*xx;}
-                normorth1 = sqrt(normorth1);
-                for(auto &xx : orth1) {xx /= normorth1;}
-            }
-
-            TPZManVector<REAL,3> orth2(3,0.);
-            Cross(y,orth1,orth2);
-            for(int i = 0; i < 3; i++){
-                fRotation(i,0) = orth1[i];
-                fRotation(i,1) = orth2[i];
-                fRotation(i,2) = y[i];
+        fRotation = orig_axis;
+#ifdef PZDEBUG
+        for(int i = 0; i<3; i++) {
+            for(int j= 0; j<3; j++) {
+                REAL inner = 0.;
+                for(int k = 0; k<3; k++) {
+                    inner += orig_axis(i,k)*orig_axis(j,k);
+                }
+                if(i==j && fabs(inner-1.) > 1.e-8) {
+                    DebugStop();
+                } else if(i!=j && fabs(inner) > 1.e-8) {
+                    DebugStop();
+                }
             }
         }
+#endif
     }
     
     /// compute the corner coordinates of the corner nodes
@@ -86,20 +60,11 @@ namespace pzgeom {
                 }
             }
             const REAL radius = sqrt(localco[0]*localco[0]+localco[1]*localco[1]);
-            if(fabs(radius-fRadius) > tol) {
-                PZError<<__PRETTY_FUNCTION__
-                       <<"\nError:"
-                       <<"coordinates "<< co
-                       <<"\nlocal coordinates: "<<localco
-                       <<"\nradius: "<<fRadius
-                       <<"\ncomputed radius: "<<radius
-                       <<"Aborting..."<<std::endl;
-                DebugStop();
-            }
             const REAL theta = atan2(localco[1],localco[0]);
             const REAL z = localco[2];
-            fCylindricalCo(0,in) = theta;
-            fCylindricalCo(1,in) = z;
+            fCylindricalCo(0,in) = radius;
+            fCylindricalCo(1,in) = theta;
+            fCylindricalCo(2,in) = z;
             if(theta > maxtheta) {maxtheta = theta;}
             if(theta < mintheta) {mintheta = theta;}
         }
@@ -124,8 +89,8 @@ namespace pzgeom {
             mintheta = 2*M_PI;
             maxtheta = -mintheta;
             for(auto in = 0 ; in < nnodes ; in++){
-                const REAL theta = std::fmod((fCylindricalCo(0,in)+2*M_PI),2*M_PI); 
-                fCylindricalCo(0,in) = theta;
+                const REAL theta = std::fmod((fCylindricalCo(1,in)+2*M_PI),2*M_PI); 
+                fCylindricalCo(1,in) = theta;
                 if(theta > maxtheta) {maxtheta = theta;}
                 if(theta < mintheta) {mintheta = theta;}
             }
@@ -142,10 +107,9 @@ namespace pzgeom {
                            <<"\n\t\tcartesian:";
                     for(int ix = 0; ix < 3; ix++){PZError<<' '<<co[ix];}
                     PZError<<"\n\t\tcylindrical:";
-                    for(int ix = 0; ix < 2; ix++){PZError<<' '<<fCylindricalCo(ix,in);}
+                    for(int ix = 0; ix < 3; ix++){PZError<<' '<<fCylindricalCo(ix,in);}
                 }
-                PZError<<"\nWith computed radius: "<<fRadius
-                       <<"\nAborting...";
+                PZError <<"\nAborting...";
                 DebugStop();
             }
         }
@@ -157,7 +121,6 @@ namespace pzgeom {
         TGeo::Read(buf,0);
         fCylindricalCo.Read(buf,0);
         buf.Read(fOrigin);
-        buf.Read(&fRadius);
         fRotation.Read(buf, 0);
     }
         
@@ -167,53 +130,77 @@ namespace pzgeom {
         TGeo::Write(buf, withclassid);
         fCylindricalCo.Write(buf,0);
         buf.Write(fOrigin);
-        buf.Write(fRadius);
         fRotation.Write(buf, withclassid);
     }
     
     
     template<class TGeo>
-    void TPZCylinderMap<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size){
+    void TPZCylinderMap<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &elsize){
         TPZManVector<int64_t, TGeo::NNodes> nodeind(TGeo::NNodes,-1);
-        TPZManVector<REAL,3> x(3,0);
+        TPZFNMatrix<24,REAL> x = {
+            {0.5,0,0},
+            {1,0,0},
+            {0,1,0},
+            {0,0.5,0},
+            {0.5,0,0.5},
+            {1,0,0.5},
+            {0,1,0.5},
+            {0,0.5,0.5}
+        };
+        x.Transpose();
+        for(int i=0; i<8; i++) for(int jc = 0; jc<3; jc++) {
+            x(jc,i) += lowercorner[jc];
+        }
+        
+        // inserting the nodes in the mesh
+        const int64_t firstnode = gmesh.NodeVec().NElements();
+        gmesh.NodeVec().Resize(firstnode + x.Cols());
+        for(int i = 0 ; i < x.Cols() ; i++) {
+            TPZManVector<REAL,3> coor(3,0.);
+            for(int in = 0 ; in < 3 ; in++){
+                coor[in] = x(in,i);
+            }
+            gmesh.NodeVec()[i+firstnode].Initialize(coor, gmesh);
+        }
 
-        auto CalcX = [&lowercorner](int i, TPZVec<REAL> &x){
-            switch(i){
-            case 0:
-                x = {1,0,0};
+        TPZManVector<int64_t,8> nodind(TGeo::NCornerNodes);
+        switch(TGeo::Type()) {
+            case EOned:
+                nodeind = {0,1};
                 break;
-            case 1:
-                x = {0,1,0};
+            case ETriangle:
+                nodeind = {0,1,2};
                 break;
-            case 2:
-                x = {0,1,1};
+            case EQuadrilateral:
+                nodeind = {0,1,2,3};
                 break;
-            case 3://only for quads
-                x = {1,0,1};
+            case EPrisma:
+                nodeind = {0,1,2,4,5,6};
+                break;
+            case EPiramide:
+                nodeind = {0,1,2,3,6};
+                break;
+            case ETetraedro:
+                nodeind = {0,1,2,4};
+                break;
+            case ECube:
+                nodeind = {0,1,2,3,4,5,6,7};
                 break;
             default:
-                PZError<<__PRETTY_FUNCTION__
-                       <<"\n invalid number of nodes!\n";
                 DebugStop();
-            }
-            for(int i = 0; i < 3; i++) {x[i] += lowercorner[i];}
-        };
-
-        
-        for(auto in = 0; in < TGeo::NNodes; in++){
-            CalcX(in,x);
-            nodeind[in] = gmesh.NodeVec().AllocateNewElement();
-            gmesh.NodeVec()[nodeind[in]].Initialize(x,gmesh);
-
         }
+        for(auto& it : nodeind) it += firstnode;                
+        
         auto *gel = new TPZGeoElRefPattern<TPZCylinderMap<TGeo>> (nodeind,matid,gmesh);
 
         constexpr REAL radius{1};
-        gel->Geom().SetOrigin(lowercorner, radius);
-        gel->Geom().SetCylinderAxis({0,0,1});
+        gel->Geom().SetOrigin(lowercorner);
+        TPZFNMatrix<9,REAL> axis(3,3);
+        axis.Identity();
+        gel->Geom().SetCylinderAxis(axis);
         gel->Geom().ComputeCornerCoordinates(gmesh);
         
-        size[0] = size[1] = 1;
+        elsize[0] = elsize[1] = elsize[2] = 1;
     }
 
 
@@ -227,7 +214,12 @@ namespace pzgeom {
     template class TPZGeoElRefLess<pzgeom::TPZCylinderMap<TGEO> >;    \
     template class TPZGeoElRefPattern<pzgeom::TPZCylinderMap<TGEO> >;
 
+IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoLinear)
 IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoTriangle)
 IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoQuad)
+IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoTetrahedra)
+IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoCube)
+IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoPrism)
+IMPLEMENTCYLINDERMAP(pzgeom::TPZGeoPyramid)
 
 #undef IMPLEMENTCYLINDERMAP

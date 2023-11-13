@@ -82,7 +82,7 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
         DebugStop();
     }
   
-    if (fHDivFam == HDivFamily::EHDivConstant && fShouldCondense && fHybridType != HybridizationType::ESemi) {
+    if (fProbType==ProblemType::EElastic && fHDivFam == HDivFamily::EHDivConstant && fShouldCondense && fHybridType != HybridizationType::ESemi) {
         std::cout << "CODE STOPPED! Condensing hdivconst spaces leads to singular K00. This happens because of the rotation space that has linear and constant functions."
         " One option is to separate the linear and constant functions is two different spaces. Please implement before using." << std::endl;
         DebugStop();
@@ -227,9 +227,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     fGeoMesh->ResetReference();
     int dim = fGeoMesh->Dimension();
     TPZCompMesh *cmesh = new TPZCompMesh(fGeoMesh);
-    if (fProbType == ProblemType::EDarcy) {
-        cmesh->SetDefaultOrder(fDefaultPOrder);
-    }else if (fProbType == ProblemType::EElastic){
+    if (fProbType == ProblemType::EDarcy || fProbType == ProblemType::EElastic){
         cmesh->SetDefaultOrder(fDefaultPOrder);
     } else {
         DebugStop();

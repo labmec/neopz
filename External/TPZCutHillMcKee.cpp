@@ -253,8 +253,8 @@ void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(int64_t &startNode, int64_t 
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TPZCutHillMcKee::TPZCutHillMcKee():TPZRenumbering(){
-  fReverse = true;
+TPZCutHillMcKee::TPZCutHillMcKee(bool reverse):TPZRenumbering(){
+  fReverse = reverse;
 #ifdef PZDEBUG
   fVerbose = true;
 #else

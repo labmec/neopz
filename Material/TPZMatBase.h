@@ -20,7 +20,7 @@
  */
 template<class TVar, class... Interfaces>
 class TPZMatBase : public TPZMaterialT<TVar>,
-                   public Interfaces... {
+                   public virtual Interfaces... {
  public:
     //! Default constructor
     TPZMatBase() = default;

@@ -168,21 +168,34 @@ fSolution(fSolType == EComplex ? true : false)
 
 void TPZAnalysis::CreateRenumberObject(const RenumType& renumtype) {
   switch (renumtype) {
+    case RenumType::ENone:
+      fRenumber = nullptr;
+      return;
+    case RenumType::ECutHillMcKee:
+      fRenumber = new TPZCutHillMcKee(true);
+      return;
+    case RenumType::ECutHillMcKeeFast:
+      fRenumber = new TPZCutHillMcKee(false);
+      return;
+    case RenumType::EDefault:
+    case RenumType::EMetis:
+#ifdef PZ_USING_METIS
+      fRenumber = new TPZMetis;
+      return;
+#else
+      if(renumtype==RenumType::EMetis){
+        //maybe we ended up here because of EDefault,
+        //no need to print the message then
+        std::cout<<__PRETTY_FUNCTION__
+                 <<":\nMetis not available, setting Sloan for renumbering"
+                 <<std::endl;
+      }
+#endif
     case RenumType::ESloan:
       fRenumber = new TPZSloanRenumbering;
-      break;
-    case RenumType::ECutHillMcKee:
-      fRenumber = new TPZCutHillMcKee;
-      break;
-#ifdef PZ_USING_METIS
-    case RenumType::EMetis:
-      fRenumber = new TPZMetis;
-      break;
-#endif
-    default:
-      DebugStop(); // Should not arrive here
-      break;
+      return;
   }
+  DebugStop();
 }
 
 void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, bool mustOptimizeBandwidth)
@@ -558,7 +571,10 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
     TPZCompEl *cel = data->fElvec[iel];
 
     if(!cel) continue;
+    if(cel->Dimension() != cel->Mesh()->Dimension()) continue;
     
+    data->fIsUsed[myid] = true;
+      
     cel->EvaluateError(errors, data->fStoreError);
     
     const int nerrors = errors.NElements();
@@ -585,6 +601,7 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
   
   ThreadData threaddata(elvec,store_error);
   threaddata.fvalues.Resize(numthreads);
+  threaddata.fIsUsed.Resize(numthreads,false);
   for(int iv = 0 ; iv < numthreads ; iv++){
       threaddata.fvalues[iv].Resize(10);
       threaddata.fvalues[iv].Fill(0.0);
@@ -617,12 +634,14 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
   int nerrors = threaddata.fvalues[0].NElements();
     for(int it = 0 ; it < numthreads ; it++)
     {
+        if(!threaddata.fIsUsed[it]) continue;
         int locmin = threaddata.fvalues[it].NElements();
         nerrors = nerrors > locmin ? nerrors : locmin;
     }
   values.Resize(nerrors,0);
   // Summing up all the values of all threads
   for(int it = 0 ; it < numthreads ; it++){
+      if(!threaddata.fIsUsed[it]) continue;
       for(int ir = 0 ; ir < nerrors ; ir++){
           values[ir] += (threaddata.fvalues[it])[ir];
       }

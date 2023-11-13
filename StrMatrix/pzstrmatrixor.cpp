@@ -252,24 +252,7 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
             //			test -= stiffness;
             //			test.Print("matriz de rigidez diference",std::cout);
             //			test2.Print("matriz de rigidez interface",std::cout);
-#ifdef PZ_LOG
-            if (loggerel.isDebugEnabled()) {
-                std::stringstream sout;
-                TPZGeoEl *gel = el->Reference();
-                if (gel) {
-                    TPZManVector<REAL> center(gel->Dimension()), xcenter(3, 0.);
-                    gel->CenterPoint(gel->NSides() - 1, center);
-                    gel->X(center, xcenter);
-                    sout << "Stiffness for computational element index " << el->Index() << " material id " << gel->MaterialId() << std::endl;
-                    sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
-                } else {
-                    sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
-                }
-                ek.Print(sout);
-                ef.Print(sout);
-                LOGPZ_DEBUG(loggerel, sout.str())
-            }
-#endif
+
         } else {
             // the element has dependent nodes
             ek.ApplyConstraints();
@@ -278,32 +261,31 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
             equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
             stiffness.AddKel(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
             if(ComputeRhs())rhs.AddFel(ef.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+        }
 
 #ifdef PZ_LOG
-            if (loggerel.isDebugEnabled()) {
-                std::stringstream sout;
-                TPZGeoEl *gel = el->Reference();
-                //                el->Print();
-                //                int nc = el->NConnects();
-                //                for (int ic=0; ic<nc; ic++) {
-                //                    std::cout << "Index " << el->ConnectIndex(ic) << " ";
-                //                    el->Connect(ic).Print(*cmesh);
-                //                    cmesh->ConnectVec()[ic].Print(*cmesh);
-                //                }
-                if (gel) {
-                    TPZManVector<REAL> center(gel->Dimension()), xcenter(3, 0.);
-                    gel->CenterPoint(gel->NSides() - 1, center);
-                    gel->X(center, xcenter);
-                    sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
-                } else {
-                    sout << "Stiffness for computational element index " << iel << std::endl;
-                }
-                ek.Print(sout);
-                ef.Print(sout);
-                LOGPZ_DEBUG(loggerel, sout.str())
+        if (loggerel.isDebugEnabled()) {
+            std::stringstream sout;
+            TPZGeoEl *gel = el->Reference();
+            if (gel) {
+                TPZManVector<REAL> center(gel->Dimension()), xcenter(3, 0.);
+                gel->CenterPoint(gel->NSides() - 1, center);
+                gel->X(center, xcenter);
+                sout << "Stiffness for computational element index " << el->Index() << " material id " << gel->MaterialId() << std::endl;
+                sout << "Geometric element index " << gel->Index() << " center " << xcenter << std::endl;
+            } else {
+                sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
             }
-#endif
+            if(el->HasDependency()){
+                ek.fConstrMat.Print(sout);
+                if(ComputeRhs()){ef.fConstrMat.Print(sout);}
+            }else{
+                ek.fMat.Print("ek", sout, EMathematicaInput);
+                if(ComputeRhs()){ef.fMat.Print(sout);}
+            }
+            LOGPZ_DEBUG(loggerel, sout.str())
         }
+#endif
         // tototototo
         //        GK.Multiply(Sol, GKSol);
         //        GKSol -= GF;
@@ -452,7 +434,11 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointe
         if(loggerel.isDebugEnabled())
         {
             std::stringstream sout;
-            ef.Print(sout);
+            if(el->HasDependency()){
+                ef.fConstrMat.Print(sout);
+            }else{
+                ef.fMat.Print(sout);
+            }
             LOGPZ_DEBUG(loggerel, sout.str())
         }
 #endif
@@ -646,15 +632,6 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
             if (data->fStruct->HasRange()) {
                 data->fStruct->FilterEquations(ek->fSourceIndex, ek->fDestinationIndex);
             }
-#ifdef PZ_LOG
-            if (loggerel.isDebugEnabled()) {
-                std::stringstream sout;
-                sout << "Element index " << iel << std::endl;
-                ek->fMat.Print("Element stiffness matrix", sout);
-                if(computeRhs) ef->fMat.Print("Element right hand side", sout);
-                LOGPZ_DEBUG(loggerel, sout.str())
-            }
-#endif
         } else {
             // the element has dependent nodes
             if (data->fGlobMatrix) {
@@ -665,28 +642,40 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
             if (data->fStruct->HasRange()) {
                 data->fStruct->FilterEquations(ek->fSourceIndex, ek->fDestinationIndex);
             }
-#ifdef PZ_LOG
-            if (loggerel2.isDebugEnabled() && el->Reference() && el->Reference()->MaterialId() == 1 && el->IsInterface()) {
-                std::stringstream sout;
-                el->Reference()->Print(sout);
-                el->Print(sout);
-                ek->Print(sout);
-                //			ef->Print(sout);
-                LOGPZ_DEBUG(loggerel2, sout.str())
-            }
-#endif
-#ifdef PZ_LOG
-            if (loggerel.isDebugEnabled()) {
-                std::stringstream sout;
-                sout << "Element index " << iel << std::endl;
-                ek->fConstrMat.Print("Element stiffness matrix", sout);
-                if(computeRhs) ef->fConstrMat.Print("Element right hand side", sout);
-                LOGPZ_DEBUG(loggerel, sout.str())
-            }
-#endif
         }
 
-
+#ifdef PZ_LOG
+        if (loggerel2.isDebugEnabled() && el->Reference() && el->Reference()->MaterialId() == 1 && el->IsInterface()) {
+            std::stringstream sout;
+            el->Reference()->Print(sout);
+            el->Print(sout);
+            ek->Print(sout);
+            //			ef->Print(sout);
+            LOGPZ_DEBUG(loggerel2, sout.str())
+        }
+        if (loggerel.isDebugEnabled()) {
+            std::stringstream sout;
+            TPZGeoEl *gel = el->Reference();
+            if (gel) {
+                TPZManVector<REAL> center(gel->Dimension()), xcenter(3, 0.);
+                gel->CenterPoint(gel->NSides() - 1, center);
+                gel->X(center, xcenter);
+                sout << "Stiffness for computational element index " << el->Index() << " material id " << gel->MaterialId() << std::endl;
+                sout << "Geometric element index " << gel->Index() << " center " << xcenter << std::endl;
+            } else {
+                sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
+            }
+            if(el->HasDependency()){
+                ek->fConstrMat.Print(sout);
+                if(computeRhs){ef->fConstrMat.Print(sout);}
+            }else{
+                ek->fMat.Print(sout);
+                if(computeRhs){ef->fMat.Print(sout);}
+            }
+            
+            LOGPZ_DEBUG(loggerel, sout.str())
+        }
+#endif
         // put the elementmatrices on the stack to be assembled (threadsafe)
         data->ComputedElementMatrix(iel, ek, ef);
         // compute the next element (this method is threadsafe)

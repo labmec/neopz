@@ -249,7 +249,7 @@ virtual int ClassId() const override;
 	virtual  int NSideSubElements(int side) const override;
 	
     /// return the orientation of a face +1: counterclockwise -1:clockwise
-    virtual int GetSideOrientation(int face) const override;
+    virtual int GetFaceOrientation(int face) const override;
     
 	/**
 	 * @brief Method which creates a computational boundary condition element based

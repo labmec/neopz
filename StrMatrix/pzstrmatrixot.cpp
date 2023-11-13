@@ -132,7 +132,7 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<T
         PZError<<" Incompatible Types. Aborting...\n";
         DebugStop();
     }
-    auto rhs = dynamic_cast<TPZFMatrix<TVar> &>(rhs_base);
+    auto &rhs = dynamic_cast<TPZFMatrix<TVar> &>(rhs_base);
     ass_rhs.start();
     if(equationFilter.IsActive())
     {

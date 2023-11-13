@@ -435,24 +435,25 @@ TPZGeoEl * TPZChangeEl::ChangeToArc3D(TPZGeoMesh *mesh, const int64_t ElemIndex,
 
     auto CreateMidNode = [](const TPZVec<REAL> &x1, const TPZVec<REAL> &x2,
                             const REAL r,
-                            const TPZVec<REAL> &xcenter){
-        TPZVec<REAL> x3(3,0);
-        const auto &xc = xcenter[0];
-        const auto &yc = xcenter[1];
-        const auto &zc = xcenter[2];
+                            const TPZVec<REAL> &xc){
+        TPZManVector<REAL,3> x3(3,0);
         
-        //first we get its distance from xc
-        x3[0] = (x1[0] + x2[0])/2 - xc;
-        x3[1] = (x1[1] + x2[1])/2 - yc;
-        x3[2] = (x1[2] + x2[2])/2 - zc;
+        //first we get the midpoint's direction (bissecting the arc)
+        //this wont work if the angle between the vectors is pi
+        REAL vecnorm{0};
+        for(int ix = 0; ix < 3; ix++){
+            const auto val  = (x1[ix] + x2[ix])/2 - xc[ix];
+            x3[ix] = val;
+            vecnorm += val*val;
+        }
 
         //norm of the vector
-        const auto vecnorm = sqrt(x3[0]*x3[0] + x3[1]*x3[1] + x3[2]*x3[2]);
+        vecnorm = sqrt(vecnorm);
 
         //mid-arc coordinates
-        x3[0] = xc + r * x3[0]/vecnorm;
-        x3[1] = yc + r * x3[1]/vecnorm;
-        x3[2] = zc + r * x3[2]/vecnorm;
+        for(int ix = 0; ix < 3; ix++){
+            x3[ix] = xc[ix] + r * x3[ix]/vecnorm;
+        }
         return x3;
     };
     
@@ -497,12 +498,12 @@ TPZGeoEl * TPZChangeEl::ChangeToArc3D(TPZGeoMesh *mesh, const int64_t ElemIndex,
 
 TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemIndex,
                                          const TPZVec<REAL> &xcenter,
-                                         const TPZVec<REAL> &axis,
-                                         const REAL radius)
+                                         const TPZFMatrix<REAL> &axis
+                                         )
 {
-
-    auto SetCylData = [xcenter,radius,axis,mesh](auto &cyl){
-        cyl.SetOrigin(xcenter, radius);
+    
+    auto SetCylData = [xcenter,axis,mesh](auto &cyl){
+        cyl.SetOrigin(xcenter);
         cyl.SetCylinderAxis(axis);
         cyl.ComputeCornerCoordinates(*mesh);
     };
@@ -514,12 +515,12 @@ TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemInd
         return nullptr;
     }
     const MElementType oldType = old_el->Type();
-    if(oldType != ETriangle && oldType != EQuadrilateral){
-        PZError << "Error at " << __PRETTY_FUNCTION__ << " geometric el is not 2d\n";
-        return nullptr;
+    if (oldType == EPoint){
+        return old_el;
     }
+    
     const int64_t oldId = old_el->Id();
-    const int64_t oldMatId = old_el->MaterialId();
+    const int oldMatId = old_el->MaterialId();
     const int nsides = old_el->NSides();
     const int nnodes = old_el->NCornerNodes();
     
@@ -533,16 +534,46 @@ TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemInd
     mesh->DeleteElement(old_el);
     TPZGeoEl *new_el{nullptr};
 
-    if(oldType == ETriangle){
+    if (oldType == EOned){
+        auto cyl =
+        new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoLinear>>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cyl->Geom());
+        new_el = cyl;
+    }
+    else if(oldType == ETriangle){
         auto cyl =
             new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoTriangle>>(nodeindexes, oldMatId, *mesh);
         SetCylData(cyl->Geom());
         new_el = cyl;
     }else if (oldType == EQuadrilateral){
         auto cyl =
-            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoTriangle>>(nodeindexes, oldMatId, *mesh);
+            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoQuad>>(nodeindexes, oldMatId, *mesh);
         SetCylData(cyl->Geom());
         new_el = cyl;
+    }else if (oldType == ETetraedro){
+        auto cyl =
+            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoTetrahedra>>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cyl->Geom());
+        new_el = cyl;
+    }else if (oldType == ECube){
+        auto cyl =
+            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoCube>>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cyl->Geom());
+        new_el = cyl;
+    }else if (oldType == EPrisma){
+        auto cyl =
+            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoPrism>>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cyl->Geom());
+        new_el = cyl;
+    }
+    else if (oldType == EPiramide){
+        auto cyl =
+        new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoPyramid>>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cyl->Geom());
+        new_el = cyl;
+    }
+    else {
+        DebugStop();
     }
 
     RestoreNeighbours(new_el, oldNeigh);

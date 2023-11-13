@@ -1594,8 +1594,15 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum, std::s
               AccountForElementError(celgr,store_error,true_error,errorSum,matset);
             }
           }
-          else{
-            AccountForElementError(cel,store_error,true_error,errorSum,matset);
+          else {
+              TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
+              if(subcmesh) {
+                  TPZCompMesh *cmesh = subcmesh;
+                  cmesh->EvaluateError(store_error, errorSum, matset);
+              }
+              else{
+                  AccountForElementError(cel,store_error,true_error,errorSum,matset);
+              }
           }
         }
 	}

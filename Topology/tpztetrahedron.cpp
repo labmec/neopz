@@ -1593,7 +1593,7 @@ namespace pztopology {
     }
 
     // Get face orientation
-    int TPZTetrahedron::GetSideOrient(const int &face){
+    int TPZTetrahedron::GetFaceOrient(const int &face){
         return fSideOrient[face];
     }
 
