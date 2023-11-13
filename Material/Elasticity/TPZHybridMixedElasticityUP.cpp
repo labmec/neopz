@@ -232,13 +232,15 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 const int n = fdimension * (fdimension + 1) / 2;
 
                 TPZFNMatrix<6,REAL> sigmavoight(n,1,0.0);
-                StressTensor(val1, sigmavoight);
+                DeviatoricStressTensor(val1, sigmavoight);
+
+                REAL p_exact = -datavec[index].x[1]*datavec[index].x[2] / 3.;
 
                 TPZFNMatrix<9, STATE> sigma(3, 3, 0.0);
                 int cont = fdimension-1;
                 for (int i = 0; i < fdimension; i++)
                 {
-                    sigma(i,i) = sigmavoight(i,0);
+                    sigma(i,i) = sigmavoight(i,0) - p_exact;
                     for (int j = i+1; j < fdimension; j++)
                     {
                         sigma(i,j) = sigmavoight(++cont,0);
@@ -273,13 +275,15 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 const int n = fdimension * (fdimension + 1) / 2;
 
                 TPZFNMatrix<6,REAL> sigmavoight(n,1,0.0);
-                StressTensor(val1, sigmavoight);
+                DeviatoricStressTensor(val1, sigmavoight);
+
+                REAL p_exact = -datavec[index].x[1]*datavec[index].x[2] / 3.;
 
                 TPZFNMatrix<9, STATE> sigma(3, 3, 0.0);
                 int cont = fdimension-1;
                 for (int i = 0; i < fdimension; i++)
                 {
-                    sigma(i,i) = sigmavoight(i,0);
+                    sigma(i,i) = sigmavoight(i,0) - p_exact;
                     for (int j = i+1; j < fdimension; j++)
                     {
                         sigma(i,j) = sigmavoight(++cont,0);
@@ -555,6 +559,7 @@ void TPZHybridMixedElasticityUP::Errors(const TPZVec<TPZMaterialDataT<STATE>>& d
     
     //Getting the exact solution for velocity, pressure and velocity gradient
     fExactSol(data[EUindex].x, sol_exact, gradsol_exact);
+    REAL p_exact = -data[EUindex].x[1]*data[EUindex].x[2] / 3.; //Just for computing Bishop beam when poisson is 0.5. Remember to delete later.
     
     //Getting the numeric solution for velocity, pressure and velocity gradient
     TPZManVector<STATE> u_h(3, 0.0);
@@ -587,7 +592,9 @@ void TPZHybridMixedElasticityUP::Errors(const TPZVec<TPZMaterialDataT<STATE>>& d
 
     const int n = fdimension * (fdimension + 1) / 2;
     TPZFNMatrix<6, REAL> sigma_exact(n,1), sigma_h(n,1);
-    StressTensor(gradsol_exact, sigma_exact);
+    DeviatoricStressTensor(gradsol_exact, sigma_exact); //Just for Bishop beam. remember to delete later
+    for (int i = 0; i < fdimension; i++)
+        sigma_exact -= p_exact;
     StressTensor(gradv_h, sigma_h, p_h[0]);
     
     for(int i = 0; i < n; i++)
@@ -596,11 +603,6 @@ void TPZHybridMixedElasticityUP::Errors(const TPZVec<TPZMaterialDataT<STATE>>& d
         errors[6] += diffv * diffv;
         errors[7] += sigma_exact(i,0) * sigma_exact(i,0);
     }
-    
-    REAL p_exact = 0.;
-    for (int i = 0; i < fdimension; i++)
-        p_exact -= sigma_exact(i,0);
-    p_exact *= 1./fdimension;
 
     diffp = p_h[0] - p_exact;
     errors[0] = diffp * diffp;

@@ -48,7 +48,7 @@ protected:
 
     AnalysisType fAnalysisType;
     
-    enum SpaceIndex {EUindex, EPindex, EPMindex, EVMindex};
+    enum SpaceIndex {EUindex, EPindex, EVMindex, EPMindex};
     
     /// Big number for penalization method
     REAL fBigNumber = pow(10,std::numeric_limits<STATE>::max_digits10*2/3);
