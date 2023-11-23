@@ -155,34 +155,34 @@ void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & de
             jpos=destinationindex[j];
             value=elmat.GetVal(i,j);
             //cout << "j= " << j << endl;
-            if(!IsZero(value)){
-                //cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
-                int flag = 0;
-				k++;
-				if(k >= fIA[ipos] && k < fIA[ipos+1] && fJA[k]==jpos)
-				{ // OK -> elements in sequence
+            
+			//cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
+			int flag = 0;
+			k++;
+			if(k >= fIA[ipos] && k < fIA[ipos+1] && fJA[k]==jpos)
+			{ // OK -> elements in sequence
+			  fA[k]+=value;
+			  flag = 1;
+			}else
+			{
+			  for(k=fIA[ipos];k<fIA[ipos+1];k++){
+				if(fJA[k]==jpos || fJA[k]==-1){
+				  //cout << "fJA[k] " << fJA[k] << " jpos "<< jpos << "   " << value << endl;
+				  //cout << "k " << k << "   "<< jpos << "   " << value << endl;
+				  flag=1;
+				  if(fJA[k]==-1){
+					fJA[k]=jpos;
+					fA[k]=value;
+					// cout << jpos << "   " << value << endl;
+					break;
+				  }else{
 					fA[k]+=value;
-					flag = 1;
-				}else
-				{
-					for(k=fIA[ipos];k<fIA[ipos+1];k++){
-						if(fJA[k]==jpos || fJA[k]==-1){
-							//cout << "fJA[k] " << fJA[k] << " jpos "<< jpos << "   " << value << endl;
-							//cout << "k " << k << "   "<< jpos << "   " << value << endl;
-							flag=1;
-							if(fJA[k]==-1){
-								fJA[k]=jpos;
-								fA[k]=value;
-								// cout << jpos << "   " << value << endl;
-								break;
-							}else{
-								fA[k]+=value;
-								break;
-							}
-						}
-					}
+					break;
+				  }
 				}
-                if(!flag) cout << "TPZFYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << endl;         }
+			  }
+			}
+			if(!flag) cout << "TPZFYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << endl;         
         }
     }
 }
@@ -198,34 +198,34 @@ void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & so
 			jpos=destinationindex[j];
 			value=elmat.GetVal(sourceindex[i],sourceindex[j]);
             //cout << "j= " << j << endl;
-			if(!IsZero(value)){
-                //cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
-				int flag = 0;
-				k++;
-				if(k >= fIA[ipos] && k < fIA[ipos+1] && fJA[k]==jpos)
-				{ // OK -> elements in sequence
+
+			//cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
+			int flag = 0;
+			k++;
+			if(k >= fIA[ipos] && k < fIA[ipos+1] && fJA[k]==jpos)
+			{ // OK -> elements in sequence
+			  fA[k]+=value;
+			  flag = 1;
+			}else
+			{
+			  for(k=fIA[ipos];k<fIA[ipos+1];k++){
+				if(fJA[k]==jpos || fJA[k]==-1){
+				  //cout << "fJA[k] " << fJA[k] << " jpos "<< jpos << "   " << value << endl;
+				  //cout << "k " << k << "   "<< jpos << "   " << value << endl;
+				  flag=1;
+				  if(fJA[k]==-1){
+					fJA[k]=jpos;
+					fA[k]=value;
+					// cout << jpos << "   " << value << endl;
+					break;
+				  }else{
 					fA[k]+=value;
-					flag = 1;
-				}else
-				{
-					for(k=fIA[ipos];k<fIA[ipos+1];k++){
-						if(fJA[k]==jpos || fJA[k]==-1){
-							//cout << "fJA[k] " << fJA[k] << " jpos "<< jpos << "   " << value << endl;
-							//cout << "k " << k << "   "<< jpos << "   " << value << endl;
-							flag=1;
-							if(fJA[k]==-1){
-								fJA[k]=jpos;
-								fA[k]=value;
-								// cout << jpos << "   " << value << endl;
-								break;
-							}else{
-								fA[k]+=value;
-								break;
-							}
-						}
-					}
+					break;
+				  }
 				}
-				if(!flag) cout << "TPZFYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << endl;         }
+			  }
+			}
+			if(!flag) cout << "TPZFYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << endl;         
 		}
 	}
 }
