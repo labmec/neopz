@@ -123,7 +123,7 @@ public:
 #ifdef PZ_SOLMAT_DEBUG
     if(!fBaseMatrix) DebugStop();
 #endif
-    if(fBaseMatrix) return fBaseMatrix->Print(name,out,EFormatted);
+    if(fBaseMatrix) return fBaseMatrix->Print(name,out,form);
   }
   //! Zeroes the matrix
   inline int Zero() {
