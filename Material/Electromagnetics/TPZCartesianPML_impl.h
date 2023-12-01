@@ -83,17 +83,22 @@ void TPZCartesianPML<TMAT>::ComputeSParameters(const TPZVec<REAL> &x,
   static constexpr CSTATE imag{0,1};
   if(fAttX){
     const auto dx = ((x[0]-fPmlBeginX) / fDX );
-    sx = 1. - imag * fAlphaMaxX * dx * dx;
+    const auto ax = std::real(fAlphaMaxX)*dx*dx;
+    const auto bx = std::imag(fAlphaMaxX)*(1.-dx)*(1.-dx);
+    sx = 1. + bx- imag * ax;
   }
   if(fAttY){
     const auto dy = ((x[1]-fPmlBeginY) / fDY );
-    sy = 1. - imag * fAlphaMaxY * dy * dy;
+    const auto ay = std::real(fAlphaMaxY)*dy*dy;
+    const auto by = std::imag(fAlphaMaxY)*(1.-dy)*(1.-dy);
+    sy = 1. + by- imag * ay;
       
   }
   if(fAttZ){
     const auto dz = ((x[2]-fPmlBeginZ) / fDZ );
-    sz = 1. - imag * fAlphaMaxZ * dz * dz;
-      
+    const auto az = std::real(fAlphaMaxZ)*dz*dz;
+    const auto bz = std::imag(fAlphaMaxZ)*(1.-dz)*(1.-dz);
+    sz = 1. + bz- imag * az;  
   }
 }
 
