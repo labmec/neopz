@@ -594,13 +594,13 @@ void TPZHybridMixedElasticityUP::Errors(const TPZVec<TPZMaterialDataT<STATE>>& d
     TPZFNMatrix<6, REAL> sigma_exact(n,1), sigma_h(n,1);
     DeviatoricStressTensor(gradsol_exact, sigma_exact); //Just for Bishop beam. remember to delete later
     for (int i = 0; i < fdimension; i++)
-        sigma_exact -= p_exact;
+        sigma_exact(i,0) -= p_exact;
     StressTensor(gradv_h, sigma_h, p_h[0]);
     
     for(int i = 0; i < n; i++)
     {
         const STATE diffsig = sigma_h(i,0) - sigma_exact(i,0);
-        errors[6] += diffv * diffv;
+        errors[6] += diffsig * diffsig;
         errors[7] += sigma_exact(i,0) * sigma_exact(i,0);
     }
 
