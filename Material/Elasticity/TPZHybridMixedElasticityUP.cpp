@@ -240,7 +240,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 int cont = fdimension-1;
                 for (int i = 0; i < fdimension; i++)
                 {
-                    //sigma(i,i) = sigmavoight(i,0) - p_exact;
+                    sigma(i,i) = sigmavoight(i,0);
                     for (int j = i+1; j < fdimension; j++)
                     {
                         sigma(i,j) = sigmavoight(++cont,0);
@@ -283,7 +283,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 int cont = fdimension-1;
                 for (int i = 0; i < fdimension; i++)
                 {
-                    //sigma(i,i) = sigmavoight(i,0) - p_exact;
+                    sigma(i,i) = sigmavoight(i,0);
                     for (int j = i+1; j < fdimension; j++)
                     {
                         sigma(i,j) = sigmavoight(++cont,0);
