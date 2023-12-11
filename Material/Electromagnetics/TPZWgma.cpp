@@ -287,9 +287,6 @@ TPZWgma::ContributeB(
     tmp *= weight;
     ek.AddContribution(firsthcurl, firsthcurl, tmp, true, rot_phi_hcurl, false);
     //Atz term
-    tmp = rot_phi_hcurl;
-    ur.Substitution(&tmp);
-    tmp *= weight;
     ek.AddContribution(firsthcurl,firsth1,tmp,true,rot_grad_phi,false);
     //Azt term
     tmp = rot_grad_phi;
@@ -297,9 +294,6 @@ TPZWgma::ContributeB(
     tmp *= weight;
     ek.AddContribution(firsth1,firsthcurl,tmp, true, rot_phi_hcurl, false);
     //Azz term
-    tmp = rot_grad_phi;
-    ur.Substitution(&tmp);
-    tmp *= weight;
     ek.AddContribution(firsth1,firsth1,tmp,true,rot_grad_phi,false);
     //Czz term
     er.Multiply(phi_h1,tmp);
