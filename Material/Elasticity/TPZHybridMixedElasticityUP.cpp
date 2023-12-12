@@ -570,8 +570,13 @@ void TPZHybridMixedElasticityUP::Errors(const TPZVec<TPZMaterialDataT<STATE>>& d
     this->Solution(data, VariableIndex("Pressure"), p_h);
     
     STATE diffv, diffp, diffdiv;
+
+    diffp = p_h[0] - p_exact;
+    errors[0] = diffp * diffp;
+    errors[1] = p_exact * p_exact;
     
-    errors[1] = 0.0;
+    errors[2] = 0.0;
+    errors[3] = 0.0;
     for(int i = 0; i < fdimension; i++)
     {
         diffv = u_h[i] - sol_exact[i];
@@ -597,16 +602,20 @@ void TPZHybridMixedElasticityUP::Errors(const TPZVec<TPZMaterialDataT<STATE>>& d
         sigma_exact(i,0) -= p_exact;
     StressTensor(gradv_h, sigma_h, p_h[0]);
     
-    for(int i = 0; i < n; i++)
+    errors[6] = 0.0;
+    errors[7] = 0.0;
+    for (int i = 0; i < fdimension; i++)
     {
         const STATE diffsig = sigma_h(i,0) - sigma_exact(i,0);
         errors[6] += diffsig * diffsig;
         errors[7] += sigma_exact(i,0) * sigma_exact(i,0);
     }
-
-    diffp = p_h[0] - p_exact;
-    errors[0] = diffp * diffp;
-    errors[1] = p_exact * p_exact;
+    for(int i = fdimension; i < n; i++)
+    {
+        const STATE diffsig = sigma_h(i,0) - sigma_exact(i,0);
+        errors[6] += 2. * diffsig * diffsig;
+        errors[7] += sigma_exact(i,0) * sigma_exact(i,0);
+    }
 }
 
 void TPZHybridMixedElasticityUP::DeviatoricElasticityTensor(TPZFNMatrix<36,REAL>& D)
