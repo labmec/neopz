@@ -64,11 +64,11 @@ public:
         fIsGeneralised = isGeneralised;
     }
     //!Gets the Matrix A
-    inline TPZAutoPointer<TPZMatrix<TVar>> MatrixA(){
+    inline const TPZAutoPointer<TPZMatrix<TVar>> MatrixA(){
         return fMatrixA;
     }
     //!Gets the Matrix B(for generalised eigenvalue problems)
-    inline TPZAutoPointer<TPZMatrix<TVar>> MatrixB(){
+    inline const TPZAutoPointer<TPZMatrix<TVar>> MatrixB(){
         return fMatrixB;
     }
     //!Sets the Matrix A
