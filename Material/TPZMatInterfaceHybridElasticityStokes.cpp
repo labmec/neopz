@@ -24,9 +24,9 @@ void TPZMatInterfaceHybridElasticityStokes::ContributeInterface(const TPZMateria
     const TPZMaterialDataT<STATE>& vDataLeft = dataleft.find(fVindex)->second;
     const TPZMaterialDataT<STATE>& pDataRight = dataright.find(fPindex)->second;
     
-    const TPZFNMatrix<9, REAL>& axes = pDataRight.axes;
+    const TPZFNMatrix<9, REAL>& axes = pDataRight.axes; //tangent directions (i=ith tangent vector, j=jth component of the tangent vector)
     
-    int64_t nShapeV = vDataLeft.fVecShapeIndex.NElements(); // number of Hdiv velocity/displacement shape functions
+    int64_t nShapeV; // number of Hdiv velocity/displacement shape functions
     int64_t nShapeLambda = pDataRight.phi.Rows(); // number of lambda shape functions
     
     TPZFNMatrix<100, REAL> PhiV(3, nShapeV, 0.0);
@@ -34,6 +34,7 @@ void TPZMatInterfaceHybridElasticityStokes::ContributeInterface(const TPZMateria
     
     if (vDataLeft.fNeedsDeformedDirectionsFad)
     {
+        nShapeV = vDataLeft.fVecShapeIndex.NElements(); // number of Hdiv velocity/displacement shape functions
         for (int64_t j = 0; j < nShapeV; j++)
         {
             for (int64_t k = 0; k < 3; k++)
@@ -42,12 +43,27 @@ void TPZMatInterfaceHybridElasticityStokes::ContributeInterface(const TPZMateria
             }
         }
     }
+    else
+    {
+        nShapeV = vDataLeft.phi.Rows(); // number of H1 velocity/displacement shape functions
+        PhiV.Redim(3, fdimension * nShapeV);
+
+        for (int64_t j = 0; j < nShapeV; j++)
+        {
+            for (int k = 0; k < fdimension; k++)
+            {
+                for (int64_t i = 0; i < 3; i++)
+                {
+                    PhiV(i, fdimension*j+k) = vDataLeft.phi(j, 0) * axes(k, i); // velocity/displacement H1 shape function at tangential direction
+                }
+            }
+        }
+    }
 
     for (int64_t j = 0; j < nShapeLambda; j++)
     {
         for (int k = 0; k < fdimension; k++)
         {
-            TPZManVector<REAL,3> tangent(3,0.0);
             for (int64_t i = 0; i < 3; i++)
             {
                 PhiLambdaT(i, fdimension*j+k) = pDataRight.phi(j, 0) * axes(k, i); // lambda shape function at tangential direction
