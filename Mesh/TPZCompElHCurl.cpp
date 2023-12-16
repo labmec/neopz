@@ -43,9 +43,9 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fhcurlfam(hcurlfam)
 template<class TSHAPE>
 TPZCompElHCurl<TSHAPE>::TPZCompElHCurl(TPZCompMesh &mesh, const TPZCompElHCurl<TSHAPE> &copy) :
 TPZRegisterClassId(&TPZCompElHCurl::ClassId),
-TPZIntelGen<TSHAPE>(mesh,copy), fhcurlfam(copy.fhcurlfam)
-{
-
+TPZIntelGen<TSHAPE>(mesh,copy), fhcurlfam(copy.fhcurlfam),
+fConnectIndexes(copy.fConnectIndexes)
+{    
 }
 
 template<class TSHAPE>
@@ -56,6 +56,7 @@ TPZCompElHCurl<TSHAPE>::TPZCompElHCurl(TPZCompMesh &mesh,
 TPZRegisterClassId(&TPZCompElHCurl::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fhcurlfam(copy.fhcurlfam)
 {
+  DebugStop();//never tested, better safe than sorry
 	int i;
 	for(i=0;i<NConnects();i++)
 	{
