@@ -173,7 +173,7 @@ TPZCompEl::~TPZCompEl() {
     }
 #ifdef PZDEBUG
     TPZGeoEl *gel = Reference();
-    if (gel && gel->Reference()) {
+    if (gel && gel->Reference() == this) {
         DebugStop();
     }
 #endif
