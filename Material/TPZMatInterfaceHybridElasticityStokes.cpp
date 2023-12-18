@@ -26,15 +26,15 @@ void TPZMatInterfaceHybridElasticityStokes::ContributeInterface(const TPZMateria
     
     const TPZFNMatrix<9, REAL>& axes = pDataRight.axes; //tangent directions (i=ith tangent vector, j=jth component of the tangent vector)
     
-    int64_t nShapeV; // number of Hdiv velocity/displacement shape functions
+    int64_t nShapeV = (vDataLeft.fVecShapeIndex.NElements() != 0)? vDataLeft.fVecShapeIndex.NElements() : vDataLeft.phi.Rows(); // number of Hdiv velocity/displacement shape functions
     int64_t nShapeLambda = pDataRight.phi.Rows(); // number of lambda shape functions
     
-    TPZFNMatrix<100, REAL> PhiV(3, nShapeV, 0.0);
+    int dimaux = (vDataLeft.fVecShapeIndex.NElements() != 0)? 1 : fdimension;
+    TPZFNMatrix<100, REAL> PhiV(3, dimaux * nShapeV, 0.0);
     TPZFNMatrix<100, REAL> PhiLambdaT(3, fdimension * nShapeLambda, 0.0); //lambda in the tangential directions
     
-    if (vDataLeft.fNeedsDeformedDirectionsFad)
+    if (vDataLeft.fVecShapeIndex.NElements() != 0)
     {
-        nShapeV = vDataLeft.fVecShapeIndex.NElements(); // number of Hdiv velocity/displacement shape functions
         for (int64_t j = 0; j < nShapeV; j++)
         {
             for (int64_t k = 0; k < 3; k++)
@@ -45,9 +45,6 @@ void TPZMatInterfaceHybridElasticityStokes::ContributeInterface(const TPZMateria
     }
     else
     {
-        nShapeV = vDataLeft.phi.Rows(); // number of H1 velocity/displacement shape functions
-        PhiV.Redim(3, fdimension * nShapeV);
-
         for (int64_t j = 0; j < nShapeV; j++)
         {
             for (int k = 0; k < fdimension; k++)

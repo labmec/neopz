@@ -232,7 +232,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 const int n = fdimension * (fdimension + 1) / 2;
 
                 TPZFNMatrix<6,REAL> sigmavoight(n,1,0.0), sigmavoight2(n,1,0.0);
-                DeviatoricStressTensor(val1, sigmavoight);
+                StressTensor(val1, sigmavoight);
 
                 REAL p_exact = -datavec[index].x[1]*datavec[index].x[2] / 3.;
 
@@ -240,7 +240,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 int cont = fdimension-1;
                 for (int i = 0; i < fdimension; i++)
                 {
-                    sigma(i,i) = sigmavoight(i,0) - p_exact;
+                    sigma(i,i) = sigmavoight(i,0);
                     for (int j = i+1; j < fdimension; j++)
                     {
                         sigma(i,j) = sigmavoight(++cont,0);
@@ -275,7 +275,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 const int n = fdimension * (fdimension + 1) / 2;
 
                 TPZFNMatrix<6,REAL> sigmavoight(n,1,0.0);
-                DeviatoricStressTensor(val1, sigmavoight);
+                StressTensor(val1, sigmavoight);
 
                 REAL p_exact = -datavec[index].x[1]*datavec[index].x[2] / 3.;
 
@@ -283,7 +283,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 int cont = fdimension-1;
                 for (int i = 0; i < fdimension; i++)
                 {
-                    sigma(i,i) = sigmavoight(i,0) - p_exact;
+                    sigma(i,i) = sigmavoight(i,0);
                     for (int j = i+1; j < fdimension; j++)
                     {
                         sigma(i,j) = sigmavoight(++cont,0);
