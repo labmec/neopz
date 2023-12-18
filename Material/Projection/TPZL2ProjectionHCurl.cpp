@@ -1,5 +1,12 @@
 #include "TPZL2ProjectionHCurl.h"
 
+/*
+  @fran: TODO: these materials are inconsistent.
+  They must be rewritten taken into account that
+  HCurl basis functions are always 3d and their curl
+  is a scalar in 1d/2d
+**/
+
 template<class TVar>
 TPZL2ProjectionHCurl<TVar>::TPZL2ProjectionHCurl(int id, int dim, int nstate) : TPZL2Projection<TVar>(id,dim,nstate){
 

@@ -868,8 +868,9 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
   const TPZFMatrix<REAL> &phiHCurl, const TPZFMatrix<REAL> &curlPhi,
     TPZSolVec<TVar> &sol, TPZSolVec<TVar> &curlSol)
 {
-    constexpr int dim = TSHAPE::Dimension;
-    constexpr int curlDim = dim == 1 ? 1 : 2 * dim - 3;
+    constexpr int eldim = TSHAPE::Dimension;
+    constexpr int dim{3};
+    constexpr int curlDim = eldim == 1 ? 1 : 2 * eldim - 3;
 //        [dim](){
 //        if constexpr (dim == 1) return 1;
 //        else{
@@ -892,7 +893,7 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
     curlSol.Resize(numberSol);
 
     for (long iSol = 0; iSol < numberSol; iSol++) {
-        sol[iSol].Resize(dim);
+        sol[iSol].Resize(3);
         sol[iSol].Fill(0);
         curlSol[iSol].Resize(curlDim);
         curlSol[iSol].Fill(0);
@@ -909,7 +910,7 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
         for (int jShape = 0; jShape < nShapeCon; jShape++) {
 
             for (long iSol = 0; iSol < numberSol; iSol++) {
-                for (int coord = 0; coord < dim; coord++) {
+                for (int coord = 0; coord < 3; coord++) {
                     sol[iSol][coord] +=
                             (TVar)meshSol(pos + jShape, iSol) * phiHCurl(ishape, coord);
                 }
