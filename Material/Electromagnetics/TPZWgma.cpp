@@ -179,6 +179,9 @@ TPZWgma::ContributeA(
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
     const TPZFMatrix<CSTATE> &er, const TPZFMatrix<CSTATE> &ur)
 {
+
+    //TODO: If we want to use this material in a plane that is not xy,
+    //we must query element's normal and use it to compute rot_phi_hcurl
     
     const auto &phi_hcurl_real = datavec[fHCurlMeshIndex].phi;
     const auto &curl_phi_real = datavec[fHCurlMeshIndex].curlphi;
@@ -239,6 +242,8 @@ TPZWgma::ContributeB(
     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
     const TPZFMatrix<CSTATE> &er, const TPZFMatrix<CSTATE> &ur)
 {
+    //TODO: If we want to use this material in a plane that is not xy,
+    //we must query element's normal and use it to compute rot_phi_hcurl
 
     const auto &phi_hcurl_real = datavec[fHCurlMeshIndex].phi;
     const auto &curl_phi_real = datavec[fHCurlMeshIndex].curlphi;
@@ -386,11 +391,11 @@ int TPZWgma::NSolutionVariables(int var) const
 {
     switch (var) {
         case 0: //Et_real
-            return 2;
+            return 3;
         case 1://Ez_real
             return 1;
         case 2: //Et_abs
-            return 2;
+            return 3;
         case 3://Ez_abs
             return 1;
         case 4://material
