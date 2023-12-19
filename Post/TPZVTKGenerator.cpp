@@ -98,6 +98,14 @@ void ComputeFieldAtEl(TPZCompEl *cel,
          (i.e., 2d vectors). We thus make sure that we don't read
          out of bounds quantities and fill with zero if needed*/
       const auto sz = sol.size();
+#ifdef PZDEBUG
+      if(sz > fdim){
+        //something wrong here
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nsz: "<<sz<<" fdim: "<<fdim<<std::endl;
+        DebugStop();
+      }
+#endif
       if constexpr (std::is_same_v<TVar,CSTATE>){
         for (int d = 0; d < sz; ++d){
           field[pos++] =  std::real(sol[d]);
