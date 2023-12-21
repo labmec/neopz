@@ -43,6 +43,9 @@ protected:
     /// Bulk modulus
     REAL fbulk;
 
+    /// parameter that controls the volumetric energy under full incompressibility
+    REAL feta;
+
     /// Thickness in case of a plane analysis
     REAL fthickness;
 

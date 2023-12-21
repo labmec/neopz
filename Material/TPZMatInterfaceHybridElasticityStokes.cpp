@@ -24,16 +24,17 @@ void TPZMatInterfaceHybridElasticityStokes::ContributeInterface(const TPZMateria
     const TPZMaterialDataT<STATE>& vDataLeft = dataleft.find(fVindex)->second;
     const TPZMaterialDataT<STATE>& pDataRight = dataright.find(fPindex)->second;
     
-    const TPZFNMatrix<9, REAL>& axes = pDataRight.axes; //tangent directions (i=ith tangent vector, j=jth component of the tangent vector)
-    
-    int64_t nShapeV = (vDataLeft.fVecShapeIndex.NElements() != 0)? vDataLeft.fVecShapeIndex.NElements() : vDataLeft.phi.Rows(); // number of Hdiv velocity/displacement shape functions
+    const TPZFNMatrix<9, REAL>& axes_right = pDataRight.axes; //tangent directions (i=ith tangent vector, j=jth component of the tangent vector)
+    const TPZFNMatrix<9, REAL>& axes_left = vDataLeft.axes; // tangent directions (i=ith tangent vector, j=jth component of the tangent vector)
+
+    int64_t nShapeV = (vDataLeft.fShapeType == TPZShapeData::MShapeFunctionType::EVecShape)? vDataLeft.fVecShapeIndex.NElements() : vDataLeft.phi.Rows(); // number of Hdiv velocity/displacement shape functions
     int64_t nShapeLambda = pDataRight.phi.Rows(); // number of lambda shape functions
     
-    int dimaux = (vDataLeft.fVecShapeIndex.NElements() != 0)? 1 : fdimension;
+    int dimaux = (vDataLeft.fShapeType == TPZShapeData::MShapeFunctionType::EVecShape)? 1 : fdimension;
     TPZFNMatrix<100, REAL> PhiV(3, dimaux * nShapeV, 0.0);
     TPZFNMatrix<100, REAL> PhiLambdaT(3, fdimension * nShapeLambda, 0.0); //lambda in the tangential directions
     
-    if (vDataLeft.fVecShapeIndex.NElements() != 0)
+    if (vDataLeft.fShapeType == TPZShapeData::MShapeFunctionType::EVecShape)
     {
         for (int64_t j = 0; j < nShapeV; j++)
         {
@@ -51,7 +52,7 @@ void TPZMatInterfaceHybridElasticityStokes::ContributeInterface(const TPZMateria
             {
                 for (int64_t i = 0; i < 3; i++)
                 {
-                    PhiV(i, fdimension*j+k) = vDataLeft.phi(j, 0) * axes(k, i); // velocity/displacement H1 shape function at tangential direction
+                    PhiV(i, fdimension*j+k) = vDataLeft.phi(j, 0) * axes_left(k, i); // velocity/displacement H1 shape function at tangential direction
                 }
             }
         }
@@ -63,7 +64,7 @@ void TPZMatInterfaceHybridElasticityStokes::ContributeInterface(const TPZMateria
         {
             for (int64_t i = 0; i < 3; i++)
             {
-                PhiLambdaT(i, fdimension*j+k) = pDataRight.phi(j, 0) * axes(k, i); // lambda shape function at tangential direction
+                PhiLambdaT(i, fdimension*j+k) = pDataRight.phi(j, 0) * axes_right(k, i); // lambda shape function at tangential direction
             }
         }
     }

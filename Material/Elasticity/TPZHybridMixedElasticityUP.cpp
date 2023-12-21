@@ -30,6 +30,7 @@ TPZHybridMixedElasticityUP::TPZHybridMixedElasticityUP(int matID,
 {
     flambda = fyoung * fpoisson / ((1.0 + fpoisson) * (1.0 - 2.0 * fpoisson));
     fmu = 0.5 * fyoung / (1.0 + fpoisson);
+    feta = (fabs(fpoisson - 0.5) <= 1.0e-9) ? 1.e9 : 0.0;
 
     switch (fAnalysisType)
     {
@@ -45,7 +46,7 @@ TPZHybridMixedElasticityUP::TPZHybridMixedElasticityUP(int matID,
         }
         case AnalysisType::EPlaneStress:
         {
-            fbulk = ((fpoisson - 0.5) <= 1.0e-9) ? 3.0*fmu : fmu * (2.0*fmu + 3.0*flambda) / (flambda + 2.0*fmu); //For full incompressible case. Replacing lambda with E and poisson didnt yield correct results
+            fbulk = (fabs(fpoisson - 0.5) <= 1.0e-9) ? 3.0*fmu : fmu * (2.0*fmu + 3.0*flambda) / (flambda + 2.0*fmu); //For full incompressible case. Replacing lambda with E and poisson didnt yield correct results
             break;
         }
         default:
@@ -107,12 +108,16 @@ void TPZHybridMixedElasticityUP::Contribute(const TPZVec<TPZMaterialDataT<STATE>
     //Body Forces contribution
     ef.AddContribution(0, 0, PhiU, true, SourceTerm, false, weight);
 
-    //Stiffness Matrix A contribution
+    //Stiffness Matrix A isochoric contribution
     TPZFNMatrix<150, REAL> aux;
     D.Multiply(Strain, aux);
-   
+    
     REAL factor = weight;
     ek.AddContribution(0, 0, Strain, true, aux, false, factor);
+
+    //Stiffness Matrix A volumetric contribution (To get rid off zero-energy volumetric deformation modes under fully incompressibility)
+    factor = feta * weight;
+    ek.AddContribution(0 , 0, divPhiU, false, divPhiU, true, factor);
 
     //Divergence Matrix B contribution
     factor = -1.0 * weight;
@@ -232,7 +237,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 const int n = fdimension * (fdimension + 1) / 2;
 
                 TPZFNMatrix<6,REAL> sigmavoight(n,1,0.0), sigmavoight2(n,1,0.0);
-                StressTensor(val1, sigmavoight);
+                DeviatoricStressTensor(val1, sigmavoight);
 
                 REAL p_exact = -datavec[index].x[1]*datavec[index].x[2] / 3.;
 
@@ -275,7 +280,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 const int n = fdimension * (fdimension + 1) / 2;
 
                 TPZFNMatrix<6,REAL> sigmavoight(n,1,0.0);
-                StressTensor(val1, sigmavoight);
+                DeviatoricStressTensor(val1, sigmavoight);
 
                 REAL p_exact = -datavec[index].x[1]*datavec[index].x[2] / 3.;
 
@@ -406,7 +411,7 @@ void TPZHybridMixedElasticityUP::Solution(const TPZVec<TPZMaterialDataT<STATE>>&
     }
 
     if (fAnalysisType == AnalysisType::EPlaneStress)
-        strain(2, 2) = (fpoisson == 0.5)? -(strain(0, 0) + strain(1, 1)) : -(flambda / (flambda + 2.0 * fmu)) * (strain(0, 0) + strain(1, 1));
+        strain(2, 2) = (fabs(fpoisson - 0.5) <= 1.0e-9) ? -(strain(0, 0) + strain(1, 1)) : -(flambda / (flambda + 2.0 * fmu)) * (strain(0, 0) + strain(1, 1));
 
     Solout.Resize(NSolutionVariables(var));
     
@@ -597,9 +602,9 @@ void TPZHybridMixedElasticityUP::Errors(const TPZVec<TPZMaterialDataT<STATE>>& d
 
     const int n = fdimension * (fdimension + 1) / 2;
     TPZFNMatrix<6, REAL> sigma_exact(n,1), sigma_h(n,1);
-    DeviatoricStressTensor(gradsol_exact, sigma_exact); //Just for Bishop beam. remember to delete later
+    StressTensor(gradsol_exact, sigma_exact); //Just for Bishop beam. remember to delete later
     for (int i = 0; i < fdimension; i++)
-        sigma_exact(i,0) -= p_exact;
+        //sigma_exact(i,0) -= p_exact;
     StressTensor(gradv_h, sigma_h, p_h[0]);
     
     errors[6] = 0.0;
