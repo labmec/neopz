@@ -36,11 +36,6 @@ void TPZScalarField::GetPermeability(
 
  void TPZScalarField::SetPermeability(const CSTATE ur)
 {
-    if (std::real(ur) <0){
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"Setting negative permeability. Aborting..\n";
-        DebugStop();
-    }
     fUr = ur;
 }
 
@@ -55,11 +50,6 @@ void TPZScalarField::GetPermittivity(
 
 void TPZScalarField::SetPermittivity(const CSTATE er)
 {
-    if (std::real(er) <0){
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"Setting negative permeability. Aborting..\n";
-        DebugStop();
-    }
     fEr = er;
 }
 
