@@ -1382,9 +1382,10 @@ void TPZGmshReader::SetPeriodicElements(
                  <<"entity "<<indeptag<<" n ids "<<nindepid<<std::endl;
           DebugStop();
       }
-      if (ndepid > 0) { // we only care if there is an associated physical id
-        const int64_t depid = physical_entity_map[deptag][0];
-        const int64_t indepid = physical_entity_map[indeptag][0];
+      // we only care if there is an associated physical id
+      for(int id_count=0;id_count < ndepid;id_count++){
+        const int64_t depid = physical_entity_map[deptag][id_count];
+        const int64_t indepid = physical_entity_map[indeptag][id_count];
         periodic_physical_ids[depid] = indepid;
         const auto periodic_nodes = entity_periodic_nodes[idim][deptag];
         for (auto [dep, indep] : periodic_nodes) {
