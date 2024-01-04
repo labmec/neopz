@@ -1417,6 +1417,16 @@ void TPZGmshReader::SetPeriodicElements(
       indep_ids.insert(indep);
   }
 
+  std::set<int64_t> common_ids;
+  std::set_intersection(dep_ids.begin(),dep_ids.end(),
+                        indep_ids.begin(),indep_ids.end(),
+                        std::inserter(common_ids,common_ids.begin()));
+  if(common_ids.size()){
+    PZError<<__PRETTY_FUNCTION__
+           <<"\nwe still not support nodes that are both dependent and independent"
+           <<"\nAborting..."<<std::endl;
+    DebugStop();
+  }
   const int n_nodes = dep_ids.size();
   auto d_i = dep_ids.begin();
   auto i_i = indep_ids.begin();
