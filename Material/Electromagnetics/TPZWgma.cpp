@@ -27,16 +27,6 @@ TPZWgma::TPZWgma(int id,
         PZError<<"Setting negative wavelength. Aborting..\n";
         DebugStop();
     }
-    if (std::real(ur) <0){
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"Setting negative permeability. Aborting..\n";
-        DebugStop();
-    }
-    if (std::real(er) <0){
-        PZError<<__PRETTY_FUNCTION__;
-        PZError<<"Setting negative permeability. Aborting..\n";
-        DebugStop();
-    }
     SetPermittivity(er);
     SetPermeability(ur);
 }
