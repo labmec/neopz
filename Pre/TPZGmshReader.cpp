@@ -1375,7 +1375,13 @@ void TPZGmshReader::SetPeriodicElements(
     for (auto [deptag, indeptag] : periodic_entities[idim]) {
       const int ndepid = physical_entity_map[deptag].size();
       const int nindepid = physical_entity_map[indeptag].size();
-      assert(ndepid == nindepid);
+      if(ndepid != nindepid){
+          PZError<<__PRETTY_FUNCTION__
+                 <<"number of ids is different for periodic entities:\n"
+                 <<"entity "<<deptag<<" n ids "<<ndepid<<'\n'
+                 <<"entity "<<indeptag<<" n ids "<<nindepid<<std::endl;
+          DebugStop();
+      }
       if (ndepid > 0) { // we only care if there is an associated physical id
         const int64_t depid = physical_entity_map[deptag][0];
         const int64_t indepid = physical_entity_map[indeptag][0];
@@ -1429,7 +1435,16 @@ void TPZGmshReader::SetPeriodicElements(
      */
   for (int idim = 0; idim < max_dimension; idim++) {
     for (auto [depmatid, periodic_nodes] : periodic_nodes_by_physical_ids[idim]) {
-      assert(periodic_physical_ids.find(depmatid) != periodic_physical_ids.end());
+      if(periodic_physical_ids.find(depmatid) == periodic_physical_ids.end()){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nCould not find "<<depmatid<<" in periodic physical ids:\n";
+        for(auto id : periodic_physical_ids){
+          std::cout<<' '<<id;
+        }
+        std::cout<<std::endl;
+        DebugStop();
+      }
+      
       //material id of independent region
       const auto indepmatid = periodic_physical_ids[depmatid];
       int count = 0;
@@ -1442,7 +1457,16 @@ void TPZGmshReader::SetPeriodicElements(
           count++;
           for (auto in = 0; in < nnodes; in++) {
             const auto depnode = depel->NodeIndex(in);
-            assert(periodic_nodes.find(depnode) != periodic_nodes.end());
+            if(periodic_nodes.find(depnode) == periodic_nodes.end()){
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\nnode "<<depnode<<" was not found in periodic nodes"
+                       <<" of mat id "<<depmatid<<":\n";
+                for(auto node : periodic_nodes){
+                  std::cout<<' '<<node;
+                }
+                std::cout<<std::endl;
+                DebugStop();
+            }
             mapped_nodes[in] = periodic_nodes.at(depnode);
           }
           for (auto indepel : gmesh->ElementVec()) {
