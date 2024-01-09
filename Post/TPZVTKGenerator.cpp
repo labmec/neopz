@@ -605,7 +605,7 @@ bool TPZVTKGenerator::IsValidEl(TPZCompEl *cel)
   return false;
 }
 
-void TPZVTKGenerator::Do(REAL time)
+void TPZVTKGenerator::Do()
 {
   if(fPostProcMats.size() == 0){
     std::cout<<"No post-processing materials found..."<<std::endl;
@@ -685,6 +685,7 @@ void TPZVTKGenerator::Do(REAL time)
   PrintFieldDataLegacy();
 
   fOutputCount++;
+  if(fStep > -1){fStep++;}
   std::cout << " Done." << std::endl;
 
 }
