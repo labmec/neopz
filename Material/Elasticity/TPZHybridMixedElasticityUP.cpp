@@ -163,6 +163,7 @@ void TPZHybridMixedElasticityUP::Contribute(const TPZVec<TPZMaterialDataT<STATE>
 void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCondT<STATE> &bc)
 {
     int index = (bc.Type() == 0 || bc.Type() == 2)? EUindex : EPindex;
+    index = EUindex;
 
     TPZFNMatrix<150, REAL> PhiU = datavec[EUindex].phi;
     TPZFMatrix<REAL>& PhiP = datavec[EPindex].phi;
@@ -217,13 +218,33 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
             for (int i = 0; i < fdimension-1; i++) //number of tangential components
                 for (int j = 0 ; j < fdimension; j++)
                     u_t[i] += val2[j] * datavec[index].axes(i,j);
+            
+            // for (int64_t i = 0; i < nShapeP; i++)
+            // {
+            //     for (int j = 0; j < fdimension-1; j++)
+            //     {
+            //         int64_t index = (fdimension-1)*i+j;
+            //         ef(index) += PhiP(i,0) * u_t[j] * weight;
+            //     }
+            // }
+            REAL factor = fBigNumber * weight;
 
-            for (int64_t i = 0; i < nShapeP; i++)
+            for (int64_t j = 0; j < nShapeU; j++)
             {
-                for (int j = 0; j < fdimension-1; j++)
+                for (int k = 0; k < fdimension-1; k++)
                 {
-                    int64_t index = (fdimension-1)*i+j;
-                    ef(index) += PhiP(i,0) * u_t[j] * weight;
+                    int64_t index1 = (fdimension-1)*j+k;
+                    ef(index1) += -u_t[k] * PhiU(j,0) * factor;
+
+                    for (int64_t i = 0; i < nShapeU; i++)
+                    {
+                        for (int l = 0; l < fdimension-1; l++)
+                        {
+                            int64_t index2 = (fdimension-1)*i+l;
+                            if (k != l) continue;
+                            ek(index1, index2) += PhiU(i,0) * PhiU(j,0) * factor;
+                        }
+                    }
                 }
             }
             break;
@@ -321,26 +342,35 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 }
             }
 
-            REAL factor = fBigNumber * weight;
+            // REAL factor = fBigNumber * weight;
 
-            for (int64_t j = 0; j < nShapeP; j++)
+            // for (int64_t j = 0; j < nShapeP; j++)
+            // {
+            //     for (int k = 0; k < fdimension-1; k++)
+            //     {
+            //         int64_t index1 = (fdimension-1)*j+k;
+            //         ef(index1) += -sigma_nt[k] * PhiP(j,0) * factor;
+
+            //         for (int64_t i = 0; i < nShapeP; i++)
+            //         {
+            //             for (int l = 0; l < fdimension-1; l++)
+            //             {
+            //                 int64_t index2 = (fdimension-1)*i+l;
+            //                 if (k != l) continue;
+            //                 ek(index1, index2) += PhiP(i,0) * PhiP(j,0) * factor;
+            //             }
+            //         }
+            //     }
+            // }
+            for (int64_t i = 0; i < nShapeU; i++)
             {
-                for (int k = 0; k < fdimension-1; k++)
+                for (int j = 0; j < fdimension-1; j++)
                 {
-                    int64_t index1 = (fdimension-1)*j+k;
-                    ef(index1) += -sigma_nt[k] * PhiP(j,0) * factor;
-
-                    for (int64_t i = 0; i < nShapeP; i++)
-                    {
-                        for (int l = 0; l < fdimension-1; l++)
-                        {
-                            int64_t index2 = (fdimension-1)*i+l;
-                            if (k != l) continue;
-                            ek(index1, index2) += PhiP(i,0) * PhiP(j,0) * factor;
-                        }
-                    }
+                    int64_t index = (fdimension-1)*i+j;
+                    ef(index) += PhiU(i,0) * -sigma_nt[j] * weight;
                 }
             }
+
             break;
         }
 
