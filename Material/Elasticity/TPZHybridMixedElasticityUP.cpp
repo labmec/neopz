@@ -162,9 +162,6 @@ void TPZHybridMixedElasticityUP::Contribute(const TPZVec<TPZMaterialDataT<STATE>
 
 void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCondT<STATE> &bc)
 {
-    int index = (bc.Type() == 0 || bc.Type() == 2)? EUindex : EPindex;
-    index = EUindex;
-
     TPZFNMatrix<150, REAL> PhiU = datavec[EUindex].phi;
     TPZFMatrix<REAL>& PhiP = datavec[EPindex].phi;
     
@@ -178,7 +175,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
     {
         TPZVec<STATE> uVal;
         TPZFMatrix<STATE> gradVal;
-        bc.ForcingFunctionBC()(datavec[index].x, val2, val1);
+        bc.ForcingFunctionBC()(datavec[EUindex].x, val2, val1);
     }
     else
     {
@@ -195,7 +192,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
             {
                 u_n = 0.0;
                 for (int i = 0; i < fdimension; i++)
-                    u_n += val2[i] * datavec[index].normal[i];
+                    u_n += val2[i] * datavec[EUindex].normal[i];
             }
 
             REAL factor = fBigNumber * weight;
@@ -217,7 +214,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
             TPZManVector<REAL,3> u_t = {0.0, 0.0, 0.0}; //for tangential bc, a vector is prescribed, so we take the inner product with the local tangential axe    
             for (int i = 0; i < fdimension-1; i++) //number of tangential components
                 for (int j = 0 ; j < fdimension; j++)
-                    u_t[i] += val2[j] * datavec[index].axes(i,j);
+                    u_t[i] += val2[j] * datavec[EUindex].axes(i,j);
             
             // for (int64_t i = 0; i < nShapeP; i++)
             // {
@@ -260,7 +257,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 TPZFNMatrix<6,REAL> sigmavoight(n,1,0.0), sigmavoight2(n,1,0.0);
                 DeviatoricStressTensor(val1, sigmavoight);
 
-                REAL p_exact = -datavec[index].x[1]*datavec[index].x[2] / 3.;
+                REAL p_exact = -datavec[EUindex].x[1]*datavec[EUindex].x[2] / 3.;
 
                 TPZFNMatrix<9, STATE> sigma(3, 3, 0.0);
                 int cont = fdimension-1;
@@ -278,11 +275,11 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 
                 for (int i = 0; i < fdimension; i++)
                     for (int j = 0; j < fdimension; j++)
-                        sigma_n(i,0) += sigma(i,j) * datavec[index].normal[j];
+                        sigma_n(i,0) += sigma(i,j) * datavec[EUindex].normal[j];
 
                 sigma_nn = 0.0;
                 for (int i = 0; i < fdimension; i++)
-                    sigma_nn += sigma_n[i] * datavec[index].normal[i];
+                    sigma_nn += sigma_n[i] * datavec[EUindex].normal[i];
             }
 
             for (int64_t i = 0; i < nShapeU; i++)
@@ -303,7 +300,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 TPZFNMatrix<6,REAL> sigmavoight(n,1,0.0);
                 DeviatoricStressTensor(val1, sigmavoight);
 
-                REAL p_exact = -datavec[index].x[1]*datavec[index].x[2] / 3.;
+                REAL p_exact = -datavec[EUindex].x[1]*datavec[EUindex].x[2] / 3.;
 
                 TPZFNMatrix<9, STATE> sigma(3, 3, 0.0);
                 int cont = fdimension-1;
@@ -321,13 +318,13 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 
                 for (int i = 0; i < fdimension; i++)
                     for (int j = 0; j < fdimension; j++)
-                        sigma_n[i] += sigma(i,j) * datavec[index].normal[j];
+                        sigma_n[i] += sigma(i,j) * datavec[EUindex].normal[j];
 
                 for (int i = 0; i < fdimension-1; i++)
                 {
                     for (int j = 0; j < fdimension; j++)
                     {
-                        sigma_nt[i] += sigma_n[j] * datavec[index].axes(i,j);
+                        sigma_nt[i] += sigma_n[j] * datavec[EUindex].axes(i,j);
                     }
                 }
             }
@@ -337,7 +334,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 {
                     for (int j = 0; j < fdimension; j++)
                     {
-                        sigma_nt[i] += val2[j] * datavec[index].axes(i,j);
+                        sigma_nt[i] += val2[j] * datavec[EUindex].axes(i,j);
                     }
                 }
             }
