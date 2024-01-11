@@ -380,7 +380,7 @@ void TPZElementGroup::EvaluateError(TPZVec<REAL> &errors, bool store_error)
 #endif
         TPZManVector<REAL,10> errloc(nerr,0.);
         cel->EvaluateError(errloc, store_error);
-        if (errloc.size() != nerr) {
+        if (errloc.size() > nerr) {
             nerr = errloc.size();
             errors.Resize(nerr, 0.);
         }
@@ -391,6 +391,7 @@ void TPZElementGroup::EvaluateError(TPZVec<REAL> &errors, bool store_error)
     for (int i=0; i<errors.size(); i++) {
         errors[i] = sqrt(errors[i]);
     }
+    if (errors.size() == 0) DebugStop();
 }
 
 int TPZElementGroup::ClassId() const{

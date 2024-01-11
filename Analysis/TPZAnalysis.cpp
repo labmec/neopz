@@ -542,7 +542,7 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
 {
   ThreadData *data = (ThreadData *) datavoid;
   const int64_t nelem = data->fElvec.NElements();
-  TPZManVector<REAL,10> errors(10);
+  TPZManVector<REAL,10> errors(0);
  
   // Getting unique id for each thread
   const int64_t myid = [&]()
