@@ -263,7 +263,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 int cont = fdimension-1;
                 for (int i = 0; i < fdimension; i++)
                 {
-                    sigma(i,i) = sigmavoight(i,0);
+                    sigma(i,i) = sigmavoight(i,0) - p_exact;
                     for (int j = i+1; j < fdimension; j++)
                     {
                         sigma(i,j) = sigmavoight(++cont,0);
@@ -306,7 +306,7 @@ void TPZHybridMixedElasticityUP::ContributeBC(const TPZVec<TPZMaterialDataT<STAT
                 int cont = fdimension-1;
                 for (int i = 0; i < fdimension; i++)
                 {
-                    sigma(i,i) = sigmavoight(i,0);
+                    sigma(i,i) = sigmavoight(i,0) - p_exact;
                     for (int j = i+1; j < fdimension; j++)
                     {
                         sigma(i,j) = sigmavoight(++cont,0);
@@ -629,9 +629,9 @@ void TPZHybridMixedElasticityUP::Errors(const TPZVec<TPZMaterialDataT<STATE>>& d
 
     const int n = fdimension * (fdimension + 1) / 2;
     TPZFNMatrix<6, REAL> sigma_exact(n,1), sigma_h(n,1);
-    StressTensor(gradsol_exact, sigma_exact); //Just for Bishop beam. remember to delete later
+    DeviatoricStressTensor(gradsol_exact, sigma_exact); //Just for Bishop beam. remember to delete later
     for (int i = 0; i < fdimension; i++)
-        //sigma_exact(i,0) -= p_exact;
+        sigma_exact(i,0) -= p_exact;
     StressTensor(gradv_h, sigma_h, p_h[0]);
     
     errors[6] = 0.0;

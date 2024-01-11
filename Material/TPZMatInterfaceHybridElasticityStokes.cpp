@@ -70,8 +70,16 @@ void TPZMatInterfaceHybridElasticityStokes::ContributeInterface(const TPZMateria
     }
 
     REAL factor = fMultiplier * weight;
-    ek.AddContribution(0, nShapeV, PhiV, true, PhiLambdaT, false, factor);
-    ek.AddContribution(nShapeV, 0, PhiLambdaT, true, PhiV, false, factor);
+    if (vDataLeft.fShapeType == TPZShapeData::MShapeFunctionType::EVecShape)
+    {
+        ek.AddContribution(0, nShapeV, PhiV, true, PhiLambdaT, false, factor);
+        ek.AddContribution(nShapeV, 0, PhiLambdaT, true, PhiV, false, factor);
+    }
+    else
+    {
+        ek.AddContribution(0, dimaux * nShapeV, PhiV, true, PhiLambdaT, false, factor);
+        ek.AddContribution(dimaux * nShapeV, 0, PhiLambdaT, true, PhiV, false, factor);
+    }
 
 #ifdef PZ_LOG
     if(logger.isDebugEnabled()){
