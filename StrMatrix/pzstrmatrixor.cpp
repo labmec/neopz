@@ -277,11 +277,11 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
                 sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
             }
             if(el->HasDependency()){
-                ek.fConstrMat.Print(sout);
-                if(ComputeRhs()){ef.fConstrMat.Print(sout);}
+                ek.fConstrMat.Print("ek", sout, EMathematicaInput);
+                if(ComputeRhs()){ef.fConstrMat.Print("ef", sout, EMathematicaInput);}
             }else{
                 ek.fMat.Print("ek", sout, EMathematicaInput);
-                if(ComputeRhs()){ef.fMat.Print(sout);}
+                if(ComputeRhs()){ef.fMat.Print("ef", sout, EMathematicaInput);}
             }
             LOGPZ_DEBUG(loggerel, sout.str())
         }
@@ -666,11 +666,11 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
                 sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
             }
             if(el->HasDependency()){
-                ek->fConstrMat.Print(sout);
-                if(computeRhs){ef->fConstrMat.Print(sout);}
+                ek->fConstrMat.Print("ek", sout, EMathematicaInput);
+                if(computeRhs){ef->fConstrMat.Print("ef", sout, EMathematicaInput);}
             }else{
-                ek->fMat.Print(sout);
-                if(computeRhs){ef->fMat.Print(sout);}
+                ek->fMat.Print("ek", sout, EMathematicaInput);
+                if(computeRhs){ef->fMat.Print("ef", sout, EMathematicaInput);}
             }
             
             LOGPZ_DEBUG(loggerel, sout.str())
@@ -751,6 +751,7 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadAssembly(void *threaddata) {
                     dynamic_cast<TPZMatrix<TVar> *>(data->fGlobMatrix);
                 auto globRhs =
                     dynamic_cast<TPZFMatrix<TVar> *>(data->fGlobRhs);
+                
                 // Assemble the matrix
                 if (!ek->HasDependency()) {
                     if (globMatrix) {
@@ -762,8 +763,10 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadAssembly(void *threaddata) {
                     if (globMatrix) {
                         globMatrix->AddKel(ek->fConstrMat, ek->fSourceIndex, ek->fDestinationIndex);
                     }
-                    if(computeRhs)
+                    if(computeRhs) {
                         globRhs->AddFel(ef->fConstrMat, ek->fSourceIndex, ek->fDestinationIndex);
+                    }
+                    
                 }
 #endif
                 // acquire the mutex

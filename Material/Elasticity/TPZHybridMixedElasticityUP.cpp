@@ -30,7 +30,7 @@ TPZHybridMixedElasticityUP::TPZHybridMixedElasticityUP(int matID,
 {
     flambda = fyoung * fpoisson / ((1.0 + fpoisson) * (1.0 - 2.0 * fpoisson));
     fmu = 0.5 * fyoung / (1.0 + fpoisson);
-    feta = (fabs(fpoisson - 0.5) <= 1.0e-9) ? 1.e9 : 0.0;
+    feta = (fabs(fpoisson - 0.5) <= 1.0e-9) ? fmu : 0.0;
 
     switch (fAnalysisType)
     {
