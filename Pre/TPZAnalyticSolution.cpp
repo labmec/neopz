@@ -882,7 +882,7 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         TVar disp2A = FI/fE*(1./2.* x[1]*(fPoisson*x[0]*x[0]+x[2]*x[2])+1./6.*fPoisson*x[1]*x[1]*x[1]+(1.+fPoisson)*(b*b*x[1]-1./3.*x[1]*x[1]*x[1])-1./3.*a*a*fPoisson*x[1]);
         TVar series = (TVar) 0.;
         TVar minusone = (TVar) -1;
-        for (int i=1; i<50; i++) {
+        for (int i=1; i<150; i++) {
             series += (minusone/TVar(i*i*i)*cos(i*M_PI*x[0]/a)*sinh(i*M_PI*x[1]/a)/cosh(i*M_PI*b/a));
             minusone *= (TVar) -1.;
         }
@@ -1054,7 +1054,7 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         TVar disp2A = FI/fE*(1./2.* x[1]*(fPoisson*x[0]*x[0]+x[2]*x[2])+1./6.*fPoisson*x[1]*x[1]*x[1]+(1.+fPoisson)*(b*b*x[1]-1./3.*x[1]*x[1]*x[1])-1./3.*a*a*fPoisson*x[1]);
         TVar series = (TVar) 0.;
         TVar minusone = (TVar) -1;
-        for (int i=1; i<50; i++) {
+        for (int i=1; i<150; i++) {
             TVar ivar(i);
             series += (minusone/(TVar)(i*i*i)*FADcos(ivar*M_PI*x[0]/a)*FADsinh(ivar*M_PI*x[1]/a)/FADcosh(ivar*M_PI*b/a));
             minusone *= (TVar) -1.;

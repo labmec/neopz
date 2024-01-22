@@ -118,17 +118,19 @@ public:
     
     int NEvalErrors() const override {return 8;}
 
-    virtual void DeviatoricElasticityTensor(TPZFNMatrix<36,REAL>& D);
+    inline void DeviatoricElasticityTensor(TPZFNMatrix<36,REAL>& D);
 
-    virtual void ElasticityTensor(TPZFNMatrix<36,REAL>& D);
+    inline void ElasticityTensor(TPZFNMatrix<36,REAL>& D);
 
-    virtual void StrainTensor(const TPZFNMatrix<10, STATE>& gradU, TPZFNMatrix<6,REAL>& epsilon);
+    inline void StrainTensor(const TPZFNMatrix<10, STATE>& gradU, TPZFNMatrix<6,REAL>& epsilon);
 
-    virtual void DeviatoricStressTensor(const TPZFNMatrix<10, STATE>& gradU, TPZFNMatrix<6,REAL>& sigma);
+    inline void DeviatoricStressTensor(const TPZFNMatrix<10, STATE>& gradU, TPZFNMatrix<6,REAL>& sigma);
 
-    virtual void StressTensor(const TPZFNMatrix<10, STATE>& gradU, TPZFNMatrix<6,REAL>& sigma); //This function computes sigma directly from epsilon
+    inline void StressTensor(const TPZFNMatrix<10, STATE>& gradU, TPZFNMatrix<6,REAL>& sigma); //This function computes sigma directly from epsilon
 
-    virtual void StressTensor(const TPZFNMatrix<10, STATE>& gradU, TPZFNMatrix<6,REAL>& sigma, REAL pressure); //This function computes sigma through its deviatoric and hidrostatic counterparts
+    inline void StressTensor(const TPZFNMatrix<10, STATE>& gradU, TPZFNMatrix<6,REAL>& sigma, REAL pressure); //This function computes sigma through its deviatoric and hidrostatic counterparts
+
+    [[nodiscard]] virtual int IntegrationRuleOrder(const TPZVec<int> &elPMaxOrder) const override;
 
     enum SolutionVars {ENone = -1, EPressure = 0, EDisplacement = 1, EForce = 2, EStress = 3, EStrain = 4, EVonMises = 5};
 };

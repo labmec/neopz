@@ -811,3 +811,19 @@ void TPZHybridMixedElasticityUP::StressTensor(const TPZFNMatrix<10, STATE>& grad
     for (int i = 0; i < fdimension; i++)
         sigma(i,0) -= pressure;
 }
+
+int TPZHybridMixedElasticityUP::IntegrationRuleOrder(const TPZVec<int>& elPMaxOrder) const
+{
+    const int maxOrder = [&elPMaxOrder=std::as_const(elPMaxOrder)](){
+        int max = 0;
+        for (auto ord : elPMaxOrder)
+            if (ord > max) max = ord;
+        return max;
+    }();
+
+    int ffporder = HasForcingFunction()? ForcingFunctionPOrder() : 0;
+
+    const int intOrder = maxOrder < ffporder ? 2 * (maxOrder + ffporder) : (2 * maxOrder);
+
+    return  intOrder;
+}
