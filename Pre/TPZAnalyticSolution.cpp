@@ -882,11 +882,74 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         TVar disp2A = FI/fE*(1./2.* x[1]*(fPoisson*x[0]*x[0]+x[2]*x[2])+1./6.*fPoisson*x[1]*x[1]*x[1]+(1.+fPoisson)*(b*b*x[1]-1./3.*x[1]*x[1]*x[1])-1./3.*a*a*fPoisson*x[1]);
         TVar series = (TVar) 0.;
         TVar minusone = (TVar) -1;
-        for (int i=1; i<150; i++) {
-            series += (minusone/TVar(i*i*i)*cos(i*M_PI*x[0]/a)*sinh(i*M_PI*x[1]/a)/cosh(i*M_PI*b/a));
+
+        bool stop = false;
+        int i = 1;
+        const int maxit = 1;
+        bool isnanOrinf = false;
+
+        while (!stop && i <= maxit)
+        {
+            TVar ivar(i);
+            TVar term1 = minusone/(ivar*ivar*ivar);
+            TVar term2 = cos(ivar*M_PI*x[0]/a);
+            TVar term3 = sinh(ivar*M_PI*x[1]/a);
+            TVar term4 = cosh(ivar*M_PI*b/a);
+
+            if constexpr(std::is_same_v<TVar,Fad<double>>)
+            {
+                if (std::isinf(term3.val()) || std::isinf(term4.val()))
+                {
+                    isnanOrinf = true;
+                    break;
+                }
+            }
+            else
+            {
+                if (std::isinf(term3) || std::isinf(term4))
+                {
+                    isnanOrinf = true;
+                    break;
+                }
+            }
+            
+            TVar aux = term1*term2*term3/term4;
+            if constexpr(std::is_same_v<TVar,Fad<double>>)
+            {
+                if (std::isinf(aux.val()) || std::isnan(aux.val()))
+                {
+                    isnanOrinf=true;
+                    break;
+                }
+            }
+            else
+            {
+                if (std::isinf(aux) || std::isnan(aux))
+                {
+                    isnanOrinf=true;
+                    break;
+                }
+            }
+            series += aux;
+            i++;
             minusone *= (TVar) -1.;
+            
+            if constexpr(std::is_same_v<TVar,Fad<double>>)
+            {
+                if (fabs(aux.val()/series.val()) < 1.e-15)
+                {
+                    stop = true;
+                }
+            }
+            else
+            {
+                if (fabs(aux/series) < 1.e-15)
+                {
+                    stop = true;
+                }
+            }
         }
-        series *= (-4.*a*a*a*fPoisson/(M_PI*M_PI*M_PI));
+        series *= (-FI/fE*4.*a*a*a*fPoisson/(M_PI*M_PI*M_PI));
         disp[2] = disp2A+series;
     }
     else if(fProblemType == ESphere)
@@ -1054,12 +1117,43 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         TVar disp2A = FI/fE*(1./2.* x[1]*(fPoisson*x[0]*x[0]+x[2]*x[2])+1./6.*fPoisson*x[1]*x[1]*x[1]+(1.+fPoisson)*(b*b*x[1]-1./3.*x[1]*x[1]*x[1])-1./3.*a*a*fPoisson*x[1]);
         TVar series = (TVar) 0.;
         TVar minusone = (TVar) -1;
-        for (int i=1; i<150; i++) {
+        
+        bool stop = false;
+        int i = 1;
+        const int maxit = 1;
+        bool isnanOrinf = false;
+
+        while (!stop && i <= maxit)
+        {
             TVar ivar(i);
-            series += (minusone/(TVar)(i*i*i)*FADcos(ivar*M_PI*x[0]/a)*FADsinh(ivar*M_PI*x[1]/a)/FADcosh(ivar*M_PI*b/a));
+            TVar term1 = minusone/(ivar*ivar*ivar);
+            TVar term2 = FADcos(ivar*M_PI*x[0]/a);
+            TVar term3 = FADsinh(ivar*M_PI*x[1]/a);
+            TVar term4 = FADcosh(ivar*M_PI*b/a);
+
+            if (std::isinf(term3.val().val()) || std::isinf(term4.val().val()))
+            {
+                isnanOrinf = true;
+                break;
+            }
+
+            TVar aux = term1*term2*term3/term4;
+            if (std::isinf(aux.val().val()) || std::isnan(aux.val().val()))
+                {
+                    isnanOrinf=true;
+                    break;
+                }
+        
+            series += aux;
+            i++;
             minusone *= (TVar) -1.;
+
+            if (fabs(aux.val().val() / series.val().val()) < 1.e-15)
+            {
+                stop = true;
+            }
         }
-        series *= (-4.*a*a*a*fPoisson/(M_PI*M_PI*M_PI));
+        series *= (-FI/fE*4.*a*a*a*fPoisson/(M_PI*M_PI*M_PI));
         disp[2] = disp2A+series;
     }
     else if(fProblemType == ESphere)
