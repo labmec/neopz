@@ -31,6 +31,8 @@ protected:
     virtual void Resequence() = 0;
 public:
     
+    static DecomposeType decomposeType;
+
     virtual ~TPZCondensedCompEl();
 
     /**
@@ -64,6 +66,24 @@ public:
     {
         return fActiveConnectIndexes[i];
 //        return fReferenceCompEl->ConnectIndex(fIndexes[i]);
+    }
+
+    /**
+	 * @brief sets the condensed connect ids according to a desired order
+	 * @param connectVec vector with the condensed connect ids sorted
+	 */
+	virtual void SetCondensedConnectIds(TPZManVector<int64_t,55>& condensedConnectIds) 
+    {
+        fCondensedConnectIndexes = condensedConnectIds;
+    }
+
+    /**
+	 * @brief returns a vector of condensed connect ids
+	 * @param condensedConnectIds vector to be returned
+	 */
+	virtual void GetCondensedConnectIds(TPZManVector<int64_t,55>& condensedConnectIds) const
+    {
+        condensedConnectIds = fCondensedConnectIndexes;
     }
 
     /**

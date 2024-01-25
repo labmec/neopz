@@ -16,6 +16,7 @@ static TPZLogger logger("pz.mesh.tpzcondensedcompel");
 
 #include "TPZLapack.h"
 
+DecomposeType TPZCondensedCompEl::decomposeType = DecomposeType::ELU;
 
 TPZCondensedCompEl::~TPZCondensedCompEl()
 {
@@ -316,7 +317,7 @@ void TPZCondensedCompElT<TVar>::Resequence()
         gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
         TPZAutoPointer<TPZMatrixSolver<TVar> > autogmres = gmrs;
     }
-    step->SetDirect(ELU);
+    step->SetDirect(decomposeType);
     TPZAutoPointer<TPZMatrixSolver<TVar> > autostep = step;
     
 
