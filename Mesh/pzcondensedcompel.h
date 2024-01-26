@@ -57,6 +57,12 @@ public:
         return fActiveConnectIndexes.size();
 //        return fReferenceCompEl->NConnects();
     }
+
+    /** @brief Returns the number of condensed connects of the element */
+	virtual int NCondensedConnects() const 
+    {
+        return fCondensedConnectIndexes.size();
+    }
 	
 	/**
 	 * @brief Returns the index of the ith connectivity of the element
