@@ -412,14 +412,33 @@ void TPZVTKGenerator::FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
     Computes every post-processing node at the REFERENCE element along with
     the VTK cells resulting from its subdivision
    */
+  if(fSubdivision == 0)
+  {
+    //vertices of the reference element
+    
+    static constexpr auto nnodes = TOPOL::NCornerNodes;
+    ref_coords.Resize(nnodes,{0,0,0});
+    //create array with all entries = nnodes
+    AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS+2>{});
+    ref_elems[0][0] = TPZVTK::CellType(TOPOL::Type());
+    ref_elems[0][1] = nnodes;
+    for(int i = 0; i < nnodes; i++){
+      TOPOL::ParametricDomainNodeCoord(i,ref_coords[i]);
+      ref_elems[0][i+2] = i;
+    }
+  }else
+  {
+    //this refinement pattern is expected to have been initialised in FillRefEls
+    auto refp = gRefDBase.GetUniformRefPattern(TOPOL::Type());
+    auto refpmesh = refp->RefPatternMesh();
 
-  TPZAutoPointer<TPZGeoMesh> refpmesh = TPZGeoMeshTools::CreateGeoMeshSingleElT<TOPOL>(1,false,0);
-  if(fSubdivision){
-    const int nrefs = fSubdivision;
+
+    //the refinement pattern is already the first subdivision
+    const int nrefs = fSubdivision - 1;
 
     TPZManVector<TPZGeoEl*,TPZVTK::MAX_SUBEL> sons(TPZVTK::MAX_SUBEL);
     for(int i = 0; i < nrefs; i++){
-      for(auto gel : refpmesh->ElementVec()){
+      for(auto gel : refpmesh.ElementVec()){
         if(gel->HasSubElement()==false){
           gel->Divide(sons);
         }
@@ -428,28 +447,30 @@ void TPZVTKGenerator::FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
     
     
     //fill nodes in the divided reference element
-    const auto nnodes = refpmesh->NNodes();
+    const auto nnodes = refpmesh.NNodes();
     ref_coords.Resize(nnodes,{0,0,0});
     for(auto in = 0; in < nnodes; in++){
-      auto &node = refpmesh->NodeVec()[in];
+      auto &node = refpmesh.NodeVec()[in];
       node.GetCoordinates(ref_coords[in]);
     }
-  }
-  //fill cells in the divided reference element
-  int ic = 0;//i-th cell
-  for(TPZGeoEl* gel : refpmesh->ElementVec()){
-    if(gel->HasSubElement()==false){
-      const int gnnodes = gel->NNodes();
-      AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS+2>{});
-      //cell type
-      ref_elems[ic][0] = TPZVTK::CellType(gel->Type());
-      //nnodes
-      ref_elems[ic][1] = gnnodes;
-      //node indexes (reference element)
-      for(int in = 0; in < gnnodes; in++){
-        ref_elems[ic][in+2] = gel->NodeIndex(in);
+
+
+    //fill cells in the divided reference element
+    int ic = 0;//i-th cell
+    for(TPZGeoEl* gel : refpmesh.ElementVec()){
+      if(gel->HasSubElement()==false){
+        const int gnnodes = gel->NNodes();
+        AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS+2>{});
+        //cell type
+        ref_elems[ic][0] = TPZVTK::CellType(gel->Type());
+        //nnodes
+        ref_elems[ic][1] = gnnodes;
+        //node indexes (reference element)
+        for(int in = 0; in < gnnodes; in++){
+          ref_elems[ic][in+2] = gel->NodeIndex(in);
+        }
+        ic++;
       }
-      ic++;
     }
   }
 }
