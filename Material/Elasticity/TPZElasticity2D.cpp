@@ -47,9 +47,12 @@ TPZElasticity2D::TPZElasticity2D(int id) :
 
 
 TPZElasticity2D::TPZElasticity2D(int id, STATE E, STATE nu,
-                                 STATE fx, STATE fy, int planestress)
+                                 STATE fx, STATE fy, int planestress) :
+    TPZRegisterClassId(&TPZElasticity2D::ClassId),
+    TBase(id), fE_def(E), fnu_def(nu), ff(2,0.)
 {
-    
+    ff[0] = fx;
+    ff[1] = fy;
 }
 
 void TPZElasticity2D::SetPreStress(STATE Sigxx, STATE Sigyy, STATE Sigxy, STATE Sigzz){
@@ -291,7 +294,7 @@ void TPZElasticity2D::ContributeBC(const TPZMaterialDataT<STATE> &data,
             {
                 for (int il = 0; il <fNumLoadCases; il++) 
                 {
-                    const auto &v2 = bcLoadCases.GetBCRhsVal(il);
+//                    const auto &v2 = bcLoadCases.GetBCRhsVal(il);
                     ef(2*in,il) += v2[0] * phi(in,0) * weight;        // force in x direction
                     ef(2*in+1,il) += v2[1] * phi(in,0) * weight;      // forced in y direction
                 }
