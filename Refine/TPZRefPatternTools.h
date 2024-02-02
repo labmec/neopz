@@ -35,6 +35,9 @@ public:
 	
 	/**
 	 * @brief Search for refpatterns that could be used by a given element with respect to their neighbours.
+	 * The refpatterns are said to be compatible if, for every neighbour with a refined side, the element's
+	 * side is refined in exactly the same way. That means that if no neighbours are refined, every
+	 * refpattern is said to be compatible.
 	 * @param gel - input data: geometric element for which the list of compatible refpatterns will be filled
 	 * @param refs - output data: list of compatible refpatterns with respect to their neighbours
 	 */

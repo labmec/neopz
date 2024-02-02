@@ -42,7 +42,8 @@ void TPZRefPatternTools::GetCompatibleRefPatterns(TPZGeoEl *gel,
 	nsides = gel->NSides();
 	nnodes = gel->NCornerNodes();
 	TPZManVector<TPZAutoPointer<TPZRefPattern>, 27> NeighSideRefPatternVec(nsides,0);
-	
+
+	bool found_any_refined_side{false};
 	for(side = nnodes; side < nsides; side++)
 	{
 		TPZGeoElSide gelside(gel, side);
@@ -59,23 +60,34 @@ void TPZRefPatternTools::GetCompatibleRefPatterns(TPZGeoEl *gel,
 				{
 					TPZTransform<> trans = neighside.NeighbourSideTransform(gelside);
 					NeighSideRefPatternVec[side] = neighRefp->SideRefPattern(neighside.Side(),trans);
+					found_any_refined_side=true;
 					break;
 				}
 			}
 			neighside = neighside.Neighbour();
 		}
 	}
+
 	
 	// having the refinement patterns associated with the sides, look for compatible refinement patterns
 	std::list< TPZAutoPointer<TPZRefPattern> > gelReflist = gRefDBase.RefPatternList(gel->Type());
-	std::list< TPZAutoPointer<TPZRefPattern> >::iterator gelReflistIt;
+
+
+	/*
+		if no neighbour has been refined, every ref pattern is compatible
+	 */
+	if(!found_any_refined_side){
+		refs = gelReflist;
+		return;
+	}
 	
-	for(gelReflistIt = gelReflist.begin(); gelReflistIt != gelReflist.end(); gelReflistIt++)
+		
+	for(const auto &gelref : gelReflist)
 	{
 		// compare the side refinement patterns
 		for(side = nnodes; side < nsides; side++)
 		{
-			TPZAutoPointer<TPZRefPattern> GelSideRefPattern = (*gelReflistIt)->SideRefPattern(side);
+			TPZAutoPointer<TPZRefPattern> GelSideRefPattern = gelref->SideRefPattern(side);
 			TPZAutoPointer<TPZRefPattern> NeighSideRefPattern = NeighSideRefPatternVec[side];
 			
 			if(GelSideRefPattern && NeighSideRefPattern)
@@ -90,7 +102,7 @@ void TPZRefPatternTools::GetCompatibleRefPatterns(TPZGeoEl *gel,
 		// if all refinement patterns are equal
 		if(side == nsides)
 		{
-			refs.push_back(*gelReflistIt);
+			refs.push_back(gelref);
 		}
 	}
 }
