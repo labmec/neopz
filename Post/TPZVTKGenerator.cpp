@@ -425,16 +425,17 @@ void TPZVTKGenerator::FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
         }
       }
     }
-    
-    
-    //fill nodes in the divided reference element
-    const auto nnodes = refpmesh->NNodes();
-    ref_coords.Resize(nnodes,{0,0,0});
-    for(auto in = 0; in < nnodes; in++){
-      auto &node = refpmesh->NodeVec()[in];
-      node.GetCoordinates(ref_coords[in]);
-    }
   }
+
+  // fill nodes in the divided reference element
+  const auto nnodes = refpmesh->NNodes();
+  ref_coords.Resize(nnodes, {0, 0, 0});
+  for (auto in = 0; in < nnodes; in++)
+  {
+    auto &node = refpmesh->NodeVec()[in];
+    node.GetCoordinates(ref_coords[in]);
+  }
+
   //fill cells in the divided reference element
   int ic = 0;//i-th cell
   for(TPZGeoEl* gel : refpmesh->ElementVec()){
