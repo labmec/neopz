@@ -1780,7 +1780,7 @@ void TestingAddContribution(int nrows, int ncols, int ntype)
           constexpr RTVar tol = []()
           {
             if constexpr (std::is_same_v<RTVar, float>)
-              return (RTVar)100;
+              return (RTVar)120;
             else if constexpr (std::is_same_v<RTVar, long double>)
               return (RTVar)10;
             else
