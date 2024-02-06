@@ -1761,6 +1761,8 @@ void TestingMultAdd(int dim, SymProp sp, DecomposeType dec) {
 template <class TVar>
 void TestingAddContribution(int nrows, int ncols, int ntype)
 {
+    auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+    Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
     TPZFMatrix<TVar> C1;
     C1.AutoFill(nrows, ncols, SymProp::NonSym);
     TPZFMatrix<TVar> C2;
@@ -1787,7 +1789,6 @@ void TestingAddContribution(int nrows, int ncols, int ntype)
               return (RTVar)1;
           }();
 
-          bool check = true;
 
           for (int i = 0; i < nrows; i++)
           {
@@ -1797,20 +1798,18 @@ void TestingAddContribution(int nrows, int ncols, int ntype)
                   if (!IsZero(diff / tol))
                   {
                       CAPTURE(nrows, ncols);
-                      CAPTURE(C1(i, j), C2(i, j));
+                      CAPTURE(C1(i, j),C2(i, j));
+                      CAPTURE(fabs(C1(i, j)-C2(i, j)));
+                      CAPTURE(diff);
                       std::cout << "i " << i << " j " << j << " C1 " << C1(i, j) << " C2 " << C2(i, j) << std::endl;
-                      if (check)
-                      {
-                        A.Print("A = ", std::cout, EMathematicaInput);
-                        B.Print("B = ", std::cout, EMathematicaInput);
-                        BT.Print("BT = ", std::cout, EMathematicaInput);
-                      }
-                      check = false;
+                      A.Print("A = ", std::cout, EMathematicaInput);
+                      B.Print("B = ", std::cout, EMathematicaInput);
+                      BT.Print("BT = ", std::cout, EMathematicaInput);
+                      const bool check = false;
+                      REQUIRE(check);
                   }
               }
           }
-
-          REQUIRE(check);
           break;
       }
       case 1: // Multiplying matrices with incompatible dimensions
@@ -1829,6 +1828,7 @@ void TestingAddContribution(int nrows, int ncols, int ntype)
           break;
       }
     }
+    Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
 
 #ifdef PZ_USING_LAPACK
