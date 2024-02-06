@@ -577,6 +577,9 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int64_t & InitialElInde
 }
 
 TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim) const {
+    if (InitialElIndex < 0 || InitialElIndex >= NElements()) {
+        DebugStop();
+    }
     TPZGeoEl *res = FindApproxElement(x, qsi, InitialElIndex, targetDim);
     TPZManVector<REAL,3> xaprox(3);
     res->X(qsi, xaprox);
@@ -815,7 +818,8 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
     
     TPZGeoElSide mySide(gel,side);
     TPZManVector<REAL,3> xclose(3);
-    mySide.X(projection, xclose);
+    gel->X(projection, xclose);
+//    mySide.X(projection, xclose);
     REAL mindist = 0.;
     for (int i=0; i<3; i++) {
         mindist += (xclose[i]-x[i])*(xclose[i]-x[i]);
@@ -870,7 +874,7 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
         side = locgel->ProjectInParametricDomain(qsi, projection);
         TPZManVector<REAL,3> xclose(3);
         TPZGeoElSide locgelside(locgel,side);
-        locgelside.X(projection, xclose);
+        locgel->X(projection, xclose);
         REAL dist = 0.;
         for (int i=0; i<3; i++) {
             dist += (xclose[i]-x[i])*(xclose[i]-x[i]);
@@ -919,7 +923,8 @@ TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<RE
     else
     {
         TPZStack<TPZGeoEl*> subElements;
-        gel->GetAllSiblings(subElements);
+        gel->YoungestChildren(subElements);
+//        gel->GetAllSiblings(subElements);
         
         int nsons = subElements.NElements();
         TPZGeoEl * son = NULL;
