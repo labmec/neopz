@@ -174,7 +174,7 @@ TEMPLATE_TEST_CASE("TPZCylinder3D","[special_maps][geometry_tests]",
         auto *gel = new TPZGeoElRefLess<TPZCylinderMap<TGeo>> (nodeind,matid,gmesh);
 
         gel->Geom().SetOrigin(origin);
-        gel->Geom().SetCylinderAxis(axes);
+        gel->Geom().SetRotationMatrix(axes);
         gel->Geom().ComputeCornerCoordinates(gmesh);
         //let us test the corner nodes
         for(int i = 0; i < TGeo::NNodes; i++){

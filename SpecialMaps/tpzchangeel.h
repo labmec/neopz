@@ -35,11 +35,15 @@ public:
     /** @brief Turns a regular linear element into a TPZArc3D*/
     static TPZGeoEl * ChangeToArc3D(TPZGeoMesh *mesh, const int64_t ElemIndex,
                                     const TPZVec<REAL> &xcenter, const REAL radius);
-    /** @brief Turns a regular 2D element into a TPZCylinderMap*/
+    /** @brief Turns a regular 2D element into a TPZCylinderMap(using rotation matrix)*/
     static TPZGeoEl * ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemIndex,
                                        const TPZVec<REAL> &xcenter,
-                                       const TPZFMatrix<REAL> &axis);
-
+                                       const TPZFMatrix<REAL> &rotmatrix);
+    /** @brief Turns a regular 2D element into a TPZCylinderMap(using cylinder axis)*/
+    static TPZGeoEl * ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemIndex,
+                                       const TPZVec<REAL> &xcenter,
+                                       const TPZVec<REAL> &axis);
+    
     /** @brief Slide middle nodes of an quadratic geoelement to the quarterpoint with respect to a given side */
     static TPZGeoEl * ChangeToQuarterPoint(TPZGeoMesh *Mesh, int64_t ElemIndex, int targetSide);
 

@@ -496,15 +496,21 @@ TPZGeoEl * TPZChangeEl::ChangeToArc3D(TPZGeoMesh *mesh, const int64_t ElemIndex,
     return new_el;
 }
 
-TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemIndex,
-                                         const TPZVec<REAL> &xcenter,
-                                         const TPZFMatrix<REAL> &axis
-                                         )
+
+template<class T>
+TPZGeoEl * ChangeToCylinderT(TPZGeoMesh *mesh, const int64_t ElemIndex,
+                             const TPZVec<REAL> &xcenter,
+                             const T &axis
+                             )
 {
     
     auto SetCylData = [xcenter,axis,mesh](auto &cyl){
         cyl.SetOrigin(xcenter);
-        cyl.SetCylinderAxis(axis);
+        if constexpr (std::is_same_v<T,TPZFMatrix<REAL>>){
+            cyl.SetRotationMatrix(axis);
+        }else{
+            cyl.SetCylinderAxis(axis);
+        }
         cyl.ComputeCornerCoordinates(*mesh);
     };
 
@@ -525,7 +531,7 @@ TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemInd
     const int nnodes = old_el->NCornerNodes();
     
     TPZVec<TPZGeoElSide> oldNeigh(nsides);
-    StoreNeighbours(old_el, oldNeigh);
+    TPZChangeEl::StoreNeighbours(old_el, oldNeigh);
     TPZManVector<int64_t,4> nodeindexes(nnodes);
     for(int in = 0; in < nnodes; in++){
         nodeindexes[in] = old_el->NodeIndex(in);
@@ -576,9 +582,24 @@ TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemInd
         DebugStop();
     }
 
-    RestoreNeighbours(new_el, oldNeigh);
+    TPZChangeEl::RestoreNeighbours(new_el, oldNeigh);
     return new_el;
 }
+
+TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemIndex,
+                                         const TPZVec<REAL> &xcenter,
+                                         const TPZFMatrix<REAL> &rotmat
+                                         ){
+    return ChangeToCylinderT(mesh,ElemIndex,xcenter,rotmat);
+}
+TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemIndex,
+                                         const TPZVec<REAL> &xcenter,
+                                         const TPZVec<REAL> &axis
+                                         )
+{
+    return ChangeToCylinderT(mesh,ElemIndex,xcenter,axis);
+}
+
 
 
 //------------------------------------------------------------------------------------------------------------

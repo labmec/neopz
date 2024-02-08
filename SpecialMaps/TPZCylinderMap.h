@@ -88,9 +88,13 @@ namespace pzgeom {
             fOrigin = origin;
         }
 
-        /// axis direction with the vertical axis
-        /// the last line indicates the z-direction
-        void SetCylinderAxis(const TPZFMatrix<REAL> &axis);
+        /** @brief Sets axis of the cylinder and compute rotation matrix*/
+        void SetCylinderAxis(const TPZVec<REAL> &axis);
+        /** @brief Sets the rotation matrix that converts from the reference cylinder
+         to the cylinder in the xyz space.
+        Reference cylinder has axis (0,0,1), therefore last column of rotation matrix
+        should be the axis of the cylinder, and first two columns orthogonal vectors*/
+        void SetRotationMatrix(const TPZFMatrix<REAL> &rotmat);
         
         /// compute the cylindrical coordinates of the corner nodes
         void ComputeCornerCoordinates(TPZGeoMesh &gmesh);

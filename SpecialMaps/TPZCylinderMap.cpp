@@ -14,9 +14,57 @@
 namespace pzgeom {
     
     constexpr REAL tol = std::numeric_limits<REAL>::epsilon()*1000;
-    /// axis direction with the vertical axis
     template<class TGeo>
-    void TPZCylinderMap<TGeo>::SetCylinderAxis(const TPZFMatrix<REAL> &orig_axis)
+    void TPZCylinderMap<TGeo>::SetCylinderAxis(const TPZVec<REAL> &orig_axis)
+    {
+
+        TPZManVector<REAL,3> reference_axis = {0,0,1};
+
+        //let us normalize axis
+        REAL normaxis = 0;
+        for(const auto &ax : orig_axis){normaxis += ax*ax;}
+        normaxis = sqrt(normaxis);
+        const TPZManVector<REAL,3> axis = {orig_axis[0]/normaxis,
+                                           orig_axis[1]/normaxis,
+                                           orig_axis[2]/normaxis};
+        const auto &x = reference_axis;
+        const auto &y = axis;
+        TPZManVector<REAL,3> orth1(3,0.);
+        Cross(x,y,orth1);
+
+        //if they are aligned, then it is just a matter of sign
+        if(fabs(orth1[0]) < tol && fabs(orth1[1]) < tol && fabs(orth1[2]) < tol){
+            //x and y are aligned
+            //let us compute the inner product
+            REAL inner{0};
+            for(int ix = 0; ix < 3; ix++){inner += x[ix] * y[ix];}
+            const REAL sign = inner > 0 ? 1 : - 1;
+            for(int i = 0; i< 3; i++){
+                fRotation(i,i) = sign;
+            }
+        }else{
+            /**if they are not aligned, orth1 is already an orth vector,
+               we need to normalise it*/
+            {
+                REAL normorth1{0};
+                for(auto &xx : orth1) {normorth1 += xx*xx;}
+                normorth1 = sqrt(normorth1);
+                for(auto &xx : orth1) {xx /= normorth1;}
+            }
+
+            TPZManVector<REAL,3> orth2(3,0.);
+            Cross(y,orth1,orth2);
+            for(int i = 0; i < 3; i++){
+                fRotation(i,0) = orth1[i];
+                fRotation(i,1) = orth2[i];
+                fRotation(i,2) = y[i];
+        
+            }
+        }
+    }
+    
+    template<class TGeo>
+    void TPZCylinderMap<TGeo>::SetRotationMatrix(const TPZFMatrix<REAL> &orig_axis)
     {
         /**master cylinder has axis in the z-direction.
          therefore, a rotation matrix to convert from reference axis
@@ -197,7 +245,7 @@ namespace pzgeom {
         gel->Geom().SetOrigin(lowercorner);
         TPZFNMatrix<9,REAL> axis(3,3);
         axis.Identity();
-        gel->Geom().SetCylinderAxis(axis);
+        gel->Geom().SetRotationMatrix(axis);
         gel->Geom().ComputeCornerCoordinates(gmesh);
         
         elsize[0] = elsize[1] = elsize[2] = 1;
