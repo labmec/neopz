@@ -176,7 +176,11 @@ void TPZHDivApproxCreator::CreateMultiPhysicsMesh(TPZManVector<TPZCompMesh*,7>& 
             TPZCompMeshTools::CondenseElements(cmeshmulti,lagLevelCounter-2,false);
         } else {
             if(fHybridType == HybridizationType::ENone){
-                TPZCompMeshTools::CondenseElements(cmeshmulti,lagLevelCounter-1,false);
+                if (!fCondensePressure){
+                    TPZCompMeshTools::CondenseElements(cmeshmulti,lagLevelCounter-1,false);
+                }else{
+                    TPZCompMeshTools::CondenseElements(cmeshmulti,lagLevelCounter,false);
+                }
             }
             else{
                 GroupAndCondenseElements(cmeshmulti);

@@ -16,8 +16,10 @@ protected:
     HDivFamily fHDivFam = HDivFamily::EHDivStandard;
 
     /// A map relating the duplicated connect and its pair
-    std::map<int64_t,int64_t> fConnDuplicated;
+    std::map<int64_t,int64_t> fConnDuplicated; //Check with Jeferson if this variable is indeed necessary
     
+    /// A flag to control if the pressure dofs will be condensed (just for the artificial-compressibility iterative solver)
+    bool fCondensePressure = false;
 public:
     
     /// Default constructor
@@ -51,6 +53,18 @@ public:
     void CreateAtomicMeshes(TPZManVector<TPZCompMesh*,7>& meshvec, int& lagLevelCounter);
     
     void CreateMultiPhysicsMesh(TPZManVector<TPZCompMesh*,7>& meshvec, int& lagLevelCounter, TPZMultiphysicsCompMesh*& cmeshmulti);
+
+    void SetShouldCondensePressure(bool isCondensed){
+        if (isCondensed && fProbType != ProblemType::EDarcy) {
+            std::cout << "The pressure condensation is only available for Darcy problem at the moment." << std::endl;
+            DebugStop();
+        }
+        fCondensePressure = isCondensed;
+    }
+
+    bool ShouldCondensePressure() const {
+        return fCondensePressure;
+    }
 
 protected:
 

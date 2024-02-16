@@ -628,7 +628,7 @@ void TPZCompMeshTools::CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNo
         bool cancondense = (ic != nc);
         if(cancondense)
         {
-            if(LagrangeLevelNotCondensed >= 0 && !found) DebugStop();
+            //if(LagrangeLevelNotCondensed >= 0 && !found) DebugStop(); //Commented this line to allow the condensation of all dofs that have laglevel < LagrangeLevelNotCondensed
             if(real_sol){
                 new TPZCondensedCompElT<STATE>(cel, keepmatrix);
             }else{
