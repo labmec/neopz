@@ -1408,41 +1408,49 @@ TPZGeoEl *TPZGeoMesh::CreateGeoBlendElement(MElementType type, TPZVec<int64_t>& 
 		case 0://point
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPoint> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 1://line
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 2://triangle
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTriangle> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 3://quadrilateral
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 4://tetraedron
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTetrahedra> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 5://pyramid
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPyramid> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 6://prism
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 7://cube
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		default:
