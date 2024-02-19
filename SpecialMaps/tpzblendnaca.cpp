@@ -10,6 +10,7 @@
 #include "pzshapequad.h"
 #include "pzrefquad.h"
 #include "TPZGeoLinear.h"
+#include "tpzgeoelrefpattern.h"
 
 #include <iostream>
 #include <fstream>
@@ -44,7 +45,7 @@ Type TPZBlendNACA::P()
     aux -= ((int)(aux/10))*10;
     return (Type)(aux/10.);
 }
-//template<> REAL TPZBlendNACA::P();
+template REAL TPZBlendNACA::P();
 
 template<class Type>
 Type TPZBlendNACA::M()
@@ -52,22 +53,25 @@ Type TPZBlendNACA::M()
     int aux = fFourDigits/1000;
     return (Type)(aux/100.)*fCord;
 }
-//template<> REAL TPZBlendNACA::M();
+template REAL TPZBlendNACA::M();
 
 
-template<class Type>
-Type TPZBlendNACA::TT()
+template<class toto>
+toto TPZBlendNACA::TT()
 {
     int aux = fFourDigits - ((int)(fFourDigits/100))*100;
-    return (Type)(aux/100.)*fCord;
+    toto result;
+    result = (toto)(aux/100.)*fCord;
+    std::cout << "TT = " << result << std::endl;
+    return result;
 }
-//template<> REAL TPZBlendNACA::TT();
+template REAL TPZBlendNACA::TT();
 
 
-template <class Type>
-Type TPZBlendNACA::yc(Type x)
+template <class toto>
+toto TPZBlendNACA::yc(toto x) const
 {
-    if(x/fCord<fP)
+    if(shapeFAD::val(x)/fCord<fP)
     {
         return fM/fP/fP*(2.*fP*x/fCord-x*x/fCord/fCord);
     }
@@ -77,13 +81,14 @@ Type TPZBlendNACA::yc(Type x)
     }
 }
 
-template<> REAL TPZBlendNACA::yc(REAL x);
+template REAL TPZBlendNACA::yc(REAL x) const;
+template Fad<REAL> TPZBlendNACA::yc(Fad<REAL> x) const;
 
 //*******
-template <class Type>
-Type TPZBlendNACA::dyc(Type x)
+template <class toto>
+toto TPZBlendNACA::dyc(toto x) const
 {
-    if(x/fCord<fP)
+    if(shapeFAD::val(x)/fCord<fP)
     {
         return 2.*fM/fP/fP*(fP-x/fCord)/fCord;
     }
@@ -92,63 +97,143 @@ Type TPZBlendNACA::dyc(Type x)
         return 2.*fM/(1.-fP)/(1.-fP)*(fP-x/fCord)/fCord;
     }
 }
-template<> REAL TPZBlendNACA::dyc(REAL x);
+template REAL TPZBlendNACA::dyc(REAL x) const;
+template Fad<REAL> TPZBlendNACA::dyc(Fad<REAL> x) const;
+
+//*******
+template <class toto>
+toto TPZBlendNACA::dtgphi(toto x) const
+{
+    if(shapeFAD::val(x)/fCord<fP)
+    {
+        return 2.*fM/fP/fP*(-1./fCord)/fCord;
+    }
+    else
+    {
+        return 2.*fM/(1.-fP)/(1.-fP)*(-1./fCord)/fCord;
+    }
+}
+template REAL TPZBlendNACA::dtgphi(REAL x) const;
+template Fad<REAL> TPZBlendNACA::dtgphi(Fad<REAL> x) const;
 
 //********
-template <class Type>
-Type TPZBlendNACA::yt(Type x)
+template <class toto>
+toto TPZBlendNACA::yt(toto x) const
 {
-    REAL aux = x/fCord;
+    toto aux = x/fCord;
     const REAL a0 =  1.4845,
 	a1 = -0.6300,
 	a2 = -1.7580,
 	a3 =  1.4215,
-	a4 = -0.5075;
+//	a4 = -0.5075;
+	a4 = -0.518;
 	
-    return fTT * (a0*sqrt(aux) + a1*aux + a2*aux*aux + a3*aux*aux*aux + a4*aux*aux*aux*aux);
+    toto val = fTT * (a0*sqrt(aux) + a1*aux + a2*aux*aux + a3*aux*aux*aux + a4*aux*aux*aux*aux);
+    //std::cout << " x " << x << " yt = " << val << std::endl;
+    return val;
 }
-
-template<> REAL TPZBlendNACA::yt(REAL x);
 
 //********
-template <class Type>
-Type TPZBlendNACA::xu(Type x)
+template <class toto>
+toto TPZBlendNACA::dyt(toto x) const
 {
-    return x-yt(x)*sin(atan(dyc(x)));
+    toto aux = x/fCord;
+    const REAL a0 =  1.4845,
+	a1 = -0.6300,
+	a2 = -1.7580,
+	a3 =  1.4215,
+//	a4 = -0.5075;
+	a4 = -0.518;
+	
+    return fTT/fCord * (a0/2./sqrt(aux) + a1 + 2.*a2*aux + 3.*a3*aux*aux + 4.*a4*aux*aux*aux);
 }
 
-template <>REAL TPZBlendNACA::xu(REAL x);
+template REAL TPZBlendNACA::dyt(REAL x) const;
+
+//********
+template <class toto>
+toto TPZBlendNACA::xu(toto x) const
+{
+    return x-yt(x)*sin(atan(tgphi(x)));
+}
+
+template REAL TPZBlendNACA::xu(REAL x) const;
+template Fad<REAL> TPZBlendNACA::xu(Fad<REAL> x) const;
+//*********
+
+//********
+template <class toto>
+toto TPZBlendNACA::dxu(toto x) const
+{
+    auto loctgphi = tgphi(x);
+    auto resp =  1.-dyt(x)*sin(atan(loctgphi))
+        -yt(x)/(1+loctgphi*loctgphi)/sqrt(1.+loctgphi*loctgphi)*dtgphi(x);
+    return resp;
+}
+
+template REAL TPZBlendNACA::dxu(REAL x) const;
+template Fad<REAL> TPZBlendNACA::dxu(Fad<REAL> x) const;
 //*********
 
 
-template <class Type>
-Type TPZBlendNACA::yu(Type x)
+template <class toto>
+toto TPZBlendNACA::yu(toto x) const
 {
-    return yc(x) + yt(x)*cos(atan(dyc(x)));
+    return yc(x) + yt(x)*cos(atan(tgphi(x)));
 }
-template<> REAL TPZBlendNACA::yu(REAL x);
+template REAL TPZBlendNACA::yu(REAL x) const;
 //********
 
-template <class Type>
-Type TPZBlendNACA::xl(Type x)
+template <class toto>
+toto TPZBlendNACA::dyu(toto x) const
 {
-    return x+yt(x)*sin(atan(dyc(x)));
+    auto loctgphi = tgphi(x);
+    auto resp =  loctgphi+dyt(x)*cos(atan(dyc(x)))
+        -yt(x)*loctgphi/(1+loctgphi*loctgphi)/sqrt(1.+loctgphi*loctgphi)*dtgphi(x);
+    return resp;
 }
-template<> REAL TPZBlendNACA::xl(REAL x);
-
-//********
-template <class Type>
-Type TPZBlendNACA::yl(Type x)
-{
-    return yc(x) - yt(x)*cos(atan(dyc(x)));
-}
-template<> REAL TPZBlendNACA::yl(REAL x);
-
-
+template REAL TPZBlendNACA::dyu(REAL x) const;
 //********
 
-template<class Type>
-void TPZBlendNACA::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt,Type& Result)
+template <class toto>
+toto TPZBlendNACA::xl(toto x) const
+{
+    return x+yt(x)*sin(atan(tgphi(x)));
+}
+template REAL TPZBlendNACA::xl(REAL x) const;
+
+template <class toto>
+toto TPZBlendNACA::dxl(toto x) const
+{
+    toto loctgphi = tgphi(x);
+    return 1.+dyt(x)*sin(atan(loctgphi))+
+        yt(x)/(1+loctgphi*loctgphi)/sqrt(1.+loctgphi*loctgphi)*dtgphi(x);
+}
+template REAL TPZBlendNACA::dxl(REAL x) const;
+
+//********
+template <class toto>
+toto TPZBlendNACA::yl(toto x) const
+{
+    return yc(x) - yt(x)*cos(atan(tgphi(x)));
+}
+template REAL TPZBlendNACA::yl(REAL x) const;
+
+//********
+template <class toto>
+toto TPZBlendNACA::dyl(toto x) const
+{
+    toto loctgphi = tgphi(x);
+    return loctgphi - dyt(x)*cos(atan(loctgphi))+
+        yt(x)*loctgphi/(1+loctgphi*loctgphi)/sqrt(1.+loctgphi*loctgphi)*dtgphi(x);
+}
+template REAL TPZBlendNACA::dyl(REAL x) const;
+
+
+//********
+
+template<class toto>
+void TPZBlendNACA::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt,toto& Result)
 {
     REAL distminlow = 20.*fCord;
     REAL distminup  = 20.*fCord;
@@ -226,46 +311,80 @@ void TPZBlendNACA::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt,Type
 }
 template<> void TPZBlendNACA::NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt,REAL& Result);
 
-///************************************
-template <class Type>
-Type TPZBlendNACA::xua(Type x)
+///************************************ public methods
+template <class toto>
+toto TPZBlendNACA::xua(toto x) const
 {
-    return fX0[0]+(xu(x)-fCord/2.)*cos(fAngle) + yu(x) * sin(fAngle) + fCord/2.;
+    return fX0[0]+(xu(x)-fCord/2.)*cos(fAngle) + yua(x) * sin(fAngle) + fCord/2.;
 }
-template<> REAL TPZBlendNACA::xua(REAL x);
+
+template REAL TPZBlendNACA::xua(REAL x) const;
 
 //***************
 
-template <class Type>
-Type TPZBlendNACA::yua(Type x)
+template <class toto>
+toto TPZBlendNACA::yua(toto x) const
 {
     return fX0[1]+yu(x)*cos(fAngle) - (xu(x)-fCord/2.) * sin(fAngle);
 }
-template<> REAL TPZBlendNACA::yua(REAL x);
+template REAL TPZBlendNACA::yua(REAL x) const;
 
 //************
-template <class Type>
-Type TPZBlendNACA::xla(Type x)
+template <class toto>
+toto TPZBlendNACA::xla(toto x) const
 {
     return fX0[0]+(xl(x)-fCord/2.)*cos(fAngle) + yl(x) * sin(fAngle) + fCord/2.;
 }
-template<> REAL TPZBlendNACA::xla(REAL x);
+template REAL TPZBlendNACA::xla(REAL x) const;
 
 //************
-template <class Type>
-Type TPZBlendNACA::yla(Type x)
+template <class toto>
+toto TPZBlendNACA::yla(toto x) const
 {
     return fX0[1]+yl(x)*cos(fAngle) - (xl(x)-fCord/2.) * sin(fAngle);
 }
-template<> REAL TPZBlendNACA::yla(REAL x);
+template REAL TPZBlendNACA::yla(REAL) const;
+
+template <class toto>
+toto TPZBlendNACA::dxua(toto x) const
+{
+    return fX0[0]+(dxu(x))*cos(fAngle) + dyu(x) * sin(fAngle);
+}
+template REAL TPZBlendNACA::dxua(REAL x) const;
+
+//***************
+
+template <class toto>
+toto TPZBlendNACA::dyua(toto x) const
+{
+    return dyu(x)*cos(fAngle) - (dxu(x)) * sin(fAngle);
+}
+template REAL TPZBlendNACA::dyua(REAL x) const;
+
+//************
+template <class toto>
+toto TPZBlendNACA::dxla(toto x) const
+{
+    return (dxl(x))*cos(fAngle) + dyl(x) * sin(fAngle);
+}
+template REAL TPZBlendNACA::dxla(REAL x) const;
+
+//************
+template <class toto>
+toto TPZBlendNACA::dyla(toto x) const
+{
+    return dyl(x)*cos(fAngle) - (xl(x)) * sin(fAngle);
+}
+template REAL TPZBlendNACA::dyla(REAL) const;
+//template REAL TPZBlendNACA::yla(REAL x);
 
 ///************************************
-template <class Type>
-void TPZBlendNACA::ProjectPoint(TPZVec<Type> &pt, int maxPt)
+template <class toto>
+void TPZBlendNACA::ProjectPoint(TPZVec<toto> &pt, int maxPt)
 {
     int uplow;
     
-    Type par;
+    toto par;
     NearestParameter(pt,uplow, maxPt,par);
     
     if(uplow == 0)
@@ -281,19 +400,27 @@ void TPZBlendNACA::ProjectPoint(TPZVec<Type> &pt, int maxPt)
 }
 template<> void TPZBlendNACA::ProjectPoint(TPZVec<REAL> &pt, int maxPt);
 
+int TPZBlendNACA::ClassId() const{
+    return Hash("TPZBlendNACA") ^ pzgeom::TPZNodeRep<2,pztopology::TPZLine>::ClassId() << 1;
+}
+
 #include "tpzgeoelmapped.h"
 
 /**
- * Creates a geometric element according to the type of the father element
+ * Creates a geometric element according to the toto of the father element
  */
 
-// TPZGeoEl *TPZBlendNACA::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+// TPZGeoEl *TPZBlendNACA::CreateGeoElement(TPZGeoMesh &mesh, MElementtoto toto,
 // 										 TPZVec<int64_t>& nodeindexes,
 // 										 int matid,
 // 										 int64_t& index)
 // {
-// 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+// 	return CreateGeoElementMapped(mesh,toto,nodeindexes,matid,index);
 // }
+//template<> class TPZGeoElRefPattern<pzgeom::TPZBlendNACA>;
 
+
+template class
+TPZRestoreClass< TPZGeoElRefPattern<TPZBlendNACA>>;
 
 
