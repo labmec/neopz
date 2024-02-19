@@ -1062,6 +1062,45 @@ void pzgeom::TPZGeoBlend<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int mati
     gmesh.CreateGeoBlendElement(TGeo::Type(), nodeindexes, matid, index);
 }
 
+void pzgeom::SwitchToBlend(TPZGeoEl *gel)
+{
+    TPZGeoMesh *gmesh = gel->Mesh();
+    int64_t index;
+    TPZManVector<int64_t,3> nodeindexes(gel->NNodes());
+    for (int i=0; i<gel->NNodes(); i++) {
+        nodeindexes[i] = gel->NodeIndex(i);
+    }
+    int nsides = gel->NSides();
+    TPZManVector<TPZGeoElSide,27> neighbours(nsides);
+    for (int is=0; is<nsides; is++) {
+        TPZGeoElSide gelside(gel,is);
+        neighbours[is] = gelside.Neighbour();
+        if(gelside.Dimension() != neighbours[is].Dimension()) {
+            DebugStop();
+        }
+        if(neighbours[is] == gelside) {
+            neighbours[is] = TPZGeoElSide();
+        }
+    }
+    int64_t previndex = gel->Index();
+    auto geltype = gel->Type();
+    auto matid = gel->MaterialId();
+    gmesh->DeleteElement(gel);
+    auto newgel = gmesh->CreateGeoBlendElement(geltype, nodeindexes, matid, index);
+    if (previndex != index) {
+        DebugStop();
+    }
+    for (int is=0; is<nsides; is++) {
+        TPZGeoElSide gelside(newgel,is);
+        if(neighbours[is]) {
+            gelside.SetConnectivity(neighbours[is]);
+        } else
+        {
+            gelside.Element()->SetSideDefined(gelside.Side());
+        }
+    }
+    newgel->BuildBlendConnectivity();
+}
 
 
 

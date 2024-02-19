@@ -259,5 +259,11 @@ namespace pzgeom {
         return Hash("TPZGeoBlend") ^ TGeo::ClassId() << 1;
     }
 
+/// @brief Switch the current element to a blend element
+/// @param gel this element will be substituted by a blend element
+void SwitchToBlend(TPZGeoEl *gel);
+
 };
+
+
 #endif
