@@ -36,6 +36,7 @@ static TPZLogger logger("pz.mesh.testhcurl");
 #include "TPZLinearAnalysis.h"
 #include "pzintel.h"
 #include "TPZCompElHCurl.h"
+#include "TPZShapeHCurl.h"
 #include "pzgeotetrahedra.h"
 #include "pzgeoprism.h"
 #include "TPZGeoCube.h"
@@ -83,6 +84,26 @@ namespace hcurltest{
                          const TPZVec<REAL> &vec, const int sideDim, TPZVec<REAL> &elTrace, TPZVec<REAL> &neighTrace);
     
     void VectorProduct(const TPZVec<REAL> &, const TPZVec<REAL> &, TPZVec<REAL> &);
+
+    template<class TSHAPE>
+    void TestEnrichedHCurl(const int p_edge, const int p_face, const int p_vol);
+}
+
+
+TEMPLATE_TEST_CASE("test enriched shape hcurl","[hcurl_tests][shape]",
+                   pzshape::TPZShapeTriang,
+                   pzshape::TPZShapeQuad,
+                   pzshape::TPZShapeCube,
+                   pzshape::TPZShapeTetra,
+                   pzshape::TPZShapePrism){
+
+    for(int p_edge = 1; p_edge < 3; p_edge++){
+        for(int p_face = p_edge; p_face < 5; p_face++){
+            for(int p_vol = p_face; p_vol < 7; p_vol++){
+                hcurltest::TestEnrichedHCurl<TestType>(p_edge,p_face,p_vol);
+            }
+        }
+    }
 }
 
 TEMPLATE_TEST_CASE("test hcurl internal funcs under node permutation",
@@ -852,6 +873,48 @@ namespace hcurltest{
         result[1]=z1*x2-x1*z2;
         result[2]=x1*y2-y1*x2;
     };//VectorProduct
+
+
+    template<class TSHAPE>
+    void TestEnrichedHCurl(const int p_edge, const int p_face, const int p_vol)
+    {
+        constexpr int64_t dim = TSHAPE::Dimension;
+        constexpr int64_t n_nodes = TSHAPE::NCornerNodes;
+        constexpr int64_t n_sides = TSHAPE::NSides;
+        constexpr int64_t n_faces = dim == 3 ? TSHAPE::NFacets : 1;
+        constexpr int64_t n_edges = dim == 3 ? n_sides - 1 - n_faces - n_nodes : TSHAPE::NFacets;
+        //number of hcurl connects = edge + face + internal (or edge + face)
+        constexpr int64_t n_con = TSHAPE::NSides-TSHAPE::NCornerNodes;
+        TPZManVector<int64_t,n_nodes> ids(n_nodes,0);
+        for(int in = 0; in < n_nodes; in++){ids[in]=in;}
+        TPZManVector<int,n_con> orders(n_con,p_edge);
+        //increase order of faces
+        for(int ic = 0; ic < n_faces; ic++){
+            orders[n_edges+ic] = p_face;
+        }
+        if(dim == 3){
+            orders[n_edges+n_faces] = p_vol;
+        }
+        //let us gather some useful debug info
+        TPZManVector<int,n_con> orders_h1(n_con,0), nshape_con(n_con,0);
+        TPZShapeHCurl<TSHAPE>::CalcH1ShapeOrders(orders,orders_h1);
+        for(int ic = 0; ic < n_con; ic++){
+            const int ord = orders[ic];
+            nshape_con[ic] = TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(ic,ord);
+        }
+        TPZShapeData data;
+        CAPTURE(p_edge);
+        CAPTURE(p_face);
+        CAPTURE(p_vol);
+        CAPTURE(orders_h1);
+        CAPTURE(nshape_con);
+        REQUIRE_NOTHROW(TPZShapeHCurl<TSHAPE>::Initialize(ids, orders, data));
+        const int nshape = TPZShapeHCurl<TSHAPE>::NHCurlShapeF(data);
+        TPZFMatrix<STATE> phi(dim,nshape,0), curlphi(dim,nshape,0);
+        TPZManVector<REAL,3> pt(dim,0);
+        REQUIRE_NOTHROW(TPZShapeHCurl<TSHAPE>::Shape(pt,data,phi,curlphi));
+    }
+    
 }//namespace
 
 #ifdef VERBOSE_HCURL
