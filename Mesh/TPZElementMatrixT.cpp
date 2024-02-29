@@ -298,6 +298,13 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 				for(send=inpos; send<inpos+insize; send += numstate) {
 					for(receive=deppos; receive<deppos+depsize; receive += numstate) {
 						coef = depmat((send-inpos)/numstate,(receive-deppos)/numstate);
+            if constexpr (std::is_same_v<CTVar,TVar>){
+              /*weak formulations with complex basis functions are usually obtained
+               by multiplying by the complex conjugate test function, being consistent
+               with the complex inner product. therefore, if the dependency is complex,
+               we must conjugate it.*/
+              coef = std::conj(coef);
+            }
 						if (this->fType == TPZElementMatrix::EK){
 							for(ieq=0; ieq<toteq; ieq++) for(idf=0; idf<numstate; idf++)  {
 								(this->fConstrMat)(receive+idf,ieq) += coef*(this->fConstrMat)(send+idf,ieq);
