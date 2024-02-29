@@ -396,13 +396,6 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
     TPZVec<int> &sidesH1Ord = data.fH1ConnectOrders;
     auto &nodeIds = data.fCornerNodeIds;
 
-
-    //                                                  TPZVec<std::pair<int,int64_t>> & indexVecShape,
-    //                                                       const TPZVec<int>& connectOrder,
-    //                                                       const TPZVec<int64_t>& firstH1ShapeFunc,
-    //                                                       const TPZVec<int>& sidesH1Ord,
-    //                                                       TPZVec<unsigned int>& shapeCountVec,
-    //                                                       const TPZVec<int64_t>& nodeIds) {
     /******************************************************************************************************************
      * The directions are calculated based on the LOCAL side ids (and SideNodeLocId), such as the H1 shape functions.
      * For instance, for the triangle, the vectors are:
@@ -603,7 +596,12 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
             const auto ydir = 1-xdir;
 
             const auto hCurlFaceOrder = h1FaceOrder-1;
+            //number of hcurl functions in Qkkk^3
             const auto nfuncsk = 2 * (hCurlFaceOrder - 1) * (hCurlFaceOrder - 1);
+            /*
+              number of additional hcurl functions IN EACH DIRECTION
+              to achieve Qk,k+1,k+1 X Qk+1,k,k+1 X Qk+1,k+1,k
+             */
             const auto nfuncsk1 = hCurlFaceOrder - 1;
             TPZVec<std::pair<int,int>> funcXY(nfuncsk);
             TPZVec<std::pair<int,int>> funcX(nfuncsk1);
@@ -614,15 +612,32 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
             const int vecindex[] = {firstVftVec + 2*iFace,firstVftVec + 2*iFace+1};
             for(auto iFunc = 0; iFunc < nH1FaceFuncs; iFunc++ ){
                 const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc;
+                /*
+                  the h1 face functions are not hierarchically ordered,
+                  i.e., you dont have
+                  p1 functions p2 functions p3 functions
+                  they are ordered such that we have all the functions
+                  of degree 2 in x, then all the functions of degree 3 in x,
+                  etc
 
+                  so we need the additional check
+                  shapeorders(shapeIndex,ydir) <= hCurlFaceOrder+1)
+                  and
+                  shapeorders(shapeIndex,xdir) <= hCurlFaceOrder+1)
+                  so the code won't break if the volume is of higher
+                  degree than the face and the face has degree >= 2(meaning
+                  that we have the face internal functions)
+                 */
                 //functions of degree k
                 if((shapeorders(shapeIndex,xdir) <= hCurlFaceOrder) &&
                    (shapeorders(shapeIndex,ydir) <= hCurlFaceOrder)){
                     funcXY[countxy++] = {vecindex[0],shapeIndex};
                     funcXY[countxy++] = {vecindex[1],shapeIndex};
-                }else if(shapeorders(shapeIndex,xdir) <= hCurlFaceOrder){
+                }else if(shapeorders(shapeIndex,xdir) <= hCurlFaceOrder &&
+                         shapeorders(shapeIndex,ydir) <= hCurlFaceOrder+1){
                     funcX[countx++] = {vecindex[0],shapeIndex};
-                }else if(shapeorders(shapeIndex,ydir) <= hCurlFaceOrder){
+                }else if(shapeorders(shapeIndex,ydir) <= hCurlFaceOrder &&
+                         shapeorders(shapeIndex,xdir) <= hCurlFaceOrder+1){
                     funcY[county++] = {vecindex[1],shapeIndex};
                 }
             }
