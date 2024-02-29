@@ -522,7 +522,7 @@ void IntegralNormal()
         // data.fSideTransformationId.Resize(TSHAPE::NFacets, 0);
         data.fSideOrient.Resize(TSHAPE::NFacets, 1);
         int nshape = shape.NHDivShapeF(data);
-        TPZManVector<REAL> pt(3,0.);
+        TPZManVector<REAL> pt(TSHAPE::Dimension,0.);
         TPZFNMatrix<8,REAL> phi(TSHAPE::Dimension,nshape),divphi(nshape,1);
         shape.Shape(pt,data,phi,divphi);
         // integrate the divergence. It should be one
