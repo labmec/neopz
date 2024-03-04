@@ -15,12 +15,14 @@
 #ifndef TPZELASTICITYTH
 #define TPZELASTICITYTH
 
-enum AnalysisType {EGeneral, EPlaneStrain, EPlaneStress};
-
-class TPZElasticityTH : public TPZMatBase<STATE, TPZMatCombinedSpacesT<STATE>, TPZMatErrorCombinedSpaces<STATE>> {
+class TPZElasticityTH : public TPZMatBase<STATE, TPZMatCombinedSpacesT<STATE>, TPZMatErrorCombinedSpaces<STATE>> {    
     
     using TBase = TPZMatBase<STATE, TPZMatCombinedSpacesT<STATE>, TPZMatErrorCombinedSpaces<STATE>>;
-    
+
+public:
+
+    enum AnalysisType {EGeneral, EPlaneStrain, EPlaneStress};    
+
 protected:
     /// @brief  Material dimension
     int fdimension;
@@ -54,6 +56,7 @@ protected:
     REAL fBigNumber = pow(10,std::numeric_limits<STATE>::max_digits10*2/3);
     
 public:
+
     /// Empty Constructor
     TPZElasticityTH();
 
