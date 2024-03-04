@@ -139,6 +139,23 @@ static FADFADSTATE FADsinh(FADFADSTATE x)
     return resa;
 }
 
+static FADFADSTATE FADlog(FADFADSTATE x)
+{
+    if (x.val() == 0)
+        DebugStop();
+    
+    Fad<STATE> logDx = 1.0/(x.val());
+    Fad<STATE> logX = log(x.val());
+    
+    int size = x.size();
+    FADFADSTATE res(size, logX);
+    
+    for (int i = 0; i < size; i++)
+        res.fastAccessDx(i) = logDx * x.dx(i);
+    
+    return res;
+}
+
 static const REAL FI = 1.;
 static const REAL a = 0.5;
 static const REAL b = 0.5;
@@ -178,7 +195,7 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
 {
     typedef FADFADSTATE TVar;
     if(fProblemType == Etest1)
-    {   
+    {
         FADFADSTATE tmp = (FADFADSTATE)(1./27.)*x[0]*x[0]*x[1]*x[1];
         disp[0] = tmp*FADcos((FADFADSTATE)(6.*M_PI)*x[0])*FADsin((FADFADSTATE)(7.*M_PI)*x[1]);
         disp[1] = (FADFADSTATE)(0.2)*FADexp(x[1])*FADsin((FADFADSTATE)(4.*M_PI)*x[0]);
@@ -193,7 +210,7 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
     }
       
     else if(fProblemType ==ERot)//rotation
-    {      
+    {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
         disp[0] =(FADFADSTATE)-x[1];
@@ -202,14 +219,14 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
     }
     
     else if(fProblemType == EShear)//pure shear
-    {     
+    {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
         disp[0] += (FADFADSTATE) x[1];
         disp[1] += (FADFADSTATE) 0. ;
     }
     else if(fProblemType == EStretchx)//strech x
-    {     
+    {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
         disp[0] += (FADFADSTATE) x[0];
@@ -228,21 +245,21 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         }
     }
     else if(fProblemType ==EStretchy)//strech y
-    {    
+    {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
         disp[0] += (FADFADSTATE) 0.;
         disp[1] += (FADFADSTATE) x[1];
     }
     else if(fProblemType==EDispx)
-    {     
+    {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
         disp[0] +=   1.;
         disp[0] +=   0.;
     }
     else if(fProblemType==EDispy)
-    {     
+    {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
         disp[0] += (FADFADSTATE) 0.;
@@ -612,7 +629,7 @@ void TElasticity2DAnalytic::graduxy(const TPZVec<Fad<STATE> > &x, TPZFMatrix<Fad
         Fad<STATE> temp2(3,1.);
         temp.fastAccessDx(i) = temp2;
 //      Fad<STATE> temp = Fad<STATE>(2,i,x[i]);
-        xfad[i] = temp;    
+        xfad[i] = temp;
 //      xfad[i] = temp;
     }
     TPZManVector<Fad<Fad<STATE> >,3> result(2);
@@ -782,26 +799,13 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         disp[2] = x[0]*TVar(0.);
     }
     
-    else if(fProblemType == EShearXY)//pure shear
+    else if(fProblemType == EShear)//pure shear
     {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
-        disp[2] = x[0]*0.;
         disp[0] += (TVar) x[1];
-    }
-    else if(fProblemType == EShearYZ)//pure shear
-    {
-        disp[0] = x[0]*0.;
-        disp[1] = x[0]*0.;
-        disp[2] = x[0]*0.;
-        disp[1] += (TVar) x[2];
-    }
-    else if(fProblemType == EShearXZ)//pure shear
-    {
-        disp[0] = x[0]*0.;
-        disp[1] = x[0]*0.;
-        disp[2] = x[0]*0.;
-        disp[2] += (TVar) x[0];
+        disp[1] += (TVar) 0. ;
+        disp[2] = x[0]*TVar(0.);
     }
     else if(fProblemType == EStretchx)//strech x
     {
@@ -908,15 +912,15 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         disp[1] = ur*sinphi*sintheta;
     }
     else if(fProblemType == EYotov)
-	{
+    {
         TPZManVector<TVar,3> xc(x);
-		const TVar x1 = x[0], x2 = x[1], x3 = x[2];
-		const TVar Pi = M_PI;
+        const TVar x1 = x[0], x2 = x[1], x3 = x[2];
+        const TVar Pi = M_PI;
 
         disp[0] = -0.1*(-1. + exp(x1))*sin(Pi*x1)*sin(Pi*x2);
         disp[1] = (1. - exp(x1))*(-0.5 - ((1. + sqrt(3))*(-0.5 + x2))/(2.*sqrt(2.)) + x2 + ((-1 + sqrt(3.))*(-0.5 + x3))/(2.*sqrt(2)));
         disp[2] = (1. - exp(x1))*(-0.5 - ((-1. + sqrt(3))*(-0.5 + x2))/(2.*sqrt(2.)) - ((1 + sqrt(3.))*(-0.5 + x3))/(2.*sqrt(2)) + x3);
-	}
+    }
     else{
         DebugStop();
     }
@@ -954,26 +958,13 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
 
     }
     
-    else if(fProblemType == EShearXY)//pure shear
+    else if(fProblemType == EShear)//pure shear
     {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
-        disp[2] = x[0]*0.;
         disp[0] += (FADFADSTATE) x[1];
-    }
-    else if(fProblemType == EShearYZ)//pure shear
-    {
-        disp[0] = x[0]*0.;
-        disp[1] = x[0]*0.;
-        disp[2] = x[0]*0.;
-        disp[1] += (FADFADSTATE) x[2];
-    }
-    else if(fProblemType == EShearXZ)//pure shear
-    {
-        disp[0] = x[0]*0.;
-        disp[1] = x[0]*0.;
-        disp[2] = x[0]*0.;
-        disp[2] += (FADFADSTATE) x[0];
+        disp[1] += (FADFADSTATE) 0. ;
+        disp[2] = x[0]*TVar(0.);
     }
     else if(fProblemType == EStretchx)//strech x
     {
@@ -1081,15 +1072,15 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[1] = ur*sinphi*sintheta;
     }
     else if(fProblemType == EYotov)
-	{
-		TPZManVector<TVar,3> xc(x);
-		const TVar x1 = x[0], x2 = x[1], x3 = x[2];
-		const TVar Pi = M_PI;
+    {
+        TPZManVector<TVar,3> xc(x);
+        const TVar x1 = x[0], x2 = x[1], x3 = x[2];
+        const TVar Pi = M_PI;
 
-		disp[0] = -0.1*(-1. + FADexp(x1))*FADsin(Pi*x1)*FADsin(Pi*x2);
-		disp[1] = (1. - FADexp(x1))*(-0.5 - ((1. + FADsqrt(3))*(-0.5 + x2))/(2.*FADsqrt(2.)) + x2 + ((-1 + FADsqrt(3.))*(-0.5 + x3))/(2.*FADsqrt(2)));
-		disp[2] = (1. - FADexp(x1))*(-0.5 - ((-1. + FADsqrt(3))*(-0.5 + x2))/(2.*FADsqrt(2.)) - ((1 + FADsqrt(3.))*(-0.5 + x3))/(2.*FADsqrt(2)) + x3);
-	}
+        disp[0] = -0.1*(-1. + FADexp(x1))*FADsin(Pi*x1)*FADsin(Pi*x2);
+        disp[1] = (1. - FADexp(x1))*(-0.5 - ((1. + FADsqrt(3))*(-0.5 + x2))/(2.*FADsqrt(2.)) + x2 + ((-1 + FADsqrt(3.))*(-0.5 + x3))/(2.*FADsqrt(2)));
+        disp[2] = (1. - FADexp(x1))*(-0.5 - ((-1. + FADsqrt(3))*(-0.5 + x2))/(2.*FADsqrt(2.)) - ((1 + FADsqrt(3.))*(-0.5 + x3))/(2.*FADsqrt(2)) + x3);
+    }
     else{
         DebugStop();
     }
@@ -2264,7 +2255,9 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
     TVar x3 = x[2];
     REAL Re = 0.;
     REAL lambda = 0.;
-    REAL xs = 0.; 
+    REAL xs = 0.;
+    
+    TVar velocity = fvelocity;
     
     switch(fExactSol)
     {
@@ -2277,61 +2270,121 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
             flux[1] = x1*0.;
             break;
         case ESinCosBDS:
-	    if(fvisco==0) xs = 0.;
-	    xs = 1./exp(fcBrinkman/fvisco);
+        if(fvisco==0) xs = 0.;
+        xs = 1./exp(fcBrinkman/fvisco);
             flux[0] = -xs*sin(x1)*sin(x2)+(1.-xs)*sin(x1)*sin(x2);
             flux[1] = -xs*cos(x1)*cos(x2)-(1.-xs)*cos(x1)*cos(x2);
             break;
-	case ECouplingSD:
-	    if(x2<0.){
-		flux[0] = (exp(-x2)-exp(x2))*cos(x1);
-		flux[1] = -(exp(-x2)+exp(x2))*sin(x1);			
-	    }else if(x2>=0.){
-		flux[0] = (2./Pi)*sin(Pi*x2)*cos(Pi*x2)*cos(x1);
-		flux[1] = ((1./(Pi*Pi))*sin(Pi*x2)*sin(Pi*x2)-2.)*sin(x1);	
-	    }
-	    break;
-	case ECouplingNSD:
-	    if(x2<1.){
-		flux[0] = -(1./8.)*Pi*Pi*x2*sin(Pi*x1/2.)*sin(1.-x2);
-		flux[1] = (1./4.)*Pi*cos(Pi*x1/2.)*(-x2*cos(1.-x2)+sin(1.-x2));			
-	    }else if(x2>=1.){
-	        flux[0] = cos(Pi*x2/2.)*cos(Pi*x2/2.)*sin(Pi*x1/2.);
-	        flux[1] = -cos(Pi*x1/2.)*((1./4.)*sin(Pi*x2)+Pi*x2/4.);	
-	    }
-	    break;
-	case ESinCosBDS3D:
-	    xs = 1./exp(fcBrinkman/fvisco);
+    case ECouplingSD:
+        if(x2<0.){
+        flux[0] = (exp(-x2)-exp(x2))*cos(x1);
+        flux[1] = -(exp(-x2)+exp(x2))*sin(x1);
+        }else if(x2>=0.){
+        flux[0] = (2./Pi)*sin(Pi*x2)*cos(Pi*x2)*cos(x1);
+        flux[1] = ((1./(Pi*Pi))*sin(Pi*x2)*sin(Pi*x2)-2.)*sin(x1);
+        }
+        break;
+    case ECouplingNSD:
+        if(x2<1.){
+        flux[0] = -(1./8.)*Pi*Pi*x2*sin(Pi*x1/2.)*sin(1.-x2);
+        flux[1] = (1./4.)*Pi*cos(Pi*x1/2.)*(-x2*cos(1.-x2)+sin(1.-x2));
+        }else if(x2>=1.){
+            flux[0] = cos(Pi*x2/2.)*cos(Pi*x2/2.)*sin(Pi*x1/2.);
+            flux[1] = -cos(Pi*x1/2.)*((1./4.)*sin(Pi*x2)+Pi*x2/4.);
+        }
+        break;
+    case ESinCosBDS3D:
+        xs = 1./exp(fcBrinkman/fvisco);
             flux[0] = -xs*sin(x1)*sin(x2)+(1.-xs)*sin(x1)*sin(x2);
             flux[1] = xs*(-cos(x1)*cos(x2)-sin(x2)*sin(x3))+(1.-xs)*(-cos(x1)*cos(x2)+sin(x2)*sin(x3));
             flux[2] = -xs*cos(x2)*cos(x3)+(1.-xs)*(-cos(x2)*cos(x3));
             break;
-	case EGatica3D:
-    	    flux[0] = cos(Pi*x1)*sin(Pi*x2)*sin(Pi*x3);
-	    flux[1] = sin(Pi*x1)*cos(Pi*x2)*sin(Pi*x3);
-	    flux[2] = -2.*sin(Pi*x1)*sin(Pi*x2)*cos(Pi*x3);
-	break;
-        case ESinCos3D:
+    case EGatica3D:
+            flux[0] = cos(Pi*x1)*sin(Pi*x2)*sin(Pi*x3);
+        flux[1] = sin(Pi*x1)*cos(Pi*x2)*sin(Pi*x3);
+        flux[2] = -2.*sin(Pi*x1)*sin(Pi*x2)*cos(Pi*x3);
+            break;
+    case ESinCos3D:
             flux[0] = -sin(x1)*sin(x2);
             flux[1] = -cos(x1)*cos(x2)-sin(x2)*sin(x3);
             flux[2] = -cos(x2)*cos(x3);
             break;
-        case EKovasznay:
-        case EKovasznayCDG:
-	    Re = 1./fvisco; //Reynolds number
+    case EKovasznay:
+    case EKovasznayCDG:
+        Re = 1./fvisco; //Reynolds number
             lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
             flux[0] = 1. - exp(lambda*x1)*cos(2.*Pi*x2);
             flux[1] = (lambda/(2.*Pi))*exp(lambda*x1)*sin(2.*Pi*x2);
             break;
-        case EPconst:
+    case EPconst:
             flux[0] = x1;
             flux[1] = -x2;
             break;
+    case EConstantFlow:
+            flux[0] = velocity+x1*0.;
+            flux[1] = x1*0.0;
+            flux[2] = x1*0.0;
+            break;
+    case ECouetteFlow:
+        {
+            flux[0] = velocity/2.*(x2+1.);
+            flux[1] = x2*0.;
+            flux[2] = x3*0.;
+            break;
+        }
+    case EPoisFlow:
+        {
+            flux[0] = fgradP*(1-x2*x2)/(2*fvisco);
+            flux[1] = x2*0.;
+            flux[2] = x3*0.;
+            break;
+        }
+            
+        case ETaylorCouette:
+        {
+            STATE Re = fRe;
+            STATE Ri = fRi;
+            
+            STATE u_inf = fvelocity;
+            
+            TVar r = sqrt(x1 * x1 * 1. + x2 * x2 * 1.);
+            
+            flux[0] = x1 * 0.;
+            flux[1] = x2 * 0.;
+            flux[2] = u_inf * (log(fRe / r)) / log(fRe / fRi);
+        }
+            break;
+            
+        case EElbow:
+        {
+            
+            flux[0] = -x2;
+            flux[1] = x1;
+            flux[2] = x3 * 0.;
+        }
+            break;
+            
+        case EPaperComp:
+        {
+            flux[0] = -256 * x1 * x1 * (x1 - 1) * (x1 - 1) * x2 * (x2 - 1) * (2 * x2 - 1);
+            flux[1] = 256 * x2 * x2 * (x2 - 1) * (x2 - 1) * x1 * (x1 - 1) * (2 * x1 - 1);
+            flux[2] = 0.0;
+        }
+            break;
+            
+        case ESimpleF:
+        {
+            flux[0] = x1 + x2 * x2;
+            flux[1] = -x2 + x1 * x1;
+            flux[2] = 0.0;
+        }
+            break;
+    
         default:
             DebugStop();
     }
-}
 
+}
 
 template<>
 void TStokesAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &flux) const
@@ -2340,7 +2393,7 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &f
     FADFADSTATE x2 = x[1];
     FADFADSTATE x3 = x[2];
     REAL Re = 0.;
-    REAL lambda = 0.;    
+    REAL lambda = 0.;
     FADFADSTATE xs = 0.;
     
     switch(fExactSol)
@@ -2354,39 +2407,39 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &f
             flux[1] = (FADFADSTATE) x1*0.;
             break;
         case ESinCosBDS:
-	    if(fvisco==0) xs = 0.;
-	    xs = 1./FADexp(fcBrinkman/fvisco);
+        if(fvisco==0) xs = 0.;
+        xs = 1./FADexp(fcBrinkman/fvisco);
             flux[0] = -xs*FADsin(x1)*FADsin(x2)+(1.-xs)*FADsin(x1)*FADsin(x2);
             flux[1] = -xs*FADcos(x1)*FADcos(x2)-(1.-xs)*FADcos(x1)*FADcos(x2);
             break;
-	case ECouplingSD:
-	    if(x2< (FADFADSTATE) 0.){
-		flux[0] = (FADexp(-x2)-FADexp(x2))*FADcos(x1);
-		flux[1] = -(FADexp(-x2)+FADexp(x2))*FADsin(x1);			
-	    }else if(x2>=(FADFADSTATE) 0.){
-		flux[0] = (2./Pi)*FADsin(Pi*x2)*FADcos(Pi*x2)*FADcos(x1);
-		flux[1] = ((1./(Pi*Pi))*FADsin(Pi*x2)*FADsin(Pi*x2)-2.)*FADsin(x1);	
-	    }
-	    break;
-	case ECouplingNSD:
-	    if(x2< (FADFADSTATE) 1.){
-		flux[0] = -(1./8.)*Pi*Pi*x2*FADsin(Pi*x1/2.)*FADsin(1.-x2);
-		flux[1] = (1./4.)*Pi*FADcos(Pi*x1/2.)*(-x2*FADcos(1.-x2)+FADsin(1.-x2));			
-	    }else if(x2>= (FADFADSTATE) 1.){
-	        flux[0] = FADcos(Pi*x2/2.)*FADcos(Pi*x2/2.)*FADsin(Pi*x1/2.);
-	        flux[1] = -FADcos(Pi*x1/2.)*((1./4.)*FADsin(Pi*x2)+Pi*x2/4.);	
-	    }
-	    break;
-	case ESinCosBDS3D:
-	    xs = 1./exp(fcBrinkman/fvisco);
+    case ECouplingSD:
+        if(x2< (FADFADSTATE) 0.){
+        flux[0] = (FADexp(-x2)-FADexp(x2))*FADcos(x1);
+        flux[1] = -(FADexp(-x2)+FADexp(x2))*FADsin(x1);
+        }else if(x2>=(FADFADSTATE) 0.){
+        flux[0] = (2./Pi)*FADsin(Pi*x2)*FADcos(Pi*x2)*FADcos(x1);
+        flux[1] = ((1./(Pi*Pi))*FADsin(Pi*x2)*FADsin(Pi*x2)-2.)*FADsin(x1);
+        }
+        break;
+    case ECouplingNSD:
+        if(x2< (FADFADSTATE) 1.){
+        flux[0] = -(1./8.)*Pi*Pi*x2*FADsin(Pi*x1/2.)*FADsin(1.-x2);
+        flux[1] = (1./4.)*Pi*FADcos(Pi*x1/2.)*(-x2*FADcos(1.-x2)+FADsin(1.-x2));
+        }else if(x2>= (FADFADSTATE) 1.){
+            flux[0] = FADcos(Pi*x2/2.)*FADcos(Pi*x2/2.)*FADsin(Pi*x1/2.);
+            flux[1] = -FADcos(Pi*x1/2.)*((1./4.)*FADsin(Pi*x2)+Pi*x2/4.);
+        }
+        break;
+    case ESinCosBDS3D:
+        xs = 1./exp(fcBrinkman/fvisco);
             flux[0] = -xs*FADsin(x1)*FADsin(x2)+(1.-xs)*FADsin(x1)*FADsin(x2);
             flux[1] = xs*(-FADcos(x1)*FADcos(x2)-FADsin(x2)*FADsin(x3))+(1.-xs)*(-FADcos(x1)*FADcos(x2)+FADsin(x2)*FADsin(x3));
             flux[2] = -xs*FADcos(x2)*FADcos(x3)+(1.-xs)*(-FADcos(x2)*FADcos(x3));
             break;
-	case EGatica3D:
-    	    flux[0] = FADcos(Pi*x1)*FADsin(Pi*x2)*FADsin(Pi*x3);
-	    flux[1] = FADsin(Pi*x1)*FADcos(Pi*x2)*FADsin(Pi*x3);
-	    flux[2] = -2.*FADsin(Pi*x1)*FADsin(Pi*x2)*FADcos(Pi*x3);
+    case EGatica3D:
+            flux[0] = FADcos(Pi*x1)*FADsin(Pi*x2)*FADsin(Pi*x3);
+        flux[1] = FADsin(Pi*x1)*FADcos(Pi*x2)*FADsin(Pi*x3);
+        flux[2] = -2.*FADsin(Pi*x1)*FADsin(Pi*x2)*FADcos(Pi*x3);
         case ESinCos3D:
             flux[0] = -FADsin(x1)*FADsin(x2);
             flux[1] = -FADcos(x1)*FADcos(x2)-FADsin(x2)*FADsin(x3);
@@ -2394,7 +2447,7 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &f
             break;
         case EKovasznay:
         case EKovasznayCDG:
-	    Re = 1./fvisco; //Reynolds number
+        Re = 1./fvisco; //Reynolds number
             lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
             flux[0] = 1. - FADexp(lambda*x1)*FADcos(2.*Pi*x2);
             flux[1] = (lambda/(2.*Pi))*FADexp(lambda*x1)*FADsin(2.*Pi*x2);
@@ -2403,6 +2456,64 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &f
             flux[0] = x1;
             flux[1] = -x2;
             break;
+        case EConstantFlow:
+        {
+            flux[0] = (FADFADSTATE) fvelocity + x1*0;
+            flux[1] = (FADFADSTATE) x2*0.;
+            flux[2] = (FADFADSTATE) x3*0.;
+            break;
+        }
+        case ECouetteFlow:
+        {
+            flux[0] =(FADFADSTATE) fvelocity/2.*(x2+1.);
+            flux[1] = (FADFADSTATE) x2*0.;
+            flux[2] = (FADFADSTATE) x3*0.;
+            break;
+        }
+        case EPoisFlow:
+            flux[0] = (FADFADSTATE) fgradP*(1-(x2*x2))/(2*fvisco);
+            flux[1] = (FADFADSTATE) 0.*x2;
+            flux[2] = (FADFADSTATE) 0.*x1;
+            break;
+            
+        case ETaylorCouette:
+        {
+            FADFADSTATE Re = (FADFADSTATE) fRe + 0.0 * x1;
+            FADFADSTATE Ri = (FADFADSTATE) fRi + 0.0 * x1;
+            
+            FADFADSTATE u_inf = (FADFADSTATE) fvelocity + 0.0 * x1;
+            
+            flux[0] = (FADFADSTATE) x1 * 0.0;
+            flux[1] = (FADFADSTATE) x2 * 0.0;
+            flux[2] = (FADFADSTATE) u_inf * (FADlog(Re / FADsqrt(x1 * x1 + x2 * x2)) / FADlog(Re / Ri)) + 0.0 * x1;
+        }
+            break;
+            
+        case EElbow:
+        {
+            
+            flux[0] = (FADFADSTATE) - x2 * 1.0;
+            flux[1] = (FADFADSTATE) x1 * 1.0;
+            flux[2] = (FADFADSTATE) x3 * 0.0;
+        }
+            break;
+            
+        case EPaperComp:
+        {
+            flux[0] = (FADFADSTATE) -256 * x1 * x1 * (x1 - 1) * (x1 - 1) * x2 * (x2 - 1) * (2 * x2 - 1);
+            flux[1] = (FADFADSTATE) 256 * x2 * x2 * (x2 - 1) * (x2 - 1) * x1 * (x1 - 1) * (2 * x1 - 1);
+            flux[2] = (FADFADSTATE) 0.0 * x1;
+        }
+            break;
+            
+        case ESimpleF:
+        {
+            flux[0] = (FADFADSTATE) 1.0 * x1 + 1.0 * x2 * x2;
+            flux[1] = (FADFADSTATE) -1.0 * x2 + x1 * x1;
+            flux[2] = (FADFADSTATE) 0.0 * x2;
+        }
+            break;
+            
         default:
             DebugStop();
     }
@@ -2417,7 +2528,9 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
     TVar x3 = x[2];
     TPZVec<TVar> flux(3,0.);
     REAL Re = 0.;
-    REAL lambda = 0.;    
+    REAL lambda = 0.;
+    
+    TVar press = fconstPressure;
     
     switch(fExactSol)
     {
@@ -2428,20 +2541,20 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
         case ENoFlow:
             p = multRa*(x2*x2*x2-(x2*x2)/2.+x2-7./12.);
             break;
-	case ECouplingSD:
-	    if(x2<0.){
-		p = (-exp(-x2)+exp(x2))*sin(x1);		
-	    }else if(x2>=0.){
-		p = sin(x1)*sin(x2);
-	    }
-	    break;
-	case ECouplingNSD:
-	    if(x2<1.){
-		p = -(Pi*x2/4.)*cos(Pi*x1/2.)*sin(1.-x2);		
-	    }else if(x2>=1.){
+    case ECouplingSD:
+        if(x2<0.){
+        p = (-exp(-x2)+exp(x2))*sin(x1);
+        }else if(x2>=0.){
+        p = sin(x1)*sin(x2);
+        }
+        break;
+    case ECouplingNSD:
+        if(x2<1.){
+        p = -(Pi*x2/4.)*cos(Pi*x1/2.)*sin(1.-x2);
+        }else if(x2>=1.){
                 p = (Pi/4.)*cos(Pi*x1/2.)*(x2-1.-cos(Pi*x2))*sin(x2-1.);
-	    }
-	    break;
+        }
+        break;
         case ESinCos3D:
         case ESinCosBDS3D:
             p = cos(x1)*sin(x2)+cos(x2)*sin(x3);
@@ -2450,12 +2563,12 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
             p = sin(Pi*x1)*sin(Pi*x2)*sin(Pi*x3);
             break;
         case EKovasznay:
-	    Re = 1./fvisco; //Reynolds number
+        Re = 1./fvisco; //Reynolds number
             lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
             p = -(1./2.)*exp(2.*lambda*x1);
             break;
         case EKovasznayCDG:
-	    Re = 1./fvisco; //Reynolds number
+        Re = 1./fvisco; //Reynolds number
             lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
             flux[0] = 1. - exp(lambda*x1)*cos(2.*Pi*x2);
             flux[1] = (lambda/(2.*Pi))*exp(lambda*x1)*sin(2.*Pi*x2);
@@ -2465,6 +2578,45 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
         case EPconst:
             p = 1;
             break;
+        case EConstantFlow:
+        {
+            p = press + x1*0.0;
+        }
+            break;
+        case ECouetteFlow:
+        {
+            p = 0.+x1*0.;
+            break;
+        }
+        case EPoisFlow:
+        {
+            p = fconstPressure * x1;
+            break;
+        }
+        case ETaylorCouette:
+        {
+            p = fconstPressure + x1 * 0.0;
+        }
+            break;
+            
+        case EElbow:
+        {
+            p = x1 * 0.0 + fconstPressure;
+        }
+            break;
+            
+        case EPaperComp:
+        {
+            p = 150 * (x1 - 0.5) * (x2 - 0.5);
+        }
+            break;
+            
+        case ESimpleF:
+        {
+            p = 1.0;
+        }
+            break;
+            
         default:
             DebugStop();
     }
@@ -2479,7 +2631,7 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
     TPZVec<FADFADSTATE > flux(3,0.);
     REAL Re = 0.;
     REAL lambda = 0.;
-    FADFADSTATE fadRa = multRa;    
+    FADFADSTATE fadRa = multRa;
 
     switch(fExactSol)
     {
@@ -2490,20 +2642,20 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
         case ENoFlow:
             p = (FADFADSTATE) fadRa*(x2*x2*x2-(x2*x2)/2.+x2-7./12.);
             break;
-	case ECouplingSD:
-	    if(x2< (FADFADSTATE) 0.){
-		p = (-FADexp(-x2)+FADexp(x2))*FADsin(x1);		
-	    }else if(x2>= (FADFADSTATE) 0.){
-		p = FADsin(x1)*FADsin(x2);
-	    }
-	    break;
-	case ECouplingNSD:
-	    if(x2< (FADFADSTATE)1.){
-		p = -(Pi*x2/4.)*FADcos(Pi*x1/2.)*FADsin(1.-x2);		
-	    }else if(x2>= (FADFADSTATE)1.){
+    case ECouplingSD:
+        if(x2< (FADFADSTATE) 0.){
+        p = (-FADexp(-x2)+FADexp(x2))*FADsin(x1);
+        }else if(x2>= (FADFADSTATE) 0.){
+        p = FADsin(x1)*FADsin(x2);
+        }
+        break;
+    case ECouplingNSD:
+        if(x2< (FADFADSTATE)1.){
+        p = -(Pi*x2/4.)*FADcos(Pi*x1/2.)*FADsin(1.-x2);
+        }else if(x2>= (FADFADSTATE)1.){
                 p = (Pi/4.)*FADcos(Pi*x1/2.)*(x2-1.-FADcos(Pi*x2))*FADsin(x2-1.);
-	    }
-	    break;
+        }
+        break;
         case ESinCos3D:
         case ESinCosBDS3D:
             p = FADcos(x1)*FADsin(x2)+FADcos(x2)*FADsin(x3);
@@ -2512,12 +2664,12 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
             p = FADsin(Pi*x1)*FADsin(Pi*x2)*FADsin(Pi*x3);
             break;
         case EKovasznay:
-	    Re = 1./fvisco; //Reynolds number
+        Re = 1./fvisco; //Reynolds number
             lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
             p = -(1./2.)*FADexp(2.*lambda*x1);
             break;
         case EKovasznayCDG:
-	    Re = 1./fvisco; //Reynolds number
+        Re = 1./fvisco; //Reynolds number
             lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
             flux[0] = 1. - FADexp(lambda*x1)*FADcos(2.*Pi*x2);
             flux[1] = (lambda/(2.*Pi))*FADexp(lambda*x1)*FADsin(2.*Pi*x2);
@@ -2526,6 +2678,46 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
             break;
         case EPconst:
             p = 1;
+            break;
+        case EConstantFlow:
+        {
+            p = fconstPressure;
+            break;
+        }
+            
+        case ECouetteFlow:
+        {
+            p = (FADFADSTATE) 0.0 +x1 * 0.0;
+        }
+            break;
+            
+        case EPoisFlow:
+        {
+            p = (FADFADSTATE) fconstPressure * x1;
+        }
+        case ETaylorCouette:
+        {
+            p = (FADFADSTATE) fconstPressure + x1 * 0.0;
+        }
+            break;
+            
+        case EElbow:
+        {
+            p = (FADFADSTATE) fconstPressure + x1 * 0.0;
+        }
+            break;
+            
+        case EPaperComp:
+        {
+            p = (FADFADSTATE) 150 * (x1 - 0.5) * (x2 - 0.5);
+        }
+            break;
+            
+        case ESimpleF:
+        {
+            p = (FADFADSTATE) 1.0 + 0.0 * x1;
+        }
+            
             break;
         default:
             DebugStop();
@@ -2686,11 +2878,11 @@ void TStokesAnalytic::Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
             break;
 
         case EBrinkman:
-    	    uxy(xst,beta);
+            uxy(xst,beta);
             force[0] = -locforce[0]+fcBrinkman*beta[0];
             force[1] = -locforce[1]+fcBrinkman*beta[1];
             force[2] = -locforce[2]+fcBrinkman*beta[2];
-	    graduxy(xst,grad);
+        graduxy(xst,grad);
             force[3] = grad(0,0)+grad(1,1)+grad(2,2); //Pressure block term
             break;
             
@@ -2757,6 +2949,8 @@ void TStokesAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMa
     }
     TPZManVector<Fad<STATE>,3> u_result(3);
     uxy(xfad,u_result);
+    TPZFNMatrix<9, Fad<STATE> > gradu_result(3,3);
+    graduxy(xfad, gradu_result);
     gradsol.Redim(3,3);
     sol.resize(4);
     for (int i = 0; i < 3; i++) {
@@ -2765,7 +2959,7 @@ void TStokesAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMa
     for(int i=0; i<fDimension; i++) {
         for (int j=0; j<fDimension; j++)
         {
-              gradsol(i,j) = u_result[j].d(i);
+              gradsol(i,j) = gradu_result(i,j).val();
         }
     }
     Fad<STATE> p_result = 0.;

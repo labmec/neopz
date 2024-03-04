@@ -274,7 +274,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
 
 struct TElasticity3DAnalytic : public TPZAnalyticSolution
 {
-    enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EStretchz, EShearXY, EShearXZ, EShearYZ, EBend, ELoadedBeam, Etest1,Etest2, ETestShearMoment, ESphere, EYotov };
+    enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EStretchz, EShear, EBend, ELoadedBeam, Etest1,Etest2, ETestShearMoment, ESphere, EYotov };
     
     EDefState fProblemType = ENone;
     
@@ -464,7 +464,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     
     enum MProblemType {EStokes, ENavierStokes, EOseen, ENavierStokesCDG, EOseenCDG, EBrinkman};
     
-    enum EExactSol {ENone, ECavity,  EKovasznay, EKovasznayCDG, ESinCos, ENoFlow, ESinCos3D, EPconst, EObstacles, EOneCurve , ESinCosBDS, ESinCosBDS3D, EGatica3D, ECouplingSD, ECouplingNSD, EVugs2D, EVugs3D, EInfiltrationNS};
+    enum EExactSol {ENone, ECavity,  EKovasznay, EKovasznayCDG, ESinCos, ENoFlow, ESinCos3D, EPconst, EObstacles, EOneCurve , ESinCosBDS, ESinCosBDS3D, EGatica3D, ECouplingSD, ECouplingNSD, EVugs2D, EVugs3D, EInfiltrationNS, EConstantFlow, ECouetteFlow, EPoisFlow, ETaylorCouette, EElbow, EPaperComp, ESimpleF};
     
     int fDimension = 2;
     
@@ -479,6 +479,16 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     REAL Pi = M_PI;
         
     REAL fcBrinkman = 1.;
+    
+    REAL fvelocity = 1.;
+    
+    REAL fconstPressure = 1.;
+    
+    REAL fgradP = 1.;
+    
+    REAL fRe = 2.;
+    
+    REAL fRi = 1.;
         
     TPZManVector<REAL,3> fCenter;
     
