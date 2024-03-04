@@ -278,10 +278,10 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
             }
             if(el->HasDependency()){
                 ek.fConstrMat.Print(sout);
-                if(ComputeRhs()){ef.fConstrMat.Print(sout);}
+                ef.fConstrMat.Print(sout);
             }else{
                 ek.fMat.Print("ek", sout, EMathematicaInput);
-                if(ComputeRhs()){ef.fMat.Print(sout);}
+                ef.fMat.Print("ef", sout, EMathematicaInput);
             }
             LOGPZ_DEBUG(loggerel, sout.str())
         }

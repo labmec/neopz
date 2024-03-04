@@ -46,6 +46,10 @@ TPZCompEl(mesh, copy)
  */
 void TPZElementGroup::AddElement(TPZCompEl *cel)
 {
+#ifdef PZDEBUG
+    if (!cel) DebugStop();
+#endif
+    
     fElGroup.Push(cel);
     std::set<int64_t> connects;
     int nc = fConnectIndexes.size();

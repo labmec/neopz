@@ -362,10 +362,15 @@ namespace pztopology {
         TPZTransform<T> Transf;
         Transf.CopyFrom(pztopology::TPZQuadrilateral::SideToSideTransform(NSides - 1, side));
 		SidePar.Resize(SideDimension(side));
+        
+        constexpr int dim = TPZQuadrilateral::Dimension;
+        if (InternalPar.size() < dim) DebugStop();
+        InternalPar.resize(dim);
+        
 		Transf.Apply(InternalPar,SidePar);
 		
-		int R = Transf.Mult().Rows();
-		int C = Transf.Mult().Cols();
+		int64_t R = Transf.Mult().Rows();
+		int64_t C = Transf.Mult().Cols();
 		
 		JacToSide.Resize(R,C);
 		for(int i = 0; i < R; i++)

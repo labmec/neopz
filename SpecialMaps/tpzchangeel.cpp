@@ -730,11 +730,14 @@ void TPZChangeEl::StoreNeighbours(TPZGeoEl* gel, TPZVec<TPZGeoElSide> &neighs)
     neighs.Resize(nsides);
     for(int s = 0; s < nsides; s++)
     {   
-        TPZGeoElSide mySide(gel, s);
-        TPZGeoElSide neigh = mySide.Neighbour();
-        if(neigh.Exists() && neigh.Element() != gel){
-            neighs[s] = neigh;
+        TPZGeoElSide prevSide(gel, s), gelside(gel,s);
+        prevSide--;
+#ifdef PZDEBUG
+        if(prevSide.Neighbour() != gelside) {
+            DebugStop();
         }
+#endif
+        if(prevSide != gelside) neighs[s] = prevSide;
     }
 }
 void TPZChangeEl::RestoreNeighbours(TPZGeoEl* gel, TPZVec<TPZGeoElSide> &neighs)
