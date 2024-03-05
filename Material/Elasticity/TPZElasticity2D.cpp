@@ -47,12 +47,23 @@ TPZElasticity2D::TPZElasticity2D(int id) :
 
 
 TPZElasticity2D::TPZElasticity2D(int id, STATE E, STATE nu,
-                                 STATE fx, STATE fy, int planestress) :
-    TPZRegisterClassId(&TPZElasticity2D::ClassId),
-    TBase(id), fE_def(E), fnu_def(nu), ff(2,0.)
-{
+                                 STATE fx, STATE fy, int planestress) : TPZRegisterClassId(&TPZElasticity2D::ClassId), TBase(id), ff(3,0.){
+    fPlaneStress = planestress;
+    fE_def = E;
+    fnu_def = nu;
     ff[0] = fx;
     ff[1] = fy;
+    ff[2] = 0.; // Z component of the body force - not used for this class
+    
+    fPreStressXX = 0.;  //Prestress in the x direction
+    fPreStressYY = 0.;  //Prestress in the y direction
+    fPreStressXY = 0.;  //Prestress in the z direction
+    fPreStressZZ = 0.;  //Prestress in the z direction
+    fPlaneStress = 0;
+    
+    // Added by Philippe 2012
+    fPostProcIndex = 0;
+
 }
 
 void TPZElasticity2D::SetPreStress(STATE Sigxx, STATE Sigyy, STATE Sigxy, STATE Sigzz){
