@@ -216,7 +216,7 @@ void TPZDarcyFlow::Solution(const TPZMaterialDataT<STATE> &data, int var, TPZVec
             TPZFNMatrix<9, STATE> dsoldx;
             TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dsoldx, data.axes);
             const STATE perm = GetPermeability(data.x);
-            for (int id = 0; id < fDim; id++) {
+            for (int id = 0; id < 3; id++) {
                 solOut[id] = - perm * dsoldx(id, 0);
             }
             return;
