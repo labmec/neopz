@@ -17,7 +17,7 @@
 static TPZLogger CompElWMemlogger("mesh.TPZCompElWithMem");
 #endif
 
-bool gSinglePointMemory = false;
+bool gSinglePointMemory = true;
 
 template<class TBASE>
 TPZCompElWithMem<TBASE>::~TPZCompElWithMem() {
