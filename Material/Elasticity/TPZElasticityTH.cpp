@@ -189,7 +189,7 @@ void TPZElasticityTH::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datave
     {
         val1 = bc.Val1();
         val2 = bc.Val2();
-    }
+    }    
     switch (bc.Type())
     {
         case 0 : // Dirichlet condition at x and y direction
@@ -266,6 +266,18 @@ void TPZElasticityTH::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datave
             }
             break;
         }          
+		case 6: // stressField Neumann condition
+			for(int in = 0; in < fdimension; in++)
+                for(int jn = 0; jn < fdimension; jn++)
+                    val2[in] += - val1(in,jn) * datavec[EUindex].normal[jn];
+			// The normal vector points towards the neighbour. The negative sign is there to 
+			// reflect the outward normal vector.
+			for(int in = 0 ; in < nShapeU; in++) {
+                for(int idim = 0; idim < fdimension; idim++){
+                    ef(fdimension*in+idim,0) += val2[idim] * PhiU(in,0) * weight;    
+                }				
+			}
+			break;        
 
         default:
         {
