@@ -61,112 +61,105 @@ TPZElasticityTH::~TPZElasticityTH() {}
 
 void TPZElasticityTH::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    TPZFMatrix<REAL>& PhiU = datavec[EUindex].phi;
-    int64_t nShapeU = PhiU.Rows(); // for p=2 should be 9?
+    /*
+    This function computes the matrix contribution of each element, that has the following structure:
+        |K   G|
+        |GT  S|,
+        where K is the stiffness matrix, G the gradient operator, GT the divergence operator and S the bulk matrix
+    */
 
-    TPZFMatrix<REAL>& PhiP = datavec[EPindex].phi;
-    int64_t nShapeP = PhiP.Rows(); // number of pressure H1 shape functions
+    TPZFMatrix<REAL> &PhiU = datavec[EUindex].phi;
+    int64_t nShapeU = PhiU.Rows();
 
-    const int n = fdimension * (fdimension + 1) / 2; // number of independent components of stress tensor in voight notation
-    // TPZFNMatrix<150, REAL> Strain(n, nShapeU, 0.0);  // Using voight notation
+    TPZFMatrix<REAL> &PhiP = datavec[EPindex].phi;
+    int64_t nShapeP = PhiP.Rows();
 
     TPZFNMatrix<60, REAL> dphi = datavec[EUindex].dphix;
     auto axes = datavec[EUindex].axes;
 
-    TPZFNMatrix<60, REAL> dPhiU(fdimension, nShapeU, 0.);
-    TPZAxesTools<REAL>::Axes2XYZ(dphi, dPhiU, axes);
+    TPZFNMatrix<3, REAL> dphiU(fdimension, nShapeU, 0.0);
+    TPZAxesTools<REAL>::Axes2XYZ(dphi, dphiU, axes);
 
     TPZFNMatrix<3, REAL> SourceTerm(fdimension, 1, 0.0);
     TPZVec<REAL> sourceAux(3);
+
     if (this->HasForcingFunction())
     {
         this->ForcingFunction()(datavec[EUindex].x, sourceAux);
         for (int64_t i = 0; i < fdimension; i++)
-        {
             SourceTerm(i, 0) = sourceAux[i];
+    }
+
+    const int n = fdimension * (fdimension + 1) / 2; //number of independent variables using Voight notation
+
+    //We shall divide by 2 the off diagonal part to account for the symmetry when doing the inner product of two tensors
+    //and the 1/2 comming from each matrix B that represents the strain tensor, so 1/2*1/2*2 = 1/2
+    TPZFNMatrix<36, REAL> D(n, n, 0.0); //Elasticity tensor D
+    DeviatoricElasticityTensor(D);
+    for (int i = fdimension; i < n; i++)
+        D(i,i) *= 0.5;
+
+    // divergence matrix
+    TPZFNMatrix<150, STATE> divPhiU(fdimension * nShapeU, 1, 0.0);
+    for (int j = 0; j < nShapeU; j++)
+        for (int i = 0; i < fdimension; i++)
+            divPhiU(j * fdimension + i, 0) = dphiU(i, j);
+
+    // strain matrix B
+    TPZFNMatrix<150, STATE> matrixB(n, nShapeU * fdimension, 0.0);
+
+    for (int j = 0; j < nShapeU; j++)
+    {
+        int cont = fdimension;
+        for (int i = 0; i < fdimension; i++)
+        {
+            matrixB(i, j * fdimension + i) = dphiU(i, j);
+
+            for (int k = i + 1; k < fdimension; k++)
+            {
+                matrixB(cont, fdimension * j + i) = dphiU(k, j);
+                matrixB(cont, fdimension * j + k) = dphiU(i, j);
+                cont++;
+            }
         }
     }
 
-    // TPZFNMatrix<36, REAL> D(n, n, 0.0);
-    // DeviatoricElasticityTensor(D);
-    // for (int i = fdimension; i < n; i++) // The terms related to the off diagonal part of strain tensor is multiplied by 2 to account for its symmetry
-    //     D(i, i) *= 2.0;
-
-    // Body Forces contribution
-    // ef.AddContribution(0, 0, PhiU, true, SourceTerm, false, weight);
-
-    // if (datavec.size() > 2) // Static condensation in incompressibility regime
-    // {
-    //     TPZFMatrix<REAL> &PhiUM = datavec[EVMindex].phi;
-    //     TPZFMatrix<REAL> &phipM = datavec[EPMindex].phi;
-
-    // 2mu e(u) x e(v) diagonal term
-    const int dim = Dimension();
-    for (int i = 0; i < nShapeU; i++) {
-        const STATE dvxdx = dPhiU(0, i), dvxdy = dPhiU(1, i);
-        const STATE dvydx = dPhiU(0, i), dvydy = dPhiU(1, i);
-        // Load vector test function times source term        
-        ef(i*dim,0) += SourceTerm(0, 0) * PhiU(i, 0) * weight;
-        ef(i*dim+1,0) += SourceTerm(1, 0) * PhiU(i, 0) * weight;
-
-        for (int j = 0; j < nShapeU; j++) {
-            // ek(i*dim,j*dim) += 2.0 * fmu * (dPhiU(0, i) * dPhiU(0, j) + 0.5 * dPhiU(1, i) * dPhiU(1, j)) * weight;
-            // ek(i*dim,j*dim+1) += 2.0 * fmu * (dPhiU(1, i) * dPhiU(0, j)) * weight;
-            // ek(j*dim,i*dim+1) += 2.0 * fmu * (dPhiU(1, i) * dPhiU(0, j)) * weight;
-            // ek(i*dim+1,j*dim+1) += 2.0 * fmu * (dPhiU(1, i) * dPhiU(1, j) + 0.5 * dPhiU(0, i) * dPhiU(0, j)) * weight;
-            const STATE duxdx = dPhiU(0, j), duxdy = dPhiU(1, j);
-            const STATE duydx = dPhiU(0, j), duydy = dPhiU(1, j);           
-            
-            ek(i*dim,j*dim) += fmu*(duxdy*dvxdy + duxdx*dvxdx) * weight;
-            ek(i*dim,j*dim+1) += fmu*(dvxdy*duydx - dvxdx*duydy) * weight;
-            ek(i*dim+1,j*dim) += fmu*(dvydx*duxdy - dvydy*duxdx) * weight;
-            ek(i*dim+1,j*dim+1) += fmu*(duydx*dvydx + duydy*dvydy) * weight;            
-            // ek(i*dim,j*dim) += fmu*(duxdy*dvxdy + duxdx*dvxdx) * weight;
-            // ek(i*dim,j*dim+1) += fmu*(dvxdy*duydx - dvxdx*duydy) * weight;
-            // ek(j*dim,i*dim+1) += fmu*(dvxdy*duydx - dvxdx*duydy) * weight;
-            // ek(i*dim+1,j*dim+1) += fmu*(duydx*dvydx + duydy*dvydy) * weight;            
-
-        }
-        for (int j = 0; j < nShapeP; j++) {
-            const STATE contrib1 = -PhiP(j, 0) * dPhiU(0, i) * weight,
-                contrib2 = -PhiP(j, 0) * dPhiU(1, i) * weight;
-            ek(i*dim,j+dim*nShapeU) += contrib1;
-            ek(i*dim+1,j+dim*nShapeU) += contrib2;
-            
-            // Complete the symmetric part of ek
-            ek(j+dim*nShapeU,i*dim) += contrib1;
-            ek(j+dim*nShapeU,i*dim+1) += contrib2;
+    TPZFMatrix<REAL> phiU_force(fdimension * nShapeU, fdimension, 0.0);
+    for (int j = 0; j < nShapeU; j++)
+    {
+        for (int i = 0; i < fdimension; i++)
+        {
+            phiU_force(fdimension * j + i, i) = PhiU(j);
         }
     }
+
+    // body forces contribution
+    ef.AddContribution(0, 0, phiU_force, false, SourceTerm, false, weight);
+
+    //Stiffness - Matrix K contribution
+    TPZFNMatrix<150, REAL> aux;
+    D.Multiply(matrixB, aux);
     
+    REAL factor = weight;
+    ek.AddContribution(0, 0, matrixB, true, aux, false, factor);
 
-    // q x p / kappa diagonal term 
-    for (int i = 0; i < nShapeP; i++) {
-      for (int j = 0; j < nShapeP; j++) {
-        ek(dim*nShapeU + i, dim*nShapeU + j) += -PhiP(i, 0) * PhiP(j, 0) / fbulk * weight;
-      }
-    }
+    // Gradient - matrix G contribution
+    factor = -weight;
+    ek.AddContribution(0, fdimension*nShapeU, divPhiU, false, PhiP, true, factor);
 
-    //     // Pressure and distributed displacement
-    //     for (int j = 0; j < nShapeP; j++)
-    //     {
-    //         ek(nShapeU + nShapeP, nShapeU + j) += PhiP(j, 0) * PhiUM(0, 0) * weight;
-    //         ek(nShapeU + j, nShapeU + nShapeP) += PhiP(j, 0) * PhiUM(0, 0) * weight;
-    //     }
+    // Divergence - Matrix GT contribution
+    ek.AddContribution(fdimension*nShapeU, 0, PhiP, false, divPhiU, true, factor);
 
-    //     // Injection and average-pressure
-    //     ek(nShapeU + nShapeP + 1, nShapeU + nShapeP) += PhiUM(0, 0) * phipM(0, 0) * weight;
-    //     ek(nShapeU + nShapeP, nShapeU + nShapeP + 1) += PhiUM(0, 0) * phipM(0, 0) * weight;
-    // }
+    //Bulk Matrix S contribution
+    factor = -(1.0 / fbulk) * weight;
+    ek.AddContribution(fdimension*nShapeU, fdimension*nShapeU, PhiP, false, PhiP, true, factor);
 
 #ifdef PZ_LOG
-    if (logger.isDebugEnabled())
-    {
+    if(logger.isDebugEnabled()){
         std::stringstream sout;
         ek.Print("ek", sout, EMathematicaInput);
         ef.Print("ef", sout, EMathematicaInput);
-        sout << std::endl
-             << std::endl;
+        sout << std::endl << std::endl;
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -197,57 +190,82 @@ void TPZElasticityTH::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datave
         val1 = bc.Val1();
         val2 = bc.Val2();
     }
-    switch (bc.Type()) {
-        case 0 :			// Dirichlet condition
+    switch (bc.Type())
+    {
+        case 0 : // Dirichlet condition at x and y direction
         {
-            for(int in = 0 ; in < nShapeU; in++) {
-                ef(2*in,0)   += BIGNUMBER * val2[0] * PhiU(in,0) * weight;        // forced v2 displacement
-                ef(2*in+1,0) += BIGNUMBER * val2[1] * PhiU(in,0) * weight;        // forced v2 displacement
-                for (int jn = 0 ; jn < nShapeU; jn++) {
-                    ek(2*in,2*jn)     += BIGNUMBER * PhiU(in,0) *PhiU(jn,0) * weight;
-                    ek(2*in+1,2*jn+1) += BIGNUMBER * PhiU(in,0) *PhiU(jn,0) * weight;
+            for(int i = 0 ; i < nShapeU; i++)
+            {
+                for (int j = 0; j < fdimension; j++)
+                {
+                    ef(fdimension*i+j, 0) += BIGNUMBER * val2[j] * PhiU(i,0) * weight;
+                    for (int k = 0; k < nShapeU; k++)
+                    {
+                        ek(fdimension*i+j, fdimension*k+j) += BIGNUMBER * PhiU(i,0) *PhiU(k,0) * weight;
+                    }
                 }
             }
-        }
             break;
-            
-        case 1 :		// Neumann condition
+        }
+        case 1 : // Neumann condition
         {
-            for (int in = 0; in < nShapeU; in++) 
+            for (int i = 0; i < nShapeU; i++) 
             {
-              ef(2 * in, 0) += val2[0] * PhiU(in, 0) * weight;      // force in x direction
-              ef(2 * in + 1, 0) += val2[1] * PhiU(in, 0) * weight;  // force in y direction
+                for (int j = 0; j < fdimension; j++)
+                {
+                    ef(fdimension*i, 0) += val2[j] * PhiU(i, 0) * weight;
+                }
             }
-        }
             break;
+        }
             
-        case 2 :		// Mixed Condition
+        case 2 : // Mixed Condition
         {
             DebugStop(); // Implement me            
             break;
         }
         
-        case 3 :			// Dirichlet X condition
+        case 3 : // Dirichlet X condition
         {
-            for(int in = 0 ; in < nShapeU; in++) {
-                ef(2*in,0)   += BIGNUMBER * val2[0] * PhiU(in,0) * weight;        // forced x displacement
-                for (int jn = 0 ; jn < nShapeU; jn++) {
-                    ek(2*in,2*jn)     += BIGNUMBER * PhiU(in,0) *PhiU(jn,0) * weight;
+            for(int i = 0 ; i < nShapeU; i++)
+            {
+                ef(fdimension*i, 0) += BIGNUMBER * val2[0] * PhiU(i,0) * weight; // forced x displacement
+                for (int j = 0 ; j < nShapeU; j++)
+                {
+                    ek(fdimension*i,fdimension*j) += BIGNUMBER * PhiU(i,0) *PhiU(j,0) * weight;
                 }
             }
-        }
             break;
+        }
 
-        case 4 :			// Dirichlet Y condition
+        case 4 : // Dirichlet Y condition
         {
-            for(int in = 0 ; in < nShapeU; in++) {
-                ef(2*in+1,0) += BIGNUMBER * val2[1] * PhiU(in,0) * weight;        // forced y displacement
-                for (int jn = 0 ; jn < nShapeU; jn++) {
-                    ek(2*in+1,2*jn+1) += BIGNUMBER * PhiU(in,0) *PhiU(jn,0) * weight;
+            for(int i = 0 ; i < nShapeU; i++)
+            {
+                ef(fdimension*i+1, 0) += BIGNUMBER * val2[1] * PhiU(i,0) * weight; // forced y displacement
+                for (int j = 0 ; j < nShapeU; j++)
+                {
+                    ek(fdimension*i+1,fdimension*j+1) += BIGNUMBER * PhiU(i,0) *PhiU(j,0) * weight;
                 }
             }
+            break;
         }
-            break;            
+
+        case 5 : // Dirichlet Z condition
+        {   
+            if (fdimension != 3)
+                DebugStop();
+
+            for(int i = 0 ; i < nShapeU; i++)
+            {
+                ef(fdimension*i+2, 0) += BIGNUMBER * val2[2] * PhiU(i,0) * weight; // forced z displacement
+                for (int j = 0 ; j < nShapeU; j++)
+                {
+                    ek(fdimension*i+2,fdimension*j+2) += BIGNUMBER * PhiU(i,0) *PhiU(j,0) * weight;
+                }
+            }
+            break;
+        }          
 
         default:
         {
@@ -312,7 +330,11 @@ void TPZElasticityTH::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec, i
     TPZManVector<STATE, 3> u_h = datavec[EUindex].sol[0];
     TPZManVector<STATE, 3> p_h = datavec[EPindex].sol[0];
 
-    TPZFNMatrix<10, STATE> gradU = datavec[EUindex].dsol[0];
+    TPZFNMatrix<10, STATE> gradU_xsi = datavec[EUindex].dsol[0];
+    auto axes = datavec[EUindex].axes;
+    TPZFNMatrix<9, REAL> gradU(fdimension, fdimension, 0.0);
+    TPZAxesTools<REAL>::Axes2XYZ(gradU_xsi, gradU, axes);
+
     TPZFNMatrix<9, STATE> strain(3, 3, 0.0);
 
     const int n = fdimension * (fdimension + 1) / 2;
@@ -459,7 +481,6 @@ void TPZElasticityTH::FillDataRequirements(TPZVec<TPZMaterialDataT<STATE>> &data
         datavec[idata].fNeedsHSize = true;
         datavec[idata].fNeedsNormal = true;
     }
-    datavec[0].fNeedsDeformedDirectionsFad = true;
 }
 
 void TPZElasticityTH::FillBoundaryConditionDataRequirements(int type, TPZVec<TPZMaterialDataT<STATE>> &datavec) const
@@ -472,9 +493,7 @@ void TPZElasticityTH::FillBoundaryConditionDataRequirements(int type, TPZVec<TPZ
 
 void TPZElasticityTH::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZVec<REAL> &errors)
 {
-
     // 0: L2 p, 1: L2 p_ex, 2: L2 u, 3: L2 u_ex, 4: L2 divu, 5: L2 divu_ex, 6: L2 sigma, 7: L2 sigma_Ex
-
     if (!HasExactSol())
         DebugStop();
 
@@ -485,17 +504,38 @@ void TPZElasticityTH::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZVec
 
     // Getting the exact solution for velocity, pressure and velocity gradient
     fExactSol(data[EUindex].x, sol_exact, gradsol_exact);
-    REAL p_exact = -data[EUindex].x[1] * data[EUindex].x[2] / 3.; // Just for computing Bishop beam when poisson is 0.5. Remember to delete later.
 
     // Getting the numeric solution for velocity, pressure and velocity gradient
     TPZManVector<STATE> u_h(3, 0.0);
     TPZManVector<STATE> p_h(1, 0.0);
-    TPZFNMatrix<10, STATE> gradv_h = data[EUindex].dsol[0];
+    TPZFNMatrix<10, STATE> gradU_xsi = data[EUindex].dsol[0];
+    auto axes = data[EUindex].axes;
+    TPZFNMatrix<9, REAL> gradu_h(fdimension, fdimension, 0.0);
+    TPZAxesTools<REAL>::Axes2XYZ(gradU_xsi, gradu_h, axes);
 
     this->Solution(data, VariableIndex("Displacement"), u_h);
     this->Solution(data, VariableIndex("Pressure"), p_h);
 
-    STATE diffv, diffp, diffdiv;
+    const int n = fdimension * (fdimension + 1) / 2;
+    TPZFNMatrix<6, REAL> sigma_exact(n, 1), sigma_h(n, 1);
+    StressTensor(gradsol_exact, sigma_exact);
+    StressTensor(gradu_h, sigma_h, p_h[0]);
+
+    STATE p_exact = 0.0; //If poisson == 0.5, this will break, maybe create a mor general Elasticity Analytic Solution class to deal with this issue
+    for (int i = 0; i < fdimension; i++)
+    {
+        p_exact -= sigma_exact(i,i);
+    }
+    p_exact *= 1./fdimension;
+
+    STATE div_exact = 0.0, div_h = 0.0;
+    for (int i = 0; i < fdimension; i++)
+    {
+        div_exact += gradsol_exact(i, i);
+        div_h += gradu_h(i, i);
+    }
+
+    STATE diffu, diffp, diffdiv;
 
     diffp = p_h[0] - p_exact;
     errors[0] = diffp * diffp;
@@ -505,28 +545,14 @@ void TPZElasticityTH::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZVec
     errors[3] = 0.0;
     for (int i = 0; i < fdimension; i++)
     {
-        diffv = u_h[i] - sol_exact[i];
-        errors[2] += diffv * diffv;
+        diffu = u_h[i] - sol_exact[i];
+        errors[2] += diffu * diffu;
         errors[3] += sol_exact[i] * sol_exact[i];
-    }
-
-    STATE div_exact = 0.0, div_h = 0.0;
-    for (int i = 0; i < fdimension; i++)
-    {
-        div_exact += gradsol_exact(i, i);
-        div_h += gradv_h(i, i);
     }
 
     diffdiv = div_h - div_exact;
     errors[4] = diffdiv * diffdiv;
     errors[5] = div_exact * div_exact;
-
-    const int n = fdimension * (fdimension + 1) / 2;
-    TPZFNMatrix<6, REAL> sigma_exact(n, 1), sigma_h(n, 1);
-    DeviatoricStressTensor(gradsol_exact, sigma_exact); // Just for Bishop beam. remember to delete later
-    for (int i = 0; i < fdimension; i++)
-        sigma_exact(i, 0) -= p_exact;
-    StressTensor(gradv_h, sigma_h, p_h[0]);
 
     errors[6] = 0.0;
     errors[7] = 0.0;
@@ -540,7 +566,7 @@ void TPZElasticityTH::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZVec
     {
         const STATE diffsig = sigma_h(i, 0) - sigma_exact(i, 0);
         errors[6] += 2. * diffsig * diffsig;
-        errors[7] += sigma_exact(i, 0) * sigma_exact(i, 0);
+        errors[7] += 2. * sigma_exact(i, 0) * sigma_exact(i, 0);
     }
 }
 
