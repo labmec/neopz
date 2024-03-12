@@ -69,9 +69,32 @@ void TPZDarcyFlow::ContributeBC(const TPZMaterialDataT<STATE> &data, STATE weigh
 
     if (bc.HasForcingFunctionBC()) {
         TPZManVector<STATE, 1> rhs_val(1);
-        TPZFNMatrix<1, STATE> mat_val(1, 1);
+        TPZFNMatrix<1, STATE> mat_val(fDim, 1);
         bc.ForcingFunctionBC()(data.x, rhs_val, mat_val);
-        v2 = rhs_val[0];
+        // MinusKGradU/Flux;
+        const STATE perm = GetPermeability(data.x);
+        TPZManVector<STATE, 3> Flux(fDim, 0.);
+        for (int id = 0; id < fDim; id++) {
+            Flux[id] = - perm * mat_val(id, 0);
+        }
+        TPZManVector<REAL,3> normal(3,0.);
+        for (int i = 0; i < fDim; i++) {
+            normal[i] = data.normal[i];
+        }
+        if(bc.Type() == 0) {
+            v2 = rhs_val[0];
+        } else if(bc.Type() == 1) {
+            v2 = 0.;
+            for (int i = 0; i < fDim; i++) {
+                v2 += Flux[i] * normal[i];
+            }
+        } else if(bc.Type() == 2) {
+            v2 = 0.;
+            for (int i = 0; i < fDim; i++) {
+                v2 += Flux[i] * normal[i];
+            }
+            v2 += bc.Val1()(0,0) * rhs_val[0];
+        }
     }
 
     switch (bc.Type()) {
@@ -370,7 +393,7 @@ void TPZDarcyFlow::FillBoundaryConditionDataRequirements(int type, TPZMaterialDa
     if (type == 50) {
         data.fNeedsSol = true;
     }
-    if (type == 3) {
+    if (type == 3 || type == 1) {
         data.fNeedsNormal = true;
     }
 }
