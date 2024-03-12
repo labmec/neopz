@@ -1494,6 +1494,32 @@ void TPZGmshReader::SetPeriodicElements(
               }
               if (samenodes) {
                 m_periodic_els[depel->Id()] = indepel->Id();
+#ifdef PZDEBUG
+                const int dim = depel->Dimension();
+                TPZManVector<REAL,3> qsi(dim,0);
+                TPZFNMatrix<9,REAL> jac, jacinv;
+                REAL detjac;
+                TPZFNMatrix<9,REAL> dep_axes, indep_axes,res;
+                depel->Jacobian(qsi,jac,dep_axes,detjac,jacinv);
+                indepel->Jacobian(qsi,jac,indep_axes,detjac,jacinv);
+                res = dep_axes;
+                res -= indep_axes;
+                constexpr REAL tol{1e-8};
+                const int nr = res.Rows();
+                const int nc = res.Cols();
+                for(int ir = 0; ir < nr; ir++){
+                    for(int ic = 0; ic < nc; ic++){
+                        if(res.GetVal(ir,ic) > tol){
+                            PZError<<__PRETTY_FUNCTION__
+                                   <<"\nError in periodic elements orientation!"
+                                   <<std::endl;
+                            dep_axes.Print("dep axes",PZError);
+                            indep_axes.Print("indep axes",PZError);
+                            DebugStop();
+                        }
+                    }
+                }
+#endif
                 // useful for checking periodicity
                 // for (auto in = 0; in < nnodes; in++) {
                 //     std::cout<<"dep "<<depel->NodeIndex(in)
