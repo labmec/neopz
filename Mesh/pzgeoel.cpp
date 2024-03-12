@@ -262,8 +262,7 @@ void TPZGeoEl::Print(std::ostream & out) {
 	int i;
 	for (i = 0;i < NNodes();i++) out << NodeIndex(i) << " ";
 	out << "\nNumber of sides    " << NSides() << endl;
-	if (fMatId < 0) out << "boundary condition " << fMatId << endl;
-	else out << "Material id        " << fMatId << endl;
+	out << "Material id        " << fMatId << endl;
 	if (!Father()) out << "no father\n";
 	else out << "Father index          " << Father()->Index() << endl;
 	if (!SubElement(0)) out << "no subelements";
