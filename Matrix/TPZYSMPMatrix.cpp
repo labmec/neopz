@@ -468,7 +468,7 @@ void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 	// Determine how to initialize z
 	for(ic=0; ic<xcols; ic++) {
 		TVar *zp = &(z(0,ic));
-		if(!IsZero(beta)){
+		if(beta!=(TVar)0.0){
 			const TVar *yp = &(y.g(0,0));
 			TVar *zlast = zp+r;
 
@@ -558,7 +558,7 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
         std::cout << "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" ;
         return;
     }
-    if(!IsZero(beta) && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+    if(beta!=(TVar)0.0 && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
         std::cout << "TPZFMatrix::MultAdd matrix y with incompatible dimensions>";
         return;
     }

@@ -210,7 +210,7 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
         std::cout << "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" ;
         return;
     }
-    if(!IsZero(beta) && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+    if(beta!=(TVar)0.0 && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
         std::cout << "TPZFMatrix::MultAdd matrix y with incompatible dimensions>";
         return;
     }
