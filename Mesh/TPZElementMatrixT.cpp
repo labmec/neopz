@@ -143,12 +143,7 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 	int in;
     std::set<int64_t> origlist,connectlist;
 	for(in=0; in<totalnodes; in++) connectlist.insert(this->fConnect[in]);
-    for (std::list<TPZOneShapeRestraint>::iterator it = fOneRestraints.begin(); it != fOneRestraints.end(); it++) {
-        for (int c=0; c< it->fFaces.size(); c++) {
-            connectlist.insert(it->fFaces[c].first);
-        }
-    }
-    origlist = connectlist;
+  origlist = connectlist;
 	// total number of nodes of the constrained element
 	TPZConnect::BuildConnectList(connectlist, origlist, *this->fMesh);
     this->fConstrConnect.resize(connectlist.size());
@@ -332,108 +327,12 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 				dep = dep->fNext;
 			} // end of while
             
-            /// check whether the connect has a one shape restraint
-            if (fOneRestraints.size())
-            {
-                ApplyOneShapeConstraints(in);
-            }
-            
             
 		} // end of loop over all nodes
 		current_order++;
 	} // end of while loop
 }//void
 
-template<class TVar>
-void TPZElementMatrixT<TVar>::ApplyOneShapeConstraints(int constraintindex)
-{
-    int64_t dfnindex = this->fConstrConnect[constraintindex];
-
-
-#ifdef PZ_LOG
-    int count = 0;
-    for (std::list<TPZOneShapeRestraint>::iterator it = fOneRestraints.begin(); it != fOneRestraints.end(); it++) {
-        if (it->fFaces[0].first != dfnindex) {
-            continue;
-        }
-        count++;
-    }
-    if (count && logger.isDebugEnabled()) {
-        std::stringstream sout;
-        sout << "Element matrix before ApplyOneShapeConstraint\n";
-        fConstrMat.Print("EKBefore = ",sout,EMathematicaInput);
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
-    int64_t inpos = this->fConstrBlock.Position(constraintindex);
-    int64_t toteq = this->fConstrMat.Rows();
-    int64_t nrhs = this->fConstrMat.Cols();
-
-    for (std::list<TPZOneShapeRestraint>::iterator it = fOneRestraints.begin(); it != fOneRestraints.end(); it++) {
-        if (it->fFaces[0].first != dfnindex) {
-            continue;
-        }
-        int64_t send = inpos+it->fFaces[0].second;
-        for (int id=1; id<4; id++) {
-            int64_t depindex = it->fFaces[id].first;
-            int locdep = 0;
-            for (locdep = 0; locdep < fConstrConnect.size(); locdep++) {
-                if (fConstrConnect[locdep] == depindex) {
-                    break;
-                }
-            }
-            if (locdep == fConstrConnect.size()) {
-                DebugStop();
-            }
-            int64_t deppos = this->fConstrBlock.Position(locdep);
-            int64_t receive = deppos+it->fFaces[id].second;
-            REAL coef = -it->fOrient[id]/it->fOrient[0];
-            if (this->fType == TPZElementMatrix::EK){
-                for(int ieq=0; ieq<toteq; ieq++) {
-                    (this->fConstrMat)(receive,ieq) += coef*(this->fConstrMat)(send,ieq);
-                }
-            }//EK
-            else
-            {
-                
-                for(int ieq=0; ieq<nrhs; ieq++) {
-                    (this->fConstrMat)(receive,ieq) += coef*(this->fConstrMat)(send,ieq);
-                }
-            }//EF
-
-            if (this->fType == TPZElementMatrix::EK){
-                for(int ieq=0; ieq<toteq; ieq++)
-                {
-                    (this->fConstrMat)(ieq,receive) += coef*(this->fConstrMat)(ieq,send);
-                }
-            }//EK
-
-        }
-        if (this->fType == TPZElementMatrix::EK){
-            for(int ieq=0; ieq<toteq; ieq++)
-            {
-                (this->fConstrMat)(ieq,send) = 0.;
-                (this->fConstrMat)(send,ieq) = 0.;
-            }
-            (this->fConstrMat)(send,send) = 1.;
-        }//EK
-        else
-        {
-            for(int ieq=0; ieq<nrhs; ieq++) {
-                (this->fConstrMat)(send,ieq) = 0.;
-            }
-        }
-
-    }
-#ifdef PZ_LOG
-    if (count && logger.isDebugEnabled()) {
-        std::stringstream sout;
-        sout << "Element matrix after ApplyOneShapeConstraint\n";
-        fConstrMat.Print("EKAfter = ",sout,EMathematicaInput);
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
-}
 
 
 template<class TVar>

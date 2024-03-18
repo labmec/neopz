@@ -1735,8 +1735,6 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
     
     ek.fMesh = Mesh();
     ek.fType = TPZElementMatrix::EK;
-    ek.fOneRestraints = GetShapeRestraints();
-    ef.fOneRestraints = ek.fOneRestraints;
 
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
@@ -1796,7 +1794,6 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
     ef.fType = TPZElementMatrix::EF;
     ef.Matrix().Redim(numeq,numloadcases);
     ef.Block().SetNBlocks(ncon);
-    ef.fOneRestraints = GetShapeRestraints();
     int i;
     for(i=0; i<ncon; i++){
         TPZConnect &c = Connect(i);
