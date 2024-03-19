@@ -158,8 +158,8 @@ void TPZMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &
 }
 
 template <class TVar>
-void TPZMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, bool transpA, const TPZFMatrix<TVar>& B, 
-						 		       bool transpB, const TVar alpha)
+void TPZMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, int transpA, const TPZFMatrix<TVar>& B, 
+						 		       int transpB, const TVar alpha)
 {
     Error( "Not implemented for this type of matrix\n" );
 }
