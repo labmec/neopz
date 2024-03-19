@@ -507,7 +507,7 @@ TEST_CASE("eigenvalue_tests_hydro","[tensor_tests]") {
   TestingEigenDecompositionHydrostatic<TPZTensor<double>, double>();
   TestingEigenDecompositionHydrostatic<TPZTensor<float>, float>();
 }
-// //NOT WORKING
+// //NEEDS FIX
 // TEST_CASE("eigenvalue_tests_two","[tensor_tests]") {
 //   TestingEigenDecompositionTwoEigenValues<TPZTensor<double>, double>();
 //   TestingEigenDecompositionTwoEigenValues<TPZTensor<float>, float>();
