@@ -1179,10 +1179,21 @@ int TPZFMatrix<TVar>::Remodel(const int64_t newRows,const int64_t newCols) {
 /********************/
 /*** Transpose () ***/
 template <class TVar>
-void TPZFMatrix<TVar>::Transpose(TPZMatrix<TVar> *const T) const{
+void TPZFMatrix<TVar>::Transpose(TPZMatrix<TVar> *const T, bool conj) const{
     T->Resize( this->Cols(), this->Rows() );
     //Transposta por filas
     TVar * p = fElem;
+    if constexpr(is_complex<TVar>::value){
+        if(conj){
+            for ( int64_t c = 0; c < this->Cols(); c++ ) {
+                for ( int64_t r = 0; r < this->Rows(); r++ ) {
+                    T->PutVal( c, r, std::conj(*p++) );
+                    //            cout<<"(r,c)= "<<r<<"  "<<c<<"\n";
+                }
+            }
+            return;
+        }
+    }
     for ( int64_t c = 0; c < this->Cols(); c++ ) {
         for ( int64_t r = 0; r < this->Rows(); r++ ) {
             T->PutVal( c, r, *p++ );
@@ -1194,7 +1205,15 @@ void TPZFMatrix<TVar>::Transpose(TPZMatrix<TVar> *const T) const{
 template <class TVar>
 void TPZFMatrix<TVar>::Transpose() {
     TPZFMatrix<TVar> temp;
-    Transpose(&temp);
+    constexpr bool conj{false};
+    Transpose(&temp,conj);
+    *this = temp;
+}
+template <class TVar>
+void TPZFMatrix<TVar>::ConjTranspose() {
+    TPZFMatrix<TVar> temp;
+    constexpr bool conj{true};
+    Transpose(&temp,conj);
     *this = temp;
 }
 

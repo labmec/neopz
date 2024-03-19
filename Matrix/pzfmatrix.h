@@ -329,11 +329,12 @@ public:
     
     void DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &inverse);
     
-    void Transpose(TPZMatrix<TVar> *const T) const override;
+    void Transpose(TPZMatrix<TVar> *const T, bool conj=false) const override;
     
     /** @see TPZMatrix<TVar>::Transpose */
     
     void Transpose();
+    void ConjTranspose();
     
     /*** @name Solve linear system of equations ***/
     /** @{ */
