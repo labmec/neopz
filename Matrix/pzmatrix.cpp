@@ -616,14 +616,23 @@ int TPZMatrix<TVar>::AddSub(const int64_t sRow, const int64_t sCol, const int64_
 /*****************/
 /*** Transpose ***/
 template<class TVar>
-void TPZMatrix<TVar>::Transpose(TPZMatrix<TVar> *T) const {
+void TPZMatrix<TVar>::Transpose(TPZMatrix<TVar> *T, bool conj) const {
 	T->Resize( Cols(), Rows() );
-	
-	for ( int64_t r = 0; r < Rows(); r++ ) {
+	if constexpr (is_complex<TVar>::value){
+    if(conj){
+      for ( int64_t r = 0; r < Rows(); r++ ) {
         for ( int64_t c = 0; c < Cols(); c++ ) {
-            T->PutVal( c, r, GetVal( r, c ) );
+          T->PutVal( c, r, std::conj(GetVal( r, c )) );
         }
+      }
+      return;
     }
+  }
+	for ( int64_t r = 0; r < Rows(); r++ ) {
+    for ( int64_t c = 0; c < Cols(); c++ ) {
+      T->PutVal( c, r, GetVal( r, c ) );
+    }
+  }
 }
 
 template<class TVar>

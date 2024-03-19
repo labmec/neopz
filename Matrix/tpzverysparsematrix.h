@@ -112,8 +112,8 @@ public:
 	
 	/** @brief It makes *T the transpose of current matrix. */
 	virtual void Transpose(TPZVerySparseMatrix<TVar>* T) const;
-	virtual void Transpose(TPZMatrix<TVar>*const T) const  override {
-        TPZMatrix<TVar>::Transpose(T);
+	virtual void Transpose(TPZMatrix<TVar>*const T, bool conj=false) const  override {
+    TPZMatrix<TVar>::Transpose(T, conj);
     }
     
     /** @brief decompose the system of equations acording to the decomposition

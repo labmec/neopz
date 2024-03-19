@@ -387,14 +387,31 @@ TPZFBMatrix<TVar>::SetBand( int64_t newBand )
 /*** Transpose () ***/
 template<class TVar>
 void
-TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T) const
+TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T, bool conj) const
 {
 	T->Resize( Dim(), Dim() );
 	
 	int64_t end, begin;
 	//REAL *p = fElem;
+  if constexpr (is_complex<TVar>::value){
+    if(conj){
+      
+      for ( int64_t r = 0; r < Dim(); r++ )
+      {
+        begin = MAX( r - fBandLower, 0 );
+        end   = MIN( r + fBandUpper + 1, Dim() );
+        for ( int64_t c = begin; c < end; c++ )
+        {
+          T->PutVal( c, r, std::conj(GetVal( r, c )) );
+          //			cout<<"(r,c)= "<<r<<"  "<<c<<"\n";
+        }
+      }
+      return;
+    }
+  }
+  
 	for ( int64_t r = 0; r < Dim(); r++ )
-    {
+  {
 		begin = MAX( r - fBandLower, 0 );
 		end   = MIN( r + fBandUpper + 1, Dim() );
 		for ( int64_t c = begin; c < end; c++ )
@@ -402,7 +419,7 @@ TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T) const
 			T->PutVal( c, r, GetVal( r, c ) );
 			//			cout<<"(r,c)= "<<r<<"  "<<c<<"\n";
 		}
-    }
+  }
 }
 
 
