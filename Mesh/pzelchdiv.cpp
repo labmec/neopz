@@ -1207,9 +1207,22 @@ void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large
         // If negative, the element sides have opposite orientations and vice-versa.
 
             auto depend = myconnect.FirstDepend();
-            while(depend){
-                depend->fDepMatrix.MultiplyByScalar(-1.,depend->fDepMatrix);
-                depend = depend->fNext;
+            auto Invert = [](auto dep){
+                while(dep){
+                    dep->fDepMatrix.MultiplyByScalar(-1.,dep->fDepMatrix);
+                    dep = dynamic_cast<decltype(dep)>(dep->fNext);
+                }
+            };
+            auto dep_real =
+                dynamic_cast<TPZConnect::TPZDepend<STATE>*>(depend);
+            if(dep_real){
+                Invert(dep_real);
+            }else{
+                auto dep_cplx =
+                    dynamic_cast<TPZConnect::TPZDepend<CSTATE>*>(depend);
+                if(dep_cplx){
+                    Invert(dep_cplx);
+                }
             }
         }
     }

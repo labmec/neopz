@@ -974,23 +974,24 @@ void TPZHDivApproxCreator::PartitionDependMatrix(TPZCompMesh *cmesh){
         if(c.HasDependency()){
             // std::cout << "Need to partition the dependency matrix." << std::endl;
             auto *ptr = c.FirstDepend();
-            
+            TPZFNMatrix<200,STATE> depmat;
+            ptr->FillDepMatrix(depmat);
             while(ptr) {
                 int64_t cIndex_old1 = iCon;
                 int64_t cIndex_old2 = ptr->fDepConnectIndex;
                 int64_t cIndex_new1 = fConnDuplicated[cIndex_old1];
                 int64_t cIndex_new2 = fConnDuplicated[cIndex_old2];
 
-                int rows = ptr->fDepMatrix.Rows();
-                int cols = ptr->fDepMatrix.Cols();
+                int rows = depmat.Rows();
+                int cols = depmat.Cols();
 
                 TPZFMatrix<REAL> DepMat00(1,1,0.), DepMat01(1,cols-1,0.), DepMat10(rows-1,1,0.), DepMat11(rows-1,cols-1,0.);
-                DepMat00(0,0) = ptr->fDepMatrix(0,0);
+                DepMat00(0,0) = depmat(0,0);
                 for (int i = 1; i < rows; i++){
-                    DepMat10(i-1,0) = ptr->fDepMatrix(i,0);
+                    DepMat10(i-1,0) = depmat(i,0);
                     for (int j = 1; j < cols; j++){
-                        if (i == 1) DepMat01(0,j-1) = ptr->fDepMatrix(0,j);
-                        DepMat11(i-1,j-1) = ptr->fDepMatrix(i,j);
+                        if (i == 1) DepMat01(0,j-1) = depmat(0,j);
+                        DepMat11(i-1,j-1) = depmat(i,j);
                     }                  
                 }
                 // std::cout << "K00 " << DepMat00 << std::endl;
@@ -1010,16 +1011,16 @@ void TPZHDivApproxCreator::PartitionDependMatrix(TPZCompMesh *cmesh){
                 c2.RemoveDepend();
 
                 //Dependency 00 - old1 + old2
-                TPZConnect::TPZDepend *depend00 = c.AddDependency(cIndex_old1, cIndex_old2, DepMat00, 0, 0, 1, 1);
+                TPZConnect::TPZDependBase *depend00 = c.AddDependency(cIndex_old1, cIndex_old2, DepMat00, 0, 0, 1, 1);
 
                 //Dependency 01 - old1 + new2
-                TPZConnect::TPZDepend *depend01 = c.AddDependency(cIndex_old1, cIndex_new2, DepMat01, 0, 0, 1, cols-1);
+                TPZConnect::TPZDependBase *depend01 = c.AddDependency(cIndex_old1, cIndex_new2, DepMat01, 0, 0, 1, cols-1);
 
                 //Dependency 10 - new1 + old2
-                TPZConnect::TPZDepend *depend10 = c2.AddDependency(cIndex_new1, cIndex_old2, DepMat10, 0, 0, rows-1, 1);
+                TPZConnect::TPZDependBase *depend10 = c2.AddDependency(cIndex_new1, cIndex_old2, DepMat10, 0, 0, rows-1, 1);
 
                 //Dependency 11 - new1 + new2
-                TPZConnect::TPZDepend *depend11 = c2.AddDependency(cIndex_new1, cIndex_new2, DepMat11, 0, 0, rows-1, cols-1);
+                TPZConnect::TPZDependBase *depend11 = c2.AddDependency(cIndex_new1, cIndex_new2, DepMat11, 0, 0, rows-1, cols-1);
 
             }
         }
@@ -1134,20 +1135,26 @@ void TPZHDivApproxCreator::GroupDependMatrix(TPZCompMesh *cmesh){
 
                 if (!dep00 || !dep01 || !dep10 || !dep11) DebugStop();
 
-                int rows = dep00->fDepMatrix.Rows() + dep11->fDepMatrix.Rows();
-                int cols = dep00->fDepMatrix.Cols() + dep11->fDepMatrix.Cols();
+                TPZFNMatrix<144,REAL> matdep00,matdep11,matdep10,matdep01;
+                dep00->FillDepMatrix(matdep00);
+                dep01->FillDepMatrix(matdep01);
+                dep10->FillDepMatrix(matdep10);
+                dep11->FillDepMatrix(matdep11);
+                
+                int rows = matdep00.Rows() + matdep11.Rows();
+                int cols = matdep00.Cols() + matdep11.Cols();
                 
                 TPZFMatrix<REAL> DepMat(rows,cols,0.);
 
-                DepMat(0,0) = dep00->fDepMatrix(0,0);
+                DepMat(0,0) = matdep00(0,0);
                 for (int i = 1; i < rows; i++){
-                    DepMat(i,0) = dep10->fDepMatrix(i-1,0);
+                    DepMat(i,0) = matdep10(i-1,0);
                     for (int j = 1; j < cols; j++){
-                        if (i == 1) DepMat(0,j) = dep01->fDepMatrix(0,j-1);
-                        DepMat(i,j) = dep11->fDepMatrix(i-1,j-1);
+                        if (i == 1) DepMat(0,j) = matdep01(0,j-1);
+                        DepMat(i,j) = matdep11(i-1,j-1);
                     }                  
                 }
-                // std::cout << "K00 " << dep00->fDepMatrix << std::endl;
+                // std::cout << "K00 " << matdep00 << std::endl;
                 // std::cout << "K01 " << dep01->fDepMatrix << std::endl;
                 // std::cout << "K10 " << dep10->fDepMatrix << std::endl;
                 // std::cout << "K11 " << dep11->fDepMatrix << std::endl;
@@ -1159,7 +1166,7 @@ void TPZHDivApproxCreator::GroupDependMatrix(TPZCompMesh *cmesh){
                 c2.RemoveDepend(cIndex_new1,cIndex_new2);
 
                 //Only one dependency - old1 + old2
-                TPZConnect::TPZDepend *depend = c.AddDependency(cIndex_old1, cIndex_old2, DepMat, 0, 0, rows, cols);
+                TPZConnect::TPZDependBase *depend = c.AddDependency(cIndex_old1, cIndex_old2, DepMat, 0, 0, rows, cols);
                                
                 fDepMatTreated[cIndex_old1] = true;
                 fDepMatTreated[cIndex_new1] = true;

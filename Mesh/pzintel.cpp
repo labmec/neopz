@@ -997,7 +997,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
             continue;
         }
         int64_t jnodindex = large->SideConnectIndex(jn, neighbourside);
-        TPZConnect::TPZDepend *depend = inod.AddDependency(inodindex, jnodindex, MSL, MBlocksmall.Position(in), MBlocklarge.Position(jn),
+        TPZConnect::TPZDepend<STATE> *depend = inod.AddDependency(inodindex, jnodindex, MSL, MBlocksmall.Position(in), MBlocklarge.Position(jn),
                 MBlocksmall.Size(in), MBlocklarge.Size(jn));
         if (blocknorm(in, jn) < 1.e-8) {
             depend->fDepMatrix.Zero();
@@ -1221,7 +1221,7 @@ void TPZInterpolatedElement::CheckConstraintConsistency(int side) {
         int n_small_side_connect = NSideConnects(side)-1;
         TPZConnect &thiscon = SideConnect(n_small_side_connect, side);
         int jn;
-        TPZConnect::TPZDepend *dep = thiscon.FirstDepend();
+        TPZConnect::TPZDependBase *dep = thiscon.FirstDepend();
         while (dep) {
             for (jn = 0; jn < nlargesideconnects; jn++) {
                 int largeindex = largel->SideConnectIndex(jn, largeside);
@@ -1885,10 +1885,10 @@ bool TPZInterpolatedElement::VerifyConstraintConsistency(int side, TPZCompElSide
         int64_t clargeindex = largel->SideConnectIndex(ic, large.Side());
         largenshapeconnect[clargeindex] = clarge.NShape();
     }
-    TPZConnect::TPZDepend *depend = c.FirstDepend();
+    TPZConnect::TPZDependBase *depend = c.FirstDepend();
     while (depend) {
-        int nrow = depend->fDepMatrix.Rows();
-        int ncol = depend->fDepMatrix.Cols();
+        int nrow = depend->DepRows();
+        int ncol = depend->DepCols();
         /// the number of rows of the dependency matrix is equal to the number of shape functions of the connect associated with the small side
         if (nrow != c.NShape()) {
             return false;
