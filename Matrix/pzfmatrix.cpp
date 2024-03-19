@@ -818,8 +818,9 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
 }
 
 template <class TVar>
-void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, bool transpA, const TPZFMatrix<TVar>& B, 
-						 		       bool transpB, const TVar alpha)
+void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j,
+                                       const TPZFMatrix<TVar>& A, int transpA,
+                                       const TPZFMatrix<TVar>& B, int transpB, const TVar alpha)
 {
     if constexpr (!std::is_floating_point_v<RTVar>)
         Error( "AddContribution must be used with a floating point type variable TVar!\n");
@@ -836,13 +837,13 @@ void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TV
     {
         nrows = A.Cols();
         seconddimA = A.Rows();
-        transposeA = CblasTrans;
+        transposeA = transpA == 1 ? CblasTrans : CblasConjTrans;
     }
     if (transpB)
     {
         ncols = B.Rows();
         seconddimB = B.Cols();
-        transposeB = CblasTrans;
+        transposeB = transpB == 1 ? CblasTrans : CblasConjTrans;
     }
 
 #else
@@ -905,24 +906,29 @@ void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TV
 
 #endif //USING LAPACK
 
-TPZFMatrix<TVar> tempA = A;
-tempA *= alpha;
-TPZFMatrix<TVar> tempB = B;
-if (transpA)
-    tempA.Transpose();
-if (transpB)
-    tempB.Transpose();
+    TPZFNMatrix<2000,TVar> tempA = A;
+    TPZFNMatrix<2000,TVar> tempB = B;
+    if (transpA){
+        if(transpA == 1){tempA.Transpose();}
+        else{tempA.ConjTranspose();}
+    }
+    tempA *= alpha;
+    
+    if (transpB){
+        if(transpB == 1){tempB.Transpose();}
+        else{tempB.ConjTranspose();}
+    }
 
-for (int64_t row = 0; row < nrows; row++)
-{
-	for (int64_t col = 0; col < ncols; col++)
-	{
-		for (int64_t k = 0; k < seconddimA; k++)
-		{
-			(*this)(i+row,j+col) += tempA(row,k) * tempB(k,col);
-		}
-	}
-}
+    for (int64_t row = 0; row < nrows; row++)
+    {
+        for (int64_t col = 0; col < ncols; col++)
+        {
+            for (int64_t k = 0; k < seconddimA; k++)
+            {
+                (*this)(i+row,j+col) += tempA(row,k) * tempB(k,col);
+            }
+        }
+    }
 
 }
 

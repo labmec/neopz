@@ -217,8 +217,18 @@ public:
 
     virtual TVar RowTimesVector(const int row, const TPZFMatrix<TVar> &v) const;
 
-	virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, bool transpA, const TPZFMatrix<TVar>& B, 
-						 		 bool transpB, const TVar alpha = 1.0);
+  /**
+   * @brief It computes this += alpha*(A * B), where A or B can be transposed.
+   * @param i Is the row of (this) where the first element of the matrices product should be added 
+   * @param j Is the column of (this) where the first element of the matrices product should be added 
+   * @param A Is A on the above operation
+   * @param transpA 0: A not transpose, 1: A tranpose, everything else: A conj transpose
+   * @param B Is B on the above operation
+   * @param transpB 0: B not transpose, 1: B tranpose, everything else: B conj transpose
+   * @param alpha Is alpha on the above operation
+   */
+	virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, int transpA, const TPZFMatrix<TVar>& B, 
+						 		 int transpB, const TVar alpha = 1.0);
 	
 	/** @brief Computes res = rhs - this * x */
 	virtual void Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res ) ;
