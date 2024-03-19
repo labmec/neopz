@@ -214,9 +214,6 @@ public:
                          const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const  override;
     
     
-    static void MultAdd(const TVar *ptr, int64_t rows, int64_t cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-                        const TVar alpha=1.,const TVar beta = 0.,const int opt = 0);
-    
     /**
      * @brief It computes this += alpha*(A * B), where A or B can be transposed.
      * @param i Is the row of (this) where the first element of the matrices product should be added 
