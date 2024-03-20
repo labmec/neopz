@@ -969,13 +969,13 @@ SymProp TPZMatrix<TVar>::VerifySymmetry(REAL tol) const{
         if(symSoFar && fabs(exp1) > tol){symSoFar = false;}
         if(hermSoFar && fabs(exp2) > tol){hermSoFar = false;}
         if(!hermSoFar && !symSoFar){
-          cout << "Element: " << i << ", " << j << "  -> " << this->GetVal(i,j)<<endl;
-          cout << "Element: " << j << ", " << i << "  -> " << this->GetVal(j,i)<<endl;
+          // cout << "Element: " << i << ", " << j << "  -> " << this->GetVal(i,j)<<endl;
+          // cout << "Element: " << j << ", " << i << "  -> " << this->GetVal(j,i)<<endl;
           return SymProp::NonSym;}
       }
     }
     if(hermSoFar){return SymProp::Herm;}
-    else if (symSoFar){return SymProp::NonSym;}
+    else if (symSoFar){return SymProp::Sym;}
     else{
       //how did we end up here?
       DebugStop();
@@ -986,8 +986,8 @@ SymProp TPZMatrix<TVar>::VerifySymmetry(REAL tol) const{
       for(int64_t j = 0; j <= i; j++){
         const TVar exp = this->Get(i,j) - this->Get(j,i);
         if (fabs( exp ) > tol ) {
-          cout << "Element: " << i << ", " << j << "  -> " << exp << "/" <<
-            this->Get(i,j) << endl;
+          // cout << "Element: " << i << ", " << j << "  -> " << exp << "/" <<
+          //   this->Get(i,j) << endl;
           return SymProp::NonSym;
         }
       }
