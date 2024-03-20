@@ -149,7 +149,7 @@ public:
 	// Zeroes the elements of the matrix
 	int Zero() override;
 	
-	void Transpose(TPZMatrix<TVar> *const T) const override;
+	void Transpose(TPZMatrix<TVar> *const T, bool conj=false) const override;
     
     /** @brief decompose the system of equations acording to the decomposition
       * scheme */

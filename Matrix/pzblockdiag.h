@@ -86,7 +86,7 @@ public:
 	 */
 	int GetSizeofBlock(int64_t blockid) {return fBlockSize[blockid];}
 	
-	void Transpose(TPZMatrix<TVar> *const T) const override;
+	void Transpose(TPZMatrix<TVar> *const T, bool conj=false) const override;
     
     int SolveDirect( TPZFMatrix<TVar> &B , const DecomposeType dt) override {
         

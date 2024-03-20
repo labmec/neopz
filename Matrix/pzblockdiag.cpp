@@ -415,13 +415,30 @@ int TPZBlockDiagonal<TVar>::Zero()
 /********************/
 /*** Transpose () ***/
 template<class TVar>
-void TPZBlockDiagonal<TVar>::Transpose (TPZMatrix<TVar> *const T) const
+void TPZBlockDiagonal<TVar>::Transpose (TPZMatrix<TVar> *const T, bool conj) const
 {
 	T->Resize( Dim(), Dim() );
 	
 	int64_t b, eq = 0, pos;
 	int bsize, r, c;
 	int64_t nb = fBlockSize.NElements();
+
+	if constexpr(is_complex<TVar>::value){
+    if(conj){
+			for ( b=0; b<nb; b++) {
+				pos= fBlockPos[b];
+				bsize = fBlockSize[b];
+				for(r=0; r<bsize; r++) {
+					for(c=0; c<bsize; c++) {
+						T->PutVal(eq+r,eq+c,std::conj(fStorage[pos+c+r*bsize]));
+					}
+				}
+				eq += bsize;
+			}
+			return;
+		}
+	}
+	
 	for ( b=0; b<nb; b++) {
 		pos= fBlockPos[b];
 		bsize = fBlockSize[b];
