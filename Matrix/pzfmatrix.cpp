@@ -149,19 +149,22 @@ template<class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
     if(this == &A) return *this;
     // amount of storage needed
-    int64_t size = A.fRow * A.fCol;
-    
+    const int64_t size = A.Rows() * A.Cols();
+    // (minimum) amount of available storage
+    const int64_t mysize = this->fRow*this->fCol;
     TVar * newElem = fElem;
-    if(fSize < size && size != this->fRow*this->fCol) {
-        newElem = new TVar[size];
-    } else if (fSize >= size) {
-        newElem = fGiven;
+    if(mysize < size){
+        //now we check if there is space in static storage
+        if(fSize >= size){
+            newElem = fGiven;
+        }else{
+            newElem = new TVar[size];
+        }
     }
-    
-    if ( newElem == NULL && size > 0) Error( "Operator= <memory allocation error>." );
-    if (fElem && fElem != newElem && fElem != fGiven) delete[]( fElem );
-    this->fRow  = A.fRow;
-    this->fCol  = A.fCol;
+    if(fElem != fGiven && fElem != newElem){
+        delete [] fElem;
+    }
+    if ( newElem == nullptr && size > 0) Error( "Operator= <memory allocation error>." );
     fElem = newElem;
     
     // Copia a matriz
@@ -182,7 +185,7 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(TPZFMatrix<TVar> &&A ) {
         // amount of storage needed
         int64_t size = A.fRow * A.fCol;
         
-        TVar * newElem = 0;
+        TVar * newElem = nullptr;
         if(size == this->fRow*this->fCol) {
             newElem = fElem;
         } else if(fSize < size) {
@@ -941,20 +944,25 @@ void TPZFMatrix<TVar>::TimesBetaPlusZ(const TVar beta,const TPZFMatrix<TVar> &z)
 /*** Operator = ***/
 template <class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZMatrix<TVar> &A ) {
-    int64_t arows  = A.Rows();
-    int64_t acols  = A.Cols();
-    int64_t size = arows * acols;
-    if(fElem != fGiven) {
-        delete []fElem;
-        fElem = 0;
+    // amount of storage needed
+    const int64_t size = A.Rows() * A.Cols();
+    // (minimum) amount of available storage
+    const int64_t mysize = this->fRow*this->fCol;
+    TVar * newElem = fElem;
+    if(mysize < size){
+        //now we check if there is space in static storage
+        if(fSize >= size){
+            newElem = fGiven;
+        }else{
+            newElem = new TVar[size];
+        }
     }
-    this->fRow  =  arows;
-    this->fCol  = acols;
-    if(fSize < size) {
-        fElem = new TVar[ arows * acols ] ;
-    } else {
-        fElem = fGiven;
+    if(fElem != fGiven && fElem != newElem){
+        delete [] fElem;
     }
+    if ( newElem == nullptr && size > 0) Error( "Operator= <memory allocation error>." );
+    fElem = newElem;
+    
     TVar * dst = fElem;
     for ( int64_t c = 0; c < this->fCol; c++ )
         for ( int64_t r = 0; r < this->fRow; r++ )
