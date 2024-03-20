@@ -85,8 +85,6 @@ struct TPZElementMatrix {
 	/** @brief Apply the constraints applied to the nodes by transforming the tangent matrix and right hand side */
 	virtual void ApplyConstraints() = 0;
     
-    /// Apply the constraint of the one shape restraints
-    virtual void ApplyOneShapeConstraints(int constraintindex) = 0;
     
     /// Compute the dependency order of the connects, considering the one shape restraints
     void BuildDependencyOrder(TPZVec<int64_t> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh);
@@ -106,9 +104,6 @@ struct TPZElementMatrix {
 	TPZStack<int64_t> fConstrConnect;
 	
 	TPZManVector<int64_t> fDestinationIndex, fSourceIndex;
-    
-    /// list of one degree of freedom restraints
-    std::list<TPZOneShapeRestraint> fOneRestraints;
 };
 
 #endif

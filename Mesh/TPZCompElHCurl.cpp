@@ -43,9 +43,9 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fhcurlfam(hcurlfam)
 template<class TSHAPE>
 TPZCompElHCurl<TSHAPE>::TPZCompElHCurl(TPZCompMesh &mesh, const TPZCompElHCurl<TSHAPE> &copy) :
 TPZRegisterClassId(&TPZCompElHCurl::ClassId),
-TPZIntelGen<TSHAPE>(mesh,copy), fhcurlfam(copy.fhcurlfam)
-{
-
+TPZIntelGen<TSHAPE>(mesh,copy), fhcurlfam(copy.fhcurlfam),
+fConnectIndexes(copy.fConnectIndexes)
+{    
 }
 
 template<class TSHAPE>
@@ -56,6 +56,7 @@ TPZCompElHCurl<TSHAPE>::TPZCompElHCurl(TPZCompMesh &mesh,
 TPZRegisterClassId(&TPZCompElHCurl::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fhcurlfam(copy.fhcurlfam)
 {
+  DebugStop();//never tested, better safe than sorry
 	int i;
 	for(i=0;i<NConnects();i++)
 	{
@@ -867,8 +868,9 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
   const TPZFMatrix<REAL> &phiHCurl, const TPZFMatrix<REAL> &curlPhi,
     TPZSolVec<TVar> &sol, TPZSolVec<TVar> &curlSol)
 {
-    constexpr int dim = TSHAPE::Dimension;
-    constexpr int curlDim = dim == 1 ? 1 : 2 * dim - 3;
+    constexpr int eldim = TSHAPE::Dimension;
+    constexpr int dim{3};
+    constexpr int curlDim = eldim == 1 ? 1 : 2 * eldim - 3;
 //        [dim](){
 //        if constexpr (dim == 1) return 1;
 //        else{
@@ -891,7 +893,7 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
     curlSol.Resize(numberSol);
 
     for (long iSol = 0; iSol < numberSol; iSol++) {
-        sol[iSol].Resize(dim);
+        sol[iSol].Resize(3);
         sol[iSol].Fill(0);
         curlSol[iSol].Resize(curlDim);
         curlSol[iSol].Fill(0);
@@ -908,7 +910,7 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
         for (int jShape = 0; jShape < nShapeCon; jShape++) {
 
             for (long iSol = 0; iSol < numberSol; iSol++) {
-                for (int coord = 0; coord < dim; coord++) {
+                for (int coord = 0; coord < 3; coord++) {
                     sol[iSol][coord] +=
                             (TVar)meshSol(pos + jShape, iSol) * phiHCurl(ishape, coord);
                 }

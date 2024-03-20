@@ -65,7 +65,7 @@ TPZFYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,
         std::cout << "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" ;
         return;
     }
-    if(!IsZero(beta) && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+    if(beta!=(TVar)0.0 && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
         std::cout << "TPZFMatrix::MultAdd matrix y with incompatible dimensions>";
         return;
     }
@@ -82,7 +82,7 @@ TPZFYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,
 			const int64_t m_cols = this->Cols();
 			const int64_t x_rows = x.Rows();
 
-			if(IsZero(beta)){
+			if(beta==(TVar)0.0){
         const auto zr = opt ? m_cols : m_rows;
         const auto zc = x.Cols();
         z.Redim(zr,zc);

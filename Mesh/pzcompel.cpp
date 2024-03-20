@@ -173,7 +173,7 @@ TPZCompEl::~TPZCompEl() {
     }
 #ifdef PZDEBUG
     TPZGeoEl *gel = Reference();
-    if (gel && gel->Reference()) {
+    if (gel && gel->Reference() == this) {
         DebugStop();
     }
 #endif
@@ -1147,8 +1147,6 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &
     int numloadcases = Mesh()->Solution().Cols();
     ek.fMesh = Mesh();
     ek.fType = TPZElementMatrix::EK;
-    ek.fOneRestraints = GetShapeRestraints();
-    ef.fOneRestraints = ek.fOneRestraints;
 
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
@@ -1199,7 +1197,6 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ef){
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     ef.Block().SetNBlocks(ncon);
-    ef.fOneRestraints = GetShapeRestraints();
     int numeq = 0;
     for(int i=0; i<ncon; i++){
         TPZConnect &c = Connect(i);

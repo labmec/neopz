@@ -165,7 +165,7 @@ int TPZDarcyFlow::NSolutionVariables(int var) const {
     if (var == 4) return 1;      // KDuDy;
     if (var == 5) return 1;      // KDuDz;
     if (var == 6) return 1;      // NormKDu;
-    if (var == 7) return fDim;   // MinusKGradU/Flux;
+    if (var == 7) return 3;   // MinusKGradU/Flux;
     if (var == 8) return 1;      // POrder
     if (var == 9) return 1;      // ExactPressure/ExactSolution
     if (var == 10) return fDim;  // ExactFlux

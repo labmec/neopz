@@ -329,6 +329,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshV
         if(!atomic_mesh) continue;
 		TPZBlock &block = atomic_mesh->Block();
         TPZFMatrix<TVar> &sol = atomic_mesh->Solution();
+        const int nc = sol.Cols();
         TPZConnect &con = atomic_mesh->ConnectVec()[indexes[connect].second];
         int64_t seqnum = con.SequenceNumber();
         if(seqnum<0) DebugStop();       /// Whether connect was deleted by previous refined process
@@ -336,10 +337,13 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshV
         TPZConnect &conMF = MFMesh->ConnectVec()[connect];
         int64_t seqnumMF = conMF.SequenceNumber();
         if(seqnumMF < 0) DebugStop();
-        for (int idf=0; idf<blsize; idf++) {
-            auto getval = sol(block.Index(seqnum, idf));
-            solMF(blockMF.Index(seqnumMF, idf)) = getval;
+        for(int ic = 0; ic < nc; ic++){
+            for (int idf=0; idf<blsize; idf++) {
+                const auto getval = sol(block.Index(seqnum, idf),ic);
+                solMF(blockMF.Index(seqnumMF, idf),ic) = getval;
+            }
         }
+        
 	}
     
     
@@ -369,15 +373,19 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshV
                 //acessing the block on submesh
                 TPZBlock &blocksub = msub->Block();
                 TPZFMatrix<TVar> &solsub = ((TPZCompMesh *)(msub))->Solution();
+                const int nc = solsub.Cols();
                 const TPZConnect &consub = msub->ConnectVec()[submeshIndex];
                 const int64_t seqnumsub = consub.SequenceNumber();
                 
                 if(seqnumfather < 0) DebugStop();
-                for(int idf=0 ; idf<nblock; idf++){
-                    const int posfather = blockfather.Position(seqnumfather);
-                    auto valsub = solsub(blocksub.Index(seqnumsub, idf));
-                    fathermeshSol(posfather + idf) = valsub;
+                for(int ic = 0; ic < nc; ic++){
+                    for(int idf=0 ; idf<nblock; idf++){
+                        const int posfather = blockfather.Position(seqnumfather);
+                        const auto valsub = solsub(blocksub.Index(seqnumsub, idf),ic);
+                        fathermeshSol(posfather + idf,ic) = valsub;
+                    }
                 }
+
             }
             
         }

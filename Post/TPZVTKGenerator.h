@@ -214,7 +214,7 @@ public:
                   std::string filename,
                   int vtkres);
   //!Generates .vtk file for a given current solution of the mesh
-  void Do(REAL time = -1);
+  void Do();
 
   /** @brief Resets post-processing data structure. Call this function if
    the mesh has had changes between Do() calls (refinement, etc)*/

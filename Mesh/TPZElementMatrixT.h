@@ -50,9 +50,6 @@ struct TPZElementMatrixT : public TPZElementMatrix {
     void PermuteGather(TPZVec<int64_t> &permute) override;
 	/** @brief Apply the constraints applied to the nodes by transforming the tangent matrix and right hand side */
 	void ApplyConstraints() override;
-    
-    /// Apply the constraint of the one shape restraints
-    void ApplyOneShapeConstraints(int constraintindex) override;
 
     TVar &at(int64_t ibl, int64_t jbl, int idf, int jdf)
     {

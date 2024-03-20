@@ -105,13 +105,14 @@ TEST_CASE("Constrained Space", "[constrained_space_test]") {
     const int xdiv = GENERATE(2);
     const int pOrder = GENERATE(1,2);
     SpaceType sType = GENERATE(EHDivConstant,EHDivStandard,
-                               // EHCurl,
+                               EHCurl,
                                EH1);
     
     TestConstrainedSpace<pzshape::TPZShapeTriang>(xdiv,pOrder,sType);
     TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType);
     TestConstrainedSpace<pzshape::TPZShapeTetra>(xdiv,pOrder,sType);
-    TestConstrainedSpace<pzshape::TPZShapeCube>(xdiv, pOrder, sType);
+    //NEEDS FIX
+    if(sType != EHCurl){TestConstrainedSpace<pzshape::TPZShapeCube>(xdiv, pOrder, sType);}
     std::cout << "Finish test Constrained Space \n";
 }
 #else

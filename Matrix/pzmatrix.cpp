@@ -339,7 +339,8 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
                     if constexpr (std::is_same_v<TVar,RTVar>){
                         out << val;
                     }else{
-                        out << val.real() << "+I"<<val.imag();
+                        out << val.real() <<std::showpos<<val.imag()<<"I";
+                        out<<std::noshowpos;
                     }
                     if(col < ncols-1)
                         out << ", ";
