@@ -2607,7 +2607,7 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
             
         case EPaperComp:
         {
-            p = 150 * (x1 - 0.5) * (x2 - 0.5);
+            p = 150 * (x1 - 0.5) * (x1 - 0.5) * (x2 - 0.5) * (x2 - 0.5);
         }
             break;
             
@@ -2709,7 +2709,7 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
             
         case EPaperComp:
         {
-            p = (FADFADSTATE) 150 * (x1 - 0.5) * (x2 - 0.5);
+            p = (FADFADSTATE) 150 * (x1 - 0.5) * (x1 - 0.5)  * (x2 - 0.5) * (x2 - 0.5);
         }
             break;
             
