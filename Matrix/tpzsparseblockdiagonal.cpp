@@ -251,6 +251,7 @@ void TPZSparseBlockDiagonal<TVar>::GetBlock(int64_t i, TPZFMatrix<TVar>& block)
 template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt) const
 {
+	this->MultAddChecks(x,y,z,alpha,beta,opt);
 #ifdef PZ_LOG
 	if(logger.isDebugEnabled()){
 		LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::MultAdd");

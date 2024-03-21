@@ -572,7 +572,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 		TPZMatrix<TVar>::MultAdd(x,y,z,alpha,beta,opt);
 		return;
 	}
-	
+	this->MultAddChecks(x,y,z,alpha,beta,opt);
 	this->PrepareZ(y,z,beta,opt);
 	
 	if(!opt)

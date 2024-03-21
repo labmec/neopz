@@ -292,13 +292,7 @@ TPZSBMatrix<TVar>::operator-=(const TPZSBMatrix<TVar> &A )
 template<class TVar>
 void TPZSBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
                                 const TVar alpha,const TVar beta ,const int opt) const {
-    // Computes z = beta * y + alpha * opt(this)*x
-    //          z and x cannot overlap in memory
-    if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
-       this->Error(__PRETTY_FUNCTION__, "TPZSBMatrix::MultAdd <matrixs with incompatible dimensions>" );
-    if(x.Cols() != y.Cols() ||x.Rows() != y.Rows()) {
-       this->Error(__PRETTY_FUNCTION__,"TPZSBMatrix::MultAdd incompatible dimensions\n");
-    }
+    this->MultAddChecks(x,y,z,alpha,beta,opt);
     this->PrepareZ(y,z,beta,opt);
     const int64_t rows = this->Rows();
     const int64_t xcols = x.Cols();

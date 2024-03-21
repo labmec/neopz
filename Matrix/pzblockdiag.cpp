@@ -354,12 +354,7 @@ void TPZBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 							   const TVar alpha,const TVar beta ,const int opt) const {
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
-	
-	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZBlockDiagonal::MultAdd <matrixs with incompatible dimensions>" );
-	if(beta != TVar(0) && (x.Cols() != y.Cols() || x.Rows() != y.Rows())) {
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZBlockDiagonal::MultAdd incompatible dimensions\n");
-	}
+	this->MultAddChecks(x,y,z,alpha,beta,opt);
 	
 	this->PrepareZ(y,z,beta,opt);
 	int64_t xcols = x.Cols();
