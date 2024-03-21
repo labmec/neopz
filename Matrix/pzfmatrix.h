@@ -896,7 +896,6 @@ class TPZFNMatrix : public TPZFMatrix<TVar> {
     TVar fBuf[N+1];
     
 public:
-    friend class TPZHCurlAuxClass;
     /*
      * @brief Constructor which does not initialize the data. \n
      * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col
