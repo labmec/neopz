@@ -98,8 +98,12 @@ void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,co
 	int64_t numeq = (opt) ? Cols() : Rows();
 	int64_t xcols = y.Cols();
 	int64_t ic;
+  if(beta==(TVar)0 && numeq==0){
+    z=y;
+    z*=beta;
+  }
 	z.Resize(numeq, xcols);
-    if(numeq == 0) return;
+  if(numeq == 0) return;
 	for (ic = 0; ic < xcols; ic++)
 	{
 		TVar *zp = &z(0,ic), *zlast = zp+numeq;
