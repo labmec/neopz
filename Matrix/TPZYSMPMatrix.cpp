@@ -550,23 +550,11 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	//          z and x cannot share storage
 	
 	this->MultAddChecks(x,y,z,alpha,beta,opt);
-    if(!opt) {
-        if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
-            z.Redim(this->Rows(),x.Cols());
-        }
-    } else {
-        if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
-            z.Redim(this->Cols(),x.Cols());
-        }
-    }
-    if(this->Cols() == 0) {
-        z.Zero();
-        return;
-    }
-
-    int64_t  ic, xcols;
+	this->PrepareZ(y,z,beta,opt);
+	int64_t  r = (opt) ? this->Rows() : this->Cols();
+	if(r==0){return;}
+	int64_t  ic, xcols;
 	xcols = x.Cols();
-	int64_t  r = (opt) ? this->Cols() : this->Rows();
 	/*
 	// Determine how to initialize z
 	for(ic=0; ic<xcols; ic++) {
@@ -593,7 +581,6 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 		}
 	}
      */
-    TPZMatrix<TVar>::PrepareZ(y, z, beta, opt);
 //    z.Print("z = ",std::cout,EMathematicaInput);
 	/*
 	 TPZFYsmpMatrix *target;

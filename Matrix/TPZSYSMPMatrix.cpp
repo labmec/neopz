@@ -209,7 +209,8 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 
     // Determine how to initialize z
     this->PrepareZ(y,z,beta,opt);
-	
+    int64_t  r = (opt) ? this->Rows() : this->Cols();
+    if(r==0){return;}
 	// Compute alpha * A * x
     const int64_t ncols = x.Cols();
     const int64_t nrows = this->Rows();
