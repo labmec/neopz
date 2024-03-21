@@ -200,6 +200,19 @@ constexpr auto SymPropName(SymProp sp){
   unreachable();
 }
 
+//! Convert enum to string
+constexpr auto DecomposeTypeName(DecomposeType dec){
+  switch(dec){
+  case DecomposeType::ELU: return "ELU";
+  case DecomposeType::ELDLt: return "ELDLt";
+  case DecomposeType::ELUPivot: return "ELUPivot";
+  case DecomposeType::ECholesky: return "ECholesky";
+  case DecomposeType::ENoDecompose: return "ENoDecompose";
+  }
+  //avoids compiler warning
+  unreachable();
+}
+
 /** @} */
 
 #endif
