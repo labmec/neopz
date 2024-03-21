@@ -71,6 +71,11 @@ void TPZSYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMa
         z.Redim(zr,zc);
       }else{
         z = y;
+        const auto  r = (opt) ? this->Rows() : this->Cols();
+        if(r == 0){
+          z*=beta;
+          return;
+        }
       }
       
 			const int64_t z_cols = z.Cols();
