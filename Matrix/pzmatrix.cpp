@@ -125,12 +125,31 @@ void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,co
 }
 
 template<class TVar>
+void TPZMatrix<TVar>::MultAddChecks(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const{
+#ifdef PZDEBUG
+  if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
+    Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
+    return;
+  }
+  if(beta != (TVar)0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+    Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+    return;
+  }
+#endif
+  if(!opt) {
+    if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
+      z.Redim(this->Rows(),x.Cols());
+    }
+  } else {
+    if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
+      z.Redim(this->Cols(),x.Cols());
+    }
+  }
+}
+
+template<class TVar>
 void TPZMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const {
-	if ((!opt && Cols() != x.Rows()) || Rows() != x.Rows())
-		Error( "Operator* <matrices with incompatible dimensions>" );
-	if(x.Cols() != y.Cols() || x.Rows() != y.Rows()) {
-		Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
-	}
+	MultAddChecks(x,y,z,alpha,beta,opt);
 	int64_t rows = Rows();
 	int64_t cols = Cols();
 	int64_t xcols = x.Cols();
