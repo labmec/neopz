@@ -454,11 +454,7 @@ void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 									 const TVar alpha,const TVar beta,const int opt )  {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
-	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || y.Rows() != z.Rows() )
-	{
-		cout << "\nERROR! in TPZVerySparseMatrix::MultiplyAdd : incompatible dimensions in x, y or z\n";
-		return;
-	}
+	this->MultAddChecks(x,y,z,alpha,beta,opt);
 	
 	int64_t  ir, ic, icol, xcols;
 	xcols = x.Cols();
@@ -553,16 +549,7 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
 	
-#ifdef PZDEBUG
-    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
-        std::cout << "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" ;
-        return;
-    }
-    if(beta!=(TVar)0.0 && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
-        std::cout << "TPZFMatrix::MultAdd matrix y with incompatible dimensions>";
-        return;
-    }
-#endif
+	this->MultAddChecks(x,y,z,alpha,beta,opt);
     if(!opt) {
         if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
             z.Redim(this->Rows(),x.Cols());

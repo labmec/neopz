@@ -273,21 +273,7 @@ template <class TVar>
 void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> &y,
   TPZFMatrix<TVar> &z, const TVar alpha, const TVar beta, const int opt)const
 {
-  // Computes z = beta * y + alpha * opt(this)*x
-  // z and x cannot overlap in memory
-  if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,
-    " <matrixs with incompatible dimensions>");
-  if (z.Rows() != x.Rows() || z.Cols() != x.Cols())
-    z.Redim(x.Rows(), x.Cols());
-  if (x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows()
-    || x.Rows() != z.Rows())
-  {
-    cout << "x.Cols = " << x.Cols() << " y.Cols()" << y.Cols()
-        << " z.Cols() " << z.Cols() << " x.Rows() " << x.Rows()
-        << " y.Rows() " << y.Rows() << " z.Rows() " << z.Rows() << endl;
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, " incompatible dimensions\n");
-  }
+  this->MultAddChecks(x,y,z,alpha,beta,opt);
   this->PrepareZ(y, z, beta, opt);
   int64_t rows = this->Rows();
   int64_t xcols = x.Cols();
