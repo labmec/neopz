@@ -203,6 +203,9 @@ public:
   virtual TPZMatrix<TVar> &operator*=(const TVar val);
 
   TPZFMatrix<TVar> operator*(const TPZFMatrix<TVar> &B ) const;
+  //! Unifies input parameters checks of MultAdd
+  void MultAddChecks(const TPZFMatrix<TVar> & x,const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,
+                     const TVar alpha=1., const TVar beta = 0., const int opt = 0) const;
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
 	 * @param x Is x on the above operation
