@@ -22,8 +22,8 @@ TPZInterpolatedElement(mesh,gel){
 
 	//  RemoveSideRestraintsII(EInsert);
 	gel->SetReference(this);
-  int matid = gel->MaterialId();
 #ifdef PZDEBUG
+  int matid = gel->MaterialId();
   if (mesh.FindMaterial(matid) == 0) {
     DebugStop();
   }

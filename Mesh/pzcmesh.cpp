@@ -527,7 +527,7 @@ void TPZCompMesh::LoadSolution(const TPZSolutionMatrix &mat){
     /*
       The TPZLinearAnalysis class will store the solution associated with the independent
       equations, i.e., the solution returned from the solver.
-      Meanwhile, the TPZCompMesh class stores the *full* solution, therfore it needs
+      Meanwhile, the TPZCompMesh class stores the *full* solution, therefore it needs
       extra room for the dependent dofs
     */
     fSolution.ExpandAndSetSol(mat, fSolution.Rows());

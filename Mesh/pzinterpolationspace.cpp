@@ -473,7 +473,7 @@ void TPZInterpolationSpace::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZEl
         weight *= fabs(data.detjac);
         
         material->Contribute(data, weight, ek.fMat, ef.fMat);
-    }//loop over integratin points
+    }//loop over integration points
     
 }//CalcStiff
 

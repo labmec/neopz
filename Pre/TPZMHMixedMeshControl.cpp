@@ -921,8 +921,6 @@ void TPZMHMixedMeshControl::CreateFluxElements() {
     cmeshHDiv->AutoBuild(matids);
     fConnectToSubDomainIdentifier[cmeshHDiv].Resize(cmeshHDiv->NConnects(), -1);
     //Criar elementos computacionais malha MHM
-    TPZGeoEl *gel = NULL;
-    TPZGeoEl *gsubel = NULL;
     int64_t nel = cmeshHDiv->NElements();
     for(int64_t el = 0; el<nel; el++)
     {

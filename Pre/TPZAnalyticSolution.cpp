@@ -249,10 +249,10 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[1] += (FADFADSTATE) 1.;
     }
     else if (fProblemType == EThiago){
-        disp[0] = (x[0])*(x[0]-1)*(x[1])*(x[1]-1);
-        disp[1] = (x[0])*(x[0]-1)*(x[1])*(x[1]-1);
-//        disp[0] = FADcos(M_PI * x[0]) * FADsin(2 * M_PI * x[1]);
-//        disp[1] = FADcos(M_PI * x[1]) * FADsin(M_PI * x[0]);
+//        disp[0] = (x[0])*(x[0]-1)*(x[1])*(x[1]-1);
+//        disp[1] = (x[0])*(x[0]-1)*(x[1])*(x[1]-1);
+        disp[0] = FADcos(M_PI * x[0]) * FADsin(2 * M_PI * x[1]);
+        disp[1] = FADcos(M_PI * x[1]) * FADsin(M_PI * x[0]);
     } else if(fProblemType == EPoly){
         disp[0] = 0. * x[0]; //*x[0]*x[1];
         disp[1] = x[1] * x[0]; //(x[1]-1.)*(x[1]-x[0])*(x[0]+4.*x[1]);
@@ -430,13 +430,13 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) con
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
 
-        //disp[0] = ((1-x[0]*x[0])*(1+x[1]*x[1]*x[1]*x[1]));
-        //disp[1] = ((1-x[1]*x[1])*(1+x[0]*x[0]*x[0]*x[0]));
-//        disp[0] = (TVar2) cos(M_PI * x[0])*(TVar2) sin(2 * M_PI * x[1]);
-//        disp[1] = (TVar2) cos(M_PI * x[1])*(TVar2) sin(M_PI * x[0]);
+        //disp[0] = x[0]*x[1]*(x[0]-1)*(x[1]-1);
+        //disp[1] = x[0]*x[1]*(x[0]-1)*(x[1]-1);
+        disp[0] = (TVar2) cos(M_PI * x[0])*(TVar2) sin(2 * M_PI * x[1]);
+        disp[1] = (TVar2) cos(M_PI * x[1])*(TVar2) sin(M_PI * x[0]);
         
-        disp[0] = (TVar2) ((x[0])*(x[0]-1)*(x[1])*(x[1]-1));
-        disp[1] = (TVar2) ((x[0])*(x[0]-1)*(x[1])*(x[1]-1));
+        //disp[0] = (TVar2) ((x[0])*(x[0]-1)*(x[1])*(x[1]-1));
+        //disp[1] = (TVar2) ((x[0])*(x[0]-1)*(x[1])*(x[1]-1));
     } else if(fProblemType == EPoly){
         disp[0] = 0. * x[0]; //*x[0]*x[1];
         disp[1] = x[1] * x[0]; //(x[1]-1.)*(x[1]-x[0])*(x[0]+4.*x[1]);

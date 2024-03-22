@@ -308,7 +308,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
     TPZBaseMatrix &solMF = MFMesh->Solution();
     
     auto *realSol = dynamic_cast<TPZFMatrix<STATE>*>(&solMF);
-    auto *cplxSol = dynamic_cast<TPZFMatrix<CSTATE>*>(&solMF);
+    //auto *cplxSol = dynamic_cast<TPZFMatrix<CSTATE>*>(&solMF);
     if(realSol) TransferFromMeshesT<STATE>(cmeshVec,MFMesh);
     else TransferFromMeshesT<CSTATE>(cmeshVec,MFMesh);
 }

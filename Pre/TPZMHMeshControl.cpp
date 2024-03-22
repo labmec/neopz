@@ -278,13 +278,12 @@ void TPZMHMeshControl::DefinePartitionbyCoarseIndices(TPZVec<int64_t> &coarseind
     }
     // set the MHM domain index for all elements
     // look for a father element that has a MHM domain index
-    // adopt the domain index of the ancester
+    // adopt the domain index of the ancestor
     for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = fGMesh->Element(el);
         if (!gel || fGeoToMHMDomain[el] != -1) {
             continue;
         }
-        int domain = -1;
         TPZGeoEl *father = gel->Father();
         while (father) {
             int64_t index = father->Index();
