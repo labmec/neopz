@@ -47,6 +47,23 @@ void TestAdd(const MAT &mat, const bool use_operator);
 template<class MAT>
 void TestSubtract(const MAT &mat, const bool use_operator);
 
+template<class MAT>
+struct SymmetricStorage : std::false_type {};
+template<class TVar>
+struct SymmetricStorage<TPZSFMatrix<TVar>> : std::true_type {};
+template<class TVar>
+struct SymmetricStorage<TPZSBMatrix<TVar>> : std::true_type {};
+template<class TVar>
+struct SymmetricStorage<TPZSkylMatrix<TVar>> : std::true_type {};
+template<class TVar>
+struct SymmetricStorage<TPZSYsmpMatrix<TVar>> : std::true_type {};
+#ifdef PZ_USING_MKL
+template<class TVar>
+struct SymmetricStorage<TPZSYsmpMatrixPardiso<TVar>> : std::true_type {};
+
+template<class MAT>
+inline constexpr bool IsSymmetricStorage = SymmetricStorage<MAT>::value;
+#endif
 
 TEMPLATE_PRODUCT_TEST_CASE("Inverse (nsym,REAL)","[matrix_tests]",
                            (
@@ -501,7 +518,7 @@ TEMPLATE_PRODUCT_TEST_CASE("MultAdd","[matrix_tests]",
 
   using MAT=TestType;
   using SCAL=typename MAT::Type;
-
+  using RSCAL = RType(SCAL);
 
 #ifdef PZ_USING_MKL
   //pardiso is only for doubles
@@ -519,11 +536,11 @@ TEMPLATE_PRODUCT_TEST_CASE("MultAdd","[matrix_tests]",
   SCAL alpha{0.0};
   SCAL beta{0.0};
   TPZFMatrix<SCAL> x,y,z;
+  MAT mat;
+  const int nr{10};
+  const int opt=GENERATE(0,1,2);
   SECTION("Zero sized A"){
-    const int nr{10};
     y.AutoFill(nr,1,SymProp::NonSym);
-    MAT mat;
-    const int opt=GENERATE(0,1,2);
     alpha=0.0;
     beta=-1.0;
     x.Resize(0,1);
@@ -544,6 +561,62 @@ TEMPLATE_PRODUCT_TEST_CASE("MultAdd","[matrix_tests]",
     SECTION("invalid x"){
       x.AutoFill(nr,1,SymProp::NonSym);
       REQUIRE_THROWS(mat.MultAdd(x,y,z,alpha,beta,opt));
+    }
+    SECTION("invalid y"){
+      x.AutoFill(nr,1,SymProp::NonSym);
+      mat.AutoFill(nr,nr,SymProp::Herm);
+      y.AutoFill(2*nr,1,SymProp::NonSym);
+      REQUIRE_THROWS(mat.MultAdd(x,y,z,alpha,beta,opt));
+    }
+  }
+  SECTION("square case"){
+    std::map<int,std::string> optname;
+    optname[0]="NoTransp";
+    optname[1]="Transp";
+    optname[2]="TranspConj";
+    SECTION(optname[opt]){
+      const auto sp = GENERATE(SymProp::NonSym,SymProp::Herm);
+      SECTION(SymPropName(sp)){
+        if (std::is_same_v<MAT,TPZFMatrix<std::complex<long double>>>
+            && opt==2){
+          int var{2};
+          var++;
+        }
+        if constexpr(IsSymmetricStorage<MAT>){
+          if(sp==SymProp::NonSym){return;}
+        }
+        mat.AutoFill(nr,nr,sp);
+        if constexpr (is_complex<SCAL>::value){
+          alpha = (SCAL)1.0i;
+        }else{
+          alpha = 1.0;
+        }
+        beta = -alpha;
+        TPZFMatrix<SCAL> aux = mat;
+        if(opt==1){
+          aux.Transpose();
+        }else if(opt==2){
+          aux.ConjTranspose();
+        }
+
+        DecomposeType dec{ENoDecompose};
+        if constexpr(IsSymmetricStorage<MAT>){
+          dec=ELDLt;
+        }else{
+          dec=ELU;
+        }
+      
+        y.Resize(nr,nr);
+        y.Identity();
+        x=y;
+        aux.SolveDirect(x,dec);
+        mat.MultAdd(x,y,z,alpha,beta,opt);
+        constexpr RSCAL tol = 1000*std::numeric_limits<RSCAL>::epsilon()/
+          (std::numeric_limits<RSCAL>::digits10);
+        const auto normz = Norm(z);
+        CAPTURE(opt,normz,tol);
+        REQUIRE(normz == Catch::Approx(0).margin(tol));
+      }
     }
   }
 }
