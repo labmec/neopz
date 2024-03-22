@@ -219,6 +219,8 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
       is_complex<TVar>::value && this->GetSymmetry() == SymProp::Herm;
 
 
+    //0 and 2 are the same for conj matrices
+    const bool bool_opt= opt==1 ? true : false;
     if(must_conj){
       if constexpr (is_complex<TVar>::value){
         auto GetMyVal = [](const int64_t ir, const int64_t ic,
@@ -230,7 +232,7 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
           for(int64_t row=0; row<nrows; row++) {
             for(int64_t iv=fIA[row]; iv<fIA[row+1]; iv++) {
               const int64_t ic = fJA[iv];
-              const TVar val = GetMyVal(row,ic,opt,fA[iv]);
+              const TVar val = GetMyVal(row,ic,bool_opt,fA[iv]);
               z(row,col) += alpha * val * x.GetVal(ic,col);
               if(row != ic){
                 z(ic,col) += alpha* std::conj(val) * x.GetVal(row,col);
@@ -245,6 +247,10 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
         for(int64_t row=0; row<nrows; row++) {
           for(int64_t iv=fIA[row]; iv<fIA[row+1]; iv++) {
             const int64_t ic = fJA[iv];
+            auto matval = fA[iv];
+            if constexpr(is_complex<TVar>::value){
+              if(opt!=1){matval=std::conj(matval);}
+            }
             z(row,col) += alpha * fA[iv] * x.GetVal(ic,col);
             if(row != ic){
               z(ic,col) += alpha * fA[iv] * x.GetVal(row,col);

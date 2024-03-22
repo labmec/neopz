@@ -82,7 +82,10 @@ void TPZSYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMa
 			const int64_t z_rows = z.Rows();
 			
 			sparse_status_t status; 
-			sparse_operation_t op = opt ? SPARSE_OPERATION_TRANSPOSE : SPARSE_OPERATION_NON_TRANSPOSE;
+			sparse_operation_t op =
+				opt ?
+        (opt==1 ? SPARSE_OPERATION_TRANSPOSE : SPARSE_OPERATION_CONJUGATE_TRANSPOSE)
+        : SPARSE_OPERATION_NON_TRANSPOSE;
 			sparse_index_base_t idx = SPARSE_INDEX_BASE_ZERO;
 			sparse_matrix_t A;
 			matrix_descr descr;
