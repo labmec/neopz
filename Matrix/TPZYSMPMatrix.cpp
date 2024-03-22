@@ -849,7 +849,11 @@ void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 					{
 						if(mat->fJA[icol]==-1) break; //Checa a exist�cia de dado ou n�
 						jc = mat->fJA[icol];
-						data->fZ->operator()(jc,ic) += data->fAlpha * mat->fA[icol] * data->fX->g(ir,ic);
+						auto matval = mat->fA[icol];
+						if constexpr(is_complex<TVar>::value){
+							if(data->fOpt!=1){matval = std::conj(matval);}
+						}
+						data->fZ->operator()(jc,ic) += data->fAlpha * matval * data->fX->g(ir,ic);
 					}
 				}
 				
