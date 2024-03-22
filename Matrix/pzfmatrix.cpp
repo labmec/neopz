@@ -708,19 +708,16 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
                 if constexpr (is_complex<TVar>::value){
                     if(opt==2){
                         while(xp < xlast) {
-                            val += std::conj(*fp++) * *xp;
-                            xp ++;
+                            val += std::conj(*fp++) * *xp++;
                         }
-                        break;//breaks from the for loop
+                        *zp++ += alpha *val;
+                        continue;//continue from the for loop
                     }
                 }
                 while(xp < xlast) {
-                    val += *fp++ * *xp;
-                    xp ++;
+                    val += *fp++ * *xp++;
                 }
-                
-                *zp += alpha *val;
-                zp ++;
+                *zp++ += alpha *val;
             }
         }
     }
