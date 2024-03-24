@@ -328,6 +328,7 @@ void TPZSYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym)
     if (sym == SymProp::NonSym || nrow != ncol) {
         DebugStop();
     }
+    SetSymmetry(sym);
     TPZFMatrix<TVar> orig;
     orig.AutoFill(nrow,ncol,sym);
     
