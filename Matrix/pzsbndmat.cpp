@@ -101,6 +101,7 @@ void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym) {
                 PutVal(i,i,1.);
         }
     }
+    SetSymmetry(sym);
     
 }
 /**************/
@@ -143,8 +144,11 @@ TPZSBMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) const
         if (auto index = row-col; index > fBand ){
             return (TVar) 0;//out of band
         }else if constexpr(is_complex<TVar>::value){
-            if(this->fSymProp == SymProp::Herm) {return( std::conj(fStorage[Index(col,row)]) );}
-            else{return fStorage[Index(col,row)];}
+            if(this->fSymProp == SymProp::Herm) {
+                return( std::conj(fStorage[Index(col,row)]) );
+            } else {
+                return fStorage[Index(col,row)];
+            }
         }else{
             return( fStorage[ Index(col,row) ] );
         }

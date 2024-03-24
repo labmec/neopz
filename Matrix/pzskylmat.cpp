@@ -461,6 +461,7 @@ template<class TVar>
 const TVar &
 TPZSkylMatrix<TVar>::GetVal(const int64_t r,const int64_t c ) const
 {
+    xxx
     if (r > c) return GetVal(c,r);
     unsigned dim = this->Dim();
     //EBORIN: Do we really need to do this? May only when running debug version.
@@ -497,9 +498,12 @@ TPZSkylMatrix<TVar>::GetVal(const int64_t r,const int64_t c ) const
         const int64_t index   = col - row;
         if ( index < Size(col) ){
             if constexpr (is_complex<TVar>::value){
-                if(this->fSymProp == SymProp::Herm) {return( std::conj(fElem[col][index]) );}
-                else {return( fElem[col][index] );}
-            }else{
+                if(this->fSymProp == SymProp::Herm) {
+                    return( std::conj(fElem[col][index]) );
+                } else {
+                    return( fElem[col][index] );
+                }
+            } else {
                 return( fElem[col][index] );
             }
         }else{
@@ -1808,6 +1812,7 @@ void TPZSkylMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sp) {
                <<std::endl;
         DebugStop();
     }
+    SetSymmetry(sp);
     TPZMatrix<TVar>::Redim(nrow,ncol);
     TPZVec<int64_t> skyline(nrow);
     fElem.resize(nrow+1);
