@@ -227,7 +227,7 @@ void TestH1Problem() {
     TPZCompMesh* cmesh = CreateCMeshH1(gmesh,pOrder,volid,bcid);
     
     // ========> Solve H1
-    TPZLinearAnalysis an(cmesh,true);
+    TPZLinearAnalysis an(cmesh,RenumType::EDefault);
     constexpr int nThreads{16};
     TPZStructMatrixT<STATE>* matstruct;
     
