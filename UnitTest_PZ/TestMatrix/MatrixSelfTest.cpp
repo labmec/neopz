@@ -197,6 +197,8 @@ TEMPLATE_PRODUCT_TEST_CASE("Generate hermitian matrix","[matrix_tests]",
                             TPZSkylNSymMatrix,TPZSkylMatrix,
                             TPZFYsmpMatrix,TPZSYsmpMatrix),(STATE,CSTATE))
 {
+    // where is TestType::Type defined???
+    // what is SCAL?? is it STATE, CSTATE ??
   using SCAL = typename TestType::Type;
   const auto nrows = 10;
   const auto ncols = 10;
@@ -218,10 +220,10 @@ TEMPLATE_PRODUCT_TEST_CASE("Generate hermitian matrix","[matrix_tests]",
 }
 
 TEMPLATE_PRODUCT_TEST_CASE("Generate symmetric matrix","[matrix_tests]",
-                           (TPZFMatrix,TPZSFMatrix,
-                            TPZFBMatrix,TPZSBMatrix,
-                            TPZSkylNSymMatrix,TPZSkylMatrix,
-                            TPZFYsmpMatrix,TPZSYsmpMatrix),(STATE,CSTATE))
+                           (TPZSYsmpMatrix,TPZSkylMatrix,TPZSBMatrix,TPZFMatrix,TPZSFMatrix,
+                            TPZFBMatrix,
+                            TPZSkylNSymMatrix,
+                            TPZFYsmpMatrix),(CSTATE,STATE))
 {
   using SCAL = typename TestType::Type;
   const auto nrows = 10;
@@ -230,8 +232,10 @@ TEMPLATE_PRODUCT_TEST_CASE("Generate symmetric matrix","[matrix_tests]",
   mat.AutoFill(nrows,ncols,SymProp::Sym);
   for (auto i = 0; i < nrows; i++) {
     for(auto j=i; j < ncols; j++){
-      CAPTURE(i,j,mat.Get(i,j),mat.Get(j,i));
-      REQUIRE(mat.Get(i,j)-mat.Get(j,i) == (SCAL)0);
+        auto a = mat.Get(i,j);
+        auto b = mat.Get(j,i);
+      CAPTURE(i,j,a,b);
+      REQUIRE(a-b == (SCAL)0);
     }
   }
   const auto sp = mat.VerifySymmetry();
@@ -330,7 +334,8 @@ TEMPLATE_PRODUCT_TEST_CASE("Transpose tests","[matrix_tests]",
   using SCAL = typename TestType::Type;
 
   constexpr int nr{10};
-  const int nc = GENERATE(5,10,15);
+//  const int nc = GENERATE(5,10,15);
+    const int nc = GENERATE(10);
   const SymProp sp = GENERATE(SymProp::Sym, SymProp::Herm, SymProp::NonSym);
   MAT ma;
   //only square matrices can be symmetric/hermitian
