@@ -648,7 +648,8 @@ void TestInverse(const bool sym_storage, const SymProp sp, const DecomposeType d
   // getting inverse twice
   ma.Inverse(inv,dec);
   invkeep = inv;
-  inv.Inverse(res, dec);
+  //since it is a full matrix, we use LU to be sure
+  inv.Inverse(res, ELU);
   bool check = true;
   /// Checking whether the res matrix is identical to m1 matrix
   auto oldPrecision = Catch::StringMaker<RSCAL>::precision;
@@ -668,7 +669,7 @@ void TestInverse(const bool sym_storage, const SymProp sp, const DecomposeType d
   }
   if(!check) {
     cpma.Print(" mat ",std::cout);
-    inv.Print(" inv mat ", std::cout);
+    invkeep.Print(" inv mat ", std::cout);
     res.Print(" inv inv mat ",std::cout);
   }
   REQUIRE(check);
