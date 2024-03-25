@@ -67,86 +67,44 @@ template<class MAT>
 inline constexpr bool IsSymmetricStorage = SymmetricStorage<MAT>::value;
 #endif
 
-TEMPLATE_PRODUCT_TEST_CASE("Inverse (nsym,REAL)","[matrix_tests]",
+TEMPLATE_PRODUCT_TEST_CASE("Inverse","[matrix_tests]",
                            (
                              TPZFMatrix,
+                             TPZSFMatrix,
                              TPZFBMatrix,
+                             //TPZSBMatrix,//see next test for debugging
                              TPZSkylNSymMatrix,
+                             TPZSkylMatrix,
 #ifdef PZ_USING_MKL
                              TPZFYsmpMatrixPardiso,
+                             TPZSYsmpMatrixPardiso,
 #endif
                              TPZBlockDiagonal
                             ),
                            (float,
                             double,
-                            long double)
-                           ) {
-
-  using MAT = TestType;
-  using SCAL = typename MAT::Type;
-#ifdef PZ_USING_MKL
-  //pardiso is only for doubles
-  if(
-    std::is_same_v<MAT,TPZFYsmpMatrixPardiso<float>> ||
-    std::is_same_v<MAT,TPZFYsmpMatrixPardiso<long double>>||
-    std::is_same_v<MAT,TPZFYsmpMatrixPardiso<std::complex<float>>>||
-    std::is_same_v<MAT,TPZFYsmpMatrixPardiso<std::complex<long double>>>){return;}
-#endif
-  DecomposeType dec = GENERATE(ELU,ECholesky,ELDLt);
-  SECTION(DecomposeTypeName(dec)){
-    SymProp sp = GENERATE(SymProp::NonSym,SymProp::Sym,SymProp::Herm);
-    SECTION(SymPropName(sp)){
-      if((dec==ECholesky && sp==SymProp::NonSym) ||
-         (dec==ELDLt && sp==SymProp::NonSym)){
-        return;
-      }
-      if(
-        (std::is_same_v<MAT,TPZFBMatrix<SCAL>> ||
-         std::is_same_v<MAT,TPZSkylNSymMatrix<SCAL>> ||
-         std::is_same_v<MAT,TPZBlockDiagonal<SCAL>>) &&
-        dec != ELU){
-        return;
-      }
-  
-      TestInverse<MAT>(false,sp,dec);
-    }
-  }
-}
-
-template <class MAT>
-void TestInverse();
-TEMPLATE_PRODUCT_TEST_CASE("Inverse (nsym,CPLX)","[matrix_tests]",
-                           (
-                             TPZFMatrix,
-                             TPZFBMatrix,
-                             TPZSkylNSymMatrix,
-#ifdef PZ_USING_MKL
-                             TPZFYsmpMatrixPardiso,
-#endif
-                             TPZBlockDiagonal
-                            ),
-                           (std::complex<float>,
+                            long double,
+                            std::complex<float>,
                             std::complex<double>,
                             std::complex<long double>)
                            ) {
   using MAT = TestType;
   using SCAL = typename MAT::Type;
-  
+
+  constexpr bool sym_storage=IsSymmetricStorage<MAT>;
 #ifdef PZ_USING_MKL
   //pardiso is only for doubles
-  if(
-    std::is_same_v<TestType,TPZFYsmpMatrixPardiso<float>> ||
-    std::is_same_v<TestType,TPZFYsmpMatrixPardiso<long double>>||
-    std::is_same_v<TestType,TPZFYsmpMatrixPardiso<std::complex<float>>>||
-    std::is_same_v<TestType,TPZFYsmpMatrixPardiso<std::complex<long double>>>){return;}
+  if((std::is_same_v<MAT,TPZFYsmpMatrixPardiso<SCAL>> &&
+      !std::is_same_v<double,RType(SCAL)>)||
+     (std::is_same_v<MAT,TPZSYsmpMatrixPardiso<SCAL>> &&
+      !std::is_same_v<double,RType(SCAL)>)){return;}
 #endif
   DecomposeType dec = GENERATE(ELU,ECholesky,ELDLt);
   SECTION(DecomposeTypeName(dec)){
     SymProp sp = GENERATE(SymProp::NonSym,SymProp::Sym,SymProp::Herm);
     SECTION(SymPropName(sp)){
-      if((dec==ECholesky && sp==SymProp::NonSym) ||
-         (dec==ELDLt && sp==SymProp::NonSym) ||
-         (is_complex<SCAL>::value && dec!=ELU && sp==SymProp::Sym)){
+      if((dec==ECholesky && sp!=SymProp::Herm) ||
+         (dec==ELDLt && sp!=SymProp::Herm)){
         return;
       }
       //some more
@@ -157,45 +115,11 @@ TEMPLATE_PRODUCT_TEST_CASE("Inverse (nsym,CPLX)","[matrix_tests]",
         dec != ELU){
         return;
       }
-      TestInverse<MAT>(false,sp,dec);
+      if(sym_storage && dec==ELU){return;}
+      TestInverse<MAT>(sym_storage,sp,dec);
     }
   }
 }
-
-template <class MAT>
-void TestInverse();
-TEMPLATE_PRODUCT_TEST_CASE("Inverse (sym,REAL)","[matrix_tests]",
-                           (
-                             TPZSFMatrix,
-                             TPZSBMatrix,
-                             TPZSkylMatrix,
-#ifdef PZ_USING_MKL
-                             TPZSYsmpMatrixPardiso
-#endif
-                            ),
-                           (float,
-                            double,
-                            long double)
-                           ) {
-  using MAT = TestType;
-  using SCAL = typename MAT::Type;
-#ifdef PZ_USING_MKL
-  //pardiso is only for doubles
-  if(
-    std::is_same_v<TestType,TPZSYsmpMatrixPardiso<float>> ||
-    std::is_same_v<TestType,TPZSYsmpMatrixPardiso<long double>>||
-    std::is_same_v<TestType,TPZSYsmpMatrixPardiso<std::complex<float>>>||
-    std::is_same_v<TestType,TPZSYsmpMatrixPardiso<std::complex<long double>>>){return;}
-#endif
-  DecomposeType dec = GENERATE(ECholesky,ELDLt);
-  SECTION(DecomposeTypeName(dec)){
-    const SymProp sp = SymProp::Herm;
-    TestInverse<MAT>(true,sp,dec);
-  }
-}
-
-template <class MAT>
-void TestInverse();
 
 
 //for debugging: once this is fixed, uncomment next test
@@ -206,43 +130,6 @@ TEST_CASE("Inverse TPZSBMatrix cplx","[matrix_tests][!shouldfail]"){
     MAT ma1;
     ma1.AutoFill(10,10,sp);
     TestInverse<MAT>(true,sp,ELDLt);
-  }
-}
-TEMPLATE_PRODUCT_TEST_CASE("Inverse (sym,CPLX)","[matrix_tests]",
-                           (
-                             TPZSFMatrix,
-                             // TPZSBMatrix,
-                             TPZSkylMatrix,
-#ifdef PZ_USING_MKL
-                             TPZSYsmpMatrixPardiso
-#endif
-                            ),
-                           (std::complex<float>,
-                            std::complex<double>,
-                            std::complex<long double>)
-                           ) {
-  using MAT = TestType;
-  using SCAL = typename MAT::Type;
-#ifdef PZ_USING_MKL
-  //pardiso is only for doubles
-  if(
-    std::is_same_v<TestType,TPZSYsmpMatrixPardiso<float>> ||
-    std::is_same_v<TestType,TPZSYsmpMatrixPardiso<long double>>||
-    std::is_same_v<TestType,TPZSYsmpMatrixPardiso<std::complex<float>>>||
-    std::is_same_v<TestType,TPZSYsmpMatrixPardiso<std::complex<long double>>>){return;}
-#endif
-  DecomposeType dec = GENERATE(ECholesky,ELDLt);
-  SECTION(DecomposeTypeName(dec)){
-    SymProp sp = GENERATE(SymProp::Sym, SymProp::Herm);
-    SECTION(SymPropName(sp)){
-#ifdef PZ_USING_MKL
-      //we can only solve symmetric complex matrices with sym storage using pardiso
-      if(sp==SymProp::Sym && !std::is_same_v<MAT,TPZSYsmpMatrixPardiso<std::complex<double>>>){
-        return;
-      }
-#endif
-      TestInverse<MAT>(true,sp,dec);
-    }
   }
 }
 
