@@ -1584,7 +1584,7 @@ TPZSkylMatrix<TVar>::Copy(const TPZSkylMatrix<TVar> &A )
         fElem[i]=firstp+(A.fElem[i]-A.fElem[0]);
     this->fDecomposed  = A.fDecomposed;
     this->fDefPositive = A.fDefPositive;
-    
+    this->fSymProp = A.fSymProp;
 }
 
 template<class TVar>
@@ -1812,8 +1812,8 @@ void TPZSkylMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sp) {
                <<std::endl;
         DebugStop();
     }
-    SetSymmetry(sp);
     TPZMatrix<TVar>::Redim(nrow,ncol);
+    SetSymmetry(sp);
     TPZVec<int64_t> skyline(nrow);
     fElem.resize(nrow+1);
     fElem.Fill(0);
