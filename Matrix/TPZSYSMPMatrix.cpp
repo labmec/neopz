@@ -249,11 +249,11 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
             const int64_t ic = fJA[iv];
             auto matval = fA[iv];
             if constexpr(is_complex<TVar>::value){
-              if(opt!=1){matval=std::conj(matval);}
+              if(opt==2){matval=std::conj(matval);}
             }
-            z(row,col) += alpha * fA[iv] * x.GetVal(ic,col);
+            z(row,col) += alpha * matval * x.GetVal(ic,col);
             if(row != ic){
-              z(ic,col) += alpha * fA[iv] * x.GetVal(row,col);
+              z(ic,col) += alpha * matval * x.GetVal(row,col);
             }
           }
         }
