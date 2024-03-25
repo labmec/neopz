@@ -411,16 +411,10 @@ TEMPLATE_PRODUCT_TEST_CASE("MultAdd","[matrix_tests]",
 
 #ifdef PZ_USING_MKL
   //pardiso is only for doubles
-  if(
-    std::is_same_v<MAT,TPZFYsmpMatrixPardiso<float>> ||
-    std::is_same_v<MAT,TPZFYsmpMatrixPardiso<long double>>||
-    std::is_same_v<MAT,TPZFYsmpMatrixPardiso<std::complex<float>>>||
-    std::is_same_v<MAT,TPZFYsmpMatrixPardiso<std::complex<long double>>>||
-    std::is_same_v<MAT,TPZSYsmpMatrixPardiso<float>> ||
-    std::is_same_v<MAT,TPZSYsmpMatrixPardiso<long double>>||
-    std::is_same_v<MAT,TPZSYsmpMatrixPardiso<std::complex<float>>>||
-    std::is_same_v<MAT,TPZSYsmpMatrixPardiso<std::complex<long double>>>
-     ){return;}
+  if((std::is_same_v<MAT,TPZFYsmpMatrixPardiso<SCAL>> &&
+      !std::is_same_v<double,RType(SCAL)>)||
+     (std::is_same_v<MAT,TPZSYsmpMatrixPardiso<SCAL>> &&
+      !std::is_same_v<double,RType(SCAL)>)){return;}
 #endif
   SCAL alpha{0.0};
   SCAL beta{0.0};
@@ -464,13 +458,8 @@ TEMPLATE_PRODUCT_TEST_CASE("MultAdd","[matrix_tests]",
     optname[1]="Transp";
     optname[2]="TranspConj";
     SECTION(optname[opt]){
-      const auto sp = GENERATE(SymProp::NonSym,SymProp::Herm);
+      const auto sp = GENERATE(SymProp::NonSym,SymProp::Sym,SymProp::Herm);
       SECTION(SymPropName(sp)){
-        if (std::is_same_v<MAT,TPZFMatrix<std::complex<long double>>>
-            && opt==2){
-          int var{2};
-          var++;
-        }
         if constexpr(IsSymmetricStorage<MAT>){
           if(sp==SymProp::NonSym){return;}
         }
@@ -498,7 +487,7 @@ TEMPLATE_PRODUCT_TEST_CASE("MultAdd","[matrix_tests]",
         y.Resize(nr,nr);
         y.Identity();
         x=y;
-        aux.SolveDirect(x,dec);
+        aux.SolveDirect(x,ELU);
         mat.MultAdd(x,y,z,alpha,beta,opt);
         constexpr RSCAL tol = 1000*std::numeric_limits<RSCAL>::epsilon()/
           (std::numeric_limits<RSCAL>::digits10);
