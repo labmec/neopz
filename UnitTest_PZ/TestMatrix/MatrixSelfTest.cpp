@@ -334,8 +334,10 @@ TEMPLATE_PRODUCT_TEST_CASE("Transpose tests","[matrix_tests]",
   using SCAL = typename TestType::Type;
 
   constexpr int nr{10};
-//  const int nc = GENERATE(5,10,15);
-    const int nc = GENERATE(10);
+  const int nc = GENERATE(5,10,15);
+  //only TPZFMatrix can be rectangular
+  if(!std::is_same_v<MAT,TPZFMatrix<SCAL>> && nc!=nr){return;}
+  // const int nc = GENERATE(10);
   const SymProp sp = GENERATE(SymProp::Sym, SymProp::Herm, SymProp::NonSym);
   MAT ma;
   //only square matrices can be symmetric/hermitian
