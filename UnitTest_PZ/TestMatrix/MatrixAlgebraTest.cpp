@@ -24,6 +24,8 @@
 #include <catch2/matchers/catch_matchers_all.hpp>
 #include <catch2/generators/catch_generators_all.hpp>
 
+using namespace std::complex_literals;
+
 template<>
 struct Catch::StringMaker<long double> {
   static std::string convert(long double ref);
