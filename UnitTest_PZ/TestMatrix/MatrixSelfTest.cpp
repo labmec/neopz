@@ -3,21 +3,7 @@
  * @brief Contains Basic Unit Tests for TPZMatrix<T> derived types
  */
 
-#include "pzfmatrix.h"
-#include "pzsfulmat.h"
-#include "pzbndmat.h"
-#include "pzsbndmat.h"
-#include "pzskylnsymmat.h"
-#include "pzskylmat.h"
-#include "TPZYSMPMatrix.h"
-#include "TPZSYSMPMatrix.h"
-#include "pzblockdiag.h"
-#include "fad.h"
-
-
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/catch_template_test_macros.hpp>
-#include <catch2/generators/catch_generators_all.hpp>
+#include "TestMatrixHeaders.h"
 /**
  * AUXILIARY FUNCTIONS
  **/
