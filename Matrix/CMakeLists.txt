@@ -30,6 +30,7 @@ set(headers
     TPZYSMPMatrix.h
     TPZSYSMPMatrix.h
     TPZSolutionMatrix.h
+    TPZMatrixWindow.h
     TPZTensor.h
     TPZTensorTranslator.h
     )
@@ -56,6 +57,7 @@ set(sources
     TPZYSMPMatrix.cpp
     TPZSYSMPMatrix.cpp
     TPZSolutionMatrix.cpp
+    TPZMatrixWindow.cpp
     TPZTensor.cpp
     TPZTensorTranslator.cpp
     )
