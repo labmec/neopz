@@ -19,8 +19,11 @@ using namespace pzgeom;
 using namespace pzshape;
 using namespace pzrefine;
 
-TPZBlendNACA::TPZBlendNACA()
+TPZBlendNACA::TPZBlendNACA() : fCord(1.), fFourDigits(0), fAngle(0.)
 {
+    fX0[0] = 0.;
+    fX0[1] = 0.;
+    fX0[2] = 0.;
 }
 
 TPZBlendNACA::TPZBlendNACA(REAL cord, int FourDigits, REAL angle, TPZVec<REAL> &x0) :
@@ -154,7 +157,11 @@ template REAL TPZBlendNACA::dyt(REAL x) const;
 template <class toto>
 toto TPZBlendNACA::xu(toto x) const
 {
-    return x-yt(x)*sin(atan(tgphi(x)));
+    toto ytval = yt(x);
+    toto tgphival = tgphi(x);
+    toto val = x-ytval*sin(atan(tgphival));
+    // std::cout << "xu x " << x << " yt " << ytval << " tgphi " << tgphival << " val = " << val << std::endl;
+    return val;
 }
 
 template REAL TPZBlendNACA::xu(REAL x) const;
