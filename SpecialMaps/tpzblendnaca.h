@@ -38,8 +38,9 @@ public:
     TPZBlendNACA(REAL cord, int FourDigits, REAL angle, TPZVec<REAL> &x0);
 
     TPZBlendNACA(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZBlendNACA::ClassId),
-        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes) {
-
+        pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes) , fFourDigits(0),
+        fCord(0.), fAngle(0.), fP(0.), fM(0.), fTT(0.){
+            fX0[0] = fX0[1] = fX0[2] = 0.;
     }
 
     TPZBlendNACA(const TPZBlendNACA &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZBlendNACA::ClassId),

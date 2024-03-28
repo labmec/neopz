@@ -65,7 +65,7 @@ toto TPZBlendNACA::TT()
     int aux = fFourDigits - ((int)(fFourDigits/100))*100;
     toto result;
     result = (toto)(aux/100.)*fCord;
-    std::cout << "TT = " << result << std::endl;
+    // std::cout << "TT = " << result << std::endl;
     return result;
 }
 template REAL TPZBlendNACA::TT();
@@ -153,6 +153,14 @@ toto TPZBlendNACA::dyt(toto x) const
 
 template REAL TPZBlendNACA::dyt(REAL x) const;
 
+template <class toto>
+toto TPZBlendNACA::xl(toto x) const
+{
+    return x+yt(x)*sin(atan(tgphi(x)));
+}
+template REAL TPZBlendNACA::xl(REAL x) const;
+
+
 //********
 template <class toto>
 toto TPZBlendNACA::xu(toto x) const
@@ -173,8 +181,12 @@ template <class toto>
 toto TPZBlendNACA::dxu(toto x) const
 {
     auto loctgphi = tgphi(x);
-    auto resp =  1.-dyt(x)*sin(atan(loctgphi))
-        -yt(x)/(1+loctgphi*loctgphi)/sqrt(1.+loctgphi*loctgphi)*dtgphi(x);
+    auto ytval = yt(x);
+    auto dtgphival = dtgphi(x);
+    auto dytval = dyt(x);
+    auto resp =  1.-dytval*sin(atan(loctgphi))
+        -ytval/(1+loctgphi*loctgphi)/sqrt(1.+loctgphi*loctgphi)*dtgphival;
+    // std::cout << "x " << x << " tgphi " << loctgphi << " yt " << ytval << " dtgphi " << dtgphival << " dyt " << dytval << " resp = " << resp << std::endl;
     return resp;
 }
 
@@ -201,13 +213,6 @@ toto TPZBlendNACA::dyu(toto x) const
 }
 template REAL TPZBlendNACA::dyu(REAL x) const;
 //********
-
-template <class toto>
-toto TPZBlendNACA::xl(toto x) const
-{
-    return x+yt(x)*sin(atan(tgphi(x)));
-}
-template REAL TPZBlendNACA::xl(REAL x) const;
 
 template <class toto>
 toto TPZBlendNACA::dxl(toto x) const
