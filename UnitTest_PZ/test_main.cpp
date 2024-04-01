@@ -28,15 +28,18 @@ struct EventListener : Catch::EventListenerBase
 
   std::string lastCase="";
   bool no_fails{true};
+  bool should_fail{false};
   
   void testCaseStarting(Catch::TestCaseInfo const& testCaseInfo) final{
     lastCase = testCaseInfo.name;
     no_fails = true;
+    should_fail = testCaseInfo.expectedToFail();
   }
 
   void sectionEnded(Catch::SectionStats const& sectionStats) final
   {
-    if (sectionStats.assertions.failed > 0){
+    if (sectionStats.assertions.failed > 0 ||
+        (should_fail && sectionStats.assertions.failedButOk==0)){
       /*a test case will always have one implicit section (full case).
         this logic aims to avoid printing the implicit section in case
         inner sections have already failed*/
