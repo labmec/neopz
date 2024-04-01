@@ -4,7 +4,7 @@
  */
 
 #include "TestMatrixHeaders.h"
-
+#include "TPZMatrixWindow.h"
 /**
  * @brief Tests the addContribution method of the matrix, that adds a block C += alpha * A*B starting at C(i,j), using AutoFill to build a square matrix of dimension dim (user defined)
  * @param nrows Number of rows of the matrix to be build.
@@ -171,6 +171,124 @@ TEMPLATE_TEST_CASE("AddContribution","[matrix_tests]",
       TPZFMatrix<SCAL> A(1,nr,0.);
       TPZFMatrix<SCAL> B(nc,2,0.);
       TestingAddContribution<SCAL>(4, 4, 2);
+    }
+  }
+}
+
+TEMPLATE_TEST_CASE("MatrixWindowInit","[matrix_tests]",
+                   float
+                   // double,
+                   // long double,
+                   // std::complex<float>,
+                   // std::complex<double>,
+                   // std::complex<long double>
+                   )
+{
+  using SCAL=TestType;
+  
+  constexpr int nrows_orig{10};
+  constexpr int ncols_orig{12};
+  TPZFMatrix<SCAL> orig_mat;
+  orig_mat.AutoFill(nrows_orig, ncols_orig, SymProp::NonSym);
+  SECTION("test same values"){
+    constexpr int nrows_window{5};
+    constexpr int ncols_window{6};
+    constexpr int first_i{3};
+    constexpr int first_j{4};
+
+    auto CheckMatrix = [](const TPZFMatrix<SCAL> &orig, const TPZMatrixWindow<SCAL> &window){
+      for(int irow = 0; irow < nrows_window; irow++){
+        for(int icol = 0; icol < ncols_window; icol++){
+          CAPTURE(irow);
+          CAPTURE(icol);
+          REQUIRE(orig.Get(first_i+irow,first_j+icol)==window.Get(irow,icol));
+        }
+      }
+    };
+    
+    SECTION("TPZFMatrix ctor"){
+      TPZMatrixWindow<SCAL> window_mat(orig_mat,first_i,first_j,nrows_window, ncols_window);
+      CheckMatrix(orig_mat,window_mat);
+    }
+    SECTION("mem area ctor"){
+      SCAL *begin = orig_mat.Elem() + nrows_orig*first_j + first_i;
+      TPZMatrixWindow<SCAL> window_mat(begin, nrows_window, ncols_window,
+                                       nrows_orig,nrows_orig*ncols_orig);
+      CheckMatrix(orig_mat,window_mat);
+    }
+    SECTION("Modifying window"){
+      TPZMatrixWindow<SCAL> window_mat(orig_mat,first_i,first_j,nrows_window, ncols_window);
+      const int64_t pos_i = 1;
+      const int64_t pos_j = 2;
+      const SCAL newval = window_mat.GetVal(pos_i,pos_j)*(SCAL)7.;
+      window_mat.PutVal(pos_i,pos_j,newval);
+      CheckMatrix(orig_mat,window_mat);
+    }
+    SECTION("Modifying original"){
+      TPZMatrixWindow<SCAL> window_mat(orig_mat,first_i,first_j,nrows_window, ncols_window);
+      const int64_t pos_i = first_i+1;
+      const int64_t pos_j = first_j+2;
+      const SCAL newval = orig_mat.GetVal(pos_i,pos_j)*(SCAL)7.;
+      orig_mat.PutVal(pos_i,pos_j,newval);
+      CheckMatrix(orig_mat,window_mat);
+    }
+  }
+  SECTION("invalid usage"){
+    SECTION("negative i"){
+      constexpr int nrows_window{5};
+      constexpr int ncols_window{6};
+      constexpr int first_i{-1};
+      constexpr int first_j{4};
+      REQUIRE_THROWS(TPZMatrixWindow<SCAL>(orig_mat,first_i,first_j,nrows_window, ncols_window));
+    }
+    SECTION("negative j"){
+      constexpr int nrows_window{5};
+      constexpr int ncols_window{6};
+      constexpr int first_i{3};
+      constexpr int first_j{-1};
+      REQUIRE_THROWS(TPZMatrixWindow<SCAL>(orig_mat,first_i,first_j,nrows_window, ncols_window));
+    }
+    SECTION("negative ij"){
+      constexpr int nrows_window{5};
+      constexpr int ncols_window{6};
+      constexpr int first_i{-1};
+      constexpr int first_j{-1};
+      REQUIRE_THROWS(TPZMatrixWindow<SCAL>(orig_mat,first_i,first_j,nrows_window, ncols_window));
+    }
+    SECTION("zero rows"){
+      constexpr int nrows_window{0};
+      constexpr int ncols_window{6};
+      constexpr int first_i{1};
+      constexpr int first_j{1};
+      REQUIRE_THROWS(TPZMatrixWindow<SCAL>(orig_mat,first_i,first_j,nrows_window, ncols_window));
+    }
+    SECTION("zero cols"){
+      constexpr int nrows_window{5};
+      constexpr int ncols_window{0};
+      constexpr int first_i{1};
+      constexpr int first_j{1};
+      REQUIRE_THROWS(TPZMatrixWindow<SCAL>(orig_mat,first_i,first_j,nrows_window, ncols_window));
+    }
+    SECTION("out of bounds row"){
+      constexpr int nrows_window{10};
+      constexpr int ncols_window{6};
+      constexpr int first_i{1};
+      constexpr int first_j{1};
+      REQUIRE_THROWS(TPZMatrixWindow<SCAL>(orig_mat,first_i,first_j,nrows_window, ncols_window));
+    }
+    SECTION("out of bounds col"){
+      constexpr int nrows_window{5};
+      constexpr int ncols_window{12};
+      constexpr int first_i{1};
+      constexpr int first_j{1};
+      REQUIRE_THROWS(TPZMatrixWindow<SCAL>(orig_mat,first_i,first_j,nrows_window, ncols_window));
+    }
+    SECTION("out of bounds rowcol"){
+      constexpr int nrows_window{10};
+      constexpr int ncols_window{12};
+      constexpr int first_i{1};
+      constexpr int first_j{1};
+      REQUIRE_THROWS(TPZMatrixWindow<SCAL>(orig_mat,first_i,first_j,nrows_window, ncols_window));
     }
   }
 }
