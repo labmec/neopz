@@ -13,6 +13,7 @@
 #include "TPZSYSMPPardiso.h"
 #endif
 #include "pzblockdiag.h"
+#include "tpzsparseblockdiagonal.h"
 #include "fad.h"
 
 

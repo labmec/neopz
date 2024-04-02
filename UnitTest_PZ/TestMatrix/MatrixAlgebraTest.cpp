@@ -6,12 +6,19 @@
 #include "TestMatrixHeaders.h"
 
 template <class MAT>
-void TestInverse(const bool sym_storage, const SymProp sp, const DecomposeType dec);
+void TestInverse(MAT &mat, const DecomposeType dec);
 template<class MAT>
 void TestAdd(const MAT &mat, const bool use_operator);
 template<class MAT>
 void TestSubtract(const MAT &mat, const bool use_operator);
-
+template<class TVar>
+void BlockDiagLUPivot();
+template<class TVar>
+void BlockDiagZeroSizedBlock();
+template<class TVar>
+void SparseBlockDiagInverse();
+template<class TVar>
+void SparseBlockColorInverse();
 
 TEMPLATE_PRODUCT_TEST_CASE("Inverse","[matrix_tests]",
                            (
@@ -62,7 +69,10 @@ TEMPLATE_PRODUCT_TEST_CASE("Inverse","[matrix_tests]",
         return;
       }
       if(sym_storage && dec==ELU){return;}
-      TestInverse<MAT>(sym_storage,sp,dec);
+      MAT ma;
+      const int dim = GENERATE(5,10);
+      ma.AutoFill(dim, dim, sp);
+      TestInverse(ma,dec);
     }
   }
 }
@@ -74,8 +84,9 @@ TEST_CASE("Inverse TPZSBMatrix cplx","[matrix_tests][!shouldfail]"){
     using MAT=TPZSBMatrix<std::complex<double>>;
     const SymProp sp=SymProp::Herm;
     MAT ma1;
-    ma1.AutoFill(10,10,sp);
-    TestInverse<MAT>(true,sp,ELDLt);
+    const int dim = GENERATE(5,10);
+    ma1.AutoFill(dim,dim,sp);
+    TestInverse(ma1,ELDLt);
   }
 }
 
@@ -451,28 +462,41 @@ TEMPLATE_PRODUCT_TEST_CASE("MultAdd","[matrix_tests]",
   }
 }
 
+TEMPLATE_TEST_CASE("Additional Block Diagonal tests","[matrix_tests]",
+                   float,
+                   double,
+                   // long double,
+                   std::complex<float>,
+                   std::complex<double>
+                   // std::complex<long double>
+                   ){
+  SECTION("LU Pivot"){
+    BlockDiagLUPivot<TestType>();
+  }
+  SECTION("BlockDiag block with zero size"){
+    BlockDiagZeroSizedBlock<TestType>();
+  }
+  SECTION("Sparse Block Inverse"){
+    SparseBlockDiagInverse<TestType>();
+    SparseBlockColorInverse<TestType>();
+  }
+}
+
+
+#include "pzseqsolver.h"
+#include "pzstepsolver.h"
+
 template<class MAT>
-void TestInverse(const bool sym_storage, const SymProp sp, const DecomposeType dec)
+void TestInverse(MAT &ma, const DecomposeType dec)
 {
   using SCAL = typename MAT::Type;
   using RSCAL = RType(SCAL);
-  
-  MAT ma;
-  const int dim = 5;
-  ma.AutoFill(dim, dim, sp);
-
-  CAPTURE(SymPropName(sp),DecomposeTypeName(dec),sym_storage);
-  
+  const auto dim = ma.Rows();
+  REQUIRE(dim==ma.Cols());
   // Making ma copy because ma is modified by Inverse method (it's decomposed)
   MAT cpma(ma);
   TPZFMatrix<SCAL> inv(dim, dim), invkeep;
   TPZFMatrix<SCAL> res(inv);
-
-  //it must fail in a few cases
-  if(dec == ELU && sym_storage){
-    REQUIRE_THROWS(ma.Inverse(inv, dec));
-  }
-
   // getting inverse twice
   ma.Inverse(inv,dec);
   invkeep = inv;
@@ -577,4 +601,207 @@ void TestSubtract(const MAT& ma1, const bool use_operator){
     }
   }
   Catch::StringMaker<RTVar>::precision = oldPrecision;
+}
+
+template<class TVar>
+void BlockDiagLUPivot(){
+  //we will create a matrix with 2x2 blocks that will require pivoting
+  const int nblocks = 5;
+  const int dim = 2*nblocks;
+  TPZFMatrix<TVar> fmat(dim,dim,0);
+  for(int i = 0; i < nblocks; i++){
+    fmat.PutVal(2*i, 2*i, 0);
+    fmat.PutVal(2*i, 2*i+1, 1);
+    fmat.PutVal(2*i+1, 2*i, 1);
+    fmat.PutVal(2*i+1, 2*i+1, 0);
+  }
+  TPZVec<int> blocksizes(nblocks,2);
+  TPZBlockDiagonal<TVar> blckmat(blocksizes,fmat);
+  TestInverse(blckmat, ELU);
+}
+
+template<class TVar>
+void BlockDiagZeroSizedBlock(){
+  //we will create a matrix with 2x2 blocks that will require pivoting
+  const int nblocks = 5;
+  const int dim = 2*nblocks;
+  TPZFMatrix<TVar> fmat(dim,dim,0);
+  for(int i = 0; i < nblocks; i++){
+    fmat.PutVal(2*i, 2*i, 0);
+    fmat.PutVal(2*i, 2*i+1, 1);
+    fmat.PutVal(2*i+1, 2*i, 1);
+    fmat.PutVal(2*i+1, 2*i+1, 0);
+  }
+  //create additional block with size 0 at the end of block list
+  TPZVec<int> blocksizes(nblocks+1,2);
+  blocksizes[nblocks] = 0;
+  REQUIRE_NOTHROW(TPZBlockDiagonal<TVar>(blocksizes,fmat));
+}
+
+template<class TVar>
+void SparseBlockDiagInverse(){
+
+  constexpr int neq = 10;
+  constexpr int nblocks = 3;
+  constexpr int bsize = 2;
+
+  TPZFMatrix<TVar> fmat(neq,neq);
+  fmat.AutoFill(neq, neq, SymProp::NonSym);
+  //now we will extract a few blocks from the full matrix
+  //non-null equations
+  TPZVec<int64_t> blockgraph =
+    {
+      0,1,//first block
+      4,5,6,//second block
+      8,9//third block
+    };
+
+  //index in blockgraph of first equation of each block
+  TPZVec<int64_t> blockgraphindex =
+    {
+      0,//first block
+      2,//second block
+      5,//third block
+      7//size of blockgraph
+    };
+
+  TPZSparseBlockDiagonal<TVar> blmat(blockgraph,blockgraphindex,neq),
+    blcp(blockgraph,blockgraphindex, neq);
+  //now we remove the coupling from the full matrix
+  for (auto bleq : blockgraph){
+    int64_t block{0}, blockind{0};
+    blmat.FindBlockIndex(bleq, block, blockind);
+    for(int ieq : blockgraph){
+      int64_t blockother{0};
+      blmat.FindBlockIndex(ieq, blockother, blockind);
+      if(blockother != -1 && blockother != block){
+        fmat.PutVal(bleq, ieq, 0);
+        fmat.PutVal(ieq, bleq, 0);
+      }
+    }
+  }
+  blmat.BuildFromMatrix(fmat);
+  blcp.BuildFromMatrix(fmat);
+
+  //rhs, initial solution, residual and sol update
+  TPZFMatrix<TVar> rhs(neq,1,0), u0(neq,1,0), res(neq,1,0),
+    du(neq,1,0), resblck(neq,1,0);
+  rhs.AutoFill(neq,1,SymProp::NonSym);
+
+  fmat.Residual(u0, rhs, res);
+
+  // fmat.Print("full",std::cout,EMathematicaInput);
+  // blmat.Print("blck",std::cout,EMathematicaInput);
+  // blmat.Print("blck",std::cout,EFormatted);
+  
+  du = res;
+  blmat.Solve_LU(&du);
+
+  
+  constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*2000;
+  //now we check if the residual is null for every eq in a block
+  SECTION("Residual (full mat)"){
+    fmat.Residual(du,rhs,res);
+    for(auto ieq : blockgraph){
+      CAPTURE(ieq);
+      CAPTURE(res.GetVal(ieq,0));
+      REQUIRE((std::abs(res.GetVal(ieq,0)) == Catch::Approx(0).margin(tol)));
+    }
+  }
+
+  SECTION("Residual (block mat)"){
+    blcp.Residual(du,rhs,resblck);
+    for(auto ieq : blockgraph){
+      CAPTURE(ieq);
+      CAPTURE(resblck.GetVal(ieq,0));
+      REQUIRE((std::abs(resblck.GetVal(ieq,0)) == Catch::Approx(0).margin(tol)));
+    }
+  }
+}
+
+template<class TVar>
+void SparseBlockColorInverse(){
+
+  constexpr int neq = 10;
+  constexpr int nblocks = 4;
+  //expected solution is {1,1,1,1,1,1,1,1,1,1}^T
+  TPZAutoPointer<TPZFMatrix<TVar>> fmat =
+    new TPZFMatrix<TVar>({
+        {1, 2, 0, 1, 0, 0, 0, 0, 0, 0},
+        {3, 1, 0, 2, 0, 0, 0, 0, 0, 0},
+        {0, 0, 1, 0, 4, 1, 0, 0, 0, 0},
+        {3, 2, 0, 3, 0, 0, 0, 0, 0, 0},
+        {0, 0, 2, 0, 1, 1, 0, 0, 0, 0},
+        {0, 0, 3, 0, 5, 4, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 1, 0, 2, 0},
+        {0, 0, 0, 0, 0, 0, 0, 6, 0, 2},
+        {0, 0, 0, 0, 0, 0, 3, 0, 4, 0},
+        {0, 0, 0, 0, 0, 0, 0, 2, 0, 5}
+    });
+
+  // TPZAutoPointer<TPZFYsmpMatrix<TVar>> smat = new TPZFYsmpMatrix<TVar>(neq,neq);
+  // TPZVec<int64_t> ia = {0,3,6,9,12,15,18,20,22,24,26};
+  // TPZVec<int64_t> ja = {0,1,3,0,1,3,2,4,5,0,1,3,2,4,5,2,4,5,6,8,7,9,6,8,7,9};
+  // TPZVec<TVar> aa =    {1,2,1,3,1,2,1,4,1,3,2,3,2,1,1,3,5,4,1,2,6,2,3,4,2,5};
+  // smat->SetData(ia,ja,aa);
+  
+  TPZFMatrix<TVar> rhs = {4,6,6,8,4,12,3,8,7,7};
+  //now we will extract a few blocks from the full matrix
+  //non-null equations
+  TPZVec<int64_t> blockgraph =
+    {
+      0,1,3,//first block
+      2,4,5,//second block
+      6,8,//third block
+      7,9//fourth block
+    };
+
+  //index in blockgraph of first equation of each block
+  TPZVec<int64_t> blockgraphindex =
+    {
+      0,//first block
+      3,//second block
+      6,//third block
+      8,//fourth block
+      10//size of blockgraph
+    };
+  constexpr int numcolors{2};
+  //block colors
+  TPZVec<int> colors =
+    {
+      0,//first block
+      1,//second block
+      0,//third block
+      1//fourth bock
+    };
+
+  TPZSequenceSolver<TVar> seqsolv;
+  for(int c = 0; c < numcolors; c++){
+    
+    TPZAutoPointer<TPZSparseBlockDiagonal<TVar>> blmat
+      = new TPZSparseBlockDiagonal<TVar>(blockgraph,blockgraphindex,neq,c,colors);
+    blmat->BuildFromMatrix(*fmat);
+    
+    TPZStepSolver<TVar> step(blmat);
+    step.SetDirect(ELU);
+    seqsolv.AppendSolver(step);
+  }
+  seqsolv.SetMatrix(fmat);
+  TPZFMatrix<TVar> res = rhs;
+
+
+
+  constexpr RTVar tol =std::numeric_limits<RTVar>::epsilon()*2000;
+  /*
+  //just to ensure that the solution is correct
+  TPZAutoPointer<TPZMatrix<TVar>> fmatcp = fmat->Clone();
+  fmatcp->SolveDirect(res,ELU);
+  for(int i = 0; i < neq; i++){
+    REQUIRE(std::abs(res.GetVal(i,0)-(TVar)1.)==Catch::Approx(0).margin(tol));
+  }
+  */
+  seqsolv.Solve(rhs, res);
+  for(int i = 0; i < neq; i++){
+    REQUIRE(std::abs(res.GetVal(i,0)-(TVar)1.)==Catch::Approx(0).margin(tol));
+  }
 }
