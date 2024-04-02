@@ -293,6 +293,219 @@ TEMPLATE_TEST_CASE("MatrixWindowInit","[matrix_tests]",
   }
 }
 
+TEMPLATE_TEST_CASE("TPZMatrixWindowMultAdd","[matrix_tests][!shouldfail]",
+                   long double,
+                   std::complex<long double>
+                   )
+{
+  SECTION("TPZFMatrix case:must implement non-lapack version"){
+    FAIL("Only LAPACK version is implemented");
+  }
+  SECTION("TPZMatrixWindow case:must implement non-lapack version"){
+    FAIL("Only LAPACK version is implemented");
+  }
+}
+
+TEMPLATE_TEST_CASE("TPZMatrixWindowMultAdd","[matrix_tests]",
+                   float,
+                   double,
+                   // long double,
+                   std::complex<float>,
+                   std::complex<double>
+                   // ,std::complex<long double>
+                   )
+{
+
+  using SCAL=TestType;
+  using RSCAL = RType(SCAL);
+
+  SCAL alpha{0.0};
+  SCAL beta{0.0};
+  
+  const int nr{10};
+  const int opt_a=GENERATE(0,1,2);
+  const int opt_x=GENERATE(0,1,2);
+
+  std::map<int,std::string> opt_name;
+  opt_name[0]="NoTransp";
+  opt_name[1]="Transp";
+  opt_name[2]="TranspConj";
+  
+  SECTION("TPZFMatrix case"){
+    SECTION("Mat A:"+opt_name[opt_a]){
+      const auto sp = GENERATE(SymProp::NonSym,SymProp::Sym,SymProp::Herm);
+      SECTION(SymPropName(sp)){
+        TPZFMatrix<SCAL> mat_full;
+        TPZFMatrix<SCAL> x_full,y_full,z_full;
+        
+        mat_full.AutoFill(2*nr,2*nr,sp);
+        TPZMatrixWindow<SCAL> mat(mat_full,nr,nr,nr,nr);
+        if constexpr (is_complex<SCAL>::value){
+          alpha = (SCAL)1.0i;
+        }else{
+          alpha = 1.0;
+        }
+        beta = -alpha;
+        TPZFMatrix<SCAL> aux = mat;
+        if(opt_a==1){
+          aux.Transpose();
+        }else if(opt_a==2){
+          aux.ConjTranspose();
+        }
+
+        const DecomposeType dec=ELU;
+      
+        y_full.Resize(nr,nr);
+        y_full.Identity();
+        x_full=y_full;
+        aux.SolveDirect(x_full,ELU);
+        mat.MultAdd(x_full,y_full,z_full,alpha,beta,opt_a);
+        constexpr RSCAL tol = 1000*std::numeric_limits<RSCAL>::epsilon()/
+          (std::numeric_limits<RSCAL>::digits10);
+        const auto normz = Norm(z_full);
+        CAPTURE(opt_a,normz,tol);
+        REQUIRE(normz == Catch::Approx(0).margin(tol));
+      }
+    }
+  }
+  SECTION("TPZMatrixWindow case"){
+    SECTION("Mat A:"+opt_name[opt_a]){
+      SECTION("Mat X:"+opt_name[opt_x]){
+        const auto sp = GENERATE(SymProp::NonSym,SymProp::Sym,SymProp::Herm);
+        SECTION(SymPropName(sp)){
+          TPZFMatrix<SCAL> mat_full;
+          TPZFMatrix<SCAL> x_full,y_full,z_full;
+          mat_full.AutoFill(2*nr,2*nr,sp);
+          TPZMatrixWindow<SCAL> mat(mat_full,nr,nr,nr,nr);
+          if constexpr (is_complex<SCAL>::value){
+            alpha = (SCAL)1.0i;
+          }else{
+            alpha = 1.0;
+          }
+          beta = -alpha;
+          TPZFMatrix<SCAL> aux = mat;
+          if(opt_a==1){
+            aux.Transpose();
+          }else if(opt_a==2){
+            aux.ConjTranspose();
+          }
+
+          const DecomposeType dec=ELU;
+      
+          y_full.AutoFill(3*nr,4*nr,SymProp::NonSym);
+          TPZMatrixWindow<SCAL> y(y_full,nr,nr,nr,nr);
+          x_full=y;
+          aux.SolveDirect(x_full,ELU);
+          if(opt_x==1){
+            x_full.Transpose();
+          }else if(opt_x==2){
+            x_full.ConjTranspose();
+          }
+          //just to change leading dim
+          x_full.Resize(5*nr,nr);
+          TPZMatrixWindow<SCAL>x(x_full,0,0,nr,nr);
+          int nr_res{-1}, nc_res{-1};
+          if(opt_a){
+            nr_res = mat.Cols();
+            
+          }else{
+            nr_res = mat.Rows();
+          }
+          if(opt_x){
+            nc_res = x.Rows();
+          }else{
+            nc_res = x.Cols();
+          }
+          
+          z_full.Redim(6*nr_res,3*nc_res);
+          TPZMatrixWindow<SCAL> z(z_full,0,0,nr_res,nc_res);
+          
+          mat.MultAdd(x,y,z,alpha,beta,opt_a,opt_x);
+          constexpr RSCAL tol = 1000*std::numeric_limits<RSCAL>::epsilon()/
+            (std::numeric_limits<RSCAL>::digits10);
+          const auto normz = Norm(z_full);
+          CAPTURE(opt_a,normz,tol);
+          REQUIRE(normz == Catch::Approx(0).margin(tol));
+        }
+      }
+    }
+  }
+
+  auto CopyWindowFromMat = [](TPZFMatrix<SCAL> &orig, TPZFMatrix<SCAL> &window,
+                              const int fr, const int fc, const int nr, const int nc){
+    window.Redim(nr,nc);
+    for(int ic = 0; ic < nc; ic++){
+      for(int ir = 0; ir < nr; ir++){
+        const auto val = orig.GetVal(fr+ir,fc+ic);
+        window.PutVal(ir,ic,val);
+      }
+    }
+  };
+  
+  SECTION("Traditional MultAddComparison"){
+    TPZFMatrix<SCAL> x_full, y_full, z_full, mat_full;
+    
+    constexpr int nr_mat = 10;
+    constexpr int nc_mat = 5;
+    //number of columns of output
+    constexpr int nc_y = 3;
+    mat_full.AutoFill(nr_mat+2,nr_mat+4,SymProp::NonSym);
+    TPZMatrixWindow<SCAL> mat_w(mat_full, 1,3,nr_mat,nc_mat);
+    TPZFMatrix<SCAL> mat_w_fake;
+    CopyWindowFromMat(mat_full,mat_w_fake,1,3,nr_mat,nc_mat);
+    SECTION("Mat A: "+opt_name[opt_a]+ " Mat X: "+opt_name[opt_x]){
+      //generate y
+      const int nr_y = opt_a == 0 ? nr_mat : nc_mat;
+      y_full.AutoFill(nr_y+3,nc_y+2,SymProp::NonSym);
+      TPZMatrixWindow<SCAL> y_w(y_full, 2,1,nr_y,nc_y);
+      TPZFMatrix<SCAL> y_w_fake;
+      CopyWindowFromMat(y_full,y_w_fake,2,1,nr_y,nc_y);
+      //generate x
+      int nr_x{-1};
+      int nc_x{-1};
+      if(opt_x){
+        nr_x = nc_y;
+        nc_x = opt_a==0 ? nc_mat : nr_mat;
+      }else{
+        nr_x = opt_a==0 ? nc_mat : nr_mat;
+        nc_x = nc_y;
+      }
+      x_full.AutoFill(nr_x+3,nc_x+2,SymProp::NonSym);
+      TPZMatrixWindow<SCAL> x_w(x_full, 2,1,nr_x,nc_x);
+      TPZFMatrix<SCAL> x_w_fake;
+      CopyWindowFromMat(x_full,x_w_fake,2,1,nr_x,nc_x);
+      TPZFMatrix<SCAL> z_full;
+      //set alpha and beta
+      if constexpr (is_complex<SCAL>::value){
+        alpha = (SCAL)1.0i;
+        beta = (SCAL)2.0i;
+      }else{
+        alpha = 1.0;
+        beta = 2.0;
+      }
+      if(opt_x==1){
+        x_w_fake.Transpose();
+      }
+      if(opt_x==2){
+        x_w_fake.ConjTranspose();
+      }
+      mat_w_fake.MultAdd(x_w_fake,y_w_fake,z_full,alpha,beta,opt_a);
+      const int nr_z = z_full.Rows();
+      const int nc_z = z_full.Cols();
+      TPZFMatrix<SCAL> res_full = z_full;
+      //let us change leading dim of z_full
+      z_full.Resize(nr_z+2,nc_z+4);
+      TPZMatrixWindow<SCAL> z_w(z_full, 0,0,nr_z,nc_z);
+      mat_w.MultAdd(x_w,y_w,z_w,alpha,beta,opt_a,opt_x);
+      TPZFMatrix<SCAL> diff = z_w;
+      diff-=res_full;
+      constexpr RSCAL tol = 1000*std::numeric_limits<RSCAL>::epsilon()/
+        (std::numeric_limits<RSCAL>::digits10);
+      const auto normdiff = Norm(diff);
+      REQUIRE(normdiff == Catch::Approx(0).margin(tol));
+    }
+  }
+}
 
 template <class TVar>
 void TestingAddContribution(int nrows, int ncols, int ntype)
