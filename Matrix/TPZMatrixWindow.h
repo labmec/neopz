@@ -20,16 +20,15 @@ public:
   TPZMatrixWindow(TPZMatrixWindow<TVar> &&mat){
     DebugStop();
   }
-  //!Copy assignment operator (what is the expected behaviour?)
-  TPZMatrixWindow<TVar> &operator=(const TPZMatrixWindow<TVar> &cp){
-    DebugStop();
-    return *this;
-  }
+  //! Copy assignment operator. Both matrices must have the same size!
+  TPZMatrixWindow<TVar> &operator=(const TPZMatrixWindow<TVar> &mat);
   //!Move assignment operator (what is the expected behaviour?)
-  TPZMatrixWindow<TVar> &operator=(TPZMatrixWindow<TVar> &&cp){
+  TPZMatrixWindow<TVar> &operator=(TPZMatrixWindow<TVar> &&mat){
     DebugStop();
     return *this;
   }
+  //! Copy assignment from TPZFMatrix<T> operator. Both matrices must have the same size!
+  TPZMatrixWindow<TVar> &operator=(const TPZFMatrix<TVar> &mat);
   //! Default destructor (no memory deallocation)
   ~TPZMatrixWindow() = default;
   /**
@@ -51,6 +50,9 @@ public:
    */
   TPZMatrixWindow(TPZFMatrix<TVar> &mat, const int i, const int j, const int nrows, const int ncols);
 
+  //! Multiply itself by a given scalar
+  TPZMatrixWindow<TVar> &operator*=(const TVar val) override;
+  
   /**
    * @brief It computes z = beta * y + alpha * opt_a(this)*opt_x(x) but z and x can not overlap in memory.
    * @param x Is x on the above operation
@@ -75,13 +77,22 @@ public:
   inline void MultAdd(const TPZFMatrix<TVar> & x,const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,
                       const TVar alpha=1., const TVar beta = 0., const int opt = 0) const override{
     //is it safe to do so?
-    const TPZMatrixWindow<TVar> x_window(const_cast<TVar*>(x.Elem()),0,0,x.Rows(),x.Cols());
-    const TPZMatrixWindow<TVar> y_window(const_cast<TVar*>(y.Elem()),0,0,y.Rows(),y.Cols());
-    TPZMatrixWindow<TVar> z_window(z.Elem(),0,0,z.Rows(),z.Cols());
+    const TPZMatrixWindow<TVar> x_window(const_cast<TVar*>(x.Elem()),x.Rows(),x.Cols(),x.Rows(), x.Rows()*x.Cols());
+    const TPZMatrixWindow<TVar> y_window(const_cast<TVar*>(y.Elem()),y.Rows(),y.Cols(),y.Rows(), y.Rows()*y.Cols());
+    if(beta!=(TVar)0){
+      z=y;
+    }else{
+      if(opt==0){
+        z.Redim(this->Rows(),x.Cols());
+      }else{
+        z.Redim(this->Cols(),x.Cols());
+      }
+    }
+    TPZMatrixWindow<TVar> z_window(z,0,0,z.Rows(),z.Cols());
     //forwards to general implementation (opt_x is always zero)
     MultAdd(x_window,y_window,z_window,alpha,beta,opt,0);
   }
-
+  
   inline TVar &operator()(const int64_t row, const int64_t col) {
 #ifndef PZNODEBUG
 	if ( (row >= this->Rows()) || (col >= this->Cols()) || row <0 || col<0 ) {
@@ -112,6 +123,14 @@ public:
     return( 1 );
   }
 
+  //! We do not allow resizing a TPZMatrixWindow 
+  int Redim(const int64_t newRows, const int64_t newCols ) override {
+    if(newRows!=this->fRow || newCols!=this->fCol){
+      DebugStop();
+    }
+    Zero();
+    return 1;
+  }
   //! We do not allow resizing a TPZMatrixWindow 
 	int Resize(const int64_t newRows, const int64_t newCols ) override{
 		if(newRows!=this->fRow || newCols!=this->fCol){

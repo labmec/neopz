@@ -30,6 +30,53 @@ TPZMatrixWindow<TVar>::TPZMatrixWindow(TPZFMatrix<TVar> &mat, const int i, const
 }
 
 template<class TVar>
+TPZMatrixWindow<TVar> &TPZMatrixWindow<TVar>::operator=(const TPZFMatrix<TVar> &mat){
+  if(this->Rows()!=mat.Rows() || this->Cols() != mat.Cols()){
+    DebugStop();
+  }
+  const auto m_leading_dim = mat.Rows();
+  const auto nc = this->Cols();
+  const auto nr = this->Rows();
+  const auto sz = nc*nr;
+  for(int i = 0; i < sz; i++){
+    const int ic = i/nr;
+    const int ir = i%nr;
+    this->fStorage[ic*this->fLeadingDim+ir] = mat.Elem()[ic*m_leading_dim+ir];
+  }
+  
+  return *this;
+}
+template<class TVar>
+TPZMatrixWindow<TVar> &TPZMatrixWindow<TVar>::operator=(const TPZMatrixWindow<TVar> &mat){
+  if(this->Rows()!=mat.Rows() || this->Cols() != mat.Cols()){
+    DebugStop();
+  }
+  const auto m_leading_dim = mat.fLeadingDim;
+  const auto nc = this->Cols();
+  const auto nr = this->Rows();
+  const auto sz = nc*nr;
+  for(int i = 0; i < sz; i++){
+    const int ic = i/nr;
+    const int ir = i%nr;
+    this->fStorage[ic*this->fLeadingDim+ir] = mat.fStorage[ic*m_leading_dim+ir];
+  }
+  return *this;
+}
+
+template<class TVar>
+TPZMatrixWindow<TVar> &TPZMatrixWindow<TVar>::operator*=(const TVar val){
+  const auto nc = this->Cols();
+  const auto nr = this->Rows();
+  const auto sz = nc*nr;
+  for(int i = 0; i < sz; i++){
+    const int ic = i/nr;
+    const int ir = i%nr;
+    this->fStorage[ic*this->fLeadingDim+ir] *= val;
+  }
+  return *this;
+}
+
+template<class TVar>
 void
 TPZMatrixWindow<TVar>::MultAdd(const TPZMatrixWindow<TVar> &x,const TPZMatrixWindow<TVar> &y, TPZMatrixWindow<TVar> &z,
                                const TVar alpha,const TVar beta,const int opt_a, const int opt_x) const
@@ -37,61 +84,73 @@ TPZMatrixWindow<TVar>::MultAdd(const TPZMatrixWindow<TVar> &x,const TPZMatrixWin
   if(opt_x==0){
     //default checks, same as TPZMatrix<T>::MultAddChecks
     if ((!opt_a && this->Cols() != x.Rows()) || (opt_a && this->Rows() != x.Rows())) {
-      TPZMatrix<TVar>::Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
-      return;
+      PZError<<__PRETTY_FUNCTION__
+             <<"\n:Matrix x with incompatible dimensions"<<std::endl;
+      DebugStop();
     }
     if(beta != (TVar)0. && ((!opt_a && this->Rows() != y.Rows()) || (opt_a && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
-      TPZMatrix<TVar>::Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
-      return;
+      PZError<<__PRETTY_FUNCTION__
+             <<"\n:Matrix y with incompatible dimensions"<<std::endl;
+      DebugStop();
     }
     if(!opt_a) {
       if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
-        z.Redim(this->Rows(),x.Cols());
+        PZError<<__PRETTY_FUNCTION__
+             <<"\n:Matrix z with incompatible dimensions"<<std::endl;
+      DebugStop();
       }
     } else {
       if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
-        z.Redim(this->Cols(),x.Cols());
+        PZError<<__PRETTY_FUNCTION__
+             <<"\n:Matrix z with incompatible dimensions"<<std::endl;
+      DebugStop();
       }
     }
   }else{
     //checks for transposed x
     if ((!opt_a && this->Cols() != x.Cols()) || (opt_a && this->Rows() != x.Cols())) {
-      TPZMatrix<TVar>::Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
-      return;
+      PZError<<__PRETTY_FUNCTION__
+             <<"\n:Matrix x with incompatible dimensions"<<std::endl;
+      DebugStop();      
     }
     if(beta != (TVar)0. && ((!opt_a && this->Rows() != y.Rows()) || (opt_a && this->Cols() != y.Rows()) || y.Cols() != x.Rows())) {
-      TPZMatrix<TVar>::Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
-      return;
+      PZError<<__PRETTY_FUNCTION__
+             <<"\n:Matrix y with incompatible dimensions"<<std::endl;
+      DebugStop();
     }
     if(!opt_a) {
       if(z.Cols() != x.Rows() || z.Rows() != this->Rows()) {
-        z.Redim(this->Rows(),x.Rows());
+        PZError<<__PRETTY_FUNCTION__
+             <<"\n:Matrix z with incompatible dimensions"<<std::endl;
+      DebugStop();
       }
     } else {
       if(z.Cols() != x.Rows() || z.Rows() != this->Cols()) {
-        z.Redim(this->Cols(),x.Rows());
+        PZError<<__PRETTY_FUNCTION__
+             <<"\n:Matrix z with incompatible dimensions"<<std::endl;
+      DebugStop();
       }
     }
   }
-  DebugStop();
-  // if (beta != (TVar)0) {
-  //   z = y;
-  // }else{
-  //   z.Zero();
-  // }
+
+  if (beta != (TVar)0) {
+    z = y;
+  }else{
+    z.Zero();
+  }
 
   const int64_t rows = this->Rows();
   const int64_t cols = this->Cols();
   const int64_t xrows = x.Rows();
   const int64_t xcols = x.Cols();
-    
-    
-  if(rows == 0 || cols == 0 || xrows == 0 || xcols == 0){
-    if (beta != (TVar)0) {
-      z *= beta;
-    }
-    return;
-  }
+
+  ////we do not allow zero-sized windows
+  // if(rows == 0 || cols == 0 || xrows == 0 || xcols == 0){
+  //   if (beta != (TVar)0) {
+  //     z *= beta;
+  //   }
+  //   return;
+  // }
 
 #ifdef USING_LAPACK
     
@@ -100,27 +159,27 @@ TPZMatrixWindow<TVar>::MultAdd(const TPZMatrixWindow<TVar> &x,const TPZMatrixWin
     opt_a == 0 ? CblasNoTrans : (opt_a == 1 ? CblasTrans : CblasConjTrans);
   const auto dim1 = opt_a == 0 ? rows : cols;
   const auto dim2 = opt_a == 0 ? cols : rows;
-
+  const auto dim3 = opt_x == 0 ? xcols : xrows;
   const CBLAS_TRANSPOSE transp_x =
     opt_x == 0 ? CblasNoTrans : (opt_x == 1 ? CblasTrans : CblasConjTrans);
   
   if constexpr (std::is_same_v<TVar,double>){
-    cblas_dgemm(CblasColMajor, transp_a, transp_x, dim1, xcols, dim2,
+    cblas_dgemm(CblasColMajor, transp_a, transp_x, dim1, dim3, dim2,
                 alpha, this->fStorage, this->fLeadingDim, x.fStorage,
                 x.fLeadingDim, beta, z.fStorage, z.fLeadingDim);
     return;
   } else if constexpr (std::is_same_v<TVar,float>){
-    cblas_sgemm(CblasColMajor, transp_a, transp_x, dim1, xcols, dim2,
+    cblas_sgemm(CblasColMajor, transp_a, transp_x, dim1, dim3, dim2,
                 alpha, this->fStorage, this->fLeadingDim, x.fStorage,
                 x.fLeadingDim, beta, z.fStorage, z.fLeadingDim);
     return;
   } else if constexpr (std::is_same_v<TVar,std::complex<double>>){
-    cblas_zgemm(CblasColMajor, transp_a, transp_x, dim1, xcols, dim2,
+    cblas_zgemm(CblasColMajor, transp_a, transp_x, dim1, dim3, dim2,
                 &alpha, this->fStorage, this->fLeadingDim, x.fStorage,
                 x.fLeadingDim, &beta, z.fStorage, z.fLeadingDim);
     return;
   } else if constexpr (std::is_same_v<TVar,std::complex<float>>){
-    cblas_cgemm(CblasColMajor, transp_a, transp_x, dim1, xcols, dim2,
+    cblas_cgemm(CblasColMajor, transp_a, transp_x, dim1, dim3, dim2,
                 &alpha, this->fStorage, this->fLeadingDim, x.fStorage,
                 x.fLeadingDim, &beta, z.fStorage, z.fLeadingDim);
     return;
