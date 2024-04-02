@@ -810,7 +810,8 @@ template<class TVar>
                 TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, SymProp::Herm);
             }
             SECTION("TPZSBMatrix"){
-                TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<TVar>, TVar>(dim, SymProp::Sym);
+                // lapack only compute eigenvalues for hermitian matrices
+                // TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<TVar>, TVar>(dim, SymProp::Sym);
                 TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<TVar>, TVar>(dim, SymProp::Herm);
             }
         }
@@ -821,7 +822,8 @@ template<class TVar>
         for (int dim = 5; dim < 6; dim += 10) {
             
             SECTION("TPZSBMatrix sym"){
-                TestingEigenDecompositionAutoFill<TPZSBMatrix<TVar>, TVar>(dim, SymProp::Sym);
+                // lapack only compute eigenvalues for hermitian matrices
+                // TestingEigenDecompositionAutoFill<TPZSBMatrix<TVar>, TVar>(dim, SymProp::Sym);
                 TestingEigenDecompositionAutoFill<TPZSBMatrix<TVar>, TVar>(dim, SymProp::Herm);
             }
             SECTION("TPZFMatrix sym"){
