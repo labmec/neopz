@@ -945,8 +945,10 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZMatrix<TVar> &A ) {
         delete [] fElem;
     }
     if ( newElem == nullptr && size > 0) Error( "Operator= <memory allocation error>." );
-    fElem = newElem;
+
+    TPZMatrix<TVar>::operator=(A);
     
+    fElem = newElem;
     TVar * dst = fElem;
     for ( int64_t c = 0; c < this->fCol; c++ )
         for ( int64_t r = 0; r < this->fRow; r++ )
