@@ -201,6 +201,12 @@ TEST_CASE("Resize tests","[matrix_tests][!shouldfail]"){
   }
 }
 
+TEST_CASE("Additional Block Diagonal tests","[matrix_tests][!shouldfail]"){
+  SECTION("IMPLEMENT ME"){
+    FAIL("IMPLEMENT ME");
+  }
+}
+
 TEMPLATE_PRODUCT_TEST_CASE("Generate hermitian matrix","[matrix_tests]",
                            (TPZFMatrix,TPZSFMatrix,
                             TPZFBMatrix,TPZSBMatrix,

@@ -285,7 +285,10 @@ TEMPLATE_TEST_CASE("MultiplyByScalar","[matrix_tests][!shouldfail]",
                    // std::complex<double>,
                    std::complex<long double>
                    ) {
-  SECTION("IMPLEMENT ME"){
+  SECTION("MultiplyByScalar method IMPLEMENT ME"){
+    FAIL("IMPLEMENT ME");
+  }
+  SECTION("MultiplyByScalar operator IMPLEMENT ME"){
     FAIL("IMPLEMENT ME");
   }
 }
@@ -298,7 +301,10 @@ TEMPLATE_TEST_CASE("Multiply","[matrix_tests][!shouldfail]",
                    // std::complex<double>,
                    std::complex<long double>
                    ) {
-  SECTION("IMPLEMENT ME"){
+  SECTION("Multiply method IMPLEMENT ME"){
+    FAIL("IMPLEMENT ME");
+  }
+  SECTION("Multiply operator IMPLEMENT ME"){
     FAIL("IMPLEMENT ME");
   }
 }
