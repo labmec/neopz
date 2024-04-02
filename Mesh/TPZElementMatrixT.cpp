@@ -1,5 +1,6 @@
 #include "TPZElementMatrixT.h"
 #include "pzcmesh.h"
+#include "TPZMatrixWindow.h"
 #include "pzlog.h"
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.tpzelmat");
@@ -268,8 +269,10 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 			TPZConnect::TPZDependBase *dep = dfn->FirstDepend();
 
       TPZFNMatrix<50,TVar> depmat;
+      TPZFNMatrix<150,TVar> fulldepmat;
 			while(dep) {
         dep->FillDepMatrix(depmat);
+        
 				int64_t depnodeindex = dep->fDepConnectIndex;
 				// look for the index where depnode is found
 				int depindex=0;
@@ -289,40 +292,70 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 				int ieq;
 				TVar coef;
 				int idf;
-				int numstate = dfn->NState();
-				for(send=inpos; send<inpos+insize; send += numstate) {
-					for(receive=deppos; receive<deppos+depsize; receive += numstate) {
-						coef = depmat((send-inpos)/numstate,(receive-deppos)/numstate);
-            if constexpr (std::is_same_v<CTVar,TVar>){
-              /*weak formulations with complex basis functions are usually obtained
-               by multiplying by the complex conjugate test function, being consistent
-               with the complex inner product. therefore, if the dependency is complex,
-               we must conjugate it.*/
-              coef = std::conj(coef);
+				const int numstate = dfn->NState();
+        /*
+          now we fill fulldepmat, which takes into account numstate:
+          basically, each position of the original dep mat becomes
+          a diagonal block in the full dep mat
+        */
+        {
+          const int orig_row=depmat.Rows();
+          const int orig_col=depmat.Cols();
+          const int full_row=numstate*orig_row;
+          const int full_col=numstate*orig_col;
+          fulldepmat.Redim(full_row,full_col);
+          
+          for(int ic = 0; ic < orig_col; ic++){
+            const auto first_c = ic*numstate;
+            for(int ir = 0; ir < orig_row; ir++){
+              const auto first_r = ir*numstate;
+              const auto val = depmat.GetVal(ir,ic);
+              for(int istate = 0; istate < numstate; istate++){
+                fulldepmat.PutVal(first_r+istate,first_c+istate,val);
+              }
             }
-						if (this->fType == TPZElementMatrix::EK){
-							for(ieq=0; ieq<toteq; ieq++) for(idf=0; idf<numstate; idf++)  {
-								(this->fConstrMat)(receive+idf,ieq) += coef*(this->fConstrMat)(send+idf,ieq);
-							}
-						}//EK
-						else{
-							for(ieq=0; ieq<nrhs; ieq++) for(idf=0; idf<numstate; idf++) {
-								(this->fConstrMat)(receive+idf,ieq) += coef*(this->fConstrMat)(send+idf,ieq);
-							}
-						}//EF
-					}
-				}
-				
-				if (this->fType == TPZElementMatrix::EK){
-					for(send=inpos; send<inpos+insize; send += numstate) {
-						for(receive=deppos; receive<deppos+depsize; receive += numstate) {
-							coef = depmat((send-inpos)/numstate,(receive-deppos)/numstate);
-							for(ieq=0; ieq<toteq; ieq++) for(idf=0; idf<numstate; idf++) {
-								(this->fConstrMat)(ieq,receive+idf) += coef*(this->fConstrMat)(ieq,send+idf);
-							}
-						}
-					}
-				}//EK
+          }
+        }
+        /*
+          now that we have dep mat, we need to compute the proper windows
+          such that we can compute
+          D^H K D,
+          where ^H stands for conjugate transpose.
+
+          note: for the load vector, we compute only D^H F,
+          since there are no trial functions
+        */
+
+        const auto deprows = fulldepmat.Rows();
+        const auto depcols = fulldepmat.Cols();
+        //the window is the full matrix
+
+        {
+          TPZMatrixWindow<TVar> dep_window(fulldepmat,0,0,deprows,depcols);
+          TPZMatrixWindow<TVar> send_window(this->fConstrMat,inpos,0,insize,this->fConstrMat.Cols());
+          TPZMatrixWindow<TVar> receive_window(this->fConstrMat,deppos,0,depsize,this->fConstrMat.Cols());
+          const TVar alpha{1};
+          const TVar beta{1};
+          //dep window is conjugate transpose
+          const int transp_a{2};
+          //we do not transpose send window
+          const int transp_x{0};
+          dep_window.MultAdd(send_window,receive_window,receive_window,alpha,beta,transp_a,transp_x);
+          
+        }
+        if (this->fType == TPZElementMatrix::EK){
+          //now we multiply it on the right side too
+          TPZMatrixWindow<TVar> dep_window(fulldepmat,0,0,deprows,depcols);
+          TPZMatrixWindow<TVar> send_window(this->fConstrMat,0,inpos,this->fConstrMat.Rows(),insize);
+          TPZMatrixWindow<TVar> receive_window(this->fConstrMat,0,deppos,this->fConstrMat.Rows(),depsize);
+          const TVar alpha{1};
+          const TVar beta{1};
+          //we do not transpose send window
+          const int transp_a{0};
+          //we do not transpose dep window
+          const int transp_x{0};
+          send_window.MultAdd(dep_window,receive_window,receive_window,alpha,beta,transp_a,transp_x);
+        }
 				
 				dep = dep->fNext;
 			} // end of while
