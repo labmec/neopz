@@ -529,14 +529,14 @@ void TPZMixedElasticityND::Contribute_3spaces(const TPZVec<TPZMaterialDataT<STAT
     if (this->HasForcingFunction()) {
         fForcingFunction(datavec[0].x, force);
 #ifdef LOG4CXX
-        if (logdata->isDebugEnabled()) {
+       if (logdata->isDebugEnabled()) {
             std::stringstream sout;
             sout << " x = " << datavec[0].x << " force = " << force << std::endl;
-            LOGPZ_DEBUG(logdata, sout.str())
-        }
+           LOGPZ_DEBUG(logdata, sout.str())
+       }
 #endif
     }
-//    datavec[0].ComputeFunctionDivergence();
+    datavec[0].ComputeFunctionDivergence();
     for (int i = 0; i < nshapeS; i++) {
         int iphi = datavec[0].fVecShapeIndex[i].second;
         int ivec = datavec[0].fVecShapeIndex[i].first;

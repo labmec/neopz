@@ -367,6 +367,24 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[0] = 1./(2.*G)*FADsqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
         disp[1] = 1./(2.*G)*FADsqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
     }
+    
+    else if (fProblemType==ELShape){
+        
+        TVar mu=1.;
+        TVar lambda=5.;
+        TVar alfa=0.5;
+        TVar A= 31./9.;
+        TVar theta = FADatan2(x[1],x[0]);
+        TVar r = FADsqrt(x[0]*x[0]+x[1]*x[1]);
+        TVar gamma= FADsqrt(r)/(2.*mu);
+        TVar cosT = FADcos(alfa*theta) - FADcos((alfa-2.)*theta);
+        TVar sinT = A*FADsin(alfa*theta) + FADsin((alfa-2.)*theta);
+        
+        disp[0] = gamma*(cosT);
+        disp[1] =gamma*(sinT);
+        
+        
+    }
     else
     {
         DebugStop();
@@ -430,13 +448,12 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) con
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
 
+
         //disp[0] = x[0]*x[1]*(x[0]-1)*(x[1]-1);
         //disp[1] = x[0]*x[1]*(x[0]-1)*(x[1]-1);
         disp[0] = (TVar2) cos(M_PI * x[0])*(TVar2) sin(2 * M_PI * x[1]);
         disp[1] = (TVar2) cos(M_PI * x[1])*(TVar2) sin(M_PI * x[0]);
         
-        //disp[0] = (TVar2) ((x[0])*(x[0]-1)*(x[1])*(x[1]-1));
-        //disp[1] = (TVar2) ((x[0])*(x[0]-1)*(x[1])*(x[1]-1));
     } else if(fProblemType == EPoly){
         disp[0] = 0. * x[0]; //*x[0]*x[1];
         disp[1] = x[1] * x[0]; //(x[1]-1.)*(x[1]-x[0])*(x[0]+4.*x[1]);
@@ -545,7 +562,27 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) con
         disp[1] = 1 / (2. * G) * sqrt(r / (2. * M_PI)) * sinth * (kappa + 1. - 2. * costh * costh);
         //        std::cout << "SQU x " << x << " theta " << theta << " disp " << disp << std::endl;
 #endif
-    } else {
+    } 
+    
+    else if (fProblemType==ELShape){
+        
+        TVar2 mu=1.;
+        TVar2 lambda=5.;
+        TVar2 alfa=0.5;
+        TVar2 A= 31./9.;
+        TVar2 theta = atan2(x[1],x[0]);
+        TVar2 r = sqrt(x[0]*x[0]+x[1]*x[1]);
+        TVar2 gamma= sqrt(alfa)/(2.*mu);
+        TVar2 cosT = cos(alfa*theta) - cos((alfa-2.)*theta);
+        TVar2 sinT = A*sin(alfa*theta) + sin((alfa-2.)*theta);
+        
+        disp[0] = gamma*(cosT);
+        disp[1] =gamma*(sinT);
+        
+        
+    }
+    
+    else {
         DebugStop();
     }
 }

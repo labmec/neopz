@@ -1250,12 +1250,15 @@ void TPZSubCompMesh::CalcResidualInternal(TPZElementMatrixT<TVar> &ef)
 void TPZSubCompMesh::SetAnalysisSparse(int numThreads)
 {
     fAnalysis = new TPZSubMeshAnalysis(this);
-    TPZAutoPointer<TPZStructMatrix> str = NULL;
-    str = new TPZSSpStructMatrix<STATE>(this);
+    
+
+    
+    
+#ifdef PZ_USING_MKL
+    TPZSSpStructMatrix<> str(this);
     if(numThreads > 0){
         str->SetNumThreads(numThreads);
     }
-    
     SaddlePermute();
 #ifdef PZ_LOG
     if (logger.isDebugEnabled())
@@ -1282,6 +1285,79 @@ void TPZSubCompMesh::SetAnalysisSparse(int numThreads)
     step->SetDirect(ELDLt);
     TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
     fAnalysis->SetSolver(autostep);
+    
+#else
+    TPZSkylineStructMatrix<STATE> str(this);
+    if(numThreads > 0){
+        str.SetNumThreads(numThreads);
+    }
+    
+    SaddlePermute();
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
+    {
+        std::stringstream sout;
+        Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    PermuteExternalConnects();
+    str.SetNumThreads(numThreads);
+    int64_t numinternal = NumInternalEquations();
+    str.EquationFilter().SetMinMaxEq(0, numinternal);
+    TPZAutoPointer<TPZMatrix<STATE> > mat =
+        dynamic_cast<TPZMatrix<STATE>*>(str.Create());
+    if(!mat){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"ERROR\n: Incompatible types. Aborting...\n";
+        DebugStop();
+    }
+    str.EquationFilter().Reset();
+    fAnalysis->SetStructuralMatrix(str);
+    TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(mat);
+    step->SetDirect(ELDLt);
+    TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
+    fAnalysis->SetSolver(autostep);
+    
+#endif
+    
+    
+    
+//    TPZAutoPointer<TPZStructMatrix> str = NULL;
+//
+//    str = new TPZSSpStructMatrix<STATE>(this);
+//
+//
+//    if(numThreads > 0){
+//        str->SetNumThreads(numThreads);
+//    }
+//
+//    SaddlePermute();
+//#ifdef PZ_LOG
+//    if (logger.isDebugEnabled())
+//    {
+//        std::stringstream sout;
+//        Print(sout);
+//        LOGPZ_DEBUG(logger, sout.str())
+//    }
+//#endif
+//    PermuteExternalConnects();
+//    str->SetNumThreads(numThreads);
+//    int64_t numinternal = NumInternalEquations();
+//    str->EquationFilter().SetMinMaxEq(0, numinternal);
+//    TPZAutoPointer<TPZMatrix<STATE> > mat =
+//        dynamic_cast<TPZMatrix<STATE>*>(str->Create());
+//    if(!mat){
+//        PZError<<__PRETTY_FUNCTION__;
+//        PZError<<"ERROR\n: Incompatible types. Aborting...\n";
+//        DebugStop();
+//    }
+//    str->EquationFilter().Reset();
+//    fAnalysis->SetStructuralMatrix(str);
+//    TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(mat);
+//    step->SetDirect(ELDLt);
+//    TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
+//    fAnalysis->SetSolver(autostep);
 
 }
 
