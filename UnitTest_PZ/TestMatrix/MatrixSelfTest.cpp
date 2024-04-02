@@ -19,6 +19,13 @@ TEMPLATE_TEST_CASE("TPZFMatrix copy","[matrix_tests]", CSTATE, REAL, Fad<REAL>) 
     TPZFMatrix<TestType> cp(orig);
     REQUIRE(CompareMatrices(cp,orig));
   }
+  SECTION("Copy constructor(from TPZMatrix)"){
+    TPZFMatrix<TestType> orig;
+    orig.AutoFill(3, 3, SymProp::NonSym);
+    TPZMatrix<TestType> *orig_ptr=&orig;
+    TPZFMatrix<TestType> cp(*orig_ptr);
+    REQUIRE(CompareMatrices(cp,orig));
+  }
   SECTION("Copy assignment"){
     TPZFMatrix<TestType> orig;
     orig.AutoFill(3,3,SymProp::NonSym);
@@ -32,6 +39,23 @@ TEMPLATE_TEST_CASE("TPZFMatrix copy","[matrix_tests]", CSTATE, REAL, Fad<REAL>) 
       const int sz = GENERATE(2,3,5);
       cp.AutoFill(sz,sz,SymProp::NonSym);
       cp = orig;
+      REQUIRE(CompareMatrices(cp,orig));
+    }
+  }
+  SECTION("Copy assignment(from TPZMatrix)"){
+    TPZFMatrix<TestType> orig;
+    orig.AutoFill(3,3,SymProp::NonSym);
+    TPZMatrix<TestType> *orig_ptr=&orig;
+    TPZFMatrix<TestType> cp;
+    SECTION("From empty"){
+      cp = *orig_ptr;
+      REQUIRE(CompareMatrices(cp,orig));
+    }
+      
+    SECTION("From diff sizes"){
+      const int sz = GENERATE(2,3,5);
+      cp.AutoFill(sz,sz,SymProp::NonSym);
+      cp = *orig_ptr;
       REQUIRE(CompareMatrices(cp,orig));
     }
   }
