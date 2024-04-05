@@ -104,7 +104,7 @@ TPZGeoMeshTools::CreateGeoMesh1D(const REAL minX, const REAL maxX, const int nEl
 
 TPZGeoMesh *
 TPZGeoMeshTools::CreateGeoMeshOnGrid(int dim, const TPZVec<REAL> &minX, const TPZVec<REAL> &maxX, const TPZVec<int> &matids,
-                                     const TPZVec<int> nDivs, MMeshType meshType, bool createBoundEls) {
+                                     const TPZVec<int> nDivs, MMeshType meshType, bool createBoundEls, REAL distortion) {
 #ifdef PZDEBUG
     const REAL tol{ZeroTolerance()};
     if(dim !=3 && dim!= 2){
@@ -183,6 +183,11 @@ TPZGeoMeshTools::CreateGeoMeshOnGrid(int dim, const TPZVec<REAL> &minX, const TP
             DebugStop();
         }
     }
+    if(distortion < 0){
+        PZError<<__PRETTY_FUNCTION__<<" error\n";
+        PZError<<"Distortion = "<<distortion<<" is not supported. Aborting...\n";
+        DebugStop();
+    }
 #endif
     return [&](){
         switch(dim){
@@ -190,6 +195,7 @@ TPZGeoMeshTools::CreateGeoMeshOnGrid(int dim, const TPZVec<REAL> &minX, const TP
                 TPZGeoMesh *gmesh = new TPZGeoMesh();
                 TPZGenGrid2D gengrid(nDivs, minX, maxX);
                 gengrid.SetElementType(meshType);
+                gengrid.SetDistortion(distortion);
                 gengrid.Read(gmesh, matids[0]);
                 if(createBoundEls){
                     gengrid.SetBC(gmesh, 4, matids[1]);

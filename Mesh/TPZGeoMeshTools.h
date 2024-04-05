@@ -25,10 +25,11 @@ namespace TPZGeoMeshTools{
      * @param nDivs Number of elements in each direction
      * @param meshType What type of elements to create
      * @param createBoundEls Whether to create the boundary elements
+     * @param distortion Distortion to be applied to the position of internal nodes. Currently, is used to create trapezoidal elements
      * @return Pointer to the TPZGeoMesh that has been created
      */
     TPZGeoMesh * CreateGeoMeshOnGrid(int dim, const TPZVec<REAL>& minX, const TPZVec<REAL>& maxX,
-            const TPZVec<int> &matids, const TPZVec<int> nDivs, MMeshType meshType, bool createBoundEls);
+            const TPZVec<int> &matids, const TPZVec<int> nDivs, MMeshType meshType, bool createBoundEls, REAL distortion=0);
 
 
     /*! Create one-dimensional geometric mesh.
