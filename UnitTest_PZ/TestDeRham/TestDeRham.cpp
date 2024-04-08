@@ -27,11 +27,12 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/generators/catch_generators_all.hpp>
 
-enum class ESpace{H1,HCurl,HDiv,L2};
+enum class ESpace{H1,HCurl,HDiv,HDivConst,L2};
 
 static const std::map<ESpace, const char *> names({{ESpace::H1, "H1"},
                                                    {ESpace::HCurl, "HCurl"},
                                                    {ESpace::HDiv, "HDiv"},
+                                                   {ESpace::HDivConst, "HDivConst"},
                                                    {ESpace::L2, "L2"}});
 
 
@@ -72,7 +73,8 @@ TEMPLATE_TEST_CASE("Dimension Compatibility", "[derham_tests]",
 
   ESpace leftSpace = GENERATE(ESpace::H1,
                               ESpace::HCurl,
-                              ESpace::HDiv);
+                              ESpace::HDiv,
+                              ESpace::HDivConst);
   int k = GENERATE(1,2,3);
   SECTION(names.at(leftSpace)) {
     switch (leftSpace) {
@@ -94,6 +96,13 @@ TEMPLATE_TEST_CASE("Dimension Compatibility", "[derham_tests]",
     case ESpace::HDiv:
       CheckRankKerDim<ESpace::HDiv,ESpace::L2,dim>(k);
       break;
+    case ESpace::HDivConst:
+      //HdivConstant should only be called with k = 0. The if statement is only to ensure it is called once. If we generate k=0 it fails for other approximation spaces
+      //Any better solutions?
+      if (k == 1) {
+        CheckRankKerDim<ESpace::HDivConst,ESpace::L2,dim>(0);
+      }
+      break;
     case ESpace::L2:
       break;
     }
@@ -112,7 +121,8 @@ TEMPLATE_TEST_CASE("Inclusion", "[derham_tests]",
 
   ESpace leftSpace = GENERATE(ESpace::H1,
                               ESpace::HCurl,
-                              ESpace::HDiv);
+                              ESpace::HDiv,
+                              ESpace::HDivConst);
   int k = GENERATE(1,2,3);
   SECTION(names.at(leftSpace)) {
     switch (leftSpace) {
@@ -128,6 +138,9 @@ TEMPLATE_TEST_CASE("Inclusion", "[derham_tests]",
       break;
     case ESpace::HDiv:
       CheckInclusion<ESpace::HDiv,ESpace::L2,dim>(k);
+      break;
+    case ESpace::HDivConst:
+      CheckInclusion<ESpace::HDivConst,ESpace::L2,dim>(k);
       break;
     default:
       break;
@@ -225,7 +238,7 @@ void CheckRankKerDim(int kRight) {
 
   {
     
-    constexpr int nThreads{4};
+    constexpr int nThreads{0};
     TPZLinearAnalysis anL(cmeshL,RenumType::ENone);
     TPZLinearAnalysis anR(cmeshR, RenumType::ENone);
       
@@ -435,6 +448,9 @@ void CreateMeshes(int kRight, MMeshType elType,
     } else if constexpr (leftSpace == ESpace::HDiv) {
       kLeft = kRight;
       return new TPZMatDeRhamHDiv(matId,dim);
+    } else if constexpr (leftSpace == ESpace::HDivConst) {
+      kLeft = kRight;
+      return new TPZMatDeRhamHDiv(matId,dim);
     } else if constexpr (leftSpace == ESpace::L2) {
       return nullptr;
     }
@@ -447,6 +463,8 @@ void CreateMeshes(int kRight, MMeshType elType,
     } else if constexpr (rightSpace == ESpace::HCurl) {
       return new TPZMatDeRhamHCurl(matId,dim);
     } else if constexpr (rightSpace == ESpace::HDiv) {
+      return new TPZMatDeRhamHDiv(matId,dim);
+    } else if constexpr (rightSpace == ESpace::HDivConst) {
       return new TPZMatDeRhamHDiv(matId,dim);
     } else if constexpr (rightSpace == ESpace::L2) {
       return new TPZMatDeRhamL2(matId,dim);
@@ -530,8 +548,15 @@ TPZAutoPointer<TPZCompMesh> CreateCMesh(TPZAutoPointer<TPZGeoMesh> gmesh,
   case ESpace::HDiv:
     cmesh->SetAllCreateFunctionsHDiv();
     break;
+  case ESpace::HDivConst:
+    cmesh->ApproxSpace().SetHDivFamily(HDivFamily::EHDivConstant);
+    cmesh->SetAllCreateFunctionsHDiv();
+    break;
   case ESpace::L2:
-    cmesh->SetAllCreateFunctionsContinuous();
+    if (k == 0)
+      cmesh->SetAllCreateFunctionsDiscontinuous();
+    else
+      cmesh->SetAllCreateFunctionsContinuous();
     cmesh->ApproxSpace().CreateDisconnectedElements(true);
     break;
   }
