@@ -1016,7 +1016,7 @@ void TPZMixedElasticityND::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &d
         DebugStop();
     }
     int ndisp = datavec[1].phi.Rows();
-
+    
     const TPZVec<REAL> v_2 = bc.Val2();
     TPZFNMatrix<9, STATE> v_1 = bc.Val1();
 
@@ -1025,6 +1025,10 @@ void TPZMixedElasticityND::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &d
         TPZManVector<STATE, 3> res(fDimension);
         TPZFNMatrix<9, STATE> tens(fDimension, fDimension);
         bc.ForcingFunctionBC()(datavec[0].x, res, tens);
+        
+        
+        
+        
         v_2[0] = res[0];
         v_2[1] = res[1];
         if(fDimension == 3) v_2[2] = res[2];
@@ -1045,7 +1049,7 @@ void TPZMixedElasticityND::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &d
     //    }
 
     REAL R = datavec[0].x[0];
-    if (R < 1.e-6) R = 1.e-6;
+    //if (R < 1.e-6) R = 1.e-6;
     
     int nstate = 2;
     if(fDimension == 3) nstate = 3;
@@ -1053,6 +1057,8 @@ void TPZMixedElasticityND::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &d
     switch (bc.Type()) {
         case 0: // Dirichlet condition
         {
+            
+            
             for (int iq = 0; iq < nshapeS; iq++) {
                 for (int idf = 0; idf < nstate; idf++) {
                     ef(nstate * iq + idf, 0) += v_2[idf] * phiS(iq, 0) * weight; // forced v2 displacement

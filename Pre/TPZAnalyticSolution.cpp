@@ -375,12 +375,16 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         TVar alfa=0.5;
         TVar A= 31./9.;
         TVar theta = FADatan2(x[1],x[0]);
+        
+        auto thetaval = shapeFAD::val(theta);
+        if (thetaval < (0.)) theta += 2. * M_PI;
+        
         TVar r = FADsqrt(x[0]*x[0]+x[1]*x[1]);
         TVar gamma= FADsqrt(r)/(2.*mu);
         TVar cosT = FADcos(alfa*theta) - FADcos((alfa-2.)*theta);
         TVar sinT = A*FADsin(alfa*theta) + FADsin((alfa-2.)*theta);
         
-        disp[0] = gamma*(cosT);
+        disp[0] =gamma*(cosT);
         disp[1] =gamma*(sinT);
         
         
@@ -571,13 +575,25 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) con
         TVar2 alfa=0.5;
         TVar2 A= 31./9.;
         TVar2 theta = atan2(x[1],x[0]);
+        
+        //----
+        
+        auto thetaval = shapeFAD::val(theta);
+        if (thetaval < (0.)) theta += 2. * M_PI;
+
+
+        //--
+        
+        
+        
         TVar2 r = sqrt(x[0]*x[0]+x[1]*x[1]);
-        TVar2 gamma= sqrt(alfa)/(2.*mu);
+        TVar2 gamma= sqrt(r)/(2.*mu);
         TVar2 cosT = cos(alfa*theta) - cos((alfa-2.)*theta);
         TVar2 sinT = A*sin(alfa*theta) + sin((alfa-2.)*theta);
         
         disp[0] = gamma*(cosT);
         disp[1] =gamma*(sinT);
+
         
         
     }
