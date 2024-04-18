@@ -107,8 +107,12 @@ int TPZKrylovEigenSolverBase<TVar>::SolveImpl(TPZVec<CTVar> &w,
     DebugStop();
   }
   
-  const int &krylovDim = this->KrylovDim();
+  int krylovDim = this->KrylovDim();
   const auto size = this->SystemSize();
+  if(krylovDim > size){
+    krylovDim=size;
+    this->SetKrylovDim(size);
+  }
   TPZManVector<TPZAutoPointer<TPZFMatrix<TVar>>,20> qVecs(krylovDim, nullptr);
   TPZFNMatrix<400,TVar> h(krylovDim,krylovDim,0.);
 
