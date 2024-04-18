@@ -15,7 +15,8 @@ enum class TPZEigenSort{
   ImagDescending,/*!< Descending imaginary part*/
   TargetRealPart,/*!< Real part closest to target*/
   TargetImagPart,/*!< Imaginary part closest to target*/
-  TargetMagnitude/*!< Magnitude closest to target*/
+  TargetMagnitude,/*!< Magnitude closest to target*/
+  UserDefined/*!< User-defined function used as sorting method*/
 };
 
 inline TPZEigenSort TPZEigenSortFromString(const std::string name){
@@ -28,7 +29,8 @@ inline TPZEigenSort TPZEigenSortFromString(const std::string name){
     {"ImagDescending",TPZEigenSort::ImagDescending},
     {"TargetRealPart",TPZEigenSort::TargetRealPart},
     {"TargetImagPart",TPZEigenSort::TargetImagPart},
-    {"TargetMagnitude",TPZEigenSort::TargetMagnitude}
+    {"TargetMagnitude",TPZEigenSort::TargetMagnitude},
+    {"UserDefined",TPZEigenSort::UserDefined}
   };
   auto itr = stringvals.find(name);
   if( itr != stringvals.end() ) {
@@ -50,6 +52,7 @@ inline std::string TPZEigenSortToString(const TPZEigenSort val){
   case TPZEigenSort::TargetRealPart: return "TargetRealPart";
   case TPZEigenSort::TargetImagPart: return "TargetImagPart";
   case TPZEigenSort::TargetMagnitude: return "TargetMagnitude";
+  case TPZEigenSort::UserDefined: return "UserDefined";
   }
 }
 #endif

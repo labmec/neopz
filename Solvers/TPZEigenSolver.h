@@ -5,6 +5,7 @@
 #ifndef TPZEIGENSOLVER_H
 #define TPZEIGENSOLVER_H
 
+#include <functional>
 #include "TPZSolver.h"
 #include "pzfmatrix.h"
 #include "TPZEigenSort.h"
@@ -76,6 +77,10 @@ public:
   inline void SetEigenSorting(TPZEigenSort ord);
   //! Returns criterium for sorting the obtained eigenvalues
   inline TPZEigenSort EigenSorting() const;
+  //! Sets user-defined function to sort eigenvalues if EigenSorting() is TPZEigenSort::UserDefined
+  inline void SetUserSortingFunc(std::function<bool(CTVar,CTVar)> func);
+  //! Returns user-defined function to sort eigenvalues if EigenSorting() is TPZEigenSort::UserDefined
+  inline std::function<bool(CTVar,CTVar)> UserSortingFunc() const;
   /** @}*/
   //! Class identifier
   int ClassId() const override;
@@ -101,6 +106,8 @@ protected:
   TPZFMatrix<CTVar> fEigenvectors;
   //! Sorting order of the eigenvalues
   TPZEigenSort fEigenSort{TPZEigenSort::AbsAscending};
+  //! User-defined function used to sort eigenvalues if fEigenSort is TPZEigenSort::UserDefined
+  std::function<bool(CTVar,CTVar)>fUserSort{nullptr};
   //! Target eigenvalue
   TVar fTarget{0};
 };
@@ -115,6 +122,18 @@ template<class TVar>
 void TPZEigenSolver<TVar>::SetEigenSorting(TPZEigenSort ord)
 {
   fEigenSort = ord;
+}
+
+template<class TVar>
+std::function<bool(CTVar,CTVar)> TPZEigenSolver<TVar>::UserSortingFunc() const
+{
+  return fUserSort;
+}
+
+template<class TVar>
+void TPZEigenSolver<TVar>::SetUserSortingFunc(std::function<bool(CTVar,CTVar)>func)
+{
+  fUserSort=func;
 }
 
 template<class TVar>

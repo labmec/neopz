@@ -19,7 +19,14 @@ void TPZEigenSolver<TVar>::SortEigenvalues(TPZVec<CTVar> &w, TPZVec<int> &indice
   const CTVar target = Target();
   
   const auto eigOrder = EigenSorting();
-  auto sortFunc = [eigOrder,target](const CTVar a, const CTVar b) {
+  if(eigOrder == TPZEigenSort::UserDefined && fUserSort==nullptr){
+    PZError<<__PRETTY_FUNCTION__
+           <<"\nPlease provide a sorting function for eigenvalues!"
+           <<std::endl;
+    DebugStop();
+  }
+  auto userFunc = UserSortingFunc();
+  auto sortFunc = [eigOrder,target,userFunc](const CTVar a, const CTVar b) {
     switch (eigOrder) {
     case TPZEigenSort::Invalid:
       DebugStop();
@@ -41,6 +48,8 @@ void TPZEigenSolver<TVar>::SortEigenvalues(TPZVec<CTVar> &w, TPZVec<int> &indice
       return fabs(a.imag() - target.imag()) < fabs(b.imag() - target.imag());
     case TPZEigenSort::TargetMagnitude:
       return fabs(a-target) < fabs(b-target);
+    case TPZEigenSort::UserDefined:
+      return userFunc(a,b);
     }
     unreachable();
   };
