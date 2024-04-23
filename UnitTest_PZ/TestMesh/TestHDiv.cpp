@@ -62,7 +62,7 @@
 #include "pzgeotetrahedra.h"
 #include "pzgeoelrefless.h"
 #include "pzlog.h"
-
+#include <unordered_map>
 
 #include "TPZVTKGeoMesh.h"
 
@@ -80,6 +80,7 @@ static TPZLogger logger("pz.mesh.testhdiv");
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators_all.hpp>
 #include <catch2/matchers/catch_matchers_all.hpp>
+#include <catch2/catch_template_test_macros.hpp>
 
 static int tetraedra_2[6][4]=
 {
@@ -140,7 +141,7 @@ static TPZAutoPointer<TPZCompMesh> HDivMesh, PressureMesh;
 static void CheckDRhamFacePermutations(MElementType Etype);
 static void CheckDRhamPermutations(MElementType Etype);
 
-template<class tshape>
+template<class TSHAPE>
 static void CheckShapeOrder(int order);
 
 static void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
@@ -164,78 +165,85 @@ static void ExactPressure(const TPZVec<REAL> &x, TPZVec<STATE> &pres, TPZFMatrix
 static void CheckDRham(TPZCompEl *cel);
 
 /// run a problem simulating a bilinear solution for the given element type
+template<class TSHAPE>
 static void RunBilinear(MElementType eltype,HDivFamily hdivfam);
 
 /// verify is the shape functions have continuity
-static void VerifySideShapeContinuity(MElementType eltype);
+template<class TSHAPE>
+static void VerifySideShapeContinuity();
 
 /// verify if the pressure space is compatible with the flux space
-static void VerifyDRhamCompatibility(MElementType eltype);
+template<class TSHAPE>
+static void VerifyDRhamCompatibility();
 
 
 
 /// Check that the Div of the vector functions can be represented
-TEST_CASE("bilinearsolution_check","[hdiv_mesh_tests]")
+TEMPLATE_TEST_CASE("bilinearsolution_check", "[hdiv_mesh_tests]",
+                   (pzshape::TPZShapeTriang),
+                   (pzshape::TPZShapeQuad),
+                   (pzshape::TPZShapeTetra),
+                   (pzshape::TPZShapeCube),
+                   (pzshape::TPZShapePrism))
 {
-    HDivFamily hdivfam = GENERATE(HDivFamily::EHDivStandard,HDivFamily::EHDivConstant);
-    std::cout << "Initializing solution check\n";
-    RunBilinear(ECube,hdivfam);
-    RunBilinear(ETetraedro,hdivfam);
-    RunBilinear(ETriangle,hdivfam);
-    RunBilinear(EQuadrilateral,hdivfam);
-    RunBilinear(EPrisma,hdivfam);
-    std::cout << "Leaving solution check\n";
+    HDivFamily hdivfam = GENERATE(HDivFamily::EHDivStandard, HDivFamily::EHDivConstant);
+    std::unordered_map<HDivFamily, std::string> hdivfamstr = {{HDivFamily::EHDivStandard, "HDivStandard"},
+                                                              {HDivFamily::EHDivConstant, "HDivConstant"}};
+    SECTION(hdivfamstr.at(hdivfam))
+    {
+        std::cout << "Initializing solution check\n";
+        RunBilinear<TestType>(hdivfam);
+        std::cout << "Leaving solution check\n";
+    }
 }
 
-TEST_CASE("Vectors_are_external","[hdiv_mesh_tests]")
+TEMPLATE_TEST_CASE("Vectors_are_external", "[hdiv_mesh_tests]",
+                   (pzshape::TPZShapeCube),
+                   (pzshape::TPZShapeTetra),
+                   (pzshape::TPZShapeTriang),
+                   (pzshape::TPZShapeQuad))
 {
-    CheckOutsideDirections<pzshape::TPZShapeCube>();
-    CheckOutsideDirections<pzshape::TPZShapeTetra>();
-    CheckOutsideDirections<pzshape::TPZShapeTriang>();
-    CheckOutsideDirections<pzshape::TPZShapeQuad>();
+    CheckOutsideDirections<TestType>();
 }
 
-
-TEST_CASE("sideshape_continuity","[hdiv_mesh_tests]")
+TEMPLATE_TEST_CASE("sideshape_continuity", "[hdiv_mesh_tests]",
+                   (pzshape::TPZShapeTetra),
+                   (pzshape::TPZShapePrism),
+                   (pzshape::TPZShapeCube),
+                   (pzshape::TPZShapeQuad),
+                   (pzshape::TPZShapeTriang))
 {
     std::cout << "Initializing sideshape_continuity check\n";
-//    VerifySideShapeContinuity(EPiramide);
-    VerifySideShapeContinuity(ETetraedro);
-    VerifySideShapeContinuity(EPrisma);
-    VerifySideShapeContinuity(ECube);
-    VerifySideShapeContinuity(EQuadrilateral);
-    VerifySideShapeContinuity(ETriangle);
+    VerifySideShapeContinuity<TestType>();
     std::cout << "Leaving sideshape_continuity check\n";
 }
-    
-    
-TEST_CASE("shape_order","[hdiv_mesh_tests]")
+
+TEMPLATE_TEST_CASE("shape_order", "[hdiv_mesh_tests]",
+                   (pzshape::TPZShapeTetra),
+                   (pzshape::TPZShapeQuad),
+                   (pzshape::TPZShapeTriang),
+                   (pzshape::TPZShapeCube),
+                   (pzshape::TPZShapePrism))
 {
     std::cout << "Initializing shape_order check\n";
-//    CheckShapeOrder<pzshape::TPZShapePiram>(5);
-    CheckShapeOrder<pzshape::TPZShapeTetra>(5);
-    CheckShapeOrder<pzshape::TPZShapeQuad>(5);
-    CheckShapeOrder<pzshape::TPZShapeTriang>(5);
-    CheckShapeOrder<pzshape::TPZShapeCube>(5);
-    CheckShapeOrder<pzshape::TPZShapePrism>(5);
+    CheckShapeOrder<TestType>(5);
     std::cout << "Leaving shape_order check\n";
 }
-    
 
 /// Check that the Div of the vector functions can be represented
-TEST_CASE("drham_check","[hdiv_mesh_tests]")
+TEMPLATE_TEST_CASE("drham_check", "[hdiv_mesh_tests]",
+                   (pzshape::TPZShapeTetra),
+                   (pzshape::TPZShapePrism),
+                   (pzshape::TPZShapeCube),
+                   (pzshape::TPZShapeQuad),
+                   (pzshape::TPZShapeTriang))
 {
     std::cout << "Initializing DRham consistency check\n";
-//    VerifyDRhamCompatibility(EPiramide);
-    VerifyDRhamCompatibility(ETetraedro);
-    VerifyDRhamCompatibility(EPrisma);
-    VerifyDRhamCompatibility(ECube);
-    VerifyDRhamCompatibility(EQuadrilateral);
-    VerifyDRhamCompatibility(ETriangle);
+    VerifyDRhamCompatibility<TestType>();
     std::cout << "Leaving  DRham consistency check\n";
 }
 
-TEST_CASE("drham_permute_check","[hdiv_mesh_tests]")
+TEST_CASE("drham_permute_check", "[hdiv_mesh_tests]")
 {
     std::cout << "Initializing  DRham consistency under permutation check\n";
     // CheckDRhamFacePermutations(EPiramide);
@@ -244,9 +252,8 @@ TEST_CASE("drham_permute_check","[hdiv_mesh_tests]")
     CheckDRhamFacePermutations(ECube);
     CheckDRhamPermutations(EQuadrilateral);
     CheckDRhamPermutations(ETriangle);
-//    std::cout << "Leaving  DRham consistency under permutation check\n";
+    std::cout << "Leaving  DRham consistency under permutation check\n";
 }
-
 
 static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec, MElementType eltype, int nelem, int fluxorder, int ndiv, HDivFamily hdivfam)
 {
@@ -256,7 +263,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     x0[2] = -1.;
     x1[2] = -1.;
     TPZGenGrid2D grid(nx,x0,x1);
-    if (eltype == ETriangle|| eltype == EPrisma ) {
+    if (eltype == ETriangle || eltype == EPrisma ) {
         grid.SetElementType(MMeshType::ETriangular);
     }
     TPZGeoMesh* gmesh = new TPZGeoMesh;
@@ -266,7 +273,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     grid.SetBC(gmesh, 6, -1);
     grid.SetBC(gmesh, 7, -1);
     
-    if(eltype==ETriangle||eltype==EPrisma||eltype==ECube||eltype==EQuadrilateral )
+    if(eltype==ETriangle || eltype==EPrisma || eltype==ECube || eltype==EQuadrilateral)
     {
         for(int D = 0; D < ndiv; D++)
         {
@@ -398,6 +405,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
         PressureMesh->SetDefaultOrder(fluxorder);
     } else if (hdivfam == HDivFamily::EHDivConstant) {
         PressureMesh->SetAllCreateFunctionsDiscontinuous();
+        PressureMesh->ApproxSpace().CreateDisconnectedElements(true);
         PressureMesh->SetDefaultOrder(0);
     } else {
         DebugStop();
@@ -1090,16 +1098,16 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
 }
 
 
-template<class tshape>
+template<class TSHAPE>
 void CheckShapeOrder(int order)
 {
-    TPZManVector<int,tshape::NSides> orders(tshape::NSides-tshape::NCornerNodes,order);
-    TPZManVector<int64_t,tshape::NSides> origids(tshape::NCornerNodes,0);
-    const int nshape = tshape::NShapeF(orders);
-    const int nsides = tshape::NSides;
-    const int ncorner = tshape::NCornerNodes;
+    TPZManVector<int,TSHAPE::NSides> orders(TSHAPE::NSides-TSHAPE::NCornerNodes,order);
+    TPZManVector<int64_t,TSHAPE::NSides> origids(TSHAPE::NCornerNodes,0);
+    const int nshape = TSHAPE::NShapeF(orders);
+    const int nsides = TSHAPE::NSides;
+    const int ncorner = TSHAPE::NCornerNodes;
     const int numlegendre = (order+5) < 10 ? 10 : (order+5);
-    const int dimension = tshape::Dimension;
+    const int dimension = TSHAPE::Dimension;
     int numpermwrong = 0;
     
     // set up the original ids
@@ -1109,7 +1117,7 @@ void CheckShapeOrder(int order)
     
     // set up the permutations of the type
     TPZManVector<TPZManVector<int,8> > permutation;
-    MElementType thistype = tshape::Type();
+    MElementType thistype = TSHAPE::Type();
     TPZRefPatternTools::GetElTypePermutations(thistype, permutation);
     const int nperm = permutation.size();
     
@@ -1119,7 +1127,7 @@ void CheckShapeOrder(int order)
     for (int iperm = 0; iperm<nperm; iperm++)
     {
         int numwrong = 0;
-        TPZManVector<int64_t,tshape::NCornerNodes> ids(tshape::NCornerNodes,0);
+        TPZManVector<int64_t,TSHAPE::NCornerNodes> ids(TSHAPE::NCornerNodes,0);
         for (int id = 0; id<ncorner; id++) {
             ids[permutation[iperm][id]] = id;
         }
@@ -1131,7 +1139,7 @@ void CheckShapeOrder(int order)
             }
         }
         TPZVec<int64_t> sides;
-        TPZShapeH1<tshape> h1;
+        TPZShapeH1<TSHAPE> h1;
         TPZShapeData data;
         h1.Initialize(ids, orders, data);
         h1.ShapeOrders(shapeorders, data);
@@ -1139,7 +1147,7 @@ void CheckShapeOrder(int order)
 
         int shapecounter = 0;
         for (int is=0; is<nsides; is++) {
-            const int sidedim = tshape::SideDimension(is);
+            const int sidedim = TSHAPE::SideDimension(is);
             if (sidedim < 1) {
                 for (int dim=0; dim<1; dim++) {
                     estimatedshapeorders(shapecounter,dim) = 1;
@@ -1147,14 +1155,14 @@ void CheckShapeOrder(int order)
                 shapecounter++;
                 continue;
             }
-            MElementType sidetype = tshape::Type(is);
+            MElementType sidetype = TSHAPE::Type(is);
 
-            int nsideshape = tshape::NConnectShapeF(is, order);
+            int nsideshape = TSHAPE::NConnectShapeF(is, order);
             TPZStack<int> lowerdimensionsides;
-            tshape::LowerDimensionSides(is, lowerdimensionsides);
+            TSHAPE::LowerDimensionSides(is, lowerdimensionsides);
             int firstshape = 0;
             for (int i=0; i<lowerdimensionsides.size(); i++) {
-                firstshape += tshape::NConnectShapeF(lowerdimensionsides[i], order);
+                firstshape += TSHAPE::NConnectShapeF(lowerdimensionsides[i], order);
             }
             
             if(sidetype == EPiramide && sidedim == 3)
@@ -1169,10 +1177,10 @@ void CheckShapeOrder(int order)
             for (int dim = 0; dim < sidedim; dim++) {
                 TPZManVector<REAL,3> sidecenterel(dimension),sidecenter(sidedim),point(sidedim);
                 TPZFNMatrix<9> jac(2,1);
-                tshape::CenterPoint(is, sidecenterel);
+                TSHAPE::CenterPoint(is, sidecenterel);
 //                if(sidetype==EPrisma && is>19){continue;} ///???????
 //                else{tshape::MapToSide(is, sidecenterel, sidecenter, jac);}
-                tshape::MapToSide(is, sidecenterel, sidecenter, jac);
+                TSHAPE::MapToSide(is, sidecenterel, sidecenter, jac);
                 for (int i=0; i<sidedim; i++) {
                     sidecenter[i] += M_PI/230.;
                 }
@@ -1210,7 +1218,7 @@ void CheckShapeOrder(int order)
 
                     TPZFNMatrix<200,REAL> philegendre(numlegendre,1,0.);
                     TPZFNMatrix<200,REAL> dphi(sidedim,nsideshape+firstshape), dphilegendre(1,numlegendre,0.), phi(nsideshape+firstshape,1,0.);
-                    TPZSideShapeH1<tshape> h1(is);
+                    TPZSideShapeH1<TSHAPE> h1(is);
                     TPZShapeData data;
                     h1.Initialize(ids, orders, data);
                     h1.Shape(point, data);
@@ -1522,8 +1530,10 @@ void CheckDRhamPermutations(MElementType eltype)
 }
 
 /// run a problem simulating a bilinear solution for the given element type
-void RunBilinear(MElementType eltype, HDivFamily hdivfam)
+template<class TSHAPE>
+void RunBilinear(HDivFamily hdivfam)
 {
+    auto eltype = TSHAPE::Type();
     if (eltype == EPrisma && hdivfam == HDivFamily::EHDivConstant) return; // Approximation space not implemented for this topology
 
     int nelx = 1;
@@ -1637,7 +1647,7 @@ void RunBilinear(MElementType eltype, HDivFamily hdivfam)
     for(int i = 0; i<nel; i++){
         TPZCompEl *cel = cmesh->ElementVec()[i];
         TPZGeoEl *gel = cel->Reference();
-        if(gel->Dimension()<cmesh->Dimension()) continue;
+        if(gel->Dimension() < cmesh->Dimension()) continue;
         int ns = gel->NSides();
         int dim = gel->Dimension();
         TPZIntPoints *rule = gel->CreateSideIntegrationRule(ns-1, 4);//3
@@ -1701,8 +1711,10 @@ void RunBilinear(MElementType eltype, HDivFamily hdivfam)
 }
 
 /// verify is the shape functions have continuity
-void VerifySideShapeContinuity(MElementType eltype)
+template<class TSHAPE>
+void VerifySideShapeContinuity()
 {
+    MElementType eltype = TSHAPE::Type();
     int64_t permcount = 0;
     TPZVec<TPZCompMesh *>  meshvec(2);
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype);
@@ -1786,9 +1798,11 @@ void VerifySideShapeContinuity(MElementType eltype)
 }
 
 /// verify if the pressure space is compatible with the flux space
-void VerifyDRhamCompatibility(MElementType eltype)
+template<class TSHAPE>
+void VerifyDRhamCompatibility()
 {
     // generate a mesh
+    MElementType eltype = TSHAPE::Type();
     TPZVec<TPZCompMesh *>  meshvec(2);
     int nelem =2;
     int fluxorder = gfluxorder;
