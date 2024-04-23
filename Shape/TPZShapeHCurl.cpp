@@ -504,20 +504,20 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
     for(auto iCon = nEdges; iCon < nEdges + nFaces; iCon++){
         const auto iSide = iCon + nNodes;
         const auto iFace = iCon - nEdges;
-
-        int h1FaceOrder = -1;
+        //max order of h1 functions used to compute hcurl face functions
+        int faceMaxPolyDegree = -1;
         TPZManVector<int,4> permutedSideSides(4,-1);
         
         switch(TSHAPE::Type(iSide)){
         case ETriangle://triangular face
             pztopology::GetPermutation<pztopology::TPZTriangle>(transformationIds[iCon],
                                                                 permutedSideSides);
-            h1FaceOrder = connectOrder[iCon];
+            faceMaxPolyDegree = connectOrder[iCon];
             break;
         case EQuadrilateral://quadrilateral face
             pztopology::GetPermutation<pztopology::TPZQuadrilateral>(transformationIds[iCon],
                                                                      permutedSideSides);
-            h1FaceOrder = connectOrder[iCon]+1;
+            faceMaxPolyDegree = connectOrder[iCon]+1;
             break;
         default:
             PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
@@ -545,7 +545,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
             const auto currentEdge = TSHAPE::ContainedSideLocId(iSide, currentLocalEdge);
             const auto vecIndex = firstVfeVec[iFace] + currentLocalEdge - nFaceNodes;
             
-            for(auto iEdgeInternal = 0; iEdgeInternal < h1FaceOrder - 1; iEdgeInternal++){
+            for(auto iEdgeInternal = 0; iEdgeInternal < faceMaxPolyDegree - 1; iEdgeInternal++){
                 const int shapeIndex = firstH1ShapeFunc[currentEdge - nNodes] + iEdgeInternal;
                 indexVecShape[shapeCount] = std::make_pair(vecIndex,shapeIndex);
                 shapeCount++;
@@ -564,6 +564,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
            since we are interested in the Q_{k,k+1}\times Q_{k+1,k} space,
            we check their orders.*/
 
+        const int h1FaceOrder = sidesH1Ord[iCon];
         if(h1FaceOrder == 0){continue;}
         //number of h1 face funcs
         const auto nH1FaceFuncs =
@@ -595,7 +596,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
             const auto xdir = ((transid+1)/2)%2;//i told you so
             const auto ydir = 1-xdir;
 
-            const auto hCurlFaceOrder = h1FaceOrder-1;
+            const auto hCurlFaceOrder = faceMaxPolyDegree-1;
             //number of hcurl functions in Qkkk^3
             const auto nfuncsk = 2 * (hCurlFaceOrder - 1) * (hCurlFaceOrder - 1);
             /*
@@ -603,9 +604,9 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
               to achieve Qk,k+1,k+1 X Qk+1,k,k+1 X Qk+1,k+1,k
              */
             const auto nfuncsk1 = hCurlFaceOrder - 1;
-            TPZVec<std::pair<int,int>> funcXY(nfuncsk);
-            TPZVec<std::pair<int,int>> funcX(nfuncsk1);
-            TPZVec<std::pair<int,int>> funcY(nfuncsk1);
+            TPZManVector<std::pair<int,int>,30> funcXY(nfuncsk);
+            TPZManVector<std::pair<int,int>,30> funcX(nfuncsk1);
+            TPZManVector<std::pair<int,int>,30> funcY(nfuncsk1);
             int countxy{0}, countx{0},county{0};
             /**now we assume that the first vft vec is in the x direction
                and that the next one is in the y direction.*/
@@ -643,13 +644,18 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
             }
 
             auto AddFromVec = [&indexVecShape,&shapeCountVec, &shapeCount,iCon]
-                (TPZVec<std::pair<int,int>> myvec){
+                (const TPZVec<std::pair<int,int>> &myvec){
                 for(auto [vi,si] : myvec){
                     indexVecShape[shapeCount] = std::make_pair(vi,si);
                     shapeCount++;
                     shapeCountVec[iCon]++;
                 }
             };
+#ifdef PZDEBUG
+            if(countx!=nfuncsk1 || county!= nfuncsk1 || countxy != nfuncsk){
+                DebugStop();
+            }
+#endif
             AddFromVec(funcXY);
             AddFromVec(funcX);
             AddFromVec(funcY);
@@ -657,8 +663,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
         }
         else{
             //ok that one is easy to guess
-            const auto nFaceInternalFuncs =
-                2 * nH1FaceFuncs;
+            const auto nFaceInternalFuncs = 2*TSHAPE::NConnectShapeF(iSide,faceMaxPolyDegree);
             for(auto iFunc = 0; iFunc < nFaceInternalFuncs; iFunc++ ){
                 //it should alternate between them
                 const auto vecIndex = firstVftVec + 2*iFace + iFunc % 2;
