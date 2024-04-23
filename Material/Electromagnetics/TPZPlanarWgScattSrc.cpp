@@ -75,10 +75,8 @@ void TPZPlanarWgScattSrc::Contribute(const TPZMaterialDataT<CSTATE> &data,
   // std::cout<<"\t sol.x"<<mem_item.x<<std::endl;
   // std::cout<<"\t   sol"<<mem_item.sol<<std::endl;
   // std::cout<<"\tdsol.n"<<dsol_n<<std::endl;
-  
-  
   ///Source term
-  const auto src = 2. *( -1i * beta * sol + dsol[0]);
+  const auto src = -2.0*( -1i * beta * sol + dsol[0]);
 
   //Contribution
   for(int i = 0 ; i<nshape ; i++){
