@@ -85,7 +85,7 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &d
     }
     if constexpr (dim < 2) return;
 
-    TPZVec<int> filtVecShape;
+    TPZManVector<int,30> filtVecShape;
     HighOrderFunctionsFilter(first_hcurl_side, connectorders,filtVecShape);
 
     const auto newfuncs = filtVecShape.size();
@@ -101,6 +101,8 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &d
       fcount++;
     } 
     
+
+    if(fcount != phi.Cols()) DebugStop();
     
 }
 
@@ -492,8 +494,8 @@ void TPZShapeHCurlNoGrads<TSHAPE>::HighOrderFunctionsFilter(
     */
 
     const auto firstVki = firstSideShape + nvkf;
-    const auto nvkik = 3*(order-1)*(order-1)*(order-1);
-    const auto nvkik1 = (order-1)*(2*order-1);//for each direction
+    const auto nvkik = order >= 1 ? 3*(order-1)*(order-1)*(order-1) : 0;
+    const auto nvkik1 = order >= 1 ? (order-1)*(2*order-1): 0;//for each direction
     
     for(auto ifunc = 0; ifunc < nvkik; ifunc++){
       if(ifunc%3 == 2) continue;//skip z direction
