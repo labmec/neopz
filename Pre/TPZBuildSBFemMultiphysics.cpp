@@ -613,30 +613,26 @@ void TPZBuildSBFemMultiphysics::CreateExternalElements(TPZAutoPointer<TPZGeoMesh
 void TPZBuildSBFemMultiphysics::CreateCompElPressure(TPZCompMesh &cmeshpressure, set<int> & matids1d)
 {
     // getting the materials
+    TPZCompMesh pressurecopy(cmeshpressure);
     cmeshpressure.SetReference(fGMesh);
     auto matvec = cmeshpressure.MaterialVec();
-    map<int, TPZMaterial*> matveccopy(matvec);
+    // map<int, TPZMaterial*> matveccopy(matvec);
     // matveccopy.insert(matvec.begin(), matvec.end());
     int d1 = fGMesh->Dimension()-1;
     auto nstate = cmeshpressure.MaterialVec().begin()->second->NStateVariables();
 
-    for (auto const& [key, val] : matvec)
-    {
-        auto valbndcnd = dynamic_cast<TPZBndCondT<STATE> *>(val);
-        if(!valbndcnd)
-        {
-            matveccopy[key] = val->NewMaterial();
-        } else 
-        {
+    // for (auto const& [key, val] : matvec)
+    // {
+    //     auto valbndcnd = dynamic_cast<TPZBndCondT<STATE> *>(val);
+    //     if(!valbndcnd)
+    //     {
+    //         matveccopy[key] = val->NewMaterial();
+    //     } else 
+    //     {
 
-            //            map<int, TPZMaterial*> bnd;
-            val->Clone(matveccopy);
-            //            for (auto const& [keybnd, valbnd] : bnd)
-            //            {
-            //                matveccopy[keybnd] = valbnd;
-            //            }
-        }
-    }
+    //         val->Clone(matveccopy);
+    //     }
+    // }
 
     auto dim = cmeshpressure.Dimension()-1; // materials with dim-1 dimensional elements
     auto matext = cmeshpressure.MaterialVec().begin()->second;
@@ -652,11 +648,11 @@ void TPZBuildSBFemMultiphysics::CreateCompElPressure(TPZCompMesh &cmeshpressure,
     cmeshpressure.SetDimModel(dim);
     cmeshpressure.SetAllCreateFunctionsContinuous();
     cmeshpressure.ApproxSpace().CreateDisconnectedElements(true);
-
-    for (auto const& [key, val] : matveccopy)
-    {
-        cmeshpressure.InsertMaterialObject(val);
-    }
+    pressurecopy.CopyMaterials(cmeshpressure);
+    // for (auto const& [key, val] : matveccopy)
+    // {
+    //     cmeshpressure.InsertMaterialObject(val);
+    // }
     cmeshpressure.InsertMaterialObject(matint);
     set<int> matids = {fInternal};
     cmeshpressure.AutoBuild(matids);
@@ -685,6 +681,8 @@ void TPZBuildSBFemMultiphysics::CreateCompElPressure(TPZCompMesh &cmeshpressure,
 
 void TPZBuildSBFemMultiphysics::CreateSBFemVolumePressure(TPZCompMesh & cmeshpressure, set<int> &matids1d, set<int> & matidtarget)
 {
+    cmeshpressure.Reference()->ResetReference();
+    cmeshpressure.LoadReferences();
     // This for creates the volumetric multiphysics element, working as an AutoBuild()
     for (auto gelcollapsed : fGMesh->ElementVec())
     {
@@ -742,7 +740,8 @@ void TPZBuildSBFemMultiphysics::CreateSBFemVolumePressure(TPZCompMesh & cmeshpre
         {
             neigh = neigh.Neighbour();
             gel1d = neigh.Element();
-            auto it = matids1d.find(gel1d->MaterialId());
+            int gel1dmat = gel1d->MaterialId();
+            auto it = matids1d.find(gel1dmat);
             if(gel1d->Reference() && (gel1d->MaterialId() == fInternal) )
             {
                 if(fElementPartition[gel1d->Index()] == idvol)
