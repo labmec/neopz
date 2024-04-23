@@ -194,7 +194,7 @@ void TPZSBFemVolumeHdiv::ReallyComputeSolution(TPZMaterialDataT<STATE> & data)
                     for (int d = 0; d < dim; d++)
                     {
                         int id = (ishape + is)* nstate + istate;
-                        data.sol[s][d] += data.fPhi(id) * data.fDeformedDirections(d,id) * uh_xi[id].real();
+                        data.sol[s][d] += data.fH1.fPhi(id) * data.fDeformedDirections(d,id) * uh_xi[id].real();
                     }
                 }
             }

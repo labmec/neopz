@@ -88,8 +88,8 @@ void TPZCompElHDivSBFem<TSHAPE>::ComputeRequiredData(TPZMaterialDataT<STATE> &da
     // Adjusting divergence and phi values
     for (int i = 0; i < nshape1d; i++)
     {
-        data.divphi(i) = data.fDPhi(0,i);
-        data.phi(i) = data.fPhi(i);
+        data.divphi(i) = data.fH1.fDPhi(0,i);
+        data.phi(i) = data.fH1.fPhi(i);
     }
     for (int i = 0; i < nshapeboundleft; i++)
     {
@@ -97,7 +97,7 @@ void TPZCompElHDivSBFem<TSHAPE>::ComputeRequiredData(TPZMaterialDataT<STATE> &da
     }
     for (int i = 0; i < nshapeboundright; i++)
     {
-        data.divphi(i+nshape1d+nshapeboundleft) = data.fPhi(i+nshape1d);
+        data.divphi(i+nshape1d+nshapeboundleft) = data.fH1.fPhi(i+nshape1d);
         data.phi(i+nshape1d+nshapeboundleft) = 0;
     }
     
@@ -193,18 +193,18 @@ void TPZCompElHDivSBFem<TSHAPE>::ComputeSBFemVolumeHdivData(TPZMaterialDataT<STA
             data.fDeformedDirections(i,j) = -internaldir(i,0);
         }
     }
-    for (int j = 0; j < data.fHDivNumConnectShape[3]; j++)
+    for (int j = 0; j < data.fHDiv.fNumConnectShape[3]; j++)
     {
         for (auto i = 0; i < dim2; i++)
         {
             data.fDeformedDirections(i,nshape1d+j) = this->fbottom_side_orient*grad(i,1)*2./fabs(detjac1d);
         }
     }
-    for (int j = 0; j < data.fHDivNumConnectShape[4]; j++)
+    for (int j = 0; j < data.fHDiv.fNumConnectShape[4]; j++)
     {
         for (auto i = 0; i < dim2; i++)
         {
-            data.fDeformedDirections(i,nshape1d+data.fHDivNumConnectShape[3]+j) = this->ftop_side_orient*grad(i,1)*2./fabs(detjac1d);
+            data.fDeformedDirections(i,nshape1d+data.fHDiv.fNumConnectShape[3]+j) = this->ftop_side_orient*grad(i,1)*2./fabs(detjac1d);
         }
     }
 }
@@ -273,25 +273,25 @@ void TPZCompElHDivSBFem<TSHAPE>::ExtendShapeFunctions(TPZMaterialDataT<STATE> &d
     int nshapeboundright = TPZCompElHDivCollapsed<TSHAPE>::NConnectShapeF(TSHAPE::NFacets+2, porderboundtop);
     int nshape1d = nshape - nshapeboundleft - nshapeboundright;
 
-    shapedata.fDPhi.Resize(dim, nshape);
+    shapedata.fH1.fDPhi.Resize(dim, nshape);
 
     for (int ish = 0; ish < nshapeboundleft; ish++)
     {
         for (int d = 0; d < dim - 1; d++)
         {
-            shapedata.fDPhi(d, ish + nshape1d) = 0.;
-            shapedata.fDPhi(d, ish + nshape1d+nshapeboundleft) = shapedata.fPhi(ish);
+            shapedata.fH1.fDPhi(d, ish + nshape1d) = 0.;
+            shapedata.fH1.fDPhi(d, ish + nshape1d+nshapeboundleft) = shapedata.fH1.fPhi(ish);
         }
-        shapedata.fDPhi(dim-1, ish+nshape1d) = -shapedata.fPhi(ish) / 2.;
-        shapedata.fDPhi(dim-1, ish+nshape1d+nshapeboundleft) = 0.;
+        shapedata.fH1.fDPhi(dim-1, ish+nshape1d) = -shapedata.fH1.fPhi(ish) / 2.;
+        shapedata.fH1.fDPhi(dim-1, ish+nshape1d+nshapeboundleft) = 0.;
     }
    
-    TPZFNMatrix<50,REAL> philoc(data.fPhi.Rows(),data.fPhi.Cols(),0.),
-        dphiloc(data.fDPhi.Rows(),data.fDPhi.Cols(),0.);
+    TPZFNMatrix<50,REAL> philoc(data.fH1.fPhi.Rows(),data.fH1.fPhi.Cols(),0.),
+        dphiloc(data.fH1.fDPhi.Rows(),data.fH1.fDPhi.Cols(),0.);
     TPZManVector<int,TSHAPE::NSides> ord(TSHAPE::NFacets+3, 0);
 
-    const int nconnects = shapedata.fHDivConnectOrders.size();
-    ord = shapedata.fHDivConnectOrders;
+    const int nconnects = shapedata.fHDiv.fConnectOrders.size();
+    ord = shapedata.fHDiv.fConnectOrders;
 
     int nc = this->Reference()->NCornerNodes();
     TPZManVector<int64_t,8> id(nc);
@@ -311,7 +311,7 @@ void TPZCompElHDivSBFem<TSHAPE>::ExtendShapeFunctions(TPZMaterialDataT<STATE> &d
     
     TPZManVector<int64_t,27> FirstIndex(TSHAPE::NSides+1);
     fCelFlux->FirstShapeIndex(FirstIndex);
-    int order = shapedata.fHDivConnectOrders[nconnects-2];
+    int order = shapedata.fHDiv.fConnectOrders[nconnects-2];
     
     for (int side=0; side < TSHAPE::NSides; side++)
     {
@@ -320,10 +320,10 @@ void TPZCompElHDivSBFem<TSHAPE>::ExtendShapeFunctions(TPZMaterialDataT<STATE> &d
         int nshapeloc = TSHAPE::NConnectShapeF(side,order);
         for (int i=0; i<nshapeloc; i++)
         {
-            data.fPhi(nshape1d + ifirst+i,0) = philoc(kfirst+i,0);
+            data.fH1.fPhi(nshape1d + ifirst+i,0) = philoc(kfirst+i,0);
             for (int d=0; d< TSHAPE::Dimension; d++)
             {
-                data.fDPhi(d,nshape1d + ifirst+i) = dphiloc(d,kfirst+i);
+                data.fH1.fDPhi(d,nshape1d + ifirst+i) = dphiloc(d,kfirst+i);
             }
         }
     }
@@ -331,7 +331,7 @@ void TPZCompElHDivSBFem<TSHAPE>::ExtendShapeFunctions(TPZMaterialDataT<STATE> &d
     data.divsol.Resize(1);
     data.divsol[0].Resize(1,0.);
 
-    TPZInterpolationSpace::Convert2Axes(data.fDPhi, data.jacinv, data.dphix);
+    TPZInterpolationSpace::Convert2Axes(data.fH1.fDPhi, data.jacinv, data.dphix);
 }
 
 template <class TSHAPE>

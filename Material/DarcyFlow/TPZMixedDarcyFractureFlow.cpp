@@ -123,9 +123,9 @@ void TPZMixedDarcyFractureFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>>
     int first_transverse_q = 0;
     // first index in fVecShapeIndex corresponding to the second transverse flux
     int second_transverse_q = 0;
-    int nconnects = datavec[qb].fHDivNumConnectShape.size();
-    second_transverse_q = nvecs-datavec[qb].fHDivNumConnectShape[nconnects-1];
-    first_transverse_q = second_transverse_q-datavec[qb].fHDivNumConnectShape[nconnects-2];
+    int nconnects = datavec[qb].fHDiv.fNumConnectShape.size();
+    second_transverse_q = nvecs-datavec[qb].fHDiv.fNumConnectShape[nconnects-1];
+    first_transverse_q = second_transverse_q-datavec[qb].fHDiv.fNumConnectShape[nconnects-2];
     /*
     for(int i=0; i< nphi_q; i++)
     {

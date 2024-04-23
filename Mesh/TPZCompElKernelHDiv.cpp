@@ -71,7 +71,7 @@ void TPZCompElKernelHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
     mat->FillDataRequirements(data);
     const int dim = this->Dimension();
-    const int nshape = data.fPhi.Rows();
+    const int nshape = data.fH1.fPhi.Rows();
     const int nstate = this->Material()->NStateVariables();
     data.fShapeType = TPZMaterialData::EScalarShape;
     data.phi.Redim(nshape,1);

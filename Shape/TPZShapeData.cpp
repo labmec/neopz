@@ -30,13 +30,24 @@ std::string TPZShapeData::ShapeFunctionType() const
 void TPZShapeData::Print(std::ostream &out) const
 {
     out << "Shape function type " << ShapeFunctionType() << std::endl;
-    fPhi.Print("phi",out);
-    fDPhi.Print("dphi",out);
-    out << "fMasterDirections" << fMasterDirections << std::endl;
-    if (fSDVecShapeIndex.size()) {
+    out << "H1 data" << std::endl;
+    fH1.fPhi.Print("phi",out);
+    fH1.fDPhi.Print("dphi",out);
+    out << "HDiv data" << std::endl;
+    out << "fMasterDirections" << fHDiv.fMasterDirections << std::endl;
+    if (fHDiv.fSDVecShapeIndex.size()) {
         out << "VecShapeIndex: ";
-        for (int64_t i = 0; i < fSDVecShapeIndex.size(); i++) {
-            out << fSDVecShapeIndex[i].first << '/' << fSDVecShapeIndex[i].second << ' ';
+        for (int64_t i = 0; i < fHDiv.fSDVecShapeIndex.size(); i++) {
+            out << fHDiv.fSDVecShapeIndex[i].first << '/' << fHDiv.fSDVecShapeIndex[i].second << ' ';
+        }
+        out << '\n';
+    }
+    out << "HCurl data" << std::endl;
+    out << "fMasterDirections" << fHCurl.fMasterDirections << std::endl;
+    if (fHCurl.fSDVecShapeIndex.size()) {
+        out << "VecShapeIndex: ";
+        for (int64_t i = 0; i < fHCurl.fSDVecShapeIndex.size(); i++) {
+            out << fHCurl.fSDVecShapeIndex[i].first << '/' << fHCurl.fSDVecShapeIndex[i].second << ' ';
         }
         out << '\n';
     }
@@ -45,9 +56,10 @@ void TPZShapeData::Print(std::ostream &out) const
 /** Print the data in a format suitable for Mathematica */
 void TPZShapeData::PrintMathematica(std::ostream &out) const
 {
-    fPhi.Print("phi = ",out,EMathematicaInput);
-    fDPhi.Print("dphi = ",out,EMathematicaInput);
-    out << "fMasterDirections" << fMasterDirections << std::endl;
+    fH1.fPhi.Print("H1phi = ",out,EMathematicaInput);
+    fH1.fDPhi.Print("H1dphi = ",out,EMathematicaInput);
+    out << "HDivfMasterDirections = " << fHDiv.fMasterDirections << std::endl;
+    out << "HCurlfMasterDirections = " << fHCurl.fMasterDirections << std::endl;
 }
 
 

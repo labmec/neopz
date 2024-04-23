@@ -30,7 +30,7 @@ void TPZDarcyFlow::SetDimension(int dim) {
 void TPZDarcyFlow::Contribute(const TPZMaterialDataT<STATE> &data, STATE weight, TPZFMatrix<STATE> &ek,
                               TPZFMatrix<STATE> &ef) {
 
-    const TPZFMatrix<REAL> &phi = data.fPhi;
+    const TPZFMatrix<REAL> &phi = data.fH1.fPhi;
     const TPZFMatrix<REAL> &dphi = data.dphix;
     const TPZVec<REAL> &x = data.x;
     const TPZFMatrix<REAL> &axes = data.axes;

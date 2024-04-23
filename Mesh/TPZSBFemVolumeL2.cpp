@@ -100,7 +100,7 @@ void TPZSBFemVolumeL2::ReallyComputeSolution(TPZMaterialDataT<STATE> & data)
     Ref2D->Jacobian(qsi, data2d.jacobian, data2d.axes, data2d.detjac, data2d.jacinv);
     axes = data2d.axes;
 
-    int nshape = data1d.fPhi.Rows();
+    int nshape = data1d.fH1.fPhi.Rows();
     int nstate = mat2d->NStateVariables();
 #ifdef PZDEBUG
     if (fPhi.Cols() != fCoeficients.Rows()) {
@@ -147,10 +147,10 @@ void TPZSBFemVolumeL2::ReallyComputeSolution(TPZMaterialDataT<STATE> & data)
         TPZManVector<STATE, 3> dsolxi(nstate, 0.);
         for (int ishape = 0; ishape < nshape; ishape++) {
             for (int istate = 0; istate < nstate; istate++) {
-                sol[s][istate] += data1d.fPhi(ishape) * uh_xi[ishape * nstate + istate].real();
-                dsolxi[istate] += data1d.fPhi(ishape) * Duh_xi[ishape * nstate + istate].real();
+                sol[s][istate] += data1d.fH1.fPhi(ishape) * uh_xi[ishape * nstate + istate].real();
+                dsolxi[istate] += data1d.fH1.fPhi(ishape) * Duh_xi[ishape * nstate + istate].real();
                 for (int d = 0; d < dim - 1; d++) {
-                    dsollow(d, istate) += data1d.fDPhi(d, ishape) * uh_xi[ishape * nstate + istate].real();
+                    dsollow(d, istate) += data1d.fH1.fDPhi(d, ishape) * uh_xi[ishape * nstate + istate].real();
                 }
             }
         }

@@ -208,7 +208,7 @@ namespace topologytests{
         TPZShapeData shapedata;
         TPZManVector<int64_t,nCorner> ids(nCorner,0);
         for(auto i=0; i<nCorner; i++) ids[i] = i;        
-        auto &conOrders = shapedata.fHDivConnectOrders;
+        auto &conOrders = shapedata.fHDiv.fConnectOrders;
         constexpr auto nConnects = nFaces + 1;
         conOrders.Resize(nConnects,-1);
         for(auto i = 0; i < nConnects; i++) conOrders[i] = 1;
@@ -217,15 +217,15 @@ namespace topologytests{
 
         TPZShapeHDiv<TSHAPE>::Initialize(ids, conOrders, sideorient, shapedata);
 
-        shapedata.fSideTransformationId.Resize(nSides-nCorner, 0);
+        shapedata.fH1.fSideTransformationId.Resize(nSides-nCorner, 0);
         for (int iside = nCorner; iside< nSides ; iside++) {
             int pos = iside - nCorner;
             int trans_id = TSHAPE::GetTransformId(iside, ids); // Foi criado
-            shapedata.fSideTransformationId[iside-nCorner] = trans_id;
+            shapedata.fH1.fSideTransformationId[iside-nCorner] = trans_id;
         }
 
         const int npts = intRule->NPoints();
-        auto nshape = shapedata.fSDVecShapeIndex.size();
+        auto nshape = shapedata.fHDiv.fSDVecShapeIndex.size();
 
         for (auto ipt = 0; ipt < npts; ipt++) {
             REAL w;
@@ -344,7 +344,7 @@ namespace topologytests{
         TPZShapeData shapedata;
         TPZManVector<int64_t,nCorner> ids(nCorner,0);
         for(auto i=0; i<nCorner; i++) ids[i] = i;        
-        auto &conOrders = shapedata.fHDivConnectOrders;
+        auto &conOrders = shapedata.fHDiv.fConnectOrders;
         constexpr auto nConnects = nSides - nCorner;
         conOrders.Resize(nConnects,-1);
         for(auto i = 0; i < nConnects; i++) conOrders[i] = 0;
@@ -373,7 +373,7 @@ namespace topologytests{
             // std::cout << "curlHCurl =  " << curlHCurl << std::endl;
             
             //Compute the curl for each edge
-            top::ComputeConstantHCurl(node,N0Function,curlN0,shapedata.fSideTransformationId);
+            top::ComputeConstantHCurl(node,N0Function,curlN0,shapedata.fH1.fSideTransformationId);
 
             // std::cout << "Constant phi = " << N0Function << std::endl;
             // std::cout << "Constant Curl = " << curlN0 << std::endl;

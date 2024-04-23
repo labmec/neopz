@@ -27,7 +27,7 @@ static void computeStiffnessH1(TPZFMatrix<STATE> &ek)
     TPZManVector<int> connectorders = {1,1,1,1,1};
     
     TPZShapeH1<pzshape::TPZShapeQuad>::Initialize(ids,connectorders,DataVec[0]);
-    int64_t nshape = DataVec[0].fPhi.Rows();
+    int64_t nshape = DataVec[0].fH1.fPhi.Rows();
 //    int order = 0;
 //    int dimension = 2;
 //    pzshape::TPZShapeDisc::MShapeType shtype = pzshape::TPZShapeDisc::ETensorial;
@@ -42,8 +42,8 @@ static void computeStiffnessH1(TPZFMatrix<STATE> &ek)
     {
         REAL weight;
         integrule.Point(p, pt, weight);
-        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[0], DataVec[0].fPhi,DataVec[0].fDPhi);
-        DataVec[0].dphix = DataVec[0].fDPhi;
+        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[0], DataVec[0].fH1.fPhi,DataVec[0].fH1.fDPhi);
+        DataVec[0].dphix = DataVec[0].fH1.fDPhi;
         material.Contribute(DataVec[0], weight, ek, ef);
     }
 }
@@ -56,7 +56,7 @@ static void computeStiffnessHybrid(TPZFMatrix<STATE> &ek)
     TPZManVector<int> connectorders = {1,1,1,1,1};
     
     TPZShapeH1<pzshape::TPZShapeQuad>::Initialize(ids,connectorders,DataVec[1]);
-    int64_t nshape = DataVec[1].fPhi.Rows();
+    int64_t nshape = DataVec[1].fH1.fPhi.Rows();
     int order = 0;
     int dimension = 2;
     pzshape::TPZShapeDisc::MShapeType shtype = pzshape::TPZShapeDisc::ETensorial;
@@ -72,12 +72,12 @@ static void computeStiffnessHybrid(TPZFMatrix<STATE> &ek)
     {
         REAL weight;
         integrule.Point(p, pt, weight);
-        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[1],DataVec[1].fPhi,DataVec[1].fDPhi);
+        TPZShapeH1<pzshape::TPZShapeQuad>::Shape(pt, DataVec[1],DataVec[1].fH1.fPhi,DataVec[1].fH1.fDPhi);
         int degree = 0;
-        pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[2].fPhi,DataVec[2].fDPhi,shtype);
-        pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[3].fPhi,DataVec[3].fDPhi,shtype);
-        DataVec[1].dphix = DataVec[1].fDPhi;
-        DataVec[1].phi = DataVec[1].fPhi;
+        pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[2].fH1.fPhi,DataVec[2].fH1.fDPhi,shtype);
+        pzshape::TPZShapeDisc::Shape(dimension,degree,pt,DataVec[3].fH1.fPhi,DataVec[3].fH1.fDPhi,shtype);
+        DataVec[1].dphix = DataVec[1].fH1.fDPhi;
+        DataVec[1].phi = DataVec[1].fH1.fPhi;
         material.Contribute(DataVec, weight, ek, ef);
     }
 }

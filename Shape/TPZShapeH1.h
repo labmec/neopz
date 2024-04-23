@@ -19,7 +19,7 @@ struct TPZShapeH1
 
     static void Shape(const TPZVec<REAL> &pt, TPZShapeData &data)
     {
-        TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);
+        TPZShapeH1<TSHAPE>::Shape(pt,data,data.fH1.fPhi,data.fH1.fDPhi);
     }
 
     static void ShapeOrders(TPZGenMatrix<int> &shapeorders, TPZShapeData &data);

@@ -299,7 +299,7 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
         ids[i] = ref->NodePtr(i)->Id();
     }
     
-    auto &conOrders = shapedata.fHDivConnectOrders;
+    auto &conOrders = shapedata.fHCurl.fConnectOrders;
     constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
     conOrders.Resize(nConnects,-1);
     for(auto i = 0; i < nConnects; i++){
