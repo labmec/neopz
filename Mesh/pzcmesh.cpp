@@ -2008,20 +2008,20 @@ TPZCompMesh* TPZCompMesh::Clone() const {
  }
  */
 
-void TPZCompMesh::CopyMaterials(TPZCompMesh &mesh) const {
+void TPZCompMesh::CopyMaterials(TPZCompMesh &meshto) const {
     // Clone volumetric mats
     for (auto it : fMaterialVec) {
         if (!dynamic_cast<TPZBndCond *> (it.second)) {
-            it.second->Clone(mesh.fMaterialVec);
+            it.second->Clone(meshto.fMaterialVec);
         }
     }
     // Clone BC mats
     for (auto it : fMaterialVec) {
         auto *bc = dynamic_cast<TPZBndCond *> (it.second);
         if (bc) {
-            it.second->Clone(mesh.fMaterialVec);
-            auto *cloned_mat = mesh.FindMaterial(bc->Material()->Id());
-            auto *new_bc = dynamic_cast<TPZBndCond*>(mesh.FindMaterial(bc->Id()));
+            it.second->Clone(meshto.fMaterialVec);
+            auto *cloned_mat = meshto.FindMaterial(bc->Material()->Id());
+            auto *new_bc = dynamic_cast<TPZBndCond*>(meshto.FindMaterial(bc->Id()));
             if (!new_bc) DebugStop();
             new_bc->SetMaterial(cloned_mat);
         }

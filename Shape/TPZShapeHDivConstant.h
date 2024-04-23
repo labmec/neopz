@@ -16,8 +16,8 @@ struct TPZShapeHDivConstant : public TPZShapeHCurlNoGrads<TSHAPE>
 {
     
     //! Should be called once per element. Initializes the data structure
-    static void Initialize(TPZVec<int64_t> &ids,
-                    TPZVec<int> &connectorders,
+    static void Initialize(const TPZVec<int64_t> &ids,
+                    const TPZVec<int> &connectorders,
                     const TPZVec<int>& sideorient, 
                     TPZShapeData &data);
 
