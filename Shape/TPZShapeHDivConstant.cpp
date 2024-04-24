@@ -22,76 +22,66 @@ void TPZShapeHDivConstant<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
                                               TPZShapeData &data)
 {
     data.fHDiv.fSideOrient = sideorient;
-    
-    if (TSHAPE::Dimension == 2)
+    constexpr int conSize = TSHAPE::NFacets+1;
+    data.fHDiv.fConnectOrders.Resize(conSize);
+    data.fHDiv.fNumConnectShape.Resize(conSize);
+    for (int ic = 0; ic < conSize; ic++)
     {
-        //Creating a copy of the connect orders to avoid modifying the original data when calling SHAPEH1::Initialize()
-        TPZManVector<int, 19> locconnectorders(connectorders);
+        data.fHDiv.fConnectOrders[ic] = connectorders[ic];
+    }
+    
+    if constexpr(TSHAPE::Dimension == 2)
+    {
+        data.fH1.fConnectOrders.resize(conSize);
 
         // Compatibilize the polynomial order
-        int conSize = connectorders.size();
         for (int i = 0; i < conSize; i++)
         {
-            locconnectorders[i]++;
+            data.fH1.fConnectOrders[i] = connectorders[i]+1;
         }
         // if (TSHAPE::Type() == ETriangle){
-        //     locconnectorders[conSize-1]++;
+        //     data.fH1.fConnectOrders[i][conSize-1]++;
         // }
 
-        // Initialize data structures
-        TPZShapeH1<TSHAPE>::Initialize(ids, locconnectorders, data);
+        // Initialize H1 data structures
+        TPZShapeH1<TSHAPE>::Initialize(ids, data.fH1.fConnectOrders, data);
 
-        data.fHDiv.fConnectOrders.Resize(TSHAPE::NFacets + 1);
-        data.fHDiv.fNumConnectShape.Resize(TSHAPE::NFacets + 1);
         for (int ic = 0; ic < TSHAPE::NFacets; ic++)
         {
-            data.fHDiv.fConnectOrders[ic] = connectorders[ic];
             data.fHDiv.fNumConnectShape[ic] = data.fH1.fNumConnectShape[ic] + 1;
         }
         int ic = TSHAPE::NFacets;
-        data.fHDiv.fConnectOrders[ic] = connectorders[ic];
         data.fHDiv.fNumConnectShape[ic] = data.fH1.fNumConnectShape[ic];
     }
-    else
+    else if constexpr(TSHAPE::Dimension == 3)
     {
         // Compatibilize the polynomial order
-        TPZManVector<int, 19> adjustorder(connectorders);
-        if (TSHAPE::Type() == ETetraedro)
-        {
-            int conSize = adjustorder.size();
-            for (int i = 0; i < conSize; i++)
-            {
-                adjustorder[i]++;
-            }
-            adjustorder[conSize - 1]++;
-        }
-
+        constexpr int nHcurlCon = TSHAPE::NSides - TSHAPE::NCornerNodes;
         constexpr int nedges = TSHAPE::NSides - TSHAPE::NFacets - TSHAPE::NCornerNodes - 1;
-        TPZManVector<int, 19> locconnectorders(TSHAPE::NSides - TSHAPE::NCornerNodes, 1);
-        for (int ic = nedges; ic < TSHAPE::NSides - TSHAPE::NCornerNodes; ic++)
+        data.fHCurl.fConnectOrders.resize(nHcurlCon);
+        data.fHCurl.fConnectOrders.Fill(1);
+        for (int ic = nedges; ic < nHcurlCon; ic++)
         {
-            locconnectorders[ic] = adjustorder[ic - nedges];
+            data.fHCurl.fConnectOrders[ic] = connectorders[ic - nedges];
+        }
+        if constexpr(TSHAPE::Type() == ETetraedro)
+        {
+            for (int ic = nedges; ic < nHcurlCon; ic++)
+            {
+                data.fHCurl.fConnectOrders[ic]++;
+            }
+            data.fHCurl.fConnectOrders[nHcurlCon-1]++;
         }
 
-        // ShapeHCurlNoGrads modifies ShapeData according to the HCurl space data structure.
-        // after its initialization, we need to adjust the data structure to the HDiv space.
-        TPZShapeHCurlNoGrads<TSHAPE>::Initialize(ids, locconnectorders, data);
+        TPZShapeHCurlNoGrads<TSHAPE>::Initialize(ids, data.fHCurl.fConnectOrders, data);
 
-        TPZManVector<int,60> HCurlConnectOrders = data.fHDiv.fConnectOrders;
-        TPZManVector<int,60> HCurlNumConnectShapeF = data.fHDiv.fNumConnectShape;
-        data.fHDiv.fConnectOrders.Resize(TSHAPE::NFacets + 1);
-        data.fHDiv.fNumConnectShape.Resize(TSHAPE::NFacets + 1);
-        for (int ic = 0; ic < TSHAPE::NFacets+1; ic++)
-        {
-            data.fHDiv.fConnectOrders[ic] = connectorders[ic];
-        }
         for (int ic = nedges; ic < TSHAPE::NSides - TSHAPE::NCornerNodes - 1; ic++)
         {
-            int numshape = HCurlNumConnectShapeF[ic] + 1;
+            const int numshape = data.fHCurl.fNumConnectShape[ic] + 1;
             data.fHDiv.fNumConnectShape[ic - nedges] = numshape;
         }
-        int ic = TSHAPE::NSides - TSHAPE::NCornerNodes - 1;
-        int numshape = HCurlNumConnectShapeF[ic];
+        const int ic = TSHAPE::NSides - TSHAPE::NCornerNodes - 1;
+        const int numshape = data.fHCurl.fNumConnectShape[ic];
         data.fHDiv.fNumConnectShape[ic - nedges] = numshape;
     }
 }
