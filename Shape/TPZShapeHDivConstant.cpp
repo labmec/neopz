@@ -90,11 +90,9 @@ template <class TSHAPE>
 int TPZShapeHDivConstant<TSHAPE>::NHDivShapeF(TPZShapeData &data)
 {
     int nshape = 0;
-    // constexpr int firstConnect = TSHAPE::NSides-TSHAPE::NCornerNodes-TSHAPE::NFacets-1;
     int nc = data.fHDiv.fNumConnectShape.size();
     for (int ic = 0; ic < nc; ic++)
         nshape += NConnectShapeF(ic, data);
-    // nshape += TSHAPE::NFacets;
     return nshape;
 }
 
@@ -113,7 +111,6 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &d
     TPZManVector<REAL,nfacets> div(nfacets);
     vecDiv.Zero();
     div.Fill(0.);
-    // std::cout << "fHDiv.fSide trans ID = " << data.fHDiv.fSideTransformationId << std::endl;
     TSHAPE::ComputeConstantHDiv(pt, vecDiv, div);
 
     int nshape = data.fH1.fPhi.Rows();
@@ -155,46 +152,15 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &d
     }
     else if constexpr(dim == 3)
     {
-        //Adjusting the data structure to HCurl pattern
-        TPZShapeData dataHCurl = data;
-        constexpr int nHCurlCon = nsides - ncorner;
-        dataHCurl.fHDiv.fConnectOrders.resize(nHCurlCon);
-        dataHCurl.fHDiv.fConnectOrders.Fill(1);
-        for (int ic = nedges; ic < nHCurlCon; ic++)
-        {
-            dataHCurl.fHDiv.fConnectOrders[ic] = data.fHDiv.fConnectOrders[ic - nedges];
-        }
-        if constexpr(TSHAPE::Type() == ETetraedro)
-        {
-            for (int ic = nedges; ic < nHCurlCon; ic++)
-            {
-                dataHCurl.fHDiv.fConnectOrders[ic]++;
-            }
-            int ic = nHCurlCon - 1;
-            dataHCurl.fHDiv.fConnectOrders[ic]++;
-        }
-
-        dataHCurl.fHDiv.fNumConnectShape.resize(nHCurlCon);
-        dataHCurl.fHDiv.fNumConnectShape.Fill(1);
-        //For the facets, we subtract the constant function
-        for (int ic = 0; ic < nfacets; ic++)
-        {
-            int numshape = data.fHDiv.fNumConnectShape[ic] - 1;
-            dataHCurl.fHDiv.fNumConnectShape[nedges + ic] = numshape;
-        }
-        int ic = nHCurlCon - 1;
-        int numshape = data.fHDiv.fNumConnectShape[nfacets];
-        dataHCurl.fHDiv.fNumConnectShape[ic] = numshape;
-
         divphi.Zero();
-        int nshapehcurl = TPZShapeHCurlNoGrads<TSHAPE>::NHCurlShapeF(dataHCurl);
+        int nshapehcurl = TPZShapeHCurlNoGrads<TSHAPE>::NHCurlShapeF(data);
         int nshape = NHDivShapeF(data);
 
         TPZFNMatrix<200,REAL> phiAux(dim, nshapehcurl), curlPhiAux(3, nshapehcurl);
         phiAux.Zero();
         curlPhiAux.Zero();
 
-        TPZShapeHCurlNoGrads<TSHAPE>::Shape(pt, dataHCurl, phiAux, curlPhiAux);
+        TPZShapeHCurlNoGrads<TSHAPE>::Shape(pt, data, phiAux, curlPhiAux);
 
         int count = 0;
         int countKernel = nedges;
@@ -202,7 +168,6 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &d
         // Face functions
         for (int i = 0; i < nfacets; i++)
         {
-            // std::cout << "Side orient - " << i << " " << data.fHDiv.fSideOrient[i] << std::endl;
             // RT0 Function
             for (auto d = 0; d < dim; d++)
             {
@@ -212,7 +177,7 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &d
             count++;
 
             // Kernel HDiv functions
-            for (int k = 0; k < dataHCurl.fHDiv.fNumConnectShape[nedges + i]; k++)
+            for (int k = 0; k < data.fHCurl.fNumConnectShape[nedges + i]; k++)
             {
                 for (auto d = 0; d < dim; d++)
                 {
@@ -221,18 +186,9 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &d
                 countKernel++;
                 count++;
             }
-            // if(i==0) {
-            //     for(int k=0; k<count; k++) {
-            //         std::cout << "phi ";
-            //         for(int d=0; d<dim; d++) {
-            //             std::cout << phi(d,k) << " ";
-            //         }
-            //         std::cout << std::endl;
-            //     }
-            // }
         }
         // Internal Functions - HDivKernel
-        for (int i = 0; i < dataHCurl.fHDiv.fNumConnectShape[TSHAPE::NSides - TSHAPE::NCornerNodes - 1]; i++)
+        for (int i = 0; i < data.fHCurl.fNumConnectShape[TSHAPE::NSides - TSHAPE::NCornerNodes - 1]; i++)
         {
             for (auto d = 0; d < dim; d++)
             {
@@ -245,9 +201,6 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &d
             DebugStop();
         if (countKernel != nshapehcurl)
             DebugStop();
-        // std::cout << "VecDiv = " << vecDiv << std::endl;
-        // std::cout << "divphi = " << divphi << std::endl;
-        // std::cout << "phi = " << phi << std::endl;
     }
     else
     {
