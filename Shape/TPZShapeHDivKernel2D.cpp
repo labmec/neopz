@@ -11,8 +11,8 @@ template<class TSHAPE>
 int TPZShapeHDivKernel2D<TSHAPE>::NHDivShapeF(TPZShapeData &data)
 {
     int nshape = 0;
-    int nc = data.fHDivNumConnectShape.size();
-    for(int ic = 0; ic<nc; ic++) nshape += data.fHDivNumConnectShape[ic];
+    int nc = data.fHDiv.fNumConnectShape.size();
+    for(int ic = 0; ic<nc; ic++) nshape += data.fHDiv.fNumConnectShape[ic];
     return nshape;
 }
 
@@ -23,24 +23,24 @@ void TPZShapeHDivKernel2D<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZShapeData &data, T
 {
 
     const int dim = TSHAPE::Dimension;
-    TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);
+    TPZShapeH1<TSHAPE>::Shape(pt,data,data.fH1.fPhi,data.fH1.fDPhi);
     divphi.Zero();
 
-    int nshape = data.fPhi.Rows();
+    int nshape = data.fH1.fPhi.Rows();
     phi.Resize(2,nshape);
 
     switch (dim)
     {
     case 1:
         for (int i = 0; i < nshape; i++){
-            phi(0,i) = data.fDPhi(0,i);
+            phi(0,i) = data.fH1.fDPhi(0,i);
         }
         break;
     
     case 2:
         for (int i = 0; i < nshape; i++){
-            phi(0,i) =  data.fDPhi(1,i);
-            phi(1,i) = -data.fDPhi(0,i);
+            phi(0,i) =  data.fH1.fDPhi(1,i);
+            phi(1,i) = -data.fH1.fDPhi(0,i);
         }
         break;
     

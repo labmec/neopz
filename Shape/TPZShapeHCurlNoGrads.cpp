@@ -16,10 +16,10 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
 {
   TPZShapeHCurl<TSHAPE>::Initialize(ids,connectorders,data);
   constexpr int ncon = TSHAPE::NSides-TSHAPE::NCornerNodes;
-  data.fHDivNumConnectShape.Resize(ncon);
+  data.fHCurl.fNumConnectShape.Resize(ncon);
   //we need to update the number of filtered hcurl functions
   for (int i = 0; i < ncon; i++){
-    data.fHDivNumConnectShape[i] = ComputeNConnectShapeF(i,connectorders[i]);
+    data.fHCurl.fNumConnectShape[i] = ComputeNConnectShapeF(i,connectorders[i]);
   }
 }
 
@@ -51,7 +51,7 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &d
     const int nedges = TSHAPE::NumSides(1);
     
     //calculates # of unfiltered hcurl functions
-    const auto &connectorders = data.fHDivConnectOrders;
+    const auto &connectorders = data.fHCurl.fConnectOrders;
     //first_hcurl_side[i] is the index of the first shape function associated with side i
     TPZManVector<int,ncon> first_hcurl_side(ncon,0);
     //total number of unfiltered funcs
@@ -124,7 +124,7 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeDa
     const int nedges = TSHAPE::NumSides(1);
     
     //calculates # of unfiltered hcurl functions
-    const auto &connectorders = data.fHDivConnectOrders;
+    const auto &connectorders = data.fHCurl.fConnectOrders;
     //first_hcurl_side[i] is the index of the first shape function associated with side i
     TPZManVector<int,ncon> first_hcurl_side(ncon,0);
     //total number of unfiltered funcs

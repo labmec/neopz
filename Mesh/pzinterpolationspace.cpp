@@ -196,7 +196,7 @@ void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
     
     
-    this->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.fDPhi,data.dphix);
+    this->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.fH1.fDPhi,data.dphix);
     
 }
 
@@ -225,7 +225,7 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 	const int nstate = this->Material()->NStateVariables();
     data.fShapeType = TPZMaterialData::EScalarShape;
 	data.phi.Redim(nshape,1);
-	data.fDPhi.Redim(dim,nshape);
+	data.fH1.fDPhi.Redim(dim,nshape);
 	data.dphix.Redim(dim,nshape);
 	data.axes.Redim(dim,3);
 	data.jacobian.Redim(dim,dim);

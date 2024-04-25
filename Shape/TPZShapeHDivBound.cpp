@@ -19,30 +19,30 @@ void TPZShapeHDivBound<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
         DebugStop();
     }
 #endif
-    data.fSideOrient.Resize(1);
-    data.fSideOrient[0] = sideorient;
+    data.fHDiv.fSideOrient.Resize(1);
+    data.fHDiv.fSideOrient[0] = sideorient;
     int connectOrdersSize = nsides-ncorner;
     if (TSHAPE::Type() == EPoint){
         connectOrdersSize = 1;
     }
-    data.fH1ConnectOrders.Resize(connectOrdersSize, connectorder);
-    data.fH1ConnectOrders.Fill(connectorder);
+    data.fH1.fConnectOrders.Resize(connectOrdersSize, connectorder);
+    data.fH1.fConnectOrders.Fill(connectorder);
     if(connectorder > 0)
     {
-        TPZShapeH1<TSHAPE>::Initialize(ids,data.fH1ConnectOrders,data);
+        TPZShapeH1<TSHAPE>::Initialize(ids,data.fH1.fConnectOrders,data);
     }
 }
 
 template <class TSHAPE>
 int TPZShapeHDivBound<TSHAPE>::NShape(const TPZShapeData &data)
 {
-    if(data.fH1ConnectOrders[0] == 0) return 1;
-    return data.fPhi.Rows();
+    if(data.fH1.fConnectOrders[0] == 0) return 1;
+    return data.fH1.fPhi.Rows();
 }
 
 template <>
 void TPZShapeHDivBound<class pzshape::TPZShapePoint>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi) {
-    phi(0,0) = data.fSideOrient[0];
+    phi(0,0) = data.fHDiv.fSideOrient[0];
 }
 
 
@@ -56,31 +56,31 @@ void TPZShapeHDivBound<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
     const REAL volume = TSHAPE::RefElVolume();
-    if(data.fH1ConnectOrders[0] == 0)
+    if(data.fH1.fConnectOrders[0] == 0)
     {
         phi(0,0) = 1./volume;
         return;
     }
-    const REAL scale = data.fSideOrient[0]*ncorner/volume;
-    TPZShapeH1<TSHAPE>::Shape(pt,data,data.fPhi,data.fDPhi);
+    const REAL scale = data.fHDiv.fSideOrient[0]*ncorner/volume;
+    TPZShapeH1<TSHAPE>::Shape(pt,data,data.fH1.fPhi,data.fH1.fDPhi);
     TPZManVector<int, 9> permutegather(nsides);
     TPZShapeHDiv<TSHAPE>::HDivPermutation(TSHAPE::Type(), data.fCornerNodeIds, permutegather);
-    for(int c=0; c < ncorner; c++) phi(c,0) = data.fPhi(permutegather[c],0)*scale;
+    for(int c=0; c < ncorner; c++) phi(c,0) = data.fH1.fPhi(permutegather[c],0)*scale;
     int count = ncorner;
     TPZManVector<int,9> firstshape(nsides-ncorner+1,ncorner);
     for(int side = ncorner; side < nsides; side++)
     {
-        int nshape = data.fH1NumConnectShape[side-ncorner];
+        int nshape = data.fH1.fNumConnectShape[side-ncorner];
         firstshape[side+1-ncorner] = firstshape[side-ncorner]+ nshape;
     }
     for(int side = ncorner; side < nsides; side++)
     {
         int sidebound = permutegather[side];
-        int nshape = data.fH1NumConnectShape[sidebound-ncorner];
+        int nshape = data.fH1.fNumConnectShape[sidebound-ncorner];
         int fsh = firstshape[sidebound-ncorner];
         for(int sh = 0; sh<nshape; sh++)
         {
-            phi(count,0) = data.fPhi(fsh+sh,0)*scale;
+            phi(count,0) = data.fH1.fPhi(fsh+sh,0)*scale;
             count++;
         }
     }

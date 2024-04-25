@@ -598,7 +598,7 @@ void IntegralNormal()
         // comment this out because it will break hcurl shape funcs
         // why was it here?
         // data.fSideTransformationId.Resize(TSHAPE::NFacets, 0);
-        data.fSideOrient.Resize(TSHAPE::NFacets, 1);
+        data.fHDiv.fSideOrient.Resize(TSHAPE::NFacets, 1);
         int nshape = shape.NHDivShapeF(data);
         TPZManVector<REAL> pt(TSHAPE::Dimension, 0.);
         TPZFNMatrix<8, REAL> phi(TSHAPE::Dimension, nshape), divphi(nshape, 1);
@@ -646,13 +646,13 @@ void CheckConnectOrders(int kFacet)
     int nvolshape2 = hdivorig.NConnectShapeF(TSHAPE::NFacets, data2);
     int nvolshape3 = hdivorig.NConnectShapeF(TSHAPE::NFacets, data3);
 
-    auto hdivOrder1 = data1.fHDivConnectOrders;
-    auto hdivOrder2 = data2.fHDivConnectOrders;
-    auto hdivOrder3 = data3.fHDivConnectOrders;
+    auto hdivOrder1 = data1.fHDiv.fConnectOrders;
+    auto hdivOrder2 = data2.fHDiv.fConnectOrders;
+    auto hdivOrder3 = data3.fHDiv.fConnectOrders;
 
-    auto hdivNshape1 = data1.fHDivNumConnectShape;
-    auto hdivNshape2 = data2.fHDivNumConnectShape;
-    auto hdivNshape3 = data3.fHDivNumConnectShape;
+    auto hdivNshape1 = data1.fHDiv.fNumConnectShape;
+    auto hdivNshape2 = data2.fHDiv.fNumConnectShape;
+    auto hdivNshape3 = data3.fHDiv.fNumConnectShape;
 
     CAPTURE(orders1,orders2,orders3,hdivOrder1,hdivOrder2,hdivOrder3,hdivNshape1,hdivNshape2,hdivNshape3);
     

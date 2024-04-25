@@ -94,7 +94,7 @@ void TPZElasticity3D::Contribute(const TPZMaterialDataT<STATE> &data,
     }
     
 //    TPZFMatrix<REAL> &dphi = data.dphix;
-	const TPZFMatrix<REAL> &phi = data.fPhi;
+	const TPZFMatrix<REAL> &phi = data.fH1.fPhi;
 	const TPZManVector<REAL,3> &x = data.x;
     
     TPZFNMatrix<666,REAL> dphi(3,data.dphix.Cols());
@@ -416,7 +416,7 @@ void TPZElasticity3D::ContributeVecShape(const TPZMaterialDataT<STATE> &data,
                                          TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     const TPZFMatrix<REAL> & dphi = data.dphix;
-	const TPZFMatrix<REAL> & phi = data.fPhi;
+	const TPZFMatrix<REAL> & phi = data.fH1.fPhi;
 	
 	int phc = phi.Cols();
 	int efc = ef.Cols();
@@ -511,7 +511,7 @@ void TPZElasticity3D::ContributeVecShapeBC(const TPZMaterialDataT<STATE> & data,
                                            TPZFMatrix<STATE> & ef,
                                            TPZBndCondT<STATE> &bc)
 {
-    const TPZFMatrix<REAL> & phi = data.fPhi;
+    const TPZFMatrix<REAL> & phi = data.fH1.fPhi;
     
 	const REAL BIGNUMBER  = TPZMaterial::fBigNumber;
     
@@ -625,7 +625,7 @@ void TPZElasticity3D::ContributeBC(const TPZMaterialDataT<STATE> &data,
         return;
     }
     
-	const TPZFMatrix<REAL> &phi = data.fPhi;
+	const TPZFMatrix<REAL> &phi = data.fH1.fPhi;
 	
 	const STATE BIGNUMBER  = 1.e12;
 	

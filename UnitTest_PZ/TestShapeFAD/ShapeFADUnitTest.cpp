@@ -410,13 +410,13 @@ void ComputePhiFAD(const TPZVec<Fad<REAL>> &pt, TPZVec<int64_t> &nodeids, TPZFMa
     TPZShapeData data;
     shapeh1.Initialize(nodeids, orders, data);
     
-    TPZFMatrix<REAL> phi(data.fPhi);
-    dphi.Resize(data.fDPhi.Rows(),data.fDPhi.Cols());
+    TPZFMatrix<REAL> phi(data.fH1.fPhi);
+    dphi.Resize(data.fH1.fDPhi.Rows(),data.fH1.fDPhi.Cols());
     TPZManVector<REAL> xiReal(pt.size());
     for(int i=0; i<xiReal.size(); i++) xiReal[i] = pt[i].val();
     shapeh1.Shape(xiReal, data, phi, dphi);
-    phiFAD.Resize(data.fPhi.Rows(),1);
-    TPZFMatrix<Fad<REAL>> dphiFAD(pt.size(),data.fDPhi.Cols());
+    phiFAD.Resize(data.fH1.fPhi.Rows(),1);
+    TPZFMatrix<Fad<REAL>> dphiFAD(pt.size(),data.fH1.fDPhi.Cols());
     shapeh1.Shape(pt, data, phiFAD, dphiFAD);
 }
 
@@ -474,7 +474,7 @@ void VerifyDivergenceCompatibility(const TPZVec<Fad<REAL>> &qsifad, const TPZFMa
     TPZManVector<REAL,3> xiReal(dim);
     for(int i=0; i<dim; i++) xiReal[i]=qsifad[i].val();
     shapehdiv.Shape(xiReal, data, phi, divphimaster);
-    TPZFMatrix<Fad<REAL>> dphiFAD(2,data.fDPhi.Cols()),phiFAD;
+    TPZFMatrix<Fad<REAL>> dphiFAD(2,data.fH1.fDPhi.Cols()),phiFAD;
     shapehdiv.Shape(qsifad, data, phiFAD, dphiFAD);
     TPZFMatrix<Fad<REAL>> dirHDiv;
     auto detjac = DetJac(gradX);

@@ -30,7 +30,7 @@ TPZFMatrix<STATE> computeStressStrain()
 	dphi(0,0) = 1;
 	dphi(1,1) = 1;
 	dphi(2,2) = 1;
-	cubodata.fPhi = phi;
+	cubodata.fH1.fPhi = phi;
 	cubodata.dphix = dphi;
 	cubodata.x = pt;
 	cubodata.axes.Redim(3, 3);

@@ -1222,8 +1222,8 @@ void CheckShapeOrder(int order)
                     TPZShapeData data;
                     h1.Initialize(ids, orders, data);
                     h1.Shape(point, data);
-                    phi = data.fPhi;
-                    dphi = data.fDPhi;
+                    phi = data.fH1.fPhi;
+                    dphi = data.fH1.fDPhi;
 //                    tshape::SideShape(is, point, locids, orders, phi, dphi);
                     
 //                    for (int ishape = firstshape; ishape<firstshape+nsideshape; ishape++) {
@@ -2616,12 +2616,12 @@ void CheckOutsideDirections()
     int64_t numvec = TSHAPE::Dimension*TSHAPE::NSides;
     const int dim = TSHAPE::Dimension;
     TPZShapeData data;
-    data.fMasterDirections.Resize(3,numvec);
+    data.fHDiv.fMasterDirections.Resize(3,numvec);
     TPZFNMatrix<9,REAL> gradx(3,TSHAPE::Dimension,0.);
     for (int i = 0; i < TSHAPE::Dimension; i++) {
         gradx(i,i) = 1.;
     }
-    TSHAPE::ComputeHDivDirections(gradx, data.fMasterDirections);
+    TSHAPE::ComputeHDivDirections(gradx, data.fHDiv.fMasterDirections);
     TPZManVector<REAL,TSHAPE::Dimension> elcenter(TSHAPE::Dimension,0.);
     TSHAPE::CenterPoint(TSHAPE::NSides-1,elcenter);
     int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
@@ -2638,14 +2638,14 @@ void CheckOutsideDirections()
             REAL inner = 0.;
             for (int il = 0; il<dim; il++)
             {
-              inner += data.fMasterDirections(il,ivet+cont) *delx[il];
+              inner += data.fHDiv.fMasterDirections(il,ivet+cont) *delx[il];
             }
             if(inner < 0.)
             {
                 std::cout << "side = " << side << " delx " << delx << "\n";
                 std::cout << "side center " << sidecenter << std::endl;
                 std::cout << "Master direction ";
-                for(int il=0; il<dim; il++) std::cout << data.fMasterDirections(il,ivet+cont) << ' ';
+                for(int il=0; il<dim; il++) std::cout << data.fHDiv.fMasterDirections(il,ivet+cont) << ' ';
                 std::cout << "This is a bug\n";
             }
         }
@@ -2679,14 +2679,14 @@ void VerifyDeformedDirections(TPZInterpolationSpace *intel, TPZMaterialDataT<STA
             REAL inner = 0.;
             for (int il = 0; il<dim; il++)
             {
-              inner += data.fMasterDirections(il,ivet+cont) *delx[il];
+              inner += data.fHDiv.fMasterDirections(il,ivet+cont) *delx[il];
             }
             if(inner < 0.)
             {
                 std::cout << "side = " << side << " delx " << delx << "\n";
                 std::cout << "side center " << sidecenter << std::endl;
                 std::cout << "Master direction ";
-                for(int il=0; il<dim; il++) std::cout << data.fMasterDirections(il,ivet+cont) << ' ';
+                for(int il=0; il<dim; il++) std::cout << data.fHDiv.fMasterDirections(il,ivet+cont) << ' ';
                 std::cout << "This is a bug\n";
             }
         }

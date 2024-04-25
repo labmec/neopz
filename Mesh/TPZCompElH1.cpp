@@ -113,7 +113,7 @@ void TPZCompElH1<TSHAPE>::InitMaterialData(TPZMaterialData &data){
     TPZShapeH1<TSHAPE>::Initialize(ids, orders, shapedata);
     mat->FillDataRequirements(data);
     const int dim = this->Dimension();
-    const int nshape = data.fPhi.Rows();
+    const int nshape = data.fH1.fPhi.Rows();
     const int nstate = this->Material()->NStateVariables();
     data.fShapeType = TPZMaterialData::EScalarShape;
     data.phi.Redim(nshape,1);
@@ -140,12 +140,12 @@ template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
     
     TPZShapeData &shapedata = data;
-    TPZShapeH1<TSHAPE>::Shape(intpoint,shapedata,shapedata.fPhi,shapedata.fDPhi);
+    TPZShapeH1<TSHAPE>::Shape(intpoint,shapedata,shapedata.fH1.fPhi,shapedata.fH1.fDPhi);
     int tranpose = 1;
     REAL alpha = 1.;
     REAL beta = 0.;
-    data.jacinv.MultAdd(shapedata.fDPhi, data.dphix, data.dphix,alpha,beta,tranpose);
-    data.phi = shapedata.fPhi;
+    data.jacinv.MultAdd(shapedata.fH1.fDPhi, data.dphix, data.dphix,alpha,beta,tranpose);
+    data.phi = shapedata.fH1.fPhi;
 }
 
 template<class TSHAPE>
@@ -345,8 +345,8 @@ void TPZCompElH1<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
                 break;
         }
     }
-    phi = data.fPhi;
-    dphi = data.fDPhi;
+    phi = data.fH1.fPhi;
+    dphi = data.fH1.fDPhi;
 }
 
 template<class TSHAPE>
@@ -365,8 +365,8 @@ void TPZCompElH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMat
     TPZShapeData data;
     locshape.Initialize(id, ord, data);
 	locshape.Shape(pt,data);
-    phi = data.fPhi;
-    dphi = data.fDPhi;
+    phi = data.fH1.fPhi;
+    dphi = data.fH1.fDPhi;
 }
 
 

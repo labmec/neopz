@@ -23,31 +23,31 @@ void TPZShapeHCurl<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
     constexpr int NCorners = TSHAPE::NCornerNodes;
     constexpr int NSides = TSHAPE::NSides;
     if(connectorders.size() != ncon) DebugStop();
-    CalcH1ShapeOrders(connectorders, data.fH1ConnectOrders);
-    TPZShapeH1<TSHAPE>::Initialize(ids, data.fH1ConnectOrders, data);
-    data.fSideTransformationId.Resize(NSides-NCorners, 0);
+    CalcH1ShapeOrders(connectorders, data.fH1.fConnectOrders);
+    TPZShapeH1<TSHAPE>::Initialize(ids, data.fH1.fConnectOrders, data);
+    data.fH1.fSideTransformationId.Resize(NSides-NCorners, 0);
     for (int iside = NCorners; iside< NSides ; iside++) {
         int pos = iside - NCorners;
         int trans_id = TSHAPE::GetTransformId(iside, ids); // Foi criado
-        data.fSideTransformationId[iside-NCorners] = trans_id;
+        data.fH1.fSideTransformationId[iside-NCorners] = trans_id;
     }
 
-    data.fHDivConnectOrders = connectorders;
+    data.fHCurl.fConnectOrders = connectorders;
 
-    data.fHDivNumConnectShape.Resize(ncon);
+    data.fHCurl.fNumConnectShape.Resize(ncon);
     int nShape = 0;
     for (int i = 0; i < ncon; i++)
     {
-        data.fHDivNumConnectShape[i] = ComputeNConnectShapeF(i,connectorders[i]);
-        nShape += data.fHDivNumConnectShape[i];
+        data.fHCurl.fNumConnectShape[i] = ComputeNConnectShapeF(i,connectorders[i]);
+        nShape += data.fHCurl.fNumConnectShape[i];
     }
     
-    data.fSDVecShapeIndex.Resize(nShape);
+    data.fHCurl.fSDVecShapeIndex.Resize(nShape);
     TPZFNMatrix<9,REAL> gradX(TSHAPE::Dimension, TSHAPE::Dimension, 0);
     gradX.Identity();
 
-    data.fMasterDirections.Redim(TSHAPE::Dimension, 3*NSides);
-    TSHAPE::ComputeHCurlDirections(gradX,data.fMasterDirections,data.fSideTransformationId);
+    data.fHCurl.fMasterDirections.Redim(TSHAPE::Dimension, 3*NSides);
+    TSHAPE::ComputeHCurlDirections(gradX,data.fHCurl.fMasterDirections,data.fH1.fSideTransformationId);
 
     ComputeVecandShape(data);
 }
@@ -104,21 +104,21 @@ void TPZShapeHCurl<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
     int nshape = NHCurlShapeF(data);
     //we need to take into account 0-th order edges (they need more h1 funcs)
     for(int ie = 0; ie < nEdges; ie++){
-        if (data.fHDivConnectOrders[ie] == 0){nshape++;}
+        if (data.fHCurl.fConnectOrders[ie] == 0){nshape++;}
     }
-    data.fSDVecShapeIndex.Resize(nshape);
+    data.fHCurl.fSDVecShapeIndex.Resize(nshape);
 
-    TPZVec<unsigned int> shapeCountVec(TSHAPE::NSides - nNodes, 0);
-    TPZVec<std::pair<int,int64_t>> & indexVecShape = data.fSDVecShapeIndex;
-    TPZVec<int> &connOrder = data.fHDivConnectOrders;
+    TPZManVector<unsigned int,TSHAPE::NSides - nNodes> shapeCountVec(TSHAPE::NSides - nNodes, 0);
+    TPZVec<std::pair<int,int64_t>> & indexVecShape = data.fHCurl.fSDVecShapeIndex;
+    TPZVec<int> &connOrder = data.fHCurl.fConnectOrders;
     TPZManVector<int64_t, TSHAPE::NSides - nNodes> firstH1ShapeFunc(TSHAPE::NSides - nNodes,
                                                                                   0);
     firstH1ShapeFunc[0] = nNodes;
     for (int iSide = nNodes + 1; iSide < TSHAPE::NSides; iSide++) {
         const int iCon = iSide - nNodes;
-        firstH1ShapeFunc[iCon] = firstH1ShapeFunc[iCon - 1] + data.fH1NumConnectShape[iCon-1];
+        firstH1ShapeFunc[iCon] = firstH1ShapeFunc[iCon - 1] + data.fH1.fNumConnectShape[iCon-1];
     }
-    TPZVec<int> &sidesH1Ord = data.fH1ConnectOrders;
+    TPZVec<int> &sidesH1Ord = data.fH1.fConnectOrders;
     auto &nodeIds = data.fCornerNodeIds;
     StaticIndexShapeToVec(data);
 }
@@ -127,8 +127,8 @@ template<class TSHAPE>
 int TPZShapeHCurl<TSHAPE>::NHCurlShapeF(const TPZShapeData &data)
 {
     int nshape = 0;
-    int nc = data.fHDivNumConnectShape.size();
-    for(int ic = 0; ic<nc; ic++) nshape += data.fHDivNumConnectShape[ic];
+    int nc = data.fHCurl.fNumConnectShape.size();
+    for(int ic = 0; ic<nc; ic++) nshape += data.fHCurl.fNumConnectShape[ic];
     return nshape;
 }
 
@@ -148,8 +148,8 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
     constexpr int nvol = dim == 3 ? 1 : 0;
     constexpr int nedges = nsides - nvol - nfaces - ncorner;
     
-    TPZFNMatrix<100,T> locphi(data.fPhi.Rows(),data.fPhi.Cols(),0.);
-    TPZFNMatrix<100*dim,T> dphi(data.fDPhi.Rows(),data.fDPhi.Cols(),0.);
+    TPZFNMatrix<100,T> locphi(data.fH1.fPhi.Rows(),data.fH1.fPhi.Cols(),0.);
+    TPZFNMatrix<100*dim,T> dphi(data.fH1.fDPhi.Rows(),data.fH1.fDPhi.Cols(),0.);
     
     TPZShapeH1<TSHAPE>::Shape(pt,data, locphi, dphi);
 
@@ -160,7 +160,7 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
                          const int isca,
                          const int ivec){
             for(int d = 0; d<TSHAPE::Dimension; d++){
-                phi(d,iphi) = locphi(isca,0)*data.fMasterDirections(d,ivec);
+                phi(d,iphi) = locphi(isca,0)*data.fHCurl.fMasterDirections(d,ivec);
             }
         };
 
@@ -173,13 +173,13 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
             if constexpr (dim==1){
                 curlphi(0,iphi) =
                     dphi.GetVal( 0,ivec) *
-                    data.fMasterDirections.GetVal(0,ivec);
+                    data.fHCurl.fMasterDirections.GetVal(0,ivec);
             }else if constexpr (dim==2){
                 curlphi(0,iphi) =
                     dphi.GetVal(0,isca) *
-                    data.fMasterDirections.GetVal(1,ivec) -
+                    data.fHCurl.fMasterDirections.GetVal(1,ivec) -
                     dphi.GetVal(1,isca) *
-                    data.fMasterDirections.GetVal(0,ivec);
+                    data.fHCurl.fMasterDirections.GetVal(0,ivec);
             }
             else if constexpr(dim==3){
                 for(auto d = 0; d < dim; d++) {
@@ -187,9 +187,9 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
                     const auto dj = (d+2)%dim;
                     curlphi(d,iphi) =
                         dphi.GetVal(di,isca) *
-                        data.fMasterDirections.GetVal(dj,ivec)-
+                        data.fHCurl.fMasterDirections.GetVal(dj,ivec)-
                         dphi.GetVal(dj,isca) *
-                        data.fMasterDirections.GetVal(di,ivec);
+                        data.fHCurl.fMasterDirections.GetVal(di,ivec);
                 }
             }else{
                 if constexpr (std::is_same_v<TSHAPE,TSHAPE>){
@@ -201,7 +201,7 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
     /*
       edges need special attention: the functions are to be recombined
      */
-    const auto &connectorders = data.fHDivConnectOrders;
+    const auto &connectorders = data.fHCurl.fConnectOrders;
 
     //current index of data.fSDVecShapeIndex
     int vs_index = 0;
@@ -211,13 +211,13 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
     TPZFNMatrix<dim*nedges,T> phi_lo(dim,nedges,0.);
     TPZFNMatrix<curldim*nedges,T> curlphi_lo(curldim,nedges,0.);
 
-    TSHAPE::ComputeConstantHCurl(pt, phi_lo, curlphi_lo, data.fSideTransformationId);
+    TSHAPE::ComputeConstantHCurl(pt, phi_lo, curlphi_lo, data.fH1.fSideTransformationId);
 
 
     TPZManVector<int64_t,nedges> firstH1edgeFunc(nedges,0);
     firstH1edgeFunc[0] = ncorner;
     for (int icon = 1; icon < nedges; icon++){
-        firstH1edgeFunc[icon] = firstH1edgeFunc[icon-1] + data.fH1NumConnectShape[icon-1];
+        firstH1edgeFunc[icon] = firstH1edgeFunc[icon-1] + data.fH1.fNumConnectShape[icon-1];
     }
     
     //we iterate through edges...
@@ -248,9 +248,9 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
     }
 
     //now we got for faces and volumes
-    for(;vs_index < data.fSDVecShapeIndex.size(); phi_index++, vs_index++)
+    for(;vs_index < data.fHCurl.fSDVecShapeIndex.size(); phi_index++, vs_index++)
     {
-        const auto &it = data.fSDVecShapeIndex[vs_index];
+        const auto &it = data.fHCurl.fSDVecShapeIndex[vs_index];
         const int vecindex = it.first;
         const int scalindex = it.second;
 
@@ -258,7 +258,7 @@ void TPZShapeHCurl<TSHAPE>::Shape(const TPZVec<T> &pt, TPZShapeData &data, TPZFM
         ComputeCurl(curlphi,phi_index,scalindex,vecindex);
     }
 // #ifdef PZDEBUG
-    if(vs_index!=data.fSDVecShapeIndex.size()){
+    if(vs_index!=data.fHCurl.fSDVecShapeIndex.size()){
         DebugStop();
     }
     if(phi_index != phi.Cols()){
@@ -383,17 +383,17 @@ void TPZShapeHCurl<TSHAPE>::CalcH1ShapeOrders(
 template<class TSHAPE>
 void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
     const int nNodes = TSHAPE::NCornerNodes;
-    TPZVec<unsigned int> shapeCountVec(TSHAPE::NSides - nNodes, 0);
-    TPZVec<std::pair<int,int64_t>> & indexVecShape = data.fSDVecShapeIndex;
-    TPZVec<int> &connectOrder = data.fHDivConnectOrders;
+    TPZManVector<unsigned int,TSHAPE::NSides - nNodes> shapeCountVec(TSHAPE::NSides - nNodes, 0);
+    TPZVec<std::pair<int,int64_t>> & indexVecShape = data.fHCurl.fSDVecShapeIndex;
+    TPZVec<int> &connectOrder = data.fHCurl.fConnectOrders;
     TPZManVector<int64_t, TSHAPE::NSides - nNodes> firstH1ShapeFunc(TSHAPE::NSides - nNodes,
                                                                                   0);
     firstH1ShapeFunc[0] = nNodes;
     for (int iSide = nNodes + 1; iSide < TSHAPE::NSides; iSide++) {
         const int iCon = iSide - nNodes;
-        firstH1ShapeFunc[iCon] = firstH1ShapeFunc[iCon - 1] + data.fH1NumConnectShape[iCon-1];
+        firstH1ShapeFunc[iCon] = firstH1ShapeFunc[iCon - 1] + data.fH1.fNumConnectShape[iCon-1];
     }
-    TPZVec<int> &sidesH1Ord = data.fH1ConnectOrders;
+    TPZVec<int> &sidesH1Ord = data.fH1.fConnectOrders;
     auto &nodeIds = data.fCornerNodeIds;
 
     /******************************************************************************************************************
@@ -714,7 +714,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
         const auto faceSide = iFace + nEdges + nNodes;
         const auto faceType = TSHAPE::Type(faceSide);
         const auto faceDim = TSHAPE::SideDimension(faceSide);
-        const auto faceOrderH1 =data.fH1ConnectOrders[faceSide-nNodes];
+        const auto faceOrderH1 =data.fH1.fConnectOrders[faceSide-nNodes];
         const auto nH1FaceFuncs =
             TSHAPE::NConnectShapeF(faceSide,faceOrderH1);
         const auto vecIndex = firstVfOrthVec + iFace;
@@ -773,7 +773,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
         v[vi] = vs;
     };
 
-    TPZVec<std::pair<int,int>> funcXYZ, funcX, funcY, funcZ;
+    TPZManVector<std::pair<int,int>,200> funcXYZ, funcX, funcY, funcZ;
     
     
     for(auto iFunc = 0; iFunc < nH1Internal; iFunc++ ){
