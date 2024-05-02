@@ -388,7 +388,37 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[1] =gamma*(sinT);
         
         
+    }else if (fProblemType==ECrack){
+        
+        TVar Kolosov = 3. - 4.*gPoisson;
+        TVar mu = gE / (2.*(1.+gPoisson));
+        TVar theta = FADatan2(x[1],x[0]);
+        
+        auto thetaval = shapeFAD::val(theta);
+        if (thetaval < (0.)) theta += 2. * M_PI;
+        TVar r = FADsqrt(x[0]*x[0]+x[1]*x[1]);
+        TVar a = 1.;
+        TVar sinfty = 1.;
+        TVar tinfty = 1.;
+        TVar K1 = sinfty * FADsqrt(M_PI*a);//Modo de abertura
+        TVar K2 = tinfty * FADsqrt(M_PI*a);//Modo de deslizamento
+
+
+        TVar cosT2 = FADcos(0.5*theta);
+        TVar sinT2 = FADsin(0.5*theta);
+
+        TVar mult1 = FADsqrt(r) / (2. * mu * FADsqrt(2.*M_PI));
+        TVar mult2 = Kolosov - 1. + 2.*sinT2*sinT2;
+        TVar mult3 = Kolosov + 1. + 2.*cosT2*cosT2;
+        TVar mult4 = Kolosov + 1. - 2.*cosT2*cosT2;
+        TVar mult5 = Kolosov - 1. - 2.*sinT2*sinT2;
+        
+        disp[0] = K1*mult1*cosT2*mult2 + K2*mult1*sinT2*mult3;
+        disp[1] = K1*mult1*sinT2*mult3 + K2*mult1*cosT2*mult4;
+        
+        
     }
+
     else
     {
         DebugStop();
@@ -594,6 +624,35 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) con
         disp[0] = gamma*(cosT);
         disp[1] =gamma*(sinT);
 
+        
+        
+    } else if (fProblemType==ECrack){
+        
+        TVar2 Kolosov = 3. - 4.*gPoisson;
+        TVar2 mu = gE / (2.*(1.+gPoisson));
+        TVar2 theta = atan2(x[1],x[0]);
+        
+        auto thetaval = shapeFAD::val(theta);
+        if (thetaval < (0.)) theta += 2. * M_PI;
+        TVar2 r = sqrt(x[0]*x[0]+x[1]*x[1]);
+        TVar2 a = 1.;
+        TVar2 sinfty = 1.;
+        TVar2 tinfty = 1.;
+        TVar2 K1 = sinfty * sqrt(M_PI*a);//Modo de abertura
+        TVar2 K2 = tinfty * sqrt(M_PI*a);//Modo de deslizamento
+
+
+        TVar2 cosT2 = cos(0.5*theta);
+        TVar2 sinT2 = sin(0.5*theta);
+
+        TVar2 mult1 = sqrt(r) / (2. * mu * sqrt(2.*M_PI));
+        TVar2 mult2 = Kolosov - 1. + 2.*sinT2*sinT2;
+        TVar2 mult3 = Kolosov + 1. + 2.*cosT2*cosT2;
+        TVar2 mult4 = Kolosov + 1. - 2.*cosT2*cosT2;
+        TVar2 mult5 = Kolosov - 1. - 2.*sinT2*sinT2;
+        
+        disp[0] = K1*mult1*cosT2*mult2 + K2*mult1*sinT2*mult3;
+        disp[1] = K1*mult1*sinT2*mult3 + K2*mult1*cosT2*mult4;
         
         
     }
