@@ -31,6 +31,7 @@ set(headers
     TPZShapeHDivBound.h
     TPZShapeHDivCollapsed.h
     TPZEnumApproxFamily.h
+    TPZShapeNewHDiv.h
     )
 
 set(sources
@@ -55,6 +56,7 @@ set(sources
     TPZShapeHCurlNoGrads.cpp
     TPZShapeHDivBound.cpp
     TPZShapeHDivCollapsed.cpp
+    TPZShapeNewHDiv.cpp
     )
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Shape)
