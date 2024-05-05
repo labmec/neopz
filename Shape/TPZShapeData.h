@@ -46,7 +46,7 @@ public:
     /** @brief Prints the data in a format suitable for Mathematica */
     void PrintMathematica(std::ostream &out) const;    
 
-    static constexpr int MatDataNumPhi{60};
+    static constexpr int MatDataNumPhi{200};
     static constexpr int MatDataNumDir{81};
     static constexpr int MatDataDimSol{10};//TODO:Remove?
     static constexpr int MatDataNumSol{20};//TODO:Remove?
