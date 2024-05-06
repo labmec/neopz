@@ -144,6 +144,9 @@ static void IntegralNormal();
 template <class TSHAPE>
 static void CheckConnectOrders(int kFacet);
 
+template <class TSHAPE>
+void TestNewHDiv(int kFacet);
+
 /** @brief Checks if the rank of the matrix composed by the L2 product of Hdiv shape functions is equal to the number of shape functions
     Denoting by
     - phi_i : basis functions of the refered space
@@ -171,13 +174,26 @@ TEST_CASE("integral_normal", "[hdivconstant_tests]")
 TEMPLATE_TEST_CASE("Connect order compatibility", "[hdivconstant_tests]",
                    (pzshape::TPZShapeTriang),
                    (pzshape::TPZShapeQuad),
-                   (pzshape::TPZShapeCube),
-                   (pzshape::TPZShapeTetra))
+                   (pzshape::TPZShapeTetra),
+                   (pzshape::TPZShapeCube))
 {
     int kFacet = GENERATE(2, 3, 4);
     SECTION("kFacet=" + std::to_string(kFacet))
     {
         CheckConnectOrders<TestType>(kFacet);
+    }
+}
+
+TEMPLATE_TEST_CASE("Test New HDiv Shape", "[hdivconstant_tests]",
+                   (pzshape::TPZShapeTriang),
+                   (pzshape::TPZShapeQuad),
+                   (pzshape::TPZShapeTetra),
+                   (pzshape::TPZShapeCube))
+{
+    int kFacet = GENERATE(1, 2, 3, 4);
+    SECTION("kFacet=" + std::to_string(kFacet))
+    {
+        TestNewHDiv<TestType>(kFacet);
     }
 }
 
@@ -575,6 +591,8 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
 }
 
 #include "TPZShapeHDivConstant.h"
+#include "TPZShapeHDiv.h"
+#include "TPZShapeNewHDiv.h"
 
 template <class TSHAPE>
 void IntegralNormal()
@@ -714,6 +732,108 @@ void CheckConnectOrders(int kFacet)
                     std::cout << "val1 " << val1 << " val3 " << val3 << std::endl;
                 }
                 REQUIRE((val1 - val3) == Catch::Approx(0.));
+            }
+        }
+    }
+}
+
+template <class TSHAPE>
+void TestNewHDiv(int kFacet)
+{
+    TPZMaterialDataT<REAL> dataHDiv, dataNewHDiv, dataHDivConst;
+    TPZManVector<int64_t, 27> ids(TSHAPE::NCornerNodes, 0);
+    for (int i = 0; i < TSHAPE::NCornerNodes; i++)
+    {
+        ids[i] = i;
+    }
+    TPZManVector<int, 27> sideorient(TSHAPE::NFacets, 1);
+    TPZManVector<int, 27> orders(TSHAPE::NFacets + 1, kFacet);
+    TPZShapeHDiv<TSHAPE> hdiv_std;
+    TPZShapeNewHDiv<TSHAPE> hdiv_new;
+    TPZShapeHDivConstant<TSHAPE> hdiv_const;
+    hdiv_std.Initialize(ids, orders, sideorient, dataHDiv);
+    hdiv_new.Initialize(ids, orders, sideorient, dataNewHDiv);
+    hdiv_const.Initialize(ids, orders, sideorient, dataHDivConst);
+    int nshape_std = hdiv_std.NShapeF(dataHDiv);
+    int nshape_new = hdiv_new.NShapeF(dataNewHDiv);
+    int nshape_const = hdiv_const.NHDivShapeF(dataHDivConst);
+    int nfacet_std = 0, nfacet_new = 0, nfacet_const = 0;
+    for (int i = 0; i < TSHAPE::NFacets; i++)
+    {
+        nfacet_std += hdiv_std.NConnectShapeF(i, dataHDiv);
+        nfacet_new += hdiv_new.NConnectShapeF(i, dataNewHDiv);
+        nfacet_const += hdiv_const.NConnectShapeF(i, dataHDivConst);
+    }
+    int nvol_std = hdiv_std.NConnectShapeF(TSHAPE::NFacets, dataHDiv);
+    int nvol_new = hdiv_new.NConnectShapeF(TSHAPE::NFacets, dataNewHDiv);
+    int nvol_const = hdiv_const.NConnectShapeF(TSHAPE::NFacets, dataHDivConst);
+
+    auto hdiv_std_order = dataHDiv.fHDiv.fConnectOrders;
+    auto hdiv_new_order = dataNewHDiv.fHDiv.fConnectOrders;
+    auto hdiv_const_order = dataHDivConst.fHDiv.fConnectOrders;
+
+    auto hdiv_std_shape = dataHDiv.fHDiv.fNumConnectShape;
+    auto hdiv_new_shape = dataNewHDiv.fHDiv.fNumConnectShape;
+    auto hdiv_const_shape = dataHDivConst.fHDiv.fNumConnectShape;
+
+    CAPTURE(orders,hdiv_std_order,hdiv_new_order, hdiv_const_order, hdiv_std_shape, hdiv_new_shape, hdiv_const_shape);
+    
+    REQUIRE(nvol_std == nvol_new);
+    REQUIRE(nfacet_new == nfacet_const);
+    REQUIRE(nfacet_std + nvol_std == nshape_std);
+    REQUIRE(nfacet_new + nvol_new == nshape_new);
+    
+    for (int i = 0; i < TSHAPE::NFacets+1; i++)
+    {
+        REQUIRE(hdiv_std_order[i] == orders[i]);
+        REQUIRE(hdiv_new_order[i] == orders[i]);
+        REQUIRE(hdiv_std_shape[i] == hdiv_std.NConnectShapeF(i, dataHDiv));
+        REQUIRE(hdiv_new_shape[i] == hdiv_new.NConnectShapeF(i, dataNewHDiv));
+        REQUIRE(hdiv_const_shape[i] == hdiv_const.NConnectShapeF(i, dataHDivConst));
+    }
+
+    // Evaluate the shape functions at the integration point.
+    // The volume shape functions must be equal for hdiv_std and hdiv_new at every integration point.
+    // The facet shape functions must be equal for hdiv_new and hdiv_const at every integration point.
+    constexpr int dim = TSHAPE::Dimension;
+    TPZFMatrix<REAL> phi_std(dim, nshape_std, 0.), phi_new(dim, nshape_new, 0.), phi_const(dim, nshape_const, 0.);
+    TPZFNMatrix<60, REAL> div_std(nshape_std, 1), div_new(nshape_new, 1), div_const(nshape_const, 1);
+    typename TSHAPE::IntruleType intrule(3);
+    int nintpoints = intrule.NPoints();
+    TPZManVector<REAL, 3> point(dim, 0.);
+    for (int ip = 0; ip < nintpoints; ip++)
+    {
+        REAL weight;
+        intrule.Point(ip, point, weight);
+        hdiv_std.Shape(point, dataHDiv, phi_std, div_std);
+        hdiv_new.Shape(point, dataNewHDiv, phi_new, div_new);
+        hdiv_const.Shape(point, dataHDivConst, phi_const, div_const);
+
+        for (int i = 0; i < nvol_std; i++)
+        {
+            for (int j = 0; j < dim; j++)
+            {
+                REAL val_std = phi_std(j, i + nfacet_std);
+                REAL val_new = phi_new(j, i + nfacet_new);
+                if (abs(val_std-val_new) > 1.e-10)
+                {
+                    std::cout << "val_std " << val_std << " val_new " << val_new << std::endl;
+                }
+                REQUIRE((val_std - val_new) == Catch::Approx(0.));
+            }
+        }
+
+        for (int i = 0; i < nfacet_const; i++)
+        {
+            for (int j = 0; j < dim; j++)
+            {
+                REAL val_const = phi_const(j, i);
+                REAL val_new = phi_new(j, i);
+                if (abs(val_const - val_new) > 1.e-10)
+                {
+                    std::cout << "val_const " << val_const << " val_new " << val_new << std::endl;
+                }
+                REQUIRE((val_const - val_new) == Catch::Approx(0.));
             }
         }
     }
