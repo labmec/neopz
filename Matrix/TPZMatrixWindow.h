@@ -114,6 +114,12 @@ public:
     return fStorage[fLeadingDim*col+row];
   }
 
+private:
+  TVar &g(const int64_t row, const int64_t col) const {
+    return fStorage[fLeadingDim*col+row];
+  }
+public:
+
   const TVar GetVal(const int64_t row,const int64_t col ) const override{
     return fStorage[fLeadingDim*col+row];
   }

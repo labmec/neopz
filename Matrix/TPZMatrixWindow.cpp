@@ -76,6 +76,7 @@ TPZMatrixWindow<TVar> &TPZMatrixWindow<TVar>::operator*=(const TVar val){
   return *this;
 }
 
+// implement the matrix vector product z = alpha * opt(this)*opt(x) + beta * y
 template<class TVar>
 void
 TPZMatrixWindow<TVar>::MultAdd(const TPZMatrixWindow<TVar> &x,const TPZMatrixWindow<TVar> &y, TPZMatrixWindow<TVar> &z,
@@ -144,7 +145,7 @@ TPZMatrixWindow<TVar>::MultAdd(const TPZMatrixWindow<TVar> &x,const TPZMatrixWin
   const int64_t xrows = x.Rows();
   const int64_t xcols = x.Cols();
 
-  ////we do not allow zero-sized windows
+  ////we do not allow zero-sized windows - why?
   // if(rows == 0 || cols == 0 || xrows == 0 || xcols == 0){
   //   if (beta != (TVar)0) {
   //     z *= beta;
@@ -185,45 +186,135 @@ TPZMatrixWindow<TVar>::MultAdd(const TPZMatrixWindow<TVar> &x,const TPZMatrixWin
     return;
   }
 #endif
-  DebugStop();
-  // if (beta != (TVar)0) {
-  //   z *= beta;
-  // }
-  // for (auto ic = 0; ic < xcols; ic++) {
-  //   if(!opt) {
-  //     for (auto c = 0; c<cols; c++) {
-  //       TVar * zp = &z(0,ic), *zlast = zp+rows;
-  //       TVar * fp = fElem +rows*c;
-  //       const TVar * xp = &x.g(c,ic);
-  //       while(zp < zlast) {
-  //         *zp += alpha* *fp++ * *xp;
-  //         zp ++;
-  //       }
-  //     }
-  //   } else {
-  //     TVar * fp = fElem,  *zp = &z(0,ic);
-  //     for (auto c = 0; c<cols; c++) {
-  //       TVar val = 0.;
-  //       // bug correction philippe 5/2/97
-  //       //					 REAL * xp = &x(0,ic), xlast = xp + numeq;
-  //       const TVar *xp = &x.g(0,ic);
-  //       const TVar *xlast = xp + rows;
-  //       if constexpr (is_complex<TVar>::value){
-  //         if(opt==2){
-  //           while(xp < xlast) {
-  //             val += std::conj(*fp++) * *xp++;
-  //           }
-  //           *zp++ += alpha *val;
-  //           continue;//continue from the for loop
-  //         }
-  //       }
-  //       while(xp < xlast) {
-  //         val += *fp++ * *xp++;
-  //       }
-  //       *zp++ += alpha *val;
-  //     }
-  //   }
-  // }
+  if (beta != (TVar)0) {
+    z *= beta;
+  }
+  if(!opt_x) {
+    for (auto ic = 0; ic < xcols; ic++) {
+      if(!opt_a) {
+        for (auto c = 0; c<cols; c++) {
+          TVar * zp = &z(0,ic), *zlast = zp+rows;
+          TVar * fp = &g(0,c);//fElem +rows*c;
+          const TVar * xp = &x.g(c,ic);
+          while(zp < zlast) {
+            *zp += alpha* *fp++ * *xp;
+            zp ++;
+          }
+        }
+      } else if(opt_a) {
+        for (auto c = 0; c<cols; c++) {
+          TVar *zp = &z(c,ic);
+          TVar * fp = &g(0,c);
+          TVar val = 0.;
+          // bug correction philippe 5/2/97
+          //					 REAL * xp = &x(0,ic), xlast = xp + numeq;
+          const TVar *xp = &x.g(0,ic);
+          const TVar *xlast = xp + xrows;
+          if constexpr (is_complex<TVar>::value){
+            if(opt_a==2){
+              while(xp < xlast) {
+                val += std::conj(*fp++) * *xp++;
+              }
+              *zp += alpha *val;
+              continue;//continue from the for loop
+            }
+            else if(opt_a==1){
+              while(xp < xlast) {
+                val += *fp++ * *xp++;
+              }
+              *zp += alpha *val;
+              continue;//continue from the for loop
+            }
+          } else {
+            while(xp < xlast) {
+              val += *fp++ * *xp++;
+            }
+            *zp += alpha *val;
+          }
+        }
+      }
+    }
+  } else if (opt_x) {
+    if(opt_a) {
+      for (auto xr = 0; xr < xrows; xr++) {
+        for (auto c = 0; c<cols; c++) {
+          TVar * zp = &z(c,xr);
+          TVar * fp = &g(0,c);//fElem +rows*c;
+          TVar * fplast = fp + rows;
+          const TVar * xp = &x.g(xr,0);
+          if constexpr (is_complex<TVar>::value){
+            if(opt_a==2 && opt_x == 1){
+              TVar val = 0.;
+              while(fp < fplast) {
+                val += alpha* std::conj(*fp++) * *xp;
+                xp += x.fLeadingDim;
+              }
+              *zp += val;
+            } else if(opt_a==2 && opt_x == 2){
+              TVar val = 0.;
+              while(fp < fplast) {
+                val += alpha* std::conj(*fp++) * std::conj(*xp);
+                xp += x.fLeadingDim;
+              }
+              *zp += val;
+            } else if(opt_a == 1 && opt_x ==2) {
+              TVar val = 0.;
+              while(fp < fplast) {
+                val += alpha* *fp++ * std::conj(*xp);
+                xp += x.fLeadingDim;
+              }
+              *zp += val;
+            } else {
+              TVar val = 0.;
+              while(fp < fplast) {
+                val += alpha* *fp++ * *xp;
+                xp += x.fLeadingDim;
+              }
+              *zp += val;
+            }
+          } else {
+            TVar val = 0.;
+            while(fp < fplast) {
+              val += alpha* *fp++ * *xp;
+              xp += x.fLeadingDim;
+            }
+            *zp += val;
+          }
+        }
+      } 
+    } else if(opt_a == 0) {
+      for (auto xr = 0; xr<x.Rows(); xr++) {
+        for (auto c = 0; c < cols; c++) {
+          TVar * fp = &g(0,c);
+          TVar * fplast = fp + rows;
+          TVar *zp = &z(0,xr);
+          // bug correction philippe 5/2/97
+          //					 REAL * xp = &x(0,ic), xlast = xp + numeq;
+          // const TVar *xlast = xp + x.fLeadingDim;
+          if constexpr (is_complex<TVar>::value){
+            if(opt_x==2){
+              TVar val = alpha *std::conj(x.g(xr,c));
+              while(fp < fplast) {
+                *zp++ += *fp++ * val;
+              }
+              continue;//continue from the for loop
+            } else if (opt_x==1){
+              TVar val = alpha *x.g(xr,c);
+              while(fp < fplast) {
+                *zp++ += *fp++ * val;
+              }
+              continue;//continue from the for loop
+            }
+          } else {
+            TVar val = alpha*x.g(xr,c);
+            while(fp < fplast) {
+              *zp++ += *fp++ * val;
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 template<class TVar>
