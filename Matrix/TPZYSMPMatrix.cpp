@@ -14,6 +14,7 @@
 #include <vector>
 #include "tpzverysparsematrix.h"
 #include "pzstack.h"
+#include "TPZParallelUtils.h"
 
 using namespace std;
 
@@ -228,6 +229,34 @@ void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & so
 			if(!flag) cout << "TPZFYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << endl;         
 		}
 	}
+}
+
+template<class TVar>
+void TPZFYsmpMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex){
+
+    const auto nelem = sourceindex.NElements();
+
+    for(auto icoef=0; icoef<nelem; icoef++) {
+        const auto row = destinationindex[icoef];
+        const auto i_source = sourceindex[icoef];
+        for(auto jcoef=0; jcoef<nelem; jcoef++) {
+            const auto col = destinationindex[jcoef];
+            const auto j_source = sourceindex[jcoef];
+						auto ic  = fIA[row];
+						for(; ic < fIA[row+1]; ic++ ) {
+							if ( fJA[ic] == col )
+							{
+								pzutils::AtomicAdd(fA[ic],elmat.GetVal(i_source,j_source));
+								break;
+							}
+						}
+						if (ic == fIA[row+1]) {
+							DebugStop();
+						}
+
+        }
+
+    }
 }
 
 template<class TVar>
