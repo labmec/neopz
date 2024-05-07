@@ -1,5 +1,5 @@
 #ifndef TESTMATRIXINC
-#define TEXTMATRIXINC
+#define TESTMATRIXINC
 #include "pzfmatrix.h"
 #include "pzsfulmat.h"
 #include "pzbndmat.h"

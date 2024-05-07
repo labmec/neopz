@@ -293,26 +293,13 @@ TEMPLATE_TEST_CASE("MatrixWindowInit","[matrix_tests]",
   }
 }
 
-TEMPLATE_TEST_CASE("TPZMatrixWindowMultAdd","[matrix_tests][!shouldfail]",
-                   long double,
-                   std::complex<long double>
-                   )
-{
-  SECTION("TPZFMatrix case:must implement non-lapack version"){
-    FAIL("Only LAPACK version is implemented");
-  }
-  SECTION("TPZMatrixWindow case:must implement non-lapack version"){
-    FAIL("Only LAPACK version is implemented");
-  }
-}
-
 TEMPLATE_TEST_CASE("TPZMatrixWindowMultAdd","[matrix_tests]",
                    float,
                    double,
-                   // long double,
+                   long double,
                    std::complex<float>,
                    std::complex<double>
-                   // ,std::complex<long double>
+                   ,std::complex<long double>
                    )
 {
 
@@ -424,6 +411,14 @@ TEMPLATE_TEST_CASE("TPZMatrixWindowMultAdd","[matrix_tests]",
           constexpr RSCAL tol = 1000*std::numeric_limits<RSCAL>::epsilon()/
             (std::numeric_limits<RSCAL>::digits10);
           const auto normz = Norm(z_full);
+          if(normz > tol){
+            std::cout << "normz " << normz << " tol " << tol << std::endl;
+            mat.MultAdd(x,y,z,alpha,beta,opt_a,opt_x);
+            // Print("mat = ",std::cout,EMathematicaInput);
+            // Print("x = ",std::cout,EMathematicaInput);
+            // Print("y = ",std::cout,EMathematicaInput);
+            // Print("z = ",std::cout,EMathematicaInput);
+          }
           CAPTURE(opt_a,normz,tol);
           REQUIRE(normz == Catch::Approx(0).margin(tol));
         }
