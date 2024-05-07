@@ -254,8 +254,11 @@ void TestSVD(int nrows, int ncols);
 //            SECTION("TPZFBMatrix"){
 //                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, SymProp::Herm, ECholesky);
 //            }
-            SECTION("TPZSBMatrix"){
+            if constexpr (std::is_same_v<RTVar,TVar>){
+              //on TestMatrix_Algebra we will check this
+              SECTION("TPZSBMatrix"){
                 TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, SymProp::Herm,ECholesky);
+              }
             }
             SECTION("TPZSkylMatrix"){
                 TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, SymProp::Herm,ECholesky);
