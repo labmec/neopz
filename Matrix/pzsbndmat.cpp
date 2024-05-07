@@ -645,6 +645,10 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
     
     if (  this->fDecomposed ) this->Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed>" );
     
+    if constexpr(is_complex<TVar>::value) {
+        std::cout << "LDLt decomposition for complex numbers not implemented\n";
+        DebugStop();
+    }
     int64_t j,k,l, begin,end;
     TVar sum;
     
