@@ -8,6 +8,7 @@
 #ifndef TPZCHUNKTRANSLATOR_H
 #define TPZCHUNKTRANSLATOR_H
 
+#include <cstdint>
 #include <map>
 #include <string>
 
