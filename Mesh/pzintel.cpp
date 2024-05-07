@@ -1545,6 +1545,7 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
 #ifdef PZDEBUG
         int ncon_compute = NConnectShapeF(nod, c.Order());
         if (c.NShape() != ncon_compute) {
+            int ncon_compute = NConnectShapeF(nod, c.Order());
             DebugStop();
         }
 #endif

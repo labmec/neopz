@@ -163,7 +163,7 @@ void TPZCompElH1<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
 /**sets the interpolation order of side to order*/
 template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::SetSideOrder(int side, int order) {
-	if(side<0 || side >= TSHAPE::NSides || (side >= TSHAPE::NCornerNodes && order <1)) {
+	if(side<0 || side >= TSHAPE::NSides || (side >= TSHAPE::NCornerNodes && order <0)) {
 		PZError << "TPZIntelGen::SetSideOrder. Bad paramenter side " << side << " order " << order << std::endl;
 		DebugStop();
 #ifdef PZ_LOG
@@ -235,6 +235,7 @@ int TPZCompElH1<TSHAPE>::EffectiveSideOrder(int side) const {
 	TPZConnect &c = this->Connect(side);
 	int order = c.Order();
     for (int is=0; is<lowdim.size(); is++) {
+        if(lowdim[is] < TSHAPE::NCornerNodes) continue;
         TPZConnect &c = this->MidSideConnect(lowdim[is]);
         if(c.Order() > order) order = c.Order();
     }

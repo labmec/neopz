@@ -141,7 +141,8 @@ void TPZShapeQuad::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZG
     }
     
 	
-	int TPZShapeQuad::NConnectShapeF(int side, int order) {
+int TPZShapeQuad::NConnectShapeF(int side, int order) {
+    if(order <1) order++;
 #if PZDEBUG
     if(order < 1){
       PZError << "TPZShapeCube::NConnectShapeF, bad parameter order " << order << endl;
