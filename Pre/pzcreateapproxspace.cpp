@@ -537,10 +537,10 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivDuplConnects(int dime
     fStyle = EHDiv;
     const HDivFamily &hdivfam = this->fhdivfam;
 
-    if (hdivfam != HDivFamily::EHDivConstant){
-        std::cout << "HDiv Dupl Connects not implemented yet for this HDiv family!" << std::endl;
-        DebugStop();
-    }
+    // if (hdivfam != HDivFamily::EHDivConstant){
+    //     std::cout << "HDiv Dupl Connects not implemented yet for this HDiv family!" << std::endl;
+    //     DebugStop();
+    // }
 
     switch (dimension) {
         case 1:

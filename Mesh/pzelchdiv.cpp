@@ -21,6 +21,7 @@
 #include "tpzline.h"
 #include "tpztriangle.h"
 #include "TPZShapeHDiv.h"
+#include "TPZShapeNewHDiv.h"
 #include "TPZShapeH1.h"
 #include "TPZShapeHDivConstant.h"
 #include "TPZShapeHCurlNoGrads.h"
@@ -250,7 +251,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
     switch (fhdivfam)
     {
     case HDivFamily::EHDivStandard:
-        return TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(connect,order);    
+        return TPZShapeNewHDiv<TSHAPE>::ComputeNConnectShapeF(connect,order);    
         break;
     case HDivFamily::EHDivConstant:
         return TPZShapeHDivConstant<TSHAPE>::ComputeNConnectShapeF(connect,order);
@@ -872,8 +873,8 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     switch (fhdivfam)
     {
     case HDivFamily::EHDivStandard:
-        TPZShapeHDiv<TSHAPE>::Initialize(ids, orders, sideorient, data);
-        nvec_shape = TPZShapeHDiv<TSHAPE>::NShapeF(shapedata);
+        TPZShapeNewHDiv<TSHAPE>::Initialize(ids, orders, sideorient, data);
+        nvec_shape = TPZShapeNewHDiv<TSHAPE>::NShapeF(shapedata);
         break;
     case HDivFamily::EHDivConstant:
         TPZShapeHDivConstant<TSHAPE>::Initialize(ids, orders, sideorient, data);
@@ -938,7 +939,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
     switch (fhdivfam)
     {
     case HDivFamily::EHDivStandard:
-        TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, phiMaster, data.divphi);
+        TPZShapeNewHDiv<TSHAPE>::Shape(qsi, shapedata, phiMaster, data.divphi);
         break;
 
     case HDivFamily::EHDivConstant:
@@ -992,7 +993,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
         switch (fhdivfam)
         {
         case HDivFamily::EHDivStandard:
-                TPZShapeHDiv<TSHAPE>::Shape(qsifad, shapedata, phiMasterFad, divphiFad);
+                TPZShapeNewHDiv<TSHAPE>::Shape(qsifad, shapedata, phiMasterFad, divphiFad);
             break;
 
         case HDivFamily::EHDivConstant:

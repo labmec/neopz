@@ -70,7 +70,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(1), fhdivfam(hdivfam){
 	this->fIntRule.SetOrder(order);
 
 
-    if (fhdivfam == HDivFamily::EHDivConstant) {
+    // if (fhdivfam == HDivFamily::EHDivConstant) {
         // For HDiv constant, polynomial order was compatibilized in connectorders, 
         // see TPZShapeHDivConstantBound<TSHAPE>::Initialize. So now we need to update
         // the number of shape functions and also the integration rule
@@ -84,7 +84,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(1), fhdivfam(hdivfam){
                 }
             }
         }
-    }
+    // }
 
 //    DetermineSideOrient();
 #ifdef PZ_LOG
@@ -404,8 +404,8 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     switch (fhdivfam)
     {
     case HDivFamily::EHDivStandard:
-        TPZShapeHDivBound<TSHAPE>::Initialize(id, connectorder, sideorient, data);
-        break;
+        // TPZShapeHDivBound<TSHAPE>::Initialize(id, connectorder, sideorient, data);
+        // break;
     case HDivFamily::EHDivConstant:
         TPZShapeHDivConstantBound<TSHAPE>::Initialize(id, connectorder, sideorient, data);
         break;
@@ -573,12 +573,12 @@ void TPZCompElHDivBound2<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMateri
     switch (fhdivfam)
     {
     case HDivFamily::EHDivStandard:
-        {
-            auto nShape = TPZShapeHDivBound<TSHAPE>::NShape(shapedata);
-            data.phi.Resize(nShape, 1);
-            TPZShapeHDivBound<TSHAPE>::Shape(intpoint, shapedata, data.phi);
-        }
-        break;
+        // {
+        //     auto nShape = TPZShapeHDivBound<TSHAPE>::NShape(shapedata);
+        //     data.phi.Resize(nShape, 1);
+        //     TPZShapeHDivBound<TSHAPE>::Shape(intpoint, shapedata, data.phi);
+        // }
+        // break;
     case HDivFamily::EHDivConstant:
         {
             data.phi.Resize(this->NShapeF(), 1);

@@ -77,10 +77,10 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
         DebugStop();
     }
 
-    if(fHybridType == HybridizationType::ESemi && fHDivFam != HDivFamily::EHDivConstant){
-        std::cout << "The only HDiv space with available Semi hybridization is HDivConstant" << std::endl;
-        DebugStop();
-    }
+    // if(fHybridType == HybridizationType::ESemi && fHDivFam != HDivFamily::EHDivConstant){
+    //     std::cout << "The only HDiv space with available Semi hybridization is HDivConstant" << std::endl;
+    //     DebugStop();
+    // }
   
     if (fProbType==ProblemType::EElastic && fHDivFam == HDivFamily::EHDivConstant && fShouldCondense && fHybridType != HybridizationType::ESemi) {
         std::cout << "CODE STOPPED! Condensing hdivconst spaces leads to singular K00. This happens because of the rotation space that has linear and constant functions."
