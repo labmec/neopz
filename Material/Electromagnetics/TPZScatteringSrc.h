@@ -12,7 +12,8 @@
 
 //! Data to be stored at each integration point
 struct TPZScatteredSol3D{
-  TPZManVector<CSTATE,2> sol = {0,0};//< solution value (tg component)
+  TPZManVector<CSTATE,2> et = {0,0};//< solution value (tg component)
+  TPZManVector<CSTATE,2> grad_ez = {0,0};//< solution value (grad of z-component)
   TPZManVector<REAL,3> x = {0,0,0};//<for debugging purposes
   //! Unique identifier for serialization purposes
   [[nodiscard]] int ClassId() const;

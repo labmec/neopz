@@ -11,20 +11,28 @@ int TPZScatteredSol3D::ClassId() const
 
 void TPZScatteredSol3D::Write(TPZStream &buf, int withclassid) const
 {
-  buf.Write(sol);
+  buf.Write(et);
+  buf.Write(grad_ez);
 }
   //! Read from stream(serialization method)
 void TPZScatteredSol3D::Read(TPZStream &buf, void *context)
 {
-  buf.Read(sol);
+  buf.Read(et);
+  buf.Read(grad_ez);
 }
 
 void TPZScatteredSol3D::Print(std::ostream &out) const
 {
-  out << "sol ";
-  for(auto s : sol){
-    out << s<<" ";
+  out << "et:";
+  for(auto s : et){
+    out << ' '<< s;
   }
+  out <<'\n';
+  out << "grad_ez:";
+  for(auto s : grad_ez){
+    out << ' '<< s;
+  }
+  out <<'\n';
 }
 
 
@@ -61,12 +69,12 @@ void TPZScatteringSrc::Contribute(const TPZMaterialDataT<CSTATE> &data,
   ur_inv.Decompose(ELU);
   
   ///Source term
-  const auto src_cte = 2. * 1i * beta * fScaleFactor;
-  
-  const auto &sol = mem_item.sol;
+  const auto &et = mem_item.et;
+  const auto &grad_ez = mem_item.grad_ez;
   TPZFNMatrix<3,CSTATE> src_mat(3,1,0.);
-  src_mat(0,0) = -1.*src_cte * sol[0];
-  src_mat(1,0) =  1.*src_cte * sol[1];
+  //a rotated vector around the z axis is (ey, -ex)
+  src_mat(0,0) =  2.*(1i*beta*et[1] + grad_ez[1]);
+  src_mat(1,0) = -2.*(1i*beta*et[0] + grad_ez[0]);
 
   //Contribution
   ur_inv.Substitution(&src_mat);
