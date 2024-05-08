@@ -770,7 +770,7 @@ void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j,
     }
 #endif
 
-#ifdef PZDEBUG
+// #ifdef PZDEBUG
     if (seconddimA != seconddimB)
     {
         std::stringstream out;
@@ -788,7 +788,7 @@ void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j,
         Error( "AddContribution trying to add a submatrix out of the original matrix bounds" );
         return;
     }
-#endif
+// #endif
 
 #ifdef USING_LAPACK
     TVar* ptr = &(*this)(i,j);
