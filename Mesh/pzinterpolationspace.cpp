@@ -7,6 +7,7 @@
 #include "TPZMaterial.h"
 #include "TPZMatSingleSpace.h"
 #include "TPZMatErrorSingleSpace.h"
+#include "TPZNullMaterial.h"
 #include "TPZMatLoadCases.h"
 #include "TPZMaterialDataT.h"
 #include "TPZBndCond.h"
@@ -415,6 +416,15 @@ void TPZInterpolationSpace::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZEl
         PZError << "Material Id which is missing = " << matid << std::endl;
         ek.Reset();
         ef.Reset();
+        return;
+    }
+    auto *nullmat = dynamic_cast<TPZNullMaterial<TVar> *>(material);
+    if(nullmat)
+    {
+        ek.Reset();
+        ef.Reset();
+        ek.fType = TPZElementMatrix::EK;
+        ef.fType = TPZElementMatrix::EF;
         return;
     }
     
