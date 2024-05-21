@@ -353,7 +353,9 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBandColoring(TPZBaseMatrix 
 
     int64_t nelem = cmesh->NElements();
     const int nthread = this->fNumThreads;
-
+    const auto &matids = myself->MaterialIds();
+    const int nmatids = matids.size();
+    
     TPZStructMatrixOMPorTBB::OrderElements();
     int ncolor = GetNumberColors();
 
@@ -367,7 +369,12 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBandColoring(TPZBaseMatrix 
             {
                 if (icol != fElVecColor[iel]) continue;
                 TPZCompEl *el = cmesh->Element(iel);
-                if (!el) continue;
+                if ((!el) ||
+                    (nmatids != 0 &&
+                     !el->NeedsComputing(matids)))
+                {
+                    continue;
+                }
 
                 ComputingCalcstiffAndAssembling(mat,rhs,el);
 
@@ -387,6 +394,9 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingOMPandColoring(TPZBaseMatrix 
     int64_t nelem = cmesh->NElements();
     const int nthread = this->fNumThreads;
 
+    const auto &matids = myself->MaterialIds();
+    const int nmatids = matids.size();
+    
     TPZStructMatrixOMPorTBB::OrderElements();
     int ncolor = GetNumberColors();
 
@@ -397,7 +407,12 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingOMPandColoring(TPZBaseMatrix 
         for (int64_t iel = 0; iel < nelem; iel++){
         if (icol != fElVecColor[iel]) continue;
         TPZCompEl *el = cmesh->Element(iel);
-        if (!el) continue;
+        if ((!el) ||
+            (nmatids != 0 &&
+             !el->NeedsComputing(matids)))
+        {
+            continue;
+        }
 
             ComputingCalcstiffAndAssembling(mat,rhs,el);
 
@@ -415,7 +430,8 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBbutNotColoring(TPZBaseMatr
     auto *cmesh = myself->Mesh();
     int64_t nelem = cmesh->NElements();
     const int nthread = this->fNumThreads;
-
+    const auto &matids = myself->MaterialIds();
+    const int nmatids = matids.size();
 
         //tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
         tbb::global_control global_limit(tbb::global_control::max_allowed_parallelism, nthread);
@@ -424,7 +440,12 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBbutNotColoring(TPZBaseMatr
         for (int64_t iel = r.begin(); iel < r.end(); iel++)
         {
             TPZCompEl *el = cmesh->Element(iel);
-            if (!el) continue;
+            if ((!el) ||
+                (nmatids != 0 &&
+                 !el->NeedsComputing(matids)))
+            {
+                continue;
+            }
 
             ComputingCalcstiffAndAssembling(mat,rhs,el);
 
@@ -446,12 +467,20 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingOMPbutNotColoring(TPZBaseMatr
     int64_t nelem = cmesh->NElements();
     const int nthread = this->fNumThreads;
 
+    const auto &matids = myself->MaterialIds();
+    const int nmatids = matids.size();
+    
     omp_set_num_threads(nthread);
     #pragma omp parallel for schedule(dynamic,1)
     for (int64_t iel = 0; iel < nelem; iel++){
         {
             TPZCompEl *el = cmesh->Element(iel);
-            if (!el) continue;
+            if ((!el) ||
+                (nmatids != 0 &&
+                 !el->NeedsComputing(matids)))
+            {
+                continue;
+            }
 
             ComputingCalcstiffAndAssembling(mat,rhs,el);
         }
