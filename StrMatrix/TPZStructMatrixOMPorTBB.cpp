@@ -246,7 +246,7 @@ void TPZStructMatrixOMPorTBB<TVar>::Serial_Assemble(TPZBaseMatrix & mat, TPZBase
 
         el->CalcStiff(ek, ef);
 
-        if(!el->HasDependency()) {
+        if(!ek.HasDependency()) {
             ek.ComputeDestinationIndices();
             equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
             //            TPZSFMatrix<TVar> test(stiffness);
@@ -514,7 +514,7 @@ void TPZStructMatrixOMPorTBB<TVar>::ComputingCalcstiffAndAssembling(TPZBaseMatri
     const auto &equationFilter =
             (dynamic_cast<TPZStructMatrix *>(this))->EquationFilter();
 
-    if(!el->HasDependency()) {
+    if(!ek.HasDependency()) {
         ek.ComputeDestinationIndices();
         equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
 
