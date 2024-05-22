@@ -312,43 +312,21 @@ void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZ
     int64_t ncol = this->Cols();
     int64_t nrow = source.NElements();
     int64_t i,j;
-    for(j=0; j<ncol; j++) {
-        for(i=0; i<nrow; i++) {
-            operator()(destination[i],j) += rhs(source[i],j);
+    /*
+      enables op for double, float and resp. complex types
+     */
+    if constexpr (std::is_same_v<RTVar,double> ||
+                  std::is_same_v<RTVar,float>){
+        for(j=0; j<ncol; j++) {
+            for(i=0; i<nrow; i++) {
+                pzutils::AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
+            }
         }
-    }
-}
-
-template<>
-void TPZFMatrix<double>::AddFel(TPZFMatrix<double> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination) {
-    if(rhs.Cols() != this->Cols() && source.NElements()) {
-        PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
-        DebugStop();
-        return;
-    }
-    int64_t ncol = this->Cols();
-    int64_t nrow = source.NElements();
-    int64_t i,j;
-    for(j=0; j<ncol; j++) {
-        for(i=0; i<nrow; i++) {
-          pzutils::AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
-        }
-    }
-}
-
-template<>
-void TPZFMatrix<float>::AddFel(TPZFMatrix<float> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination) {
-    if(rhs.Cols() != this->Cols() && source.NElements()) {
-        PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
-        DebugStop();
-        return;
-    }
-    int64_t ncol = this->Cols();
-    int64_t nrow = source.NElements();
-    int64_t i,j;
-    for(j=0; j<ncol; j++) {
-        for(i=0; i<nrow; i++) {
-          pzutils::AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
+    }else{
+        for(j=0; j<ncol; j++) {
+            for(i=0; i<nrow; i++) {
+                operator()(destination[i],j) += rhs(source[i],j);
+            }
         }
     }
 }
