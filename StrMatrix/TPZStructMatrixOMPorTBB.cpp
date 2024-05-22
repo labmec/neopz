@@ -108,7 +108,6 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix 
 
     const auto &equationFilter =
             (dynamic_cast<TPZStructMatrix *>(this))->EquationFilter();
-    ass_stiff.start();
 
     if (equationFilter.IsActive()) {
         int64_t neqcondense = equationFilter.NActiveEquations();
@@ -274,7 +273,7 @@ void TPZStructMatrixOMPorTBB<TVar>::Serial_Assemble(TPZBaseMatrix & mat, TPZBase
 
         }
     }
-#ifdef PZDEBUG
+#ifdef HUGEDEBUG
     VerifyStiffnessSum(mat);
 #endif
 #ifdef USING_MKL
@@ -337,7 +336,7 @@ void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TP
         }
     }
 
-#ifdef PZDEBUG
+#ifdef HUGEDEBUG
     VerifyStiffnessSum(mat);
 #endif
 }
