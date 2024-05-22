@@ -103,7 +103,7 @@ struct TPZElementMatrix {
 	/** @brief Vector of all nodes connected to the element*/
 	TPZStack<int64_t> fConstrConnect;
 	
-	TPZManVector<int64_t> fDestinationIndex, fSourceIndex;
+	TPZManVector<int64_t,300> fDestinationIndex, fSourceIndex;
 };
 
 #endif

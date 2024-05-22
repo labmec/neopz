@@ -156,7 +156,7 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 	totalnodes = this->fConstrConnect.NElements();
 	
 	// compute the list of nodes and their proper order of processing
-	TPZVec<int> DependenceOrder;
+	TPZManVector<int,400> DependenceOrder;
 	// this->fConstrNod, totalnodes and DependenceOrder
 	// are initialized using codes documented above
 	BuildDependencyOrder(this->fConstrConnect,DependenceOrder,*this->fMesh);
