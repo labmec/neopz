@@ -27,7 +27,7 @@ protected:
     TPZManVector<int64_t,62> fIndexes;
     TPZManVector<int64_t,55> fCondensedConnectIndexes;
     TPZManVector<int64_t,10> fActiveConnectIndexes;
-    bool fKeepMatrix = true;
+    bool fKeepMatrix = false;
     virtual void Resequence() = 0;
 public:
     
