@@ -234,29 +234,34 @@ void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & so
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex){
 
-    const auto nelem = sourceindex.NElements();
+	int64_t k{0};
+	for(auto i=0;i<sourceindex.NElements();i++){
+		for(auto j=0;j<sourceindex.NElements();j++){
+			const auto ipos=destinationindex[i];
+			const auto jpos=destinationindex[j];
+			const auto value=elmat.GetVal(sourceindex[i],sourceindex[j]);
+			//cout << "j= " << j << endl;
 
-    for(auto icoef=0; icoef<nelem; icoef++) {
-        const auto row = destinationindex[icoef];
-        const auto i_source = sourceindex[icoef];
-        for(auto jcoef=0; jcoef<nelem; jcoef++) {
-            const auto col = destinationindex[jcoef];
-            const auto j_source = sourceindex[jcoef];
-						auto ic  = fIA[row];
-						for(; ic < fIA[row+1]; ic++ ) {
-							if ( fJA[ic] == col )
-							{
-								pzutils::AtomicAdd(fA[ic],elmat.GetVal(i_source,j_source));
-								break;
-							}
-						}
-						if (ic == fIA[row+1]) {
-							DebugStop();
-						}
-
-        }
-
-    }
+			//cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
+			int flag = 0;
+			if(k >= fIA[ipos] && k < fIA[ipos+1] && fJA[k]==jpos)
+			{ // OK -> elements in sequence
+				pzutils::AtomicAdd(fA[k],value);
+			  flag = 1;
+			}else
+			{
+			  for(k=fIA[ipos];k<fIA[ipos+1];k++){
+					if(fJA[k]==jpos){
+						flag=1;
+						pzutils::AtomicAdd(fA[k],value);
+						break;
+					}
+			  }
+			}
+			k++;
+			if(!flag) cout << "TPZFYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << endl;         
+		}
+	}
 }
 
 template<class TVar>
