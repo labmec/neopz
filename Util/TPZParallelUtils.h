@@ -77,8 +77,11 @@ inline T AtomicAdd( T & sum, T val )
 {
   std::atomic<T> & asum = AtomicCast(sum);
   T current = asum.load();
-  while (!asum.compare_exchange_weak(current, current + val))
-    ;
+  T desired{0};
+  do{
+    desired = current+val;
+  }
+  while (!asum.compare_exchange_weak(current, desired));
   return current;
 }
 }//namespace
