@@ -40,6 +40,7 @@
 #ifdef USING_OMP
 #include "omp.h"
 #endif
+
 #include "pzcheckconsistency.h"
 #include "TPZMaterial.h"
 #include "TPZStrMatParInterface.h"
@@ -362,23 +363,25 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBandColoring(TPZBaseMatrix 
 
         //tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
         tbb::global_control global_limit(tbb::global_control::max_allowed_parallelism, nthread);
-        tbb::parallel_for( tbb::blocked_range<int64_t>(0,nelem),
-                          [&](tbb::blocked_range<int64_t> r){
-        for (int64_t iel = r.begin(); iel < r.end(); iel++)
-            {
-                if (icol != fElVecColor[iel]) continue;
-                TPZCompEl *el = cmesh->Element(iel);
-                if ((!el) ||
-                    (nmatids != 0 &&
-                     !el->NeedsComputing(matids)))
-                {
-                    continue;
-                }
+        tbb::parallel_for(
+          tbb::blocked_range<int64_t>(0,nelem),
+          [&](tbb::blocked_range<int64_t> r){
+              TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
+              TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
+              for (int64_t iel = r.begin(); iel < r.end(); iel++)
+              {
+                  if (icol != fElVecColor[iel]) continue;
+                  TPZCompEl *el = cmesh->Element(iel);
+                  if ((!el) ||
+                      (nmatids != 0 &&
+                       !el->NeedsComputing(matids)))
+                  {
+                      continue;
+                  }
 
-                ComputingCalcstiffAndAssembling(mat,rhs,el);
-
-            }
-        });
+                  CalcStiffAndAssemble(mat,rhs,el,ek,ef);
+              }
+          });
     }
 #endif
 }
@@ -402,19 +405,24 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingOMPandColoring(TPZBaseMatrix 
     for (int icol=0; icol<ncolor; icol++){
 
         omp_set_num_threads(nthread);
-        #pragma omp parallel for schedule(dynamic,1)
-        for (int64_t iel = 0; iel < nelem; iel++){
-        if (icol != fElVecColor[iel]) continue;
-        TPZCompEl *el = cmesh->Element(iel);
-        if ((!el) ||
-            (nmatids != 0 &&
-             !el->NeedsComputing(matids)))
+#pragma omp parallel
         {
-            continue;
-        }
+            TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
+            TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
+#pragma omp for schedule(dynamic,1)
+            for (int64_t iel = 0; iel < nelem; iel++){
+                if (icol != fElVecColor[iel]) continue;
+                TPZCompEl *el = cmesh->Element(iel);
+                if ((!el) ||
+                    (nmatids != 0 &&
+                     !el->NeedsComputing(matids)))
+                {
+                    continue;
+                }
 
-            ComputingCalcstiffAndAssembling(mat,rhs,el);
+                CalcStiffAndAssemble(mat,rhs,el,ek,ef);
 
+            }
         }
     }
 #else
@@ -434,21 +442,24 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBbutNotColoring(TPZBaseMatr
 
         //tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
         tbb::global_control global_limit(tbb::global_control::max_allowed_parallelism, nthread);
-        tbb::parallel_for( tbb::blocked_range<int64_t>(0,nelem),
-                          [&](tbb::blocked_range<int64_t> r){
-        for (int64_t iel = r.begin(); iel < r.end(); iel++)
-        {
-            TPZCompEl *el = cmesh->Element(iel);
-            if ((!el) ||
-                (nmatids != 0 &&
-                 !el->NeedsComputing(matids)))
-            {
-                continue;
-            }
+        tbb::parallel_for(
+          tbb::blocked_range<int64_t>(0,nelem),
+          [&](tbb::blocked_range<int64_t> r){
+              TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
+              TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
+              for (int64_t iel = r.begin(); iel < r.end(); iel++)
+              {
+                  TPZCompEl *el = cmesh->Element(iel);
+                  if ((!el) ||
+                      (nmatids != 0 &&
+                       !el->NeedsComputing(matids)))
+                  {
+                      continue;
+                  }
 
-            ComputingCalcstiffAndAssembling(mat,rhs,el);
+                  CalcStiffAndAssemble(mat,rhs,el,ek,ef);
 
-        }
+              }
         });
 #else
     DebugStop();
@@ -470,18 +481,24 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingOMPbutNotColoring(TPZBaseMatr
     const int nmatids = matids.size();
     
     omp_set_num_threads(nthread);
-    #pragma omp parallel for schedule(dynamic,1)
-    for (int64_t iel = 0; iel < nelem; iel++){
-        {
-            TPZCompEl *el = cmesh->Element(iel);
-            if ((!el) ||
-                (nmatids != 0 &&
-                 !el->NeedsComputing(matids)))
-            {
-                continue;
-            }
+    #pragma omp parallel
+    {
 
-            ComputingCalcstiffAndAssembling(mat,rhs,el);
+        TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
+        TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
+#pragma omp for schedule(dynamic,1)
+        for (int64_t iel = 0; iel < nelem; iel++){
+            {
+                TPZCompEl *el = cmesh->Element(iel);
+                if ((!el) ||
+                    (nmatids != 0 &&
+                     !el->NeedsComputing(matids)))
+                {
+                    continue;
+                }
+
+                CalcStiffAndAssemble(mat,rhs,el,ek,ef);
+            }
         }
     }
 #else
@@ -499,7 +516,8 @@ void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs)
 }
 
 template<class TVar>
-void TPZStructMatrixOMPorTBB<TVar>::ComputingCalcstiffAndAssembling(TPZBaseMatrix & mat,TPZBaseMatrix & rhs,TPZCompEl *el){
+void TPZStructMatrixOMPorTBB<TVar>::CalcStiffAndAssemble(TPZBaseMatrix & mat,TPZBaseMatrix & rhs,TPZCompEl *el,
+                                                         TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef){
 
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     auto *cmesh = myself->Mesh();
@@ -507,7 +525,6 @@ void TPZStructMatrixOMPorTBB<TVar>::ComputingCalcstiffAndAssembling(TPZBaseMatri
     TPZMatrix<TVar> &stiffness = dynamic_cast<TPZMatrix<TVar>&>(mat);
     TPZFMatrix<TVar> &source = dynamic_cast<TPZFMatrix<TVar>&>(rhs);
 
-    TPZElementMatrixT<TVar> ek(cmesh, TPZElementMatrix::EK), ef(cmesh, TPZElementMatrix::EF);
     el->CalcStiff(ek, ef);
 
     const auto &equationFilter =

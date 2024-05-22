@@ -94,7 +94,8 @@ protected:
 
     void AssemblingUsingOMPbutNotColoring(TPZBaseMatrix & mat, TPZBaseMatrix & rhs );
 
-    void ComputingCalcstiffAndAssembling(TPZBaseMatrix & mat,TPZBaseMatrix & rhs,TPZCompEl *el);
+    void CalcStiffAndAssemble(TPZBaseMatrix & mat,TPZBaseMatrix & rhs,TPZCompEl *el,
+                              TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
 
 public:
     void OrderElements();
