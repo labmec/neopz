@@ -268,10 +268,11 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 			// loop over the nodes from which dfn depends
 			TPZConnect::TPZDependBase *dep = dfn->FirstDepend();
 
-      TPZFNMatrix<50,TVar> depmat;
       TPZFNMatrix<150,TVar> fulldepmat;
 			while(dep) {
-        dep->FillDepMatrix(depmat);
+        auto dept = dynamic_cast<TPZConnect::TPZDepend<TVar>*>(dep);
+        if(!dept){DebugStop();}
+        const auto &depmat = dept->GetDepMatrix();
         
 				int64_t depnodeindex = dep->fDepConnectIndex;
 				// look for the index where depnode is found

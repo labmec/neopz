@@ -974,8 +974,9 @@ void TPZHDivApproxCreator::PartitionDependMatrix(TPZCompMesh *cmesh){
         if(c.HasDependency()){
             // std::cout << "Need to partition the dependency matrix." << std::endl;
             auto *ptr = c.FirstDepend();
-            TPZFNMatrix<200,STATE> depmat;
-            ptr->FillDepMatrix(depmat);
+            auto dept = dynamic_cast<TPZConnect::TPZDepend<STATE>*>(ptr);
+            if(!dept){DebugStop();}
+            const auto &depmat = dept->GetDepMatrix();
             while(ptr) {
                 int64_t cIndex_old1 = iCon;
                 int64_t cIndex_old2 = ptr->fDepConnectIndex;
@@ -1135,11 +1136,18 @@ void TPZHDivApproxCreator::GroupDependMatrix(TPZCompMesh *cmesh){
 
                 if (!dep00 || !dep01 || !dep10 || !dep11) DebugStop();
 
-                TPZFNMatrix<144,REAL> matdep00,matdep11,matdep10,matdep01;
-                dep00->FillDepMatrix(matdep00);
-                dep01->FillDepMatrix(matdep01);
-                dep10->FillDepMatrix(matdep10);
-                dep11->FillDepMatrix(matdep11);
+                auto GetDepMat= [](TPZConnect::TPZDependBase *dep)
+                -> TPZFMatrix<STATE> const &{
+                    auto dept = dynamic_cast<TPZConnect::TPZDepend<STATE>*>(dep);
+                    if(!dept){DebugStop();}
+                    return dept->GetDepMatrix();
+                };
+
+
+                const auto &matdep00 = GetDepMat(dep00);
+                const auto &matdep01 = GetDepMat(dep01);
+                const auto &matdep10 = GetDepMat(dep10);
+                const auto &matdep11 = GetDepMat(dep11);
                 
                 int rows = matdep00.Rows() + matdep11.Rows();
                 int cols = matdep00.Cols() + matdep11.Cols();
