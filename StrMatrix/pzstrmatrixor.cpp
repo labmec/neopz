@@ -273,7 +273,7 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
             } else {
                 sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
             }
-            if(el->HasDependency()){
+            if(ek.HasDependency()){
                 ek.fConstrMat.Print(sout);
                 ef.fConstrMat.Print(sout);
             }else{
@@ -431,7 +431,7 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base) {
         if(loggerel.isDebugEnabled())
         {
             std::stringstream sout;
-            if(el->HasDependency()){
+            if(ef.HasDependency()){
                 ef.fConstrMat.Print(sout);
             }else{
                 ef.fMat.Print(sout);
@@ -607,7 +607,7 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
 #endif
 
 
-        if (!el->HasDependency()) {
+        if (!ek->HasDependency()) {
             ek->ComputeDestinationIndices();
 
             if (data->fStruct->HasRange()) {
@@ -646,7 +646,7 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
             } else {
                 sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
             }
-            if(el->HasDependency()){
+            if(ek->HasDependency()){
                 ek->fConstrMat.Print(sout);
                 if(computeRhs){ef->fConstrMat.Print(sout);}
             }else{
