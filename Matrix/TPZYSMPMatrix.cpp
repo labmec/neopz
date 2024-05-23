@@ -15,7 +15,7 @@
 #include "tpzverysparsematrix.h"
 #include "pzstack.h"
 #include "TPZParallelUtils.h"
-
+#include <numeric>      // std::iota
 using namespace std;
 
 // ****************************************************************************
@@ -232,34 +232,43 @@ void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & so
 }
 
 template<class TVar>
-void TPZFYsmpMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex){
+void TPZFYsmpMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+																				TPZVec<int64_t> &destinationindex){
 
-	int64_t k{0};
-	for(auto i=0;i<sourceindex.NElements();i++){
-		for(auto j=0;j<sourceindex.NElements();j++){
-			const auto ipos=destinationindex[i];
+	// initialize original index locations
+	const int64_t neq = destinationindex.size();
+	TPZManVector<int64_t,800> idx(neq);
+	std::iota(idx.begin(), idx.end(), 0);
+
+  // sort indexes based on comparing values in v
+  // using std::stable_sort instead of std::sort
+  // to avoid unnecessary index re-orderings
+  // when v contains elements of equal values 
+	std::sort(idx.begin(), idx.end(),
+       [&destinationindex](size_t i1, size_t i2)
+			 {return destinationindex[i1] < destinationindex[i2];});
+	
+	
+	for(auto dummy_i=0;dummy_i<neq;dummy_i++){
+		const int64_t i = idx[dummy_i];
+		const auto ipos=destinationindex[i];
+		//first col of the line
+		int64_t k = fIA[ipos];
+		const auto maxj = fIA[ipos+1];
+		const auto source_i = sourceindex[i];
+		for(auto dummy_j=0;dummy_j<neq;dummy_j++){
+			const int j = idx[dummy_j];
 			const auto jpos=destinationindex[j];
-			const auto value=elmat.GetVal(sourceindex[i],sourceindex[j]);
-			//cout << "j= " << j << endl;
-
-			//cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
-			int flag = 0;
-			if(k >= fIA[ipos] && k < fIA[ipos+1] && fJA[k]==jpos)
-			{ // OK -> elements in sequence
-				pzutils::AtomicAdd(fA[k],value);
-			  flag = 1;
-			}else
-			{
-			  for(k=fIA[ipos];k<fIA[ipos+1];k++){
-					if(fJA[k]==jpos){
-						flag=1;
-						pzutils::AtomicAdd(fA[k],value);
-						break;
-					}
-			  }
+			const auto source_j = sourceindex[j];
+			const auto value=elmat.GetVal(source_i,source_j);
+			while(k<maxj && fJA[k]!=jpos){k++;}
+			if(k==maxj){
+				std::cout << "TPZFYsmpMatrix::AddKelAtomic: "
+									<<" Non existing position on sparse matrix: "
+									<<" line =" << ipos << " column =" << jpos << endl;        
+				DebugStop();
 			}
-			k++;
-			if(!flag) cout << "TPZFYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << endl;         
+			pzutils::AtomicAdd(fA[k],value);
 		}
 	}
 }
