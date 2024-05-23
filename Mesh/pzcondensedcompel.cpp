@@ -9,7 +9,8 @@
 #include "pzelementgroup.h"
 #include "pzcmesh.h"
 #include "TPZElementMatrixT.h"
-
+#include "TPZNullMaterial.h"
+#include "TPZNullMaterialCS.h"
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.tpzcondensedcompel");
 #endif
@@ -365,6 +366,28 @@ template<class TVar>
 void TPZCondensedCompElT<TVar>::CalcStiff(TPZElementMatrixT<TVar> &ekglob,
                                           TPZElementMatrixT<TVar> &efglob)
 {
+
+    auto* material =
+        dynamic_cast<TPZMatSingleSpaceT<TVar> *>(this->Material());
+    if(!material){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        int matid = Reference()->MaterialId();
+        PZError << "Material Id which is missing = " << matid << std::endl;
+        ekglob.Reset();
+        efglob.Reset();
+        return;
+    }
+    auto *nullmat = dynamic_cast<TPZNullMaterial<TVar> *>(material);
+    auto *nullmatcs = dynamic_cast<TPZNullMaterialCS<TVar> *>(material);
+    if(nullmat || nullmatcs)
+    {
+        ekglob.Reset();
+        efglob.Reset();
+        ekglob.fType = TPZElementMatrix::EK;
+        efglob.fType = TPZElementMatrix::EF;
+        return;
+    }
+    
     if(fKeepMatrix == false)
     {
         fKeepMatrix = true;
