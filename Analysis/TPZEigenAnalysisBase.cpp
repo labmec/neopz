@@ -63,7 +63,7 @@ void TPZEigenAnalysisBase::SolveT()
     if(!eigSolver){
         DebugStop();
     }
-    const auto nev = eigSolver->NEigenpairs();
+    auto nev = eigSolver->NEigenpairs();
     fEigenvalues.Resize(nev);
     if (ComputeEigenvectors()) {
       TPZFMatrix<CTVar> *eigvectors = &fEigenvectors;
@@ -73,6 +73,8 @@ void TPZEigenAnalysisBase::SolveT()
       //if there is no equation filter nReducedEq == numeq
       eigvectors->Redim(nReducedEq, nev);
       eigSolver->Solve(fEigenvalues, *eigvectors);
+      //maybe less ev have converged?
+      nev = eigSolver->NEigenpairs();
       if(isReduced){
         fEigenvectors.Redim(nEq,nev);
         fStructMatrix->EquationFilter().Scatter(*eigvectors,fEigenvectors);
