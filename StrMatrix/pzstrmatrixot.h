@@ -110,15 +110,13 @@ protected:
         /** @brief vector indicating whether an element has been computed */
         TPZVec<int64_t> *fComputedElements;
         /** @brief Mutexes (to choose which element is next) */
-        std::mutex fMutexAccessElement;
-        std::condition_variable fConditionVar;
-        
-        int *fSomeoneIsSleeping;
+        std::mutex *fMutexAccessElement = nullptr;
+        std::condition_variable *fConditionVar = nullptr;
         
         /// Vector for mesh coloring
         TPZVec<int64_t> *fElBlocked, *fElSequenceColor;
         
-        /// All elements below or equal this index have been computed
+        /// All elements below or equal this index have been assembled
         int64_t *fElementCompleted;
         /// Whether the rhs is being computed
         bool fComputeRhs;
@@ -133,9 +131,6 @@ protected:
     
     /// All elements below or equal this index have been computed
     int64_t fElementCompleted;
-    
-    /// variable indicating if a thread is sleeping
-    int fSomeoneIsSleeping;
     
     std::atomic<int64_t> fCurrentIndex;
 };
