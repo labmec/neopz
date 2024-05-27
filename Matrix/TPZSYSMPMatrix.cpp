@@ -4,7 +4,7 @@
  */
 
 #include <memory.h>
-
+#include <numeric>
 #include "TPZSYSMPMatrix.h"
 #include "pzfmatrix.h"
 #include "pzstack.h"
@@ -406,90 +406,53 @@ void TPZSYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & de
 }
 
 template<class TVar>
-void TPZSYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex){
-	int64_t i,j,k = 0;
-	TVar value=0.;
-	int64_t ipos,jpos;
-	for(i=0;i<sourceindex.NElements();i++){
-		for(j=0;j<sourceindex.NElements();j++){
-			ipos=destinationindex[i];
-			jpos=destinationindex[j];
-            if(jpos<ipos) continue;
-			value=elmat.GetVal(sourceindex[i],sourceindex[j]);
-            //cout << "j= " << j << endl;
-			
-            //cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
-            int flag = 0;
-            k++;
-            if(k >= fIA[ipos] && k < fIA[ipos+1] && fJA[k]==jpos)
-            { // OK -> elements in sequence
-              fA[k]+=value;
-              flag = 1;
-            }else
-            {
-              for(k=fIA[ipos];k<fIA[ipos+1];k++){
-                if(fJA[k]==jpos || fJA[k]==-1){
-                  //cout << "fJA[k] " << fJA[k] << " jpos "<< jpos << "   " << value << endl;
-                  //cout << "k " << k << "   "<< jpos << "   " << value << endl;
-                  flag=1;
-                  if(fJA[k]==-1){
-                    fJA[k]=jpos;
-                    fA[k]=value;
-                    // cout << jpos << "   " << value << endl;
-                    break;
-                  }else{
-                    fA[k]+=value;
-                    break;
-                  }
-                }
-              }
-            }
-            if(!flag) std::cout << "TPZSYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << std::endl;
-		}
-	}
-}
+template<bool TAtomic>
+void TPZSYsmpMatrix<TVar>::AddKelImpl(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+																			TPZVec<int64_t> &destinationindex){
 
-template<class TVar>
-void TPZSYsmpMatrix<TVar>::AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex){
+  // initialize original index locations
+  const int64_t neq = destinationindex.size();
+  TPZManVector<int64_t,800> idx(neq);
+  std::iota(idx.begin(), idx.end(), 0);
 
-    int64_t nelem = sourceindex.NElements();
-    int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
-    double prevval;
-    int64_t row, col;
-
-    for(icoef=0; icoef<nelem; icoef++) {
-        ieq = destinationindex[icoef];
-        ieqs = sourceindex[icoef];
-        for(jcoef=icoef; jcoef<nelem; jcoef++) {
-            jeq = destinationindex[jcoef];
-            jeqs = sourceindex[jcoef];
-            {
-                row = ieq; col = jeq;
-                if (row > col) {
-                    int64_t temp = row;
-                    row = col;
-                    col = temp;
-                }
-                int64_t ic;
-                for(ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
-                    if ( fJA[ic] == col )
-                    {
-                        pzutils::AtomicAdd(fA[ic],elmat(ieqs,jeqs));
-                        break;
-                    }
-                }
-                if (ic == fIA[row+1]) {
-                    if (elmat(ieqs,jeqs) != (TVar(0.))){
-                        DebugStop();
-
-                    }
-
-                }
-            }
-
-        }
-
+  // sort indexes based on comparing values in v
+  // using std::stable_sort instead of std::sort
+  // to avoid unnecessary index re-orderings
+  // when v contains elements of equal values 
+  std::sort(idx.begin(), idx.end(),
+						[&destinationindex](const int64_t i1, const int64_t i2)
+						{return destinationindex[i1] < destinationindex[i2];});
+  
+  
+  for(auto dummy_i=0;dummy_i<neq;dummy_i++){
+    const auto i = idx[dummy_i];
+    const auto ipos=destinationindex[i];
+    //first col of the line
+    auto k = fIA[ipos];
+    const auto maxj = fIA[ipos+1];
+    const auto source_i = sourceindex[i];
+    for(auto dummy_j=0;dummy_j<neq;dummy_j++){
+      const auto j = idx[dummy_j];
+      const auto jpos=destinationindex[j];
+      if(jpos < ipos){continue;}
+      const auto source_j = sourceindex[j];
+      const auto &value=elmat.GetVal(source_i,source_j);
+      while(fJA[k]!=jpos){
+				k++;
+				if(k==maxj){
+					std::cout << "TPZFYsmpMatrix::AddKelAtomic: "
+										<<" Non existing position on sparse matrix: "
+										<<" line =" << ipos << " column =" << jpos << std::endl;        
+					DebugStop();
+				}
+			}
+			if constexpr(TAtomic){
+				pzutils::AtomicAdd(fA[k],value);
+			}else{
+				fA[k]+=value;
+			}
     }
+  }
 }
 
 template<class TVar>
@@ -615,7 +578,13 @@ void TPZSYsmpMatrix<TVar>::Write(TPZStream &buf, int withclassid) const{
 
 #define TEMPL_INST(T) \
   template class TPZRestoreClass<TPZSYsmpMatrix<T>>;\
-  template class TPZSYsmpMatrix<T>;
+  template class TPZSYsmpMatrix<T>; \
+  template void TPZSYsmpMatrix<T>::AddKelImpl<true>(TPZFMatrix<T>&elmat, \
+                                                    TPZVec<int64_t> &source, \
+                                                    TPZVec<int64_t> &destination); \
+  template void TPZSYsmpMatrix<T>::AddKelImpl<false>(TPZFMatrix<T>&elmat, \
+                                                     TPZVec<int64_t> &source, \
+                                                     TPZVec<int64_t> &destination);
 
 TEMPL_INST(double)
 TEMPL_INST(float)

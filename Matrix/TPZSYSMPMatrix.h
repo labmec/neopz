@@ -136,10 +136,18 @@ public :
   
     virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & destinationindex) override;
 	
-	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex) override;
-
-    void AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex) override;
-    /// Access function for the coefficients
+  inline void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                     TPZVec<int64_t> &destinationindex) override{
+    AddKelImpl<false>(elmat,sourceindex,destinationindex);
+  }
+  inline void AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                           TPZVec<int64_t> &destinationindex) override{
+    AddKelImpl<true>(elmat,sourceindex,destinationindex);
+  }
+  template<bool TAtomic>
+  void AddKelImpl(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                  TPZVec<int64_t> &destinationindex);
+  /// Access function for the coefficients
     TPZVec<TVar> &A()
     {
         return fA;
