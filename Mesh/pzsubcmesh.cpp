@@ -1163,19 +1163,11 @@ void TPZSubCompMesh::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMa
 	if (! fAnalysis){
 		TPZFStructMatrix<TVar> local(this);
 		TPZAutoPointer<TPZMatrix<TVar> > stiff =
-            dynamic_cast<TPZMatrix<TVar>*>(local.CreateAssemble(ef.fMat,nullptr));
+            dynamic_cast<TPZMatrix<TVar>*>(local.CreateAssemble(ef.fMat));
 		ek.fMat = *(stiff.operator->());
 		//		TPZStructMatrix::Assemble(ek.fMat,ef.fMat,*this,-1,-1);
 	}
-	else{
-		//if(!fAnalysis->Solver().Matrix())
-		{
-			fAnalysis->Run(std::cout);
-			if(fAnalysis->AmIKilled()){
-				return;
-			}
-		}
-		
+	else{		
 		TPZSubMeshFrontalAnalysis *sman = dynamic_cast<TPZSubMeshFrontalAnalysis *> (fAnalysis.operator->());
 		if(sman)
 		{
@@ -1497,10 +1489,9 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
     
 }
 
-void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZSubCompMesh::SetAnalysisFrontal(int numThreads){
 	
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
-	fAnalysis->SetGuiInterface(guiInterface);
 	
 #ifdef PZDEBUG2
 	{

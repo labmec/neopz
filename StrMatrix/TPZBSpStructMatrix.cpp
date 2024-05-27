@@ -9,7 +9,6 @@
 #include "pzelmat.h"
 #include "TPZYSMPMatrix.h"
 #include "TPZRenumbering.h"
-#include "TPZGuiInterface.h"
 
 using namespace std;
 

@@ -9,7 +9,6 @@
 #include <mutex>              // for mutex
 #include <set>                // for set
 #include <functional>         // for function
-#include "TPZGuiInterface.h"  // for TPZGuiInterface
 #include "pzerror.h"          // for DebugStop
 #include "pzmatrix.h"         // for TPZFMatrix, TPZMatrix
 #include "TPZSolutionMatrix.h"// for TPZSolutionMatrix
@@ -86,8 +85,6 @@ protected:
 	TPZAutoPointer<TPZStructMatrix>  fStructMatrix{nullptr};	
 	/** @brief Renumbering scheme */
 	TPZAutoPointer<TPZRenumbering> fRenumber{nullptr};	
-	/** @brief Pointer for gui interface object */
-	TPZAutoPointer<TPZGuiInterface> fGuiInterface{nullptr};	
 	/** @brief Datastructure which defines postprocessing for one dimensional meshes */
 	class TTablePostProcess : public TPZSavable {
   public :
@@ -125,29 +122,6 @@ protected:
   /** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
 
-  /** @name GUI
-   Methods useful when running in a GUI*/
-  /** @{ */
-	/** @brief Defines gui interface object */
-	void SetGuiInterface(TPZAutoPointer<TPZGuiInterface> gui){
-		fGuiInterface = gui;
-	}
-	
-	/** @brief Gets gui interface object */
-	TPZAutoPointer<TPZGuiInterface> GetGuiInterface() const{
-		return fGuiInterface;
-	}
-  
-	/** @brief Returns if the process was canceled through gui interface */
-	bool AmIKilled(){
-		if(fGuiInterface){
-			return fGuiInterface->AmIKilled();
-		}
-		else return false;
-	}
-
-  /** @} */
-    
 	/** @name MainFEM
    Main methods of the TPZAnalysis for controlling a FEM simulation.*/
   /** @{ */

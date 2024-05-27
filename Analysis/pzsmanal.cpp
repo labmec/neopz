@@ -111,7 +111,7 @@ void TPZSubMeshAnalysis::AssembleInternal()
 	matred->SetSolver(dynamic_cast<TPZMatrixSolver<STATE> *>(mySolver.Clone()));
 	//	TPZStructMatrix::Assemble(fReducableStiff,fRhs, *fMesh);
 //	time_t before = time (NULL);
-	fStructMatrix->Assemble(fReducableStiff,fRhs,fGuiInterface);
+	fStructMatrix->Assemble(fReducableStiff,fRhs);
     
     if (fStructMatrix->HasRange()) {
         TPZFMatrix<TVar> rhsloc(fStructMatrix->EquationFilter().NActiveEquations(),fRhs.Cols(),0.);

@@ -15,7 +15,6 @@ class TPZFMatrix;
 template <class T>
 class TPZMatrix;
 class TPZCompMesh;
-class TPZGuiInterface;
 template<class T>
 class TPZStructMatrixTBBFlow;
 
@@ -43,8 +42,6 @@ public:
 
   /// current structmatrix object
   TPZStructMatrixTBBFlow<TVar> *fStruct;
-  /// gui interface object
-  TPZAutoPointer<TPZGuiInterface> fGuiInterface;
   /// global matrix
   TPZMatrix<TVar> *fGlobMatrix;
   /// global rhs vector
@@ -91,8 +88,6 @@ struct TPZGraphThreadData {
 
   /// current structmatrix object
   TPZStructMatrixTBBFlow<TVar> *fStruct;
-  /// gui interface object
-  TPZAutoPointer<TPZGuiInterface> fGuiInterface;
   /// global matrix
   TPZMatrix<STATE> *fGlobMatrix;
   /// global rhs vector

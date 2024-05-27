@@ -378,8 +378,7 @@ public:
 };
 
 template<class TVar, class TPar>
-void  TPZDohrStructMatrix<TVar,TPar>::AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base,
-                                      TPZAutoPointer<TPZGuiInterface> guiInterface)
+void  TPZDohrStructMatrix<TVar,TPar>::AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base)
 {
     if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
@@ -460,7 +459,6 @@ RunStatsTable dohr_dec   ("-tpz_dohr_dec", "Raw data table statistics for TPZDoh
 
 template<class TVar, class TPar>
 void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base,
-                                   TPZAutoPointer<TPZGuiInterface> guiInterface,
                                    unsigned numthreads_assemble, unsigned numthreads_decompose)
 {
   if (!dynamic_cast<TPZFMatrix<TVar> *>(&rhs_base)) {
@@ -490,13 +488,7 @@ void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatri
         worklist.Append(work);
         it++;
     }
-    
-    if(guiInterface){
-        if(guiInterface->AmIKilled()){
-            return ;//0;
-        }
-    }
-    
+        
     // First pass : assembling the matrices
     ThreadDohrmanAssemblyList<TVar> worklistAssemble(worklist);
     auto itwork =
@@ -628,7 +620,7 @@ void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatri
  * @brief Assemble the global right hand side
  */
 template<class TVar, class TPar>
-void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & rhs_base)
 {
     if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
@@ -655,7 +647,7 @@ void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & rhs_base, TPZAuto
         }
         TPZFStructMatrix<TVar> fullstr(submesh);
         (*it)->fLocalLoad.Zero();
-        fullstr.Assemble((*it)->fLocalLoad,guiInterface);
+        fullstr.Assemble((*it)->fLocalLoad);
         it++;
     }
     for (it=sublist.begin(), isub=0; it != sublist.end(); it++,isub++) {

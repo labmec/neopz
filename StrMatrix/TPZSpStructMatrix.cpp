@@ -7,7 +7,6 @@
 #include "pzcmesh.h"
 #include "TPZYSMPMatrix.h"
 #include "TPZRenumbering.h"
-#include "TPZGuiInterface.h"
 
 #include "TPZTimer.h"
 

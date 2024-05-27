@@ -89,7 +89,7 @@ static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 
 template<class TVar>
-void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs){
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     ass_stiff.start();
@@ -103,10 +103,10 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix 
         TPZFMatrix<TVar> rhsloc;
         if(ComputeRhs()) rhsloc.Redim(neqcondense, rhs.Cols());
         if(this->fNumThreads){
-            this->MultiThread_Assemble(stiffness,rhsloc,guiInterface);
+            this->MultiThread_Assemble(stiffness,rhsloc);
         }
         else{
-            this->Serial_Assemble(stiffness,rhsloc,guiInterface);
+            this->Serial_Assemble(stiffness,rhsloc);
         }
         
         if(ComputeRhs())equationFilter.Scatter(rhsloc, rhs);
@@ -114,17 +114,17 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix 
     else
     {
         if(this->fNumThreads){
-            this->MultiThread_Assemble(stiffness,rhs,guiInterface);
+            this->MultiThread_Assemble(stiffness,rhs);
         }
         else{
-            this->Serial_Assemble(stiffness,rhs,guiInterface);
+            this->Serial_Assemble(stiffness,rhs);
         }
     }
     ass_stiff.stop();
 }
 
 template<class TVar>
-void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base){
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
@@ -148,9 +148,9 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<T
         {
 #ifdef HUGEDEBUG
             TPZFMatrix<TVar> rhsserial(rhsloc);
-            this->Serial_Assemble(rhsserial, guiInterface);
+            this->Serial_Assemble(rhsserial);
 #endif
-            this->MultiThread_Assemble(rhsloc,guiInterface);
+            this->MultiThread_Assemble(rhsloc);
 #ifdef HUGEDEBUG
             rhsserial -= rhsloc;
             REAL norm = Norm(rhsserial);
@@ -159,7 +159,7 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<T
         }
         else
         {
-            this->Serial_Assemble(rhsloc,guiInterface);
+            this->Serial_Assemble(rhsloc);
         }
         equationFilter.Scatter(rhsloc,rhs);
     }
@@ -168,9 +168,9 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<T
         if(this->fNumThreads){
 #ifdef HUGEDEBUG
             TPZFMatrix<TVar> rhsserial(rhs);
-            this->Serial_Assemble(rhsserial, guiInterface);
+            this->Serial_Assemble(rhsserial);
 #endif
-            this->MultiThread_Assemble(rhs,guiInterface);
+            this->MultiThread_Assemble(rhs);
 #ifdef HUGEDEBUG
             REAL normrhs = Norm(rhs);
             REAL normrhsserial = Norm(rhsserial);
@@ -181,7 +181,7 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<T
 #endif
         }
         else{
-            this->Serial_Assemble(rhs,guiInterface);
+            this->Serial_Assemble(rhs);
         }
     }
     ass_rhs.stop();
@@ -200,7 +200,7 @@ void TPZStructMatrixOT<TVar>::InitCreateAssemble()
 }
 
 template<class TVar>
-void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface ){
+void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base){
     if(!dynamic_cast<TPZMatrix<TVar>*>(&stiff_base)||
        !dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
@@ -280,9 +280,6 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
         
         el->CalcStiff(ek,ef);
         
-        if(guiInterface) if(guiInterface->AmIKilled()){
-            return;
-        }
         
 #ifdef PZ_LOG
         if(dynamic_cast<TPZSubCompMesh * >(cmesh))
@@ -404,7 +401,7 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
     
 }
 template<class TVar>
-void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base){
     if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<": incompatible types. Aborting...\n";
@@ -482,7 +479,7 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoP
 
 
 template<class TVar>
-void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMatrix & rhs_base)
 {
     if(!dynamic_cast<TPZMatrix<TVar>*>(&mat_base)||
        !dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
@@ -499,11 +496,6 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
     // std::cout << "Assemble numthreads = " << numthreads << std::endl;
     std::vector<std::thread> allthreads;
     int itr;
-    if(guiInterface){
-        if(guiInterface->AmIKilled()){
-            return;
-        }
-    }
 
     this->fCurrentIndex = 0;
     
@@ -521,7 +513,7 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
 //     }
 // #endif
     ThreadData threaddata(myself, itr, mat, rhs, myself->MaterialIds(),
-                          guiInterface, &fCurrentIndex, ComputeRhs());
+                          &fCurrentIndex, ComputeRhs());
     threaddata.fElBlocked=&fElBlocked;
     threaddata.fElSequenceColor=&fElSequenceColor;
     threaddata.fElementCompleted = &fElementCompleted;
@@ -551,17 +543,12 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
 }
 
 template<class TVar>
-void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs)
 {
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     const int numthreads = this->fNumThreads;
     std::vector<std::thread> allthreads(numthreads);
     int itr;
-    if(guiInterface){
-        if(guiInterface->AmIKilled()){
-            return;
-        }
-    }
     
 
     this->fCurrentIndex = 0;
@@ -575,7 +562,7 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPo
     {
         allthreaddata[itr] =
             new ThreadData(myself, itr, rhs,myself->MaterialIds(),
-                           guiInterface,&fCurrentIndex);
+                           &fCurrentIndex);
         ThreadData &threaddata = *allthreaddata[itr];
         threaddata.fElBlocked=&fElBlocked;
         threaddata.fElSequenceColor=&fElSequenceColor;
@@ -615,9 +602,8 @@ template<class TVar>
 TPZStructMatrixOT<TVar>::ThreadData::ThreadData(
     TPZStructMatrix *strmat, int seqnum, TPZBaseMatrix &mat,
     TPZBaseMatrix &rhs,const std::set<int> &MaterialIds,
-    TPZAutoPointer<TPZGuiInterface> guiInterface,
     std::atomic<int64_t> *currentIndex, bool computeRhs)
-: fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat),
+: fStruct(strmat), fGlobMatrix(&mat),
   fGlobRhs(&rhs), fThreadSeqNum(seqnum), fComputeRhs(computeRhs)
 {
     fCurrentIndex = currentIndex;
@@ -651,9 +637,8 @@ template<class TVar>
 TPZStructMatrixOT<TVar>::ThreadData::ThreadData(
     TPZStructMatrix *strmat, int seqnum, TPZBaseMatrix &rhs,
     const std::set<int> &MaterialIds,
-    TPZAutoPointer<TPZGuiInterface> guiInterface,
     std::atomic<int64_t> *currentIndex)
-: fStruct(strmat),fGuiInterface(guiInterface), fGlobMatrix(0),
+: fStruct(strmat),fGlobMatrix(0),
   fGlobRhs(&rhs), fThreadSeqNum(seqnum)
 {
     this->fCurrentIndex = currentIndex;
@@ -703,7 +688,6 @@ void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
     int &SomeoneIsSleeping = *(data->fSomeoneIsSleeping);
     
     TPZCompMesh *cmesh = data->fStruct->Mesh();
-    TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
     TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
     TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
     int64_t numelements = data->fElSequenceColor->size();
@@ -752,9 +736,6 @@ void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
             intel->InitializeElementMatrix(ek,ef);
 #endif
 
-            if(guiInterface) if(guiInterface->AmIKilled()){
-                break;
-            }
             
 #ifndef DRY_RUN
             if(!el->HasDependency()) {

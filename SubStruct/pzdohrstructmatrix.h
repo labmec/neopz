@@ -67,7 +67,7 @@ public:
 	/**
 	 * @brief Assemble the global right hand side
 	 */
-	virtual void Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+	virtual void Assemble(TPZBaseMatrix & rhs) override;
 	
 	/** @brief Creates a copy of itself */
 	virtual TPZStructMatrix * Clone() override
@@ -103,10 +103,10 @@ public:
 	
    
 
-	void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+	void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs,
                           unsigned numthreads_assemble, unsigned numthreads_decompose);
 
-    void AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    void AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs);
 
 protected:
 	TPZAutoPointer<TPZDohrAssembly<TVar> > fDohrAssembly;

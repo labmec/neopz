@@ -618,8 +618,7 @@ void TPZElastoPlasticAnalysis::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<
 	tangent.Redim(neq,neq);
 	TPZFMatrix<REAL> rhs(neq,1);
 	TPZFStructMatrix<STATE> substitute(Mesh());
-	TPZAutoPointer<TPZGuiInterface> guiInterface(0);
-	substitute.Assemble(tangent,rhs,guiInterface);
+	substitute.Assemble(tangent,rhs);
 //	TPZStructMatrix::Assemble(tangent, rhs, *Mesh());
 }
 
@@ -632,8 +631,7 @@ void TPZElastoPlasticAnalysis::Residual(TPZFMatrix<REAL> &residual, int icase){
 //	TPZFMatrix<REAL> tangent(neq,neq);
 	residual.Redim(neq,1);
 	TPZFStructMatrix<STATE> substitute(Mesh());
-	TPZAutoPointer<TPZGuiInterface> guiInterface(0);
-	substitute.Assemble(residual,guiInterface);
+	substitute.Assemble(residual);
 //	TPZStructMatrix::Assemble(/*tangent,*/ residual, *Mesh());
 	residual *= -1;
 }

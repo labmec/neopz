@@ -7,7 +7,6 @@
 
 #include "pzsbndmat.h"
 #include "pzcmesh.h"
-#include "TPZGuiInterface.h"
 
 template<class TVar, class TPar>
 TPZStructMatrix * TPZSBandStructMatrix<TVar,TPar>::Clone(){

@@ -210,11 +210,11 @@ void TPZEigenAnalysis::AssembleT()
     
   if (mat && mat->Rows() == sz) {
     mat->Zero();
-    fStructMatrix->Assemble(*mat, dummyRhs, fGuiInterface);
+    fStructMatrix->Assemble(*mat, dummyRhs);
   } else {
     TPZAutoPointer<TPZMatrix<TVar>> mat =
       dynamic_cast<TPZMatrix<TVar>*>(
-          fStructMatrix->CreateAssemble(dummyRhs, fGuiInterface));
+          fStructMatrix->CreateAssemble(dummyRhs));
     
     if constexpr (MAT==TPZEigenAnalysis::Mat::A){
       eigSolver.SetMatrixA(mat);
