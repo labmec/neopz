@@ -88,8 +88,20 @@ static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 template<class TVar>
 void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs) {
+
+
+#ifndef USING_OMP
+#ifndef USING_TBB
+    PZError<<"TPZStructMatrixOMPorTBB is only available if\n"
+           <<"USING_OMP=ON or USING_TBB=ON!\nAborting..."<<std::endl;
+    DebugStop();
+#endif
+#endif
+    
 #ifdef USING_MKL
-    mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+    if(this->fNumThreads){
+        mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+    }
     //mkl_set_num_threads_local(1);
 #endif
     ass_stiff.start();
@@ -105,14 +117,14 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix 
             DebugStop();
         }
 #endif
-        TPZFMatrix<STATE> rhsloc(neqcondense, rhs.Cols(), 0.);
+        TPZFMatrix<TVar> rhsloc(neqcondense, rhs.Cols(), 0.);
         if (this->fNumThreads) {
             this->MultiThread_Assemble(mat, rhsloc);
         } else {
             this->Serial_Assemble(mat, rhsloc);
         }
 
-        equationFilter.Scatter(rhsloc, rhs);
+        if(ComputeRhs()){equationFilter.Scatter(rhsloc, rhs);}
     } else {
         if (this->fNumThreads) {
             this->MultiThread_Assemble(mat, rhs);
@@ -122,12 +134,29 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix 
     }
     ass_stiff.stop();
 #ifdef USING_MKL
-    mkl_set_num_threads_local(0);
+    if(this->fNumThreads){
+        mkl_domain_set_num_threads(0, MKL_DOMAIN_BLAS);
+    }
 #endif
 }
 
 template<class TVar>
 void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs){
+
+
+#ifndef USING_OMP
+#ifndef USING_TBB
+    PZError<<"TPZStructMatrixOMPorTBB is only available if\n"
+           <<"USING_OMP=ON or USING_TBB=ON!\nAborting..."<<std::endl;
+    DebugStop();
+#endif
+#endif
+    
+#ifdef USING_MKL
+    if(this->fNumThreads){
+        mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+    }
+#endif
     ass_rhs.start();
     const auto &equationFilter =
             (dynamic_cast<TPZStructMatrix *>(this))->EquationFilter();
@@ -141,11 +170,11 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs){
         {
             DebugStop();
         }
-        TPZFMatrix<STATE> rhsloc(neqcondense,1,0.);
+        TPZFMatrix<TVar> rhsloc(neqcondense,1,0.);
         if(this->fNumThreads)
         {
 #ifdef HUGEDEBUG
-            TPZFMatrix<STATE> rhsserial(rhsloc);
+            TPZFMatrix<TVar> rhsserial(rhsloc);
             this->Serial_Assemble(rhsserial);
 #endif
             this->MultiThread_Assemble(rhsloc);
@@ -165,7 +194,7 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs){
     {
         if(this->fNumThreads){
 #ifdef HUGEDEBUG
-            TPZFMatrix<STATE> rhsserial(rhs);
+            TPZFMatrix<TVar> rhsserial(rhs);
             this->Serial_Assemble(rhsserial);
 #endif
             this->MultiThread_Assemble(rhs);
@@ -183,6 +212,11 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs){
         }
     }
     ass_rhs.stop();
+#ifdef USING_MKL
+    if(this->fNumThreads){
+        mkl_domain_set_num_threads(0, MKL_DOMAIN_BLAS);
+    }
+#endif
 }
 
 
@@ -215,11 +249,11 @@ void TPZStructMatrixOMPorTBB<TVar>::Serial_Assemble(TPZBaseMatrix & mat, TPZBase
         if(!el->HasDependency()) {
             ek.ComputeDestinationIndices();
             equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
-            //            TPZSFMatrix<STATE> test(stiffness);
-            //            TPZFMatrix<STATE> test2(stiffness.Rows(),stiffness.Cols(),0.);
+            //            TPZSFMatrix<TVar> test(stiffness);
+            //            TPZFMatrix<TVar> test2(stiffness.Rows(),stiffness.Cols(),0.);
             //            stiffness.Print("before assembly",std::cout,EMathematicaInput);
             stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-            source.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs()){source.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);}
             //            stiffness.Print("stiffness after assembly STK = ",std::cout,EMathematicaInput);
             //            rhs.Print("rhs after assembly Rhs = ",std::cout,EMathematicaInput);
             //            test2.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
@@ -236,7 +270,7 @@ void TPZStructMatrixOMPorTBB<TVar>::Serial_Assemble(TPZBaseMatrix & mat, TPZBase
             equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
 
             stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-            source.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs()){source.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);}
 
         }
     }
@@ -262,8 +296,9 @@ void TPZStructMatrixOMPorTBB<TVar>::VerifyStiffnessSum(TPZBaseMatrix & mat){
 }
 template<class TVar>
 void TPZStructMatrixOMPorTBB<TVar>::Serial_Assemble(TPZBaseMatrix & rhs){
-
-
+    PZError<<__PRETTY_FUNCTION__
+           <<"\nNot implemented!Aborting..."<<std::endl;
+    DebugStop();
 }
 
 template<class TVar>
@@ -456,10 +491,10 @@ void TPZStructMatrixOMPorTBB<TVar>::ComputingCalcstiffAndAssembling(TPZBaseMatri
 
         if (fShouldColor){
             stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-            source.AddFelNonAtomic(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs()){source.AddFelNonAtomic(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);}
         }else{
             stiffness.AddKelAtomic(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-            source.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs()){source.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);}
         }
 
     } else {
@@ -470,10 +505,10 @@ void TPZStructMatrixOMPorTBB<TVar>::ComputingCalcstiffAndAssembling(TPZBaseMatri
         equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
         if (fShouldColor){
             stiffness.AddKel(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
-            source.AddFelNonAtomic(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs()){source.AddFelNonAtomic(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);}
         }else{
             stiffness.AddKelAtomic(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
-            source.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs()){source.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);}
         }
 
     }
