@@ -37,12 +37,25 @@ TPZMatrixWindow<TVar> &TPZMatrixWindow<TVar>::operator=(const TPZFMatrix<TVar> &
   const auto m_leading_dim = mat.Rows();
   const auto nc = this->Cols();
   const auto nr = this->Rows();
-  const auto sz = nc*nr;
-  for(int i = 0; i < sz; i++){
-    const int ic = i/nr;
-    const int ir = i%nr;
-    this->fStorage[ic*this->fLeadingDim+ir] = mat.Elem()[ic*m_leading_dim+ir];
+  //mem dist to advance between cols
+  const auto my_adv = this->fLeadingDim;
+  const auto their_adv = m_leading_dim;
+  
+  int64_t my_count{0},their_count{0};
+  for(int ic = 0; ic < nc; ic++){
+    auto *my_begin = &this->fStorage[my_count];
+    auto *their_begin = &mat.Elem()[their_count];
+    auto *their_end = their_begin+nr;
+    std::copy(their_begin,their_end,my_begin);
+    my_count+=my_adv;
+    their_count+=their_adv;
   }
+  // const auto sz = nc*nr;
+  // for(int i = 0; i < sz; i++){
+  //   const int ic = i/nr;
+  //   const int ir = i%nr;
+  //   this->fStorage[ic*this->fLeadingDim+ir] = mat.Elem()[ic*m_leading_dim+ir];
+  // }
   
   return *this;
 }
@@ -54,12 +67,25 @@ TPZMatrixWindow<TVar> &TPZMatrixWindow<TVar>::operator=(const TPZMatrixWindow<TV
   const auto m_leading_dim = mat.fLeadingDim;
   const auto nc = this->Cols();
   const auto nr = this->Rows();
-  const auto sz = nc*nr;
-  for(int i = 0; i < sz; i++){
-    const int ic = i/nr;
-    const int ir = i%nr;
-    this->fStorage[ic*this->fLeadingDim+ir] = mat.fStorage[ic*m_leading_dim+ir];
+  //mem dist to advance between cols
+  const auto my_adv = this->fLeadingDim;
+  const auto their_adv = m_leading_dim;
+
+  int64_t my_count{0},their_count{0};
+  for(int ic = 0; ic < nc; ic++){
+    auto *my_begin = &this->fStorage[my_count];
+    auto *their_begin = &mat.fStorage[their_count];
+    auto *their_end = their_begin+nr;
+    std::copy(their_begin,their_end,my_begin);
+    my_count+=my_adv;
+    their_count+=their_adv;
   }
+  // const auto sz = nc*nr;
+  // for(int i = 0; i < sz; i++){
+  //   const int ic = i/nr;
+  //   const int ir = i%nr;
+  //   this->fStorage[ic*this->fLeadingDim+ir] = mat.fStorage[ic*m_leading_dim+ir];
+  // }
   return *this;
 }
 
@@ -67,12 +93,22 @@ template<class TVar>
 TPZMatrixWindow<TVar> &TPZMatrixWindow<TVar>::operator*=(const TVar val){
   const auto nc = this->Cols();
   const auto nr = this->Rows();
-  const auto sz = nc*nr;
-  for(int i = 0; i < sz; i++){
-    const int ic = i/nr;
-    const int ir = i%nr;
-    this->fStorage[ic*this->fLeadingDim+ir] *= val;
+  auto *my_ptr = &this->fStorage[0];
+  //mem dist to advance between cols
+  const auto my_adv = this->fLeadingDim-nr;
+  
+  for(int ic = 0; ic < nc; ic++){
+    for(auto ir = 0; ir < nr; ir++,my_ptr++){
+      *my_ptr *= val;
+    }
+    my_ptr+=my_adv;
   }
+  // const auto sz = nc*nr;
+  // for(int i = 0; i < sz; i++){
+  //   const int ic = i/nr;
+  //   const int ir = i%nr;
+  //   this->fStorage[ic*this->fLeadingDim+ir] *= val;
+  // }
   return *this;
 }
 
