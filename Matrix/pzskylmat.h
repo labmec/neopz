@@ -159,8 +159,17 @@ public:
      * @param destinationindex Contains destine indexes on current matrix
      */
 
-    void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex) override;
-	
+  inline void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                     TPZVec<int64_t> &destinationindex) override{
+    AddKelImpl<false>(elmat,sourceindex,destinationindex);
+  }
+  inline void AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                           TPZVec<int64_t> &destinationindex) override{
+    AddKelImpl<true>(elmat,sourceindex,destinationindex);
+  }
+  template<bool TAtomic>
+  void AddKelImpl(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                  TPZVec<int64_t> &destinationindex);
 	
 	/*** @brief To Solve Linear Equations ***/
 	// @{

@@ -566,94 +566,13 @@ TPZSkylMatrix<TVar>::operator-(const TPZSkylMatrix<TVar> &A ) const
 	return res;
 }
 
+
+
 template<class TVar>
-void TPZSkylMatrix<TVar>::AddKel(TPZFMatrix<TVar>&elmat,
-                                 TPZVec<int64_t> &source,
-                                 TPZVec<int64_t> &destination)
-{
-    int64_t nelem = source.NElements();
-    int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
-    for(icoef=0; icoef<nelem; icoef++) {
-        ieq = destination[icoef];
-        ieqs = source[icoef];
-        for(jcoef=icoef; jcoef<nelem; jcoef++) {
-            jeq = destination[jcoef];
-            jeqs = source[jcoef];
-            int64_t row(ieq), col(jeq);
-            // invertendo linha-coluna para triangular superior
-            if (row > col)
-                this->Swap(&row, &col);
-#ifdef PZDEBUG
-            // checando limites
-            if(row >= this->Dim() || col >= this->Dim()) {
-                cout << "TPZSkylMatrix::GetVal index out of range row = " <<
-                row << " col = " << col << endl;
-                DebugStop();
-            }
-#endif
-            // indice do vetor coluna
-            int64_t index = col - row;
-#ifdef PZDEBUG
-            // checando limite da coluna
-            if (index >= Size(col)) {
-                cerr << "Try TPZSkylMatrix gZero." << endl;
-                DebugStop();
-            }
-#endif
-            // executando contribuição
-            fElem[col][index] += elmat(ieqs,jeqs);
-
-        }
-    }
-}
-
-template<>
-void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
-                                 TPZVec<int64_t> &source,
-                                 TPZVec<int64_t> &destination)
-{
-    int64_t nelem = source.NElements();
-    int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
-    for(icoef=0; icoef<nelem; icoef++) {
-        ieq = destination[icoef];
-        ieqs = source[icoef];
-        for(jcoef=icoef; jcoef<nelem; jcoef++) {
-            jeq = destination[jcoef];
-            jeqs = source[jcoef];
-            int64_t row(ieq), col(jeq);
-            // invertendo linha-coluna para triangular superior
-            if (row > col)
-                this->Swap(&row, &col);
-#ifdef PZDEBUG
-            // checando limites
-            if(row >= this->Dim() || col >= this->Dim()) {
-                cout << "TPZSkylMatrix::GetVal index out of range row = " <<
-                row << " col = " << col << endl;
-                DebugStop();
-            }
-#endif
-            // indice do vetor coluna
-            int64_t index = col - row;
-#ifdef PZDEBUG
-            // checando limite da coluna
-            if (index >= Size(col)) {
-                std::cout << "Skyline wrongly configured " << " row " << row << " col " << col << " Size(col) " << Size(col) << std::endl;
-                cerr << "Try TPZSkylMatrix gZero." << endl;
-                std::cout << destination << std::endl;
-                DebugStop();
-            }
-#endif
-            // executando contribuição
-            pzutils::AtomicAdd(fElem[col][index],elmat(ieqs,jeqs));            
-        }
-    }
-}
-
-
-template<>
-void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
-                                   TPZVec<int64_t> &source,
-                                   TPZVec<int64_t> &destination)
+template<bool TAtomic>
+void TPZSkylMatrix<TVar>::AddKelImpl(TPZFMatrix<TVar>&elmat,
+                                     TPZVec<int64_t> &source,
+                                     TPZVec<int64_t> &destination)
 {
     int64_t nelem = source.NElements();
     int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
@@ -685,7 +604,11 @@ void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
             }
 #endif
             // adding contribution
-            pzutils::AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
+            if constexpr (TAtomic){
+              pzutils::AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
+            }else{
+              fElem[col][index]+=elmat(ieqs,jeqs);
+            }
         }
     }
 }
@@ -1861,6 +1784,25 @@ template class TPZSkylMatrix<std::complex<float> >;
 template class TPZSkylMatrix<double>;
 template class TPZSkylMatrix<std::complex<double> >;
 
+template class TPZSkylMatrix<long double>;
+template class TPZSkylMatrix<std::complex<long double> >;
+
+#define IMPLEMENT_ADDKEL(TVar) \
+  template void TPZSkylMatrix<TVar>::AddKelImpl<true>(TPZFMatrix<TVar>&elmat, \
+                                                      TPZVec<int64_t> &source, \
+                                                      TPZVec<int64_t> &destination);\
+  template void TPZSkylMatrix<TVar>::AddKelImpl<false>(TPZFMatrix<TVar>&elmat, \
+                                                       TPZVec<int64_t> &source, \
+                                                       TPZVec<int64_t> &destination);
+IMPLEMENT_ADDKEL(float)
+IMPLEMENT_ADDKEL(double)
+IMPLEMENT_ADDKEL(long double)
+IMPLEMENT_ADDKEL(std::complex<float>)
+IMPLEMENT_ADDKEL(std::complex<double>)
+IMPLEMENT_ADDKEL(std::complex<long double>)
+
+#undef IMPLEMENT_ADDKEL
+
 #ifndef BORLAND
 template class TPZRestoreClass<TPZSkylMatrix<float>>;
 template class TPZRestoreClass<TPZSkylMatrix<double>>;
@@ -1870,9 +1812,6 @@ template class TPZRestoreClass<TPZSkylMatrix<std::complex<float>>>;
 template class TPZRestoreClass<TPZSkylMatrix<std::complex<double>>>;
 template class TPZRestoreClass<TPZSkylMatrix<std::complex<long double>>>;
 #endif
-
-template class TPZSkylMatrix<long double>;
-template class TPZSkylMatrix<std::complex<long double> >;
 
 
 #if (defined DUMP_BEFORE_DECOMPOSE) || (defined DUMP_BEFORE_SUBST)
