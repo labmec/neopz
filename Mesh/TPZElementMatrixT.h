@@ -75,6 +75,7 @@ struct TPZElementMatrixT : public TPZElementMatrix {
     TPZBlock & ConstrBlock() override{
         return fConstrBlock;
     }
+  void SetUserAllocMat(TPZFMatrix<TVar> *mat){fUserAllocMat=mat;}
     /** @brief Pointer to a blocked matrix object*/
 	TPZFNMatrix<1000, TVar> fMat;
     /** @brief Block structure associated with fMat*/
@@ -83,6 +84,7 @@ struct TPZElementMatrixT : public TPZElementMatrix {
 	TPZFNMatrix<1000, TVar> fConstrMat;
     /** @brief Block structure associated with fConstrMat*/
 	TPZBlock fConstrBlock;
+  TPZFMatrix<TVar> *fUserAllocMat{nullptr};
 };
 
 extern template class TPZElementMatrixT<STATE>;
