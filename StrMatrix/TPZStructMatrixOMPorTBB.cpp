@@ -447,19 +447,28 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBbutNotColoring(TPZBaseMatr
           [&](tbb::blocked_range<int64_t> r){
               TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
               TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
-              for (int64_t iel = r.begin(); iel < r.end(); iel++)
+              const auto bufsz = 400*400;
+              TVar*buf = new TVar[bufsz];
+
               {
-                  TPZCompEl *el = cmesh->Element(iel);
-                  if ((!el) ||
-                      (nmatids != 0 &&
-                       !el->NeedsComputing(matids)))
+                  TPZFMatrix<TVar> auxmat(1,1,buf,bufsz);
+                  ek.SetUserAllocMat(&auxmat);
+                  for (int64_t iel = r.begin(); iel < r.end(); iel++)
                   {
-                      continue;
+                      TPZCompEl *el = cmesh->Element(iel);
+                      if ((!el) ||
+                          (nmatids != 0 &&
+                           !el->NeedsComputing(matids)))
+                      {
+                          continue;
+                      }
+
+                      CalcStiffAndAssemble(mat,rhs,el,ek,ef);
+
                   }
-
-                  CalcStiffAndAssemble(mat,rhs,el,ek,ef);
-
               }
+              //matrix has been destroyed
+              delete [] buf;
         });
 #else
     DebugStop();
