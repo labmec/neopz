@@ -318,7 +318,7 @@ int TPZStructMatrixOMPorTBB<TVar>::GetNumberColors(){
 
 template<class TVar>
 void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs){
-    //mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+    mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
     //mkl_set_num_threads_local(1);
     if (fShouldColor){
         if (fUsingTBB){
@@ -337,6 +337,7 @@ void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TP
         }
     }
 
+    mkl_domain_set_num_threads(0, MKL_DOMAIN_BLAS);
 #ifdef HUGEDEBUG
     VerifyStiffnessSum(mat);
 #endif
@@ -490,25 +491,33 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingOMPbutNotColoring(TPZBaseMatr
     const int nmatids = matids.size();
     
     omp_set_num_threads(nthread);
-    #pragma omp parallel
+#pragma omp parallel
     {
 
-        TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
-        TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
+      const auto bufsz = 400*400;
+      TVar*buf = new TVar[bufsz];
+      TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
+      TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
+      auto mklthreads = pzutils::SetNumThreadsLocalMKL(1);
+      {
+	TPZFMatrix<TVar> auxmat(1,1,buf,bufsz);
+	ek.SetUserAllocMat(&auxmat);
 #pragma omp for schedule(dynamic,1)
         for (int64_t iel = 0; iel < nelem; iel++){
-            {
-                TPZCompEl *el = cmesh->Element(iel);
-                if ((!el) ||
-                    (nmatids != 0 &&
-                     !el->NeedsComputing(matids)))
-                {
-                    continue;
-                }
+	  {
+	    TPZCompEl *el = cmesh->Element(iel);
+	    if ((!el) ||
+		(nmatids != 0 &&
+		 !el->NeedsComputing(matids)))
+	      {
+		continue;
+	      }
 
-                CalcStiffAndAssemble(mat,rhs,el,ek,ef);
-            }
+	    CalcStiffAndAssemble(mat,rhs,el,ek,ef);
+	  }
         }
+      }
+      delete [] buf;
     }
 #else
     DebugStop();
