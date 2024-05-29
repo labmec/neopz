@@ -554,7 +554,7 @@ void TPZCondensedCompElT<TVar>::CalcStiff(TPZElementMatrixT<TVar> &ekglob,
     int64_t dim = ek.fMat.Rows();
     for (int64_t i=0; i<dim ; ++i) {
         for (int64_t j=0; j<dim ; ++j) {
-            fCondensed(i,j) = ek.fMat(i,j);
+            fCondensed(i,j) = ek.fMat.g(i,j);
         }
     }
     
@@ -611,9 +611,9 @@ void TPZCondensedCompElT<TVar>::CalcStiff(TPZElementMatrixT<TVar> &ekglob,
     }
 #endif
     for (int64_t i=0; i<dim; i++) {
-        efglob.fMat(i,0) = F1.GetVal(i,0);
+        efglob.fMat(i,0) = F1.g(i,0);
         for (int64_t j=0; j<dim; j++) {
-            ekglob.fMat(i,j) = K11.GetVal(i,j);
+            ekglob.fMat.g(i,j) = K11.g(i,j);
         }
     }
     
