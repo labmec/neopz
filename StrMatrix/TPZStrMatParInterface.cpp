@@ -1,17 +1,25 @@
 #include "TPZStrMatParInterface.h"
 #include "pzbasematrix.h"
 #include "TPZStructMatrix.h"
+#include "TPZSimpleTimer.h"
 
 TPZBaseMatrix *TPZStrMatParInterface::CreateAssemble(
     TPZBaseMatrix &rhs) {
     this->InitCreateAssemble();
 
     TPZStructMatrix *myself = dynamic_cast<TPZStructMatrix*>(this);
-    TPZBaseMatrix *stiff = myself->Create();
+    TPZBaseMatrix *stiff{nullptr};
+    {
+        TPZSimpleTimer timer("Create matrix");
+        stiff = myself->Create();
+    }
     
     const int64_t cols = MAX(1, rhs.Cols());
     if(ComputeRhs()) rhs.Redim(myself->EquationFilter().NEqExpand(), cols);
-    Assemble(*stiff, rhs);
+    {
+        TPZSimpleTimer timer("Assemble");
+        Assemble(*stiff, rhs);
+    }
     this->EndCreateAssemble(stiff);
 #ifdef PZ_LOG2
     if (loggerel.isDebugEnabled()) {
