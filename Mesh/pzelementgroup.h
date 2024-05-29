@@ -273,6 +273,14 @@ public:
 	}
     
 
+    /**
+	 * @brief Computes the element stifness matrix and right hand side
+	 * @param ek element stiffness matrix
+	 * @param ef element load vector
+	 */
+	virtual void CalcStiff(TPZElementMatrixT<CSTATE> &ek,TPZElementMatrixT<CSTATE> &ef) override{
+        CalcStiffInternal<CSTATE>(ek,ef);
+    }
 	/**
 	 * @brief Computes the element stifness matrix and right hand side
 	 * @param ek element stiffness matrix

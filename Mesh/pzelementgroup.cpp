@@ -283,7 +283,9 @@ void TPZElementGroup::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZElementMa
             int icindex = ekloc.fConnect[ic];
             int ibldest = locindex[icindex];
             for (int idf = 0; idf<iblsize; idf++) {
-                ef.fMat.at(ef.fBlock.at(ibldest,0,idf,0)) += efloc.fMat.at(efloc.fBlock.at(ic,0,idf,0));
+                const auto [my_r,my_c] = ef.fBlock.at(ibldest,0,idf,0);
+                const auto [loc_r,loc_c] = efloc.fBlock.at(ic,0,idf,0);
+                ef.fMat.g(my_r,my_c) += efloc.fMat.g(loc_r,loc_c);
             }
             for (int jc = 0; jc<nelcon; jc++) {
                 int jblsize = ekloc.fBlock.Size(jc);
@@ -291,7 +293,9 @@ void TPZElementGroup::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZElementMa
                 int jbldest = locindex[jcindex];
                 for (int idf = 0; idf<iblsize; idf++) {
                     for (int jdf=0; jdf<jblsize; jdf++) {
-                        ek.fMat.at(ek.fBlock.at(ibldest,jbldest,idf,jdf)) += ekloc.fMat.at(ekloc.fBlock.at(ic,jc,idf,jdf));
+                        const auto [my_r,my_c] = ek.fBlock.at(ibldest,jbldest,idf,jdf);
+                        const auto [loc_r,loc_c] = ekloc.fBlock.at(ic,jc,idf,jdf);
+                        ek.fMat.g(my_r,my_c) += ekloc.fMat.g(loc_r,loc_c);
                     }
                 }
             }
