@@ -335,6 +335,93 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos,  EArcTan, EArcTanSingular, ESteepWave, ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark,ESteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble, EBubble2D,ESinCosCircle, EHarmonic, EHarmonic2,
     ESquareRootUpper, ESquareRootLower, ESquareRoot, ELaplace2D, EHarmonic3, EHarmonicPoly};
     
+    std::string Name() {
+        switch (fExact)
+        {
+        case EConst/* constant-expression */:
+            return "Constant";
+            break;
+        case EX:
+            return "X";
+            break;
+        case ESinSin:
+            return "SinSin";
+            break;
+        case ECosCos:
+            return "CosCos";
+            break;
+        case EArcTan:
+            return "ArcTan";
+            break;
+        case EArcTanSingular:
+            return "ArcTanSingular";
+            break;
+        case ESteepWave:
+            return "SteepWave";
+            break;
+        case ESinDist:
+            return "SinDist";
+            break;
+        case E10SinSin:
+            return "10SinSin";
+            break;
+        case E2SinSin:
+            return "2SinSin";
+            break;
+        case ESinSinDirNonHom:
+            return "SinSinDirNonHom";
+            break;
+        case ESinMark:
+            return "SinMark";
+            break;
+        case ESteklovNonConst:
+            return "SteklovNonConst";
+            break;
+        case EGalvisNonConst:
+            return "GalvisNonConst";
+            break;
+        case EBoundaryLayer:
+            return "BoundaryLayer";
+            break;
+        case EBubble:
+            return "Bubble";
+            break;
+        case EBubble2D:
+            return "Bubble2D";
+            break;
+        case ESinCosCircle:
+            return "SinCosCircle";
+            break;
+        case EHarmonic:
+            return "Harmonic";
+            break;
+        case EHarmonic2:
+            return "Harmonic2";
+            break;
+        case ESquareRootUpper:
+            return "SquareRootUpper";
+            break;
+        case ESquareRootLower:
+            return "SquareRootLower";
+            break;
+        case ESquareRoot:
+            return "SquareRoot";
+            break;
+        case ELaplace2D:
+            return "Laplace2D";
+            break;
+        case EHarmonic3:
+            return "Harmonic3";
+            break;
+        case EHarmonicPoly:
+            return "HarmonicPoly";
+            break;
+        
+        default:
+            return "None";
+            break;
+        }
+    }
     int fDimension = 2;
     
     EExactSol fExact = EArcTan;
