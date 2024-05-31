@@ -86,12 +86,12 @@ void TPZDarcyFlow::ContributeBC(const TPZMaterialDataT<STATE> &data, STATE weigh
         } else if(bc.Type() == 1) {
             v2 = 0.;
             for (int i = 0; i < fDim; i++) {
-                v2 += Flux[i] * normal[i];
+                v2 += -Flux[i] * normal[i];
             }
         } else if(bc.Type() == 2) {
             v2 = 0.;
             for (int i = 0; i < fDim; i++) {
-                v2 += Flux[i] * normal[i];
+                v2 += -Flux[i] * normal[i];
             }
             v2 += bc.Val1()(0,0) * rhs_val[0];
         }
@@ -394,6 +394,9 @@ void TPZDarcyFlow::FillBoundaryConditionDataRequirements(int type, TPZMaterialDa
         data.fNeedsSol = true;
     }
     if (type == 3 || type == 1) {
+        data.fNeedsNormal = true;
+    }
+    if (HasForcingFunction()) {
         data.fNeedsNormal = true;
     }
 }
