@@ -343,12 +343,12 @@ void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
     }
     diff = 0;
     for (int id = 0; id < fDim; id++) {
-        REAL aux = perm * graduDiff[id];
-        diff += aux * aux;
+        REAL aux = graduDiff[id];
+        diff += perm * aux * aux;
     }
     errors[2] += abs(diff);
 
-    // errors[0] - H1/Energy norm
+    // errors[0] - H1 norm
     errors[0] = errors[1] + errors[2];
 
     // TODO confirm with Phil is the following norms are correct
