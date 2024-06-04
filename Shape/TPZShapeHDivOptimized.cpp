@@ -97,6 +97,54 @@ int TPZShapeHDivOptimized<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
     unreachable();
 }
 
+template <class TSHAPE>
+void TPZShapeHDivOptimized<TSHAPE>::CheckH1ConnectOrder(const TPZVec<int> &connectorders, TPZVec<int> &H1Orders)
+{
+    constexpr int nHDivcon = TSHAPE::NFacets + 1;
+    constexpr int nHCurlcon = TSHAPE::NSides - TSHAPE::NCornerNodes;
+    constexpr int dim = TSHAPE::Dimension;
+
+    // H1 order required by HDiv Shape
+    const int maxorder = connectorders[TSHAPE::NFacets] + 1;
+    TPZManVector<int, 27> H1HDivOrders(nHCurlcon, maxorder);
+
+    if constexpr (dim == 2)
+    {
+        H1Orders.resize(nHDivcon);
+        for (int i = 0; i < nHDivcon; i++)
+        {
+            H1Orders[i] = H1HDivOrders[i];
+        }
+    }
+    else if constexpr (dim == 3)
+    {
+        // H1 order required by HCurl Shape
+        constexpr int nedges = TSHAPE::NSides - TSHAPE::NFacets - TSHAPE::NCornerNodes - 1;
+        TPZManVector<int, 27> HCurlOrders(nHCurlcon, 1);
+        for (int ic = nedges; ic < nHCurlcon; ic++)
+        {
+            HCurlOrders[ic] = connectorders[ic - nedges];
+        }
+        if (TSHAPE::Type() == ETetraedro)
+        {
+            for (int ic = nedges; ic < nHCurlcon; ic++)
+            {
+                HCurlOrders[ic]++;
+            }
+            HCurlOrders[nHCurlcon - 1]++;
+        }
+        TPZManVector<int, 27> H1HCurlOrders;
+        TPZShapeHCurl<TSHAPE>::CalcH1ShapeOrders(HCurlOrders, H1HCurlOrders);
+
+        // Maximum between H1HDiv and H1HCurl orders
+        H1Orders.resize(nHCurlcon);
+        for (int i = 0; i < nHCurlcon; i++)
+        {
+            H1Orders[i] = std::max(H1HDivOrders[i], H1HCurlOrders[i]);
+        }
+    }
+}
+
 template struct TPZShapeHDivOptimized<pzshape::TPZShapeLinear>;
 
 template struct TPZShapeHDivOptimized<pzshape::TPZShapeTriang>;
