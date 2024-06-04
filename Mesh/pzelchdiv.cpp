@@ -21,6 +21,7 @@
 #include "tpzline.h"
 #include "tpztriangle.h"
 #include "TPZShapeHDiv.h"
+#include "TPZShapeHDivOptimized.h"
 #include "TPZShapeH1.h"
 #include "TPZShapeHDivConstant.h"
 #include "TPZShapeHCurlNoGrads.h"
@@ -255,7 +256,9 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
     case HDivFamily::EHDivConstant:
         return TPZShapeHDivConstant<TSHAPE>::ComputeNConnectShapeF(connect,order);
         break;
-    
+    case HDivFamily::EHDivOptimized:
+        return TPZShapeHDivOptimized<TSHAPE>::ComputeNConnectShapeF(connect,order);
+        break;
     default:
         return -1;
         break;
@@ -879,7 +882,10 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         TPZShapeHDivConstant<TSHAPE>::Initialize(ids, orders, sideorient, data);
         nvec_shape = this->NShapeF();
         break;
-    
+    case HDivFamily::EHDivOptimized:
+        TPZShapeHDivOptimized<TSHAPE>::Initialize(ids, orders, sideorient, data);
+        nvec_shape = TPZShapeHDivOptimized<TSHAPE>::NShapeF(shapedata);
+        break;
     default:
         break;
     }
@@ -940,13 +946,14 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
     case HDivFamily::EHDivStandard:
         TPZShapeHDiv<TSHAPE>::Shape(qsi, shapedata, phiMaster, data.divphi);
         break;
-
     case HDivFamily::EHDivConstant:
         phiMaster.Resize(TSHAPE::Dimension,nshape);
         data.divphi.Resize(nshape,1);
         TPZShapeHDivConstant<TSHAPE>::Shape(qsi, shapedata, phiMaster, data.divphi);
         break;
-
+    case HDivFamily::EHDivOptimized:
+        TPZShapeHDivOptimized<TSHAPE>::Shape(qsi, shapedata, phiMaster, data.divphi);
+        break;
     default:
         DebugStop();
         break;
@@ -992,13 +999,15 @@ void TPZCompElHDiv<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &dat
         switch (fhdivfam)
         {
         case HDivFamily::EHDivStandard:
-                TPZShapeHDiv<TSHAPE>::Shape(qsifad, shapedata, phiMasterFad, divphiFad);
+            TPZShapeHDiv<TSHAPE>::Shape(qsifad, shapedata, phiMasterFad, divphiFad);
             break;
-
         case HDivFamily::EHDivConstant:
             phiMasterFad.Resize(TSHAPE::Dimension,nshape);
             divphiFad.Resize(nshape,1);
             TPZShapeHDivConstant<TSHAPE>::Shape(qsifad, shapedata, phiMasterFad, divphiFad);
+            break;
+        case HDivFamily::EHDivOptimized:
+            TPZShapeHDivOptimized<TSHAPE>::Shape(qsifad, shapedata, phiMasterFad, divphiFad);
             break;
 
         default:
