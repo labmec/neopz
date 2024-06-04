@@ -273,9 +273,11 @@ RType(T) Norm(const TPZVec< T > &one) {
     RType(T) res = 0.;
     int size = one.NElements();
     if constexpr (is_complex<T>::value){
+        T cres{0};
         for (int i = 0; i < size; i++) {
-            res += (RType(T)) one[i] * std::conj(one[i]);
+            cres += one[i] * std::conj(one[i]);
         }
+        res = cres.real();
     }else{
         for (int i = 0; i < size; i++) {
             res += one[i]*one[i];
