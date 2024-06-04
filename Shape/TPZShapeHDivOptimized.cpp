@@ -19,6 +19,113 @@ static TPZLogger logger("pz.shapehdiv");
 
 template <class TSHAPE>
 TPZShapeHDivOptimized<TSHAPE>::TPZShapeHDivOptimized() {}
+
+template <class TSHAPE>
+void TPZShapeHDivOptimized<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
+                                         const TPZVec<int> &connectorders,
+                                         const TPZVec<int> &sideorient,
+                                         TPZShapeData &data)
+{
+    constexpr int nHDivcon = TSHAPE::NFacets + 1;
+    constexpr int nHCurlcon = TSHAPE::NSides - TSHAPE::NCornerNodes;
+    if (connectorders.size() != nHDivcon)
+        DebugStop();
+
+    data.fCornerNodeIds = ids;
+    data.fHDiv.fSideOrient = sideorient;
+
+    // The H1 connects order is used for both HDiv and HCurl shapes.
+    // Thus, we compute the required order for both shapes and take the maximum between them to construct VecAndShape
+    TPZManVector<int, 27> H1Orders;
+    CheckH1ConnectOrder(connectorders, H1Orders);
+
+    TPZShapeH1<TSHAPE>::Initialize(data.fCornerNodeIds, H1Orders, data);
+
+    // Initialize the HDiv structure
+    data.fHDiv.fConnectOrders = connectorders;
+
+    data.fHDiv.fNumConnectShape.Resize(nHDivcon);
+    int nShape = 0;
+    for (int i = 0; i < nHDivcon; i++)
+    {
+        const int order = data.fHDiv.fConnectOrders[i];
+        data.fHDiv.fNumConnectShape[i] = ComputeNConnectShapeF(i, order);
+        nShape += data.fHDiv.fNumConnectShape[i];
+    }
+
+    data.fHDiv.fSDVecShapeIndex.Resize(nShape);
+
+    TPZShapeHDiv<TSHAPE>::ComputeMasterDirections(data);
+    TPZShapeHDiv<TSHAPE>::ComputeVecandShape(data);
+
+    // Checks if the last connect order is >= then the other connects
+    const int maxOrder = data.fHDiv.fConnectOrders[nHDivcon - 1];
+    for (int i = 0; i < nHDivcon - 1; i++)
+    {
+        if (data.fHDiv.fConnectOrders[i] > maxOrder)
+        {
+            DebugStop();
+        }
+    }
+
+    // Initialize the HCurl structure
+    constexpr int nedges = TSHAPE::NSides - TSHAPE::NFacets - TSHAPE::NCornerNodes - 1;
+    data.fHCurl.fConnectOrders.resize(nHCurlcon);
+    data.fHCurl.fConnectOrders.Fill(1);
+    for (int ic = nedges; ic < nHCurlcon; ic++)
+    {
+        data.fHCurl.fConnectOrders[ic] = connectorders[ic - nedges];
+    }
+    if (TSHAPE::Type() == ETetraedro)
+    {
+        for (int ic = nedges; ic < nHCurlcon; ic++)
+        {
+            data.fHCurl.fConnectOrders[ic]++;
+        }
+        data.fHCurl.fConnectOrders[nHCurlcon - 1]++;
+    }
+
+    data.fH1.fSideTransformationId.Resize(nHCurlcon, 0);
+    for (int iside = TSHAPE::NCornerNodes; iside < TSHAPE::NSides; iside++)
+    {
+        int pos = iside - TSHAPE::NCornerNodes;
+        int trans_id = TSHAPE::GetTransformId(iside, ids); // Foi criado
+        data.fH1.fSideTransformationId[iside - TSHAPE::NCornerNodes] = trans_id;
+    }
+
+    data.fHCurl.fNumConnectShape.Resize(nHCurlcon);
+    nShape = 0;
+    for (int i = 0; i < nHCurlcon; i++)
+    {
+        data.fHCurl.fNumConnectShape[i] = TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(i, data.fHCurl.fConnectOrders[i]);
+        nShape += data.fHCurl.fNumConnectShape[i];
+    }
+
+    data.fHCurl.fSDVecShapeIndex.Resize(nShape);
+    TPZFNMatrix<9, REAL> gradX(TSHAPE::Dimension, TSHAPE::Dimension, 0);
+    gradX.Identity();
+
+    data.fHCurl.fMasterDirections.Redim(TSHAPE::Dimension, 3 * TSHAPE::NSides);
+    TSHAPE::ComputeHCurlDirections(gradX, data.fHCurl.fMasterDirections, data.fH1.fSideTransformationId);
+
+    TPZShapeHCurl<TSHAPE>::ComputeVecandShape(data);
+
+    data.fHCurl.fNumConnectShape.Resize(nHCurlcon);
+    // we need to update the number of filtered hcurl functions
+    for (int i = 0; i < nHCurlcon; i++)
+    {
+        data.fHCurl.fNumConnectShape[i] = TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(i, data.fHCurl.fConnectOrders[i]);
+    }
+
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
+    {
+        std::stringstream sout;
+        data.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+}
 template <class TSHAPE>
 int TPZShapeHDivOptimized<TSHAPE>::NConnectShapeF(int connect, const TPZShapeData &shapedata)
 {
