@@ -77,8 +77,8 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
         DebugStop();
     }
 
-    if(fHybridType == HybridizationType::ESemi && fHDivFam != HDivFamily::EHDivConstant){
-        std::cout << "The only HDiv space with available Semi hybridization is HDivConstant" << std::endl;
+    if(fHybridType == HybridizationType::ESemi && (fHDivFam != HDivFamily::EHDivConstant && fHDivFam != HDivFamily::EHDivOptimized)){
+        std::cout << "The only HDiv spaces with available Semi hybridization is HDivConstant and HDivOptimized" << std::endl;
         DebugStop();
     }
   
