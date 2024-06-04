@@ -259,6 +259,145 @@ void TPZShapeHDivOptimized<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &
         DebugStop();
     }
 }
+
+template <class TSHAPE>
+void TPZShapeHDivOptimized<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data, TPZFMatrix<Fad<REAL>> &phi, TPZFMatrix<Fad<REAL>> &divphi)
+{
+
+    constexpr int ncorner = TSHAPE::NCornerNodes;
+    constexpr int nsides = TSHAPE::NSides;
+    constexpr int dim = TSHAPE::Dimension;
+    constexpr int nfacets = TSHAPE::NFacets;
+    const int nedges = TSHAPE::NumSides(1);
+    int fadsize = pt[0].size();
+
+    if (phi.Rows() != dim || phi.Cols() != data.fHDiv.fSDVecShapeIndex.size())
+    {
+        phi.Resize(dim, data.fHDiv.fSDVecShapeIndex.size());
+        phi.Zero();
+    }
+    if (divphi.Rows() != data.fHDiv.fSDVecShapeIndex.size())
+    {
+        divphi.Resize(data.fHDiv.fSDVecShapeIndex.size(), 1);
+        divphi.Zero();
+    }
+
+    // Compute constant Hdiv functions
+    TPZFNMatrix<dim * nfacets, Fad<REAL>> RT0phi(dim, nfacets);
+    TPZManVector<Fad<REAL>, nfacets> RT0div(nfacets);
+    RT0phi.Zero();
+    RT0div.Fill(0.);
+    TSHAPE::ComputeConstantHDiv(pt, RT0phi, RT0div);
+
+    // For dim = 2, we use the gradient of H1 functions to compute the facet HDiv functions, while the internal functions come from the standard HDiv
+    if constexpr (dim == 2)
+    {
+        TPZFNMatrix<9, Fad<REAL>> locphi(data.fH1.fPhi.Rows(), 1), locdphi(dim, data.fH1.fPhi.Rows());
+        TPZShapeH1<TSHAPE>::Shape(pt, data, locphi, locdphi);
+
+        int count = 0;
+        int countKernel = ncorner;
+        // Edge functions
+        for (int i = 0; i < nedges; i++)
+        {
+            // RT0 Function
+            phi(0, count) = RT0phi(0, i) * data.fHDiv.fSideOrient[i];
+            phi(1, count) = RT0phi(1, i) * data.fHDiv.fSideOrient[i];
+            divphi(count, 0) = RT0div[i] * data.fHDiv.fSideOrient[i];
+            count++;
+
+            // Kernel Hdiv
+            for (int j = 1; j < data.fHDiv.fNumConnectShape[i]; j++)
+            {
+                phi(0, count) = -locdphi(1, countKernel);
+                phi(1, count) = locdphi(0, countKernel);
+                count++;
+                countKernel++;
+            }
+        }
+
+        // Internal functions
+        const int nfacetfunc = count;
+        for (int i = nfacetfunc; i < data.fHDiv.fSDVecShapeIndex.size(); i++)
+        {
+            auto it = data.fHDiv.fSDVecShapeIndex[i];
+            int vecindex = it.first;
+            int scalindex = it.second;
+            divphi(i, 0) = 0.;
+            for (int d = 0; d < dim; d++)
+            {
+                phi(d, i) = locphi(scalindex, 0) * data.fHDiv.fMasterDirections(d, vecindex);
+                divphi(i, 0) += locdphi(d, scalindex) * data.fHDiv.fMasterDirections(d, vecindex);
+            }
+            count++;
+        }
+    }
+    // For dim = 3, the facet functions come from HCurlNoGrads, while the internal functions are computed according to standard HDiv
+    else if constexpr (dim == 3)
+    {
+        divphi.Zero();
+        int nshapehcurl = TPZShapeHCurlNoGrads<TSHAPE>::NHCurlShapeF(data);
+        int nshape = NShapeF(data);
+
+        TPZFNMatrix<200, Fad<REAL>> phiAux(dim, nshapehcurl), curlPhiAux(3, nshapehcurl);
+        phiAux.Zero();
+        curlPhiAux.Zero();
+
+        TPZShapeHCurlNoGrads<TSHAPE>::Shape(pt, data, phiAux, curlPhiAux);
+
+        int count = 0;
+        int countKernel = nedges;
+
+        // Face functions
+        for (int i = 0; i < nfacets; i++)
+        {
+            // RT0 Function
+            for (auto d = 0; d < dim; d++)
+            {
+                phi(d, count) = RT0phi(d, i) * data.fHDiv.fSideOrient[i];
+            }
+            divphi(count, 0) = RT0div[i] * data.fHDiv.fSideOrient[i];
+            count++;
+
+            // Kernel HDiv functions
+            for (int k = 0; k < data.fHCurl.fNumConnectShape[nedges + i]; k++)
+            {
+                for (auto d = 0; d < dim; d++)
+                {
+                    phi(d, count) = curlPhiAux(d, countKernel);
+                }
+                countKernel++;
+                count++;
+            }
+        }
+        // Internal functions
+        const int nfacetfunc = count;
+        TPZFNMatrix<9, Fad<REAL>> locphi(data.fH1.fPhi.Rows(), 1), locdphi(dim, data.fH1.fPhi.Rows());
+        TPZShapeH1<TSHAPE>::Shape(pt, data, locphi, locdphi);
+        for (int i = nfacetfunc; i < data.fHDiv.fSDVecShapeIndex.size(); i++)
+        {
+            auto it = data.fHDiv.fSDVecShapeIndex[i];
+            int vecindex = it.first;
+            int scalindex = it.second;
+            divphi(i, 0) = 0.;
+            for (int d = 0; d < dim; d++)
+            {
+                phi(d, i) = locphi(scalindex, 0) * data.fHDiv.fMasterDirections(d, vecindex);
+                divphi(i, 0) += locdphi(d, scalindex) * data.fHDiv.fMasterDirections(d, vecindex);
+            }
+            count++;
+        }
+        if (count != nshape)
+            DebugStop();
+        if (countKernel != nshapehcurl)
+            DebugStop();
+    }
+    else
+    {
+        DebugStop();
+    }
+}
+
 template <class TSHAPE>
 int TPZShapeHDivOptimized<TSHAPE>::NConnectShapeF(int connect, const TPZShapeData &shapedata)
 {
