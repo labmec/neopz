@@ -178,7 +178,7 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
     // VectorSide indicates the side associated with each vector entry
     TPZManVector<int64_t,27> FirstIndex(TSHAPE::NSides+1);
     // the first index of the shape functions
-    FirstShapeIndex(FirstIndex,scalarorder);
+    FirstShapeIndex(FirstIndex,data.fH1.fConnectOrders);
 
     int64_t nvec = VectorSides.NElements();
     count = 0;
@@ -378,14 +378,14 @@ void TPZShapeHDiv<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data
 
 
 template<class TSHAPE>
-void TPZShapeHDiv<TSHAPE>::FirstShapeIndex(TPZVec<int64_t> &Index, int &scalarorders) {
+void TPZShapeHDiv<TSHAPE>::FirstShapeIndex(TPZVec<int64_t> &Index, const TPZVec<int> &scalarorders) {
     Index[0] = 0;
 
     for(int iside=0;iside<TSHAPE::NSides;iside++)
     {
         int sideorder = 1;
         if (iside >= TSHAPE::NCornerNodes) {
-            sideorder = scalarorders;
+            sideorder = scalarorders[iside-TSHAPE::NCornerNodes];
         }
         int temp = Index[iside] + TSHAPE::NConnectShapeF(iside,sideorder);
         Index[iside+1] = temp;

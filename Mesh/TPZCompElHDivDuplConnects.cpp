@@ -2,6 +2,7 @@
 #include "TPZCompElHDivDuplConnectsBound.h"
 #include "TPZMaterial.h"
 #include "TPZShapeHDiv.h"
+#include "TPZShapeHDivOptimized.h"
 #include "TPZShapeHDivConstant.h"
 #include "pzlog.h"
 #include "pzconnect.h"
@@ -108,6 +109,26 @@ int TPZCompElHDivDuplConnects<TSHAPE>::NConnectShapeF(int connect, int order)con
             return nshape;
         }
         break;
+    case HDivFamily::EHDivOptimized:
+        {
+            int conCorrect = connect/2;
+            int res = connect % 2;
+            int nshape;
+            if (!fDuplicationActive){
+                return TPZShapeHDivOptimized<TSHAPE>::ComputeNConnectShapeF(connect,order);
+            } else {
+                nshape = TPZShapeHDivOptimized<TSHAPE>::ComputeNConnectShapeF(conCorrect,order);
+            }
+            if (res == 1){ 
+                nshape -= 1;
+            } else {
+                if (connect != 2*TSHAPE::NFacets){
+                    nshape = 1;
+                }
+            }
+            return nshape;   
+        }
+        break;
     
     default:
         return -1;
@@ -144,6 +165,10 @@ void TPZCompElHDivDuplConnects<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     case HDivFamily::EHDivConstant:
         TPZShapeHDivConstant<TSHAPE>::Initialize(ids, orders, sideorient, data);
         nvec_shape = this->NShapeF();
+        break;
+    case HDivFamily::EHDivOptimized:
+        TPZShapeHDivOptimized<TSHAPE>::Initialize(ids, orders, sideorient, data);
+        nvec_shape = TPZShapeHDivOptimized<TSHAPE>::NShapeF(shapedata);
         break;
     
     default:
