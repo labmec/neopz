@@ -584,7 +584,9 @@ int TPZMixedDarcyFlow::VariableIndex(const std::string &name) const {
     if (!strcmp("g_average", name.c_str())) return 14;
     if (!strcmp("u_average", name.c_str())) return 15;
     if (!strcmp("ExactFluxShiftedOrigin", name.c_str())) return 16;
+    if (!strcmp("EstimatedError", name.c_str())) return 100;
     if (!strcmp("TrueError", name.c_str())) return 101;
+    if (!strcmp("EffectivityIndex", name.c_str())) return 102;
     DebugStop();
     return -1;
 }
@@ -605,7 +607,9 @@ int TPZMixedDarcyFlow::NSolutionVariables(int var) const {
     if (var == 14) return 1;
     if (var == 15) return 1;
     if (var == 16) return 3;
+    if (var == 100) return 1;
     if (var == 101) return 1;
+    if (var == 102) return 1;
     DebugStop();
     return -1;
 }
