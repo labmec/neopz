@@ -61,6 +61,10 @@ public:
     void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs) override;
     void Assemble(TPZBaseMatrix & rhs) override;
 
+    /** @brief Sets buffer size to be preallocated for a TPZFMatrix provided
+        to TPZElementMatrixT<TVar> for the dependency matrix, useful
+    when dealing with large dependencies to avoid repeated dynamic allocation*/
+    void BufferSizeForUserMatrix(const int sz){fUserMatSize=sz;}
 public:
     int ClassId() const override;
     void Read(TPZStream &buf, void *context) override;
@@ -127,6 +131,9 @@ protected:
     int fSomeoneIsSleeping;
 
     std::atomic<int64_t> fCurrentIndex;
+
+    /// user allocated mat for TPZElementMatrixT
+    int fUserMatSize{0};
 };
 
 extern template class TPZStructMatrixOMPorTBB<STATE>;

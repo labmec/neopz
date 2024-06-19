@@ -448,12 +448,16 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBbutNotColoring(TPZBaseMatr
           [&](tbb::blocked_range<int64_t> r){
               TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
               TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
-              const auto bufsz = 400*400;
-              TVar*buf = new TVar[bufsz];
+              TVar* buf = nullptr;
+              if(fUserMatSize>0){
+                  buf = new TVar[fUserMatSize];
+              }
 
               {
-                  TPZFMatrix<TVar> auxmat(1,1,buf,bufsz);
-                  ek.SetUserAllocMat(&auxmat);
+                  TPZFMatrix<TVar> auxmat(0,0,buf,fUserMatSize);
+                  if(buf){
+                      ek.SetUserAllocMat(&auxmat);
+                  }
                   for (int64_t iel = r.begin(); iel < r.end(); iel++)
                   {
                       TPZCompEl *el = cmesh->Element(iel);
@@ -469,7 +473,7 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBbutNotColoring(TPZBaseMatr
                   }
               }
               //matrix has been destroyed
-              delete [] buf;
+              if(buf){delete [] buf;}
         });
 #else
     DebugStop();
@@ -494,30 +498,36 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingOMPbutNotColoring(TPZBaseMatr
 #pragma omp parallel
     {
 
-      const auto bufsz = 400*400;
-      TVar*buf = new TVar[bufsz];
+      TVar* buf = nullptr;
+      if(fUserMatSize>0){
+          buf = new TVar[fUserMatSize];
+      }
       TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
       TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
       auto mklthreads = pzutils::SetNumThreadsLocalMKL(1);
       {
-	TPZFMatrix<TVar> auxmat(1,1,buf,bufsz);
-	ek.SetUserAllocMat(&auxmat);
+        
+        TPZFMatrix<TVar> auxmat(0,0,buf,fUserMatSize);
+        if(buf){
+            ek.SetUserAllocMat(&auxmat);
+        }
 #pragma omp for schedule(dynamic,1)
         for (int64_t iel = 0; iel < nelem; iel++){
-	  {
-	    TPZCompEl *el = cmesh->Element(iel);
-	    if ((!el) ||
-		(nmatids != 0 &&
-		 !el->NeedsComputing(matids)))
-	      {
-		continue;
-	      }
+          {
+            TPZCompEl *el = cmesh->Element(iel);
+            if ((!el) ||
+                (nmatids != 0 &&
+                 !el->NeedsComputing(matids)))
+              {
+                continue;
+              }
 
-	    CalcStiffAndAssemble(mat,rhs,el,ek,ef);
-	  }
+            CalcStiffAndAssemble(mat,rhs,el,ek,ef);
+          }
         }
       }
-      delete [] buf;
+      //matrix has been destroyed
+      if(buf){delete [] buf;}
     }
 #else
     DebugStop();
