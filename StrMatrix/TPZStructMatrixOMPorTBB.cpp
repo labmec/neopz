@@ -436,45 +436,64 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBbutNotColoring(TPZBaseMatr
 #ifdef USING_TBB
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     auto *cmesh = myself->Mesh();
-    int64_t nelem = cmesh->NElements();
+    const int64_t nelem = cmesh->NElements();
     const int nthread = this->fNumThreads;
     const auto &matids = myself->MaterialIds();
     const int nmatids = matids.size();
 
-        //tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
-        tbb::global_control global_limit(tbb::global_control::max_allowed_parallelism, nthread);
-        tbb::parallel_for(
-          tbb::blocked_range<int64_t>(0,nelem),
-          [&](tbb::blocked_range<int64_t> r){
-              TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
-              TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
-              TVar* buf = nullptr;
-              if(fUserMatSize>0){
-                  buf = new TVar[fUserMatSize];
-              }
 
-              {
-                  TPZFMatrix<TVar> auxmat(0,0,buf,fUserMatSize);
-                  if(buf){
-                      ek.SetUserAllocMat(&auxmat);
-                  }
-                  for (int64_t iel = r.begin(); iel < r.end(); iel++)
-                  {
-                      TPZCompEl *el = cmesh->Element(iel);
-                      if ((!el) ||
-                          (nmatids != 0 &&
-                           !el->NeedsComputing(matids)))
-                      {
-                          continue;
-                      }
+    /*
+      in order to balance the load between threads, tbb may use things as
+      work stealing and etc
+      therefore, doing a initialization routine in the parallel_for,
+      but before the actual for loop, does not ensure that this initialization
+      routine will only be ran once per thread
+      so, we create this vectors and each thread will just point to it
+     */
+    TPZVec<TPZElementMatrixT<TVar>> ekvec(nthread,{cmesh,TPZElementMatrix::EK});
+    TPZVec<TPZElementMatrixT<TVar>> efvec(nthread,{cmesh,TPZElementMatrix::EF});
+    TPZVec<TVar*> bufvec(nthread,nullptr);
+    TPZVec<TPZFMatrix<TVar>*> auxmatvec(nthread,nullptr);
+    
+    if(fUserMatSize>0){
+        for(auto it = 0; it < nthread; it++){
+            bufvec[it] = new TVar[fUserMatSize];
+            auxmatvec[it] = new TPZFMatrix<TVar>(0,0,bufvec[it],fUserMatSize);
+            ekvec[it].SetUserAllocMat(auxmatvec[it]);
+        }
+    }
+    
+    tbb::task_arena arena(nthread);
+    
+    arena.execute([&](){
+        tbb::parallel_for(tbb::blocked_range<int64_t>(0,nelem),
+                          [&](const tbb::blocked_range<int64_t> &r){
+            auto my_index = tbb::this_task_arena::current_thread_index();
+            auto &ek = ekvec[my_index];
+            auto &ef = efvec[my_index];
+            for (int64_t iel = r.begin(); iel < r.end(); iel++)
+            {
+                TPZCompEl *el = cmesh->Element(iel);
+                if ((!el) ||
+                    (nmatids != 0 &&
+                     !el->NeedsComputing(matids)))
+                {
+                    continue;
+                }
 
-                      CalcStiffAndAssemble(mat,rhs,el,ek,ef);
+                CalcStiffAndAssemble(mat,rhs,el,ek,ef);
 
-                  }
-              }
-              //matrix has been destroyed
-              if(buf){delete [] buf;}
+            }
         });
+    });
+
+    if(fUserMatSize>0){
+        //delete all matrices and deallocate all buffers
+        for(auto it = 0; it < nthread; it++){
+            delete auxmatvec[it];
+            delete [] bufvec[it];
+        }
+    }
 #else
     DebugStop();
 #endif
