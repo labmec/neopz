@@ -137,7 +137,7 @@ void TPZGraphEl::DrawSolutionT(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle 
 	int np = NPoints(n);
 	int point=0;
 	TPZManVector<REAL,4> qsi(dim,0.),x(4,0.);
-	TPZManVector<TVar,10> sol(6,0.);
+	TPZManVector<TVar,10> sol(6,0.);//aqui deveria ser vetorial
 	int64_t ip = n->FirstPoint();
 	while(point < np) 
 	{

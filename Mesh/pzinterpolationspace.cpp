@@ -150,7 +150,7 @@ void TPZInterpolationSpace::ReallyComputeSolutionT(TPZMaterialDataT<TVar>& data)
     const int64_t numbersol = MeshSol.Cols();
 	
 	const int solVecSize = ncon? nstate : 0;
-	
+	//TODO:: aqui deveria ser sol(numbersol,nstate) para o caso vetorial ???
     sol.resize(numbersol);
     dsol.resize(numbersol);
     for (int is = 0; is<numbersol; is++) {
@@ -167,13 +167,16 @@ void TPZInterpolationSpace::ReallyComputeSolutionT(TPZMaterialDataT<TVar>& data)
 		const int64_t pos = block.Position(dfseq);
 		for(int jn=0; jn<dfvar; jn++) {
             for (int64_t is=0; is<numbersol; is++) {
+                const int64_t posaux=iv%nstate;
                 sol[is][iv%nstate] +=
                     (TVar)phi.Get(iv/nstate,0)*MeshSol(pos+jn,is);
                 for(auto d=0; d<dphix.Rows(); d++){
                     dsol[is](d,iv%nstate) +=
                         (TVar)dphix.Get(d,iv/nstate)*MeshSol(pos+jn,is);
                 }
+//                std::cout<< "MeshSol ( "<<pos+jn<<","<< is<< " ) = "<< MeshSol(pos+jn,is) << " sol[" << is<< "][" << posaux << " ]= "<< sol[is][iv%nstate]<<std::endl;
             }
+            
 			iv++;
 		}
 	}
