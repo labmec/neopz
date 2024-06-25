@@ -281,6 +281,8 @@ void TPZMixedDarcyFlow::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &data
             if (bc.Type() == 2) {
                 v2 = -res[0] + v2 / v1;
             }
+        } else if (bc.Type() == 5) {
+            v2 = res[0];
         } else {
             DebugStop();
         }
@@ -344,6 +346,17 @@ void TPZMixedDarcyFlow::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &data
             }
 
             break;
+
+        case 5:
+            TPZFMatrix<REAL> &phi = datavec[0].fH1.fPhi;
+            for (int in = 0; in < phi.Rows(); in++) {
+                //<(InvKm g - u_D)*(v.n)
+                ef(in, 0) += TPZMaterial::fBigNumber * v2 * phi(in, 0) * weight;
+                for (int jn = 0; jn < phi.Rows(); jn++) {
+                    //InvKm(sigma.n)(v.n)
+                    ek(in, jn) += TPZMaterial::fBigNumber * phi(in, 0) * phi(jn, 0) * weight;
+                }
+            }
 
     }
 }
