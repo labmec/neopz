@@ -492,6 +492,10 @@ void TPZMultiphysicsElement::TransferMultiphysicsElementSolutionT()
             int posloc = cel->Mesh()->Block().Position(seqloc);
             TPZFMatrix<TVar> &celSol = cel->Mesh()->Solution();
             TPZFMatrix<TVar> &meshSol = this->Mesh()->Solution();
+
+            int nrows = meshSol.Rows();
+            int ncols = meshSol.Cols();
+            celSol.Resize(nrows,ncols);
             for (int ibl = 0; ibl < blsz; ibl++) {
                 for (int iload = 0; iload < nload; iload++) {
                     celSol(posloc+ibl,iload) = meshSol(pos+ibl,iload);
