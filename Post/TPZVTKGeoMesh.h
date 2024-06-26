@@ -43,14 +43,14 @@ public:
     static void PrintCMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = true);
     
 	/** @brief Generate an output of all geomesh to VTK, associating to each one the given data */
-	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, TPZVec<int> &elData, bool finestmesh = false);
+	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, TPZVec<int> &elData, const std::string name = "eldata", bool finestmesh = false);
 	
     /** @brief Generate an output of all geomesh to VTK, associating to each one the given data */
-    static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, TPZVec<int64_t> &elData, bool finestmesh = false)
+    static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, TPZVec<int64_t> &elData, const std::string name = "eldata", bool finestmesh = true)
     {
         TPZVec<int> eldata2(elData.size());
         for(int64_t el=0; el<elData.size(); el++) eldata2[el] = elData[el];
-        PrintGMeshVTK(gmesh, file, eldata2,finestmesh);
+        PrintGMeshVTK(gmesh, file, eldata2, name, finestmesh);
     }
     
 	/** @brief Generate an output of all geomesh to VTK, associating to each one the given data */
