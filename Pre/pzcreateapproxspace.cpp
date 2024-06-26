@@ -187,6 +187,12 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const TPZVec<int
     for(int64_t el = 0; el<gelindexes.size(); el++)
     {
         elvec[el] = gmesh->Element(gelindexes[el]);
+#ifdef PZDEBUG
+        if(!elvec[el])
+        {
+            DebugStop();
+        }
+#endif
     }
 	int64_t i, nelem = elvec.NElements();
 	int64_t neltocreate = 0;
@@ -197,14 +203,11 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const TPZVec<int
         if (gel->Reference()) {
             continue;
         }
+        neltocreate++;
 	}
 	std::set<int> matnotfound;
-	int64_t nbl = cmesh.Block().NBlocks();
-    if(neltocreate > nbl) 
-    {
-        cmesh.Block().SetNBlocks(neltocreate);
-    }
-    cmesh.Block().SetNBlocks(nbl);
+	// int64_t nbl = cmesh.Block().NBlocks();
+    // cmesh.Block().SetNBlocks(nbl+neltocreate);
 	
 	for(i=0; i<nelem; i++) {
 		TPZGeoEl *gel = elvec[i];
@@ -217,7 +220,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const TPZVec<int
             continue;
         }
         
-        if(!gel->Reference() && gel->NumInterfaces() == 0)
+        if(gel->NumInterfaces() == 0)
         {
             index = CreateCompEl(gel,cmesh)->Index();
             if (fCreateHybridMesh) {
@@ -245,6 +248,75 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const TPZVec<int
 	cmesh.InitializeBlock();
 }
 
+/** @brief Creates the computational elements, and the degree of freedom nodes 
+ * using the gelindexes as the partiton of the geometric mesh
+ * and the porders as the order of the elements
+*/
+void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const TPZVec<int64_t> &   gelindexes, const TPZVec<int> &porders) const {
+#ifdef PZDEBUG
+    if(gelindexes.size() != porders.size())
+    {
+        DebugStop();
+    }
+#endif
+    int cmeshporder = cmesh.GetDefaultOrder();
+    TPZVec<TPZGeoEl *> elvec(gelindexes.size());
+    TPZGeoMesh *gmesh = cmesh.Reference();
+    for(int64_t el = 0; el<gelindexes.size(); el++)
+    {
+        elvec[el] = gmesh->Element(gelindexes[el]);
+    }
+	int64_t i, nelem = elvec.NElements();
+	int64_t neltocreate = 0;
+	int64_t index;
+	for(i=0; i<nelem; i++) {
+		TPZGeoEl *gel = elvec[i];
+		if(!gel) continue;
+        if (gel->Reference()) {
+            continue;
+        }
+        neltocreate++;
+	}
+	std::set<int> matnotfound;
+	// int64_t nbl = cmesh.Block().NBlocks();
+    // cmesh.Block().SetNBlocks(neltocreate+nbl);
+	
+	for(i=0; i<nelem; i++) {
+		TPZGeoEl *gel = elvec[i];
+		if(!gel || gel->Reference()) continue;
+        if(gel->NumInterfaces()) continue;
+        int matid = gel->MaterialId();
+        TPZMaterial * mat = cmesh.FindMaterial(matid);
+        if(!mat)
+        {
+            matnotfound.insert(matid);
+            continue;
+        }
+        if(porders[i] < 0) DebugStop();
+        int porder = porders[i];
+        cmesh.SetDefaultOrder(porder);
+        index = CreateCompEl(gel,cmesh)->Index();
+        if (index >= 0 && fCreateHybridMesh) {
+            cmesh.ElementVec()[index]->Reference()->ResetReference();
+        }
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
+        {
+            std::stringstream sout;
+            if (index < 0) {
+                gel->Print(sout);
+                sout << "No computational element was created. " << std::endl;
+            }else{
+                cmesh.ElementVec()[index]->Print(sout);
+            }
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+    }
+	cmesh.InitializeBlock();
+    cmesh.SetDefaultOrder(cmeshporder);
+}
+
 /**
  * @brief Creates the computational elements, and the degree of freedom nodes
  */
@@ -265,12 +337,12 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
         }
     }
     std::set<int> matnotfound;
-    int64_t nbl = cmesh.Block().NBlocks();
-    if(neltocreate > nbl)
-    {
-        cmesh.Block().SetNBlocks(neltocreate);
-    }
-    cmesh.Block().SetNBlocks(nbl);
+    // int64_t nbl = cmesh.Block().NBlocks();
+    // if(neltocreate > nbl)
+    // {
+    //     cmesh.Block().SetNBlocks(neltocreate);
+    // }
+    // cmesh.Block().SetNBlocks(nbl);
     
     for(i=0; i<nelem; i++) {
         TPZGeoEl *gel = elvec[i];
