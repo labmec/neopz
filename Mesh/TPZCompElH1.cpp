@@ -27,7 +27,7 @@ template<class TSHAPE>
 TPZCompElH1<TSHAPE>::TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel,
                                  int nocreate, const H1Family h1fam) :
 TPZRegisterClassId(&TPZCompElH1::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel), fh1fam(h1fam)
+TPZIntelGen<TSHAPE>(mesh,gel,nocreate), fh1fam(h1fam)
 {
 	
 }
@@ -188,7 +188,7 @@ void TPZCompElH1<TSHAPE>::SetSideOrder(int side, int order) {
             int nvar = 1;
             TPZMaterial * mat = this->Material();
             if(mat) nvar = mat->NStateVariables();
-            int nshape = TSHAPE::NConnectShapeF(side, order);
+            int nshape = NConnectShapeF(side, order);
             c.SetNShape(nshape);
             c.SetNState(nvar);
             this->Mesh()->Block().Set(seqnum,nshape*nvar);
