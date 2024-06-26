@@ -16,21 +16,51 @@ static TPZLogger logger("pz.strmatrix");
 
 template<class TSHAPE>
 TPZCompElKernelHDiv<TSHAPE>::TPZCompElKernelHDiv(TPZCompMesh &mesh, TPZGeoEl *gel) :
-TPZRegisterClassId(&TPZCompElKernelHDiv::ClassId), TPZCompElH1<TSHAPE>(mesh,gel) {
+TPZRegisterClassId(&TPZCompElKernelHDiv::ClassId), TPZCompElH1<TSHAPE>(mesh,gel,1) {
+	gel->SetReference(this);
+    int matid = gel->MaterialId();
+#ifdef PZDEBUG
+    if (mesh.FindMaterial(matid) == 0) {
+        DebugStop();
+    }
+#endif
+
+    this->fPreferredOrder = mesh.GetDefaultOrder();
+	for(int i=0;i<TSHAPE::NSides;i++) {
+		fConnectIndexes[i] = this->CreateMidSideConnect(i);
+		mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
+	}
 
     //Updates the number of shape functions and also the integration rule
     for (int icon = 0; icon < this->NConnects(); icon++)
     {
         TPZConnect &c = this->Connect(icon);
         int nShapeF = NConnectShapeF(icon,c.Order());
-        c.SetNShape(nShapeF);
+        if(c.NShape() != nShapeF) DebugStop();
+        // c.SetNShape(nShapeF);
+
+#ifdef PZDEBUG
+        if(c.HasDependency()) {
+            TPZConnect::TPZDepend<STATE> *dep = dynamic_cast<TPZConnect::TPZDepend<STATE> *>(c.FirstDepend());
+            while(dep)
+            {
+                if(dep->fDepMatrix.Rows() != c.NShape())
+                {
+                    DebugStop();
+                }
+                dep = dynamic_cast<TPZConnect::TPZDepend<STATE> *>(dep->fNext);
+            }
+        }
+#endif
         int64_t seqnum = c.SequenceNumber();
         int nvar = 1;
         TPZMaterial * mat = this->Material();
         if (mat) nvar = mat->NStateVariables();
-        this->Mesh()->Block().Set(seqnum, nvar * nShapeF);
-        this->AdjustIntegrationRule();
+        int blsize = this->Mesh()->Block().Size(seqnum);
+        if(blsize != nShapeF * nvar) DebugStop();
+        // this->Mesh()->Block().Set(seqnum, nvar * nShapeF);
     }
+    this->AdjustIntegrationRule();
 }
 
 // The MaxOrder of the elements is increased by one to be compatible with the approximation space;
@@ -241,6 +271,60 @@ int TPZCompElKernelHDiv<TSHAPE>::NConnectShapeF(int connect, int order) const{
     return TPZCompElH1<TSHAPE>::NConnectShapeF(connect,order);
 }
 
+#include "pzshapepoint.h"
+#include "pzshapelinear.h"
+
+
+using namespace pzshape;
+
+template<class TSIDESHAPE>
+static void SideShape(const TPZVec<REAL> &point, TPZVec<int64_t> &ids, TPZVec<int> &ord, TPZShapeData &data)
+{
+    TPZShapeH1<TSIDESHAPE>::Initialize(ids, ord, data);
+    TPZShapeH1<TSIDESHAPE>::Shape(point, data);
+}
+
+
+
+/**compute the values of the shape function of the side*/
+template<class TSHAPE>
+void TPZCompElKernelHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+	
+    if(side == TSHAPE::NSides -1 ) {
+        DebugStop();
+        return;
+    }
+	int nc = TSHAPE::NContainedSides(side);
+	int nn = TSHAPE::NSideNodes(side);
+	TPZManVector<int64_t,27> id(nn);
+	TPZManVector<int,27> order(nc-nn);
+	int n,c;
+	TPZGeoEl *ref = this->Reference();
+	for (n=0;n<nn;n++){
+		int nodloc = TSHAPE::SideNodeLocId(side,n);
+		id [n] = ref->NodePtr(nodloc)->Id();
+	}
+	for (c=nn;c<nc;c++){
+		int conloc = TSHAPE::ContainedSideLocId(side,c);
+        order[c-nn] = this->Connect(conloc).Order()+1;
+	}
+    
+    TPZShapeData data;
+    
+    switch (TSHAPE::Type(side)) {
+        case EPoint:
+            SideShape<TPZShapePoint>(point, id, order, data);
+            break;
+        case EOned:
+            SideShape<TPZShapeLinear>(point, id, order, data);
+            break;
+        default:
+            DebugStop();
+            break;
+    }
+    phi = data.fH1.fPhi;
+    dphi = data.fH1.fDPhi;
+}
 
 #include "pzshapepoint.h"
 #include "pzshapelinear.h"
