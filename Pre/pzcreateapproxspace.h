@@ -165,8 +165,16 @@ public:
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	void BuildMesh(TPZCompMesh &cmesh) const;
     
-    /** @brief Creates the computational elements, and the degree of freedom nodes */
+    /** @brief Creates the computational elements, and the degree of freedom nodes
+     * using the gelindexes as the partiton of the geometric mesh
+     */
     void BuildMesh(TPZCompMesh &cmesh, const TPZVec<int64_t> &gelindexes) const;
+    
+    /** @brief Creates the computational elements, and the degree of freedom nodes 
+     * using the gelindexes as the partiton of the geometric mesh
+     * and the porders as the order of the elements
+    */
+    void BuildMesh(TPZCompMesh &cmesh, const TPZVec<int64_t> &gelindexes, const TPZVec<int> &porders) const;
     
     /** @brief Creates the interface elements */
 	/** Only element of material id in the set<int> will be created */
