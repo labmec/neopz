@@ -795,6 +795,10 @@ int64_t TPZInterpolatedElement::CreateMidSideConnect(int side) {
         //    thisside.RemoveDuplicates(elvec);
         int64_t cap = elvec.NElements();
         int sideorder = PreferredSideOrder(side);
+        if(sideorder < 0) {
+            sideorder = PreferredSideOrder(side);
+            DebugStop();
+        }
         SetSideOrder(side, sideorder);
         sideorder = EffectiveSideOrder(side);
         // We check on all smaller elements connected to the current element
@@ -913,6 +917,13 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         SideShapeFunction(side, par, phis, dphis);
         t.Apply(par, pointl);
         large->SideShapeFunction(neighbourside, pointl, phil, dphil);
+#ifdef PZDEBUG
+        if(phil.Rows() != numshapel) {
+            numshapel = large->NSideShapeF(neighbourside);
+            large->SideShapeFunction(neighbourside, pointl, phil, dphil);
+            DebugStop();
+        }
+#endif
         for (in = 0; in < numshape; in++) {
             for (jn = 0; jn < numshape; jn++) {
                 (*M)(in, jn) += phis(in, 0) * phis(jn, 0) * weight;
