@@ -41,7 +41,7 @@ template <class TVar> class TPZVerySparseMatrix;
 
 /** @brief Returns a dot product to matrices */
 template<class TVar>
-TVar Dot(const TPZFMatrix<TVar> &A,const TPZFMatrix<TVar> &B);
+TVar Dot(const TPZFMatrix<TVar> &A,const TPZFMatrix<TVar> &B,bool conj=true);
 
 /** @brief Returns the norm of the matrix A */
 template<class TVar>
