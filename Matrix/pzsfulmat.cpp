@@ -146,6 +146,7 @@ template<class TVar>
 TPZSFMatrix<TVar> &
 TPZSFMatrix<TVar> ::operator=(TPZSFMatrix<TVar>  &&A )
 {
+	TPZMatrix<TVar>::operator=(A);
 	fElem=A.fElem;
 	A.fElem=nullptr;
 	return *this;

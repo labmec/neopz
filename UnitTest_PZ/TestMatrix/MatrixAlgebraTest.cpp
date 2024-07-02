@@ -189,18 +189,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Add(nsym)","[matrix_tests]",
   }
 }
 
-//for debugging: once this is fixed, uncomment next test
-TEST_CASE("Add TPZSFMatrix","[matrix_tests][!shouldfail]"){
-  SECTION("Find out why it is failing"){
-    TPZSFMatrix<double> ma1;
-    ma1.AutoFill(10,10,SymProp::Sym);
-    TestAdd(ma1,false);
-    TestAdd(ma1,true);
-  }
-}
 TEMPLATE_PRODUCT_TEST_CASE("Add(sym)","[matrix_tests]",
                            (
-                             // TPZSFMatrix,
+                             TPZSFMatrix,
                              TPZSBMatrix,
                              TPZSYsmpMatrix,TPZSkylMatrix),(float,double,long double,
                                                             std::complex<float>,std::complex<double>,
