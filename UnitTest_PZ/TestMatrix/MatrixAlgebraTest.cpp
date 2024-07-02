@@ -25,7 +25,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Inverse","[matrix_tests]",
                              TPZFMatrix,
                              TPZSFMatrix,
                              TPZFBMatrix,
-                             //TPZSBMatrix,//see next test for debugging
+                             TPZSBMatrix,
                              TPZSkylNSymMatrix,
                              TPZSkylMatrix,
 #ifdef PZ_USING_MKL
@@ -72,21 +72,16 @@ TEMPLATE_PRODUCT_TEST_CASE("Inverse","[matrix_tests]",
       MAT ma;
       const int dim = GENERATE(5,10);
       ma.AutoFill(dim, dim, sp);
-      TestInverse(ma,dec);
+      if (std::is_same_v<MAT, TPZSBMatrix<SCAL>> && is_complex<SCAL>::value && dec==ELDLt)
+      {
+        // ELDLt is not implemented for complex numbers in TPZSBMatrix. Please Implement it!
+        REQUIRE_THROWS(TestInverse(ma, dec));
+      }
+      else
+      {
+        TestInverse(ma, dec);
+      }
     }
-  }
-}
-
-
-//for debugging: once this is fixed, uncomment next test
-TEST_CASE("Inverse TPZSBMatrix cplx","[matrix_tests][!shouldfail]"){
-  SECTION("Find out what is happening"){
-    using MAT=TPZSBMatrix<std::complex<double>>;
-    const SymProp sp=SymProp::Herm;
-    MAT ma1;
-    const int dim = GENERATE(5,10);
-    ma1.AutoFill(dim,dim,sp);
-    TestInverse(ma1,ELDLt);
   }
 }
 
