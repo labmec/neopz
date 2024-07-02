@@ -118,6 +118,33 @@ this->fStorage[i] += k * B.fStorage[i];
  */
 
 template <class TVar>
+void TPZSkylNSymMatrix<TVar>::CheckTypeCompatibility(const TPZMatrix<TVar> *A,
+                                                     const TPZMatrix<TVar> *B) const
+{
+  auto incompatSkyline = []()
+  {
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: incompatible matrices\n.Aborting...\n";
+    DebugStop();
+  };
+  auto aPtr = dynamic_cast<const TPZSkylNSymMatrix<TVar> *>(A);
+  auto bPtr = dynamic_cast<const TPZSkylNSymMatrix<TVar> *>(B);
+  if (!aPtr || !bPtr)
+  {
+    incompatSkyline();
+  }
+
+  bool check{false};
+  auto ncols = aPtr->Cols();
+  for (auto i = 0; i < ncols; i++)
+  {
+    check = check || aPtr->Size(i) != bPtr->Size(i);
+  }
+  if (check)
+    incompatSkyline();
+}
+
+template <class TVar>
 void TPZSkylNSymMatrix<TVar>::SetSkyline(const TPZVec<int64_t> &skyline)
 {
   fElem.Fill(0);
@@ -753,7 +780,8 @@ TPZSkylNSymMatrix<TVar> TPZSkylNSymMatrix<TVar>:: operator*(const TVar value)con
   return res;
 }
 
-
+// In TPZSkylNSymMatrix<TVar> the storage is done in fStorage and fStorageb.
+// Elem() must me implemented in a way that it returns a pointer to a contiguous memory block with all the elements of the matrix.
 template<class TVar>
 TVar* &TPZSkylNSymMatrix<TVar>::Elem()
 {

@@ -214,6 +214,8 @@ int ClassId() const override;
 
 
  protected:
+  void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                              const TPZMatrix<TVar>*B) const override;
 
   /**
      This method returns a pointer to the diagonal element of the matrix of the col column

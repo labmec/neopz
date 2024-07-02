@@ -155,11 +155,11 @@ TEMPLATE_TEST_CASE("DotNorm","[matrix_tests]",float,double,long double,
 
 //for debugging: once this is fixed, uncomment next test
 TEST_CASE("Add TPZSkylNSymMatrix","[matrix_tests][!shouldfail]"){
-  SECTION("With operator it executes, without it doesnt"){
+  SECTION("It fails with and without operator"){
     TPZSkylNSymMatrix<double> ma1;
     ma1.AutoFill(10,10,SymProp::NonSym);
-    TestAdd(ma1,false);
     TestAdd(ma1,true);
+    TestAdd(ma1,false);
   }
 }
 TEMPLATE_PRODUCT_TEST_CASE("Add(nsym)","[matrix_tests]",
@@ -209,7 +209,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Add(sym)","[matrix_tests]",
 
 //for debugging: once this is fixed, uncomment next test
 TEST_CASE("Subtract TPZSkylNSymMatrix","[matrix_tests][!shouldfail]"){
-  SECTION("With operator it executes, without it doesnt"){
+  SECTION("It fails with and without operator"){
     TPZSkylNSymMatrix<double> ma1;
     ma1.AutoFill(10,10,SymProp::NonSym);
     TestSubtract(ma1,false);
