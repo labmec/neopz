@@ -246,19 +246,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Subtract(nsym)","[matrix_tests]",
   }
 }
 
-//for debugging: once this is fixed, uncomment next test
-TEST_CASE("Subtract TPZSFMatrix","[matrix_tests][!shouldfail]"){
-  SECTION("Find out why it is failing"){
-    TPZSFMatrix<double> ma1;
-    ma1.AutoFill(10,10,SymProp::Sym);
-    TestSubtract(ma1,false);
-    TestSubtract(ma1,true);
-  }
-}
-
 TEMPLATE_PRODUCT_TEST_CASE("Subtract(sym)","[matrix_tests]",
                            (
-                             // TPZSFMatrix,
+                             TPZSFMatrix,
                              TPZSBMatrix,
                              TPZSYsmpMatrix,TPZSkylMatrix),(float,double,long double,
                                                             std::complex<float>,std::complex<double>,
