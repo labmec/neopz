@@ -11,6 +11,8 @@ template<class MAT>
 void TestAdd(const MAT &mat, const bool use_operator);
 template<class MAT>
 void TestSubtract(const MAT &mat, const bool use_operator);
+template<class MAT>
+void TestMultiplyByScalar(const MAT &mat, const bool use_operator);
 template<class TVar>
 void BlockDiagLUPivot();
 template<class TVar>
@@ -264,19 +266,67 @@ TEMPLATE_PRODUCT_TEST_CASE("Subtract(sym)","[matrix_tests]",
   }
 }
 
-TEMPLATE_TEST_CASE("MultiplyByScalar","[matrix_tests][!shouldfail]",
-                   // float,
-                   // double,
-                   // long double,
-                   // std::complex<float>,
-                   // std::complex<double>,
-                   std::complex<long double>
-                   ) {
-  SECTION("MultiplyByScalar method IMPLEMENT ME"){
-    FAIL("IMPLEMENT ME");
+//for debugging: once this is fixed, uncomment next test
+TEST_CASE("MultiplyByScalar TPZSkylNSymMatrix","[matrix_tests][!shouldfail]"){
+  SECTION("It fails with and without operator"){
+    TPZSkylNSymMatrix<double> ma1;
+    ma1.AutoFill(10,10,SymProp::NonSym);
+    TestMultiplyByScalar(ma1,false);
+    TestMultiplyByScalar(ma1,true);
   }
-  SECTION("MultiplyByScalar operator IMPLEMENT ME"){
-    FAIL("IMPLEMENT ME");
+}
+
+TEMPLATE_PRODUCT_TEST_CASE("MultiplyByScalar", "[matrix_tests][!shouldfail]",
+                           (TPZFMatrix,
+                            TPZFBMatrix,
+                            TPZFYsmpMatrix,
+                            // TPZSkylNSymMatrix,
+                            TPZSFMatrix,
+                            TPZSBMatrix,
+                            TPZSYsmpMatrix,
+#ifdef PZ_USING_MKL
+                            TPZFYsmpMatrixPardiso,
+                            TPZSYsmpMatrixPardiso,
+#endif
+                            TPZSkylMatrix),
+                           (float, double, long double,
+                            std::complex<float>, std::complex<double>,
+                            std::complex<long double>))
+{
+  using MAT = TestType;
+  using SCAL = typename MAT::Type;
+
+  constexpr bool sym_storage = IsSymmetricStorage<MAT>;
+#ifdef PZ_USING_MKL
+  // pardiso is only for doubles
+  if ((std::is_same_v<MAT, TPZFYsmpMatrixPardiso<SCAL>> &&
+       !std::is_same_v<double, RType(SCAL)>) ||
+      (std::is_same_v<MAT, TPZSYsmpMatrixPardiso<SCAL>> &&
+       !std::is_same_v<double, RType(SCAL)>))
+  {
+    return;
+  }
+#endif
+  SymProp sp = GENERATE(SymProp::NonSym, SymProp::Sym, SymProp::Herm);
+  SECTION(SymPropName(sp))
+  {
+    if (sym_storage && sp == SymProp::NonSym)
+    {
+      return;
+    }
+
+    MAT ma;
+    const int dim = GENERATE(5, 10);
+    ma.AutoFill(dim, dim, sp);
+
+    SECTION("MultiplyByScalar method")
+    {
+      TestMultiplyByScalar(ma, false);
+    }
+    SECTION("MultiplyByScalar operator")
+    {
+      TestMultiplyByScalar(ma, true);
+    }
   }
 }
 
@@ -571,6 +621,50 @@ void TestSubtract(const MAT& ma1, const bool use_operator){
     for (int j = 0; (j < col) && check; j++) {
       CAPTURE(i,j,res.Get(i,j));
       if (!IsZero((res.Get(i, j))/tol)) {
+        check = false;
+      }
+      REQUIRE(check);
+    }
+  }
+  Catch::StringMaker<RTVar>::precision = oldPrecision;
+}
+
+template<class MAT>
+void TestMultiplyByScalar(const MAT &ma, const bool use_operator)
+{
+  using TVar=typename MAT::Type;
+  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
+
+  bool check = true;
+  constexpr RTVar tol = []()
+  {
+    if constexpr (std::is_same_v<RTVar, float>)
+      return (RTVar)10;
+    else
+      return (RTVar)1;
+  }();
+  const int row = ma.Rows();
+  const int col = ma.Cols();
+
+  RTVar alpha = GENERATE(0.1, 2.0, 10.0);
+  MAT res;
+  if (use_operator)
+  {
+    res = ma * alpha;
+  }
+  else
+  {
+    ma.MultiplyByScalar(alpha,res);
+  }
+
+  for (int i = 0; i < row; i++)
+  {
+    for (int j = 0; (j < col) && check; j++)
+    {
+      CAPTURE(i, j, res.GetVal(i, j), ma.GetVal(i, j), alpha);
+      if (!IsZero((res.Get(i, j) - ma.Get(i, j) * alpha) / tol))
+      {
         check = false;
       }
       REQUIRE(check);
