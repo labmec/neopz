@@ -57,7 +57,7 @@ void TPZLinearAnalysis::AssembleT()
   if(!this->fStructMatrix){
     std::cout<<"Setting default struct matrix: ";
     TPZAutoPointer<TPZStructMatrix> str{nullptr};
-#if defined(USING_MKL) || defined(USING_EIGEN)
+#if defined(USING_MKL)// || defined(USING_EIGEN)
     std::cout<<"sparse(non-symmetric)"<<std::endl;
     str = new TPZSpStructMatrix<TVar>(fCompMesh);
 #else

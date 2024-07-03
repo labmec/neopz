@@ -387,13 +387,24 @@ if(USING_UMFPACK)
 		  target_compile_definitions(pz PUBLIC USING_UMFPACK)
 endif(USING_UMFPACK)
 
+# option(USING_EIGEN "Whether the EIGEN3 library will be linked in" OFF)
+# if(USING_EIGEN)
+# 		  find_package(Eigen3 CONFIG)
+# 		  target_link_libraries(pz PUBLIC Eigen3::Eigen)
+# 		  target_compile_definitions(pz PUBLIC USING_EIGEN)
+# endif(USING_EIGEN)
+
+
 option(USING_EIGEN "Whether the EIGEN3 library will be linked in" OFF)
 if(USING_EIGEN)
-		  find_package(Eigen3 CONFIG)
-		  target_link_libraries(pz PUBLIC Eigen3::Eigen)
+      include(cmake/EnableEigen.cmake)
+      enable_eigen(pz)
+      include_directories(/Users/philippedevloo/GitHub/GFemResearch/neopz_GFEM/build-cmake/_deps/eigen-src)
+		  # find_package(Eigen3 CONFIG)
+		  # target_link_libraries(pz PUBLIC Eigen3::Eigen)
 		  target_compile_definitions(pz PUBLIC USING_EIGEN)
+		  target_compile_definitions(pz PUBLIC PZ_USING_EIGEN)
 endif(USING_EIGEN)
-
 
 
 

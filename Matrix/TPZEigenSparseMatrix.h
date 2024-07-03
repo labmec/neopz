@@ -10,7 +10,7 @@
 #include "pz_config.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
-#include "TPZYSMPMatrix.h"
+#include "TPZSYSMPMatrix.h"
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 
@@ -27,7 +27,7 @@
  * Defines operations on general sparse matrices stored in the (old) Yale Sparse Matrix Package format.
  */
 template<class TVar>
-class TPZEigenSparseMatrix : public TPZFYsmpMatrix<TVar> {
+class TPZEigenSparseMatrix : public TPZSYsmpMatrix<TVar> {
     
     public :
     typedef Eigen::SparseMatrix<TVar,0,int64_t> SpMat; // declares a column-major sparse matrix type of double

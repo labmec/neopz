@@ -31,7 +31,7 @@ using namespace std;
 
 template<class TVar>
 TPZEigenSparseMatrix<TVar>::TPZEigenSparseMatrix() : TPZRegisterClassId(&TPZEigenSparseMatrix::ClassId),
-TPZFYsmpMatrix<TVar>()
+TPZSYsmpMatrix<TVar>()
 {
 }
 
@@ -41,7 +41,7 @@ TPZFYsmpMatrix<TVar>()
 
 template<class TVar>
 TPZEigenSparseMatrix<TVar>::TPZEigenSparseMatrix(const int64_t rows,const int64_t cols ) :
-TPZRegisterClassId(&TPZEigenSparseMatrix::ClassId),TPZFYsmpMatrix<TVar>(rows,cols) {
+TPZRegisterClassId(&TPZEigenSparseMatrix::ClassId),TPZSYsmpMatrix<TVar>(rows,cols) {
 #ifdef CONSTRUCTOR
 	cerr << "TPZEigenSparseMatrix(int rows,int cols)\n";
 #endif
@@ -151,7 +151,7 @@ TPZMatrix<TVar> &TPZEigenSparseMatrix<TVar>::operator*=(const TVar val)
 template<class TVar>
 void TPZEigenSparseMatrix<TVar>::Print(const char *title, ostream &out ,const MatrixOutputFormat form) const {
 	// Print the matrix along with a identification title
-    TPZFYsmpMatrix<TVar>::Print(title,out,form);
+    TPZSYsmpMatrix<TVar>::Print(title,out,form);
 }
 
 
@@ -220,6 +220,7 @@ int TPZEigenSparseMatrix<TVar>::Decompose(const DecomposeType dt)
     else {
         DebugStop();
     }
+    return 0;
 }
 /**
  * @brief Solves the linear system using Direct methods
@@ -249,6 +250,7 @@ int TPZEigenSparseMatrix<TVar>::SolveDirect ( TPZFMatrix<TVar>& F , const Decomp
     else{
         DebugStop();
     }
+    return 0;
 }
 
 template<class TVar>
@@ -271,6 +273,7 @@ int TPZEigenSparseMatrix<TVar>::SolveDirect ( TPZFMatrix<TVar>& F , const Decomp
     else{
         DebugStop();
     }
+    return 0;
 }
 
 template<class TVar>
@@ -311,7 +314,7 @@ void TPZEigenSparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMat
 
 template<class TVar>
 int TPZEigenSparseMatrix<TVar>::ClassId() const{
-    return Hash("TPZEigenSparseMatrix") ^ TPZFYsmpMatrix<TVar>::ClassId() << 1;
+    return Hash("TPZEigenSparseMatrix") ^ TPZSYsmpMatrix<TVar>::ClassId() << 1;
 }
 
 template class TPZEigenSparseMatrix<double>;

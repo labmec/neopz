@@ -2,7 +2,7 @@
 function(enable_eigen target)
     #perhaps eigen was already downloaded when running cmake
     if(NOT eigen_POPULATED)
-        find_package(Eigen3 3.4 CONFIG)
+        find_package(Eigen3 3.4 QUIET CONFIG)
 
         if(NOT EIGEN3_FOUND)
             # Couldn't load via target, so fall back to allowing module mode finding, which will pick up
@@ -10,7 +10,7 @@ function(enable_eigen target)
             find_package(Eigen3 3.4 QUIET)
         endif()
         if(NOT EIGEN3_FOUND)
-            set(EIGEN3_VERSION_STRING "3.4.90")
+            set(EIGEN3_VERSION_STRING "7dd3dda3daa218147557b33f8d05b3b023f05f7d")
             include(FetchContent)
             FetchContent_Declare(
                 eigen
@@ -25,18 +25,20 @@ function(enable_eigen target)
             endif()
 
             set(EIGEN3_INCLUDE_DIR ${eigen_SOURCE_DIR})
+            message("EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
             set(EIGEN3_FOUND TRUE)
         endif()
     endif()
     if(EIGEN3_FOUND)
         # if eigen was downloaded, the target was not created
         if(NOT TARGET Eigen3::Eigen)
-#            add_library(Eigen3::Eigen IMPORTED INTERFACE)
-			target_link_library(${target} PUBLIC Eigen3::Eigen)
+            add_library(Eigen3::Eigen IMPORTED INTERFACE)
+			target_link_libraries(${target} PUBLIC Eigen3::Eigen)
 			target_compile_definitions(${target} PRIVATE USING_EIGEN)
-      target_compile_definitions(${target} INTERFACE PZ_USING_EIGEN)
- #           set_property(TARGET Eigen3::Eigen PROPERTY INTERFACE_INCLUDE_DIRECTORIES
- #               "${EIGEN3_INCLUDE_DIR}")
+            target_compile_definitions(${target} INTERFACE PZ_USING_EIGEN)
+            target_include_directories(${target} PUBLIC ${EIGEN3_INCLUDE_DIR})
+            set_property(TARGET Eigen3::Eigen PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+               "${EIGEN3_INCLUDE_DIR}")
         endif()
 
         # Eigen 3.3.1+ cmake sets EIGEN3_VERSION_STRING (and hard codes the version when installed
