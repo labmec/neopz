@@ -1394,6 +1394,7 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
         if (hasgeometry) {
             out << " Gel " << gel->Index() << " matid " << gel->MaterialId() << " Center " << xcenter << std::endl;
         }
+        TPZManVector<REAL,3> xco(3);
         for (ic = 0; ic<nc; ic++) {
             TPZManVector<STATE> connectsol;
             int64_t cindex = cel->ConnectIndex(ic);
@@ -1408,7 +1409,13 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
                     connectsol[i] = 0.;
                 }
             }
-            out << ic << " index " << cindex << " values " << connectsol << std::endl;
+            if(gel && ic < gel->NCornerNodes()) {
+                gel->NodePtr(ic)->GetCoordinates(xco);
+                out << "co " << xco << " ic ";
+            }
+            if(connectsol.size()) {
+                out << ic << " index " << cindex << " values " << connectsol << std::endl;
+            }
         }
     }
 
