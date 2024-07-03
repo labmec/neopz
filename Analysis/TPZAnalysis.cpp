@@ -1413,8 +1413,10 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
                 gel->NodePtr(ic)->GetCoordinates(xco);
                 out << "co " << xco << " ic ";
             }
+
             if(connectsol.size()) {
-                out << ic << " index " << cindex << " values " << connectsol << std::endl;
+                std::streamsize ss = std::cout.precision();
+                out << ic << " index " << cindex << " values " << std::fixed << std::setprecision(15) << connectsol << std::setprecision(ss) << std::endl;
             }
         }
     }
