@@ -416,8 +416,8 @@ void TPZElasticity3D::ContributeVecShape(const TPZMaterialDataT<STATE> &data,
                                          TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     const TPZFMatrix<REAL> & dphi = data.dphix;
-	const TPZFMatrix<REAL> & phi = data.fH1.fPhi;
-	
+	const TPZFMatrix<REAL> & phi = data.phi;
+	// dphi.Print("dphi");
 	int phc = phi.Cols();
 	int efc = ef.Cols();
 	
@@ -511,8 +511,8 @@ void TPZElasticity3D::ContributeVecShapeBC(const TPZMaterialDataT<STATE> & data,
                                            TPZFMatrix<STATE> & ef,
                                            TPZBndCondT<STATE> &bc)
 {
-    const TPZFMatrix<REAL> & phi = data.fH1.fPhi;
-    
+    const TPZFMatrix<REAL> & phi = data.phi;
+    // phi.Print("phi");
 	const REAL BIGNUMBER  = TPZMaterial::fBigNumber;
     
 	int phc = phi.Cols();
@@ -540,11 +540,12 @@ void TPZElasticity3D::ContributeVecShapeBC(const TPZMaterialDataT<STATE> & data,
 		}
 		case 1:// Neumann condition
         {
-            for (in = 0; in < phc; in++)
+            for (int il = 0; il <fNumLoadCases; il++)
             {
-                for (int il = 0; il <fNumLoadCases; il++)
+                const auto v2 = bcLoadCases->GetBCRhsVal(il);
+                // std::cout << "v2 = " << v2 << "\n";
+                for (in = 0; in < phc; in++)
                 {
-                    const auto v2 = bcLoadCases->GetBCRhsVal(il);
                     ef(in,il) += weight * ( v2[0]*phi(0,in) + v2[1]*phi(1,in) + v2[2]*phi(2,in) );
                 }
             }
