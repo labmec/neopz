@@ -54,7 +54,7 @@ void TPZFYsmpMatrix<TVar>::GetRowIndices(const int64_t i, TPZVec<int64_t> &indic
 	const auto last = fIA[i+1];
 	const auto nv = last - first;
 	indices.Resize(nv);
-	for(int i = 0; i < nv; i++){indices[i] = fJA[first+i];}
+	for(auto i = 0; i < nv; i++){indices[i] = fJA[first+i];}
 }
 
 // ****************************************************************************
@@ -431,8 +431,8 @@ TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator+=(const TPZFYsmpMatrix<TVar
 #ifdef PZDEBUG
 	CheckTypeCompatibility(this, &A);
 #endif
-	const int nnzero = this->fA.size();
-	for(int i = 0; i < nnzero; i++){
+	const int64_t nnzero = this->fA.size();
+	for(int64_t i = 0; i < nnzero; i++){
 		this->fA[i] += A.fA[i];
 	}
 	return *this;
@@ -443,8 +443,8 @@ TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator-=(const TPZFYsmpMatrix<TVar
 #ifdef PZDEBUG
 	CheckTypeCompatibility(this, &A);
 #endif
-	const int nnzero = this->fA.size();
-	for(int i = 0; i < nnzero; i++){
+	const int64_t nnzero = this->fA.size();
+	for(int64_t i = 0; i < nnzero; i++){
 		this->fA[i] -= A.fA[i];
 	}
 	return *this;
@@ -605,7 +605,7 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	TPZVec<TPZMThread> alldata(numthreads);
 	int i;
 	int64_t eqperthread = r/numthreads;
-	int firsteq = 0;
+	int64_t firsteq = 0;
 	for(i=0;i<numthreads;i++) 
 	{
 		alldata[i].target = this;
@@ -640,7 +640,7 @@ TVar TPZFYsmpMatrix<TVar>::RowTimesVector(const int row, const TPZFMatrix<TVar> 
   TVar res = 0;
   const auto first = fIA[row];
 	const auto last = fIA[row+1];
-  for(int ic = first; ic < last; ic++){
+  for(auto ic = first; ic < last; ic++){
     res += fA[ic] * v.GetVal(fJA[ic],0);
   }
   return res;
@@ -1009,11 +1009,11 @@ TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &indices,
 		DebugStop();
 	}
 #endif
-	const int neq = indices.size();
+	const auto neq = indices.size();
 	ia.Resize(neq+1,-1);
 	int64_t nentries{0};
 	//first we count the number of entries
-	for(int i = 0; i < neq; i++){
+	for(auto i = 0; i < neq; i++){
 		const auto eq = indices[i];
 		ia[i] = nentries;
 		const auto first = fIA[eq];
@@ -1033,7 +1033,7 @@ TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &indices,
 	ja.Resize(nentries,-1);
 	aa.Resize(nentries,-1);
 	nentries = 0;
-	for(int i = 0; i < neq; i++){
+	for(auto i = 0; i < neq; i++){
 		const auto eq = indices[i];
 		const auto first = fIA[eq];
 		const auto last = fIA[eq+1];

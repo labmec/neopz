@@ -175,8 +175,8 @@ TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator+=(const TPZSYsmpMatrix<TVar
 #ifdef PZDEBUG
 	CheckTypeCompatibility(this, &A);
 #endif
-	const int nnzero = this->fA.size();
-	for(int i = 0; i < nnzero; i++){
+	const int64_t nnzero = this->fA.size();
+	for(int64_t i = 0; i < nnzero; i++){
 		this->fA[i] += A.fA[i];
 	}
 	return *this;
@@ -187,8 +187,8 @@ TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator-=(const TPZSYsmpMatrix<TVar
 #ifdef PZDEBUG
 	CheckTypeCompatibility(this, &A);
 #endif
-	const int nnzero = this->fA.size();
-	for(int i = 0; i < nnzero; i++){
+	const int64_t nnzero = this->fA.size();
+	for(int64_t i = 0; i < nnzero; i++){
 		this->fA[i] -= A.fA[i];
 	}
 	return *this;
