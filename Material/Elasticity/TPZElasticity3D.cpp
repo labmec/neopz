@@ -836,17 +836,19 @@ int TPZElasticity3D::NSolutionVariables(int var) const {
 void TPZElasticity3D::Solution(const TPZMaterialDataT<STATE> &data,
                                int var,TPZVec<STATE> &Solout) {
 	const auto &Sol = data.sol[this->fPostProcIndex];
-    auto DSol = data.dsol[this->fPostProcIndex];
+    auto &DSol = data.dsol[this->fPostProcIndex];
     const auto &axes = data.axes;
-    if(data.fShapeType == TPZMaterialData::EVecShape){
-        TPZFNMatrix<9,STATE> DSolXY(3,3);
-        for(int i = 0; i<3; i++) {
-            for(int j = 0; j<3; j++) {
-                DSolXY(i,j) = DSol(i*3+j,0);
-            }
-        }
-        DSol = DSolXY;
-    }
+    if(DSol.Rows() !=3 || DSol.Cols() != 3) DebugStop();
+    // if(data.fShapeType == TPZMaterialData::EVecShape){
+    //     TPZFNMatrix<9,STATE> DSolXY(3,3);
+    //     for(int i = 0; i<3; i++) {
+    //         for(int j = 0; j<3; j++) {
+    //             DSolXY(i,j) = DSol(i*3+j,0);
+    //         }
+    //     }
+    //     DSol = DSolXY;
+    //     DSol.Print("DSol");
+    // }
     TPZFNMatrix<9,STATE> DSolXY(3,3);
     TPZAxesTools<STATE>::Axes2XYZ(DSol, DSolXY, axes);
 	if(var == TPZElasticity3D::EDisplacement) {

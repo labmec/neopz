@@ -157,7 +157,11 @@ void TPZInterpolationSpace::ReallyComputeSolutionT(TPZMaterialDataT<TVar>& data)
     for (int is = 0; is<numbersol; is++) {
         sol[is].Resize(solVecSize);
         sol[is].Fill(0.);
-        dsol[is].Redim(dphix.Rows(), solVecSize);
+		if(data.fShapeType == TPZMaterialData::EScalarShape) {
+	        dsol[is].Redim(dphix.Rows(), solVecSize);
+		} else if(data.fShapeType == TPZMaterialData::EVecShape) {
+			dsol[is].Redim(dim, solVecSize);
+		}
         dsol[is].Zero();
     }
 	if(data.fShapeType == TPZMaterialData::EScalarShape) {
