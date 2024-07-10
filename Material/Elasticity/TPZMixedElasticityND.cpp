@@ -536,7 +536,7 @@ void TPZMixedElasticityND::Contribute_3spaces(const TPZVec<TPZMaterialDataT<STAT
        }
 #endif
     }
-    datavec[0].ComputeFunctionDivergence();
+    // datavec[0].ComputeFunctionDivergence();
     for (int i = 0; i < nshapeS; i++) {
         int iphi = datavec[0].fVecShapeIndex[i].second;
         int ivec = datavec[0].fVecShapeIndex[i].first;
@@ -1496,15 +1496,14 @@ STATE TPZMixedElasticityND::Inner(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T) {
 
 ////////////////////////////////////////////////////////////////////
 
-template <typename TVar>
-TVar TPZMixedElasticityND::InnerVec(const TPZVec<TVar> &S, const TPZVec<TVar> &T) {
+STATE TPZMixedElasticityND::InnerVec(const TPZVec<STATE> &S, const TPZVec<STATE> &T) {
     //inner product of two vectors
 #ifdef DEBUG
     if (S.size() != T.size()) {
         DebugStop();
     }
 #endif
-    TVar Val = 0;
+    STATE Val = 0;
     for (int i = 0; i < S.size(); i++) {
         Val += S[i] * T[i];
     }

@@ -203,7 +203,7 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
 void TPZApproxCreator::CheckNeighborhoodHybridization() const {
     const int dim = fGeoMesh->Dimension();
     for(auto gel : fGeoMesh->ElementVec()) {
-        if(gel->Dimension() != dim || gel->HasSubElement()) continue;
+        if(!gel || gel->Dimension() != dim || gel->HasSubElement()) continue;
         
         const int firstFace = gel->FirstSide(dim-1);
         for (int iside = firstFace; iside < gel->NSides()-1; iside++) {

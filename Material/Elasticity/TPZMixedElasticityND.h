@@ -272,8 +272,7 @@ public:
     void SymmetricSecondOrderTensorFromMandel(const TPZVec<STATE> &SMandel, TPZFMatrix<STATE> &S) const;
 
     /** inner product of two vectors. See Gurtin (2003), p. 5. */
-    template<class TVar>
-    TVar InnerVec(const TPZVec<TVar> &S, const TPZVec<TVar> &T);
+    STATE InnerVec(const TPZVec<STATE> &S, const TPZVec<STATE> &T);
 
     /** trace of the tensor GradU = Div(U)*/
     STATE Tr(TPZFMatrix<REAL> &GradU);

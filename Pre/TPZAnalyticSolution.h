@@ -183,7 +183,7 @@ struct TPZAnalyticSolution
 struct TElasticity2DAnalytic : public TPZAnalyticSolution
 {
      enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1, Etest2, EThiago, EPoly,
-         ESquareRootUpper, ESquareRootLower, ESquareRoot, ELShape, ECrack,EHomoDir
+         ESquareRootUpper, ESquareRootLower, ESquareRoot, ELShape, ECrack,EHomoDir, EHarmonic   
      };
     
      EDefState fProblemType = EDispx;

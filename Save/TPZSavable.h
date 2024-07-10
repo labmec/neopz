@@ -6,6 +6,7 @@
 #ifndef TPZSAVABLE_H
 #define TPZSAVABLE_H
 
+#include <cstdint>
 #include <string>     // for string
 #include <set>        // for std::set
 #include <map>        // for std::map

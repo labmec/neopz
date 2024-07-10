@@ -426,8 +426,10 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[1] = K1*mult1*sinT2*mult3 + K2*mult1*cosT2*mult4;
         
         
+    } else if (fProblemType==EHarmonic){        
+        disp[0] = FADsin(2.*M_PI*x[1])*(-1.+FADcos(2.*M_PI*x[0])) + FADsin(M_PI*x[0])*FADsin(M_PI*x[1]);;
+        disp[1] = FADsin(2.*M_PI*x[0])*(1.-FADcos(2.*M_PI*x[1])) + FADsin(M_PI*x[0])*FADsin(M_PI*x[1]);;
     }
-
     else
     {
         DebugStop();
@@ -675,7 +677,10 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) con
         
         
     }
-    
+    else if (fProblemType==EHarmonic){        
+        disp[0] = sin(2.*M_PI*x[1])*(-1.+cos(2.*M_PI*x[0])) + sin(M_PI*x[0])*sin(M_PI*x[1]);
+        disp[1] = sin(2.*M_PI*x[0])*(1.-cos(2.*M_PI*x[1])) + sin(M_PI*x[0])*sin(M_PI*x[1]);
+    }
     else {
         DebugStop();
     }
