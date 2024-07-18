@@ -66,7 +66,8 @@ void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym) {
     if (fBand == 0) {
         fBand = nrow-1;
     }
-    Resize(nrow, ncol);
+    TPZSBMatrix A(nrow, fBand);
+    *this = A;
     
     int64_t i, j;
     TVar val = 0, sum;
