@@ -10,7 +10,8 @@
 //returns true if two matrices are equal
 template<class T>
 bool CompareMatrices(const TPZMatrix<T> &m1, const TPZMatrix<T> &m2);
-
+template<class MAT>
+void TestResize(const MAT &ma, const int newrow, const int newcol);
 
 TEMPLATE_TEST_CASE("TPZFMatrix copy","[matrix_tests]", CSTATE, REAL, Fad<REAL>) {
   SECTION("Copy constructor"){
@@ -195,9 +196,104 @@ TEMPLATE_TEST_CASE("TPZFNMatrix move","[matrix_tests]", CSTATE, REAL, Fad<REAL>)
   }
 }
 
-TEST_CASE("Resize tests","[matrix_tests][!shouldfail]"){
-  SECTION("IMPLEMENT ME"){
-    FAIL("IMPLEMENT ME");
+//for debugging: once this is fixed, uncomment next test
+TEST_CASE("Resize TPZSkylNSymMatrix","[matrix_tests][!shouldfail]"){
+  SECTION("fail for every dimension")
+  {
+    TPZSkylNSymMatrix<double> ma;
+    ma.AutoFill(5, 5, SymProp::NonSym);
+    SECTION("Resize rows")
+    {
+      const int newrow = 10;
+      TestResize(ma, newrow, 5);
+    }
+    SECTION("Resize cols")
+    {
+      const int newcol = 10;
+      TestResize(ma, 5, newcol);
+    }
+    SECTION("Resize both")
+    {
+      const int newrow = 10;
+      const int newcol = 10;
+      TestResize(ma, newrow, newcol);
+    }
+  }
+}
+
+TEMPLATE_PRODUCT_TEST_CASE("Resize (nsym) tests","[matrix_tests]",
+                           (TPZFMatrix,
+                            TPZFBMatrix,
+                            //TPZSkylNSymMatrix,
+                            TPZFYsmpMatrix),(STATE,CSTATE))
+{
+  using MAT = TestType;
+  using SCAL = typename TestType::Type;
+  const SymProp sp=SymProp::NonSym;
+
+  MAT ma;
+  const int dim = 5;
+  ma.AutoFill(dim, dim, sp);
+  SECTION("Resize rows")
+  {
+    const int newrow = GENERATE(10, 15);
+    if (!std::is_same_v<MAT, TPZFBMatrix<SCAL>> && !std::is_same_v<MAT, TPZFYsmpMatrix<SCAL>>)
+      TestResize(ma, newrow, dim);
+    else //band and sparse matrices do not accept resize
+      REQUIRE_THROWS(TestResize(ma, newrow, dim));
+  }
+  SECTION("Resize cols")
+  {
+    const int newcol = GENERATE(10, 15);
+    if (!std::is_same_v<MAT, TPZFBMatrix<SCAL>> && !std::is_same_v<MAT, TPZFYsmpMatrix<SCAL>>)
+      TestResize(ma, dim, newcol);
+    else //band and sparse matrices do not accept resize
+      REQUIRE_THROWS(TestResize(ma, dim, newcol));
+  }
+  SECTION("Resize both")
+  {
+    const int newrow = GENERATE(10, 15);
+    const int newcol = GENERATE(10, 15);
+    if (!std::is_same_v<MAT, TPZFBMatrix<SCAL>> && !std::is_same_v<MAT, TPZFYsmpMatrix<SCAL>>)
+      TestResize(ma, newrow, newcol);
+    else //band and sparse matrices do not accept resize
+      REQUIRE_THROWS(TestResize(ma, newrow, newcol));
+  }
+}
+
+TEMPLATE_PRODUCT_TEST_CASE("Resize (sym) tests","[matrix_tests]",
+                           (TPZSFMatrix,
+                            TPZSBMatrix,
+                            TPZSkylMatrix,
+                            TPZSYsmpMatrix),(STATE,CSTATE))
+{
+  using MAT = TestType;
+  using SCAL = typename TestType::Type;
+  SymProp sp = GENERATE(SymProp::Sym, SymProp::Herm);
+  SECTION(SymPropName(sp))
+  {
+    MAT ma;
+    const int dim = 5;
+    ma.AutoFill(dim, dim, sp);
+    SECTION("Resize rows")
+    {
+      const int newrow = GENERATE(10, 15);
+      REQUIRE_THROWS(TestResize(ma, newrow, dim));
+    }
+    SECTION("Resize cols")
+    {
+      const int newcol = GENERATE(10, 15);
+      REQUIRE_THROWS(TestResize(ma, dim, newcol));
+    }
+    SECTION("Resize both")
+    {
+      const int newrow = GENERATE(10, 15);
+      const int newcol = GENERATE(10, 15);
+      if (newrow != newcol || !std::is_same_v<MAT, TPZSFMatrix<SCAL>>) // symmetric must be square matrices
+        REQUIRE_THROWS(TestResize(ma, newrow, newcol));
+      else
+        TestResize(ma, newrow, newcol);
+    }
   }
 }
 
@@ -409,4 +505,68 @@ bool CompareMatrices(const TPZMatrix<T> &m1, const TPZMatrix<T> &m2){
     }
   }
   return true;
+}
+
+template<class MAT>
+void TestResize(const MAT &ma, const int newrow, const int newcol)
+{
+  using TVar=typename MAT::Type;
+  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
+
+  bool check = true;
+  constexpr RTVar tol = []()
+  {
+    if constexpr (std::is_same_v<RTVar, float>)
+      return (RTVar)10;
+    else
+      return (RTVar)1;
+  }();
+  const int row = ma.Rows();
+  const int col = ma.Cols();
+
+  MAT ma2(ma);
+  
+  ma2.Resize(newrow, newcol);
+  REQUIRE(ma2.Rows() == newrow);
+  REQUIRE(ma2.Cols() == newcol);
+  for (int i = 0; i < newrow; i++)
+  {
+    for (int j = 0; (j < newcol && check); j++)
+    {
+      if (i < row && j < col)
+      {
+        CAPTURE(i, j, ma2.GetVal(i, j), ma.GetVal(i, j));
+        if (!IsZero(ma2.GetVal(i, j) - ma.GetVal(i, j)))
+        {
+          check = false;
+        }
+        REQUIRE(check);
+      }
+      else
+      {
+        CAPTURE(i, j, ma2.GetVal(i, j));
+        REQUIRE(IsZero(ma2.GetVal(i, j)));
+      }
+    }
+  }
+
+  ma2.Redim(row, col);
+  REQUIRE(ma2.Rows() == row);
+  REQUIRE(ma2.Cols() == col);
+  check = true;
+  for (int i = 0; i < row; i++)
+  {
+    for (int j = 0; (j < col && check); j++)
+    {
+      CAPTURE(i, j, ma2.GetVal(i, j));
+      if (!IsZero(ma2.GetVal(i, j)))
+      {
+        check = false;
+      }
+      REQUIRE(check);
+    }
+  }
+  
+  Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
