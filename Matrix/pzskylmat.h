@@ -145,13 +145,8 @@ public:
 	
 	TPZSkylMatrix operator-() const;// { return operator*(-1.0); }
 	
-	// Redimensiona a matriz, mas mantem seus elementos.
-	// o segundo parametro � o tamanho das colunas
-	int Resize(const int64_t newDim ,const int64_t ) override;
-	
-	// Redimensiona a matriz e ZERA seus elementos.
-	// o segundo parametro � o tamanho das colunas
-	int Redim(const int64_t newDim ,const int64_t ) override;
+	int Resize(const int64_t newRows, const int64_t newCols) override;
+	int Redim(const int64_t newRows, const int64_t newCols) override;
 	int Redim(const int64_t newDim) {return this->Redim(newDim,newDim);}
 	
 	// Zera os Elementos da matriz

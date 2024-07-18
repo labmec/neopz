@@ -110,12 +110,24 @@ public:
 	// this method is not working! default version does work
 	// virtual int GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
 	// 				   const int64_t colSize, TPZFMatrix<TVar> & A ) const override;
-	
 
+  virtual int Resize(const int64_t newRows, const int64_t newCols) override
+  {
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Resize should not be called for Sparse matrices\n";
+    DebugStop();
+    return 1;
+  }
 
-  
-  
-	/** @brief Pass the data to the class. */
+  virtual int Redim(int64_t rows, int64_t cols) override
+  {
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Redim should not be called for Sparse matrices\n";
+    DebugStop();
+    return 1;
+  }
+
+  /** @brief Pass the data to the class. */
 	virtual void SetData( int64_t *IA, int64_t *JA, TVar *A );
     
     /** @brief Pass the data to the class. */

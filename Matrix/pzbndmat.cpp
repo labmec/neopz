@@ -302,11 +302,10 @@ template<class TVar>
 int
 TPZFBMatrix<TVar>::Resize(const int64_t newRows,const int64_t newCols)
 {
-	if ( newRows != newCols )
-		this->Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Resize should not be called for Band matrices\n";
+    DebugStop();
 	
-	
-    Redim(newRows,newRows);
 	return( 1 );
 }
 
@@ -318,23 +317,28 @@ template<class TVar>
 int
 TPZFBMatrix<TVar>::Redim(const int64_t newRows,const int64_t newCols )
 {
-	if ( newRows != newCols )
-		this->Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
+	// if ( newRows != newCols )
+	// 	this->Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
 	
-	//  if ( !fBand ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Bandwith = NULL" );
+	// //  if ( !fBand ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Bandwith = NULL" );
 	
 
-    if (fBandLower > newRows-1) {
-        fBandLower = newRows-1;
-    }
-    if (fBandUpper > newRows-1) {
-        fBandUpper = newRows-1;
-    }
-    TPZMatrix<TVar>::Redim(newRows,newRows);
-	uint64_t size = newRows*(2*fBandLower+fBandUpper + 1);
-    fElem.Resize(size);
-	Zero();
+    // if (fBandLower > newRows-1) {
+    //     fBandLower = newRows-1;
+    // }
+    // if (fBandUpper > newRows-1) {
+    //     fBandUpper = newRows-1;
+    // }
+    // TPZMatrix<TVar>::Redim(newRows,newRows);
+	// uint64_t size = newRows*(2*fBandLower+fBandUpper + 1);
+    // fElem.Resize(size);
+	// Zero();
 	
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Redim should not be called for Band matrices\n";
+    DebugStop();
+	
+	return( 1 );
 	return( 1 );
 }
 

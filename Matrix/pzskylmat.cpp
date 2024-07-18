@@ -788,50 +788,58 @@ TPZSkylMatrix<TVar>::operator*=(const TVar value )
 // Muda as dimensoes da matriz, mas matem seus valores antigos. Novas
 // posicoes sao criadas com ZEROS.
 //
-template<class TVar>
-int TPZSkylMatrix<TVar>::Resize( int64_t newDim ,int64_t ) {
-	if ( newDim == this->Dim() )
-		return( 1 );
-	
-	fElem.Resize(newDim+1);
-	// Cria nova matrix.
-	
-	// Copia os elementos para a nova matriz.
-	int64_t min = MIN( newDim, this->Dim() );
-	int64_t i;
-	for ( i = min+1; i <= newDim; i++ )
-		fElem[i] = fElem[i-1];
-	
-	// Zera as posicoes que sobrarem (se sobrarem)
-	fStorage.Resize(fElem[newDim]-fElem[0]);
-	this->fRow = this->fCol = newDim;
-	this->fDecomposed = ENoDecompose;
-	return( 1 );
+template <class TVar>
+int TPZSkylMatrix<TVar>::Resize(int64_t newRows, int64_t newCols)
+{
+    // if ( newDim == this->Dim() )
+    // 	return( 1 );
+
+    // fElem.Resize(newDim+1);
+    // // Cria nova matrix.
+
+    // // Copia os elementos para a nova matriz.
+    // int64_t min = MIN( newDim, this->Dim() );
+    // int64_t i;
+    // for ( i = min+1; i <= newDim; i++ )
+    // 	fElem[i] = fElem[i-1];
+
+    // // Zera as posicoes que sobrarem (se sobrarem)
+    // fStorage.Resize(fElem[newDim]-fElem[0]);
+    // this->fRow = this->fCol = newDim;
+    // this->fDecomposed = ENoDecompose;
+
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Resize should not be called for Skyline matrices\n";
+    DebugStop();
+
+    return (1);
 }
-
-
 
 /*************/
 /*** Redim ***/
 //
 // Muda as dimensoes da matriz e ZERA seus elementos.
 //
-template<class TVar>
-int
-TPZSkylMatrix<TVar>::Redim( int64_t newDim , int64_t)
+template <class TVar>
+int TPZSkylMatrix<TVar>::Redim(int64_t newRows, int64_t newCols)
 {
-	if ( newDim == this->Dim() )
-    {
-		Zero();
-		return( 1 );
-    }
-	
-	Clear();
-	fElem.Resize(newDim);
-	fElem.Fill(0);
-	this->fRow = this->fCol = newDim;
-	this->fDecomposed = ENoDecompose;
-	return( 1 );
+    // if ( newDim == this->Dim() )
+    // {
+    // 	Zero();
+    // 	return( 1 );
+    // }
+
+    // Clear();
+    // fElem.Resize(newDim);
+    // fElem.Fill(0);
+    // this->fRow = this->fCol = newDim;
+    // this->fDecomposed = ENoDecompose;
+
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Redim should not be called for Band matrices\n";
+    DebugStop();
+
+    return (1);
 }
 
 /**************************/

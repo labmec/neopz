@@ -83,18 +83,20 @@ public :
   /** @brief Zeroes the matrix */
   virtual int Zero() override;
 
-  /** @brief Zeroes the matrix */
+  virtual int Resize(const int64_t newRows, const int64_t newCols) override
+  {
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Resize should not be called for Sparse matrices\n";
+    DebugStop();
+    return 1;
+  }
+
   virtual int Redim(int64_t rows, int64_t cols) override
   {
-    if(rows == this->fRow && cols == this->fCol)
-      {
-        Zero();
-      }
-    else
-      {
-        DebugStop();
-      }
-    return 0;
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Redim should not be called for Sparse matrices\n";
+    DebugStop();
+    return 1;
   }
 
     /** @brief Fill matrix storage with randomic values */

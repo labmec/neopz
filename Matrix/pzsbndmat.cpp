@@ -370,20 +370,14 @@ TPZSBMatrix<TVar>::operator*=(const TVar value )
     return( *this );
 }
 
-/**************/
-/*** Resize ***/
-//
-// Muda as dimensoes da matriz, mas matem seus valores antigos. Novas
-// posicoes sao criadas com ZEROS.
-//
 template<class TVar>
 int
 TPZSBMatrix<TVar>::Resize(const int64_t newDim ,const int64_t)
 {
-    if ( newDim == this->Dim() )
-        return( 1 );
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Resize should not be called for Band matrices\n";
+    DebugStop();
     
-    Redim(newDim,newDim);
     return( 1 );
 }
 
@@ -396,22 +390,26 @@ template<class TVar>
 int
 TPZSBMatrix<TVar>::Redim(const int64_t newDim ,const int64_t otherDim)
 {
-    if (newDim != otherDim) {
-        DebugStop();
-    }
+    // if (newDim != otherDim) {
+    //     DebugStop();
+    // }
     
-    if ( newDim != this->Dim() )
-    {
-        TPZMatrix<TVar>::Redim(newDim,newDim);
-        if (fBand > newDim-1) {
-            fBand = newDim-1;
-        }
-        fStorage.resize(Size());
-    }
+    // if ( newDim != this->Dim() )
+    // {
+    //     TPZMatrix<TVar>::Redim(newDim,newDim);
+    //     if (fBand > newDim-1) {
+    //         fBand = newDim-1;
+    //     }
+    //     fStorage.resize(Size());
+    // }
     
-    Zero();
-    this->fDecomposed = ENoDecompose;
-    this->fDefPositive = 0;
+    // Zero();
+    // this->fDecomposed = ENoDecompose;
+    // this->fDefPositive = 0;
+
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Redim should not be called for Band matrices\n";
+    DebugStop();
     return( 1 );
 }
 
