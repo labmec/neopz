@@ -412,6 +412,12 @@ TEMPLATE_PRODUCT_TEST_CASE("MultAdd","[matrix_tests]",
   const int nr{10};
   const int opt=GENERATE(0,1,2);
   SECTION("Zero sized A"){
+#ifdef PZ_USING_MKL
+    if (std::is_same_v<MAT,TPZFYsmpMatrixPardiso<SCAL>> || std::is_same_v<MAT,TPZSYsmpMatrixPardiso<SCAL>>)
+      return;
+#endif
+    if (std::is_same_v<MAT,TPZFYsmpMatrix<SCAL>> || std::is_same_v<MAT,TPZSYsmpMatrix<SCAL>>)
+      return;
     y.AutoFill(nr,1,SymProp::NonSym);
     alpha=0.0;
     beta=-1.0;
