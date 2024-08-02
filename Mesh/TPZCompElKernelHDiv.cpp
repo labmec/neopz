@@ -69,7 +69,7 @@ template<class TSHAPE>
 int TPZCompElKernelHDiv<TSHAPE>::MaxOrder(){
     int maxorder = TPZInterpolationSpace::MaxOrder();
 
-    return maxorder + 1;
+    return maxorder;
 }
 
 
@@ -91,7 +91,7 @@ void TPZCompElKernelHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     TPZManVector<int,TSHAPE::NFacets> sideorient(TSHAPE::NFacets,0);
     TPZGeoEl *gel = this->Reference();
     for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->Node(i).Id();
-    for(int i=TSHAPE::NCornerNodes; i<TSHAPE::NSides; i++) orders[i-TSHAPE::NCornerNodes] = this->Connect(i).Order()+1;
+    for(int i=TSHAPE::NCornerNodes; i<TSHAPE::NSides; i++) orders[i-TSHAPE::NCornerNodes] = this->Connect(i).Order();
     if (TSHAPE::Type() == ETriangle){
         orders[TSHAPE::NSides-TSHAPE::NCornerNodes-1]++;
     }
@@ -267,7 +267,6 @@ void TPZCompElKernelHDiv<TSHAPE>::ComputeSolutionKernelHdivT(TPZMaterialDataT<TV
 template<class TSHAPE>
 int TPZCompElKernelHDiv<TSHAPE>::NConnectShapeF(int connect, int order) const{
     if (TSHAPE::Type() == ETriangle && connect == 6) order++;// For triangles, the internal shape function is one degree higher
-    order++;
     return TPZCompElH1<TSHAPE>::NConnectShapeF(connect,order);
 }
 
@@ -306,7 +305,7 @@ void TPZCompElKernelHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
 	}
 	for (c=nn;c<nc;c++){
 		int conloc = TSHAPE::ContainedSideLocId(side,c);
-        order[c-nn] = this->Connect(conloc).Order()+1;
+        order[c-nn] = this->Connect(conloc).Order();
 	}
     
     TPZShapeData data;
