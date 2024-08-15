@@ -332,8 +332,19 @@ template<class TVar>
 TPZConnect::TPZDepend<TVar>::TPZDepend(int64_t dependindex,TPZFMatrix<TVar> &depmat,int64_t ipos,int64_t jpos, int isize, int jsize) :
 fDepMatrix(isize,jsize) {
 	fDepConnectIndex = dependindex;
-	int i,j;
-	for(i=0; i<isize; i++) for(j=0; j<jsize; j++) fDepMatrix(i,j) = depmat(ipos+i,jpos+j);
+#ifdef PZDEBUG
+  if(depmat.Rows() < ipos+isize || depmat.Cols() < jpos+jsize){
+    DebugStop();
+  }
+  if(fDepMatrix.Rows() < isize || fDepMatrix.Cols() < jsize){
+    DebugStop();
+  }
+#endif
+	for(auto i=0; i<isize; i++) {
+    for(auto j=0; j<jsize; j++) {
+      fDepMatrix.PutVal(i,j,depmat.g(ipos+i,jpos+j));
+    }
+  }
 	fNext = 0;
 }
 
