@@ -854,6 +854,10 @@ void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmes
 	}
 	
 	TPZMaterial * material = Material();
+	int matid = material->Id();
+	if (!grmesh.Material_Is_PostProcessed(matid)){
+        return;
+    }
     
     TPZManVector<std::string,4> scalarnames, vecnames;
     scalarnames = grmesh.ScalarNames();
@@ -868,11 +872,9 @@ void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmes
             return;
         }
     }
-	int matid = material->Id();
-	int nsides = ref->NSides();
-	bool to_postpro = grmesh.Material_Is_PostProcessed(matid);
     
-	if(dimension == 2 && to_postpro){
+	int nsides = ref->NSides();
+	if(dimension == 2){
 		if(nsides == 9){
 			new TPZGraphElQ2dd(this,&grmesh);
 			return;
@@ -883,7 +885,7 @@ void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmes
 		}
 	}//2d
 	
-	if(dimension == 3 && to_postpro){
+	if(dimension == 3){
 		if(nsides == 27){
 			new TPZGraphElQ3dd(this,&grmesh);
 			return;
@@ -902,7 +904,7 @@ void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmes
 		}//pyram
 	}//3d
 	
-	if(dimension == 1 && to_postpro){
+	if(dimension == 1){
 		new TPZGraphEl1dd(this,&grmesh);
 	}//1d
 	
