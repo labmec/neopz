@@ -663,6 +663,7 @@ void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &s
     sol = std::move(data.sol[0]);
 }
 
+#include "pzvec_extras.h"
 template<class TSHAPE>
 template<class TVar>
 void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
@@ -746,28 +747,29 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
         /// ish loops of the number of shape functions associated with the block
         for(int ish=0; ish<dfvar/nstate; ish++)
         {
+            TPZManVector<REAL,3> direction(3);
+
+            for (int i=0; i<3; i++)
+            {
+                if (data.fNeedsDeformedDirectionsFad) {
+                    direction[i] = data.fDeformedDirectionsFad(i,ivec).val();
+                }else{
+                    direction[i] = data.fDeformedDirections(i,ivec);
+                }
+            }           
+            
             for (int64_t is=0; is<numbersol; is++)
             {
                 for(int idf=0; idf<nstate; idf++)
                 {
                     TVar meshsol = MeshSol(pos+ish*nstate+idf,is);
-                    TPZManVector<REAL,3> normal(3);
-
-                    for (int i=0; i<3; i++)
-                    {
-                        if (data.fNeedsDeformedDirectionsFad) {
-                            normal[i] = data.fDeformedDirectionsFad(i,ivec).val();
-                        }else{
-                            normal[i] = data.fDeformedDirections(i,ivec);
-                        }
-                    }
 
 #ifdef PZ_LOG
                     if(logger.isDebugEnabled() && abs(meshsol) > 1.e-6)
                     {
                         std::stringstream sout;
                         sout << "meshsol = " << meshsol << " ivec " << ivec <<  " x " << data.x << std::endl;
-                        sout << "normal = " << normal << std::endl;
+                        sout << "direction = " << direction << std::endl;
 //                        sout << "GradOfPhiHdiv " << GradOfPhiHdiv << std::endl;
                         sout << "GradNormalVec " << GradNormalvec[ivec] << std::endl;
                         LOGPZ_DEBUG(logger,sout.str())
@@ -776,7 +778,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
 
                     data.divsol[is][idf] += data.divphi(ivec,0)*meshsol;
                     for (int ilinha=0; ilinha<dim; ilinha++) {
-                        data.sol[is][ilinha+dim*idf] += normal[ilinha]*meshsol;
+                        data.sol[is][ilinha+dim*idf] += direction[ilinha]*meshsol;
                         for (int kdim = 0 ; kdim < dim; kdim++) {
                             if(data.fNeedsDeformedDirectionsFad){
                                 data.dsol[is](ilinha+dim*idf,kdim)+=meshsol *GradNormalvec[ivec](ilinha,kdim);
