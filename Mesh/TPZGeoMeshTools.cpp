@@ -11,6 +11,11 @@
 #include "tpzprism.h"
 #include "tpzpyramid.h"
 #include "pzgeoelbc.h"
+#include "pzlog.h"
+
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.tpzgeomeshtools");
+#endif
 
 void TPZGeoMeshTools::DividePyramidsIntoTetra(TPZGeoMesh *gmesh) {
     const char buf[] =
@@ -289,6 +294,268 @@ TPZGeoMesh *TPZGeoMeshTools::CreateGeoMeshSingleElT(const int matid,
       TPZGeoElBC(gel, iside, matidbc);
   }
   return gmesh;
+}
+
+TPZGeoEl* TPZGeoMeshTools::FindElementByMatId(TPZGeoMesh* gmesh, TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, const std::set<int>& matids) {
+    if (InitialElIndex < 0 || InitialElIndex >= gmesh->NElements()) {
+        DebugStop();
+    }
+    
+    // FindApproxElement
+    FindCloseElement(gmesh, x, InitialElIndex, matids);
+    TPZGeoEl * gel = gmesh->ElementVec()[InitialElIndex]->LowestFather();
+ 
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "x coordinate " << x << std::endl;
+        sout << "element index " << gel->Index() << std::endl;
+        sout << "coordinates of the corner nodes of the element\n";
+        for (int i=0; i<gel->NNodes(); i++) {
+            TPZGeoNode *ptr = gel->NodePtr(i);
+            for (int ic=0; ic<3; ic++) {
+                sout << ptr->Coord(ic) << " ";
+            }
+            sout << std::endl;
+        }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    qsi.Resize(gel->Dimension(), 0.);
+    qsi.Fill(0.);
+    
+    if(matids.find(gel->MaterialId()) == matids.end())
+    {
+        DebugStop();
+    }
+    REAL zero;
+    ZeroTolerance(zero);
+    
+    std::set<TPZGeoEl *> tested;
+    // this method will call ComputeXInverse if the element dimension != 3
+    bool memberQ = gel->ComputeXInverse(x, qsi,zero);
+    if(memberQ)
+    {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
+        {
+            LOGPZ_DEBUG(logger, "Going into the FindSubElement alternative")
+        }
+#endif
+        gel = gmesh->FindSubElement(gel, x, qsi, InitialElIndex);
+        return gel;
+    }
+    tested.insert(gel);
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "Looking for x = " << x << std::endl;
+        sout << "Tried out gel index " << gel->Index() << std::endl;
+        sout << "found qsi " << qsi << std::endl;
+        TPZManVector<REAL> locx(3);
+        gel->X(qsi, locx);
+        sout << "found x co " << locx << std::endl;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+    TPZManVector<REAL,3> projection(gel->Dimension());
+    int side = -1;
+    side = gel->ProjectInParametricDomain(qsi, projection);
+
+    
+    TPZGeoElSide mySide(gel,side);
+    TPZManVector<REAL,3> xclose(3);
+    gel->X(projection, xclose);
+//    mySide.X(projection, xclose);
+    REAL mindist = 0.;
+    for (int i=0; i<3; i++) {
+        mindist += (xclose[i]-x[i])*(xclose[i]-x[i]);
+    }
+    TPZGeoElSide bestside(mySide);
+    TPZManVector<REAL,3> bestproj(projection);
+    
+    
+    TPZStack<TPZGeoElSide> allneigh;
+    TPZGeoElSide neighSide(mySide.Neighbour());
+    while (neighSide != mySide) {
+        if (matids.find(neighSide.Element()->MaterialId()) != matids.end() && tested.find(neighSide.Element()) == tested.end()) {
+            allneigh.Push(neighSide);
+        }
+        neighSide = neighSide.Neighbour();
+    }
+    
+    while (allneigh.size())
+    {
+        TPZGeoElSide  gelside = allneigh.Pop();
+        TPZGeoEl *locgel = gelside.Element();
+        if (tested.find(locgel) != tested.end()) {
+            continue;
+        }
+        qsi.Fill(0.);
+        if(locgel->ComputeXInverse(x, qsi, zero*100.) == true)
+        {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled())LOGPZ_DEBUG(logger, "FOUND ! Going into the FindSubElement alternative")
+#endif
+            gel = gmesh->FindSubElement(locgel, x, qsi, InitialElIndex);
+            return gel;
+        }
+        
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Looking for x = " << x << std::endl;
+            sout << "Tried out gel index " << locgel->Index() << std::endl;
+            sout << "found qsi " << qsi << std::endl;
+            TPZManVector<REAL> locx(3);
+            gel->X(qsi, locx);
+            sout << "found x co " << locx << std::endl;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+
+        
+        tested.insert(locgel);
+        int side = -1;
+        side = locgel->ProjectInParametricDomain(qsi, projection);
+        TPZManVector<REAL,3> xclose(3);
+        TPZGeoElSide locgelside(locgel,side);
+        locgel->X(projection, xclose);
+        REAL dist = 0.;
+        for (int i=0; i<3; i++) {
+            dist += (xclose[i]-x[i])*(xclose[i]-x[i]);
+        }
+        if (dist < mindist) {
+            mindist = dist;
+            bestside = locgelside;
+            bestproj = projection;
+        }
+        mySide = TPZGeoElSide(locgel,side);
+        TPZGeoElSide neighSide(mySide.Neighbour());
+        while (neighSide != mySide) {
+            if (matids.find(neighSide.Element()->MaterialId()) != matids.end() && tested.find(neighSide.Element()) == tested.end()) {
+                allneigh.Push(neighSide);
+            }
+            neighSide = neighSide.Neighbour();
+        }
+    }
+    TPZGeoEl *bestgel = bestside.Element();
+    qsi = bestproj;
+    gel = gmesh->FindSubElement(bestgel, x, qsi, InitialElIndex);
+    return gel;
+}
+
+TPZGeoEl * TPZGeoMeshTools::FindCloseElement(TPZGeoMesh* gmesh, TPZVec<REAL> &x, int64_t & InitialElIndex, const std::set<int>& matids)
+{
+    TPZManVector<REAL,3> xcenter(3);
+    TPZManVector<TPZManVector<REAL, 3>, 8> cornercenter;
+    // what happens if gelnext == 0 or if InitialIndex is out of scope??
+    if (InitialElIndex >= gmesh->NElements()) {
+        DebugStop();
+    }
+    TPZGeoEl *gelnext = gmesh->ElementVec()[InitialElIndex];
+    if (matids.find(gelnext->MaterialId()) == matids.end()) {
+        DebugStop();
+    }
+    
+    if (gelnext == 0) {
+        DebugStop();
+    }
+    
+    TPZGeoEl *gel = 0;
+    REAL geldist;
+    std::map<REAL,int> cornerdist;
+    while (gel != gelnext) {
+        gel = gelnext;
+        gelnext = 0;
+        cornerdist.clear();
+        // compute the corner coordinates
+        for (int ic=0; ic<gel->NCornerNodes(); ic++) {
+            TPZManVector<REAL,3> xcorner(3);
+            gel->NodePtr(ic)->GetCoordinates(xcorner);
+            REAL dist = 0.;
+            for (int i=0; i<3; i++) {
+                dist += (x[i]-xcorner[i])*(x[i]-xcorner[i]);
+            }
+            dist = sqrt(dist);
+            cornerdist[dist]=ic;
+        }
+        // compute the distance of the center of the element
+        {
+            geldist = 0.;
+            TPZManVector<REAL,3> xcenter(3);
+            TPZGeoElSide gelside(gel,gel->NSides()-1);
+            gelside.CenterX(xcenter);
+            geldist = dist(x,xcenter);
+        }
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "FindClosestElement Tried element index " << gel->Index() << std::endl;
+            sout << "Distance from the center " << geldist << std::endl;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        // find the closest corner node
+        REAL closestcorner = cornerdist.begin()->first;
+        // if the center node is closer than the cornernode, return the element
+        if (geldist < closestcorner || closestcorner < 1.e-15) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
+                std::stringstream sout;
+                sout << "Distance from the closest corner " << closestcorner << "bailing out " << std::endl;
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+            InitialElIndex = gel->Index();
+            return gel;
+        }
+        // look for all neighbours of the corner side
+        TPZGeoElSide gelside(gel,cornerdist.begin()->second);
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        std::map<REAL,int> distneigh;
+        while (neighbour != gelside)
+        {
+            int neighmatid = neighbour.Element()->MaterialId();
+            if (matids.find(neighmatid) != matids.end())
+            {
+                TPZManVector<REAL,3> center(3);
+                TPZGeoElSide centerneigh(neighbour.Element(),neighbour.Element()->NSides()-1);
+                centerneigh.CenterX(center);
+                REAL distcenter = dist(center,x);
+                distneigh[distcenter] = neighbour.Element()->Index();
+            }
+            neighbour = neighbour.Neighbour();
+        }
+        // choose the element whose center is closest to the coordinate
+        REAL gelnextdist = 0.;
+        if (distneigh.size() == 0) {
+            gelnext = gel;
+            gelnextdist = geldist;
+        }
+        else {
+            gelnext = gmesh->ElementVec()[distneigh.begin()->second];
+            gelnextdist = distneigh.begin()->first;
+        }
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "Closest element index " << gelnext->Index() << std::endl;
+            sout << "Distance from the center " << gelnextdist << std::endl;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        // return if its center distance is larger than the distance of the current element
+        if (geldist <= gelnextdist) {
+            InitialElIndex = gel->Index();
+            return gel;
+        }
+    }
+    InitialElIndex = gel->Index();
+    return gel;
 }
 
 #define CREATE_TEMPL(TTOPOL) \
