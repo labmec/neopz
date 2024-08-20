@@ -38,8 +38,8 @@ void TPZShapeHDivCollapsed<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
         data.fHDiv.fMasterDirections(d,ndirections) = 0.;
         data.fHDiv.fMasterDirections(d,ndirections+1) = 0.;
     }
-    data.fHDiv.fMasterDirections(dim,ndirections) = 1.;
-    data.fHDiv.fMasterDirections(dim,ndirections+1) = -1.;
+    data.fHDiv.fMasterDirections(dim,ndirections) = -1.;
+    data.fHDiv.fMasterDirections(dim,ndirections+1) = 1.;
     // extend the dimensions of the connect orders
     data.fHDiv.fConnectOrders = connectorders;
     data.fHDiv.fSideOrient = sideorient;
@@ -86,7 +86,7 @@ void TPZShapeHDivCollapsed<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &
     const int nshape = NShapeF(data);
     divphi.Resize(nshape,1);
     divphi.Zero();
-    phi.Resize(TSHAPE::Dimension+1,nshape);
+    phi.Redim(TSHAPE::Dimension+1,nshape);
     phi.Zero();
 
     const int ncorner = TSHAPE::NCornerNodes;
@@ -117,7 +117,7 @@ void TPZShapeHDivCollapsed<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &
         TPZFNMatrix<25> locphi(data.fHDiv.fNumConnectShape[connect],1);
         TPZShapeHDivBound<TSHAPE>::Shape(pt, locdata, locphi);
         for (int ish = 0; ish < locphi.Rows(); ish++) {
-            phi(dim,firstshape+ish) = locphi(ish,0);
+            phi(dim,firstshape+ish) = locphi(ish,0) * data.fHDiv.fMasterDirections(2,2*TSHAPE::NSides);
             divphi(firstshape+ish) = locphi(ish,0);
         }
         firstshape += locphi.Rows();
@@ -129,7 +129,7 @@ void TPZShapeHDivCollapsed<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &
         TPZFNMatrix<25> locphi(data.fHDiv.fNumConnectShape[connect],1);
         TPZShapeHDivBound<TSHAPE>::Shape(pt, locdata, locphi);
         for (int ish = 0; ish < locphi.Rows(); ish++) {
-            phi(dim,firstshape+ish) = locphi(ish,0);
+            phi(dim,firstshape+ish) = locphi(ish,0) * data.fHDiv.fMasterDirections(2,2*TSHAPE::NSides+1);
             divphi(firstshape+ish) = locphi(ish,0);
         }
     }
