@@ -8,6 +8,7 @@
 
 #include "pzfmatrix.h"
 #include "pzerror.h"
+#include "pzvec_extras.h"
 
 /**
  * @ingroup util
@@ -142,6 +143,15 @@ public:
                 }
             }
         }
+    }
+    
+    static void GetNormal(TPZFMatrix<TVar> &axes, TPZVec<REAL>& normal){
+        if (axes.Rows() != 2) {
+            DebugStop();
+        }
+        TPZManVector<REAL,3> ax1 = {axes(0,0),axes(0,1),axes(0,2)};
+        TPZManVector<REAL,3> ax2 = {axes(1,0),axes(1,1),axes(1,2)};
+        Cross(ax1,ax2,normal);
     }
     
     /** Test code */
