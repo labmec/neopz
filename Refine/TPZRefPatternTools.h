@@ -158,11 +158,11 @@ public:
 	static bool SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestoref);
 	
 	/** @brief Refines the element if it touches an element with a material id included in matids */
-	static void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids);
-	static void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids, int gelMat);
+	static void RefineDirectional(TPZGeoEl *gel, const std::set<int> &matids);
+	static void RefineDirectional(TPZGeoEl *gel, const std::set<int> &matids, int gelMat);
     
-    static void RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &matids);
-    static void RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &matids, int gelmat);
+    static void RefineDirectional(TPZGeoMesh *gmesh, const std::set<int> &matids);
+    static void RefineDirectional(TPZGeoMesh *gmesh, const std::set<int> &matids, int gelmat);
     
 	/** @brief Refines the element uniformly if it touches an element with a material id included in matids */
 	static void RefineTowards(TPZGeoEl *gel, std::set<int> &matids, int maxlevel);

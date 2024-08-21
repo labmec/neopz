@@ -998,7 +998,7 @@ bool TPZRefPatternTools::SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestoref)
 	return thereIsAnyNeighbourRefined;
 }
 
-void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
+void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, const std::set<int> &matids)
 {
 	if(gel->HasSubElement())
 	{
@@ -1162,7 +1162,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 	return;
 }
 
-void TPZRefPatternTools::RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &matids)
+void TPZRefPatternTools::RefineDirectional(TPZGeoMesh *gmesh, const std::set<int> &matids)
 {
     int64_t nel = gmesh->NElements();
     for (int64_t el=0; el<nel; el++) {
@@ -1174,7 +1174,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &mat
     }
 }
 
-void TPZRefPatternTools::RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &matids, int gelMat)
+void TPZRefPatternTools::RefineDirectional(TPZGeoMesh *gmesh, const std::set<int> &matids, int gelMat)
 {
     int64_t nel = gmesh->NElements();
     for (int64_t el=0; el<nel; el++) {
@@ -1287,7 +1287,7 @@ void TPZRefPatternTools::RefineTowards(TPZGeoMesh *gmesh, std::set<int> &matids,
     }
 }
 
-void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids, int gelMat)
+void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, const std::set<int> &matids, int gelMat)
 {
 	if(gel->HasSubElement())
 	{
