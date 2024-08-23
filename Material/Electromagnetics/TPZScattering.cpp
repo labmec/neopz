@@ -94,11 +94,16 @@ void TPZScattering::Contribute(const TPZMaterialDataT<CSTATE> &data,
   //making complex version of phi
   TPZFNMatrix<3000,CSTATE> phi(3,nshape);
   TPZFNMatrix<3000,CSTATE> curl_phi(3,nshape);
-  for(int i = 0; i < nshape; i++){
-    for(int x = 0; x < 3; x++){
-      phi.PutVal(x,i,phi_real.GetVal(i,x));
-      curl_phi.PutVal(x,i,curl_phi_real.GetVal(x,i));
-    }
+
+  //we cannot use phi_real_ptr because its actually transposed
+  CSTATE *phi_ptr = phi.Elem();
+  CSTATE *curl_phi_ptr = curl_phi.Elem();
+  const STATE *curl_phi_real_ptr = curl_phi_real.Elem();
+  const int sz = 3*nshape;
+  for(int i = 0; i < sz; i++){
+    //g instead of GetVal will be most likely inlined
+    *phi_ptr++ = phi_real.g(i/3, i%3);
+    *curl_phi_ptr++ = *curl_phi_real_ptr++;
   }
 
   TPZFNMatrix<3000,CSTATE> tmp;
