@@ -276,7 +276,7 @@ TEST_CASE("MultiplyByScalar TPZSkylNSymMatrix","[matrix_tests][!shouldfail]"){
   }
 }
 
-TEMPLATE_PRODUCT_TEST_CASE("MultiplyByScalar", "[matrix_tests][!shouldfail]",
+TEMPLATE_PRODUCT_TEST_CASE("MultiplyByScalar", "[matrix_tests]",
                            (TPZFMatrix,
                             TPZFBMatrix,
                             TPZFYsmpMatrix,
