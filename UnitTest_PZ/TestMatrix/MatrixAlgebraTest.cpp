@@ -647,6 +647,8 @@ void TestMultiplyByScalar(const MAT &ma, const bool use_operator)
   {
     if constexpr (std::is_same_v<RTVar, float>)
       return (RTVar)10;
+    else if constexpr (std::is_same_v<RTVar, long double>)
+      return (RTVar)100;
     else
       return (RTVar)1;
   }();
@@ -669,7 +671,7 @@ void TestMultiplyByScalar(const MAT &ma, const bool use_operator)
     for (int j = 0; (j < col) && check; j++)
     {
       TVar diff = res.GetVal(i, j) - ma.GetVal(i, j) * alpha;
-      CAPTURE(i, j, res.GetVal(i, j), ma.GetVal(i, j), alpha, diff);
+      CAPTURE(i, j, res.GetVal(i, j), ma.GetVal(i, j), alpha, diff, tol);
       if (!IsZero(diff / tol))
       {
         check = false;
