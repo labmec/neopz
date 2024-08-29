@@ -653,7 +653,7 @@ void TestMultiplyByScalar(const MAT &ma, const bool use_operator)
   const int row = ma.Rows();
   const int col = ma.Cols();
 
-  RTVar alpha = GENERATE(0.1, 2.0, 10.0);
+  TVar alpha = GENERATE(0.1, 2.0, 10.0);
   MAT res;
   if (use_operator)
   {
@@ -668,8 +668,9 @@ void TestMultiplyByScalar(const MAT &ma, const bool use_operator)
   {
     for (int j = 0; (j < col) && check; j++)
     {
-      CAPTURE(i, j, res.GetVal(i, j), ma.GetVal(i, j), alpha);
-      if (!IsZero((res.Get(i, j) - ma.Get(i, j) * alpha) / tol))
+      TVar diff = res.GetVal(i, j) - ma.GetVal(i, j) * alpha;
+      CAPTURE(i, j, res.GetVal(i, j), ma.GetVal(i, j), alpha, diff);
+      if (!IsZero(diff / tol))
       {
         check = false;
       }
