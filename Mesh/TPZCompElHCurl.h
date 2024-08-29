@@ -107,7 +107,14 @@ public:
     /** @brief Sets the interpolation order of side to order*/
     void SetSideOrder(int side, int order) override;
 
-    void RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) override;
+    void RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) override
+    {
+        if(this->Mesh()->GetSolType() == EReal){
+            RestrainSideT<STATE>(side,large,neighbourside);
+        }else{
+            RestrainSideT<CSTATE>(side,large,neighbourside);
+        }
+    }
     /** @brief Initialize a material data and its attributes based on element dimension, number
     * of state variables and material definitions */
     void InitMaterialData(TPZMaterialData &data) override;
@@ -190,6 +197,8 @@ protected:
                               TPZSolVec<TVar> &sol,
                               TPZSolVec<TVar> &curlsol);
 
+    template<class TVar>
+    void RestrainSideT(int side, TPZInterpolatedElement *large, int neighbourside);
     int MaxOrder() override; 
 };
 
