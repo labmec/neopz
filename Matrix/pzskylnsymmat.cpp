@@ -193,7 +193,11 @@ template <class TVar>
 void TPZSkylNSymMatrix<TVar>::ComputeMaxSkyline(const TPZSkylNSymMatrix &first,
   const TPZSkylNSymMatrix &second, TPZVec<int64_t> &res)
 {
-
+  // Find out why this method is failing
+  PZError << __PRETTY_FUNCTION__;
+  PZError << "\nERROR: Find out why TPZSkylNSymMatrix::ComputeMaxSkyline is breaking \n.Aborting...\n";
+  DebugStop();
+  
   if (first.Rows() != second.Rows())
   {
     cout << "ComputeMaxSkyline : incompatible dimension";
@@ -202,6 +206,7 @@ void TPZSkylNSymMatrix<TVar>::ComputeMaxSkyline(const TPZSkylNSymMatrix &first,
   int64_t i, dim = first.Rows();
   res.Resize(dim + 1);
 
+  std::cout << "aqui\n";
   for (i = 1; i < dim + 1; i++)
   {
 
