@@ -844,7 +844,18 @@ int64_t TPZInterpolatedElement::CreateMidSideConnect(int side) {
     return newnodeindex;
 }
 
-void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) {
+void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *large,
+                                          int neighbourside)
+{
+		if(this->Mesh()->GetSolType() == EReal){
+        RestrainSideT<STATE>(side,large,neighbourside);
+		}else{
+        RestrainSideT<CSTATE>(side,large,neighbourside);
+		}
+}
+
+template<class TVar>
+void TPZInterpolatedElement::RestrainSideT(int side, TPZInterpolatedElement *large, int neighbourside) {
     TPZCompElSide thisside(this, side);
     TPZGeoElSide thisgeoside = thisside.Reference();
     TPZCompElSide largecompside(large, neighbourside);
@@ -992,13 +1003,30 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         DebugStop();
     }
 #endif
+
+    TPZFNMatrix<1000, TVar> MSLdep;
+    if constexpr (std::is_same_v<TVar,REAL>){
+        MSLdep = MSL;
+    }else{
+        const int nr = MSL.Rows();
+        const int nc = MSL.Cols();
+        MSLdep.Resize(nr,nc);
+        auto *my_ptr = MSLdep.Elem();
+        auto *their_ptr = MSL.Elem();
+        for(int i = 0; i < nr*nc;i++){
+            *my_ptr++ = *their_ptr++;
+        }
+    }
+    
     for (jn = 0; jn < numsidenodes_large; jn++) {
         if (MBlocksmall.Size(in) == 0 || MBlocklarge.Size(jn) == 0) {
             continue;
         }
         int64_t jnodindex = large->SideConnectIndex(jn, neighbourside);
-        TPZConnect::TPZDepend<STATE> *depend = inod.AddDependency(inodindex, jnodindex, MSL, MBlocksmall.Position(in), MBlocklarge.Position(jn),
-                MBlocksmall.Size(in), MBlocklarge.Size(jn));
+        TPZConnect::TPZDepend<TVar> *depend =
+            inod.AddDependency(inodindex, jnodindex, MSLdep,
+                               MBlocksmall.Position(in), MBlocklarge.Position(jn),
+                               MBlocksmall.Size(in), MBlocklarge.Size(jn));
         if (blocknorm(in, jn) < 1.e-8) {
             depend->fDepMatrix.Zero();
         }
@@ -1010,7 +1038,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         for (jn = 0; jn < numsidenodes_large; jn++) {
             int64_t jnodindex = large->SideConnectIndex(jn, neighbourside);
             if (MBlocklarge.Size(jn)) {
-                inod.AddDependency(inodindex, jnodindex, MSL, MBlocksmall.Position(in), MBlocklarge.Position(jn),
+                inod.AddDependency(inodindex, jnodindex, MSLdep, MBlocksmall.Position(in), MBlocklarge.Position(jn),
                         MBlocksmall.Size(in), MBlocklarge.Size(jn));
             }
             ndepend++;
