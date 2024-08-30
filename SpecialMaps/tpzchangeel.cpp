@@ -515,18 +515,19 @@ TPZGeoEl * TPZChangeEl::ChangeToArc3D(TPZGeoMesh *mesh, const int64_t ElemIndex,
 template<class T>
 TPZGeoEl * ChangeToCylinderT(TPZGeoMesh *mesh, const int64_t ElemIndex,
                              const TPZVec<REAL> &xcenter,
-                             const T &axis
-                             )
+                             const T &axis_or_mat,
+                             const REAL radius)
 {
     
-    auto SetCylData = [xcenter,axis,mesh](auto &cyl){
+    auto SetCylData = [xcenter,axis_or_mat,mesh](auto &cyl, TPZVec<REAL> &axis){
         cyl.SetOrigin(xcenter);
         if constexpr (std::is_same_v<T,TPZFMatrix<REAL>>){
-            cyl.SetRotationMatrix(axis);
+            cyl.SetRotationMatrix(axis_or_mat);
         }else{
-            cyl.SetCylinderAxis(axis);
+            cyl.SetCylinderAxis(axis_or_mat);
         }
         cyl.ComputeCornerCoordinates(*mesh);
+        cyl.GetCylinderAxis(axis);
     };
 
     TPZGeoEl * old_el = mesh->ElementVec()[ElemIndex];
@@ -551,68 +552,93 @@ TPZGeoEl * ChangeToCylinderT(TPZGeoMesh *mesh, const int64_t ElemIndex,
     for(int in = 0; in < nnodes; in++){
         nodeindexes[in] = old_el->NodeIndex(in);
     }
+
     
     mesh->DeleteElement(old_el);
     TPZGeoEl *new_el{nullptr};
 
+    TPZManVector<REAL,3> axis(3,0.);
     if (oldType == EOned){
         auto cyl =
         new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoLinear>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom());
+        SetCylData(cyl->Geom(),axis);
         new_el = cyl;
     }
     else if(oldType == ETriangle){
         auto cyl =
             new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoTriangle>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom());
+        SetCylData(cyl->Geom(),axis);
         new_el = cyl;
     }else if (oldType == EQuadrilateral){
         auto cyl =
             new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoQuad>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom());
+        SetCylData(cyl->Geom(),axis);
         new_el = cyl;
     }else if (oldType == ETetraedro){
         auto cyl =
             new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoTetrahedra>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom());
+        SetCylData(cyl->Geom(),axis);
         new_el = cyl;
     }else if (oldType == ECube){
         auto cyl =
             new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoCube>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom());
+        SetCylData(cyl->Geom(),axis);
         new_el = cyl;
     }else if (oldType == EPrisma){
         auto cyl =
             new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoPrism>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom());
+        SetCylData(cyl->Geom(),axis);
         new_el = cyl;
     }
     else if (oldType == EPiramide){
         auto cyl =
         new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoPyramid>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom());
+        SetCylData(cyl->Geom(),axis);
         new_el = cyl;
     }
     else {
         DebugStop();
     }
 
+    //for 2d elements we know it is a cylinder shell with constant radius
+    if(new_el->Dimension() ==2){
+        TPZManVector<REAL,3> xnode(3,0);
+        for(int in = 0; in < nnodes; in++){
+            new_el->NodePtr(in)->GetCoordinates(xnode);
+            //component of xnode that is orthogonal to cyl axis
+            TPZManVector<REAL,3> x_orth= xnode - xcenter;
+            const REAL dax = Dot(x_orth,axis);
+            for(int ix = 0; ix < 3; ix++){x_orth[ix]-=dax*axis[ix];}
+            const auto normdiff = fabs(Norm(x_orth)-radius);
+            if(normdiff > 1e-10){
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\nComputed radius: "<<Norm(xnode-xcenter)
+                       <<"\nGiven radius: "<<radius
+                       <<"\nElement index: "<<ElemIndex
+                       <<std::endl;
+                DebugStop();
+            }
+        }
+    }
+    
     TPZChangeEl::RestoreNeighbours(new_el, oldNeigh);
     return new_el;
 }
 
 TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemIndex,
                                          const TPZVec<REAL> &xcenter,
-                                         const TPZFMatrix<REAL> &rotmat
+                                         const TPZFMatrix<REAL> &rotmat,
+                                         const REAL radius
                                          ){
-    return ChangeToCylinderT(mesh,ElemIndex,xcenter,rotmat);
+    return ChangeToCylinderT(mesh,ElemIndex,xcenter,rotmat,radius);
 }
 TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemIndex,
                                          const TPZVec<REAL> &xcenter,
-                                         const TPZVec<REAL> &axis
+                                         const TPZVec<REAL> &axis,
+                                         const REAL radius
                                          )
 {
-    return ChangeToCylinderT(mesh,ElemIndex,xcenter,axis);
+    return ChangeToCylinderT(mesh,ElemIndex,xcenter,axis,radius);
 }
 
 
