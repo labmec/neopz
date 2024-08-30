@@ -1194,7 +1194,7 @@ std::ostream &operator << (std::ostream & out,const TPZGeoElSide &geoside){
 bool TPZGeoElSide::IsLinearMapping() const
 {
 	if(!fGeoEl) return false;
-	return fGeoEl->IsLinearMapping();
+  return fGeoEl->IsLinearMapping(fSide);
 }
 
 
