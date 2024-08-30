@@ -25,7 +25,7 @@
 #include "pzgeoelside.h"
 #include "pzstack.h"
 #include "tpzgeoelrefpattern.h"
-
+#include "pzvec_extras.h"
 #include <sstream>
 using namespace std;
 using namespace pzgeom;
@@ -468,6 +468,21 @@ TPZGeoEl * TPZChangeEl::ChangeToArc3D(TPZGeoMesh *mesh, const int64_t ElemIndex,
         PZError << "Error at " << __PRETTY_FUNCTION__ << " geometric el is not 1d\n";
         return NULL;
     }
+
+    TPZManVector<REAL,3> xnode(3,0);
+    for(int in = 0; in < 2; in++){
+        old_el->NodePtr(in)->GetCoordinates(xnode);
+        const auto normdiff = fabs(Norm(xnode-xcenter)-radius);
+        if(normdiff > 1e-10){
+            PZError<<__PRETTY_FUNCTION__
+                   <<"\nComputed radius: "<<Norm(xnode-xcenter)
+                   <<"\nGiven radius: "<<radius
+                   <<"\nElement index: "<<ElemIndex
+                   <<std::endl;
+            DebugStop();
+        }
+    }
+    
     const int64_t oldId = old_el->Id();
     const int64_t oldMatId = old_el->MaterialId();
     constexpr int nsides = 3;
