@@ -90,6 +90,19 @@ namespace pzgeom {
 
         /** @brief Sets axis of the cylinder and compute rotation matrix*/
         void SetCylinderAxis(const TPZVec<REAL> &axis);
+
+        void GetCylinderAxis(TPZVec<REAL> &axis) const
+        {
+#ifdef PZDEBUG
+            if(axis.size()!=3){
+                DebugStop();
+            }
+#endif
+            //axis is the last column of rotation matrix
+            axis[0] = fRotation.GetVal(0,2);
+            axis[1] = fRotation.GetVal(1,2);
+            axis[2] = fRotation.GetVal(2,2);
+        }
         /** @brief Sets the rotation matrix that converts from the reference cylinder
          to the cylinder in the xyz space.
         Reference cylinder has axis (0,0,1), therefore last column of rotation matrix
