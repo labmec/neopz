@@ -1050,6 +1050,71 @@ TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &indices,
 	}
 }
 
+template<class TVar>
+void
+TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &row_indices,
+                                         const TPZVec<int64_t> &col_indices,
+                                         TPZVec<int64_t> &ia,
+                                         TPZVec<int64_t> &ja,
+                                         TPZVec<TVar> &aa){
+
+  auto CheckIndices = [](const TPZVec<int64_t> &indices, const int64_t max){
+    auto max_el = std::max_element(indices.begin(), indices.end());
+    auto min_el = std::min_element(indices.begin(), indices.end());
+    if(*min_el < 0 || *max_el >= max){
+      DebugStop();
+    }
+    const bool is_sort= std::is_sorted(indices.begin(), indices.end());
+    if(!is_sort){
+      DebugStop();
+    }
+  };
+#ifdef PZDEBUG
+  CheckIndices(row_indices,this->Rows());
+  CheckIndices(col_indices,this->Cols());
+#endif
+  const auto neq = row_indices.size();
+  ia.Resize(neq+1,-1);
+  int64_t nentries{0};
+  //first we count the number of entries
+  for(auto i = 0; i < neq; i++){
+    const auto eq = row_indices[i];
+    ia[i] = nentries;
+    const auto first = fIA[eq];
+    const auto last = fIA[eq+1];
+    for(auto ieq = first; ieq < last; ieq++){
+      const auto col = fJA[ieq];
+      //std::lower_bound uses a binary search and indices is already sorted.
+      const auto pos = std::lower_bound(col_indices.begin(), col_indices.end(), col)-
+        col_indices.begin();
+      if(pos != neq && col_indices[pos] == col){
+        nentries++;
+      }
+    }
+  }
+  ia[neq] = nentries;
+  //now we fill ja, aa;
+  ja.Resize(nentries,-1);
+  aa.Resize(nentries,-1);
+  nentries = 0;
+  const int64_t first_col = col_indices[0];
+  for(auto i = 0; i < neq; i++){
+    const auto eq = row_indices[i];
+    const auto first = fIA[eq];
+    const auto last = fIA[eq+1];
+    for(auto ieq = first; ieq < last; ieq++){
+      const auto col = fJA[ieq];
+      //std::lower_bound uses a binary search and indices is already sorted.
+      const auto pos = std::lower_bound(col_indices.begin(), col_indices.end(), col)-
+        col_indices.begin();
+      if(pos != neq && col_indices[pos] == col){
+        aa[nentries] = fA[ieq];
+        ja[nentries++] = pos-first_col;
+      }
+    }
+  }
+}
+
 
 template<class TVar>
 int TPZFYsmpMatrix<TVar>::ClassId() const{

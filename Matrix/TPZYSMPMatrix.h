@@ -141,6 +141,13 @@ public:
   //! Creates a sparse matrix containing only the eqs given in indices
   void GetSubSparseMatrix(const TPZVec<int64_t> &indices, TPZVec<int64_t> &ia,
                           TPZVec<int64_t> &ja, TPZVec<TVar> &aa);
+  /** @brief Creates a sparse matrix containing only the eqs given in indices
+      Useful for getting off-diagonal blocks
+   */
+  void GetSubSparseMatrix(const TPZVec<int64_t> &row_indices,
+                          const TPZVec<int64_t> &col_indices,
+                          TPZVec<int64_t> &ia,
+                          TPZVec<int64_t> &ja, TPZVec<TVar> &aa);
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const override;
 	
