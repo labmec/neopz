@@ -1073,11 +1073,12 @@ TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &row_indices,
   CheckIndices(row_indices,this->Rows());
   CheckIndices(col_indices,this->Cols());
 #endif
-  const auto neq = row_indices.size();
-  ia.Resize(neq+1,-1);
+  const auto nrows = row_indices.size();
+  const auto ncols = col_indices.size();
+  ia.Resize(nrows+1,-1);
   int64_t nentries{0};
   //first we count the number of entries
-  for(auto i = 0; i < neq; i++){
+  for(auto i = 0; i < nrows; i++){
     const auto eq = row_indices[i];
     ia[i] = nentries;
     const auto first = fIA[eq];
@@ -1087,18 +1088,18 @@ TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &row_indices,
       //std::lower_bound uses a binary search and indices is already sorted.
       const auto pos = std::lower_bound(col_indices.begin(), col_indices.end(), col)-
         col_indices.begin();
-      if(pos != neq && col_indices[pos] == col){
+      if(pos != ncols && col_indices[pos] == col){
         nentries++;
       }
     }
   }
-  ia[neq] = nentries;
+  ia[nrows] = nentries;
   //now we fill ja, aa;
   ja.Resize(nentries,-1);
   aa.Resize(nentries,-1);
   nentries = 0;
   const int64_t first_col = col_indices[0];
-  for(auto i = 0; i < neq; i++){
+  for(auto i = 0; i < nrows; i++){
     const auto eq = row_indices[i];
     const auto first = fIA[eq];
     const auto last = fIA[eq+1];
@@ -1107,7 +1108,7 @@ TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &row_indices,
       //std::lower_bound uses a binary search and indices is already sorted.
       const auto pos = std::lower_bound(col_indices.begin(), col_indices.end(), col)-
         col_indices.begin();
-      if(pos != neq && col_indices[pos] == col){
+      if(pos != ncols && col_indices[pos] == col){
         aa[nentries] = fA[ieq];
         ja[nentries++] = pos-first_col;
       }

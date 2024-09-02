@@ -73,6 +73,8 @@ public:
     /** @brief Sets the message level of the pardiso solver.
      Anything different than zero results in statistical information being printed.*/
     void SetMessageLevel(int lvl);
+    /** @brief Gets the message level of the pardiso solver.*/
+    int GetMessageLevel() const {return fMessageLevel;}
     //! Clones the current object returning a pointer of type TPZSolver
 	  TPZPardisoSolver<TVar> *Clone() const override;
     /** @brief Gets copy of Pardiso param array
