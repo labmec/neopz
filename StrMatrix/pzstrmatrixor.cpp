@@ -277,6 +277,7 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
                 sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
             }
             if(el->HasDependency()){
+                sout << "source index " << ek.fSourceIndex << " destination index " << ek.fDestinationIndex << std::endl;
                 ek.fConstrMat.Print(sout);
                 ef.fConstrMat.Print(sout);
             }else{
