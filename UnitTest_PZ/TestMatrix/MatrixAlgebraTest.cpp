@@ -13,6 +13,8 @@ template<class MAT>
 void TestSubtract(const MAT &mat, const bool use_operator);
 template<class MAT>
 void TestMultiplyByScalar(const MAT &mat, const bool use_operator);
+template<class MAT>
+void TestMultiply(const MAT &mat);
 template<class TVar>
 void BlockDiagLUPivot();
 template<class TVar>
@@ -330,19 +332,59 @@ TEMPLATE_PRODUCT_TEST_CASE("MultiplyByScalar", "[matrix_tests]",
   }
 }
 
-TEMPLATE_TEST_CASE("Multiply","[matrix_tests][!shouldfail]",
-                   // float,
-                   // double,
-                   // long double,
-                   // std::complex<float>,
-                   // std::complex<double>,
-                   std::complex<long double>
-                   ) {
-  SECTION("Multiply method IMPLEMENT ME"){
-    FAIL("IMPLEMENT ME");
+// //for debugging: once this is fixed, uncomment next test
+// TEST_CASE("Multiply TPZSkylNSymMatrix","[matrix_tests][!shouldfail]"){
+//   SECTION("Find out why"){
+//     TPZSkylNSymMatrix<double> ma1;
+//     ma1.AutoFill(10,10,SymProp::NonSym);
+//     TestMultiply(ma1);
+//   }
+// }
+
+TEMPLATE_PRODUCT_TEST_CASE("Multiply", "[matrix_tests]",
+                           (TPZFMatrix,
+                            TPZFBMatrix,
+                            TPZFYsmpMatrix,
+                            TPZSkylNSymMatrix,
+                            TPZSFMatrix,
+                            TPZSBMatrix,
+                            TPZSYsmpMatrix,
+#ifdef PZ_USING_MKL
+                            TPZFYsmpMatrixPardiso,
+                            TPZSYsmpMatrixPardiso,
+#endif
+                            TPZSkylMatrix),
+                           (float, double, long double,
+                            std::complex<float>, std::complex<double>,
+                            std::complex<long double>))
+{
+  using MAT = TestType;
+  using SCAL = typename MAT::Type;
+
+  constexpr bool sym_storage = IsSymmetricStorage<MAT>;
+#ifdef PZ_USING_MKL
+  // pardiso is only for doubles
+  if ((std::is_same_v<MAT, TPZFYsmpMatrixPardiso<SCAL>> &&
+       !std::is_same_v<double, RType(SCAL)>) ||
+      (std::is_same_v<MAT, TPZSYsmpMatrixPardiso<SCAL>> &&
+       !std::is_same_v<double, RType(SCAL)>))
+  {
+    return;
   }
-  SECTION("Multiply operator IMPLEMENT ME"){
-    FAIL("IMPLEMENT ME");
+#endif
+  SymProp sp = GENERATE(SymProp::NonSym, SymProp::Sym, SymProp::Herm);
+  SECTION(SymPropName(sp))
+  {
+    if (sym_storage && sp == SymProp::NonSym)
+    {
+      return;
+    }
+
+    MAT ma;
+    const int dim = GENERATE(5, 10);
+    ma.AutoFill(dim, dim, sp);
+
+    TestMultiply(ma);
   }
 }
 
@@ -636,7 +678,7 @@ void TestSubtract(const MAT& ma1, const bool use_operator){
 }
 
 template<class MAT>
-void TestMultiplyByScalar(const MAT &ma, const bool use_operator)
+void TestMultiplyByScalar(const MAT &mat, const bool use_operator)
 {
   using TVar=typename MAT::Type;
   auto oldPrecision = Catch::StringMaker<RTVar>::precision;
@@ -652,26 +694,72 @@ void TestMultiplyByScalar(const MAT &ma, const bool use_operator)
     else
       return (RTVar)1;
   }();
-  const int row = ma.Rows();
-  const int col = ma.Cols();
+  const int row = mat.Rows();
+  const int col = mat.Cols();
 
   TVar alpha = GENERATE(0.1, 2.0, 10.0);
   MAT res;
   if (use_operator)
   {
-    res = ma * alpha;
+    res = mat * alpha;
   }
   else
   {
-    ma.MultiplyByScalar(alpha,res);
+    mat.MultiplyByScalar(alpha,res);
   }
 
   for (int i = 0; i < row; i++)
   {
     for (int j = 0; (j < col) && check; j++)
     {
-      TVar diff = res.GetVal(i, j) - ma.GetVal(i, j) * alpha;
-      CAPTURE(i, j, res.GetVal(i, j), ma.GetVal(i, j), alpha, diff, tol);
+      TVar diff = res.GetVal(i, j) - mat.GetVal(i, j) * alpha;
+      CAPTURE(i, j, res.GetVal(i, j), mat.GetVal(i, j), alpha, diff, tol);
+      if (!IsZero(diff / tol))
+      {
+        check = false;
+      }
+      REQUIRE(check);
+    }
+  }
+  Catch::StringMaker<RTVar>::precision = oldPrecision;
+}
+
+template <class MAT>
+void TestMultiply(const MAT &mat)
+{
+  using TVar = typename MAT::Type;
+  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
+  Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
+
+  bool check = true;
+  constexpr RTVar tol = []()
+  {
+    if constexpr (std::is_same_v<RTVar, float>)
+    {
+      if constexpr (std::is_same_v<TVar, std::complex<float>>)
+        return (RTVar)100; //this is because IsZero tolerance for std::complex<float> is 1e-7 while for float is 1e-6
+      else
+        return (RTVar)10;
+    }
+    else if constexpr (std::is_same_v<RTVar, long double>)
+      return (RTVar)100;
+    else
+      return (RTVar)1;
+  }();
+  const int row = mat.Rows();
+  const int col = mat.Cols();
+
+  TPZFMatrix<TVar> duplicate(mat), square, square2;
+  mat.Multiply(mat, square);
+  duplicate.Multiply(duplicate, square2);
+
+  // Checking whether result matrix is the same
+  for (int i = 0; i < row; i++)
+  {
+    for (int j = 0; j < col; j++)
+    {
+      TVar diff = square.GetVal(i, j) - square2.GetVal(i, j);
+      CAPTURE(i, j, square.GetVal(i, j), square2.GetVal(i, j), diff, tol, row);
       if (!IsZero(diff / tol))
       {
         check = false;
