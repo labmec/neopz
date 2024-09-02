@@ -669,8 +669,18 @@ int64_t TPZInterpolatedElement::CreateMidSideConnect(int side) {
     if (side < NCornerConnects()) {
         thisside.EqualLevelElementList(elvec, 1, 0);
         int64_t nel = elvec.NElements(); // (1)
-        if (nel && elvec[nel - 1].Reference().Dimension() == thisside.Reference().Dimension()) {
-            newnodeindex = elvec[nel - 1].ConnectIndex();
+        int iel = -1;
+        for (int el = 0; el < nel; el++) {
+            if (elvec[el].Reference().Dimension() == thisside.Reference().Dimension()) {
+                newnodeindex = elvec[el].ConnectIndex();
+                if(newnodeindex != -1) {
+                    iel = el;
+                    break;
+                }
+            }
+        }
+        if (iel >= 0) {
+            newnodeindex = elvec[iel].ConnectIndex();
             SetConnectIndex(nodloc, newnodeindex);
         } else {
             // corner nodes have order 1

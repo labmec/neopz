@@ -760,9 +760,9 @@ void TPZGeoElSide::EqualLevelCompElementList(TPZStack<TPZCompElSide> &elsidevec,
 	neighbour = Neighbour();
 	if(!neighbour.Exists()) return;
 	
-	while(neighbour.Element() != this->Element()) {
+	while(neighbour != *this) {
 		ref = neighbour.Reference();
-		if(ref.Element() && ref.Element() != Reference().Element() && (!onlyinterpolated || dynamic_cast<TPZInterpolatedElement*>(ref.Element()) )) {
+		if(ref.Element() && ref != Reference() && (!onlyinterpolated || dynamic_cast<TPZInterpolatedElement*>(ref.Element()) )) {
 			elsidevec.Push(ref);
 			if(removeduplicates) return;
 		}
