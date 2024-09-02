@@ -12,6 +12,7 @@
 #include "tpzpyramid.h"
 #include "pzgeoelbc.h"
 #include "pzlog.h"
+#include "pzvec_extras.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.tpzgeomeshtools");
