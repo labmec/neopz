@@ -620,6 +620,16 @@ void TPZConnect::BuildDependencyOrder(TPZVec<int64_t> &connectlist, TPZVec<int> 
 	int64_t numnodes_processed = totalnodes;
 	// number of nodes processed during the current cycle
 	
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled()) {
+		std::stringstream sout;
+		for(auto ic : connectlist) {
+			TPZConnect &c = mesh.ConnectVec()[ic];
+			c.Print(mesh,sout);
+		}
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 	while(numnodes_processed) {
 		
 		numnodes_processed = 0;
