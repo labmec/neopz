@@ -96,6 +96,12 @@ void ComputeFieldAtEl(TPZCompEl *cel,
   TPZManVector<TVar,9> sol;
 
   const auto celdim = cel->Dimension();
+  const TPZGeoEl *gel = cel->Reference();
+  if(!gel) DebugStop();
+  bool collapsed = false;
+  if(gel->Type() == EQuadrilateral && cel->ConnectIndex(2)==cel->ConnectIndex(3)) {
+    collapsed = true;
+  }
 
   TPZPostProcEl<TVar> *graphel = safe_check ? new TPZPostProcElSafe<TVar>(cel) : new TPZPostProcEl<TVar>(cel);
 
@@ -104,9 +110,12 @@ void ComputeFieldAtEl(TPZCompEl *cel,
   //vertex counter
   int iv = 0;
   //iterate through points in the reference element
-  for (auto &ip : ref_vertices){
-    
+  for (auto ip : ref_vertices){
     ip.Resize(celdim);
+#ifdef PZDEBUG
+    if(ip.size() != celdim) DebugStop();
+#endif
+    if(collapsed && ip[celdim-1]> (1.-1.e-6)) ip[celdim-1] = 1.-1.e-6;
     //computes all relevant data for a given integration point
     graphel->ComputeRequiredData(ip);
     const int nfields = fields.size();
