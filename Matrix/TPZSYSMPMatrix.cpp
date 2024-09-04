@@ -401,7 +401,9 @@ void TPZSYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & de
                 }
               }
             }
-            if(!flag) std::cout << "TPZSYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << std::endl;         
+            if(!flag) {
+              std::cout << "TPZSYsmpMatrix::AddKel: Non existing position on sparse matrix: line = " << ipos << " column = " << jpos << std::endl;
+            }
         }
     }
 }
@@ -445,7 +447,9 @@ void TPZSYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & so
                 }
               }
             }
-            if(!flag) std::cout << "TPZSYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << std::endl;
+            if(!flag) {
+              std::cout << "TPZSYsmpMatrix::AddKel: Non existing position on sparse matrix: line = " << ipos << " column = " << jpos << std::endl;
+            }
 		}
 	}
 }
