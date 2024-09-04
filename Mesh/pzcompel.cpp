@@ -542,8 +542,9 @@ void TPZCompEl::BuildConnectList(TPZStack<int64_t> &connectlist) const {
     if (buf.size() != connectlist.size())
     {
         connectlist.Resize(buf.size());
-        std::copy(buf.begin(), buf.end(), &connectlist[0]);
     }
+    std::copy(buf.begin(), buf.end(), &connectlist[0]);
+
 }
 
 void TPZCompEl::BuildConnectList(std::set<int64_t> &connectlist) {
