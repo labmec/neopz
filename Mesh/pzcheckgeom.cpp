@@ -443,7 +443,7 @@ void TPZCheckGeom::UniformRefine(int nDiv)
             TPZManVector< TPZGeoEl *,20 > filhos;
             TPZGeoEl * gel = gelvec[elem];
             if(!gel) continue;
-            if(!gel->HasSubElement()) gel->Divide(filhos);
+            if(gel->Dimension() > 0 && !gel->HasSubElement()) gel->Divide(filhos);
         }
     }
 }
