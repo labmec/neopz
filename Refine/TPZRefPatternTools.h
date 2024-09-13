@@ -56,7 +56,7 @@ public:
                                                          std::map<int, std::pair<TPZGeoEl *, std::map<int,int> > > &neighCorresp);
 	
 	/**
-	 * @note This methos is used by RefineDirectional method!!!
+	 * @note This method is used by RefineDirectional method!!!
 	 * @brief Returns the refpattern that matches the sides refinement intensity and midnodes coordinates with respect to sidestorefine vector
 	 * @param gel - input data: geometric element for which the perfect match refpattern will be returned
 	 * @param sidestorefine - input data: vector filled with sides refinement intensity
