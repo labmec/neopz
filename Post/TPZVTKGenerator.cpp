@@ -76,8 +76,27 @@ void ComputeFieldAtEl(TPZCompEl *cel,
   const TPZGeoEl *gel = cel->Reference();
   if(!gel) DebugStop();
   bool collapsed = false;
-  if(gel->Type() == EQuadrilateral && cel->ConnectIndex(2)==cel->ConnectIndex(3)) {
-    collapsed = true;
+  int64_t node1 = -1;
+  int64_t node2 = -1;
+  int dir = -1;
+  int leftright = 0;
+  TPZManVector<REAL,2> scale(2,1.);
+  if(gel->Type() == EQuadrilateral) {
+    for(int in=0; in<4; in++) {
+      node1 = gel->NodeIndex(in);
+      node2 = gel->NodeIndex((in+1)%4);
+      if(node1 == node2) {
+        collapsed = true;
+        if(in%2==0) {
+          dir = 1;
+          leftright = 2*(in/2)-1;
+        } else {
+          dir = 0;
+          leftright = 2*(1-in/2)-1;
+        }
+        break;
+      }
+    }
   }
 
   TPZPostProcEl<TVar> graphel(cel);
@@ -91,7 +110,7 @@ void ComputeFieldAtEl(TPZCompEl *cel,
 #ifdef PZDEBUG
     if(ip.size() != celdim) DebugStop();
 #endif
-    if(collapsed && ip[celdim-1]> (1.-1.e-6)) ip[celdim-1] = 1.-1.e-6;
+    if(collapsed && fabs(ip[dir]-leftright) < 1.e-6) ip[dir] *= 1.-1.e-6;
     //computes all relevant data for a given integration point
     graphel.ComputeRequiredData(ip);
     const int nfields = fields.size();
