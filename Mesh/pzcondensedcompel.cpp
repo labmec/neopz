@@ -9,7 +9,9 @@
 #include "pzelementgroup.h"
 #include "pzcmesh.h"
 #include "TPZElementMatrixT.h"
-
+#include "TPZMatCombinedSpaces.h"
+#include "TPZNullMaterial.h"
+#include "TPZNullMaterialCS.h"
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.tpzcondensedcompel");
 #endif
@@ -365,6 +367,28 @@ template<class TVar>
 void TPZCondensedCompElT<TVar>::CalcStiff(TPZElementMatrixT<TVar> &ekglob,
                                           TPZElementMatrixT<TVar> &efglob)
 {
+
+    auto* material_ss =
+        dynamic_cast<TPZMatSingleSpaceT<TVar> *>(this->Material());
+    auto* material_cs =
+        dynamic_cast<TPZMatCombinedSpacesT<TVar> *>(this->Material());
+    /*
+      apparently you can have a condensed group that will not have an
+      associated material but still needs to compute a stiff matrix
+     */
+    const bool has_mat = material_ss || material_cs;
+    
+    auto *nullmat = dynamic_cast<TPZNullMaterial<TVar> *>(material_ss);
+    auto *nullmatcs = dynamic_cast<TPZNullMaterialCS<TVar> *>(material_cs);
+    if(has_mat && (nullmat || nullmatcs))
+    {
+        ekglob.Reset();
+        efglob.Reset();
+        ekglob.fType = TPZElementMatrix::EK;
+        efglob.fType = TPZElementMatrix::EF;
+        return;
+    }
+    
     if(fKeepMatrix == false)
     {
         fKeepMatrix = true;
@@ -531,7 +555,7 @@ void TPZCondensedCompElT<TVar>::CalcStiff(TPZElementMatrixT<TVar> &ekglob,
     int64_t dim = ek.fMat.Rows();
     for (int64_t i=0; i<dim ; ++i) {
         for (int64_t j=0; j<dim ; ++j) {
-            fCondensed(i,j) = ek.fMat(i,j);
+            fCondensed(i,j) = ek.fMat.g(i,j);
         }
     }
     
@@ -588,9 +612,9 @@ void TPZCondensedCompElT<TVar>::CalcStiff(TPZElementMatrixT<TVar> &ekglob,
     }
 #endif
     for (int64_t i=0; i<dim; i++) {
-        efglob.fMat(i,0) = F1.GetVal(i,0);
+        efglob.fMat(i,0) = F1.g(i,0);
         for (int64_t j=0; j<dim; j++) {
-            ekglob.fMat(i,j) = K11.GetVal(i,j);
+            ekglob.fMat.g(i,j) = K11.g(i,j);
         }
     }
     

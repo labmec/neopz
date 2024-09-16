@@ -156,7 +156,7 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 	totalnodes = this->fConstrConnect.NElements();
 	
 	// compute the list of nodes and their proper order of processing
-	TPZVec<int> DependenceOrder;
+	TPZManVector<int,400> DependenceOrder;
 	// this->fConstrNod, totalnodes and DependenceOrder
 	// are initialized using codes documented above
 	BuildDependencyOrder(this->fConstrConnect,DependenceOrder,*this->fMesh);
@@ -249,6 +249,10 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 	
 	int numnodes_processed = 0;
 	int current_order = 0;
+  TPZFNMatrix<150,TVar> localmat;
+
+  TPZFMatrix<TVar> *fulldepmat = fUserAllocMat ? fUserAllocMat : &localmat;
+  
 	while(numnodes_processed < totalnodes) {
 		int in;
 		for(in=0; in<totalnodes; in++) {
@@ -268,10 +272,11 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 			// loop over the nodes from which dfn depends
 			TPZConnect::TPZDependBase *dep = dfn->FirstDepend();
 
-      TPZFNMatrix<50,TVar> depmat;
-      TPZFNMatrix<150,TVar> fulldepmat;
+      
 			while(dep) {
-        dep->FillDepMatrix(depmat);
+        auto dept = dynamic_cast<TPZConnect::TPZDepend<TVar>*>(dep);
+        if(!dept){DebugStop();}
+        const auto &depmat = dept->GetDepMatrix();
         
 				int64_t depnodeindex = dep->fDepConnectIndex;
 				// look for the index where depnode is found
@@ -303,7 +308,7 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
           const int orig_col=depmat.Cols();
           const int full_row=numstate*orig_row;
           const int full_col=numstate*orig_col;
-          fulldepmat.Redim(full_row,full_col);
+          fulldepmat->Redim(full_row,full_col);
           
           for(int ic = 0; ic < orig_col; ic++){
             const auto first_c = ic*numstate;
@@ -311,7 +316,7 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
               const auto first_r = ir*numstate;
               const auto val = depmat.GetVal(ir,ic);
               for(int istate = 0; istate < numstate; istate++){
-                fulldepmat.PutVal(first_r+istate,first_c+istate,val);
+                fulldepmat->PutVal(first_r+istate,first_c+istate,val);
               }
             }
           }
@@ -326,12 +331,12 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
           since there are no trial functions
         */
 
-        const auto deprows = fulldepmat.Rows();
-        const auto depcols = fulldepmat.Cols();
+        const auto deprows = fulldepmat->Rows();
+        const auto depcols = fulldepmat->Cols();
         //the window is the full matrix
 
         {
-          TPZMatrixWindow<TVar> dep_window(fulldepmat,0,0,deprows,depcols);
+          TPZMatrixWindow<TVar> dep_window(*fulldepmat,0,0,deprows,depcols);
           TPZMatrixWindow<TVar> send_window(this->fConstrMat,inpos,0,insize,this->fConstrMat.Cols());
           TPZMatrixWindow<TVar> receive_window(this->fConstrMat,deppos,0,depsize,this->fConstrMat.Cols());
           const TVar alpha{1};
@@ -345,7 +350,7 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
         }
         if (this->fType == TPZElementMatrix::EK){
           //now we multiply it on the right side too
-          TPZMatrixWindow<TVar> dep_window(fulldepmat,0,0,deprows,depcols);
+          TPZMatrixWindow<TVar> dep_window(*fulldepmat,0,0,deprows,depcols);
           TPZMatrixWindow<TVar> send_window(this->fConstrMat,0,inpos,this->fConstrMat.Rows(),insize);
           TPZMatrixWindow<TVar> receive_window(this->fConstrMat,0,deppos,this->fConstrMat.Rows(),depsize);
           const TVar alpha{1};
@@ -396,7 +401,10 @@ void TPZElementMatrixT<TVar>::PermuteGather(TPZVec<int64_t> &permute)
                 int64_t jblsize = fBlock.Size(jbl);
                 for (int64_t idf=0; idf<iblsize; ++idf) {
                     for (int64_t jdf=0; jdf<jblsize; ++jdf) {
-                        fMat.at(fBlock.at(ibl,jbl,idf,jdf)) = cp.fMat.at(cp.fBlock.at(permute[ibl],permute[jbl],idf,jdf));
+                      const auto [my_r,my_c] = fBlock.at(ibl,jbl,idf,jdf);
+                      const auto [cp_r,cp_c] =
+                        cp.fBlock.at(permute[ibl],permute[jbl],idf,jdf);
+                      fMat.g(my_r,my_c) = cp.fMat.g(cp_r,cp_c);
                     }
                 }
             }

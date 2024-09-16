@@ -84,8 +84,6 @@ public:
     virtual TPZDependBase* Clone() = 0;
     virtual TPZDependBase* CreateEmptyInstance() = 0;
     virtual void PrintMat(std::ostream &out) = 0;
-    virtual void FillDepMatrix(TPZFMatrix<STATE> & mat) = 0;
-    virtual void FillDepMatrix(TPZFMatrix<CSTATE> & mat) = 0;
 		/**
 		 * @brief Copy a depend data structure to a clone depend in a clone mesh
 		 * @param orig original depend to be copied
@@ -106,30 +104,10 @@ public:
     int DepRows() override {return fDepMatrix.Rows();}
     int DepCols() override {return fDepMatrix.Cols();}
 
-    void FillDepMatrix(TPZFMatrix<CSTATE> &mat) override{
-      if constexpr (std::is_same_v<TVar,CSTATE>){
-        mat = fDepMatrix;
-      }else{
-        const auto nrows = DepRows();
-        const auto ncols = DepCols();
-        mat.Resize(nrows,ncols);
-        for(int i= 0; i < nrows; i++){
-          for(int j= 0; j < ncols; j++){
-            mat(i,j) = fDepMatrix(i,j);
-          }
-        }
-      }
+    TPZFMatrix<TVar> const &GetDepMatrix(){
+      return fDepMatrix;
     }
-
-    void FillDepMatrix(TPZFMatrix<STATE> &mat) override{
-      if constexpr (std::is_same_v<TVar,STATE>){
-        mat = fDepMatrix;
-      }else{
-        PZError<<__PRETTY_FUNCTION__
-               <<"\nIncompatible types.Aborting...\n";
-        DebugStop();
-      }
-    }
+    
 
     TPZDepend<TVar>* CreateEmptyInstance() override{
       return new TPZDepend<TVar>;

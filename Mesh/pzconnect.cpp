@@ -166,7 +166,7 @@ TPZConnect::TPZDepend<TVar> *TPZConnect::AddDependency(int64_t myindex, int64_t 
 		connect->fNext = fDependList;
 		fDependList = connect;
 	} else {
-		TPZFNMatrix<50,TVar> temp(isize,jsize), temp2(isize,jsize);
+		TPZFNMatrix<50,TVar> temp(isize,jsize);
 		int i,j;
 		for(i=0; i<isize; i++) for(j=0; j<jsize; j++) temp(i,j) = depmat(ipos+i,jpos+j);
 		
@@ -180,7 +180,9 @@ TPZConnect::TPZDepend<TVar> *TPZConnect::AddDependency(int64_t myindex, int64_t 
 		}
 		
 
-    connect->FillDepMatrix(temp2);
+    auto dept = dynamic_cast<TPZConnect::TPZDepend<TVar>*>(connect);
+    if(!dept){DebugStop();}
+    const auto &temp2 = dept->GetDepMatrix();
 		temp -= temp2;
 		REAL val = Norm(temp);
 		if(val > 1.e-6) {

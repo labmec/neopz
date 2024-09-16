@@ -40,6 +40,7 @@
 #ifdef USING_OMP
 #include "omp.h"
 #endif
+
 #include "pzcheckconsistency.h"
 #include "TPZMaterial.h"
 #include "TPZStrMatParInterface.h"
@@ -88,15 +89,26 @@ static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 template<class TVar>
 void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs) {
+
+
+#ifndef USING_OMP
+#ifndef USING_TBB
+    PZError<<"TPZStructMatrixOMPorTBB is only available if\n"
+           <<"USING_OMP=ON or USING_TBB=ON!\nAborting..."<<std::endl;
+    DebugStop();
+#endif
+#endif
+    
 #ifdef USING_MKL
-    mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+    if(this->fNumThreads){
+        mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+    }
     //mkl_set_num_threads_local(1);
 #endif
     ass_stiff.start();
 
     const auto &equationFilter =
             (dynamic_cast<TPZStructMatrix *>(this))->EquationFilter();
-    ass_stiff.start();
 
     if (equationFilter.IsActive()) {
         int64_t neqcondense = equationFilter.NActiveEquations();
@@ -105,14 +117,14 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix 
             DebugStop();
         }
 #endif
-        TPZFMatrix<STATE> rhsloc(neqcondense, rhs.Cols(), 0.);
+        TPZFMatrix<TVar> rhsloc(neqcondense, rhs.Cols(), 0.);
         if (this->fNumThreads) {
             this->MultiThread_Assemble(mat, rhsloc);
         } else {
             this->Serial_Assemble(mat, rhsloc);
         }
 
-        equationFilter.Scatter(rhsloc, rhs);
+        if(ComputeRhs()){equationFilter.Scatter(rhsloc, rhs);}
     } else {
         if (this->fNumThreads) {
             this->MultiThread_Assemble(mat, rhs);
@@ -122,12 +134,29 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix 
     }
     ass_stiff.stop();
 #ifdef USING_MKL
-    mkl_set_num_threads_local(0);
+    if(this->fNumThreads){
+        mkl_domain_set_num_threads(0, MKL_DOMAIN_BLAS);
+    }
 #endif
 }
 
 template<class TVar>
 void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs){
+
+
+#ifndef USING_OMP
+#ifndef USING_TBB
+    PZError<<"TPZStructMatrixOMPorTBB is only available if\n"
+           <<"USING_OMP=ON or USING_TBB=ON!\nAborting..."<<std::endl;
+    DebugStop();
+#endif
+#endif
+    
+#ifdef USING_MKL
+    if(this->fNumThreads){
+        mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+    }
+#endif
     ass_rhs.start();
     const auto &equationFilter =
             (dynamic_cast<TPZStructMatrix *>(this))->EquationFilter();
@@ -141,11 +170,11 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs){
         {
             DebugStop();
         }
-        TPZFMatrix<STATE> rhsloc(neqcondense,1,0.);
+        TPZFMatrix<TVar> rhsloc(neqcondense,1,0.);
         if(this->fNumThreads)
         {
 #ifdef HUGEDEBUG
-            TPZFMatrix<STATE> rhsserial(rhsloc);
+            TPZFMatrix<TVar> rhsserial(rhsloc);
             this->Serial_Assemble(rhsserial);
 #endif
             this->MultiThread_Assemble(rhsloc);
@@ -165,7 +194,7 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs){
     {
         if(this->fNumThreads){
 #ifdef HUGEDEBUG
-            TPZFMatrix<STATE> rhsserial(rhs);
+            TPZFMatrix<TVar> rhsserial(rhs);
             this->Serial_Assemble(rhsserial);
 #endif
             this->MultiThread_Assemble(rhs);
@@ -183,6 +212,11 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs){
         }
     }
     ass_rhs.stop();
+#ifdef USING_MKL
+    if(this->fNumThreads){
+        mkl_domain_set_num_threads(0, MKL_DOMAIN_BLAS);
+    }
+#endif
 }
 
 
@@ -212,14 +246,14 @@ void TPZStructMatrixOMPorTBB<TVar>::Serial_Assemble(TPZBaseMatrix & mat, TPZBase
 
         el->CalcStiff(ek, ef);
 
-        if(!el->HasDependency()) {
+        if(!ek.HasDependency()) {
             ek.ComputeDestinationIndices();
             equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
-            //            TPZSFMatrix<STATE> test(stiffness);
-            //            TPZFMatrix<STATE> test2(stiffness.Rows(),stiffness.Cols(),0.);
+            //            TPZSFMatrix<TVar> test(stiffness);
+            //            TPZFMatrix<TVar> test2(stiffness.Rows(),stiffness.Cols(),0.);
             //            stiffness.Print("before assembly",std::cout,EMathematicaInput);
             stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-            source.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs()){source.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);}
             //            stiffness.Print("stiffness after assembly STK = ",std::cout,EMathematicaInput);
             //            rhs.Print("rhs after assembly Rhs = ",std::cout,EMathematicaInput);
             //            test2.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
@@ -236,11 +270,11 @@ void TPZStructMatrixOMPorTBB<TVar>::Serial_Assemble(TPZBaseMatrix & mat, TPZBase
             equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
 
             stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-            source.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs()){source.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);}
 
         }
     }
-#ifdef PZDEBUG
+#ifdef HUGEDEBUG
     VerifyStiffnessSum(mat);
 #endif
 #ifdef USING_MKL
@@ -262,8 +296,9 @@ void TPZStructMatrixOMPorTBB<TVar>::VerifyStiffnessSum(TPZBaseMatrix & mat){
 }
 template<class TVar>
 void TPZStructMatrixOMPorTBB<TVar>::Serial_Assemble(TPZBaseMatrix & rhs){
-
-
+    PZError<<__PRETTY_FUNCTION__
+           <<"\nNot implemented!Aborting..."<<std::endl;
+    DebugStop();
 }
 
 template<class TVar>
@@ -283,7 +318,9 @@ int TPZStructMatrixOMPorTBB<TVar>::GetNumberColors(){
 
 template<class TVar>
 void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs){
-    //mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+#ifdef USING_MKL
+    mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+#endif    
     //mkl_set_num_threads_local(1);
     if (fShouldColor){
         if (fUsingTBB){
@@ -301,8 +338,10 @@ void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TP
             AssemblingUsingOMPbutNotColoring(mat,rhs);
         }
     }
-
-#ifdef PZDEBUG
+#ifdef USING_MKL
+    mkl_domain_set_num_threads(0, MKL_DOMAIN_BLAS);
+#endif
+#ifdef HUGEDEBUG
     VerifyStiffnessSum(mat);
 #endif
 }
@@ -318,7 +357,9 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBandColoring(TPZBaseMatrix 
 
     int64_t nelem = cmesh->NElements();
     const int nthread = this->fNumThreads;
-
+    const auto &matids = myself->MaterialIds();
+    const int nmatids = matids.size();
+    
     TPZStructMatrixOMPorTBB::OrderElements();
     int ncolor = GetNumberColors();
 
@@ -326,18 +367,25 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBandColoring(TPZBaseMatrix 
 
         //tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
         tbb::global_control global_limit(tbb::global_control::max_allowed_parallelism, nthread);
-        tbb::parallel_for( tbb::blocked_range<int64_t>(0,nelem),
-                          [&](tbb::blocked_range<int64_t> r){
-        for (int64_t iel = r.begin(); iel < r.end(); iel++)
-            {
-                if (icol != fElVecColor[iel]) continue;
-                TPZCompEl *el = cmesh->Element(iel);
-                if (!el) continue;
+        tbb::parallel_for(
+          tbb::blocked_range<int64_t>(0,nelem),
+          [&](tbb::blocked_range<int64_t> r){
+              TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
+              TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
+              for (int64_t iel = r.begin(); iel < r.end(); iel++)
+              {
+                  if (icol != fElVecColor[iel]) continue;
+                  TPZCompEl *el = cmesh->Element(iel);
+                  if ((!el) ||
+                      (nmatids != 0 &&
+                       !el->NeedsComputing(matids)))
+                  {
+                      continue;
+                  }
 
-                ComputingCalcstiffAndAssembling(mat,rhs,el);
-
-            }
-        });
+                  CalcStiffAndAssemble(mat,rhs,el,ek,ef);
+              }
+          });
     }
 #endif
 }
@@ -352,20 +400,33 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingOMPandColoring(TPZBaseMatrix 
     int64_t nelem = cmesh->NElements();
     const int nthread = this->fNumThreads;
 
+    const auto &matids = myself->MaterialIds();
+    const int nmatids = matids.size();
+    
     TPZStructMatrixOMPorTBB::OrderElements();
     int ncolor = GetNumberColors();
 
     for (int icol=0; icol<ncolor; icol++){
 
         omp_set_num_threads(nthread);
-        #pragma omp parallel for schedule(dynamic,1)
-        for (int64_t iel = 0; iel < nelem; iel++){
-        if (icol != fElVecColor[iel]) continue;
-        TPZCompEl *el = cmesh->Element(iel);
-        if (!el) continue;
+#pragma omp parallel
+        {
+            TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
+            TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
+#pragma omp for schedule(dynamic,1)
+            for (int64_t iel = 0; iel < nelem; iel++){
+                if (icol != fElVecColor[iel]) continue;
+                TPZCompEl *el = cmesh->Element(iel);
+                if ((!el) ||
+                    (nmatids != 0 &&
+                     !el->NeedsComputing(matids)))
+                {
+                    continue;
+                }
 
-            ComputingCalcstiffAndAssembling(mat,rhs,el);
+                CalcStiffAndAssemble(mat,rhs,el,ek,ef);
 
+            }
         }
     }
 #else
@@ -378,23 +439,64 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingTBBbutNotColoring(TPZBaseMatr
 #ifdef USING_TBB
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     auto *cmesh = myself->Mesh();
-    int64_t nelem = cmesh->NElements();
+    const int64_t nelem = cmesh->NElements();
     const int nthread = this->fNumThreads;
+    const auto &matids = myself->MaterialIds();
+    const int nmatids = matids.size();
 
 
-        //tbb::task_scheduler_init init(nthread); //dont work in computer of LABMEC
-        tbb::global_control global_limit(tbb::global_control::max_allowed_parallelism, nthread);
-        tbb::parallel_for( tbb::blocked_range<int64_t>(0,nelem),
-                          [&](tbb::blocked_range<int64_t> r){
-        for (int64_t iel = r.begin(); iel < r.end(); iel++)
-        {
-            TPZCompEl *el = cmesh->Element(iel);
-            if (!el) continue;
-
-            ComputingCalcstiffAndAssembling(mat,rhs,el);
-
+    /*
+      in order to balance the load between threads, tbb may use things as
+      work stealing and etc
+      therefore, doing a initialization routine in the parallel_for,
+      but before the actual for loop, does not ensure that this initialization
+      routine will only be ran once per thread
+      so, we create this vectors and each thread will just point to it
+     */
+    TPZVec<TPZElementMatrixT<TVar>> ekvec(nthread,{cmesh,TPZElementMatrix::EK});
+    TPZVec<TPZElementMatrixT<TVar>> efvec(nthread,{cmesh,TPZElementMatrix::EF});
+    TPZVec<TVar*> bufvec(nthread,nullptr);
+    TPZVec<TPZFMatrix<TVar>*> auxmatvec(nthread,nullptr);
+    
+    if(fUserMatSize>0){
+        for(auto it = 0; it < nthread; it++){
+            bufvec[it] = new TVar[fUserMatSize];
+            auxmatvec[it] = new TPZFMatrix<TVar>(0,0,bufvec[it],fUserMatSize);
+            ekvec[it].SetUserAllocMat(auxmatvec[it]);
         }
+    }
+    
+    tbb::task_arena arena(nthread);
+    
+    arena.execute([&](){
+        tbb::parallel_for(tbb::blocked_range<int64_t>(0,nelem),
+                          [&](const tbb::blocked_range<int64_t> &r){
+            auto my_index = tbb::this_task_arena::current_thread_index();
+            auto &ek = ekvec[my_index];
+            auto &ef = efvec[my_index];
+            for (int64_t iel = r.begin(); iel < r.end(); iel++)
+            {
+                TPZCompEl *el = cmesh->Element(iel);
+                if ((!el) ||
+                    (nmatids != 0 &&
+                     !el->NeedsComputing(matids)))
+                {
+                    continue;
+                }
+
+                CalcStiffAndAssemble(mat,rhs,el,ek,ef);
+
+            }
         });
+    });
+
+    if(fUserMatSize>0){
+        //delete all matrices and deallocate all buffers
+        for(auto it = 0; it < nthread; it++){
+            delete auxmatvec[it];
+            delete [] bufvec[it];
+        }
+    }
 #else
     DebugStop();
 #endif
@@ -411,15 +513,43 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingOMPbutNotColoring(TPZBaseMatr
     int64_t nelem = cmesh->NElements();
     const int nthread = this->fNumThreads;
 
+    const auto &matids = myself->MaterialIds();
+    const int nmatids = matids.size();
+    
     omp_set_num_threads(nthread);
-    #pragma omp parallel for schedule(dynamic,1)
-    for (int64_t iel = 0; iel < nelem; iel++){
-        {
-            TPZCompEl *el = cmesh->Element(iel);
-            if (!el) continue;
+#pragma omp parallel
+    {
 
-            ComputingCalcstiffAndAssembling(mat,rhs,el);
+      TVar* buf = nullptr;
+      if(fUserMatSize>0){
+          buf = new TVar[fUserMatSize];
+      }
+      TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
+      TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
+      auto mklthreads = pzutils::SetNumThreadsLocalMKL(1);
+      {
+        
+        TPZFMatrix<TVar> auxmat(0,0,buf,fUserMatSize);
+        if(buf){
+            ek.SetUserAllocMat(&auxmat);
         }
+#pragma omp for schedule(dynamic,1)
+        for (int64_t iel = 0; iel < nelem; iel++){
+          {
+            TPZCompEl *el = cmesh->Element(iel);
+            if ((!el) ||
+                (nmatids != 0 &&
+                 !el->NeedsComputing(matids)))
+              {
+                continue;
+              }
+
+            CalcStiffAndAssemble(mat,rhs,el,ek,ef);
+          }
+        }
+      }
+      //matrix has been destroyed
+      if(buf){delete [] buf;}
     }
 #else
     DebugStop();
@@ -436,7 +566,8 @@ void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs)
 }
 
 template<class TVar>
-void TPZStructMatrixOMPorTBB<TVar>::ComputingCalcstiffAndAssembling(TPZBaseMatrix & mat,TPZBaseMatrix & rhs,TPZCompEl *el){
+void TPZStructMatrixOMPorTBB<TVar>::CalcStiffAndAssemble(TPZBaseMatrix & mat,TPZBaseMatrix & rhs,TPZCompEl *el,
+                                                         TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef){
 
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     auto *cmesh = myself->Mesh();
@@ -444,22 +575,21 @@ void TPZStructMatrixOMPorTBB<TVar>::ComputingCalcstiffAndAssembling(TPZBaseMatri
     TPZMatrix<TVar> &stiffness = dynamic_cast<TPZMatrix<TVar>&>(mat);
     TPZFMatrix<TVar> &source = dynamic_cast<TPZFMatrix<TVar>&>(rhs);
 
-    TPZElementMatrixT<TVar> ek(cmesh, TPZElementMatrix::EK), ef(cmesh, TPZElementMatrix::EF);
     el->CalcStiff(ek, ef);
 
     const auto &equationFilter =
             (dynamic_cast<TPZStructMatrix *>(this))->EquationFilter();
 
-    if(!el->HasDependency()) {
+    if(!ek.HasDependency()) {
         ek.ComputeDestinationIndices();
         equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
 
         if (fShouldColor){
             stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-            source.AddFelNonAtomic(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs()){source.AddFelNonAtomic(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);}
         }else{
             stiffness.AddKelAtomic(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-            source.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs()){source.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);}
         }
 
     } else {
@@ -470,10 +600,10 @@ void TPZStructMatrixOMPorTBB<TVar>::ComputingCalcstiffAndAssembling(TPZBaseMatri
         equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
         if (fShouldColor){
             stiffness.AddKel(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
-            source.AddFelNonAtomic(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs()){source.AddFelNonAtomic(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);}
         }else{
             stiffness.AddKelAtomic(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
-            source.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+            if(ComputeRhs()){source.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);}
         }
 
     }

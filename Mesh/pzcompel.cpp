@@ -244,11 +244,12 @@ void TPZCompEl::LoadSolutionInternal() {
             int numstate = dfn->NState(); //numstate eh fornecida pelo connect
             //         int numshape = nvar/numstate;
             TPZConnect::TPZDependBase *dep = dfn->FirstDepend();
-            TPZFNMatrix<50,TVar> depmat;
             int64_t blpos = block.Position(bl);
             for(iv=0; iv<nvar; iv++) MeshSol(blpos+iv, 0) = 0.;
             while(dep) {
-                dep->FillDepMatrix(depmat);
+                auto dept = dynamic_cast<TPZConnect::TPZDepend<TVar>*>(dep);
+                if(!dept){DebugStop();}
+                const auto &depmat = dept->GetDepMatrix();
                 int64_t depconindex = dep->fDepConnectIndex;
                 TPZConnect &depcon = Mesh()->ConnectVec()[depconindex];
                 int64_t depseq = depcon.SequenceNumber();
