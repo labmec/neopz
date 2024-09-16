@@ -411,12 +411,12 @@ void TPZWgma::Solution(
 
     GetPermittivity(datavec[0].x, er);
     GetPermeability(datavec[0].x, ur);
-    const CSTATE &exx = er[0];
-    const CSTATE &eyy = er[1];
-    const CSTATE &ezz = er[2];
-    const CSTATE &uxx = ur[0];
-    const CSTATE &uyy = ur[1];
-    const CSTATE &uzz = ur[2];
+    const CSTATE &exx = er.g(0,0);
+    const CSTATE &eyy = er.g(1,1);
+    const CSTATE &ezz = er.g(2,2);
+    const CSTATE &uxx = ur.g(0,0);
+    const CSTATE &uyy = ur.g(1,1);
+    const CSTATE &uzz = ur.g(2,2);
     
     TPZManVector<CSTATE,3> et(3,0.);
     TPZManVector<CSTATE,1> ez(1,0.);
@@ -458,8 +458,8 @@ void TPZWgma::Solution(
         break;
     }
     case 4:{//material
-        solout[0] = exx;
-        solout[1] = eyy;
+        solout[0] = std::abs(exx);
+        solout[1] = std::abs(eyy);
         break;
     }
     case 5:{//pOrder
