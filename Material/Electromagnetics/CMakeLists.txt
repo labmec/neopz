@@ -2,32 +2,47 @@
 
 set(public_headers
     TPZWgma.h
+    TPZAnisoWgma.h
     TPZPlanarWgScatt.h
     TPZPlanarWgScattSrc.h
     TPZPeriodicWgma.h
     TPZMatPML.h
-    TPZMatPML_impl.h
+    TPZCartesianPML.h
+    TPZCartesianPML_impl.h
+    TPZCylindricalPML.h
+    TPZCylindricalPML_impl.h
     TPZScalarField.h
     TPZPlanarWgma.h
+    TPZScattering.h
+    TPZScatteringSrc.h
     )
 
 set(headers
     TPZWgma.h
+    TPZAnisoWgma.h
     TPZPlanarWgScatt.h
     TPZPlanarWgScattSrc.h
     TPZPeriodicWgma.h
     TPZMatPML.h
-    TPZMatPML_impl.h
+    TPZCartesianPML.h
+    TPZCartesianPML_impl.h
+    TPZCylindricalPML.h
+    TPZCylindricalPML_impl.h
     TPZScalarField.h
     TPZPlanarWgma.h
+    TPZScattering.h
+    TPZScatteringSrc.h
    )
 set(sources
     TPZWgma.cpp
+    TPZAnisoWgma.cpp
     TPZPlanarWgScatt.cpp
     TPZPlanarWgScattSrc.cpp
     TPZPeriodicWgma.cpp
     TPZScalarField.cpp
     TPZPlanarWgma.cpp
+    TPZScattering.cpp
+    TPZScatteringSrc.cpp
    )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/Electromagnetics)

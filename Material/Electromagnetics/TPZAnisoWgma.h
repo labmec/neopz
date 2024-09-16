@@ -1,30 +1,29 @@
 /**
 
- * @file TPZWgma.h
- * @brief Header file for class TPZWgma.\n
+ * @file TPZAnisoWgma.h
+ * @brief Header file for class TPZAnisoWgma.\n
  */
 
-#ifndef TPZWAVEGUIDEMODALANALYSIS_H
-#define TPZWAVEGUIDEMODALANALYSIS_H
+#ifndef TPZANISOWGMA_H
+#define TPZANISOWGMA_H
 
 
 #include "TPZMatBase.h"
 #include "TPZMatCombinedSpaces.h"
-#include "TPZMatGeneralisedEigenVal.h"
+#include "TPZMatQuadraticEigenVal.h"
 /**
  * @ingroup material
- * @brief This class implements the weak statement for the modal analysis of waveguides using HCurl and H1 elements.
+ * @brief This class implements the weak statement for the modal analysis of full aniostropic waveguides using HCurl and H1 elements.
  * It uses a 2D Hcurl space for the transversal components of the electric field and an 1D H1 space for the longitudinal component.
- * @note Formulation taken from: LEE, J.-F.; SUN, D.-K.; CENDES, Z.J. Full-wave analysis of dielectric waveguides using tangential vector finite elements.IEEE Transactions on Microwave Theory and Techniques, Institute of Electrical and Electronics Engineers (IEEE), v. 39, n. 8,p. 1262–1271, 1991
  */
-class  TPZWgma :
+class  TPZAnisoWgma :
     public TPZMatBase<CSTATE,
                       TPZMatCombinedSpacesT<CSTATE>,
-                      TPZMatGeneralisedEigenVal>
+                      TPZMatQuadraticEigenVal>
 {
     using TBase = TPZMatBase<CSTATE,
                              TPZMatCombinedSpacesT<CSTATE>,
-                             TPZMatGeneralisedEigenVal>;
+                             TPZMatQuadraticEigenVal>;
 public:
 
     /**
@@ -35,27 +34,28 @@ public:
        @param[in] scale Scale for geometric domain.
        @note the `scale` param might help with floating point arithmetics on really small domains.
     */
-    TPZWgma(int id, const CSTATE er,
-            const CSTATE ur, const STATE lambda,
-            const REAL &scale = 1.);
+    TPZAnisoWgma(int id, const CSTATE er,
+                 const CSTATE ur, const STATE lambda,
+                 const REAL scale = 1.);
     /**
        @brief Constructor taking a few material parameters
        @param[in] id Material identifier.
-       @param[in] er Relative permittivity (xx, yy, zz).
-       @param[in] ur Relative permeability (xx, yy, zz).
+       @param[in] er Relative permittivity, 3x3 tensor
+       @param[in] ur Relative permeability, 3x3 tensor
        @param[in] scale Scale for geometric domain.
        @note the `scale` param might help with floating point arithmetics on really small domains.
     */
-    TPZWgma(int id,
-            const TPZFMatrix<CSTATE> & er,
-            const TPZFMatrix<CSTATE> & ur,
-            STATE lambda,
-            const REAL &scale = 1.);
-    explicit TPZWgma(int id);
-
-    TPZWgma * NewMaterial() const override;
+    TPZAnisoWgma(int id,
+                 const TPZFMatrix<CSTATE> & er,
+                 const TPZFMatrix<CSTATE> & ur,
+                 const STATE lambda,
+                 const REAL scale = 1.);
     
-    std::string Name() const override { return "TPZWgma"; }
+    explicit TPZAnisoWgma(int id);
+
+    TPZAnisoWgma * NewMaterial() const override;
+    
+    std::string Name() const override { return "TPZAnisoWgma"; }
     
     /** @brief Returns the integrable dimension of the material */
     int Dimension() const override {return 2;}
@@ -70,7 +70,7 @@ public:
     /**
        @name ParamMethods
        @{
-     */
+    */
     //! Sets the wavelength being analysed
     void SetWavelength(STATE lambda);
     //! Gets the current wavelength
@@ -126,36 +126,35 @@ public:
     //! Set the propagation constant used for post processing the solution
     inline void SetKz(const CSTATE &kz)
     { fKz = kz;}
-
-    //! Gets scale factor
-    [[nodiscard]] REAL GetScaleFactor() const {return fScaleFactor;}
     /**@}*/
 
-    /** @name GeneralisedMethods */
+    /** @name Quadratic EVP Methods */
     /** @{*/
-    //! Set the material to compute matrix A
-    void SetMatrixA() override;
-    //! Set the material to compute matrix B
-    void SetMatrixB() override;
+    //! Set the material to compute matrix K
+    void SetMatrixK() override;
+    //! Set the material to compute matrix L
+    void SetMatrixL() override;
+    //! Set the material to compute matrix M
+    void SetMatrixM() override;
     /**@{*/
 protected:
     /** @name InternalGeneralisedTypes */
     /** @{ */
     using TContributeType =
-        std::function<void (const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
-                            REAL weight,
-                            TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
-                            const TPZFMatrix<CSTATE> & er,
-                            const TPZFMatrix<CSTATE> & ur)>;
+        std::function<
+    void (const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
+          REAL weight,TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
+          const TPZFMatrix<CSTATE> & er, const TPZFMatrix<CSTATE> & ur)>;
     using TContributeBCType =
-        std::function<void (const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
-                            REAL weight,
-                            TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
-                            TPZBndCondT<CSTATE> &bc)>;
+        std::function<
+        void (const TPZVec<TPZMaterialDataT<CSTATE>> &datavec,
+              REAL weight,
+              TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
+              TPZBndCondT<CSTATE> &bc)>;
     /** @} */
-    //! Relative magnetic permeability
+    //! Relative magnetic permeability (xx, yy, zz)
     TPZFNMatrix<9,CSTATE> fUr{{1.,0,0},{0,1,0},{0,0,1}};
-    //! Relative electric permittivity
+    //! Relative electric permittivity in the x direction
     TPZFNMatrix<9,CSTATE> fEr{{1.,0,0},{0,1,0},{0,0,1}};
     //! Wavelength being analysed
     STATE fLambda{1.55e-9};
@@ -173,26 +172,34 @@ protected:
     //! Pointer to the current ContributeBC function
     TContributeBCType fCurrentContributeBC{nullptr};
     /** @} */
-    TPZWgma();//< Default constructor
+    TPZAnisoWgma();//< Default constructor
 
     /** @name InternalContributeMethods */
     /** @{*/
-    //! Contribution of the A Matrix
-    void ContributeA(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
+    //! Contribution of the K Matrix
+    void ContributeK(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
                      TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
                      const TPZFMatrix<CSTATE> & er, const TPZFMatrix<CSTATE> & ur);
-    //! Boundary contribution of the A Matrix
-    void ContributeBCA(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
-                      TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
-                      TPZBndCondT<CSTATE> &bc);
-    //! Contribution of the B Matrix
-    void ContributeB(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
+    //! Boundary contribution of the K Matrix
+    void ContributeBCK(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
+                       TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
+                       TPZBndCondT<CSTATE> &bc);
+    //! Contribution of the L Matrix
+    void ContributeL(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
                      TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
                      const TPZFMatrix<CSTATE> & er, const TPZFMatrix<CSTATE> & ur);
-    //! Boundary contribution of the B Matrix
-    void ContributeBCB(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
-                      TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
-                      TPZBndCondT<CSTATE> &bc);
+    //! Boundary contribution of the L Matrix
+    void ContributeBCL(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
+                       TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
+                       TPZBndCondT<CSTATE> &bc) {}
+    //! Contribution of the K Matrix
+    void ContributeM(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
+                     TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
+                     const TPZFMatrix<CSTATE> & er, const TPZFMatrix<CSTATE> & ur);
+    //! Boundary contribution of the M Matrix
+    void ContributeBCM(const TPZVec<TPZMaterialDataT<CSTATE>> &datavec, REAL weight,
+                       TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef,
+                       TPZBndCondT<CSTATE> &bc) {}
     /** @{ */
 };
 
