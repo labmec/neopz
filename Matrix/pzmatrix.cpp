@@ -98,8 +98,12 @@ void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,co
 	int64_t numeq = (opt) ? Cols() : Rows();
 	int64_t xcols = y.Cols();
 	int64_t ic;
+  if(beta==(TVar)0 && numeq==0){
+    z=y;
+    z*=beta;
+  }
 	z.Resize(numeq, xcols);
-    if(numeq == 0) return;
+  if(numeq == 0) return;
 	for (ic = 0; ic < xcols; ic++)
 	{
 		TVar *zp = &z(0,ic), *zlast = zp+numeq;
@@ -125,12 +129,29 @@ void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,co
 }
 
 template<class TVar>
+void TPZMatrix<TVar>::MultAddChecks(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const{
+  if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
+    Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
+    return;
+  }
+  if(beta != (TVar)0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+    Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+    return;
+  }
+  if(!opt) {
+    if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
+      z.Redim(this->Rows(),x.Cols());
+    }
+  } else {
+    if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
+      z.Redim(this->Cols(),x.Cols());
+    }
+  }
+}
+
+template<class TVar>
 void TPZMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const {
-	if ((!opt && Cols() != x.Rows()) || Rows() != x.Rows())
-		Error( "Operator* <matrices with incompatible dimensions>" );
-	if(x.Cols() != y.Cols() || x.Rows() != y.Rows()) {
-		Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
-	}
+	MultAddChecks(x,y,z,alpha,beta,opt);
 	int64_t rows = Rows();
 	int64_t cols = Cols();
 	int64_t xcols = x.Cols();
@@ -158,8 +179,8 @@ void TPZMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &
 }
 
 template <class TVar>
-void TPZMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, bool transpA, const TPZFMatrix<TVar>& B, 
-						 		       bool transpB, const TVar alpha)
+void TPZMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, int transpA, const TPZFMatrix<TVar>& B, 
+						 		       int transpB, const TVar alpha)
 {
     Error( "Not implemented for this type of matrix\n" );
 }
@@ -616,14 +637,23 @@ int TPZMatrix<TVar>::AddSub(const int64_t sRow, const int64_t sCol, const int64_
 /*****************/
 /*** Transpose ***/
 template<class TVar>
-void TPZMatrix<TVar>::Transpose(TPZMatrix<TVar> *T) const {
+void TPZMatrix<TVar>::Transpose(TPZMatrix<TVar> *T, bool conj) const {
 	T->Resize( Cols(), Rows() );
-	
-	for ( int64_t r = 0; r < Rows(); r++ ) {
+	if constexpr (is_complex<TVar>::value){
+    if(conj){
+      for ( int64_t r = 0; r < Rows(); r++ ) {
         for ( int64_t c = 0; c < Cols(); c++ ) {
-            T->PutVal( c, r, GetVal( r, c ) );
+          T->PutVal( c, r, std::conj(GetVal( r, c )) );
         }
+      }
+      return;
     }
+  }
+	for ( int64_t r = 0; r < Rows(); r++ ) {
+    for ( int64_t c = 0; c < Cols(); c++ ) {
+      T->PutVal( c, r, GetVal( r, c ) );
+    }
+  }
 }
 
 template<class TVar>
@@ -960,13 +990,13 @@ SymProp TPZMatrix<TVar>::VerifySymmetry(REAL tol) const{
         if(symSoFar && fabs(exp1) > tol){symSoFar = false;}
         if(hermSoFar && fabs(exp2) > tol){hermSoFar = false;}
         if(!hermSoFar && !symSoFar){
-          cout << "Element: " << i << ", " << j << "  -> " << this->GetVal(i,j)<<endl;
-          cout << "Element: " << j << ", " << i << "  -> " << this->GetVal(j,i)<<endl;
+          // cout << "Element: " << i << ", " << j << "  -> " << this->GetVal(i,j)<<endl;
+          // cout << "Element: " << j << ", " << i << "  -> " << this->GetVal(j,i)<<endl;
           return SymProp::NonSym;}
       }
     }
     if(hermSoFar){return SymProp::Herm;}
-    else if (symSoFar){return SymProp::NonSym;}
+    else if (symSoFar){return SymProp::Sym;}
     else{
       //how did we end up here?
       DebugStop();
@@ -977,8 +1007,8 @@ SymProp TPZMatrix<TVar>::VerifySymmetry(REAL tol) const{
       for(int64_t j = 0; j <= i; j++){
         const TVar exp = this->Get(i,j) - this->Get(j,i);
         if (fabs( exp ) > tol ) {
-          cout << "Element: " << i << ", " << j << "  -> " << exp << "/" <<
-            this->Get(i,j) << endl;
+          // cout << "Element: " << i << ", " << j << "  -> " << exp << "/" <<
+          //   this->Get(i,j) << endl;
           return SymProp::NonSym;
         }
       }

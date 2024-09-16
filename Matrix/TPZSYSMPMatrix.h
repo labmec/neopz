@@ -83,18 +83,20 @@ public :
   /** @brief Zeroes the matrix */
   virtual int Zero() override;
 
-  /** @brief Zeroes the matrix */
+  virtual int Resize(const int64_t newRows, const int64_t newCols) override
+  {
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Resize should not be called for Sparse matrices\n";
+    DebugStop();
+    return 1;
+  }
+
   virtual int Redim(int64_t rows, int64_t cols) override
   {
-    if(rows == this->fRow && cols == this->fCol)
-      {
-        Zero();
-      }
-    else
-      {
-        DebugStop();
-      }
-    return 0;
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Redim should not be called for Sparse matrices\n";
+    DebugStop();
+    return 1;
   }
 
     /** @brief Fill matrix storage with randomic values */
@@ -134,10 +136,18 @@ public :
   
     virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & destinationindex) override;
 	
-	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex) override;
-
-    void AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex) override;
-    /// Access function for the coefficients
+  inline void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                     TPZVec<int64_t> &destinationindex) override{
+    AddKelImpl<false>(elmat,sourceindex,destinationindex);
+  }
+  inline void AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                           TPZVec<int64_t> &destinationindex) override{
+    AddKelImpl<true>(elmat,sourceindex,destinationindex);
+  }
+  template<bool TAtomic>
+  void AddKelImpl(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                  TPZVec<int64_t> &destinationindex);
+  /// Access function for the coefficients
     TPZVec<TVar> &A()
     {
         return fA;

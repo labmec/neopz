@@ -1,10 +1,9 @@
 #include "TPZStrMatParInterface.h"
 #include "pzbasematrix.h"
 #include "TPZStructMatrix.h"
-#include "TPZGuiInterface.h"
 
 TPZBaseMatrix *TPZStrMatParInterface::CreateAssemble(
-    TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+    TPZBaseMatrix &rhs) {
     this->InitCreateAssemble();
 
     TPZStructMatrix *myself = dynamic_cast<TPZStructMatrix*>(this);
@@ -12,7 +11,7 @@ TPZBaseMatrix *TPZStrMatParInterface::CreateAssemble(
     
     const int64_t cols = MAX(1, rhs.Cols());
     if(ComputeRhs()) rhs.Redim(myself->EquationFilter().NEqExpand(), cols);
-    Assemble(*stiff, rhs, guiInterface);
+    Assemble(*stiff, rhs);
     this->EndCreateAssemble(stiff);
 #ifdef PZ_LOG2
     if (loggerel.isDebugEnabled()) {

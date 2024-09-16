@@ -63,16 +63,15 @@ public:
 	 * @param guiInterface pointer to user interface
 	 */ 	
 	void AssembleNew(TPZMatrix<TVar> & stiffness
-					 , TPZFMatrix<TVar> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+					 , TPZFMatrix<TVar> & rhs);
 	
 	/**
 	 * @brief Assemble a stiffness matrix.
 	 * @param stiffness Stiffness matrix to assembled
 	 * @param rhs Vector containing loads
-	 * @param guiInterface pointer to user interface
 	 */ 	
 	void Assemble(TPZBaseMatrix & stiffness
-				  , TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+				  , TPZBaseMatrix & rhs) override;
 	
 	/**
 	 * @brief Computes element matrices.
@@ -96,7 +95,7 @@ public:
 	 * This is a mandatory function, it is neded by all StructMatrix. \n
 	 * Except in frontal matrices, the returned matrix is not in its decomposed form.
 	 */
-	TPZMatrix<TVar> *CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+	TPZMatrix<TVar> *CreateAssemble(TPZBaseMatrix &rhs) override;
 	
     void SetQuiet(int quiet);
     //@{

@@ -20,7 +20,6 @@
 class TPZSubMeshFrontalAnalysis;
 class TPZSubMeshAnalysis;
 class TPZLinearAnalysis;
-class TPZGuiInterface;
 
 /**
  * @brief Implements a group of computational elements as a mesh and an element. \ref CompMesh "Computational Mesh"
@@ -110,7 +109,7 @@ public:
 	}
 	
 	/** @brief Sets the analysis type. */
-	void SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	void SetAnalysisFrontal(int numThreads);
     
     /** @brief Sets the analysis type. */
     void SetAnalysisSparse(int numThreads);
@@ -142,10 +141,6 @@ public:
      * the preconditioned argument indicates whether the equations are condensed with a direct method (0) or 
      * with a GMRes solver preconditioned by the decomposed matrix
      */
-	[[deprecated("phasing out guiInterface")]] void SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZGuiInterface> guiInterface)
-    {
-        SetAnalysisSkyline(numThreads,preconditioned);
-    }
     void SetAnalysisSkyline(int numThreads = 0, int preconditioned = 0);
 
     /**

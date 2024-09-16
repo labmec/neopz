@@ -149,19 +149,22 @@ template<class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
     if(this == &A) return *this;
     // amount of storage needed
-    int64_t size = A.fRow * A.fCol;
-    
+    const int64_t size = A.Rows() * A.Cols();
+    // (minimum) amount of available storage
+    const int64_t mysize = this->fRow*this->fCol;
     TVar * newElem = fElem;
-    if(fSize < size && size != this->fRow*this->fCol) {
-        newElem = new TVar[size];
-    } else if (fSize >= size) {
-        newElem = fGiven;
+    if(mysize < size){
+        //now we check if there is space in static storage
+        if(fSize >= size){
+            newElem = fGiven;
+        }else{
+            newElem = new TVar[size];
+        }
     }
-    
-    if ( newElem == NULL && size > 0) Error( "Operator= <memory allocation error>." );
-    if (fElem && fElem != newElem && fElem != fGiven) delete[]( fElem );
-    this->fRow  = A.fRow;
-    this->fCol  = A.fCol;
+    if(fElem != fGiven && fElem != newElem){
+        delete [] fElem;
+    }
+    if ( newElem == nullptr && size > 0) Error( "Operator= <memory allocation error>." );
     fElem = newElem;
     
     // Copia a matriz
@@ -182,7 +185,7 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(TPZFMatrix<TVar> &&A ) {
         // amount of storage needed
         int64_t size = A.fRow * A.fCol;
         
-        TVar * newElem = 0;
+        TVar * newElem = nullptr;
         if(size == this->fRow*this->fCol) {
             newElem = fElem;
         } else if(fSize < size) {
@@ -309,43 +312,21 @@ void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZ
     int64_t ncol = this->Cols();
     int64_t nrow = source.NElements();
     int64_t i,j;
-    for(j=0; j<ncol; j++) {
-        for(i=0; i<nrow; i++) {
-            operator()(destination[i],j) += rhs(source[i],j);
+    /*
+      enables op for double, float and resp. complex types
+     */
+    if constexpr (std::is_same_v<RTVar,double> ||
+                  std::is_same_v<RTVar,float>){
+        for(j=0; j<ncol; j++) {
+            for(i=0; i<nrow; i++) {
+                pzutils::AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
+            }
         }
-    }
-}
-
-template<>
-void TPZFMatrix<double>::AddFel(TPZFMatrix<double> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination) {
-    if(rhs.Cols() != this->Cols() && source.NElements()) {
-        PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
-        DebugStop();
-        return;
-    }
-    int64_t ncol = this->Cols();
-    int64_t nrow = source.NElements();
-    int64_t i,j;
-    for(j=0; j<ncol; j++) {
-        for(i=0; i<nrow; i++) {
-          pzutils::AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
-        }
-    }
-}
-
-template<>
-void TPZFMatrix<float>::AddFel(TPZFMatrix<float> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination) {
-    if(rhs.Cols() != this->Cols() && source.NElements()) {
-        PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
-        DebugStop();
-        return;
-    }
-    int64_t ncol = this->Cols();
-    int64_t nrow = source.NElements();
-    int64_t i,j;
-    for(j=0; j<ncol; j++) {
-        for(i=0; i<nrow; i++) {
-          pzutils::AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
+    }else{
+        for(j=0; j<ncol; j++) {
+            for(i=0; i<nrow; i++) {
+                operator()(destination[i],j) += rhs(source[i],j);
+            }
         }
     }
 }
@@ -619,221 +600,8 @@ void TPZFMatrix<TVar>::InitializePivot()
     }
 }
 
-template <class TVar>
-void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, int64_t rows, int64_t cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-                               const TVar alpha,const TVar beta ,const int opt)
-{
-    
-    
-    if ((!opt && cols != x.Rows()) || (opt && rows != x.Rows())) {
-        Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
-        return;
-    }
-    if(beta != (TVar)0. && ((!opt && rows != y.Rows()) || (opt && cols != y.Rows()) || y.Cols() != x.Cols())) {
-        Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
-        return;
-    }
-    if(!opt) {
-        if(z.Cols() != x.Cols() || z.Rows() != rows) {
-            z.Redim(rows,x.Cols());
-        }
-    } else {
-        if(z.Cols() != x.Cols() || z.Rows() != cols) {
-            z.Redim(cols,x.Cols());
-        }
-    }
-    unsigned numeq = opt ? cols : rows;
-    int64_t xcols = x.Cols();
-    int64_t ic, c;
-    if(!(rows*cols)) return;
-    for (ic = 0; ic < xcols; ic++) {
-        TVar *zp = &z(0,ic), *zlast = zp+numeq;
-        if(beta != (TVar)0.) {
-            const TVar *yp = &y.g(0,ic);
-            if(&z != &y) {
-                for (int64_t i = 0; i<numeq; i++) {
-                    zp[i] = yp[i];
-                }
-//                memcpy((void *)zp,(void *)yp,numeq*sizeof(TVar));
-            }
-            for(int64_t i=0; i< numeq; i++) for(int64_t c=0; c<xcols; c++) z(i,c) *= beta;
-        } else {
-            while(zp != zlast) {
-                *zp = 0.;
-                zp ++;
-            }
-        }
-    }
-    
-    
-    for (ic = 0; ic < xcols; ic++) {
-        if(!opt) {
-            for ( c = 0; c<cols; c++) {
-                TVar * zp = &z(0,ic), *zlast = zp+rows;
-                const TVar * fp = ptr +rows*c;
-                const TVar * xp = &x.g(c,ic);
-                while(zp < zlast) {
-                    *zp += alpha* *fp++ * *xp;
-                    zp ++;
-                }
-            }
-        } else {
-            const TVar * fp = ptr;
-            TVar *zp = &z(0,ic);
-            for (c = 0; c<cols; c++) {
-                TVar val = 0.;
-                // bug correction philippe 5/2/97
-                //					 REAL * xp = &x(0,ic), xlast = xp + numeq;
-                const TVar *xp = &x.g(0,ic);
-                const TVar *xlast = xp + rows;
-                while(xp < xlast) {
-                    val += *fp++ * *xp;
-                    xp ++;
-                }
-                *zp += alpha *val;
-                zp ++;
-            }
-        }
-    }
-    
-    
-    
-    
-    
-}
 
-#ifdef USING_LAPACK
-template<>
-void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<double> &y, TPZFMatrix<double> &z,
-                                 const double alpha,const double beta,const int opt) const {
-    
-#ifdef PZDEBUG
-    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
-        Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
-        return;
-    }
-    if(beta != (double)0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
-        Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
-        return;
-    }
-#endif
-    if(!opt) {
-        if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
-            z.Redim(this->Rows(),x.Cols());
-        }
-    } else {
-        if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
-            z.Redim(this->Cols(),x.Cols());
-        }
-    }
-    if(this->Cols() == 0) {
-        z.Zero();
-        if (beta != 0) {
-            z = y;
-            z *= beta;
-        }
-        return;
-    }
-    if (beta != (double)0.) {
-        z = y;
-    }
-    if (Rows() == 0 || Cols() == 0 || x.Rows() == 0 || x.Cols() == 0) {
-        return;
-    }
-    if (!opt) {
-        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
-                    alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
-    } else {
-        cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans, this->Cols(), x.Cols(), this->Rows(),
-                    alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
-    }
-    
-}
-template<>
-void TPZFMatrix<float>::MultAdd(const TPZFMatrix<float> &x,const TPZFMatrix<float> &y, TPZFMatrix<float> &z,
-                                const float alpha,const float beta,const int opt) const {
-    
-#ifdef PZDEBUG
-    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
-        Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
-        return;
-    }
-    if(beta != (float)0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
-        Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
-        return;
-    }
-#endif
-    if(!opt) {
-        if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
-            z.Redim(this->Rows(),x.Cols());
-        }
-    } else {
-        if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
-            z.Redim(this->Cols(),x.Cols());
-        }
-    }
-    if(this->Cols() == 0) {
-        z.Zero();
-    }
-    if (beta != (float)0.) {
-        z = y;
-    }
-    if (Rows() == 0 || Cols() == 0 || x.Rows() == 0 || x.Cols() == 0) {
-        return;
-    }
-    if (!opt) {
-        cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
-                    alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
-    } else {
-        cblas_sgemm(CblasColMajor, CblasTrans, CblasNoTrans, this->Cols(), x.Cols(), this->Rows(),
-                    alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
-    }
-    
-}
 
-template<>
-void TPZFMatrix<std::complex<double> >::MultAdd(const TPZFMatrix<std::complex<double> > &x,const TPZFMatrix<std::complex<double> > &y, TPZFMatrix<std::complex<double> > &z,
-                                                const std::complex<double> alpha,const std::complex<double> beta,const int opt) const {
-    
-#ifdef PZDEBUG
-    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
-        Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
-        return;
-    }
-    if(abs(beta) != 0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
-        Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
-        return;
-    }
-#endif
-    if(!opt) {
-        if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
-            z.Redim(this->Rows(),x.Cols());
-        }
-    } else {
-        if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
-            z.Redim(this->Cols(),x.Cols());
-        }
-    }
-    if(this->Cols() == 0) {
-        z.Zero();
-    }
-    if (abs(beta) != 0.) {
-        z = y;
-    }
-
-    if (Rows() == 0 || Cols() == 0 || x.Rows() == 0 || x.Cols() == 0) {
-        return;
-    }
-    
-    if (!opt) {
-        cblas_zgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
-                    &alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), &beta, z.fElem, z.Rows());
-    } else {
-        cblas_zgemm(CblasColMajor, CblasTrans, CblasNoTrans, this->Cols(), x.Cols(), this->Rows(),
-                    &alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), &beta, z.fElem, z.Rows());
-    }
-}
-#endif // USING_LAPACK
 
 /**
  * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
@@ -847,59 +615,58 @@ void TPZFMatrix<std::complex<double> >::MultAdd(const TPZFMatrix<std::complex<do
 template <class TVar>
 void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
                                const TVar alpha,const TVar beta,const int opt) const {
-    
-    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
-        Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
-        return;
-    }
-    if(beta != (TVar)0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
-        Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
-        return;
-    }
-    if(!opt) {
-        if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
-            z.Redim(this->Rows(),x.Cols());
-        }
-    } else {
-        if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
-            z.Redim(this->Cols(),x.Cols());
-        }
-    }
-    if(this->Cols() == 0)
-    {
+    this->MultAddChecks(x,y,z,alpha,beta,opt);
+
+    if (beta != (TVar)0) {
+        z = y;
+    }else{
         z.Zero();
     }
-    unsigned numeq = opt ? this->Cols() : this->Rows();
-    int64_t rows = this->Rows();
-    int64_t cols = this->Cols();
-    int64_t xcols = x.Cols();
-    int64_t ic, c;
-    if (numeq)
-    {
-        for (ic = 0; ic < xcols; ic++) {
-            TVar *zp = &z(0,ic), *zlast = zp+numeq;
-            if(beta != (TVar)0.) {
-                const TVar *yp = &y.g(0,ic);
-                if(&z != &y) {
-                    for(int64_t i = 0; i<numeq; i++) zp[i]=yp[i];
-//                    memcpy((void *)zp,(void *)yp,numeq*sizeof(TVar));
-                }
-                for(int64_t i=0; i< numeq; i++) z(i,ic) *= beta;
-                
-            } else {
-                while(zp != zlast) {
-                    *zp = 0.;
-                    zp ++;
-                }
-            }
+
+    const int64_t rows = this->Rows();
+    const int64_t cols = this->Cols();
+    const int64_t xrows = x.Rows();
+    const int64_t xcols = x.Cols();
+    
+    
+    if(rows == 0 || cols == 0 || xrows == 0 || xcols == 0){
+        if (beta != (TVar)0) {
+            z *= beta;
         }
+        return;
     }
+
+#ifdef USING_LAPACK
     
-    if(!(rows*cols)) return;
-    
-    for (ic = 0; ic < xcols; ic++) {
+    //0: no transpose, 1: transpose, 2: conj trans
+    const CBLAS_TRANSPOSE transp =
+        opt == 0 ? CblasNoTrans : (opt == 1 ? CblasTrans : CblasConjTrans);
+    const auto dim1 = opt == 0 ? rows : cols;
+    const auto dim2 = opt == 0 ? cols : rows;
+    if constexpr (std::is_same_v<TVar,double>){
+        cblas_dgemm(CblasColMajor, transp, CblasNoTrans, dim1, xcols, dim2,
+                    alpha, this->fElem, rows, x.fElem, xrows, beta, z.fElem, dim1);
+        return;
+    } else if constexpr (std::is_same_v<TVar,float>){
+        cblas_sgemm(CblasColMajor, transp, CblasNoTrans, dim1, xcols, dim2,
+                    alpha, this->fElem, rows, x.fElem, xrows, beta, z.fElem, dim1);
+        return;
+    } else if constexpr (std::is_same_v<TVar,std::complex<double>>){
+        cblas_zgemm(CblasColMajor, transp, CblasNoTrans, dim1, xcols, dim2,
+                    &alpha, this->fElem, rows, x.fElem, xrows, &beta, z.fElem, dim1);
+        return;
+    } else if constexpr (std::is_same_v<TVar,std::complex<float>>){
+        cblas_cgemm(CblasColMajor, transp, CblasNoTrans, dim1, xcols, dim2,
+                    &alpha, this->fElem, rows, x.fElem, xrows, &beta, z.fElem, dim1);
+        return;
+    }
+#endif
+    if (beta != (TVar)0) {
+        z *= beta;
+    }
+    for (auto ic = 0; ic < xcols; ic++) {
         if(!opt) {
-            for ( c = 0; c<cols; c++) {
+            for (auto c = 0; c<cols; c++) {
                 TVar * zp = &z(0,ic), *zlast = zp+rows;
                 TVar * fp = fElem +rows*c;
                 const TVar * xp = &x.g(c,ic);
@@ -910,26 +677,34 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
             }
         } else {
             TVar * fp = fElem,  *zp = &z(0,ic);
-            for (c = 0; c<cols; c++) {
+            for (auto c = 0; c<cols; c++) {
                 TVar val = 0.;
                 // bug correction philippe 5/2/97
                 //					 REAL * xp = &x(0,ic), xlast = xp + numeq;
                 const TVar *xp = &x.g(0,ic);
                 const TVar *xlast = xp + rows;
-                while(xp < xlast) {
-                    val += *fp++ * *xp;
-                    xp ++;
+                if constexpr (is_complex<TVar>::value){
+                    if(opt==2){
+                        while(xp < xlast) {
+                            val += std::conj(*fp++) * *xp++;
+                        }
+                        *zp++ += alpha *val;
+                        continue;//continue from the for loop
+                    }
                 }
-                *zp += alpha *val;
-                zp ++;
+                while(xp < xlast) {
+                    val += *fp++ * *xp++;
+                }
+                *zp++ += alpha *val;
             }
         }
     }
 }
 
 template <class TVar>
-void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, bool transpA, const TPZFMatrix<TVar>& B, 
-						 		       bool transpB, const TVar alpha)
+void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j,
+                                       const TPZFMatrix<TVar>& A, int transpA,
+                                       const TPZFMatrix<TVar>& B, int transpB, const TVar alpha)
 {
     if constexpr (!std::is_floating_point_v<RTVar>)
         Error( "AddContribution must be used with a floating point type variable TVar!\n");
@@ -946,13 +721,13 @@ void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TV
     {
         nrows = A.Cols();
         seconddimA = A.Rows();
-        transposeA = CblasTrans;
+        transposeA = transpA == 1 ? CblasTrans : CblasConjTrans;
     }
     if (transpB)
     {
         ncols = B.Rows();
         seconddimB = B.Cols();
-        transposeB = CblasTrans;
+        transposeB = transpB == 1 ? CblasTrans : CblasConjTrans;
     }
 
 #else
@@ -973,7 +748,7 @@ void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TV
     }
 #endif
 
-#ifdef PZDEBUG
+// #ifdef PZDEBUG
     if (seconddimA != seconddimB)
     {
         std::stringstream out;
@@ -991,7 +766,7 @@ void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TV
         Error( "AddContribution trying to add a submatrix out of the original matrix bounds" );
         return;
     }
-#endif
+// #endif
 
 #ifdef USING_LAPACK
     TVar* ptr = &(*this)(i,j);
@@ -1015,24 +790,29 @@ void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j, const TPZFMatrix<TV
 
 #endif //USING LAPACK
 
-TPZFMatrix<TVar> tempA = A;
-tempA *= alpha;
-TPZFMatrix<TVar> tempB = B;
-if (transpA)
-    tempA.Transpose();
-if (transpB)
-    tempB.Transpose();
+    TPZFNMatrix<2000,TVar> tempA = A;
+    TPZFNMatrix<2000,TVar> tempB = B;
+    if (transpA){
+        if(transpA == 1){tempA.Transpose();}
+        else{tempA.ConjTranspose();}
+    }
+    tempA *= alpha;
+    
+    if (transpB){
+        if(transpB == 1){tempB.Transpose();}
+        else{tempB.ConjTranspose();}
+    }
 
-for (int64_t row = 0; row < nrows; row++)
-{
-	for (int64_t col = 0; col < ncols; col++)
-	{
-		for (int64_t k = 0; k < seconddimA; k++)
-		{
-			(*this)(i+row,j+col) += tempA(row,k) * tempB(k,col);
-		}
-	}
-}
+    for (int64_t row = 0; row < nrows; row++)
+    {
+        for (int64_t col = 0; col < ncols; col++)
+        {
+            for (int64_t k = 0; k < seconddimA; k++)
+            {
+                (*this)(i+row,j+col) += tempA(row,k) * tempB(k,col);
+            }
+        }
+    }
 
 }
 
@@ -1126,20 +906,27 @@ void TPZFMatrix<TVar>::TimesBetaPlusZ(const TVar beta,const TPZFMatrix<TVar> &z)
 /*** Operator = ***/
 template <class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZMatrix<TVar> &A ) {
-    int64_t arows  = A.Rows();
-    int64_t acols  = A.Cols();
-    int64_t size = arows * acols;
-    if(fElem != fGiven) {
-        delete []fElem;
-        fElem = 0;
+    // amount of storage needed
+    const int64_t size = A.Rows() * A.Cols();
+    // (minimum) amount of available storage
+    const int64_t mysize = this->fRow*this->fCol;
+    TVar * newElem = fElem;
+    if(mysize < size){
+        //now we check if there is space in static storage
+        if(fSize >= size){
+            newElem = fGiven;
+        }else{
+            newElem = new TVar[size];
+        }
     }
-    this->fRow  =  arows;
-    this->fCol  = acols;
-    if(fSize < size) {
-        fElem = new TVar[ arows * acols ] ;
-    } else {
-        fElem = fGiven;
+    if(fElem != fGiven && fElem != newElem){
+        delete [] fElem;
     }
+    if ( newElem == nullptr && size > 0) Error( "Operator= <memory allocation error>." );
+
+    TPZMatrix<TVar>::operator=(A);
+    
+    fElem = newElem;
     TVar * dst = fElem;
     for ( int64_t c = 0; c < this->fCol; c++ )
         for ( int64_t r = 0; r < this->fRow; r++ )
@@ -1289,10 +1076,21 @@ int TPZFMatrix<TVar>::Remodel(const int64_t newRows,const int64_t newCols) {
 /********************/
 /*** Transpose () ***/
 template <class TVar>
-void TPZFMatrix<TVar>::Transpose(TPZMatrix<TVar> *const T) const{
+void TPZFMatrix<TVar>::Transpose(TPZMatrix<TVar> *const T, bool conj) const{
     T->Resize( this->Cols(), this->Rows() );
     //Transposta por filas
     TVar * p = fElem;
+    if constexpr(is_complex<TVar>::value){
+        if(conj){
+            for ( int64_t c = 0; c < this->Cols(); c++ ) {
+                for ( int64_t r = 0; r < this->Rows(); r++ ) {
+                    T->PutVal( c, r, std::conj(*p++) );
+                    //            cout<<"(r,c)= "<<r<<"  "<<c<<"\n";
+                }
+            }
+            return;
+        }
+    }
     for ( int64_t c = 0; c < this->Cols(); c++ ) {
         for ( int64_t r = 0; r < this->Rows(); r++ ) {
             T->PutVal( c, r, *p++ );
@@ -1304,7 +1102,15 @@ void TPZFMatrix<TVar>::Transpose(TPZMatrix<TVar> *const T) const{
 template <class TVar>
 void TPZFMatrix<TVar>::Transpose() {
     TPZFMatrix<TVar> temp;
-    Transpose(&temp);
+    constexpr bool conj{false};
+    Transpose(&temp,conj);
+    *this = temp;
+}
+template <class TVar>
+void TPZFMatrix<TVar>::ConjTranspose() {
+    TPZFMatrix<TVar> temp;
+    constexpr bool conj{true};
+    Transpose(&temp,conj);
     *this = temp;
 }
 
@@ -2587,60 +2393,66 @@ int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* B ) const
 
 /** @brief Implement dot product for matrices */
 template<class TVar>
-TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
+TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B,bool conj) {
     int64_t size = (A.Rows())*A.Cols();
     TVar result = 0.;
     if(!size) return result;
     const TVar *fpA = &A.g(0,0), *fpB = &B.g(0,0);
     const TVar *fpLast = fpA+size;
-    while(fpA < fpLast)
-    {
+    const bool must_conj = conj && is_complex<TVar>::value;
+    if(must_conj){
         if constexpr (is_complex<TVar>::value){
-            result += *fpA++ * std::conj(*fpB++);
+            //always evaluates to true, but we dont want compiler errors
+            while(fpA < fpLast)
+            {
+                result += *fpA++ * std::conj(*fpB++);
+            }
         }
-        else{
+    }else{
+        while(fpA < fpLast)
+        {
             result += (*fpA++ * *fpB++);
         }
     }
+    
     return result;
-    // #endif
 }
 
 template
-std::complex<float> Dot(const TPZFMatrix< std::complex<float> > &A, const TPZFMatrix< std::complex<float> > &B);
+std::complex<float> Dot(const TPZFMatrix< std::complex<float> > &A, const TPZFMatrix< std::complex<float> > &B, bool conj);
 
 template
-std::complex<double> Dot(const TPZFMatrix< std::complex<double> > &A, const TPZFMatrix< std::complex<double> > &B);
+std::complex<double> Dot(const TPZFMatrix< std::complex<double> > &A, const TPZFMatrix< std::complex<double> > &B, bool conj);
 
 template
-std::complex<long double> Dot(const TPZFMatrix< std::complex<long double> > &A, const TPZFMatrix< std::complex<long double> > &B);
+std::complex<long double> Dot(const TPZFMatrix< std::complex<long double> > &A, const TPZFMatrix< std::complex<long double> > &B, bool conj);
 
 template
-long double Dot(const TPZFMatrix<long double> &A, const TPZFMatrix<long double> &B);
+long double Dot(const TPZFMatrix<long double> &A, const TPZFMatrix<long double> &B, bool conj);
 
 template
-double Dot(const TPZFMatrix<double> &A, const TPZFMatrix<double> &B);
+double Dot(const TPZFMatrix<double> &A, const TPZFMatrix<double> &B, bool conj);
 
 template
-float Dot(const TPZFMatrix<float> &A, const TPZFMatrix<float> &B);
+float Dot(const TPZFMatrix<float> &A, const TPZFMatrix<float> &B, bool conj);
 
 template
-int64_t Dot(const TPZFMatrix<int64_t> &A, const TPZFMatrix<int64_t> &B);
+int64_t Dot(const TPZFMatrix<int64_t> &A, const TPZFMatrix<int64_t> &B, bool conj);
 
 template
-int Dot(const TPZFMatrix<int> &A, const TPZFMatrix<int> &B);
+int Dot(const TPZFMatrix<int> &A, const TPZFMatrix<int> &B, bool conj);
 
 template
-Fad<float> Dot(const TPZFMatrix<Fad<float> > &A, const TPZFMatrix<Fad<float> > &B);
+Fad<float> Dot(const TPZFMatrix<Fad<float> > &A, const TPZFMatrix<Fad<float> > &B, bool conj);
 
 template
-Fad<double> Dot(const TPZFMatrix<Fad<double> > &A, const TPZFMatrix<Fad<double> > &B);
+Fad<double> Dot(const TPZFMatrix<Fad<double> > &A, const TPZFMatrix<Fad<double> > &B, bool conj);
 
 template
-Fad<long double> Dot(const TPZFMatrix<Fad<long double> > &A, const TPZFMatrix<Fad<long double> > &B);
+Fad<long double> Dot(const TPZFMatrix<Fad<long double> > &A, const TPZFMatrix<Fad<long double> > &B, bool conj);
 
 template
-TPZFlopCounter Dot(const TPZFMatrix<TPZFlopCounter> &A, const TPZFMatrix<TPZFlopCounter> &B);
+TPZFlopCounter Dot(const TPZFMatrix<TPZFlopCounter> &A, const TPZFMatrix<TPZFlopCounter> &B, bool conj);
 
 /** @brief Increments value over all entries of the matrix A. */
 template <class TVar>

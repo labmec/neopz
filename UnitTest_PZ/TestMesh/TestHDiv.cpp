@@ -1591,7 +1591,6 @@ void RunBilinear(HDivFamily hdivfam)
     TPZSkylineStructMatrix<STATE> str(cmesh);
     
 //    TPZFMatrix<STATE> rhs, solteste;
-//    TPZAutoPointer<TPZGuiInterface> guiInterface;
 //    TPZAutoPointer<TPZMatrix<STATE> > matrix = str.CreateAssemble(rhs, guiInterface);
 ////    matrix->Print(std::cout,EMathematicaInput);
 //    matrix->Print("EK = ", cout ,EMathematicaInput);

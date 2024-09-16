@@ -23,7 +23,6 @@ synchronized.
 #include "pzelmat.h"
 #include "TPZSemaphore.h"
 #include "TPZEquationFilter.h"
-#include "TPZGuiInterface.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 
@@ -59,8 +58,8 @@ public:
     TPZStructMatrixOMPorTBB& operator=(TPZStructMatrixOMPorTBB &&) = default;
 
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
-    void Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs) override;
+    void Assemble(TPZBaseMatrix & rhs) override;
 
 public:
     int ClassId() const override;
@@ -70,16 +69,16 @@ public:
 protected:
 
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void Serial_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Serial_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs);
 
     /** @brief Assemble the global right hand side */
-    virtual void Serial_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Serial_Assemble(TPZBaseMatrix & rhs);
 
     /** @brief Assemble the global right hand side */
-    virtual void MultiThread_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void MultiThread_Assemble(TPZBaseMatrix & rhs);
 
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs);
 
     void VerifyStiffnessSum(TPZBaseMatrix & mat);
 

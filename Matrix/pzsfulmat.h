@@ -113,10 +113,10 @@ public:
 	TPZSFMatrix operator-() const  { return operator*( -1.0 ); }
 	
 	/** @brief Resize the array but keeps its entirety. */
-	int Resize(const int64_t newDim, const int64_t ) override;
+	int Resize(const int64_t newRows, const int64_t newCols) override;
 	
 	/** @brief Resize the array and resets ist entirety. */
-	int Redim(const int64_t newRows ,const int64_t) override;
+	int Redim(const int64_t newRows, const int64_t newCols) override;
 	
 	int Redim(const int64_t newDim) {return Redim(newDim,newDim);}
 	

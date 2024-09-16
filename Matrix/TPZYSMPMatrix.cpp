@@ -14,7 +14,8 @@
 #include <vector>
 #include "tpzverysparsematrix.h"
 #include "pzstack.h"
-
+#include "TPZParallelUtils.h"
+#include <numeric>      // std::iota
 using namespace std;
 
 // ****************************************************************************
@@ -53,7 +54,7 @@ void TPZFYsmpMatrix<TVar>::GetRowIndices(const int64_t i, TPZVec<int64_t> &indic
 	const auto last = fIA[i+1];
 	const auto nv = last - first;
 	indices.Resize(nv);
-	for(int i = 0; i < nv; i++){indices[i] = fJA[first+i];}
+	for(auto i = 0; i < nv; i++){indices[i] = fJA[first+i];}
 }
 
 // ****************************************************************************
@@ -188,46 +189,53 @@ void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & de
 }
 
 template<class TVar>
-void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex){
-	int64_t i,j,k = 0;
-	TVar value=0.;
-	int64_t ipos,jpos;
-	for(i=0;i<sourceindex.NElements();i++){
-		for(j=0;j<sourceindex.NElements();j++){
-			ipos=destinationindex[i];
-			jpos=destinationindex[j];
-			value=elmat.GetVal(sourceindex[i],sourceindex[j]);
-            //cout << "j= " << j << endl;
+template<bool TAtomic>
+void TPZFYsmpMatrix<TVar>::AddKelImpl(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+																			TPZVec<int64_t> &destinationindex){
 
-			//cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
-			int flag = 0;
-			k++;
-			if(k >= fIA[ipos] && k < fIA[ipos+1] && fJA[k]==jpos)
-			{ // OK -> elements in sequence
-			  fA[k]+=value;
-			  flag = 1;
-			}else
-			{
-			  for(k=fIA[ipos];k<fIA[ipos+1];k++){
-				if(fJA[k]==jpos || fJA[k]==-1){
-				  //cout << "fJA[k] " << fJA[k] << " jpos "<< jpos << "   " << value << endl;
-				  //cout << "k " << k << "   "<< jpos << "   " << value << endl;
-				  flag=1;
-				  if(fJA[k]==-1){
-					fJA[k]=jpos;
-					fA[k]=value;
-					// cout << jpos << "   " << value << endl;
-					break;
-				  }else{
-					fA[k]+=value;
-					break;
-				  }
+  // initialize original index locations
+  const int64_t neq = destinationindex.size();
+  TPZManVector<int64_t,800> idx(neq);
+  std::iota(idx.begin(), idx.end(), 0);
+
+  // sort indexes based on comparing values in v
+  // using std::stable_sort instead of std::sort
+  // to avoid unnecessary index re-orderings
+  // when v contains elements of equal values 
+  std::sort(idx.begin(), idx.end(),
+						[&destinationindex](const int64_t i1, const int64_t i2)
+						{return destinationindex[i1] < destinationindex[i2];});
+  
+  
+  for(auto dummy_i=0;dummy_i<neq;dummy_i++){
+    const auto i = idx[dummy_i];
+    const auto ipos=destinationindex[i];
+    //first col of the line
+    auto k = fIA[ipos];
+    const auto maxj = fIA[ipos+1];
+    const auto source_i = sourceindex[i];
+    for(auto dummy_j=0;dummy_j<neq;dummy_j++){
+      const auto j = idx[dummy_j];
+      const auto jpos=destinationindex[j];
+      const auto source_j = sourceindex[j];
+			//g instead of GetVal-> is non virtual, more likely to be inlined
+      const auto &value=elmat.g(source_i,source_j);
+      while(fJA[k]!=jpos){
+				k++;
+				if(k==maxj){
+					std::cout << "TPZFYsmpMatrix::AddKelAtomic: "
+										<<" Non existing position on sparse matrix: "
+										<<" line =" << ipos << " column =" << jpos << endl;        
+					DebugStop();
 				}
-			  }
 			}
-			if(!flag) cout << "TPZFYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << endl;         
-		}
-	}
+			if constexpr(TAtomic){
+				pzutils::AtomicAdd(fA[k],value);
+			}else{
+				fA[k]+=value;
+			}
+    }
+  }
 }
 
 template<class TVar>
@@ -423,8 +431,8 @@ TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator+=(const TPZFYsmpMatrix<TVar
 #ifdef PZDEBUG
 	CheckTypeCompatibility(this, &A);
 #endif
-	const int nnzero = this->fA.size();
-	for(int i = 0; i < nnzero; i++){
+	const int64_t nnzero = this->fA.size();
+	for(int64_t i = 0; i < nnzero; i++){
 		this->fA[i] += A.fA[i];
 	}
 	return *this;
@@ -435,8 +443,8 @@ TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator-=(const TPZFYsmpMatrix<TVar
 #ifdef PZDEBUG
 	CheckTypeCompatibility(this, &A);
 #endif
-	const int nnzero = this->fA.size();
-	for(int i = 0; i < nnzero; i++){
+	const int64_t nnzero = this->fA.size();
+	for(int64_t i = 0; i < nnzero; i++){
 		this->fA[i] -= A.fA[i];
 	}
 	return *this;
@@ -454,11 +462,7 @@ void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 									 const TVar alpha,const TVar beta,const int opt )  {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
-	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || y.Rows() != z.Rows() )
-	{
-		cout << "\nERROR! in TPZVerySparseMatrix::MultiplyAdd : incompatible dimensions in x, y or z\n";
-		return;
-	}
+	this->MultAddChecks(x,y,z,alpha,beta,opt);
 	
 	int64_t  ir, ic, icol, xcols;
 	xcols = x.Cols();
@@ -553,33 +557,12 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
 	
-#ifdef PZDEBUG
-    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
-        std::cout << "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" ;
-        return;
-    }
-    if(beta!=(TVar)0.0 && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
-        std::cout << "TPZFMatrix::MultAdd matrix y with incompatible dimensions>";
-        return;
-    }
-#endif
-    if(!opt) {
-        if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
-            z.Redim(this->Rows(),x.Cols());
-        }
-    } else {
-        if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
-            z.Redim(this->Cols(),x.Cols());
-        }
-    }
-    if(this->Cols() == 0) {
-        z.Zero();
-        return;
-    }
-
-    int64_t  ic, xcols;
+	this->MultAddChecks(x,y,z,alpha,beta,opt);
+	this->PrepareZ(y,z,beta,opt);
+	int64_t  r = (opt) ? this->Rows() : this->Cols();
+	if(r==0){return;}
+	int64_t  ic, xcols;
 	xcols = x.Cols();
-	int64_t  r = (opt) ? this->Cols() : this->Rows();
 	/*
 	// Determine how to initialize z
 	for(ic=0; ic<xcols; ic++) {
@@ -606,7 +589,6 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 		}
 	}
      */
-    TPZMatrix<TVar>::PrepareZ(y, z, beta, opt);
 //    z.Print("z = ",std::cout,EMathematicaInput);
 	/*
 	 TPZFYsmpMatrix *target;
@@ -623,7 +605,7 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	TPZVec<TPZMThread> alldata(numthreads);
 	int i;
 	int64_t eqperthread = r/numthreads;
-	int firsteq = 0;
+	int64_t firsteq = 0;
 	for(i=0;i<numthreads;i++) 
 	{
 		alldata[i].target = this;
@@ -658,7 +640,7 @@ TVar TPZFYsmpMatrix<TVar>::RowTimesVector(const int row, const TPZFMatrix<TVar> 
   TVar res = 0;
   const auto first = fIA[row];
 	const auto last = fIA[row+1];
-  for(int ic = first; ic < last; ic++){
+  for(auto ic = first; ic < last; ic++){
     res += fA[ic] * v.GetVal(fJA[ic],0);
   }
   return res;
@@ -875,7 +857,11 @@ void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 					{
 						if(mat->fJA[icol]==-1) break; //Checa a exist�cia de dado ou n�
 						jc = mat->fJA[icol];
-						data->fZ->operator()(jc,ic) += data->fAlpha * mat->fA[icol] * data->fX->g(ir,ic);
+						auto matval = mat->fA[icol];
+						if constexpr(is_complex<TVar>::value){
+							if(data->fOpt!=1){matval = std::conj(matval);}
+						}
+						data->fZ->operator()(jc,ic) += data->fAlpha * matval * data->fX->g(ir,ic);
 					}
 				}
 				
@@ -1023,11 +1009,11 @@ TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &indices,
 		DebugStop();
 	}
 #endif
-	const int neq = indices.size();
+	const auto neq = indices.size();
 	ia.Resize(neq+1,-1);
 	int64_t nentries{0};
 	//first we count the number of entries
-	for(int i = 0; i < neq; i++){
+	for(auto i = 0; i < neq; i++){
 		const auto eq = indices[i];
 		ia[i] = nentries;
 		const auto first = fIA[eq];
@@ -1047,7 +1033,7 @@ TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &indices,
 	ja.Resize(nentries,-1);
 	aa.Resize(nentries,-1);
 	nentries = 0;
-	for(int i = 0; i < neq; i++){
+	for(auto i = 0; i < neq; i++){
 		const auto eq = indices[i];
 		const auto first = fIA[eq];
 		const auto last = fIA[eq+1];
@@ -1062,6 +1048,72 @@ TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &indices,
 			}
 		}
 	}
+}
+
+template<class TVar>
+void
+TPZFYsmpMatrix<TVar>::GetSubSparseMatrix(const TPZVec<int64_t> &row_indices,
+                                         const TPZVec<int64_t> &col_indices,
+                                         TPZVec<int64_t> &ia,
+                                         TPZVec<int64_t> &ja,
+                                         TPZVec<TVar> &aa){
+
+  auto CheckIndices = [](const TPZVec<int64_t> &indices, const int64_t max){
+    auto max_el = std::max_element(indices.begin(), indices.end());
+    auto min_el = std::min_element(indices.begin(), indices.end());
+    if(*min_el < 0 || *max_el >= max){
+      DebugStop();
+    }
+    const bool is_sort= std::is_sorted(indices.begin(), indices.end());
+    if(!is_sort){
+      DebugStop();
+    }
+  };
+#ifdef PZDEBUG
+  CheckIndices(row_indices,this->Rows());
+  CheckIndices(col_indices,this->Cols());
+#endif
+  const auto nrows = row_indices.size();
+  const auto ncols = col_indices.size();
+  ia.Resize(nrows+1,-1);
+  int64_t nentries{0};
+  //first we count the number of entries
+  for(auto i = 0; i < nrows; i++){
+    const auto eq = row_indices[i];
+    ia[i] = nentries;
+    const auto first = fIA[eq];
+    const auto last = fIA[eq+1];
+    for(auto ieq = first; ieq < last; ieq++){
+      const auto col = fJA[ieq];
+      //std::lower_bound uses a binary search and indices is already sorted.
+      const auto pos = std::lower_bound(col_indices.begin(), col_indices.end(), col)-
+        col_indices.begin();
+      if(pos != ncols && col_indices[pos] == col){
+        nentries++;
+      }
+    }
+  }
+  ia[nrows] = nentries;
+  //now we fill ja, aa;
+  ja.Resize(nentries,-1);
+  aa.Resize(nentries,-1);
+  nentries = 0;
+  const int64_t first_col = col_indices[0];
+  for(auto i = 0; i < nrows; i++){
+    const auto eq = row_indices[i];
+    const auto first = fIA[eq];
+    const auto last = fIA[eq+1];
+    for(auto ieq = first; ieq < last; ieq++){
+      const auto col = fJA[ieq];
+      //std::lower_bound uses a binary search and indices is already sorted.
+      const auto pos = std::lower_bound(col_indices.begin(), col_indices.end(), col)-
+        col_indices.begin();
+      if(pos != ncols && col_indices[pos] == col){
+        aa[nentries] = fA[ieq];
+        ja[nentries++] = pos-first_col;
+      }
+    }
+  }
 }
 
 
@@ -1094,7 +1146,14 @@ void TPZFYsmpMatrix<TVar>::Write(TPZStream &buf, int withclassid) const{
 
 #define TEMPL_INST(T) \
   template class TPZRestoreClass<TPZFYsmpMatrix<T>>;\
-  template class TPZFYsmpMatrix<T>;
+  template class TPZFYsmpMatrix<T>; \
+	template void TPZFYsmpMatrix<T>::AddKelImpl<true>(TPZFMatrix<T>&elmat, \
+                                                    TPZVec<int64_t> &source, \
+                                                    TPZVec<int64_t> &destination); \
+  template void TPZFYsmpMatrix<T>::AddKelImpl<false>(TPZFMatrix<T>&elmat, \
+                                                     TPZVec<int64_t> &source, \
+                                                     TPZVec<int64_t> &destination);
+
 
 TEMPL_INST(double)
 TEMPL_INST(float)

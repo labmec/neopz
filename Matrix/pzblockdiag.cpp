@@ -354,12 +354,7 @@ void TPZBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 							   const TVar alpha,const TVar beta ,const int opt) const {
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
-	
-	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZBlockDiagonal::MultAdd <matrixs with incompatible dimensions>" );
-	if(beta != TVar(0) && (x.Cols() != y.Cols() || x.Rows() != y.Rows())) {
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZBlockDiagonal::MultAdd incompatible dimensions\n");
-	}
+	this->MultAddChecks(x,y,z,alpha,beta,opt);
 	
 	this->PrepareZ(y,z,beta,opt);
 	int64_t xcols = x.Cols();
@@ -415,13 +410,30 @@ int TPZBlockDiagonal<TVar>::Zero()
 /********************/
 /*** Transpose () ***/
 template<class TVar>
-void TPZBlockDiagonal<TVar>::Transpose (TPZMatrix<TVar> *const T) const
+void TPZBlockDiagonal<TVar>::Transpose (TPZMatrix<TVar> *const T, bool conj) const
 {
 	T->Resize( Dim(), Dim() );
 	
 	int64_t b, eq = 0, pos;
 	int bsize, r, c;
 	int64_t nb = fBlockSize.NElements();
+
+	if constexpr(is_complex<TVar>::value){
+    if(conj){
+			for ( b=0; b<nb; b++) {
+				pos= fBlockPos[b];
+				bsize = fBlockSize[b];
+				for(r=0; r<bsize; r++) {
+					for(c=0; c<bsize; c++) {
+						T->PutVal(eq+r,eq+c,std::conj(fStorage[pos+c+r*bsize]));
+					}
+				}
+				eq += bsize;
+			}
+			return;
+		}
+	}
+	
 	for ( b=0; b<nb; b++) {
 		pos= fBlockPos[b];
 		bsize = fBlockSize[b];

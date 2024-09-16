@@ -118,6 +118,33 @@ this->fStorage[i] += k * B.fStorage[i];
  */
 
 template <class TVar>
+void TPZSkylNSymMatrix<TVar>::CheckTypeCompatibility(const TPZMatrix<TVar> *A,
+                                                     const TPZMatrix<TVar> *B) const
+{
+  auto incompatSkyline = []()
+  {
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: incompatible matrices\n.Aborting...\n";
+    DebugStop();
+  };
+  auto aPtr = dynamic_cast<const TPZSkylNSymMatrix<TVar> *>(A);
+  auto bPtr = dynamic_cast<const TPZSkylNSymMatrix<TVar> *>(B);
+  if (!aPtr || !bPtr)
+  {
+    incompatSkyline();
+  }
+
+  bool check{false};
+  auto ncols = aPtr->Cols();
+  for (auto i = 0; i < ncols; i++)
+  {
+    check = check || aPtr->Size(i) != bPtr->Size(i);
+  }
+  if (check)
+    incompatSkyline();
+}
+
+template <class TVar>
 void TPZSkylNSymMatrix<TVar>::SetSkyline(const TPZVec<int64_t> &skyline)
 {
   fElem.Fill(0);
@@ -166,7 +193,11 @@ template <class TVar>
 void TPZSkylNSymMatrix<TVar>::ComputeMaxSkyline(const TPZSkylNSymMatrix &first,
   const TPZSkylNSymMatrix &second, TPZVec<int64_t> &res)
 {
-
+  // Find out why this method is failing
+  PZError << __PRETTY_FUNCTION__;
+  PZError << "\nERROR: Find out why TPZSkylNSymMatrix::ComputeMaxSkyline is breaking \n.Aborting...\n";
+  DebugStop();
+  
   if (first.Rows() != second.Rows())
   {
     cout << "ComputeMaxSkyline : incompatible dimension";
@@ -175,6 +206,7 @@ void TPZSkylNSymMatrix<TVar>::ComputeMaxSkyline(const TPZSkylNSymMatrix &first,
   int64_t i, dim = first.Rows();
   res.Resize(dim + 1);
 
+  std::cout << "aqui\n";
   for (i = 1; i < dim + 1; i++)
   {
 
@@ -273,21 +305,7 @@ template <class TVar>
 void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> &y,
   TPZFMatrix<TVar> &z, const TVar alpha, const TVar beta, const int opt)const
 {
-  // Computes z = beta * y + alpha * opt(this)*x
-  // z and x cannot overlap in memory
-  if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,
-    " <matrixs with incompatible dimensions>");
-  if (z.Rows() != x.Rows() || z.Cols() != x.Cols())
-    z.Redim(x.Rows(), x.Cols());
-  if (x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows()
-    || x.Rows() != z.Rows())
-  {
-    cout << "x.Cols = " << x.Cols() << " y.Cols()" << y.Cols()
-        << " z.Cols() " << z.Cols() << " x.Rows() " << x.Rows()
-        << " y.Rows() " << y.Rows() << " z.Rows() " << z.Rows() << endl;
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, " incompatible dimensions\n");
-  }
+  this->MultAddChecks(x,y,z,alpha,beta,opt);
   this->PrepareZ(y, z, beta, opt);
   int64_t rows = this->Rows();
   int64_t xcols = x.Cols();
@@ -767,7 +785,8 @@ TPZSkylNSymMatrix<TVar> TPZSkylNSymMatrix<TVar>:: operator*(const TVar value)con
   return res;
 }
 
-
+// In TPZSkylNSymMatrix<TVar> the storage is done in fStorage and fStorageb.
+// Elem() must me implemented in a way that it returns a pointer to a contiguous memory block with all the elements of the matrix.
 template<class TVar>
 TVar* &TPZSkylNSymMatrix<TVar>::Elem()
 {
@@ -812,63 +831,59 @@ TPZSkylNSymMatrix<TVar> & TPZSkylNSymMatrix<TVar>:: operator *= (const TVar valu
   return(*this);
 }
 
-
-/** *********** */
-/** * Resize ** */
-//
-// Muda as dimensoes da matriz, mas matem seus valores antigos. Novas
-// posicoes sao criadas com ZEROS.
-//
-
-/*
-int TPZSkylMatrix::Resize(int newDim, int)
+template <class TVar>
+int TPZSkylNSymMatrix<TVar>::Resize(int64_t newRows, int64_t newCols)
 {
-if (newDim == Dim())
-return(1);
+    // if ( newDim == this->Dim() )
+    // 	return( 1 );
 
-fElem.Resize(newDim + 1);
-// Cria nova matrix.
+    // fElem.Resize(newDim+1);
+    // // Cria nova matrix.
 
-// Copia os elementos para a nova matriz.
-int min = Min(newDim, Dim());
-int i;
-for (i = min + 1; i <= newDim; i++)
-fElem[i] = fElem[i - 1];
+    // // Copia os elementos para a nova matriz.
+    // int64_t min = MIN( newDim, this->Dim() );
+    // int64_t i;
+    // for ( i = min+1; i <= newDim; i++ )
+    // 	fElem[i] = fElem[i-1];
 
-// Zera as posicoes que sobrarem (se sobrarem)
-fStorage.Resize(fElem[newDim] - fElem[0]);
-fRow = fCol = newDim;
-fDecomposed = 0;
-return(1);
+    // // Zera as posicoes que sobrarem (se sobrarem)
+    // fStorage.Resize(fElem[newDim]-fElem[0]);
+    // this->fRow = this->fCol = newDim;
+    // this->fDecomposed = ENoDecompose;
+
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Resize should not be called for Skyline matrices\n";
+    DebugStop();
+
+    return (1);
 }
 
- */
-
-/** ********** */
-/** * Redim ** */
+/*************/
+/*** Redim ***/
 //
 // Muda as dimensoes da matriz e ZERA seus elementos.
 //
-
-/*
-int TPZSkylMatrix::Redim(int newDim, int)
+template <class TVar>
+int TPZSkylNSymMatrix<TVar>::Redim(int64_t newRows, int64_t newCols)
 {
-if (newDim == Dim())
-{
-Zero();
-return(1);
+    // if ( newDim == this->Dim() )
+    // {
+    // 	Zero();
+    // 	return( 1 );
+    // }
+
+    // Clear();
+    // fElem.Resize(newDim);
+    // fElem.Fill(0);
+    // this->fRow = this->fCol = newDim;
+    // this->fDecomposed = ENoDecompose;
+
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Redim should not be called for Band matrices\n";
+    DebugStop();
+
+    return (1);
 }
-
-Clear();
-fElem.Resize(newDim);
-fElem.Fill(0);
-fRow = fCol = newDim;
-fDecomposed = 0;
-return(1);
-}
-
-
- */
 
 /** ****************** */
 /** * LU Decomposition ** */

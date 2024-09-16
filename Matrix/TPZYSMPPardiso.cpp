@@ -59,17 +59,7 @@ TPZFYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,
                                      const TVar beta,const int opt) const {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
-	
-#ifdef PZDEBUG
-    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
-        std::cout << "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" ;
-        return;
-    }
-    if(beta!=(TVar)0.0 && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
-        std::cout << "TPZFMatrix::MultAdd matrix y with incompatible dimensions>";
-        return;
-    }
-#endif
+this->MultAddChecks(x,y,z,alpha,beta,opt);
 
 		//suported MKL types
 		if constexpr ((
@@ -88,14 +78,21 @@ TPZFYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,
         z.Redim(zr,zc);
       }else{
         z = y;
+        const auto  r = (opt) ? this->Rows() : this->Cols();
+        if(r == 0){
+          z*=beta;
+          return;
+        }
       }
-			
+      
 			const int64_t z_cols = z.Cols();
 			const int64_t z_rows = z.Rows();
 			
 			sparse_status_t status; 
 			sparse_operation_t op =
-				opt ? SPARSE_OPERATION_TRANSPOSE : SPARSE_OPERATION_NON_TRANSPOSE;
+				opt ?
+        (opt==1 ? SPARSE_OPERATION_TRANSPOSE : SPARSE_OPERATION_CONJUGATE_TRANSPOSE)
+        : SPARSE_OPERATION_NON_TRANSPOSE;
 			sparse_index_base_t idx = SPARSE_INDEX_BASE_ZERO;
 			sparse_matrix_t A;
 			matrix_descr descr;

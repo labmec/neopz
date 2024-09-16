@@ -204,7 +204,7 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::OrderElement()//TPZVec<int> &elorde
 }
 
 template<class TFront, class TVar, class TPar>
-TPZMatrix<TVar> * TPZFrontStructMatrix<TFront,TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+TPZMatrix<TVar> * TPZFrontStructMatrix<TFront,TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs){
 	TPar::InitCreateAssemble();
     int64_t neq = this->fEquationFilter.NActiveEquations();
 	TPZManVector <int> numelconnected(neq,0);
@@ -227,7 +227,7 @@ TPZMatrix<TVar> * TPZFrontStructMatrix<TFront,TVar,TPar>::CreateAssemble(TPZBase
 	
 	OrderElement();
 	
-	Assemble(*mat,rhs,guiInterface);
+	Assemble(*mat,rhs);
 	
 #ifdef PZ_LOG
     if (logger.isDebugEnabled())
@@ -246,7 +246,7 @@ TPZMatrix<TVar> * TPZFrontStructMatrix<TFront,TVar,TPar>::CreateAssemble(TPZBase
 }
 
 template<class TFront, class TVar, class TPar>
-void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleNew(TPZMatrix<TVar> & stiffness, TPZFMatrix<TVar> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleNew(TPZMatrix<TVar> & stiffness, TPZFMatrix<TVar> & rhs){
 	
 	int64_t iel;
 	int64_t numel = 0, nelem = this->fMesh->NElements();
@@ -264,11 +264,7 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleNew(TPZMatrix<TVar> & stiff
 	
 	
 	for(iel=0; iel < nelem; iel++) {
-		
-		if(guiInterface) if(guiInterface->AmIKilled()){
-			break;
-		}
-		
+				
 		if(fElementOrder[iel] < 0) continue;
 		TPZCompEl *el = elementvec[fElementOrder[iel]];
 		if(!el) continue;
@@ -317,7 +313,7 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleNew(TPZMatrix<TVar> & stiff
 
 
 template<class TFront, class TVar, class TPar>
-void TPZFrontStructMatrix<TFront,TVar,TPar>::Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZFrontStructMatrix<TFront,TVar,TPar>::Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base){
     if(!dynamic_cast<TPZMatrix<TVar>*>(&stiff_base) ||
        dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;

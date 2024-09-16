@@ -87,7 +87,7 @@ static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
 static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 template<class TVar>
-void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs) {
 #ifdef USING_MKL
     mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
     //mkl_set_num_threads_local(1);
@@ -107,17 +107,17 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix 
 #endif
         TPZFMatrix<STATE> rhsloc(neqcondense, rhs.Cols(), 0.);
         if (this->fNumThreads) {
-            this->MultiThread_Assemble(mat, rhsloc, guiInterface);
+            this->MultiThread_Assemble(mat, rhsloc);
         } else {
-            this->Serial_Assemble(mat, rhsloc, guiInterface);
+            this->Serial_Assemble(mat, rhsloc);
         }
 
         equationFilter.Scatter(rhsloc, rhs);
     } else {
         if (this->fNumThreads) {
-            this->MultiThread_Assemble(mat, rhs, guiInterface);
+            this->MultiThread_Assemble(mat, rhs);
         } else {
-            this->Serial_Assemble(mat, rhs, guiInterface);
+            this->Serial_Assemble(mat, rhs);
         }
     }
     ass_stiff.stop();
@@ -127,7 +127,7 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix 
 }
 
 template<class TVar>
-void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs){
     ass_rhs.start();
     const auto &equationFilter =
             (dynamic_cast<TPZStructMatrix *>(this))->EquationFilter();
@@ -146,9 +146,9 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer
         {
 #ifdef HUGEDEBUG
             TPZFMatrix<STATE> rhsserial(rhsloc);
-            this->Serial_Assemble(rhsserial, guiInterface);
+            this->Serial_Assemble(rhsserial);
 #endif
-            this->MultiThread_Assemble(rhsloc,guiInterface);
+            this->MultiThread_Assemble(rhsloc);
 #ifdef HUGEDEBUG
             rhsserial -= rhsloc;
             REAL norm = Norm(rhsserial);
@@ -157,7 +157,7 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer
         }
         else
         {
-            this->Serial_Assemble(rhsloc,guiInterface);
+            this->Serial_Assemble(rhsloc);
         }
         equationFilter.Scatter(rhsloc,rhs);
     }
@@ -166,9 +166,9 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer
         if(this->fNumThreads){
 #ifdef HUGEDEBUG
             TPZFMatrix<STATE> rhsserial(rhs);
-            this->Serial_Assemble(rhsserial, guiInterface);
+            this->Serial_Assemble(rhsserial);
 #endif
-            this->MultiThread_Assemble(rhs,guiInterface);
+            this->MultiThread_Assemble(rhs);
 #ifdef HUGEDEBUG
             REAL normrhs = Norm(rhs);
             REAL normrhsserial = Norm(rhsserial);
@@ -179,7 +179,7 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer
 #endif
         }
         else{
-            this->Serial_Assemble(rhs,guiInterface);
+            this->Serial_Assemble(rhs);
         }
     }
     ass_rhs.stop();
@@ -187,7 +187,7 @@ void TPZStructMatrixOMPorTBB<TVar>::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer
 
 
 template<class TVar>
-void TPZStructMatrixOMPorTBB<TVar>::Serial_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixOMPorTBB<TVar>::Serial_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs){
     //mkl_set_num_threads_local(1);
     //mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
 
@@ -261,7 +261,7 @@ void TPZStructMatrixOMPorTBB<TVar>::VerifyStiffnessSum(TPZBaseMatrix & mat){
     std::cout << "totalSum stisffnes =" << totalSum <<std::endl;
 }
 template<class TVar>
-void TPZStructMatrixOMPorTBB<TVar>::Serial_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixOMPorTBB<TVar>::Serial_Assemble(TPZBaseMatrix & rhs){
 
 
 }
@@ -282,7 +282,7 @@ int TPZStructMatrixOMPorTBB<TVar>::GetNumberColors(){
 }
 
 template<class TVar>
-void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs){
     //mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
     //mkl_set_num_threads_local(1);
     if (fShouldColor){
@@ -429,9 +429,9 @@ void TPZStructMatrixOMPorTBB<TVar>::AssemblingUsingOMPbutNotColoring(TPZBaseMatr
 
 
 template<class TVar>
-void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs)
 {
-    std::cout <<"\n\n\nPlease implement TPZStructMatrixOMPorTBB::MultiThread_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)\n\n\n";
+    std::cout <<"\n\n\nPlease implement TPZStructMatrixOMPorTBB::MultiThread_Assemble(TPZBaseMatrix & rhs)\n\n\n";
     DebugStop();
 }
 

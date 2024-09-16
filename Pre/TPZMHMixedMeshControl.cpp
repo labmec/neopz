@@ -1343,8 +1343,7 @@ void TPZMHMixedMeshControl::GroupandCondenseElements()
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-        TPZAutoPointer<TPZGuiInterface> guiInterface;
-        subcmesh->SetAnalysisSkyline(numthreads, preconditioned, guiInterface);
+        subcmesh->SetAnalysisSkyline(numthreads, preconditioned);
     }
     
 }

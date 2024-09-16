@@ -272,7 +272,6 @@ void TPZAnalysis::CleanUp()
     fSolution.Redim(0,0);
     fStructMatrix = nullptr;
     fRenumber = nullptr;
-    fGuiInterface = nullptr;
     
 }
 
@@ -1437,7 +1436,6 @@ void TPZAnalysis::Write(TPZStream &buf, int withclassid) const{
     buf.Write(&fNthreadsError);
     TPZPersistenceManager::WritePointer(fStructMatrix.operator ->(), &buf);
     TPZPersistenceManager::WritePointer(fRenumber.operator ->(), &buf);
-    TPZPersistenceManager::WritePointer(fGuiInterface.operator ->(), &buf);
     fTable.Write(buf,withclassid);
     buf.Write(fTensorNames[0]);
     buf.Write(fTensorNames[1]);
@@ -1467,7 +1465,6 @@ void TPZAnalysis::Read(TPZStream &buf, void *context){
     buf.Read(&fNthreadsError);
     fStructMatrix = TPZAutoPointerDynamicCast<TPZStructMatrix>(TPZPersistenceManager::GetAutoPointer(&buf));
     fRenumber = TPZAutoPointerDynamicCast<TPZRenumbering>(TPZPersistenceManager::GetAutoPointer(&buf));
-    fGuiInterface = TPZAutoPointerDynamicCast<TPZGuiInterface>(TPZPersistenceManager::GetAutoPointer(&buf));
     fTable.Read(buf,context);
     buf.Read(fTensorNames[0]);
     buf.Read(fTensorNames[1]);

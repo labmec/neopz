@@ -10,7 +10,6 @@
 #include "pzvec.h"
 #include "tpzautopointer.h"
 #include "pzmatrix.h"
-#include "TPZGuiInterface.h"
 #include "pzelmat.h"
 #include "TPZSemaphore.h"
 #include "TPZStructMatrix.h"

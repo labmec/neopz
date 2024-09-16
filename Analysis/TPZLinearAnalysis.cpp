@@ -57,7 +57,7 @@ void TPZLinearAnalysis::AssembleT()
   if(!this->fStructMatrix){
     std::cout<<"Setting default struct matrix: ";
     TPZAutoPointer<TPZStructMatrix> str{nullptr};
-#if defined(USING_MKL) || defined(USING_EIGEN)
+#if defined USING_MKL
     std::cout<<"sparse(non-symmetric)"<<std::endl;
     str = new TPZSpStructMatrix<TVar>(fCompMesh);
 #else
@@ -81,11 +81,11 @@ void TPZLinearAnalysis::AssembleT()
 	if(mySolver->Matrix() && mySolver->Matrix()->Rows()==sz)
 	{
 		mySolver->Matrix()->Zero();
-		fStructMatrix->Assemble(*(mySolver->Matrix().operator ->()),fRhs,fGuiInterface);
+		fStructMatrix->Assemble(*(mySolver->Matrix().operator ->()),fRhs);
 	}
 	else
 	{
-		auto *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
+		auto *mat = fStructMatrix->CreateAssemble(fRhs);
 		mySolver->SetMatrix(mat);
 	}
 #ifdef PZ_LOG
@@ -122,7 +122,7 @@ void TPZLinearAnalysis::AssembleResidual()
     int64_t sz = this->Mesh()->NEquations();
 	this->Rhs().Redim(sz,numloadcases);
   //int64_t othersz = fStructMatrix->Mesh()->NEquations();
-	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
+	fStructMatrix->Assemble(this->Rhs());
 }//void
 
 void TPZLinearAnalysis::Solve()

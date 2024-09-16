@@ -203,6 +203,9 @@ public:
   virtual TPZMatrix<TVar> &operator*=(const TVar val);
 
   TPZFMatrix<TVar> operator*(const TPZFMatrix<TVar> &B ) const;
+  //! Unifies input parameters checks of MultAdd
+  void MultAddChecks(const TPZFMatrix<TVar> & x,const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,
+                     const TVar alpha=1., const TVar beta = 0., const int opt = 0) const;
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
 	 * @param x Is x on the above operation
@@ -217,8 +220,18 @@ public:
 
     virtual TVar RowTimesVector(const int row, const TPZFMatrix<TVar> &v) const;
 
-	virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, bool transpA, const TPZFMatrix<TVar>& B, 
-						 		 bool transpB, const TVar alpha = 1.0);
+  /**
+   * @brief It computes this += alpha*(A * B), where A or B can be transposed.
+   * @param i Is the row of (this) where the first element of the matrices product should be added 
+   * @param j Is the column of (this) where the first element of the matrices product should be added 
+   * @param A Is A on the above operation
+   * @param transpA 0: A not transpose, 1: A tranpose, everything else: A conj transpose
+   * @param B Is B on the above operation
+   * @param transpB 0: B not transpose, 1: B tranpose, everything else: B conj transpose
+   * @param alpha Is alpha on the above operation
+   */
+	virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, int transpA, const TPZFMatrix<TVar>& B, 
+						 		 int transpB, const TVar alpha = 1.0);
 	
 	/** @brief Computes res = rhs - this * x */
 	virtual void Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res ) ;
@@ -228,7 +241,7 @@ public:
     /** @brief Converts the matrix in a diagonal matrix*/
     virtual void Diagonal(TVar val);
 	/** @brief It makes *T the transpose of current matrix. */
-	virtual void Transpose(TPZMatrix<TVar>*const T) const;
+	virtual void Transpose(TPZMatrix<TVar>*const T, bool conj = false) const;
 	
 	/**
 	 * @brief It makes Inv =[this].

@@ -110,12 +110,24 @@ public:
 	// this method is not working! default version does work
 	// virtual int GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
 	// 				   const int64_t colSize, TPZFMatrix<TVar> & A ) const override;
-	
 
+  virtual int Resize(const int64_t newRows, const int64_t newCols) override
+  {
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Resize should not be called for Sparse matrices\n";
+    DebugStop();
+    return 1;
+  }
 
-  
-  
-	/** @brief Pass the data to the class. */
+  virtual int Redim(int64_t rows, int64_t cols) override
+  {
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Redim should not be called for Sparse matrices\n";
+    DebugStop();
+    return 1;
+  }
+
+  /** @brief Pass the data to the class. */
 	virtual void SetData( int64_t *IA, int64_t *JA, TVar *A );
     
     /** @brief Pass the data to the class. */
@@ -128,6 +140,13 @@ public:
 
   //! Creates a sparse matrix containing only the eqs given in indices
   void GetSubSparseMatrix(const TPZVec<int64_t> &indices, TPZVec<int64_t> &ia,
+                          TPZVec<int64_t> &ja, TPZVec<TVar> &aa);
+  /** @brief Creates a sparse matrix containing only the eqs given in indices
+      Useful for getting off-diagonal blocks
+   */
+  void GetSubSparseMatrix(const TPZVec<int64_t> &row_indices,
+                          const TPZVec<int64_t> &col_indices,
+                          TPZVec<int64_t> &ia,
                           TPZVec<int64_t> &ja, TPZVec<TVar> &aa);
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const override;
@@ -170,8 +189,18 @@ public:
 	
 	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & destinationindex) override;
 	
-	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex) override;
-	
+  inline void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                     TPZVec<int64_t> &destinationindex) override{
+    AddKelImpl<false>(elmat,sourceindex,destinationindex);
+  }
+  inline void AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                           TPZVec<int64_t> &destinationindex) override{
+    AddKelImpl<true>(elmat,sourceindex,destinationindex);
+  }
+  template<bool TAtomic>
+  void AddKelImpl(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                  TPZVec<int64_t> &destinationindex);
+  
 	void MultiplyDummy(TPZFYsmpMatrix<TVar> & B, TPZFYsmpMatrix<TVar> & Res);
 
     void GetRowIndices(const int64_t i, TPZVec<int64_t>& indices) const override;

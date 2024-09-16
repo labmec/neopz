@@ -145,13 +145,8 @@ public:
 	
 	TPZSkylMatrix operator-() const;// { return operator*(-1.0); }
 	
-	// Redimensiona a matriz, mas mantem seus elementos.
-	// o segundo parametro � o tamanho das colunas
-	int Resize(const int64_t newDim ,const int64_t ) override;
-	
-	// Redimensiona a matriz e ZERA seus elementos.
-	// o segundo parametro � o tamanho das colunas
-	int Redim(const int64_t newDim ,const int64_t ) override;
+	int Resize(const int64_t newRows, const int64_t newCols) override;
+	int Redim(const int64_t newRows, const int64_t newCols) override;
 	int Redim(const int64_t newDim) {return this->Redim(newDim,newDim);}
 	
 	// Zera os Elementos da matriz
@@ -164,8 +159,17 @@ public:
      * @param destinationindex Contains destine indexes on current matrix
      */
 
-    void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex) override;
-	
+  inline void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                     TPZVec<int64_t> &destinationindex) override{
+    AddKelImpl<false>(elmat,sourceindex,destinationindex);
+  }
+  inline void AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                           TPZVec<int64_t> &destinationindex) override{
+    AddKelImpl<true>(elmat,sourceindex,destinationindex);
+  }
+  template<bool TAtomic>
+  void AddKelImpl(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,
+                  TPZVec<int64_t> &destinationindex);
 	
 	/*** @brief To Solve Linear Equations ***/
 	// @{

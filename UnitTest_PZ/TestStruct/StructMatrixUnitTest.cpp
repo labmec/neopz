@@ -30,6 +30,7 @@
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
+#include <thread>
 
 
 #include <catch2/catch_test_macros.hpp>
@@ -58,6 +59,27 @@ namespace structTest{
   void CompareParallelLayerStiffMat(TPZAutoPointer<TPZCompMesh> cMesh,
                                      const int nThreads);
   
+}
+
+TEMPLATE_TEST_CASE("Stress test parallel schemes", "[struct_tests][struct][multithread]",
+                   TPZStructMatrixOT<STATE>,TPZStructMatrixOR<STATE>){
+  using TPARSTRATEGY=TestType;
+  auto cMesh = structTest::CreateCMesh1D();
+  const int nThreads{(int)std::thread::hardware_concurrency()};
+  std::cout<<"STRESS TEST:BEGIN"<<std::endl;
+  for(int i = 0; i < 10000; i++){
+
+    // std::cout<<"\n\n\nAssembling iter number "<<i<< std::endl << std::flush;
+    TPZLinearAnalysis an(cMesh, RenumType::ENone);
+    TPZSkylineNSymStructMatrix<STATE,TPARSTRATEGY> matskl(cMesh);
+    matskl.SetNumThreads(nThreads);
+    an.SetStructuralMatrix(matskl);
+    TPZStepSolver<STATE> defaultSolver;
+    defaultSolver.SetDirect(ELU);
+    an.SetSolver(defaultSolver);
+    an.Assemble();
+  }
+  std::cout<<"\nSTRESS TEST:ENDED!"<<std::endl;
 }
 
 TEMPLATE_TEST_CASE("Assemble known matrix",

@@ -146,6 +146,7 @@ template<class TVar>
 TPZSFMatrix<TVar> &
 TPZSFMatrix<TVar> ::operator=(TPZSFMatrix<TVar>  &&A )
 {
+	TPZMatrix<TVar>::operator=(A);
 	fElem=A.fElem;
 	A.fElem=nullptr;
 	return *this;
@@ -460,8 +461,15 @@ TPZSFMatrix<TVar> ::operator*=( TVar value )
 /*** Resize ***/
 template<class TVar>
 int
-TPZSFMatrix<TVar> ::Resize( int64_t newDim , int64_t )
+TPZSFMatrix<TVar> ::Resize(const int64_t newRows, const int64_t newCols)
 {
+	if (newRows != newCols)
+	{
+		PZError<<__PRETTY_FUNCTION__;
+    	PZError<<"\nERROR: TPZSFMatrix must be square.\n";
+    	DebugStop();
+	}
+	int64_t newDim = newRows;
 	if ( newDim == this->Dim() )
 		return( 1 );
 	
@@ -500,8 +508,15 @@ TPZSFMatrix<TVar> ::Resize( int64_t newDim , int64_t )
 
 template<class TVar>
 int
-TPZSFMatrix<TVar> ::Redim( int64_t newDim , int64_t)
+TPZSFMatrix<TVar> ::Redim(int64_t newRows , int64_t newCols)
 {
+	if (newRows != newCols)
+	{
+		PZError<<__PRETTY_FUNCTION__;
+    	PZError<<"\nERROR: TPZSFMatrix must be square.\n";
+    	DebugStop();
+	}
+	int64_t newDim = newRows;
 	// Se for preciso, desaloca a matriz antiga e aloca uma
 	//  nova com o novo tamanho.
 	if ( newDim != this->Dim() )

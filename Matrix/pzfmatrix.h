@@ -41,7 +41,7 @@ template <class TVar> class TPZVerySparseMatrix;
 
 /** @brief Returns a dot product to matrices */
 template<class TVar>
-TVar Dot(const TPZFMatrix<TVar> &A,const TPZFMatrix<TVar> &B);
+TVar Dot(const TPZFMatrix<TVar> &A,const TPZFMatrix<TVar> &B,bool conj=true);
 
 /** @brief Returns the norm of the matrix A */
 template<class TVar>
@@ -214,21 +214,18 @@ public:
                          const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const  override;
     
     
-    static void MultAdd(const TVar *ptr, int64_t rows, int64_t cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-                        const TVar alpha=1.,const TVar beta = 0.,const int opt = 0);
-    
     /**
      * @brief It computes this += alpha*(A * B), where A or B can be transposed.
      * @param i Is the row of (this) where the first element of the matrices product should be added 
      * @param j Is the column of (this) where the first element of the matrices product should be added 
      * @param A Is A on the above operation
-     * @param transpA Indicates if A is Transpose or not
+     * @param transpA 0: A not transpose, 1: A tranpose, everything else: A conj transpose
      * @param B Is B on the above operation
-     * @param transpB Indicates if B is Transpose or not
+     * @param transpB 0: B not transpose, 1: B tranpose, everything else: B conj transpose
      * @param alpha Is alpha on the above operation
      */
-    virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, bool transpA, const TPZFMatrix<TVar>& B, 
-						 		 bool transpB, const TVar alpha = 1.0) override;
+    virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, int transpA, const TPZFMatrix<TVar>& B, 
+						 		 int transpB, const TVar alpha = 1.0) override;
 
     /**
      * @name Generic operator with TVar type
@@ -329,11 +326,12 @@ public:
     
     void DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &inverse);
     
-    void Transpose(TPZMatrix<TVar> *const T) const override;
+    void Transpose(TPZMatrix<TVar> *const T, bool conj=false) const override;
     
     /** @see TPZMatrix<TVar>::Transpose */
     
     void Transpose();
+    void ConjTranspose();
     
     /*** @name Solve linear system of equations ***/
     /** @{ */
@@ -898,7 +896,6 @@ class TPZFNMatrix : public TPZFMatrix<TVar> {
     TVar fBuf[N+1];
     
 public:
-    friend class TPZHCurlAuxClass;
     /*
      * @brief Constructor which does not initialize the data. \n
      * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col

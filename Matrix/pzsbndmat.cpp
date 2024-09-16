@@ -66,7 +66,8 @@ void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym) {
     if (fBand == 0) {
         fBand = nrow-1;
     }
-    Resize(nrow, ncol);
+    TPZSBMatrix A(nrow, fBand);
+    *this = A;
     
     int64_t i, j;
     TVar val = 0, sum;
@@ -101,6 +102,7 @@ void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym) {
                 PutVal(i,i,1.);
         }
     }
+    SetSymmetry(sym);
     
 }
 /**************/
@@ -143,8 +145,11 @@ TPZSBMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) const
         if (auto index = row-col; index > fBand ){
             return (TVar) 0;//out of band
         }else if constexpr(is_complex<TVar>::value){
-            if(this->fSymProp == SymProp::Herm) {return( std::conj(fStorage[Index(col,row)]) );}
-            else{return fStorage[Index(col,row)];}
+            if(this->fSymProp == SymProp::Herm) {
+                return( std::conj(fStorage[Index(col,row)]) );
+            } else {
+                return fStorage[Index(col,row)];
+            }
         }else{
             return( fStorage[ Index(col,row) ] );
         }
@@ -292,13 +297,7 @@ TPZSBMatrix<TVar>::operator-=(const TPZSBMatrix<TVar> &A )
 template<class TVar>
 void TPZSBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
                                 const TVar alpha,const TVar beta ,const int opt) const {
-    // Computes z = beta * y + alpha * opt(this)*x
-    //          z and x cannot overlap in memory
-    if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
-       this->Error(__PRETTY_FUNCTION__, "TPZSBMatrix::MultAdd <matrixs with incompatible dimensions>" );
-    if(x.Cols() != y.Cols() ||x.Rows() != y.Rows()) {
-       this->Error(__PRETTY_FUNCTION__,"TPZSBMatrix::MultAdd incompatible dimensions\n");
-    }
+    this->MultAddChecks(x,y,z,alpha,beta,opt);
     this->PrepareZ(y,z,beta,opt);
     const int64_t rows = this->Rows();
     const int64_t xcols = x.Cols();
@@ -372,20 +371,14 @@ TPZSBMatrix<TVar>::operator*=(const TVar value )
     return( *this );
 }
 
-/**************/
-/*** Resize ***/
-//
-// Muda as dimensoes da matriz, mas matem seus valores antigos. Novas
-// posicoes sao criadas com ZEROS.
-//
 template<class TVar>
 int
 TPZSBMatrix<TVar>::Resize(const int64_t newDim ,const int64_t)
 {
-    if ( newDim == this->Dim() )
-        return( 1 );
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Resize should not be called for Band matrices\n";
+    DebugStop();
     
-    Redim(newDim,newDim);
     return( 1 );
 }
 
@@ -398,22 +391,26 @@ template<class TVar>
 int
 TPZSBMatrix<TVar>::Redim(const int64_t newDim ,const int64_t otherDim)
 {
-    if (newDim != otherDim) {
-        DebugStop();
-    }
+    // if (newDim != otherDim) {
+    //     DebugStop();
+    // }
     
-    if ( newDim != this->Dim() )
-    {
-        TPZMatrix<TVar>::Redim(newDim,newDim);
-        if (fBand > newDim-1) {
-            fBand = newDim-1;
-        }
-        fStorage.resize(Size());
-    }
+    // if ( newDim != this->Dim() )
+    // {
+    //     TPZMatrix<TVar>::Redim(newDim,newDim);
+    //     if (fBand > newDim-1) {
+    //         fBand = newDim-1;
+    //     }
+    //     fStorage.resize(Size());
+    // }
     
-    Zero();
-    this->fDecomposed = ENoDecompose;
-    this->fDefPositive = 0;
+    // Zero();
+    // this->fDecomposed = ENoDecompose;
+    // this->fDefPositive = 0;
+
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Redim should not be called for Band matrices\n";
+    DebugStop();
     return( 1 );
 }
 
@@ -647,6 +644,10 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
     
     if (  this->fDecomposed ) this->Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed>" );
     
+    if constexpr(is_complex<TVar>::value) {
+        std::cout << "LDLt decomposition for complex numbers not implemented\n";
+        DebugStop();
+    }
     int64_t j,k,l, begin,end;
     TVar sum;
     

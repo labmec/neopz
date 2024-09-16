@@ -169,13 +169,7 @@ TPZFBMatrix<TVar>::operator-=(const TPZFBMatrix<TVar> &A )
 template<class TVar>
 void TPZFBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						  const TVar alpha,const TVar beta ,const int opt) const {
-	// Computes z = beta * y + alpha * opt(this)*x
-	//          z and x cannot overlap in memory
-	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
-		this->Error(__PRETTY_FUNCTION__, "TPZFBMatrix::MultAdd <matrixs with incompatible dimensions>" );
-	if(x.Cols() != y.Cols() || x.Rows() != y.Rows()) {
-		this->Error(__PRETTY_FUNCTION__,"TPZFBMatrix::MultAdd incompatible dimensions\n");
-	}
+	this->MultAddChecks(x,y,z,alpha,beta,opt);
 	this->PrepareZ(y,z,beta,opt);
 	int64_t rows = this->Rows();
 	int64_t xcols = x.Cols();
@@ -308,11 +302,10 @@ template<class TVar>
 int
 TPZFBMatrix<TVar>::Resize(const int64_t newRows,const int64_t newCols)
 {
-	if ( newRows != newCols )
-		this->Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Resize should not be called for Band matrices\n";
+    DebugStop();
 	
-	
-    Redim(newRows,newRows);
 	return( 1 );
 }
 
@@ -324,23 +317,28 @@ template<class TVar>
 int
 TPZFBMatrix<TVar>::Redim(const int64_t newRows,const int64_t newCols )
 {
-	if ( newRows != newCols )
-		this->Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
+	// if ( newRows != newCols )
+	// 	this->Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
 	
-	//  if ( !fBand ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Bandwith = NULL" );
+	// //  if ( !fBand ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Bandwith = NULL" );
 	
 
-    if (fBandLower > newRows-1) {
-        fBandLower = newRows-1;
-    }
-    if (fBandUpper > newRows-1) {
-        fBandUpper = newRows-1;
-    }
-    TPZMatrix<TVar>::Redim(newRows,newRows);
-	uint64_t size = newRows*(2*fBandLower+fBandUpper + 1);
-    fElem.Resize(size);
-	Zero();
+    // if (fBandLower > newRows-1) {
+    //     fBandLower = newRows-1;
+    // }
+    // if (fBandUpper > newRows-1) {
+    //     fBandUpper = newRows-1;
+    // }
+    // TPZMatrix<TVar>::Redim(newRows,newRows);
+	// uint64_t size = newRows*(2*fBandLower+fBandUpper + 1);
+    // fElem.Resize(size);
+	// Zero();
 	
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Redim should not be called for Band matrices\n";
+    DebugStop();
+	
+	return( 1 );
 	return( 1 );
 }
 
@@ -387,14 +385,31 @@ TPZFBMatrix<TVar>::SetBand( int64_t newBand )
 /*** Transpose () ***/
 template<class TVar>
 void
-TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T) const
+TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T, bool conj) const
 {
 	T->Resize( Dim(), Dim() );
 	
 	int64_t end, begin;
 	//REAL *p = fElem;
+  if constexpr (is_complex<TVar>::value){
+    if(conj){
+      
+      for ( int64_t r = 0; r < Dim(); r++ )
+      {
+        begin = MAX( r - fBandLower, 0 );
+        end   = MIN( r + fBandUpper + 1, Dim() );
+        for ( int64_t c = begin; c < end; c++ )
+        {
+          T->PutVal( c, r, std::conj(GetVal( r, c )) );
+          //			cout<<"(r,c)= "<<r<<"  "<<c<<"\n";
+        }
+      }
+      return;
+    }
+  }
+  
 	for ( int64_t r = 0; r < Dim(); r++ )
-    {
+  {
 		begin = MAX( r - fBandLower, 0 );
 		end   = MIN( r + fBandUpper + 1, Dim() );
 		for ( int64_t c = begin; c < end; c++ )
@@ -402,7 +417,7 @@ TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T) const
 			T->PutVal( c, r, GetVal( r, c ) );
 			//			cout<<"(r,c)= "<<r<<"  "<<c<<"\n";
 		}
-    }
+  }
 }
 
 

@@ -15,6 +15,7 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+#include <complex>
 
 namespace pzutils{
 //!Sets number of mkl threads for current threads and return previous value
@@ -72,14 +73,27 @@ as in
 #pragma omp atomic
 a += b
 */
+
 template<typename T>
-inline T AtomicAdd( T & sum, T val )
+inline void AtomicAdd( T & sum, T val )
 {
-  std::atomic<T> & asum = AtomicCast(sum);
-  T current = asum.load();
-  while (!asum.compare_exchange_weak(current, current + val))
-    ;
-  return current;
+  if constexpr (std::is_same_v<T,std::complex<float>> ||
+                std::is_same_v<T,std::complex<double>> ||
+                std::is_same_v<T,std::complex<long double>>){
+    const auto real = val.real();
+    AtomicAdd (reinterpret_cast<typename T::value_type(&)[2]>(sum)[0], real);
+    const auto imag = val.imag();
+    AtomicAdd (reinterpret_cast<typename T::value_type(&)[2]>(sum)[1], imag);
+  }else{
+    std::atomic<T> & asum = AtomicCast(sum);
+    T current = asum.load();
+    T desired{0};
+    do{
+      desired = current+val;
+    }
+    while (!asum.compare_exchange_weak(current, desired));
+  }
 }
+  
 }//namespace
 #endif

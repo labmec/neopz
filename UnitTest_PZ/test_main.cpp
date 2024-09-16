@@ -28,37 +28,55 @@ struct EventListener : Catch::EventListenerBase
 
   std::string lastCase="";
   bool no_fails{true};
+  bool should_fail{false};
+  int level{0};
+  std::map<std::string,int> level_map;
   
   void testCaseStarting(Catch::TestCaseInfo const& testCaseInfo) final{
     lastCase = testCaseInfo.name;
     no_fails = true;
+    should_fail = testCaseInfo.expectedToFail();
   }
 
+  void sectionStarting(Catch::SectionInfo const& sectionInfo ) final{
+    if(sectionInfo.name!=lastCase){
+      level++;
+      level_map[sectionInfo.name]=level;
+    }
+  }
+  
   void sectionEnded(Catch::SectionStats const& sectionStats) final
   {
-    if (sectionStats.assertions.failed > 0){
+    if (sectionStats.assertions.failed > 0 ||
+        (should_fail && sectionStats.assertions.failedButOk==0)){
       /*a test case will always have one implicit section (full case).
         this logic aims to avoid printing the implicit section in case
         inner sections have already failed*/
-      if(sectionStats.sectionInfo.name != lastCase || no_fails){
-        failed_sections.push_back(
-          lastCase
-          +' '
-          +sectionStats.sectionInfo.name);
-        no_fails = false;
+      if(no_fails){
+        failed_sections.push_back(lastCase);
       }
+      if(sectionStats.sectionInfo.name != lastCase){
+        const int mylvl = level_map[sectionStats.sectionInfo.name];
+        failed_sections.push_back(std::string(mylvl,'-')+sectionStats.sectionInfo.name);
+      }
+      no_fails=false;
     }
     else if (sectionStats.assertions.failedButOk > 0){
       /*a test case will always have one implicit section (full case).
         this logic aims to avoid printing the implicit section in case
         inner sections have already failed*/
-      if(sectionStats.sectionInfo.name != lastCase || no_fails){
-        failed_but_ok_sections.push_back(
-          lastCase
-          +' '
-          +sectionStats.sectionInfo.name);
-        no_fails = false;
+      if(no_fails){
+        failed_but_ok_sections.push_back(lastCase);
       }
+      if(sectionStats.sectionInfo.name != lastCase){
+        const int mylvl = level_map[sectionStats.sectionInfo.name];
+        failed_but_ok_sections.push_back(std::string(mylvl,'-')+sectionStats.sectionInfo.name);
+      }
+      no_fails = false;
+    }
+    if(sectionStats.sectionInfo.name!=lastCase){
+      level--;
+      level_map.erase(sectionStats.sectionInfo.name);
     }
   }
 

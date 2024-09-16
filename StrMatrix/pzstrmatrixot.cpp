@@ -13,6 +13,7 @@
 #include "TPZMaterial.h"
 #include "run_stats_table.h"
 
+// #include <syncstream>
 using namespace std;
 
 
@@ -43,7 +44,6 @@ TPZStructMatrixOT<TVar>::TPZStructMatrixOT(const TPZStructMatrixOT &copy) :
     fElSequenceColor(copy.fElSequenceColor),
     fElementsComputed(copy.fElementsComputed),
     fElementCompleted(copy.fElementCompleted)
-    //fSomeoneisSleeping //no need
     //fCurrentIndex //no need
 {
 }
@@ -55,7 +55,6 @@ TPZStructMatrixOT<TVar>::TPZStructMatrixOT(TPZStructMatrixOT &&copy) :
     fElSequenceColor(copy.fElSequenceColor),
     fElementsComputed(copy.fElementsComputed),
     fElementCompleted(copy.fElementCompleted)
-    //fSomeoneisSleeping //no need
     //fCurrentIndex //no need
 {
 }
@@ -67,7 +66,6 @@ TPZStructMatrixOT<TVar>& TPZStructMatrixOT<TVar>::operator=(const TPZStructMatri
     fElSequenceColor = copy.fElSequenceColor;
     fElementsComputed = copy.fElementsComputed;
     fElementCompleted = copy.fElementCompleted;
-    //fSomeoneisSleeping //no need
     //fCurrentIndex //no need
     return *this;
 }
@@ -78,7 +76,6 @@ TPZStructMatrixOT<TVar>& TPZStructMatrixOT<TVar>::operator=(TPZStructMatrixOT &&
     fElSequenceColor = copy.fElSequenceColor;
     fElementsComputed = copy.fElementsComputed;
     fElementCompleted = copy.fElementCompleted;
-    //fSomeoneisSleeping //no need
     //fCurrentIndex //no need
     return *this;
 }
@@ -89,7 +86,7 @@ static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 
 template<class TVar>
-void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs){
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     ass_stiff.start();
@@ -103,10 +100,10 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix 
         TPZFMatrix<TVar> rhsloc;
         if(ComputeRhs()) rhsloc.Redim(neqcondense, rhs.Cols());
         if(this->fNumThreads){
-            this->MultiThread_Assemble(stiffness,rhsloc,guiInterface);
+            this->MultiThread_Assemble(stiffness,rhsloc);
         }
         else{
-            this->Serial_Assemble(stiffness,rhsloc,guiInterface);
+            this->Serial_Assemble(stiffness,rhsloc);
         }
         
         if(ComputeRhs())equationFilter.Scatter(rhsloc, rhs);
@@ -114,17 +111,17 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix 
     else
     {
         if(this->fNumThreads){
-            this->MultiThread_Assemble(stiffness,rhs,guiInterface);
+            this->MultiThread_Assemble(stiffness,rhs);
         }
         else{
-            this->Serial_Assemble(stiffness,rhs,guiInterface);
+            this->Serial_Assemble(stiffness,rhs);
         }
     }
     ass_stiff.stop();
 }
 
 template<class TVar>
-void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base){
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
@@ -148,9 +145,9 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<T
         {
 #ifdef HUGEDEBUG
             TPZFMatrix<TVar> rhsserial(rhsloc);
-            this->Serial_Assemble(rhsserial, guiInterface);
+            this->Serial_Assemble(rhsserial);
 #endif
-            this->MultiThread_Assemble(rhsloc,guiInterface);
+            this->MultiThread_Assemble(rhsloc);
 #ifdef HUGEDEBUG
             rhsserial -= rhsloc;
             REAL norm = Norm(rhsserial);
@@ -159,7 +156,7 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<T
         }
         else
         {
-            this->Serial_Assemble(rhsloc,guiInterface);
+            this->Serial_Assemble(rhsloc);
         }
         equationFilter.Scatter(rhsloc,rhs);
     }
@@ -168,9 +165,9 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<T
         if(this->fNumThreads){
 #ifdef HUGEDEBUG
             TPZFMatrix<TVar> rhsserial(rhs);
-            this->Serial_Assemble(rhsserial, guiInterface);
+            this->Serial_Assemble(rhsserial);
 #endif
-            this->MultiThread_Assemble(rhs,guiInterface);
+            this->MultiThread_Assemble(rhs);
 #ifdef HUGEDEBUG
             REAL normrhs = Norm(rhs);
             REAL normrhsserial = Norm(rhsserial);
@@ -181,7 +178,7 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<T
 #endif
         }
         else{
-            this->Serial_Assemble(rhs,guiInterface);
+            this->Serial_Assemble(rhs);
         }
     }
     ass_rhs.stop();
@@ -200,7 +197,7 @@ void TPZStructMatrixOT<TVar>::InitCreateAssemble()
 }
 
 template<class TVar>
-void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface ){
+void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base){
     if(!dynamic_cast<TPZMatrix<TVar>*>(&stiff_base)||
        !dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
@@ -280,9 +277,6 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
         
         el->CalcStiff(ek,ef);
         
-        if(guiInterface) if(guiInterface->AmIKilled()){
-            return;
-        }
         
 #ifdef PZ_LOG
         if(dynamic_cast<TPZSubCompMesh * >(cmesh))
@@ -404,7 +398,7 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
     
 }
 template<class TVar>
-void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base){
     if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<": incompatible types. Aborting...\n";
@@ -482,7 +476,7 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoP
 
 
 template<class TVar>
-void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMatrix & rhs_base)
 {
     if(!dynamic_cast<TPZMatrix<TVar>*>(&mat_base)||
        !dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
@@ -499,38 +493,37 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
     // std::cout << "Assemble numthreads = " << numthreads << std::endl;
     std::vector<std::thread> allthreads;
     int itr;
-    if(guiInterface){
-        if(guiInterface->AmIKilled()){
-            return;
-        }
-    }
 
     this->fCurrentIndex = 0;
     
     fElementCompleted = -1;
-    fElementsComputed.Resize(myself->Mesh()->NElements());
+    fElementsComputed.Resize(myself->Mesh()->NElements()+1);
     fElementsComputed.Fill(0);
-    fSomeoneIsSleeping = 0;
-// #ifdef PZDEBUG
-//     {
-//         for (int64_t i=1; i<fElBlocked.size(); i++) {
-//             if (fElBlocked[i] < fElBlocked[i-1]) {
-//                 std::cout << "i = " << i << " fElBlocked[i-1] " << fElBlocked[i-1] << " fElBlocked[i] " << fElBlocked[i] << std::endl;
-//             }
-//         }
-//     }
-// #endif
-    ThreadData threaddata(myself, itr, mat, rhs, myself->MaterialIds(),
-                          guiInterface, &fCurrentIndex, ComputeRhs());
-    threaddata.fElBlocked=&fElBlocked;
-    threaddata.fElSequenceColor=&fElSequenceColor;
-    threaddata.fElementCompleted = &fElementCompleted;
-    threaddata.fComputedElements = &fElementsComputed;
-    threaddata.fSomeoneIsSleeping = &fSomeoneIsSleeping;
+#ifdef HUGEDEBUG
+    {
+        for (int64_t i=1; i<fElBlocked.size(); i++) {
+            std::cout << "i = " << i << " fElBlocked[i] " << fElBlocked[i] << std::endl;
+        }
+    }
+#endif
+    TPZManVector<ThreadData *> allthreadsD(numthreads,0); 
+
+    std::mutex accessElement;
+    std::condition_variable conditionVar;
     
     for(itr=0; itr<numthreads; itr++)
     {
-        allthreads.push_back(std::thread(ThreadData::ThreadWork, &threaddata));
+        allthreadsD[itr] = new ThreadData(myself, itr, mat, rhs, myself->MaterialIds(),
+                          &fCurrentIndex, ComputeRhs());
+        allthreadsD[itr]->fElBlocked= &fElBlocked;
+        allthreadsD[itr]->fElSequenceColor=&fElSequenceColor;
+        allthreadsD[itr]->fElementCompleted = &fElementCompleted;
+        allthreadsD[itr]->fComputedElements = &fElementsComputed;
+        allthreadsD[itr]->fMutexAccessElement = &accessElement;
+        allthreadsD[itr]->fConditionVar = &conditionVar;
+
+        allthreadsD[itr]->fThreadSeqNum = itr;
+        allthreads.push_back(std::thread(ThreadData::ThreadWork, allthreadsD[itr]));
     }
     
     for(itr=0; itr<numthreads; itr++)
@@ -551,37 +544,28 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
 }
 
 template<class TVar>
-void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs)
 {
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     const int numthreads = this->fNumThreads;
     std::vector<std::thread> allthreads(numthreads);
-    int itr;
-    if(guiInterface){
-        if(guiInterface->AmIKilled()){
-            return;
-        }
-    }
-    
+    int itr;    
 
     this->fCurrentIndex = 0;
     fElementCompleted = -1;
     fElementsComputed.Resize(myself->Mesh()->NElements());
     fElementsComputed.Fill(0);
-    fSomeoneIsSleeping = 0;
     TPZManVector<ThreadData*> allthreaddata(numthreads);
 
     for(itr=0; itr<numthreads; itr++)
     {
         allthreaddata[itr] =
-            new ThreadData(myself, itr, rhs,myself->MaterialIds(),
-                           guiInterface,&fCurrentIndex);
+            new ThreadData(myself, itr, rhs,myself->MaterialIds(),&fCurrentIndex);
         ThreadData &threaddata = *allthreaddata[itr];
         threaddata.fElBlocked=&fElBlocked;
         threaddata.fElSequenceColor=&fElSequenceColor;
         threaddata.fElementCompleted = &fElementCompleted;
         threaddata.fComputedElements = &fElementsComputed;
-        threaddata.fSomeoneIsSleeping = &fSomeoneIsSleeping;
 
         allthreads.emplace_back(ThreadData::ThreadWork, &threaddata);
     }
@@ -615,9 +599,8 @@ template<class TVar>
 TPZStructMatrixOT<TVar>::ThreadData::ThreadData(
     TPZStructMatrix *strmat, int seqnum, TPZBaseMatrix &mat,
     TPZBaseMatrix &rhs,const std::set<int> &MaterialIds,
-    TPZAutoPointer<TPZGuiInterface> guiInterface,
     std::atomic<int64_t> *currentIndex, bool computeRhs)
-: fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat),
+: fStruct(strmat), fGlobMatrix(&mat),
   fGlobRhs(&rhs), fThreadSeqNum(seqnum), fComputeRhs(computeRhs)
 {
     fCurrentIndex = currentIndex;
@@ -651,9 +634,8 @@ template<class TVar>
 TPZStructMatrixOT<TVar>::ThreadData::ThreadData(
     TPZStructMatrix *strmat, int seqnum, TPZBaseMatrix &rhs,
     const std::set<int> &MaterialIds,
-    TPZAutoPointer<TPZGuiInterface> guiInterface,
     std::atomic<int64_t> *currentIndex)
-: fStruct(strmat),fGuiInterface(guiInterface), fGlobMatrix(0),
+: fStruct(strmat),fGlobMatrix(0),
   fGlobRhs(&rhs), fThreadSeqNum(seqnum)
 {
     this->fCurrentIndex = currentIndex;
@@ -687,6 +669,7 @@ TPZStructMatrixOT<TVar>::ThreadData::ThreadData(
 #ifdef USING_MKL
 #include <mkl.h>
 #endif
+//#define HUGEDEBUG
 
 template<class TVar>
 void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
@@ -696,14 +679,11 @@ void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
     auto mkl_threads = mkl_set_num_threads_local(1);
 #endif
     ThreadData *data = (ThreadData *) datavoid;
-//    TPZStructMatrixOT *strmat = data->fStruct;
+    int seqnum = data->fThreadSeqNum;
     TPZVec<int64_t> &ComputedElements = *(data->fComputedElements);
     TPZVec<int64_t> &ElBlocked = *(data->fElBlocked);
 
-    int &SomeoneIsSleeping = *(data->fSomeoneIsSleeping);
-    
     TPZCompMesh *cmesh = data->fStruct->Mesh();
-    TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
     TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
     TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
     int64_t numelements = data->fElSequenceColor->size();
@@ -711,24 +691,29 @@ void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
 #ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
-        sout << "ThreadData starting with " << data->fThreadSeqNum << " total elements " << numelements << std::endl;
-        sout << "index = " << index << std::endl;
+        sout << "Thread number " << seqnum << " total elements " << numelements;
+        sout << " locked index = " << index;
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
     
 #ifdef HUGEDEBUG
-    data->fMutexAccessElement.lock();
-    std::cout << "ThreadData starting with " << data->fThreadSeqNum << " total elements " << numelements << std::endl;
-    std::cout << "index = " << index << std::endl;
-    std::cout.flush();
-    data->fMutexAccessElement.unlock();
+    {
+        std::stringstream sout;
+        sout << "Thread " << seqnum << " total elements " << numelements << "index = " << index << std::endl;
+        std::cout << sout.str();
+        // std::osyncstream(std::cout) << sout.str();
+    }
 #endif
-    
+
     while (index < numelements)
     {
-        
+        // {
+        //     sout << "Thread " << seqnum << " computing index " << index << std::endl;
+        //     sout.flush();
+        // }
         int64_t iel = data->fElSequenceColor->operator[](index);
+        if(iel < 0) DebugStop();
 #ifdef PZ_LOG
         if (logger.isDebugEnabled()) {
             std::stringstream sout;
@@ -736,253 +721,221 @@ void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-#ifdef PZ_LOG
-        std::stringstream sout;
-        sout << "Element " << index << " elapsed time ";
-        TPZTimer timeforel(sout.str());
-        timeforel.start();
-#endif
 
-        if (iel >= 0){
-            TPZCompEl *el = cmesh->ElementVec()[iel];
+        TPZCompEl *el = cmesh->ElementVec()[iel];
 #ifndef DRY_RUN
-            el->CalcStiff(ek,ef);
+        el->CalcStiff(ek,ef);
 #else
-            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(el);
-            intel->InitializeElementMatrix(ek,ef);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(el);
+        intel->InitializeElementMatrix(ek,ef);
 #endif
-
-            if(guiInterface) if(guiInterface->AmIKilled()){
-                break;
-            }
-            
-#ifndef DRY_RUN
-            if(!el->HasDependency()) {
-                
-                ek.ComputeDestinationIndices();
-                data->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
-                
-#ifdef PZ_LOG
-                if(loggerel.isDebugEnabled())
-                {
-                    std::stringstream sout;
-                    ek.fMat.Print("Element stiffness matrix",sout);
-                    ef.fMat.Print("Element right hand side", sout);
-                    LOGPZ_DEBUG(loggerel,sout.str())
-                }
-#endif
-            } else {
-                // the element has dependent nodes
-                ek.ApplyConstraints();
-                ef.ApplyConstraints();
-                ek.ComputeDestinationIndices();
-                data->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
-            }
-#endif
-            
-#ifdef PZ_LOG
-            timeforel.stop();
-            if (logger.isDebugEnabled())
-            {
-                std::stringstream sout;
-                sout << timeforel.processName() <<  timeforel;
-                LOGPZ_DEBUG(logger, sout.str())
-            }
-#endif
-
-            int64_t localcompleted = *(data->fElementCompleted);
-            bool localupdated = false;
-            while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
-                localcompleted++;
-                localupdated = true;
-            }
-            int64_t needscomputed = ElBlocked[index];
-#ifdef PZ_LOG
-            if (logger.isDebugEnabled())
-            {
-                std::stringstream sout;
-                if (localupdated) {
-                    sout << "Localcompleted updated without thread lock\n";
-                }
-                
-                sout << "Element " << index << " is computed and can assemble if required " << needscomputed << " is smaller than localcompleted " << localcompleted;
-                LOGPZ_DEBUG(logger, sout.str())
-            }
-#endif
-            
-#ifdef HUGEDEBUG
-            data->fMutexAccessElement.lock();
-            std::cout << "threadEK " << data->fThreadSeqNum << " index " << index << " localcompleted " << localcompleted << " needscomputed " << needscomputed << std::endl;
-            data->fMutexAccessElement.unlock();
-#endif
-            
-            bool hadtowait = false;
-            while (needscomputed > localcompleted) {
-                // block the thread till the element needed has been assembled
-              std::unique_lock<std::mutex> lock(data->fMutexAccessElement);
-                SomeoneIsSleeping = 1;
-                hadtowait = true;
-#ifdef HUGEDEBUG
-                std::cout << "threadEK " <<data->fThreadSeqNum << " Index " << index << " going to sleep waiting for " << needscomputed << std::endl;
-                std::cout.flush();
-#endif
-#ifdef PZ_LOG
-                if (logger.isDebugEnabled())
-                {
-                    std::stringstream sout;
-                    sout << "Element " << index << " cannot be assembled - going to sleep";
-                    LOGPZ_DEBUG(logger, sout.str())
-                }
-#endif
-                data->fConditionVar.wait(lock);
-                
-                localcompleted = *data->fElementCompleted;
-                localupdated = false;
-                while (ComputedElements[localcompleted+1] == 1) {
-                    localcompleted++;
-                    localupdated = true;
-                }
-#ifdef PZ_LOG
-                if (logger.isDebugEnabled())
-                {
-                    std::stringstream sout;
-                    sout << "thread wakeup for element index " << index << std::endl;
-                    if (localupdated) {
-                        sout << "Localcompleted updated without thread lock\n";
-                    }
-                    
-                    sout << "Element " << index << " is computed and can assemble if required " << needscomputed << " is smaller than localcompleted " << localcompleted;
-                    LOGPZ_DEBUG(logger, sout.str())
-                }
-#endif
-            }
-            
-#ifdef HUGEDEBUG
-            if (hadtowait) {
-              std::scoped_lock lock(data->fMutexAccessElement);
-                std::cout << "threadEK " <<data->fThreadSeqNum << " Index " << index << " continuing\n";
-            }
-#endif
-            
-#ifndef DRY_RUN
-            auto globMatrix =
-                    dynamic_cast<TPZMatrix<TVar> *>(data->fGlobMatrix);
-                auto globRhs =
-                    dynamic_cast<TPZFMatrix<TVar> *>(data->fGlobRhs);
-            if(globMatrix){
-                // Assemble the matrix
-                if(!ek.HasDependency())
-                {
-                    globMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                    if(data->fComputeRhs) globRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                }
-                else
-                {
-                    globMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-                    if(data->fComputeRhs)globRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-                }
-                
-            }
-#endif
-            
-            localupdated = false;
-            while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
-                localcompleted++;
-                localupdated = true;
-            }
-            if (localcompleted == index-1) {
-                localcompleted++;
-            }
-            while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
-                localcompleted++;
-                localupdated = true;
-            }
-            bool elementcompletedupdate = false;
-            if (*data->fElementCompleted < localcompleted) {
-//                std::cout << "Updating element completed " << localcompleted << std::endl;
-                *data->fElementCompleted = localcompleted;
-                elementcompletedupdate = true;
-            }
-#ifdef PZ_LOG
-            if (logger.isDebugEnabled())
-            {
-                std::stringstream sout;
-                sout << "Element " << index << " has been assembled ";
-                if (localupdated) {
-                    sout << "\nLocalcompleted updated without thread lock\n";
-                }
-                if (elementcompletedupdate) {
-                    sout << "\nfElementCompleted updated to localcompleted\n";
-                }
-                sout << "local completed " << localcompleted;
-                LOGPZ_DEBUG(logger, sout.str())
-            }
-#endif
-            ComputedElements[index] = 1;
-            if (SomeoneIsSleeping) {
-              std::unique_lock<std::mutex> lock(data->fMutexAccessElement);
-#ifdef HUGEDEBUG
-                std::cout << "threadEK " <<data->fThreadSeqNum <<  " Computed index " << index << " Waking up ElementsCompleted " << *data->fElementCompleted << std::endl;
-                std::cout.flush();
-#endif
-                
-#ifdef PZ_LOG
-                if (logger.isDebugEnabled())
-                {
-                    LOGPZ_DEBUG(logger, "condition broadcast")
-                }
-#endif
-                SomeoneIsSleeping = 0;
-                data->fConditionVar.notify_all();
-            }
-
-        }
-        else
-        {
-            std::cout << "the element in ElColorSequence is negative???\n";
-            DebugStop();
-        }
-        index = data->fCurrentIndex->fetch_add(1);
         
-    }
-    // just make sure threads that were accidentally blocked get woken up
-    std::unique_lock<std::mutex> lock(data->fMutexAccessElement);
-    bool localupdated = false;
-    int64_t localcompleted = *(data->fElementCompleted);
-    while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
-        localcompleted++;
-        localupdated = true;
-    }
-    if (localcompleted == index-1) {
-        localcompleted++;
-    }
-    bool elementcompletedupdate = false;
-    if (*data->fElementCompleted < localcompleted) {
-        //                std::cout << "Updating element completed " << localcompleted << std::endl;
-        *data->fElementCompleted = localcompleted;
-        elementcompletedupdate = true;
-    }
-
+#ifndef DRY_RUN
+        if(!el->HasDependency()) {
+            
+            ek.ComputeDestinationIndices();
+            data->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+            
 #ifdef PZ_LOG
-    if (logger.isDebugEnabled())
-    {
-        LOGPZ_DEBUG(logger, "Finishing up")
-        if (localupdated) {
-            LOGPZ_DEBUG(logger, "updated localcompleted")
+            if(loggerel.isDebugEnabled())
+            {
+                std::stringstream sout;
+                ek.fMat.Print("Element stiffness matrix",sout);
+                ef.fMat.Print("Element right hand side", sout);
+                LOGPZ_DEBUG(loggerel,sout.str())
+            }
+#endif
+        } else {
+            // the element has dependent nodes
+            ek.ApplyConstraints();
+            ef.ApplyConstraints();
+            ek.ComputeDestinationIndices();
+            data->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
         }
-        if (elementcompletedupdate) {
-            LOGPZ_DEBUG(logger, "updated fElementCompleted")
+#endif
+        
+
+        int64_t localcompleted = *(data->fElementCompleted);
+        bool localupdated = false;
+        while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
+            localcompleted++;
+            localupdated = true;
         }
-        if (localupdated || elementcompletedupdate) {
+        if(localcompleted > *(data->fElementCompleted)) {
+            *(data->fElementCompleted) = localcompleted;
+        }
+        const int64_t index_required = ElBlocked[index];
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
+        {
             std::stringstream sout;
-            sout << "localcompleted " << localcompleted;
+            sout << "thread " << seqnum << " localupdated " << localupdated;
+            sout << " Element " << index << " is computed and can assemble if required " << index_required << " is smaller than localcompleted " << localcompleted << std::endl;
+            std::cout << sout.str();
             LOGPZ_DEBUG(logger, sout.str())
         }
-        LOGPZ_DEBUG(logger, "finishing and condition broadcast")
+#endif
+        
+#ifdef HUGEDEBUG
+    {
+        std::stringstream sout;
+        sout << "threadEK " << seqnum << " index " << index << " localcompleted " << localcompleted << " index required " << index_required << std::endl;
+        std::cout << sout.str();
+        // std::osyncstream(std::cout) << "threadEK " << seqnum << " index " << index << " localcompleted " << localcompleted << " needscomputed " << needscomputed << std::endl;
     }
 #endif
-    data->fConditionVar.notify_all();
-    SomeoneIsSleeping = 0;
+        
+        if (index_required > localcompleted) {
+#ifdef HUGEDEBUG
+            {
+                std::stringstream sout; sout << "Thread " << seqnum << " trying to acquire lock\n";
+                cout << sout.str();
+            }
+#endif
+            // block the thread till the element needed has been assembled
+            std::unique_lock<std::mutex> lock(*data->fMutexAccessElement);
+#ifdef HUGEDEBUG
+            std::cout << "threadEK " << seqnum << " Index " << index << " going to sleep waiting for " << index_required << std::endl;
+            // std::osyncstream(std::cout) << "threadEK " << seqnum << " Index " << index << " going to sleep waiting for " << needscomputed << std::endl;
+#endif
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "Element " << index << " cannot be assembled - going to sleep";
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+#ifdef HUGEDEBUG
+            {
+                std::stringstream sout; sout << "Thread " << seqnum << " acquired lock\n";
+                std::cout << sout.str();
+            }
+#endif
+
+            data->fConditionVar->wait(lock,[index_required,&data](){return index_required <=*(data->fElementCompleted);});
+            
+        }
+#ifdef HUGEDEBUG
+        {
+            std::stringstream sout; sout << "Thread " << seqnum << " woke up\n";
+            std::cout << sout.str();
+        }
+#endif
+
+        
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "thread " << seqnum << " wakeup element " << index << std::endl;
+            sout << "Element " << index << " is computed and can assemble if required " << index_required << " is smaller than element completed " << (*data->fElementCompleted) << std::endl;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        
+        
+#ifndef DRY_RUN
+        auto globMatrix =
+                dynamic_cast<TPZMatrix<TVar> *>(data->fGlobMatrix);
+            auto globRhs =
+                dynamic_cast<TPZFMatrix<TVar> *>(data->fGlobRhs);
+        if(globMatrix){
+            // Assemble the matrix
+            if(!ek.HasDependency())
+            {
+                globMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+                if(data->fComputeRhs) globRhs->AddFelNonAtomic(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            }
+            else
+            {
+                globMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+                if(data->fComputeRhs)globRhs->AddFelNonAtomic(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+            }
+            
+        }
+#endif
+        ComputedElements[index] = 1;
+
+        {
+            int64_t localcompleted = *(data->fElementCompleted);
+            while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
+                localcompleted++;
+            }
+            *(data->fElementCompleted) = localcompleted;
+        }
+        data->fConditionVar->notify_all();
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Element " << index << " has been assembled ";
+            sout << "local completed " << localcompleted;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+#ifdef HUGEDEBUG
+        {
+            // std::osyncstream(std::cout) << "Thread " << seqnum << " Element " << index << " has been assembled\n";
+            std::stringstream sout; sout << "Thread " << seqnum << " Element " << index << " has been assembled fElementCompleted " << *(data->fElementCompleted) << "\n";
+            std::cout << sout.str();
+            // sout.flush();
+        }
+#endif
+
+        index = data->fCurrentIndex->fetch_add(1);
+#ifdef HUGEDEBUG
+        {
+            std::stringstream sout;
+            sout << "Thread " << seqnum << " next index = " << index << " numelements " << numelements << std::endl;
+            std::cout << sout.str();
+        }
+#endif        
+    } // while (index < numelements)
+    // just make sure threads that were accidentally blocked get woken up
+#ifdef HUGEDEBUG
+    {
+        std::stringstream sout; sout << "Thread " << seqnum << " trying to acquire lock " << std::endl;
+        std::cout << sout.str();
+    }
+#endif
+    {
+        std::scoped_lock<std::mutex> lock(*data->fMutexAccessElement);
+    
+#ifdef HUGEDEBUG
+        {
+            std::stringstream sout; sout << "Thread " << seqnum << " acquired lock " << std::endl;
+            std::cout << sout.str();
+        }
+#endif
+        int64_t localcompleted = *(data->fElementCompleted);
+        while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
+            localcompleted++;
+        }
+        if (*data->fElementCompleted < localcompleted) {
+#ifdef HUGEDEBUG
+            std::cout << "Updating element completed " << localcompleted << std::endl;
+#endif
+            *data->fElementCompleted = localcompleted;
+        }
+
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
+        {
+            LOGPZ_DEBUG(logger, "Finishing up")
+            LOGPZ_DEBUG(logger, "finishing and condition broadcast")
+        }
+#endif
+#ifdef HUGEDEBUG
+        std::cout << "Thread " << seqnum << " Bailing out index = " << index << " numelements " << numelements << std::endl;
+#endif
+        // std::osyncstream(std::cout) << "Thread " << seqnum << " Bailing out index = " << index << " numelements " << numelements << std::endl;
+        data->fConditionVar->notify_all();
+#ifdef HUGEDEBUG
+        std::cout << "Thread " << seqnum << " releasing lock\n";
+#endif
+    }
+    
 #ifdef USING_MKL
     //we restore the previous value of n threads
     mkl_set_num_threads_local(mkl_threads);
@@ -1257,7 +1210,6 @@ void TPZStructMatrixOT<TVar>::Read(TPZStream& buf, void* context) {
     buf.Read(fElBlocked);
     buf.Read(fElSequenceColor);
     buf.Read(&fElementCompleted);
-    buf.Read(&fSomeoneIsSleeping);
     int64_t fCurrentIndexLong;
     buf.Read(&fCurrentIndexLong);
     fCurrentIndex = fCurrentIndexLong;
@@ -1270,7 +1222,6 @@ void TPZStructMatrixOT<TVar>::Write(TPZStream& buf, int withclassid) const {
     buf.Write(fElBlocked);
     buf.Write(fElSequenceColor);
     buf.Write(&fElementCompleted);
-    buf.Write(&fSomeoneIsSleeping);
     int64_t fCurrentIndexLong;
     fCurrentIndexLong = fCurrentIndex;
     buf.Write(&fCurrentIndexLong);

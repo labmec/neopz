@@ -128,14 +128,9 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
   //TPZSkylNSymMatrix operator-() const;// { return operator*(-1.0); }
 
-  // Redimensiona a matriz, mas mantem seus elementos.
-  // o segundo parametro � o tamanho das colunas
-  //int Resize(const int newDim ,const int );
-
-  // Redimensiona a matriz e ZERA seus elementos.
-  // o segundo parametro � o tamanho das colunas
-  //int Redim(const int newDim ,const int );
-  //int Redim(const int newDim) {return Redim(newDim,newDim);}
+  int Resize(const int64_t newRows, const int64_t newCols) override;
+	int Redim(const int64_t newRows, const int64_t newCols) override;
+	int Redim(const int64_t newDim) {return this->Redim(newDim,newDim);}
 
   // Zera os Elementos da matriz
   //int Zero();
@@ -214,6 +209,8 @@ int ClassId() const override;
 
 
  protected:
+  void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                              const TPZMatrix<TVar>*B) const override;
 
   /**
      This method returns a pointer to the diagonal element of the matrix of the col column
