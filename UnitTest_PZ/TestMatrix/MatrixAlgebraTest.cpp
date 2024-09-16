@@ -760,7 +760,7 @@ void TestMultiply(const MAT &mat)
     {
       TVar diff = square.GetVal(i, j) - square2.GetVal(i, j);
       CAPTURE(i, j, square.GetVal(i, j), square2.GetVal(i, j), diff, tol, row);
-      if (!IsZero(diff / tol))
+      if (!IsZero(abs(diff / tol)))
       {
         check = false;
       }
