@@ -485,7 +485,7 @@ TEST_CASE("changeel_tests","[geometry_tests]") {
         TPZFNMatrix<9,REAL> ax(3,3);
         ax.Identity();
         trig_el = TPZChangeEl::ChangeToCylinder(&gmesh, trig_el->Index(),
-                                                xc, ax);
+                                                xc, ax, radius);
         REQUIRE(trig_el);
         TestPts(trig_el);
         nodevec.Resize(4);
@@ -495,7 +495,7 @@ TEST_CASE("changeel_tests","[geometry_tests]") {
             new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(nodevec,trig_mat+1,gmesh);
         gmesh.BuildConnectivity();
         quad_el = TPZChangeEl::ChangeToCylinder(&gmesh, quad_el->Index(),
-                                                xc, ax);
+                                                xc, ax, radius);
         REQUIRE(quad_el);
         TestPts(quad_el);
 
