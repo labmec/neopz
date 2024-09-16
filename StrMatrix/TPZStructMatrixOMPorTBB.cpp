@@ -318,7 +318,9 @@ int TPZStructMatrixOMPorTBB<TVar>::GetNumberColors(){
 
 template<class TVar>
 void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs){
+#ifdef USING_MKL
     mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
+#endif    
     //mkl_set_num_threads_local(1);
     if (fShouldColor){
         if (fUsingTBB){
@@ -336,8 +338,9 @@ void TPZStructMatrixOMPorTBB<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TP
             AssemblingUsingOMPbutNotColoring(mat,rhs);
         }
     }
-
+#ifdef USING_MKL
     mkl_domain_set_num_threads(0, MKL_DOMAIN_BLAS);
+#endif
 #ifdef HUGEDEBUG
     VerifyStiffnessSum(mat);
 #endif
