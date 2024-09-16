@@ -1121,11 +1121,19 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 }
 
 void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error){
+  if(this->Mesh()->GetSolType() == ESolType::EReal){
+    EvaluateErrorT<STATE>(errors,store_error);
+  }else{
+    EvaluateErrorT<CSTATE>(errors,store_error);
+  }
+}
+
+template<class TVar>
+void TPZInterpolationSpace::EvaluateErrorT(TPZVec<REAL> &errors,bool store_error){
     errors.Fill(0.);
-    //TODOCOMPLEX
     auto *material = this->Material();
 	auto* materror =
-        dynamic_cast<TPZMatErrorSingleSpace<STATE> *>(this->Material());
+        dynamic_cast<TPZMatErrorSingleSpace<TVar> *>(this->Material());
 	//TPZMaterial * matptr = material.operator->();
 	if (!material) {
 		PZError << __PRETTY_FUNCTION__;
@@ -1180,7 +1188,7 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
 	REAL weight;
 	
-	TPZMaterialDataT<STATE> data;
+	TPZMaterialDataT<TVar> data;
 	this->InitMaterialData(data);
 	const int nintpoints = intrule->NPoints();
 	
@@ -1207,7 +1215,7 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
 	if(store_error)
     {
         int64_t index = Index();
-        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+        TPZFMatrix<TVar> &elvals = Mesh()->ElementSolution();
         if (elvals.Cols() < NErrors) {
             PZError<<__PRETTY_FUNCTION__;
             PZError << " The element solution of the mesh should be resized before EvaluateError\n";

@@ -47,13 +47,19 @@ namespace pzgeom {
                we need to normalise it*/
             {
                 REAL normorth1{0};
-                for(auto &xx : orth1) {normorth1 += xx*xx;}
+                for(const auto &xx : orth1) {normorth1 += xx*xx;}
                 normorth1 = sqrt(normorth1);
                 for(auto &xx : orth1) {xx /= normorth1;}
             }
 
             TPZManVector<REAL,3> orth2(3,0.);
             Cross(y,orth1,orth2);
+            {
+                REAL normorth2{0};
+                for(const auto &xx : orth2) {normorth2 += xx*xx;}
+                normorth2 = sqrt(normorth2);
+                for(auto &xx : orth2) {xx /= normorth2;}
+            }
             for(int i = 0; i < 3; i++){
                 fRotation(i,0) = orth1[i];
                 fRotation(i,1) = orth2[i];
