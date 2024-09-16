@@ -7,6 +7,7 @@ target_include_directories(pz PUBLIC
 set(public_headers
     TPZSolver.h
     TPZMatrixSolver.h
+    TPZEigenSort.h
     TPZEigenSolver.h
     TPZPardisoSolver.h
     TPZIdentitySolver.h

@@ -233,15 +233,16 @@ void TestArnoldiIteration(SymProp sp)
   const auto oldPrecision = Catch::StringMaker<RTVar>::precision;
   Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   
-  matx A;
+  TPZAutoPointer<matx> A = new matx;
   constexpr int dim{100};
-  int dimKrylov{100};
-  A.AutoFill(dim,dim,sp);
+  int dimKrylov{10};
+  A->AutoFill(dim,dim,sp);
   TPZKrylovEigenSolver<TVar> arnoldi;
+  arnoldi.SetMatrixA(A);
   arnoldi.SetKrylovDim(dimKrylov);
   TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> qVecs;
   TPZFMatrix<TVar> hMat;
-  bool success = arnoldi.ArnoldiIteration(A,qVecs,hMat);
+  bool success = arnoldi.ArnoldiIteration(qVecs,hMat);
   
   REQUIRE(success);
   
@@ -266,9 +267,12 @@ void TestArnoldiIteration(SymProp sp)
     }
   }
 
+  //now we test if using dimKrylov==dim we can recover the original matrix
   dimKrylov = dim;
   arnoldi.SetKrylovDim(dimKrylov);
-  success = arnoldi.ArnoldiIteration(A,qVecs,hMat);
+  //now we reset the qvecs
+  for (auto &q : qVecs){q = nullptr;}
+  success = arnoldi.ArnoldiIteration(qVecs,hMat);
   REQUIRE(success);
   TPZFMatrix<TVar> qMat(dim,dimKrylov);
   for(int i = 0; i < dimKrylov; i++){
@@ -277,12 +281,12 @@ void TestArnoldiIteration(SymProp sp)
   TPZFMatrix<TVar> aMat = qMat * hMat;
   qMat.Transpose();
   aMat = aMat * qMat;
-  std::cout<< "A = ("<<A.Rows()<<","<<A.Cols()<<")\n";
+  std::cout<< "A = ("<<A->Rows()<<","<<A->Cols()<<")\n";
   std::cout<< "a = ("<<aMat.Rows()<<","<<aMat.Cols()<<")\n";
   for(auto i = 0; i < dim; i++)
     for(auto j = 0; j < dim; j++){
-      CAPTURE(i,j,aMat(i,j),A.GetVal(i,j));
-      REQUIRE(aMat(i,j)-A.GetVal(i,j)== Catch::Approx(0.0).margin(tol));
+      CAPTURE(i,j,aMat(i,j),A->GetVal(i,j));
+      REQUIRE(aMat(i,j)-A->GetVal(i,j)== Catch::Approx(0.0).margin(tol));
     }
   Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
