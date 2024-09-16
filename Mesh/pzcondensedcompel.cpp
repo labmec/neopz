@@ -9,6 +9,7 @@
 #include "pzelementgroup.h"
 #include "pzcmesh.h"
 #include "TPZElementMatrixT.h"
+#include "TPZMatCombinedSpaces.h"
 #include "TPZNullMaterial.h"
 #include "TPZNullMaterialCS.h"
 #ifdef PZ_LOG
@@ -367,19 +368,19 @@ void TPZCondensedCompElT<TVar>::CalcStiff(TPZElementMatrixT<TVar> &ekglob,
                                           TPZElementMatrixT<TVar> &efglob)
 {
 
-    auto* material =
+    auto* material_ss =
         dynamic_cast<TPZMatSingleSpaceT<TVar> *>(this->Material());
-    if(!material){
-        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
-        int matid = Reference()->MaterialId();
-        PZError << "Material Id which is missing = " << matid << std::endl;
-        ekglob.Reset();
-        efglob.Reset();
-        return;
-    }
-    auto *nullmat = dynamic_cast<TPZNullMaterial<TVar> *>(material);
-    auto *nullmatcs = dynamic_cast<TPZNullMaterialCS<TVar> *>(material);
-    if(nullmat || nullmatcs)
+    auto* material_cs =
+        dynamic_cast<TPZMatCombinedSpacesT<TVar> *>(this->Material());
+    /*
+      apparently you can have a condensed group that will not have an
+      associated material but still needs to compute a stiff matrix
+     */
+    const bool has_mat = material_ss || material_cs;
+    
+    auto *nullmat = dynamic_cast<TPZNullMaterial<TVar> *>(material_ss);
+    auto *nullmatcs = dynamic_cast<TPZNullMaterialCS<TVar> *>(material_cs);
+    if(has_mat && (nullmat || nullmatcs))
     {
         ekglob.Reset();
         efglob.Reset();
