@@ -171,6 +171,10 @@ void TPZSYsmpMatrixPardiso<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMa
 					CheckStatus(status);
 				}
 			}
+
+      status = mkl_sparse_destroy(A);
+      CheckStatus(status);
+      
 			return;
 		}else{
       //not a valid MKL type
