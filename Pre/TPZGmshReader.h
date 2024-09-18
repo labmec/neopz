@@ -15,7 +15,7 @@
 #include <string>
 #include <map>
 #include "pzgmesh.h"
-
+#include "SPZPeriodicData.h"
 
 class TPZGeoMesh;
 
@@ -106,11 +106,8 @@ class TPZGmshReader{
     REAL m_characteristic_lentgh = 1;
 
     //////////// Members related to file format with version 4 ////////////
-    /// Data structure for storing periodic elements (only available in v4)
-    std::map<int64_t, int64_t> m_periodic_els;
     /// Data structure of both: physical entities and names indexed by dimension
     TPZManVector<std::map<int,std::vector<int>>,4> m_dim_entity_tag_and_physical_tag;
-    
     //////////// Members related to file format with version 3 ////////////
     
     /// Structure of both: physical entities and names indexed by dimension
@@ -127,6 +124,9 @@ class TPZGmshReader{
     
     /// Entity index to which the element belongs
     TPZVec<int64_t> m_entity_index;
+
+    /// Structure for periodic entities
+    TPZAutoPointer<SPZPeriodicData> m_periodic_data;
     
     /// Number of hexahedra
     int m_n_hexahedron_els = 0;
@@ -179,11 +179,11 @@ private:
     void ReadPeriodic4(std::istream &input);
     
     //! Fills m_periodic_els structure after creating the mesh
-    void SetPeriodicElements(
-        TPZGeoMesh *gmesh,
-        const TPZVec<std::map<int64_t, std::map<int64_t, int64_t>>>
-            &entity_periodic_nodes,
-        const TPZVec<std::map<int64_t, int64_t>> &periodic_entities);
+    void FillPeriodicData(
+      TPZGeoMesh *gmesh,
+      const TPZVec<std::map<int64_t, std::map<int64_t, int64_t>>>
+      &entity_periodic_nodes,
+      const TPZVec<std::map<int64_t, int64_t>> &periodic_entities);
 
   public:
     /// Default constructor
@@ -225,8 +225,8 @@ private:
 
     int GetNumberofNodes(int & el_type);
 
-    //! Get periodic elements
-    auto GetPeriodicEls() const { return m_periodic_els; }
+    //! Get periodic data
+    auto GetPeriodicData() const { return m_periodic_data; }
     /// Insert elements following msh file format */
     bool InsertElement(TPZGeoMesh * gmesh, std::ifstream & line);
     
