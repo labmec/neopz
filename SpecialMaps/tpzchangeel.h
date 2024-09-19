@@ -70,13 +70,13 @@ public:
        @param gel [in] given geometric element
        @param neighs [out] vector of neighbours
      */
-    static void StoreNeighbours(TPZGeoEl* gel, TPZVec<TPZGeoElSide> &neighs);
+    static void StoreNeighbours(TPZGeoEl* gel, TPZVec<TPZGeoElSideIndex> &neighs);
     /**
        @brief Restores neighbourhood information, checking for empty TPZGeoElSides in the vector
        @param gel [in/out] given geometric element
        @param neighs [in] vector of neighbours
      */
-    static void RestoreNeighbours(TPZGeoEl* gel, TPZVec<TPZGeoElSide> &neighs);
+    static void RestoreNeighbours(TPZGeoEl* gel, TPZVec<TPZGeoElSideIndex> &neighs);
 };
 
 #endif
