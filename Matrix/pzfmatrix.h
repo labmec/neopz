@@ -828,8 +828,8 @@ inline int TPZFMatrix<TVar>::Redim(const int64_t newRows,const int64_t newCols) 
 
 template<class TVar>
 inline int TPZFMatrix<TVar>::Zero() {
-    int64_t size = this->fRow * this->fCol * sizeof(TVar);
-    memset(((void*)this->fElem),'\0',size);
+    int64_t size = this->fRow * this->fCol;
+    std::fill(this->fElem, this->fElem+size, TVar());
     this->fDecomposed = ENoDecompose;
     return( 1 );
 }

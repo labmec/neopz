@@ -165,6 +165,8 @@ void TPZMetis::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm) {
         perm[i] = inversepermint[i];
         inverseperm[i] = permint[i];
     }
+    delete [] permint;
+    delete [] inversepermint;
         
 #endif
 }

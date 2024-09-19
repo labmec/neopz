@@ -190,6 +190,9 @@ this->MultAddChecks(x,y,z,alpha,beta,opt);
 					CheckStatus(status);
 				}
 			}
+
+      status = mkl_sparse_destroy(A);
+      CheckStatus(status);
 			return;
 		}else{
       //unsupported type

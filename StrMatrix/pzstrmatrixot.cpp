@@ -541,6 +541,11 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
         LOGPZ_DEBUG(loggerCheck,sout.str())
     }
 #endif
+
+    for(itr=0; itr<numthreads; itr++)
+    {
+        delete allthreadsD[itr];
+    }
 }
 
 template<class TVar>
