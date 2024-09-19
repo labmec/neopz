@@ -46,8 +46,11 @@ public:
     }
 
     TPZBlendNACA(const TPZBlendNACA &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZBlendNACA::ClassId),
-        pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
-            DebugStop();
+        pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp), fFourDigits(cp.fFourDigits), fCord(cp.fCord), fAngle(cp.fAngle) {
+            fX0[0] = cp.fX0[0];
+            fX0[1] = cp.fX0[1];
+            fX0[2] = cp.fX0[2];
+            
         }
         /** @brief Copy constructor with map of nodes */
     TPZBlendNACA(const TPZBlendNACA &cp,std::map<int64_t,int64_t> & gl2lcNdMap) : 
