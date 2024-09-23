@@ -559,7 +559,7 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	
 	this->MultAddChecks(x,y,z,alpha,beta,opt);
 	this->PrepareZ(y,z,beta,opt);
-	int64_t  r = (opt) ? this->Rows() : this->Cols();
+	int64_t  r = (opt) ? this->Cols() : this->Rows();
 	if(r==0){return;}
 	int64_t  ic, xcols;
 	xcols = x.Cols();

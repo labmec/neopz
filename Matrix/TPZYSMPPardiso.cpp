@@ -78,7 +78,7 @@ this->MultAddChecks(x,y,z,alpha,beta,opt);
         z.Redim(zr,zc);
       }else{
         z = y;
-        const auto  r = (opt) ? this->Rows() : this->Cols();
+        const auto r = (opt) ? this->Cols() : this->Rows();
         if(r == 0){
           z*=beta;
           return;
