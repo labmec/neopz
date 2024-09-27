@@ -152,7 +152,11 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
         fConstrConnect[i] = *it;
         it++;
     }
+	std::map<int64_t,int> TargetConnectIndex;
 	totalnodes = this->fConstrConnect.NElements();
+	for(int in = 0; in < totalnodes; in++) {
+		TargetConnectIndex[fConstrConnect[in]] = in;
+	}
 	
 	// compute the list of nodes and their proper order of processing
 	TPZVec<int> DependenceOrder;
@@ -202,8 +206,14 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 		int irnode =0;
 		int64_t idfn = this->fConnect[in];
 		// find the index of the node in the destination (constrained) matrix
-		while(irnode < totalnodes && this->fConstrConnect[irnode] != idfn) irnode++;
-		
+		// while(irnode < totalnodes && this->fConstrConnect[irnode] != idfn) irnode++;
+#ifdef PZDEBUG
+		if(TargetConnectIndex.find(idfn) == TargetConnectIndex.end()) {
+			LOGPZ_ERROR(logger, "node not found in node list");
+			DebugStop();
+		}
+#endif
+		irnode = TargetConnectIndex[idfn];
 		// first and last rows in the original matrix
 		int64_t ifirst = this->fBlock.Position(in);
 		int64_t ilast = ifirst+this->fBlock.Size(in);
@@ -216,11 +226,11 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 		if (this->fType == TPZElementMatrix::EF){
 			for(i=ifirst,ir=irfirst;i<ilast;i++,ir++) {
 				for(ieq=0; ieq<nrhs; ieq++) {
-					(this->fConstrMat)(ir,ieq) = (this->fMat)(i,ieq);
+					(this->fConstrMat)(ir,ieq) += (this->fMat)(i,ieq);
 				}
 			}
 		}
-		else{
+		else {
 			int jn;
 			for(jn=0; jn<numnod; jn++) {
 				int jrnode = 0;
@@ -239,7 +249,7 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 				int64_t j,jr;
 				for(i=ifirst,ir=irfirst;i<ilast; i++,ir++) {
 					for(j=jfirst,jr=jrfirst;j<jlast; j++,jr++) {
-						(this->fConstrMat)(ir,jr) = (this->fMat)(i,j);
+						(this->fConstrMat)(ir,jr) += (this->fMat)(i,j);
 					}
 				}
 			}
