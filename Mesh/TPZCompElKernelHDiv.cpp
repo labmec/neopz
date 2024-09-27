@@ -258,6 +258,7 @@ void TPZCompElKernelHDiv<TSHAPE>::ComputeSolutionKernelHdivT(TPZMaterialDataT<TV
                 // Compute rotated flux
                 data.sol[0][dim * idf + 0] -= meshsol * data.fDeformedDirections(0, ishape);
                 data.sol[0][dim * idf + 1] -= meshsol * data.fDeformedDirections(1, ishape);
+                data.divsol[0][idf] += meshsol * data.fH1.fPhi(ishape, 0);
             }
             counter++;
         }
