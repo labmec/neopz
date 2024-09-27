@@ -105,12 +105,13 @@ void ComputeFieldAtEl(TPZCompEl *cel,
   //vertex counter
   int iv = 0;
   //iterate through points in the reference element
+  REAL shift_distance = 1.0e-2;
   for (auto ip : ref_vertices){
     ip.Resize(celdim);
 #ifdef PZDEBUG
     if(ip.size() != celdim) DebugStop();
 #endif
-    if(collapsed && fabs(ip[dir]-leftright) < 1.e-6) ip[dir] *= 1.-1.e-6;
+    if(collapsed && fabs(ip[dir]-leftright) < shift_distance) ip[dir] *= 1.-shift_distance;
     //computes all relevant data for a given integration point
     graphel.ComputeRequiredData(ip);
     const int nfields = fields.size();
