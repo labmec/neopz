@@ -400,7 +400,7 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
     }
 
     if (var == 5) {
-        solOut[0] = datavec[0].dsol[0](0, 0) + datavec[0].dsol[0](1, 1);
+        solOut[0] = datavec[0].divsol[0][0];
         return;
     }
 
