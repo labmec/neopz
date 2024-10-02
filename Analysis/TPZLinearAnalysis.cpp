@@ -290,8 +290,10 @@ void TPZLinearAnalysis::SetSolver(const TPZSolver &solver){
 }
 
 void TPZLinearAnalysis::SetCompMesh(TPZCompMesh *cmesh, bool optimize){
-  TPZAnalysis::SetCompMesh(cmesh,optimize);
-  fRhs.SetSolType(this->fSolType);
+    TPZAnalysis::SetCompMesh(cmesh,optimize);
+    if(this->fSolType == EUndefined){
+        fRhs.SetSolType(this->fSolType);  
+    }  
 }
 
 
