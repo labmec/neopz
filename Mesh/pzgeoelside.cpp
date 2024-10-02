@@ -588,6 +588,7 @@ TPZTransform<> TPZGeoElSide::NeighbourSideTransform(const TPZGeoElSide &neighbou
 		stringstream sout;
 		sout << __PRETTY_FUNCTION__ << "Neighbour does not exist : expect trouble";
 		LOGPZ_ERROR(logger,sout.str());
+		DebugStop();
 		TPZTransform<> toto;
 		return toto;
 	}
