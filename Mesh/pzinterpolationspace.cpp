@@ -613,7 +613,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	//TPZFMatrix<REAL> loclocmat(locmatsize,locmatsize,0.);
 	TPZFMatrix<STATE> loclocmat(locmatsize,locmatsize,0.);
 	//TPZFMatrix<REAL> projectmat(locmatsize,nvar,0.);
-	TPZFMatrix<STATE> projectmat(locmatsize,nvar,0.);
+	TPZFNMatrix<10,STATE> projectmat(locmatsize,nvar,0.);
 	
 	TPZManVector<int,3> prevorder(dimension);
 	TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
@@ -630,16 +630,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	}
 	intrule->SetOrder(order);
 	
-	TPZFNMatrix<220> locphi(locmatsize,1);
-	TPZFNMatrix<660> locdphi(dimension,locmatsize);//derivative of the shape function in the master domain
-	TPZFNMatrix<660> locdphidx(dimension,locmatsize);//derivative of the shape function in the deformed domain
-	
-	TPZFNMatrix<220> corphi(cormatsize,1);
-	TPZFNMatrix<660> cordphi(dimension,cormatsize);//derivative of the shape function in the master domain
-	
 	TPZManVector<REAL,3> int_point(dimension),coarse_int_point(dimension);
-	TPZFNMatrix<9> jacobian(dimension,dimension),jacinv(dimension,dimension);
-	TPZFNMatrix<9> axes(3,3,0.), coarseaxes(3,3,0.);
 	REAL zero = 0.;
 	TPZManVector<REAL,3> x(3,zero);
 	//TPZManVector<TPZManVector<REAL,10>, 10> u(1);
@@ -656,26 +647,30 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	TPZConnect *df;
 	//   TPZBlock &coarseblock = coarsel.Mesh()->Block();
 	
+    TPZMaterialDataT<STATE> finedata;
+    this->InitMaterialData(finedata);
 	for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
 		intrule->Point(int_ind,int_point,weight);
 		t.Apply(int_point,coarse_int_point);
-        TPZMaterialDataT<STATE> coarsedata;    
+        TPZMaterialDataT<STATE> coarsedata;
         coarsedata.fNeedsSol=true;
         constexpr bool hasPhi{false};
         coarsel.ComputeSolution(coarse_int_point,coarsedata,hasPhi);
-        
+                
+        this->ComputeRequiredData(finedata, int_point);
 		REAL jac_det = 1.;
-		this->ComputeShape(int_point, x, jacobian, axes, jac_det, jacinv, locphi, locdphi, locdphidx);
+        this->ComputeShape(int_point, finedata);
+		// this->ComputeShape(int_point, x, jacobian, axes, jac_det, jacinv, locphi, locdphi, locdphidx);
 		weight *= jac_det;
 		for(lin=0; lin<locmatsize; lin++) {
 			for(ljn=0; ljn<locmatsize; ljn++) {
-				loclocmat(lin,ljn) += weight*locphi(lin,0)*locphi(ljn,0);
+				loclocmat(lin,ljn) += weight*finedata.phi(lin,0)*finedata.phi(ljn,0);
 			}
 			for(cjn=0; cjn<nvar; cjn++) {
-				projectmat(lin,cjn) += (STATE)weight*(STATE)locphi(lin,0)*u[0][cjn];
+				// projectmat(lin,cjn) += (STATE)weight*(STATE)finedata.phi(lin,0)*u[0][cjn];
+                projectmat(lin,cjn) += (STATE)weight*(STATE)finedata.phi(lin,0)*coarsedata.sol[0][cjn];
 			}
 		}
-		jacobian.Zero();
 	}
     REAL large = 0.;
     for (lin = 0; lin < locmatsize; lin++) {
@@ -697,7 +692,10 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 		int64_t dfseq = df->SequenceNumber();
 		int dfvar = fineblock.Size(dfseq);
 		for(ljn=0; ljn<dfvar; ljn++) {
-			finesol.at(fineblock.at(dfseq,0,ljn,0)) = projectmat(iv/nvar,iv%nvar);
+            // auto destindex = fineblock.at(dfseq,0,ljn,0);
+            int64_t destindex = fineblock.Index(dfseq,ljn);
+            finesol(destindex,0) = projectmat(iv/nvar,iv%nvar);
+			// finesol.at(destindex) = projectmat(iv/nvar,iv%nvar);
 			iv++;
 		}
 	}
