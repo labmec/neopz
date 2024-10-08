@@ -1009,6 +1009,7 @@ void TPZSBFemVolume::SetSkeleton(int64_t skeleton) {
     fSkeleton = skeleton;
     TPZCompEl *cel = Mesh()->Element(fSkeleton);
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *> (cel);
+    if(!intel) DebugStop();
     int order = intel->GetPreferredOrder();
     SetIntegrationRule(2 * order);
 }
