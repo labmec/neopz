@@ -1284,7 +1284,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids,
 	int matid = gel->MaterialId();
 	if(matids.count(matid)) return;
 	TPZManVector<int,27> sidestorefine(gel->NSides(), 0);
-	TPZManVector<int,27> cornerstorefine(gel->NSides(), 0);
+	TPZManVector<int,27> cornerstorefine(gel->NCornerNodes(), 0);
 	
 	//Look for corners which are on the boundary
 	int numrefribs = 0;
@@ -1308,7 +1308,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids,
 		// we are only interested in ribs
 		if(gel->SideDimension(is) != 1)
 		{
-			continue;
+			break;
 		}
 		
 		// the side is a candidate if it contains a corner which is neighbour of the boundary condition
