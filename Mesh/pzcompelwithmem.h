@@ -207,9 +207,14 @@ inline void TPZCompElWithMem<TBASE>::SetFreeIntPtIndices() {
         dynamic_cast<TPZMatWithMemBase *>(material);
     if (matWithMem) {
         int64_t n = fIntPtIndices.NElements();
-        
-        for (int64_t i = 0; i < n; i++) {
-            matWithMem->FreeMemItem(fIntPtIndices[i]);
+
+        if(gSinglePointMemory){
+            matWithMem->FreeMemItem(fIntPtIndices[0]);
+        }
+        else{
+            for (int64_t i = 0; i < n; i++) {
+                matWithMem->FreeMemItem(fIntPtIndices[i]);
+            }
         }
     }
     fIntPtIndices.Resize(0);
