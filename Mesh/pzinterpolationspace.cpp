@@ -174,7 +174,7 @@ void TPZInterpolationSpace::ReallyComputeSolutionT(TPZMaterialDataT<TVar>& data)
                     dsol[is](d,iv%nstate) +=
                         (TVar)dphix.Get(d,iv/nstate)*MeshSol(pos+jn,is);
                 }
-//                std::cout<< "MeshSol ( "<<pos+jn<<","<< is<< " ) = "<< MeshSol(pos+jn,is) << " sol[" << is<< "][" << posaux << " ]= "<< sol[is][iv%nstate]<<std::endl;
+               // std::cout<< "MeshSol ( "<<pos+jn<<","<< is<< " ) = "<< MeshSol(pos+jn,is) << " sol[" << is<< "][" << posaux << " ]= "<< sol[is][iv%nstate]<<std::endl;
             }
             
 			iv++;

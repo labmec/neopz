@@ -389,7 +389,7 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         if (thetaval < (0.)) theta += 2. * M_PI;
         
         TVar r = FADsqrt(x[0]*x[0]+x[1]*x[1]);
-        TVar gamma= FADsqrt(r)/(2.*mu);
+        TVar gamma= pow(r,alfa)/(2.*mu);
         TVar cosT = FADcos(alfa*theta) - FADcos((alfa-2.)*theta);
         TVar sinT = A*FADsin(alfa*theta) + FADsin((alfa-2.)*theta);
         
