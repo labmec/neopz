@@ -60,7 +60,7 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
 
     int phrq, phrp;
     phrp = phip.Rows();
-    phrq = datavec[0].fVecShapeIndex.NElements();
+    phrq = datavec[0].fDeformedDirections.Cols();
 
     int nactive = 0;
     for (const auto &i : datavec) {
@@ -89,13 +89,15 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
 
 #if defined(USEBLAS) && defined(USING_LAPACK)
     TPZFNMatrix<3, REAL> ivec(3, phrq, 0.);
-    for (int iq = 0; iq < phrq; iq++){
-        //ef(iq, 0) += 0.;
-        int ivecind = datavec[0].fVecShapeIndex[iq].first;
-        for (int id = 0; id < 3; id++) {
-            ivec(id, iq) = datavec[0].fDeformedDirections(id, ivecind);
-        }
-    }
+
+    // for (int iq = 0; iq < phrq; iq++){
+    //     //ef(iq, 0) += 0.;
+    //     int ivecind = datavec[0].fVecShapeIndex[iq].first;
+    //     for (int id = 0; id < 3; id++) {
+    //         ivec(id, iq) = datavec[0].fDeformedDirections(id, ivecind);
+    //     }
+    // }
+    ivec = datavec[0].fDeformedDirections;
 
 
     /**
