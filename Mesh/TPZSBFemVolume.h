@@ -318,6 +318,9 @@ public:
 protected:
     //! Compute solution based on a filled TPZMaterialData
     void ReallyComputeSolution(TPZMaterialDataT<STATE>&) override;
+
+    /// Return the Computational Skeleton element
+    TPZInterpolatedElement *SkeletonElement();
 public:
     
     void EvaluateError(TPZVec<REAL> &errors,bool store_error) override;
