@@ -368,6 +368,7 @@ int ClassId() const override;
 
 	virtual void Print(std::ostream & out = std::cout) override
 	{
+		out << "TPZGeoElMapped<TBase> " << std::endl;
         TBase::Print(out);
 		
         fCornerCo.Print("fCornerCo Print():",out);
