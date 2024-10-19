@@ -807,7 +807,17 @@ void TPZPostProcEl<TVar>::Solution(const TPZVec<REAL> &qsi, const int id, TPZVec
     auto intel = dynamic_cast<TPZInterpolationSpace*>(fCel);
     auto *matSingle =
        dynamic_cast<TPZMatSingleSpaceT<TVar>*>(material);
-    matSingle->Solution(fMatdata,id,sol);
+    if(matSingle) {
+        matSingle->Solution(fMatdata,id,sol);
+    } else {
+      auto *matCombined = dynamic_cast<TPZMatCombinedSpacesT<TVar>*>(material);
+      if(!matCombined) {
+        DebugStop();
+      }
+      fDatavec.Resize(2);
+      fDatavec[0] = fMatdata;
+      matCombined->Solution(fDatavec,id,sol);
+    }
   }
 }
 
