@@ -660,6 +660,7 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatr
         }
         catch(...)
         {
+            E0.fMat.Print("E0 = ", std::cout, EMathematicaInput);
             exit(-1);
         }
     }
