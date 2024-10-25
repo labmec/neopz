@@ -144,7 +144,7 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 	int in;
     std::set<int64_t> origlist,connectlist;
 	for(in=0; in<totalnodes; in++) connectlist.insert(this->fConnect[in]);
-  origlist = connectlist;
+  	origlist = connectlist;
 	// total number of nodes of the constrained element
 	TPZConnect::BuildConnectList(connectlist, origlist, *this->fMesh);
     this->fConstrConnect.resize(connectlist.size());
@@ -237,10 +237,13 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 				int jrnode = 0;
 				int64_t jdfn = this->fConnect[jn];
 				// find the index of the node in the destination (constrained) matrix
-				while(jrnode < totalnodes && this->fConstrConnect[jrnode] != jdfn) jrnode++;
-				if(jrnode == totalnodes) {
+#ifdef PZDEBUG
+				if(TargetConnectIndex.find(jdfn) == TargetConnectIndex.end()) {
 					LOGPZ_ERROR(logger, "node not found in node list");
+					DebugStop();
 				}
+#endif
+				jrnode = TargetConnectIndex[jdfn];
 				// first and last columns in the original matrix
 				int64_t jfirst = this->fBlock.Position(jn);
 				int64_t jlast = jfirst+this->fBlock.Size(jn);
@@ -291,10 +294,13 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
 				int64_t depnodeindex = dep->fDepConnectIndex;
 				// look for the index where depnode is found
 				int depindex=0;
-				while(depindex < totalnodes && this->fConstrConnect[depindex] != depnodeindex) depindex++;
-				if(depindex == totalnodes) {
-					LOGPZ_ERROR(logger,"node not found in node list");
+#ifdef PZDEBUG
+				if(TargetConnectIndex.find(depnodeindex) == TargetConnectIndex.end()) {
+					LOGPZ_ERROR(logger, "node not found in node list");
+					DebugStop();
 				}
+#endif
+				depindex = TargetConnectIndex[depnodeindex];
 				
 				int64_t deppos = this->fConstrBlock.Position(depindex);
 				int64_t depsize = this->fConstrBlock.Size(depindex);
