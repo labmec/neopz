@@ -573,6 +573,10 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
             break;
         }
         bool cancondense = (ic != nc);
+        TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
+        if(!elgr) {
+            cancondense = false;
+        }
         if(cancondense)
         {
             if(real_sol){
