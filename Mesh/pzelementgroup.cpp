@@ -226,6 +226,19 @@ void TPZElementGroup::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZElementMa
     }
 #endif
     InitializeElementMatrix(ek, ef);
+#ifdef PZDEBUG
+    {
+        int nc = NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            TPZConnect &c = Connect(ic);
+            int blsize = c.NShape()*c.NState();
+            if(blsize != ek.fBlock.Size(ic))
+            {
+                DebugStop();
+            }
+        }
+    }
+#endif
     int64_t nel = fElGroup.size();
     TPZElementMatrixT<TVar> ekloc,efloc;
     for (int64_t el = 0; el<nel; el++) {
@@ -246,6 +259,11 @@ void TPZElementGroup::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZElementMa
 #endif
         
         cel->CalcStiff(ekloc, efloc);
+        // if the block structure is empty, the element has no contribution to the global system
+#ifdef PZDEBUG
+        if(ekloc.fBlock.NBlocks() == 0 && ekloc.fMat.Rows() != 0) DebugStop();
+#endif
+        if(ekloc.fBlock.NBlocks() == 0) continue;
 #ifdef PZ_LOG
         if (logger.isDebugEnabled() ) {
             TPZGeoEl *gel = cel->Reference();
@@ -260,30 +278,63 @@ void TPZElementGroup::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZElementMa
             {
                 sout << "No associated geometry\n";
             }
-            sout << "Connect indexes ";
+            sout << "this (elgroup) connect indexes ";
+            for (int i=0; i<NConnects(); i++) {
+                sout << ConnectIndex(i) << " ";
+            }
+            sout << "\nConnect indexes of the element being assembled";
             for (int i=0; i<cel->NConnects(); i++) {
                 sout << cel->ConnectIndex(i) << " ";
             }
             sout << std::endl;
-            sout << "Local indexes ";
+            sout << "Local indexes (mapped positions)";
             for (int i=0; i<cel->NConnects(); i++) {
+                if(locindex.find(cel->ConnectIndex(i)) == locindex.end())
+                {
+                    DebugStop();
+                }
                 sout << locindex[cel->ConnectIndex(i)] << " ";
+                TPZConnect &c = cel->Connect(i);
+                int blsize = c.NShape()*c.NState();
+                if(blsize != ekloc.fBlock.Size(i))
+                {
+                    DebugStop();
+                }
             }
             sout << std::endl;
             ekloc.fMat.Print("EKElement =",sout,EMathematicaInput);
 //            ekloc.fBlock.Print("EKBlock =",sout,&ekloc.fMat);
             efloc.fMat.Print("Vetor de carga",sout);
+            sout << "efloc Block structure\n";
+            efloc.fBlock.PrintStructure(sout);
+            sout << "ekloc Block structure\n";
+            ekloc.fBlock.PrintStructure(sout);
+            sout << "ef size " << efloc.fMat.Rows() << " x " << efloc.fMat.Cols() << std::endl;
+            sout << "ek size " << ekloc.fMat.Rows() << " x " << ekloc.fMat.Cols() << std::endl;
             LOGPZ_DEBUG(logger, sout.str())
         }
         
 #endif
         int nelcon = ekloc.NConnects();
+        int64_t nrhs = efloc.fMat.Cols();
         for (int ic=0; ic<nelcon; ic++) {
             int iblsize = ekloc.fBlock.Size(ic);
             int icindex = ekloc.fConnect[ic];
+#ifdef PZDEBUG
+            if(locindex.find(icindex) == locindex.end())
+            {
+                DebugStop();
+            }
+#endif
             int ibldest = locindex[icindex];
-            for (int idf = 0; idf<iblsize; idf++) {
-                ef.fMat.at(ef.fBlock.at(ibldest,0,idf,0)) += efloc.fMat.at(efloc.fBlock.at(ic,0,idf,0));
+#ifdef PZDEBUG
+            if(iblsize != efloc.fBlock.Size(ic)) DebugStop();
+            if(ef.fBlock.Size(ibldest) != iblsize) DebugStop();
+#endif
+            int64_t pos = efloc.fBlock.Position(ic);
+            int64_t posd = ef.fBlock.Position(ibldest);
+            for (int idf = 0; idf<iblsize; idf++) for(int col=0; col<nrhs; col++) {
+                ef.fMat(posd+idf,col) += efloc.fMat(pos+idf,col);
             }
             for (int jc = 0; jc<nelcon; jc++) {
                 int jblsize = ekloc.fBlock.Size(jc);
