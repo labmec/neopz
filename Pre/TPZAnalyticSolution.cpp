@@ -266,7 +266,7 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[0] += (FADFADSTATE) 1.;
     }
     else if (fProblemType == EThiago){
-        disp[0] = FADcos(M_PI * x[0]) * FADsin(2 * M_PI * x[1]);
+        disp[0] = FADcos(M_PI * x[0]) * FADsin(M_PI * x[1]);
         disp[1] = FADcos(M_PI * x[1]) * FADsin(M_PI * x[0]);
     } else if(fProblemType == EPoly){
         disp[0] = 0. * x[0]; //*x[0]*x[1];
@@ -382,6 +382,19 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[0] = 1./(2.*G)*FADsqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
         disp[1] = 1./(2.*G)*FADsqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
     }
+    else if(fProblemType == EIncompressible) {
+        if(disp.size() != 4) DebugStop();
+        disp[0] = (1. - (x[1]*x[1]))*FADcos(2.*M_PI*x[1])*FADsin(M_PI*x[0]);
+        disp[1] = (FADcos(M_PI*x[0])*(2.*M_PI*x[1]*FADcos(2.*M_PI*x[1]) + (-1. + 2.*M_PI*M_PI*(-1. + x[1]*x[1]))*FADsin(2.*M_PI*x[1])))/(4.*M_PI*M_PI);
+        // disp[0] = x[0]*0.;
+        // disp[1] = x[0]*0.;
+        TVar pico = 0.;
+        disp[2] = FADsin(M_PI * x[0]) * FADsin(M_PI * x[1]);
+        disp[3] = FADsin(2.*M_PI * x[1]) * FADsin(M_PI * x[0]);
+        disp[2] = x[0]*0.;
+        disp[3] = x[0]*0.;
+
+    }
     else
     {
         DebugStop();
@@ -446,7 +459,7 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) con
         disp[1] = x[0]*0.;
         //disp[0] = ((1-x[0]*x[0])*(1+x[1]*x[1]*x[1]*x[1]));
         //disp[1] = ((1-x[1]*x[1])*(1+x[0]*x[0]*x[0]*x[0]));
-        disp[0] = (TVar2) cos(M_PI * x[0])*(TVar2) sin(2 * M_PI * x[1]);
+        disp[0] = (TVar2) cos(M_PI * x[0])*(TVar2) sin(M_PI * x[1]);
         disp[1] = (TVar2) cos(M_PI * x[1])*(TVar2) sin(M_PI * x[0]);
     } else if(fProblemType == EPoly){
         disp[0] = 0. * x[0]; //*x[0]*x[1];
@@ -556,6 +569,24 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) con
         disp[1] = 1 / (2. * G) * sqrt(r / (2. * M_PI)) * sinth * (kappa + 1. - 2. * costh * costh);
         //        std::cout << "SQU x " << x << " theta " << theta << " disp " << disp << std::endl;
 #endif
+    } else if(fProblemType == EIncompressible) {
+        if(disp.size() != 4) DebugStop();
+        disp[0] = (1 - (x[1]*x[1]))*cos(2.*M_PI*x[1])*sin(M_PI*x[0]);
+        disp[1] = (cos(M_PI*x[0])*(2.*M_PI*x[1]*cos(2.*M_PI*x[1]) + (-1. + 2.*M_PI*M_PI*(-1. + x[1]*x[1]))*sin(2.*M_PI*x[1])))/ (4.*M_PI*M_PI);
+        // disp[0] = x[0]*0.;
+        // disp[1] = x[0]*0.;
+        TVar2 pico = 0.;
+        disp[2] = sin(M_PI * x[0])*sin(M_PI * x[1]);
+        disp[3] = sin(2.*M_PI * x[1])*sin(M_PI * x[0]);
+        // disp[2] = (TVar2) cos(M_PI * x[0])*(TVar2) sin(M_PI * x[1]);
+        // disp[3] = (TVar2) cos(M_PI * x[1])*(TVar2) sin(M_PI * x[0]);
+
+        disp[2] = x[0]*0.;
+        disp[3] = x[1]*0.;
+        // std::cout << "x[0]" << x[0] << "\nx[1] " << x[1] << std::endl;
+        // for(int i=0; i<4; i++) {
+        //     std::cout << "disp[" << i << "] = " << disp[i] << std::endl;
+        // }
     } else {
         DebugStop();
     }
@@ -632,13 +663,22 @@ void TElasticity2DAnalytic::graduxy(const TPZVec<Fad<STATE> > &x, TPZFMatrix<Fad
         xfad[i] = temp;
 //      xfad[i] = temp;
     }
-    TPZManVector<Fad<Fad<STATE> >,3> result(2);
+    int nterms = 2;
+    if(fProblemType == EIncompressible) nterms = 4;
+    TPZManVector<Fad<Fad<STATE> >,4> result(nterms);
     uxy(xfad,result);
-    grad.Resize(2,2);
-    for (int i=0; i<2; i++) {
+    grad.Resize(nterms,2);
+    for (int i=0; i<nterms; i++) {
         for (int j=0; j<2; j++)
         {
-            grad(j,i) = result[i].d(j);
+            grad(i,j) = result[i].d(j);
+        }
+    }
+    if(nterms == 4) {
+        STATE div = grad(0,0).val()+grad(1,1).val();
+        if(fabs(div) > 1.e-6) {
+            std::cout << "div = " << div << std::endl;
+            DebugStop();
         }
     }
 }
@@ -657,10 +697,27 @@ void TElasticity2DAnalytic::graduxy<STATE,STATE>(const TPZVec<STATE> &x, TPZFMat
 #endif
 
 void TElasticity2DAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const {
-    TPZManVector<STATE> xst(3);
+    int nterms = 2;
+    if(u.size() != 2) DebugStop();
+    if(gradu.Rows() != 2 || gradu.Cols() != 2) DebugStop();
+    if(fProblemType == EIncompressible) nterms = 4;
+    TPZManVector<STATE> xst(3), uloc(nterms);
+    TPZFNMatrix<9,STATE> graduloc(nterms,2);
     for(int i=0; i<3; i++) xst[i] = x[i];
-    uxy(xst,u);
-    graduxy(xst,gradu);
+    uxy(xst,uloc);
+    graduxy(xst,graduloc);
+    if(nterms == 2) {
+        u = uloc;
+        gradu = graduloc;
+    } else {
+        REAL fac = (1.-2.*gPoisson);
+        u[0] = uloc[0]+fac*uloc[2];
+        u[1] = uloc[1]+fac*uloc[3];
+        gradu(0,0) = graduloc(0,0)+fac*graduloc(2,0);
+        gradu(1,0) = graduloc(1,0)+fac*graduloc(3,0);
+        gradu(0,1) = graduloc(0,1)+fac*graduloc(2,1);
+        gradu(1,1) = graduloc(1,1)+fac*graduloc(3,1);
+    }
 }
 
 void TElasticity2DAnalytic::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const
@@ -672,69 +729,127 @@ void TElasticity2DAnalytic::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFM
         xfad[i] = temp;
     }
     xfad[2] = x[2];
-    TPZManVector<Fad<STATE>,3> result(2);
+    int nterms = 2;
+    if(fProblemType == EIncompressible) nterms = 4;
+    TPZManVector<Fad<STATE>,4> result(nterms);
+    TPZFNMatrix<8,STATE> graduloc(2,nterms);
     uxy(xfad,result);
     gradu.Redim(2,2);
-    u[0] = result[0].val();
-    u[1] = result[1].val();
-    for (int i=0; i<2; i++) {
-        for (int j=0; j<2; j++)
-        {
-            gradu(i,j) = result[j].d(i);
+    if(nterms == 2) {
+        u[0] = result[0].val();
+        u[1] = result[1].val();
+        for (int i=0; i<2; i++) {
+            for (int j=0; j<2; j++)
+            {
+                gradu(i,j) = result[j].d(i);
+            }
         }
-    }
-    
+    } else {
+        REAL fac = (1.-2.*gPoisson);
+        u[0] = result[0].val()+fac*result[2].val();
+        u[1] = result[1].val()+fac*result[3].val();
+        for (int i=0; i<2; i++) {
+            for (int j=0; j<2; j++)
+            {
+                gradu(i,j) = result[j].d(i)+fac*result[j+2].d(i);
+            }
+        }
+    }    
 }
 
 void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const
 {
-    TPZFNMatrix<4,STATE> grad;
     REAL E, nu;
-    sigma.Resize(2,2);
+    if(sigma.Rows() != 2 || sigma.Cols() != 2) DebugStop();
+    // sigma.Resize(2,2);
     Elastic(x, E, nu);
+    int nterms = 2;
+    if(fProblemType == EIncompressible) nterms = 4;
+    TPZFNMatrix<8,STATE> grad(4,2);
     graduxy(x,grad);
-    //uxy(x,u);
-    if (fPlaneStress == 0)
-    {
-        STATE Fac = E/((STATE)1.+nu)/((STATE(1.)-STATE(2.)*nu));
-        sigma(0,0) = Fac*((STATE(1.)-nu)*grad(0,0)+nu*grad(1,1));
-        sigma(1,1) = Fac*((STATE(1.)-nu)*grad(1,1)+nu*grad(0,0));
-        sigma(0,1) = E/(STATE(2.)*(STATE(1.)+nu))*(grad(0,1)+grad(1,0));
-        sigma(1,0) = sigma(0,1);
-    }
-    else
-    {
-        STATE Fac = E/((STATE)1.-nu*nu);
-        sigma(0,0) = Fac*(grad(0,0)+nu*grad(1,1));
-        sigma(1,1) = Fac*(grad(1,1)+nu*grad(0,0));
-        sigma(0,1) = E/(STATE(2.)*(STATE(1.)+nu))*(grad(0,1)+grad(1,0));
-        sigma(1,0) = sigma(0,1);
+    if(nterms == 2) {
+        if (fPlaneStress == 0)
+        {
+            STATE Fac = E/((STATE)1.+nu)/((STATE(1.)-STATE(2.)*nu));
+            sigma(0,0) = Fac*((STATE(1.)-nu)*grad(0,0)+nu*grad(1,1));
+            sigma(1,1) = Fac*((STATE(1.)-nu)*grad(1,1)+nu*grad(0,0));
+            sigma(0,1) = E/(STATE(2.)*(STATE(1.)+nu))*(grad(0,1)+grad(1,0));
+            sigma(1,0) = sigma(0,1);
+        }
+        else
+        {
+            STATE Fac = E/((STATE)1.-nu*nu);
+            sigma(0,0) = Fac*(grad(0,0)+nu*grad(1,1));
+            sigma(1,1) = Fac*(grad(1,1)+nu*grad(0,0));
+            sigma(0,1) = E/(STATE(2.)*(STATE(1.)+nu))*(grad(0,1)+grad(1,0));
+            sigma(1,0) = sigma(0,1);
+        }
+    } else {
+        REAL fac = (1.-2.*nu);
+        if (fPlaneStress == 0)
+        {
+            STATE Fac = E/((STATE)1.+nu);
+            sigma(0,0) = Fac*(grad(0,0)+(nu*grad(3,1)+(1.-nu)*grad(2,0)));
+            sigma(1,1) = Fac*(grad(1,1)+(nu*grad(2,0)+(1.-nu)*grad(3,1)));
+            sigma(0,1) = E/(STATE(2.)*(STATE(1.)+nu))*(grad(0,1)+grad(1,0)+fac*(grad(2,1)+grad(3,0)));
+            sigma(1,0) = sigma(0,1);
+        }
+        else
+        {
+            STATE Fac = E/((STATE)1.-nu*nu);
+            sigma(0,0) = Fac*((grad(0,0)+fac*grad(2,0))+nu*(grad(1,1)+fac*grad(3,1)));
+            sigma(1,1) = Fac*((grad(1,1)+fac*grad(3,1))+nu*(grad(0,0)+fac*grad(2,0)));
+            sigma(0,1) = E/(STATE(2.)*(STATE(1.)+nu))*(grad(0,1)+grad(1,0)+fac*(grad(2,1)+grad(3,0)));
+            sigma(1,0) = sigma(0,1);
+        }
     }
 }
 
 void TElasticity2DAnalytic::Sigma(const TPZVec<Fad<STATE> > &x, TPZFMatrix<Fad<STATE> > &sigma) const {
-    TPZFNMatrix<4,Fad<STATE> > grad;
+    int nterms = 2;
+    if(fProblemType == EIncompressible) nterms = 4;
+    TPZFNMatrix<8,Fad<STATE> > grad(nterms,2);
     sigma.Resize(2,2);
     Fad<STATE>  E, nu;
     Elastic(x, E, nu);
     graduxy(x,grad);
-    if (fPlaneStress == 0)
-    {
-        Fad<STATE>  Fac = E/(Fad<STATE>(1.)+nu)/((Fad<STATE>(1.)-Fad<STATE>(2.)*nu));
-        sigma(0,0) = Fac*((Fad<STATE>(1.)-nu)*grad(0,0)+nu*grad(1,1));
-        sigma(1,1) = Fac*((Fad<STATE>(1.)-nu)*grad(1,1)+nu*grad(0,0));
-        sigma(0,1) = E/(Fad<STATE>(2.)*(Fad<STATE>(1.)+nu))*(grad(0,1)+grad(1,0));
-        sigma(1,0) = sigma(0,1);
-    }
-    else
-    {
-        typedef Fad<STATE> TVar;
-        TVar Fac = E/((TVar)1.-nu*nu);
-        sigma(0,0) = Fac*(grad(0,0)+nu*grad(1,1));
-        sigma(1,1) = Fac*(grad(1,1)+nu*grad(0,0));
-        sigma(0,1) = E/(TVar(2.)*(TVar(1.)+nu))*(grad(0,1)+grad(1,0));
-        sigma(1,0) = sigma(0,1);
-
+    if(nterms == 2) {
+        if (fPlaneStress == 0)
+        {
+            Fad<STATE>  Fac = E/(Fad<STATE>(1.)+nu)/((Fad<STATE>(1.)-Fad<STATE>(2.)*nu));
+            sigma(0,0) = Fac*((Fad<STATE>(1.)-nu)*grad(0,0)+nu*grad(1,1));
+            sigma(1,1) = Fac*((Fad<STATE>(1.)-nu)*grad(1,1)+nu*grad(0,0));
+            sigma(0,1) = E/(Fad<STATE>(2.)*(Fad<STATE>(1.)+nu))*(grad(0,1)+grad(1,0));
+            sigma(1,0) = sigma(0,1);
+        }
+        else
+        {
+            typedef Fad<STATE> TVar;
+            TVar Fac = E/((TVar)1.-nu*nu);
+            sigma(0,0) = Fac*(grad(0,0)+nu*grad(1,1));
+            sigma(1,1) = Fac*(grad(1,1)+nu*grad(0,0));
+            sigma(0,1) = E/(TVar(2.)*(TVar(1.)+nu))*(grad(0,1)+grad(1,0));
+            sigma(1,0) = sigma(0,1);
+        }
+    } else {
+        REAL fac = (1.-2.*gPoisson);
+        if (fPlaneStress == 0)
+        {
+            Fad<STATE> Fac = E/(Fad<STATE>(1.)+nu);
+            sigma(0,0) = Fac*(grad(0,0)+(Fad<STATE>(1.)-nu)*grad(2,0)+nu*grad(3,1));
+            sigma(1,1) = Fac*(grad(1,1)+(Fad<STATE>(1.)-nu)*grad(3,1)+nu*grad(2,0));
+            sigma(0,1) = E/(Fad<STATE>(2.)*(Fad<STATE>(1.)+nu))*(grad(0,1)+grad(1,0)+fac*(grad(2,1)+grad(3,0)));
+            sigma(1,0) = sigma(0,1);
+        }
+        else
+        {
+            typedef Fad<STATE> TVar;
+            TVar Fac = E/((TVar)1.-nu*nu);
+            sigma(0,0) = Fac*(grad(0,0)+nu*grad(1,1)+fac*(grad(2,0)+nu*grad(3,1)));
+            sigma(1,1) = Fac*(grad(1,1)+nu*grad(0,0)+fac*(grad(3,1)+nu*grad(2,0)));
+            sigma(0,1) = E/(TVar(2.)*(TVar(1.)+nu))*(grad(0,1)+grad(1,0)+fac*(grad(2,1)+grad(3,0)));
+            sigma(1,0) = sigma(0,1);
+        }
     }
 }
 

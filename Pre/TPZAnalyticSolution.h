@@ -183,7 +183,7 @@ struct TPZAnalyticSolution
 struct TElasticity2DAnalytic : public TPZAnalyticSolution
 {
      enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1, Etest2, EThiago, EPoly,
-         ESquareRootUpper, ESquareRootLower, ESquareRoot
+         ESquareRootUpper, ESquareRootLower, ESquareRoot, EIncompressible
      };
     
      EDefState fProblemType = EDispx;
@@ -252,13 +252,22 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
 
         }
         xfad[2] = x[2];
-        TPZManVector<Fad<TVar2>,3> result(2);
+        int nterms = 2;
+        if(fProblemType == EIncompressible) nterms = 4;
+        TPZManVector<Fad<TVar2>,4> result(nterms);
         uxy(xfad,result);
-        grad.Resize(2,2);
+        grad.Resize(nterms,2);
         for (int i=0; i<2; i++) {
-            for (int j=0; j<2; j++)
+            for (int j=0; j<nterms; j++)
             {
-                grad(j,i) = result[i].d(j);
+                grad(j,i) = result[j].d(i);
+            }
+        }
+        if(nterms == 4) {
+            STATE div = grad(0,0)+grad(1,1);
+            if(abs(div) > 1.e-10) {
+                std::cout << "div = " << div << std::endl;
+                DebugStop();
             }
         }
     }
