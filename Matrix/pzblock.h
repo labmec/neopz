@@ -197,6 +197,10 @@ public:
 			pos=0;
 			dim=0;
 		}
+
+        void Print(std::ostream &out = std::cout) const {
+            out << "pos = " << pos << " dim = " << dim;
+        }
                 
         int ClassId() const override{
             return Hash("TNode") ^ ClassIdOrHash<TPZBlock>() << 1;
