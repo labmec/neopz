@@ -850,7 +850,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiffT(TPZElementMatrixT<TVar> &ek, T
 
     if(fIntRule.NPoints() == 1) {
         
-        TPZManVector<int,4> ordervec;
+        TPZManVector<int,5> ordervec;
         //ordervec.resize(nref);
         for (int64_t iref=0;  iref<nref; iref++)
         {
