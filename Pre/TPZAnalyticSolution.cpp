@@ -52,7 +52,7 @@ static FADFADSTATE FADatan2(FADFADSTATE y, FADFADSTATE x)
     FADFADSTATE result(sz,atan2(y.val(),x.val()));
     Fad<STATE> r = x.val()*x.val()+y.val()*y.val();
     for (int i=0; i<sz; i++) {
-        result.fastAccessDx(i) = (-y.val()*x.fastAccessDx(i) + x.val()*y.fastAccessDx(i))/r;
+        result.fastAccessDx(i) = (x.val()*y.fastAccessDx(i) - y.val()*x.fastAccessDx(i))/r;
     }
     return result;
 }
@@ -384,16 +384,16 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         TVar alfa=0.6;
         TVar A= 31./9.;
         TVar theta = FADatan2(x[1],x[0]);
+        REAL eps = 1.e-15;
         
         auto thetaval = shapeFAD::val(theta);
         if (thetaval < (0.)) theta += 2. * M_PI;
-        TVar eps = 1e-15;
         
     
-        // Verification to avoid numerical errors when x > 0 and y = 0
-        if (x[0] > TVar (0.) && x[1] < TVar (1e-15) &&  x[1] >  TVar (-1e-15)) {
-           disp[0] = 0.;
-            disp[1] = 0.;
+        // Verification to avoid numerical errors when (x,y) = (0,0)
+        if (abs(shapeFAD::val(x[0])) < eps && abs(shapeFAD::val(x[1])) < eps) {
+            disp[0] = x[0]*0.;
+            disp[1] = x[1]*0.;
         }
         else{
             
@@ -637,18 +637,17 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) con
         TVar2 alfa=0.6;
         TVar2 A= 31./9.;
         TVar2 theta = atan2(x[1],x[0]);
-        TVar2 eps = 1e-15;
+        REAL eps = 1e-15;
         
         auto thetaval = shapeFAD::val(theta);
         if (thetaval < (0.)) theta += 2. * M_PI;
         
-        // Verification to avoid numerical errors when x > 0 and y = 0
-        if (x[0] > 0. && x[1] < eps && x[1] >  1e-15) {
-           disp[0] = 0.;
-           disp[1] = 0.;
+
+        // Verification to avoid numerical errors when (x,y) = (0,0)
+        if (abs(shapeFAD::val(x[0])) < eps && abs(shapeFAD::val(x[1])) < eps) {
+           disp[0] = x[0]*0.;
+           disp[1] = x[1]*0.;
         }
-        
-        
         else{
             
             TVar2 r = sqrt(x[0]*x[0]+x[1]*x[1]);
@@ -761,17 +760,17 @@ template<>
 void TElasticity2DAnalytic::graduxy(const TPZVec<Fad<STATE> > &x, TPZFMatrix<Fad<STATE> > &grad) const
 {
     TPZManVector<Fad<Fad<STATE> >,3> xfad(x.size());
-    for(int i=0; i<3; i++)
+    for(int i=0; i<x.size(); i++)
     {
-        Fad<Fad<STATE> > temp = Fad<Fad<STATE> >(3,Fad<STATE>(3,0.));
+        Fad<Fad<STATE> > temp = Fad<Fad<STATE> >(x[0].size(),Fad<STATE>(x[0].size(),0.));
 //      Fad<STATE> temp = Fad<STATE>(2,i,x[i]);
         temp.val()= x[i];
-        Fad<STATE> temp3(3,0.);
-        for(int j=0; j<3; j++)
+        Fad<STATE> temp3(x.size(),0.);
+        for(int j=0; j<x.size(); j++)
         {
             temp.fastAccessDx(j) = temp3;
         }
-        Fad<STATE> temp2(3,1.);
+        Fad<STATE> temp2(x.size(),1.);
         temp.fastAccessDx(i) = temp2;
 //      Fad<STATE> temp = Fad<STATE>(2,i,x[i]);
         xfad[i] = temp;    
@@ -888,9 +887,9 @@ template<class TVar>
 void TElasticity2DAnalytic::DivSigma(const TPZVec<REAL> &x, TPZVec<TVar> &divsigma) const
 {
     TPZManVector<Fad<TVar>,3> xfad(x.size());
-    for(int i=0; i<2; i++)
+    for(int i=0; i<x.size(); i++)
     {
-        xfad[i] = Fad<TVar>(2,i,x[i]);
+        xfad[i] = Fad<TVar>(x.size(),i,x[i]);
     }
     TPZFNMatrix<4, Fad<TVar> > sigma(2,2);
     Sigma(xfad,sigma);
