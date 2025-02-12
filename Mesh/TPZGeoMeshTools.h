@@ -29,7 +29,7 @@ namespace TPZGeoMeshTools{
      * @return Pointer to the TPZGeoMesh that has been created
      */
     TPZGeoMesh * CreateGeoMeshOnGrid(int dim, const TPZVec<REAL>& minX, const TPZVec<REAL>& maxX,
-            const TPZVec<int> &matids, const TPZVec<int> nDivs, MMeshType meshType, bool createBoundEls, REAL distortion=0);
+            const TPZVec<int> &matids, const TPZVec<int> &nDivs, MMeshType meshType, bool createBoundEls, REAL distortion=0);
 
 
     /*! Create one-dimensional geometric mesh.

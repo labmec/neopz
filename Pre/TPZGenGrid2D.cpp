@@ -461,7 +461,7 @@ bool TPZGenGrid2D::GenerateElements(TPZGeoMesh *grid, int matid) {
         res = GenerateElementsZigZag(grid, matid);
         return res;
     }
-    // create the geometric elements (retangular)    
+    // create the geometric elements (rectangular)    
     int num_rectangles = fNx[0] * fNx[1] * fNumLayers;
     TPZVec<int64_t> nos(9);
     if (fMeshType == MMeshType::EQuadrilateral) nos.Resize(4);

@@ -1318,9 +1318,9 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
                 return new TPZGeoElement< TPZGeoLinear, TPZRefLinear>(nodeindexes, matid, *this, index );
             case 2://triangle
                 return new TPZGeoElement< TPZGeoTriangle, TPZRefTriangle >(nodeindexes, matid, *this, index );
-            case 3://quadrilatera
+            case 3://quadrilateral
                 return  new TPZGeoElement< TPZGeoQuad, TPZRefQuad >(nodeindexes, matid, *this, index );
-            case 4://tetraedra
+            case 4://tetrahedron
                 return new TPZGeoElement< TPZGeoTetrahedra, TPZRefTetrahedra >(nodeindexes, matid, *this, index );
             case 5:
                 return new TPZGeoElement< TPZGeoPyramid, TPZRefPyramid >(nodeindexes, matid, *this, index );
@@ -1471,7 +1471,7 @@ void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,int64_t index)
 		for (int i=0;i<gel->NSubElements();i++)
 		{
 			TPZGeoEl* son = gel->SubElement(i);
-			DeleteElement(son,son->Index());
+                        if (son) DeleteElement(son,son->Index());
 		}
 	}
 	gel->RemoveConnectivities();

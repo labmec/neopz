@@ -104,7 +104,7 @@ TPZGeoMeshTools::CreateGeoMesh1D(const REAL minX, const REAL maxX, const int nEl
 
 TPZGeoMesh *
 TPZGeoMeshTools::CreateGeoMeshOnGrid(int dim, const TPZVec<REAL> &minX, const TPZVec<REAL> &maxX, const TPZVec<int> &matids,
-                                     const TPZVec<int> nDivs, MMeshType meshType, bool createBoundEls, REAL distortion) {
+                                     const TPZVec<int> &nDivs, MMeshType meshType, bool createBoundEls, REAL distortion) {
 #ifdef PZDEBUG
     const REAL tol{ZeroTolerance()};
     if(dim !=3 && dim!= 2){
@@ -131,13 +131,13 @@ TPZGeoMeshTools::CreateGeoMeshOnGrid(int dim, const TPZVec<REAL> &minX, const TP
                <<"size(nDivs) = "<<nDivs.NElements()<<"\n";
         DebugStop();
     }
-    if(matids.size() != dim*2 + 1 && createBoundEls){
+    if(createBoundEls && matids.size() != dim*2 + 1){
         PZError<<__PRETTY_FUNCTION__<<" error\n";
         PZError<<"The number of material ids must be equal to the number of boundaries + 1\n"
                <<"# of matids: "<<matids.size()<<"\n"
                <<"# of boundaries + 1: "<<dim*2+1<<"\n";
         DebugStop();
-    } else if(matids.size() != 1 && !createBoundEls){
+    } else if(!createBoundEls && matids.size() != 1){
         PZError<<__PRETTY_FUNCTION__<<" error\n";
         PZError<<"When no boundary is created, the number of material ids must be equal to one\n"
                <<"# of matids: "<<matids.size()<<"\n";

@@ -69,13 +69,13 @@ public:
 	 * band of the resulting stiffeness matrix.
 	 */
 	void ResequenceOld(TPZVec<int> &perm, TPZVec<int> &inverseperm);
-	void Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm);
+	void Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm) override;
 	void setGType(GraphType M) { fGType = M; }
 	/**
 	 * @brief This will reset all datastructures the object may contain. \n
 	 * Node resequencing algorithms may require a possibly large amount of temporary data
 	 */
-	virtual void ClearDataStructures();
+	virtual void ClearDataStructures() override;
 private:
 	/** @brief Defines the list of Edges for the current Graph */
 	TPZVec<Pair> m_Edges;
