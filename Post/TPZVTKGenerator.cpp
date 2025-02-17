@@ -43,18 +43,40 @@ Whenever possible, the logic in this class prefers stack allocation.
 template<class TVar>
 class TPZPostProcEl{
 public:
+  TPZPostProcEl();
   TPZPostProcEl(TPZCompEl *cel);
   //! Iniatilizes data for the computational element
   void InitData();
   //! Initializes data need at each integration point
-  void ComputeRequiredData(TPZVec<REAL> &qsi);
+  virtual void ComputeRequiredData(TPZVec<REAL> &qsi);
   //! Evalutes the field id at the point qsi and stores result in sol
   void Solution(const TPZVec<REAL> &qsi, const int id, TPZVec<TVar> &sol);
-private:
+protected:
   bool fIsMultiphysics{false};
   TPZCompEl *fCel{nullptr};
   TPZMaterialDataT<TVar> fMatdata;
   TPZManVector<TPZMaterialDataT<TVar>,10> fDatavec; 
+};
+
+/**
+@brief A derived class of TPZPostProcEl that performs safety checks
+       on the jacobian determinant evaluated at all points where the fields are evaluated.
+       If zero jacobians are detected, the respectives evaluation points (vertices) are shifted towards the element center.
+       This class is useful for post-processing fields in degenerated elements, such as quarterpoint and collapsed elements.
+*/
+template<class TVar>
+class TPZPostProcElSafe : public TPZPostProcEl<TVar>{
+public:
+  TPZPostProcElSafe();
+  TPZPostProcElSafe(TPZCompEl *cel);
+  //! Initializes data need at each integration point with safety checks
+  virtual void ComputeRequiredData(TPZVec<REAL> &qsi) override;
+  //! Checks if the jacobian determinant is zero at the point qsi
+  bool IzZeroJacobian(TPZVec<REAL> &qsi);
+  //! Shifts the point qsi towards the element center
+  void ShiftVertice(TPZVec<REAL> &qsi);
+private:
+  REAL shift_distance;
 };
 
 /**
@@ -68,14 +90,16 @@ template<class TVar>
 void ComputeFieldAtEl(TPZCompEl *cel,
                       const TPZVec<TPZManVector<REAL,3>> &ref_vertices,
                       TPZVec<TPZAutoPointer<TPZVTKField>>& fields,
-                      const TPZVec<int> &init_pos){
+                      const TPZVec<int> &init_pos,
+                      const bool safe_check){
   // maximum size is 9 (3x3 tensor variable)
   TPZManVector<TVar,9> sol;
 
   const auto celdim = cel->Dimension();
 
-  TPZPostProcEl<TVar> graphel(cel);
-  graphel.InitData();
+  TPZPostProcEl<TVar> *graphel = safe_check ? new TPZPostProcElSafe<TVar>(cel) : new TPZPostProcEl<TVar>(cel);
+
+  graphel->InitData();
 
   //vertex counter
   int iv = 0;
@@ -84,7 +108,7 @@ void ComputeFieldAtEl(TPZCompEl *cel,
     
     ip.Resize(celdim);
     //computes all relevant data for a given integration point
-    graphel.ComputeRequiredData(ip);
+    graphel->ComputeRequiredData(ip);
     const int nfields = fields.size();
     for (int i = 0; i < nfields; i++){
       auto &field = *(fields[i]);
@@ -93,7 +117,7 @@ void ComputeFieldAtEl(TPZCompEl *cel,
       auto pos = init_pos[i] + fdim*iv;
       sol.Resize(fdim);
       sol.Fill(0.0);
-      graphel.Solution(ip, field.Id(), sol);
+      graphel->Solution(ip, field.Id(), sol);
 
       /**TPZPostProcEl<TVar>::Solution might resize the sol array
          (i.e., 2d vectors). We thus make sure that we don't read
@@ -125,6 +149,7 @@ void ComputeFieldAtEl(TPZCompEl *cel,
     }
     iv++;
   }
+  delete graphel;
 }
 
 
@@ -134,8 +159,8 @@ TPZVTKField::TPZVTKField(TPZVTKField::Type type, int id, std::string aname) :
 TPZVTKGenerator::TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
                                  const TPZVec<std::string> &fields,
                                  std::string filename,
-                                 int vtkres, int dim)
-  : TPZVTKGenerator(cmesh.operator->(),fields,filename,vtkres,dim)//delegates to other ctor
+                                 int vtkres, int dim, bool safe_check)
+  : TPZVTKGenerator(cmesh.operator->(),fields,filename,vtkres,dim,safe_check)//delegates to other ctor
 {
 }
 
@@ -144,9 +169,9 @@ TPZVTKGenerator::TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
 TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
                                  const TPZVec<std::string> &fields,
                                  std::string filename,
-                                 int vtkres, int dim)
+                                 int vtkres, int dim, bool safe_check)
   : fCMesh(cmesh), fFilename(filename), fSubdivision(vtkres),
-    fPostProcDim(cmesh->Dimension())
+    fPostProcDim(cmesh->Dimension()), fSafeCheck(safe_check)
 {
   if(dim > 0) {
     fPostProcDim = dim;
@@ -195,8 +220,9 @@ TPZVTKGenerator::TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
                                  std::set<int> mats,
                                  const TPZVec<std::string> &fields,
                                  std::string filename,
-                                 int vtkres)
-  : TPZVTKGenerator(cmesh.operator->(),mats, fields,filename,vtkres)//delegates to other ctor
+                                 int vtkres,
+                                 bool safe_check)
+  : TPZVTKGenerator(cmesh.operator->(),mats, fields,filename,vtkres,safe_check)//delegates to other ctor
 {
 }
 
@@ -204,7 +230,7 @@ TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
                                  std::set<int> mats,
                                  const TPZVec<std::string> &fields,
                                  std::string filename,
-                                 int vtkres)
+                                 int vtkres, bool safe_check)
   : fCMesh(cmesh), fFilename(filename), fSubdivision(vtkres),
     fPostProcMats(std::move(mats))
 {
@@ -716,13 +742,15 @@ void TPZVTKGenerator::ComputeFields(int first, int last)
       posvec[f] = pos * fFields[f]->Dimension();
     }
     if (isCplxMesh) {
-      ComputeFieldAtEl<CSTATE>(cel, fRefVertices[eltype], fFields,posvec);
+      ComputeFieldAtEl<CSTATE>(cel, fRefVertices[eltype], fFields,posvec, fSafeCheck);
     } else {
-      ComputeFieldAtEl<STATE>(cel, fRefVertices[eltype], fFields,posvec);
+      ComputeFieldAtEl<STATE>(cel, fRefVertices[eltype], fFields,posvec, fSafeCheck);
     }
   }
 }
 
+template<class TVar>
+TPZPostProcEl<TVar>::TPZPostProcEl() {}
 
 template<class TVar>
 TPZPostProcEl<TVar>::TPZPostProcEl(TPZCompEl *cel) : fCel(cel){
@@ -784,6 +812,61 @@ void TPZPostProcEl<TVar>::Solution(const TPZVec<REAL> &qsi, const int id, TPZVec
   }
 }
 
+template<class TVar>
+TPZPostProcElSafe<TVar>::TPZPostProcElSafe() : TPZPostProcEl<TVar>(), shift_distance(1.0e-3) {}
+
+template<class TVar>
+TPZPostProcElSafe<TVar>::TPZPostProcElSafe(TPZCompEl *cel) : TPZPostProcEl<TVar>(cel), shift_distance(1.0e-3) {}
+
+template<class TVar>
+void TPZPostProcElSafe<TVar>::ComputeRequiredData(TPZVec<REAL> &qsi) {
+  bool iszero = IzZeroJacobian(qsi);
+  if (iszero) ShiftVertice(qsi);
+  TPZPostProcEl<TVar>::ComputeRequiredData(qsi);
+}
+
+template<class TVar>
+bool TPZPostProcElSafe<TVar>::IzZeroJacobian(TPZVec<REAL> &qsi) {
+  bool iszero = false;
+  if(this->fIsMultiphysics){
+    auto mfcel = dynamic_cast<TPZMultiphysicsElement*>(this->fCel);
+    TPZManVector<TPZTransform<> > trvec; //Why is it necessary to have this?
+    mfcel->AffineTransform(trvec);
+    TPZInterpolationSpace *intel  = dynamic_cast <TPZInterpolationSpace *>(mfcel->Element(0));
+    if (!intel) DebugStop();
+    TPZGeoEl* gel = intel->Reference();
+    TPZManVector<REAL, 3> intpoint(gel->Dimension(), 0.);
+    trvec[0].Apply(qsi, intpoint);
+    TPZFNMatrix<9,REAL> gradx;
+    gel->GradX(intpoint, gradx);
+    REAL detjac = 0.;
+    TPZGeoEl::ComputeDetjac(gradx, detjac);
+    if (IsZero(detjac)) {
+      iszero = true;
+    }
+  }else{
+    TPZGeoEl* gel = this->fCel->Reference();
+    TPZFNMatrix<9,REAL> gradx;
+    gel->GradX(qsi, gradx);
+    REAL detjac = 0.;
+    TPZGeoEl::ComputeDetjac(gradx, detjac);
+    if (IsZero(detjac)) {
+      iszero = true;
+    }
+  }
+  return iszero;
+}
+
+template<class TVar>
+void TPZPostProcElSafe<TVar>::ShiftVertice(TPZVec<REAL> &qsi) {
+  TPZGeoEl* gel = this->fCel->Reference();
+  const int dim = gel->Dimension();
+  TPZManVector<REAL, 3> center(3, 0.);
+  gel->CenterPoint(gel->NSides() - 1, center);
+  for (int i = 0; i < dim; i++) {
+    qsi[i] = (1.0 - shift_distance) * qsi[i];
+  }
+}
 
 #define FILLREF(T)\
   template \

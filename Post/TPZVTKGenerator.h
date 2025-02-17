@@ -133,6 +133,8 @@ protected:
   TPZVec<std::pair<TPZCompEl*,int>> fElementVec;
   //! number of threads to be used for computing the fields
   int fNThreads{4};
+  //! Whether check if the jacobian is zero on vertices and perform a node shift if it is(slower). default is false
+  bool fSafeCheck;
 
   //! Computes points (at reference element) for evaluating fields
   template<class TOPOL>
@@ -165,12 +167,14 @@ public:
      @param[in] filename filename (without extension)
      @param[in] vtkres resolution of vtk post-processing (number of el subdivision)
      @param[in] dim Post-processing dimension (defaults to dimension of mesh)
+     @param[in] safe_check whether to perform safety checks on jacobian determinant
   */
   TPZVTKGenerator(TPZCompMesh* cmesh,
                   const TPZVec<std::string> &fields,
                   std::string filename,
                   int vtkres,
-                  int dim = -1);
+                  int dim = -1,
+                  bool safe_check = false);
   /**
      @brief Creates instance for generating .vtk results for a given mesh
      @param[in] cmesh Computational mesh
@@ -178,12 +182,14 @@ public:
      @param[in] filename filename without extension
      @param[in] vtkres resolution of vtk post-processing (number of el subdivision)
      @param[in] dim Post-processing dimension (defaults to dimension of mesh)
+     @param[in] safe_check whether to perform safety checks on jacobian determinant
   */
   TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
                   const TPZVec<std::string> &fields,
                   std::string filename,
                   int vtkres,
-                  int dim = -1);
+                  int dim = -1,
+                  bool safe_check = false);
 
   /**
      @brief Creates instance for generating .vtk results for given materials in a given mesh
@@ -192,13 +198,15 @@ public:
      @param[in] fields names of fields to be post-processed
      @param[in] filename filename (without extension)
      @param[in] vtkres resolution of vtk post-processing (number of el subdivision)
+     @param[in] safe_check whether to perform safety checks on jacobian determinant
      @note All materials should have the same dimension
   */
   TPZVTKGenerator(TPZCompMesh* cmesh,
                   std::set<int> mats,
                   const TPZVec<std::string> &fields,
                   std::string filename,
-                  int vtkres);
+                  int vtkres,
+                  bool safe_check = false);
   /**
      @brief Creates instance for generating .vtk results for given materials in a given mesh
      @param[in] cmesh Computational mesh
@@ -206,13 +214,15 @@ public:
      @param[in] fields names of fields to be post-processed
      @param[in] filename filename without extension
      @param[in] vtkres resolution of vtk post-processing (number of el subdivision)
+     @param[in] safe_check whether to perform safety checks on jacobian determinant
      @note All materials should have the same dimension
   */
   TPZVTKGenerator(TPZAutoPointer<TPZCompMesh> cmesh,
                   std::set<int> mats,
                   const TPZVec<std::string> &fields,
                   std::string filename,
-                  int vtkres);
+                  int vtkres,
+                  bool safe_check = false);
   //!Generates .vtk file for a given current solution of the mesh
   void Do();
 
