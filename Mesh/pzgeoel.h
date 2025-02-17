@@ -566,6 +566,8 @@ public:
     
     static void ComputeDetjac(TPZFMatrix<Fad<REAL> > &gradx, Fad<REAL> &detjac);
 
+	static void ComputeDetjac(TPZFMatrix<REAL> &gradx, REAL &detjac);
+
 //	void ComputeNormals(TPZMatrix<REAL> &normal);
 	
 	/** @brief To test continuity */

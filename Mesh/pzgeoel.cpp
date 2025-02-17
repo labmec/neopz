@@ -2652,6 +2652,24 @@ TPZGeoEl::ComputeDetjac(TPZFMatrix<Fad<REAL> > &gradx, Fad<REAL> &detjac)
     }
 }
 
+void TPZGeoEl::ComputeDetjac(TPZFMatrix<REAL> &gradx, REAL &detjac)
+{
+    const int dim = gradx.Cols();
+    switch(dim) {
+        case 0:
+            break;
+        case 1:
+            detjac = gradx(0,0);
+            break;
+        case 2:
+            detjac = gradx(0,0)*gradx(1,1)-gradx(1,0)*gradx(0,1);
+            break;
+        case 3:
+            detjac = (gradx(0,0)*gradx(1,1)*gradx(2,2)+
+            gradx(1,0)*gradx(2,1)*gradx(0,2)+gradx(0,1)*gradx(1,2)*gradx(2,0))-
+            (gradx(2,0)*gradx(1,1)*gradx(0,2) + gradx(0,1)*gradx(2,2)*gradx(1,0) + gradx(1,2)*gradx(0,0)*gradx(2,1));
+    }
+}
 
 void TPZGeoEl::PrintVTK(const std::string prefix) {
     std::string filename = prefix + "geoel_index_" + to_string(this->Index()) + ".vtk";
