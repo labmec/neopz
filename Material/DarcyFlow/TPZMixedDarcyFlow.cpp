@@ -425,7 +425,7 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
     if (var == 7) {
 
         TPZVec<STATE> exactSol(1);
-        TPZFNMatrix<3, STATE> gradu(3, 1);
+        TPZFNMatrix<3, STATE> gradu(fDim, 1);
 
         if (fExactSol) {
             fExactSol(datavec[0].x, exactSol, gradu);
