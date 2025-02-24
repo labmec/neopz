@@ -132,7 +132,7 @@ public:
 
     [[nodiscard]] virtual int IntegrationRuleOrder(const TPZVec<int> &elPMaxOrder) const override;
 
-    enum SolutionVars {ENone = -1, EPressure = 0, EDisplacement = 1, EForce = 2, EStress = 3, EStrain = 4, EVonMises = 5};
+    enum SolutionVars {ENone = -1, EPressure = 0, EDisplacement = 1, EForce = 2, EStress = 3, EStrain = 4, EVonMises = 5, EDeviatoricStress = 6};
 };
 
 #endif

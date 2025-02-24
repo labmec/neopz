@@ -388,6 +388,7 @@ int TPZHybridMixedElasticityUP::VariableIndex(const std::string& name) const {
     if(!strcmp("Stress", name.c_str())) return EStress;
     if(!strcmp("Strain", name.c_str())) return EStrain;
     if(!strcmp("VonMises", name.c_str())) return EVonMises;
+    if(!strcmp("DeviatoricStress", name.c_str())) return EDeviatoricStress;
     
     std::cout << "\n\nVar index not implemented\n\n";
     DebugStop();
@@ -409,6 +410,7 @@ int TPZHybridMixedElasticityUP::NSolutionVariables(int var) const{
             break;
         case EStress: // stress tensor
         case EStrain: // strain tensor
+        case EDeviatoricStress: // deviatoric stress tensor
             aux = 9;
             break;
         default:
@@ -554,6 +556,35 @@ void TPZHybridMixedElasticityUP::Solution(const TPZVec<TPZMaterialDataT<STATE>>&
         default:{
             std::cout << "\n\nVar index not implemented\n\n";
             DebugStop();
+        }
+        case EDeviatoricStress:
+        {
+            TPZFNMatrix<6, STATE> sigmavoight(n, 1, 0.0);
+            DeviatoricStressTensor(gradU, sigmavoight);
+
+            TPZFNMatrix<9, STATE> devsigma(3, 3, 0.0);
+            int cont = fdimension-1;
+            for (int i = 0; i < fdimension; i++)
+            {
+                devsigma(i,i) = sigmavoight(i,0);
+                for (int j = i+1; j < fdimension; j++)
+                {
+                    devsigma(i,j) = sigmavoight(++cont,0);
+                    devsigma(j,i) = sigmavoight(cont,0);
+                }
+            }
+            
+            if (fAnalysisType == AnalysisType::EPlaneStrain)
+                devsigma(2,2) = fthickness * fpoisson * (devsigma(0,0) + devsigma(1,1));
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    Solout[i * 3 + j] = devsigma(i, j);
+                }
+            }
+            break;
         }
     }
 }
