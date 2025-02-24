@@ -455,9 +455,10 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
     if (var == 10) {
         solOut[0] = 0.;
         // solOut[0]=datavec[0].dsol[0](0,0)+datavec[0].dsol[0](1,1);
-        for (int j = 0; j < fDim; j++) {
-            solOut[0] += datavec[0].dsol[0](j, j);
-        }
+        solOut[0] = datavec[0].divsol[0][0];
+        // for (int j = 0; j < fDim; j++) {
+        //     solOut[0] += datavec[0].dsol[0](j, j);
+        // }
         return;
     }
 
