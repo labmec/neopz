@@ -365,7 +365,7 @@ int TPZAnalysis::ComputeNumberofLoadCases()
     {
         return res;
     }
-    bool everyMatHasLoadCase{false};
+    bool everyMatHasLoadCase{true};
     for(auto &it : fCompMesh->MaterialVec()){
         if(auto *matLoad = dynamic_cast<TPZMatLoadCasesBase*>(it.second);
            !matLoad) {
