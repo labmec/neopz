@@ -664,6 +664,9 @@ void TPZVTKGenerator::Do()
 
   filenamefinal << ".vtk";
 
+  if(fFileout) {
+    fFileout->close();
+  }
   fFileout = new std::ofstream(filenamefinal.str());
 
   if(fPoints.size() == 0){
@@ -712,6 +715,7 @@ void TPZVTKGenerator::Do()
   PrintCellTypesLegacy();
   PrintFieldDataLegacy();
 
+  fFileout->close();
   fOutputCount++;
   if(fStep > -1){fStep++;}
   std::cout << " Done." << std::endl;
