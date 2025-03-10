@@ -59,7 +59,6 @@ TPZElasticity2D::TPZElasticity2D(int id, STATE E, STATE nu,
     fPreStressYY = 0.;  //Prestress in the y direction
     fPreStressXY = 0.;  //Prestress in the z direction
     fPreStressZZ = 0.;  //Prestress in the z direction
-    fPlaneStress = 0;
     
     // Added by Philippe 2012
     fPostProcIndex = 0;
