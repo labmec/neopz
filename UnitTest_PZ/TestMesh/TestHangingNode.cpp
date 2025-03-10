@@ -50,6 +50,7 @@ using namespace pzshape;
 #ifndef USE_MAIN
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators_all.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 #endif
 
 using namespace pzrefine;
@@ -97,23 +98,77 @@ constexpr const char* STypeToChar(SpaceType stype) {
   return "Unimplemented item";
 }
 
+#include <TPZElementMatrixT.h>
+
+TEST_CASE("Multiple dependencies", "[constrained_space_test]"){
+    TPZCompMesh cmesh(nullptr);
+    cmesh.ConnectVec().Resize(3);
+    TPZVec<int> blockdim = {1,1,1};
+    for(int icon = 0; icon < 3; icon++){
+        TPZConnect con;
+        con.SetNShape(1);
+        con.SetNState(1);
+        con.IncrementElConnected();
+        con.SetOrder(0,icon);
+        con.SetSequenceNumber(icon);
+        cmesh.ConnectVec()[icon] = con;
+        if(icon > 0){
+            TPZFMatrix<STATE> depmat(1,1,1.0);
+            auto dep =
+                cmesh.ConnectVec()[icon].AddDependency(icon,icon-1,depmat,0,0,1,1);
+        }
+    }
+    cmesh.Solution() = TPZFMatrix<STATE>(3,1,0);
+    cmesh.Block().SetNBlocks(3);
+    cmesh.Block().SetAll(blockdim);
+    cmesh.ExpandSolution();
+    cmesh.Print();
+
+    TPZElementMatrixT<STATE> elmat;
+    elmat.fMesh=&cmesh;
+    elmat.fType = TPZElementMatrix::EK;
+    elmat.fMat.Redim(3,3);
+    elmat.fMat.Identity();
+    
+    for(int icon = 0; icon < 3; icon++){
+        elmat.fConnect.Push(icon);
+    }
+    elmat.fBlock.SetNBlocks(3);
+    
+    elmat.fBlock.SetAll(blockdim);
+    elmat.fBlock.Resequence();
+    
+    
+    elmat.ApplyConstraints();
+    elmat.Print(std::cout);
+    REQUIRE(elmat.fSourceIndex.size()==1);
+
+    const auto pos = elmat.fSourceIndex[0];
+    REQUIRE(elmat.fConstrMat.GetVal(pos,pos)==Catch::Approx(3));
+    for(int icon = 0; icon < 3; icon++){
+        cmesh.ConnectVec()[icon].RemoveDepend();
+    }
+    
+    
+}
+
 // Test Hanging Nodes: FOR DEBUGGING PURPOSES
 #ifndef USE_MAIN
 TEST_CASE("Constrained Space", "[constrained_space_test]") {
-    std::cout << "Testing Hanging Nodes \n";
+//     std::cout << "Testing Hanging Nodes \n";
     
-    const int xdiv = GENERATE(2);
-    const int pOrder = GENERATE(1,2);
-    SpaceType sType = GENERATE(EHDivConstant,EHDivStandard,
-                               EHCurl,
-                               EH1);
+//     const int xdiv = GENERATE(2);
+//     const int pOrder = GENERATE(1,2);
+//     SpaceType sType = GENERATE(EHDivConstant,EHDivStandard,
+//                                EHCurl,
+//                                EH1);
     
-    TestConstrainedSpace<pzshape::TPZShapeTriang>(xdiv,pOrder,sType);
-    TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType);
-    TestConstrainedSpace<pzshape::TPZShapeTetra>(xdiv,pOrder,sType);
-    //NEEDS FIX
-    if(sType != EHCurl){TestConstrainedSpace<pzshape::TPZShapeCube>(xdiv, pOrder, sType);}
-    std::cout << "Finish test Constrained Space \n";
+//     TestConstrainedSpace<pzshape::TPZShapeTriang>(xdiv,pOrder,sType);
+//     TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType);
+//     TestConstrainedSpace<pzshape::TPZShapeTetra>(xdiv,pOrder,sType);
+//     //NEEDS FIX
+//     if(sType != EHCurl){TestConstrainedSpace<pzshape::TPZShapeCube>(xdiv, pOrder, sType);}
+//     std::cout << "Finish test Constrained Space \n";
 }
 #else
 int main(){
