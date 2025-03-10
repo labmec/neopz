@@ -47,8 +47,11 @@ TPZElasticity2D::TPZElasticity2D(int id) :
 
 
 TPZElasticity2D::TPZElasticity2D(int id, STATE E, STATE nu,
-                                 STATE fx, STATE fy, int planestress)
+                                 STATE fx, STATE fy, int planestress): TPZRegisterClassId(&TPZElasticity2D::ClassId),
+                                 TBase(id), ff(3,0.), fE_def(E), fnu_def(nu), fPlaneStress(planestress) 
 {
+    ff[0] = fx;
+    ff[1] = fy;
     
 }
 
