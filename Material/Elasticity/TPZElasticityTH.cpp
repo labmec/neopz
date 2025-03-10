@@ -167,7 +167,7 @@ void TPZElasticityTH::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
 
 void TPZElasticityTH::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCondT<STATE> &bc)
 {
-    int index = (bc.Type() == 0 || bc.Type() == 2) ? EUindex : EPindex;
+    int index = EUindex;
 
     TPZFNMatrix<150, REAL> PhiU = datavec[EUindex].phi;
     TPZFMatrix<REAL> &PhiP = datavec[EPindex].phi;
@@ -209,11 +209,37 @@ void TPZElasticityTH::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datave
         }
         case 1 : // Neumann condition
         {
+            if (bc.HasForcingFunctionBC()) //if the bc is set through an analytic solution, we need to compute its normal component from the displacement gradient
+            {
+                const int n = fdimension * (fdimension + 1) / 2;
+
+                TPZFNMatrix<6,REAL> sigmavoight(n,1,0.0), sigmavoight2(n,1,0.0);
+                DeviatoricStressTensor(val1, sigmavoight);
+
+                REAL p_exact = -datavec[EUindex].x[1]*datavec[EUindex].x[2] / 3.; //bishop
+
+                TPZFNMatrix<9, STATE> sigma(3, 3, 0.0);
+                int cont = fdimension-1;
+                for (int i = 0; i < fdimension; i++)
+                {
+                    sigma(i,i) = sigmavoight(i,0) - p_exact;
+                    for (int j = i+1; j < fdimension; j++)
+                    {
+                        sigma(i,j) = sigmavoight(++cont,0);
+                        sigma(j,i) = sigmavoight(cont,0);
+                    }
+                }
+                
+                val2.Fill(0.0);
+                for (int i = 0; i < fdimension; i++)
+                    for (int j = 0; j < fdimension; j++)
+                        val2[i] += sigma(i,j) * datavec[index].normal[j];
+            }
             for (int i = 0; i < nShapeU; i++) 
             {
                 for (int j = 0; j < fdimension; j++)
                 {
-                    ef(fdimension*i, 0) += val2[j] * PhiU(i, 0) * weight;
+                    ef(fdimension*i+j, 0) += val2[j] * PhiU(i, 0) * weight;
                 }
             }
             break;
@@ -539,79 +565,72 @@ void TPZElasticityTH::FillBoundaryConditionDataRequirements(int type, TPZVec<TPZ
 void TPZElasticityTH::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZVec<REAL> &errors)
 {
     // 0: L2 p, 1: L2 p_ex, 2: L2 u, 3: L2 u_ex, 4: L2 divu, 5: L2 divu_ex, 6: L2 sigma, 7: L2 sigma_Ex
-    if (!HasExactSol())
-        DebugStop();
+    
+    if(!HasExactSol()) DebugStop();
 
     errors.Resize(NEvalErrors());
-
+    
     TPZManVector<STATE, 4> sol_exact(4);
-    TPZFNMatrix<9, STATE> gradsol_exact(3, 3);
-
-    // Getting the exact solution for velocity, pressure and velocity gradient
+    TPZFNMatrix<9,STATE> gradsol_exact(3,3);
+    
+    //Getting the exact solution for velocity, pressure and velocity gradient
     fExactSol(data[EUindex].x, sol_exact, gradsol_exact);
-
-    // Getting the numeric solution for velocity, pressure and velocity gradient
+    REAL p_exact = -data[EUindex].x[1]*data[EUindex].x[2] / 3.; //Just for computing Bishop beam when poisson is 0.5. Remember to delete later.
+    
+    //Getting the numeric solution for velocity, pressure and velocity gradient
     TPZManVector<STATE> u_h(3, 0.0);
     TPZManVector<STATE> p_h(1, 0.0);
-    TPZFNMatrix<10, STATE> gradU_xsi = data[EUindex].dsol[0];
-    auto axes = data[EUindex].axes;
-    TPZFNMatrix<9, REAL> gradu_h(fdimension, fdimension, 0.0);
-    TPZAxesTools<REAL>::Axes2XYZ(gradU_xsi, gradu_h, axes);
-
+    TPZFNMatrix<10,STATE> gradv_h = data[EUindex].dsol[0];
+    
     this->Solution(data, VariableIndex("Displacement"), u_h);
     this->Solution(data, VariableIndex("Pressure"), p_h);
-
-    const int n = fdimension * (fdimension + 1) / 2;
-    TPZFNMatrix<6, REAL> sigma_exact(n, 1), sigma_h(n, 1);
-    StressTensor(gradsol_exact, sigma_exact);
-    StressTensor(gradu_h, sigma_h, p_h[0]);
-
-    STATE p_exact = 0.0; //If poisson == 0.5, this will break, maybe create a mor general Elasticity Analytic Solution class to deal with this issue
-    for (int i = 0; i < fdimension; i++)
-    {
-        p_exact -= sigma_exact(i,i);
-    }
-    p_exact *= 1./fdimension;
-
-    STATE div_exact = 0.0, div_h = 0.0;
-    for (int i = 0; i < fdimension; i++)
-    {
-        div_exact += gradsol_exact(i, i);
-        div_h += gradu_h(i, i);
-    }
-
-    STATE diffu, diffp, diffdiv;
+    
+    STATE diffv, diffp, diffdiv;
 
     diffp = p_h[0] - p_exact;
     errors[0] = diffp * diffp;
     errors[1] = p_exact * p_exact;
-
+    
     errors[2] = 0.0;
     errors[3] = 0.0;
-    for (int i = 0; i < fdimension; i++)
+    for(int i = 0; i < fdimension; i++)
     {
-        diffu = u_h[i] - sol_exact[i];
-        errors[2] += diffu * diffu;
+        diffv = u_h[i] - sol_exact[i];
+        errors[2] += diffv * diffv;
         errors[3] += sol_exact[i] * sol_exact[i];
     }
-
+    
+    STATE div_exact = 0.0, div_h = 0.0;
+    for(int i = 0; i < fdimension; i++)
+    {
+        div_exact += gradsol_exact(i,i);
+        div_h += gradv_h(i, i);
+    }
+    
     diffdiv = div_h - div_exact;
     errors[4] = diffdiv * diffdiv;
     errors[5] = div_exact * div_exact;
 
+    const int n = fdimension * (fdimension + 1) / 2;
+    TPZFNMatrix<6, REAL> sigma_exact(n,1), sigma_h(n,1);
+    DeviatoricStressTensor(gradsol_exact, sigma_exact); //Just for Bishop beam. remember to delete later
+    for (int i = 0; i < fdimension; i++)
+        sigma_exact(i,0) -= p_exact;
+    StressTensor(gradv_h, sigma_h, p_h[0]);
+    
     errors[6] = 0.0;
     errors[7] = 0.0;
     for (int i = 0; i < fdimension; i++)
     {
-        const STATE diffsig = sigma_h(i, 0) - sigma_exact(i, 0);
+        const STATE diffsig = sigma_h(i,0) - sigma_exact(i,0);
         errors[6] += diffsig * diffsig;
-        errors[7] += sigma_exact(i, 0) * sigma_exact(i, 0);
+        errors[7] += sigma_exact(i,0) * sigma_exact(i,0);
     }
-    for (int i = fdimension; i < n; i++)
+    for(int i = fdimension; i < n; i++)
     {
-        const STATE diffsig = sigma_h(i, 0) - sigma_exact(i, 0);
+        const STATE diffsig = sigma_h(i,0) - sigma_exact(i,0);
         errors[6] += 2. * diffsig * diffsig;
-        errors[7] += 2. * sigma_exact(i, 0) * sigma_exact(i, 0);
+        errors[7] += sigma_exact(i,0) * sigma_exact(i,0);
     }
 }
 
