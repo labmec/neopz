@@ -264,103 +264,51 @@ void TPZMixedElasticityND::Print(std::ostream &out) const {
 CSTATE TPZMixedElasticityND::GetMaxComplianceEigenvalue(TPZVec<REAL> &x) const {
     if (fElasticity){
         // Not implemented for variable elasticity coefficients yet!
-        
-    // routines for the non-symmetric case
-//    auto symsym = [&complianceElement](unsigned int i, unsigned int j, unsigned int k, unsigned int l) {
-//        auto Aijkl = complianceElement(i,j,k,l);
-//        auto Ajikl = complianceElement(j,i,k,l);
-//        auto Aijlk = complianceElement(i,j,l,k);
-//        auto Ajilk = complianceElement(j,i,l,k);
-//        return 0.25*(Aijkl + Ajikl + Aijlk + Ajilk);
-//    };
-//    
-//    auto symskw = [&complianceElement](unsigned int i, unsigned int j, unsigned int k, unsigned int l) {
-//        auto Aijkl = complianceElement(i,j,k,l);
-//        auto Ajikl = complianceElement(j,i,k,l);
-//        auto Aijlk = complianceElement(i,j,l,k);
-//        auto Ajilk = complianceElement(j,i,l,k);
-//        return 0.25*(Aijkl + Ajikl - Aijlk - Ajilk);
-//    };
-//    
-//    auto skwsym = [&complianceElement](unsigned int i, unsigned int j, unsigned int k, unsigned int l) {
-//        auto Aijkl = complianceElement(i,j,k,l);
-//        auto Ajikl = complianceElement(j,i,k,l);
-//        auto Aijlk = complianceElement(i,j,l,k);
-//        auto Ajilk = complianceElement(j,i,l,k);
-//        return 0.25*(Aijkl - Ajikl + Aijlk - Ajilk);
-//    };
-//    
-//    auto skwskw = [&complianceElement](unsigned int i, unsigned int j, unsigned int k, unsigned int l) {
-//        auto Aijkl = complianceElement(i,j,k,l);
-//        auto Ajikl = complianceElement(j,i,k,l);
-//        auto Aijlk = complianceElement(i,j,l,k);
-//        auto Ajilk = complianceElement(j,i,l,k);
-//        return 0.25*(Aijkl - Ajikl - Aijlk + Ajilk);
-//    };
         DebugStop();
     } else {
-        TPZAutoPointer<TPZMatrix<STATE>> A(new TPZFNMatrix<36, STATE>(6,6,0.));
-
-        auto delta = [](unsigned int i, unsigned int j) {
-            return (i == j) ? 1. : 0.;
-        };
-
-        auto complianceElement = [&delta, this](unsigned int i, unsigned int j, unsigned int k, unsigned int l) {
-            return (1. / (2 * fmu_const))*((delta(j, k) * delta(j, l) + delta(i, l) * delta(k, j)) / 2. - fmu_const / (fDimension * flambda_const + 2 * fmu_const) * delta(i, j) * delta(k, l));
-        };
-
-        // Assuming the 4th order tensor is minor-symmetric (Aijkl=Ajikl=Ajilk), which is the case for linear elasticity
-        A->operator ()(0, 0) = complianceElement(1, 1, 1, 1);
-        A->operator ()(0, 1) = complianceElement(1, 1, 2, 2);
-        A->operator ()(0, 2) = complianceElement(1, 1, 3, 3);
-        A->operator ()(0, 3) = complianceElement(1, 1, 2, 3) * M_SQRT2;
-        A->operator ()(0, 4) = complianceElement(1, 1, 3, 1) * M_SQRT2;
-        A->operator ()(0, 5) = complianceElement(1, 1, 1, 2) * M_SQRT2;
-        A->operator ()(1, 0) = complianceElement(2, 2, 1, 1);
-        A->operator ()(1, 1) = complianceElement(2, 2, 2, 2);
-        A->operator ()(1, 2) = complianceElement(2, 2, 3, 3);
-        A->operator ()(1, 3) = complianceElement(2, 2, 2, 3) * M_SQRT2;
-        A->operator ()(1, 4) = complianceElement(2, 2, 3, 1) * M_SQRT2;
-        A->operator ()(1, 5) = complianceElement(2, 2, 1, 2) * M_SQRT2;
-        A->operator ()(2, 0) = complianceElement(3, 3, 1, 1);
-        A->operator ()(2, 1) = complianceElement(3, 3, 2, 2);
-        A->operator ()(2, 2) = complianceElement(3, 3, 3, 3);
-        A->operator ()(2, 3) = complianceElement(3, 3, 2, 3) * M_SQRT2;
-        A->operator ()(2, 4) = complianceElement(3, 3, 3, 1) * M_SQRT2;
-        A->operator ()(2, 5) = complianceElement(3, 3, 1, 2) * M_SQRT2;
-        A->operator ()(3, 0) = complianceElement(2, 3, 1, 1) * M_SQRT2;
-        A->operator ()(3, 1) = complianceElement(2, 3, 2, 2) * M_SQRT2;
-        A->operator ()(3, 2) = complianceElement(2, 3, 3, 3) * M_SQRT2;
-        A->operator ()(3, 3) = complianceElement(2, 3, 2, 3)*2;
-        A->operator ()(3, 4) = complianceElement(2, 3, 3, 1)*2;
-        A->operator ()(3, 5) = complianceElement(2, 3, 1, 2)*2;
-        A->operator ()(4, 0) = complianceElement(3, 1, 1, 1) * M_SQRT2;
-        A->operator ()(4, 1) = complianceElement(3, 1, 2, 2) * M_SQRT2;
-        A->operator ()(4, 2) = complianceElement(3, 1, 3, 3) * M_SQRT2;
-        A->operator ()(4, 3) = complianceElement(3, 1, 2, 3)*2;
-        A->operator ()(4, 4) = complianceElement(3, 1, 3, 1)*2;
-        A->operator ()(4, 5) = complianceElement(3, 1, 1, 2)*2;
-        A->operator ()(5, 0) = complianceElement(1, 2, 1, 1) * M_SQRT2;
-        A->operator ()(5, 1) = complianceElement(1, 2, 2, 2) * M_SQRT2;
-        A->operator ()(5, 2) = complianceElement(1, 2, 3, 3) * M_SQRT2;
-        A->operator ()(5, 3) = complianceElement(1, 2, 2, 3)*2;
-        A->operator ()(5, 4) = complianceElement(1, 2, 3, 1)*2;
-        A->operator ()(5, 5) = complianceElement(1, 2, 1, 2)*2;
-        
-        TPZLapackEigenSolver<STATE> eigensolver;
-        eigensolver.SetMatrixA(A);
-        TPZManVector<CSTATE, 6> eigenvalues;
-        eigensolver.Solve(eigenvalues);
-        unsigned int maxnormindex = 0;
-        STATE max_norm = norm(eigenvalues[maxnormindex]);
-        for (unsigned int i = 1; i < 6; ++i) {
-            STATE this_norm = norm(eigenvalues[i]);
-            if (this_norm > max_norm){
-                max_norm = this_norm;
-                maxnormindex = i;
-            }
+        if (fDimension != 2){
+            DebugStop();
         }
-        return eigenvalues[maxnormindex];
+
+        return 1/fmu_const;
+
+        // There's no need to compute the eigenvalues of the compliance tensor in the isotropic case, since a simple calculation can be done in 2D, 
+        // resulting in the following expressions for the eigenvalues:
+        // lambda1 = 1/(mu)
+        // lambda2 = 1/(2*mu)
+        // lambda3 = 1/(2*mu+2*lambda)
+        // The maximum eigenvalue is clearly lambda1.
+
+        // TPZAutoPointer<TPZMatrix<STATE>> A(new TPZFNMatrix<9, STATE>(3,3,0.));
+
+        // const REAL del1 = 1./(2*fmu_const);
+        // const REAL del2 = -flambda_const/(4*fmu_const*(fmu_const+flambda_const));
+
+        // // Assuming the 4th order tensor is minor-symmetric (Aijkl=Ajikl=Ajilk), which is the case for linear elasticity
+        // A->operator ()(0, 0) = del1 + del2;
+        // A->operator ()(0, 1) = del2;
+        // //A->operator ()(0, 2) = 0.;
+        // A->operator ()(1, 0) = del2;
+        // A->operator ()(1, 1) = del1 + del2;
+        // //A->operator ()(1, 2) = 0.;
+        // //A->operator ()(2, 0) = 0;
+        // //A->operator ()(2, 1) = 0.;
+        // A->operator ()(2, 2) = 2. * del1;
+        
+        // TPZLapackEigenSolver<STATE> eigensolver;
+        // eigensolver.SetMatrixA(A);
+        // TPZManVector<CSTATE, 3> eigenvalues;
+        // eigensolver.Solve(eigenvalues);
+        // unsigned int maxnormindex = 0;
+        // STATE max_norm = norm(eigenvalues[maxnormindex]);
+        // for (unsigned int i = 1; i < 3; ++i) {
+        //     STATE this_norm = norm(eigenvalues[i]);
+        //     if (this_norm > max_norm){
+        //         max_norm = this_norm;
+        //         maxnormindex = i;
+        //     }
+        // }
+        // return eigenvalues[maxnormindex];
     }
     return 0;
 }
