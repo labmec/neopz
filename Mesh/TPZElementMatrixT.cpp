@@ -72,7 +72,7 @@ void TPZElementMatrixT<TVar>::Print(std::ostream &out){
 			}
 		}
         out << "SourceIndex = " << fSourceIndex << std::endl;
-        fConstrMat.Print("EKOrig=",out,EMathematicaInput);
+        fMat.Print("EKOrig=",out,EMathematicaInput);
 		std::stringstream sout;
         sout << "EK = ";
 		//out << "Matrix size " << constrmatrix.Rows() << "\n";
