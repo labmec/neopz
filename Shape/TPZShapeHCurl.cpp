@@ -502,6 +502,8 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
     TPZShapeH1<TSHAPE>::ShapeOrders(shapeorders, data);
     
     for(auto iCon = nEdges; iCon < nEdges + nFaces; iCon++){
+        const auto pOrder = connectOrder[iCon];
+        if(pOrder < 1){continue;}
         const auto iSide = iCon + nNodes;
         const auto iFace = iCon - nEdges;
         //max order of h1 functions used to compute hcurl face functions
