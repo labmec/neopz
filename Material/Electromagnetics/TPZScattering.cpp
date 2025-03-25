@@ -183,6 +183,7 @@ int TPZScattering::VariableIndex(const std::string &name) const
   if( strcmp(name.c_str(), "Deriv_real") == 0) return 3;
   if( strcmp(name.c_str(), "Deriv_imag") == 0) return 4;
   if( strcmp(name.c_str(), "Deriv_abs") == 0) return 5;
+  if( strcmp(name.c_str(), "Material") == 0) return 6;
   return TPZMaterial::VariableIndex(name);
 }
 //! Number of variables associated with a given solution
@@ -196,6 +197,8 @@ int TPZScattering::NSolutionVariables(int var) const
   case 4://deriv (imag val)
   case 5://deriv (abs val)
     return this->Dimension();
+  case 6:
+    return 1;
   default:
     return TPZMaterial::NSolutionVariables(var);
   }
@@ -207,7 +210,10 @@ void TPZScattering::Solution(const TPZMaterialDataT<CSTATE> &data,
 
   const auto &sol = data.sol[0];
   const auto &curlsol = data.curlsol[0];
-
+  if(var == 6){
+    solout[0] = this->Id();
+    return;
+  }
   const auto op = [var](auto &val){
     switch(var){
     case 0:
