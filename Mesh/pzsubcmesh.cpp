@@ -592,8 +592,7 @@ void TPZSubCompMesh::MakeAllInternal(){
                 int64_t fatherindex = fConnectIndex[localindex];
                 sout << "Connect in the father mesh - father index " << fatherindex << "local index : " << localindex << std::endl;
                 father->ConnectVec()[fatherindex].Print(*father,sout);
-                sout << "Making the connect index " << *itset << " internal " << " index in the father mesh " << fatherindex << std::endl;
-                sout << "Connect indexes " << fConnectIndex;
+                sout << "Making the connect index " << *itset << " internal. local index: "<< localindex << " index in the father mesh " << fatherindex << std::endl;
 				LOGPZ_DEBUG(logger,sout.str())				
 			}
 #endif
