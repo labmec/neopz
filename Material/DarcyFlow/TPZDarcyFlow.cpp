@@ -153,6 +153,7 @@ int TPZDarcyFlow::VariableIndex(const std::string &name) const {
     if (!strcmp("EstimatedError", name.c_str())) return 100;
     if (!strcmp("TrueError", name.c_str())) return 101;
     if (!strcmp("EffectivityIndex", name.c_str())) return 102;
+    if (!strcmp("ResidualError", name.c_str())) return 103;
 
     return TPZMatBase::VariableIndex(name);
 }
@@ -175,6 +176,7 @@ int TPZDarcyFlow::NSolutionVariables(int var) const {
     if (var == 100) return 1;  // EstimatedError
     if (var == 101) return 1;  // TrueError
     if (var == 102) return 1;  // EffectivityIndex
+    if (var == 103) return 1;  // ResidualError
 
 
     return TPZMatBase::NSolutionVariables(var);
@@ -341,15 +343,16 @@ void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
 
     // errors[2] - H1 semi-norm: |H1| = K*(grad[u] - grad[u_exact])
     const STATE perm = GetPermeability(data.x);
-
+    STATE sqperm = sqrt(perm);
+    
     TPZVec<REAL> graduDiff(fDim, 0);
     for (int id = 0; id < fDim; id++) {
         graduDiff[id] += fabs(gradu(id) - exact_flux(id, 0));
     }
     diff = 0;
     for (int id = 0; id < fDim; id++) {
-        REAL aux = graduDiff[id];
-        diff += perm * aux * aux;
+        REAL aux = sqperm * graduDiff[id];
+        diff += aux * aux;
     }
     errors[2] += abs(diff);
 

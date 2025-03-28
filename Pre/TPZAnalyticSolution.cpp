@@ -1384,7 +1384,27 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             disp[0] = atan(alpha*(rCircle-r0));
         }
             break;
+        
+        case ESteepWave2:
+        {
+            TPZManVector<TVar,3> x0(fDimension,TVar(0.));
+            TVar r2Circle = TVar(0);
+            TVar r0 = TVar(0.7);
+            TVar alpha = TVar(5.);//TVar(100.);
+            TVar factor = TVar(1.);
+            for (int i=0; i<fDimension; i++) {
+//                x0[i] = TVar(-0.05);
+                r2Circle += (xloc[i]-x0[i])*(xloc[i]-x0[i]);
+                //factor *= sqrt(TVar(1.)-xloc[i]*xloc[i]);
+                factor *= TVar(1.)-xloc[i]*xloc[i];
+            }
+//            TVar rCircle = sqrt(r2Circle);
+//            disp[0] = atan(alpha*(rCircle-r0));
             
+            disp[0] = factor*TVar(0.4)*(TVar(M_PI)/TVar(2.)+atan(alpha*(TVar(3.)-TVar(10.)*r2Circle)));
+
+        }
+            break;
             //----
         case ESinMark://(r^(2/3)-r^2)sin(20/3) para homogeneo dirichlet e r^(2/3)sin(20/3) para f=0
         {
@@ -1403,6 +1423,38 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             }
 
 
+        }
+            break;
+        
+        case ESinMark2://(r^(2/3)-r^2)sin(20/3) para homogeneo dirichlet e r^(2/3)sin(20/3) para f=0
+        {
+
+            TVar theta = atan2(xloc[1], xloc[0]);//theta=arctan(y/x)
+            auto thetaval = shapeFAD::val(theta);
+            if (thetaval < (0.)) theta += 2. * M_PI;
+
+            // Verification to avoid numerical errors when x > 0 and y = 0
+            if (xval[0] > 0 && xval[1] < 1e-15 && xval[1] > -1.e-15) {
+               disp[0] = 0.;
+            }
+            else {
+                TVar factor = pow(r,TVar (2.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//
+                //TVar factor2 = TVar(3.)*(TVar(1.)-xloc[0]*xloc[0])*(TVar(1.)-xloc[1]*xloc[1])/TVar(2.);
+                //disp[0] = TVar(4.)*factor2*factor * (sin((TVar) (2.) * theta / TVar(3.)));
+
+                TVar factor2 = cos(TVar(M_PI)*xloc[0]/TVar(2.))*cos(TVar(M_PI)*xloc[1]/TVar(2.));
+
+                disp[0] = factor2*factor*(sin((TVar)(2.)*theta/TVar(3.)));
+
+            }
+        }
+            break;
+        
+        case ESharpGaussian2D:
+        {
+            //TVar ep = -100.;
+            //TVar quadad = xval[0]*xval[0]+xval[1]*xval[1];
+            disp[0] = (xloc[0]*xloc[0]-(TVar)(1.))*(xloc[1]*xloc[1]-(TVar)(1.))*exp(-(TVar)(1000.)*(xloc[0]*xloc[0]+xloc[1]*xloc[1]));
         }
             break;
             
@@ -1464,6 +1516,54 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         }
             break;
             
+        case ESteklovNonConst2://Steklov function for eigenvalue lambda=0.53544094560246 and permeability Omega1=Omega=3, Omega2=Omega4=5
+        {
+            TVar coefs[] = {1., 0.44721359549995787, 2.3333333333333326,
+                -0.7453559924999296, 0.5555555555555556,
+                -0.9441175904999111, -0.48148148148148173,
+                -2.4017026424997736};
+            TVar lambda = 0.53544094560246;
+            TVar t = atan2(xloc[1], xloc[0]);
+            TVar hom = cos(M_PI*xloc[0]/TVar(2.))*cos(M_PI*xloc[1]/TVar(2.));
+            REAL tval = shapeFAD::val(t);
+            if(tval < (0.)) t += 2.*M_PI;
+            
+            if((xval[0] >=(0.)) && (xval[1] >=(0.))){
+               // std::cout<<"1o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
+                
+                disp[0]=hom*pow(r, lambda)*(TVar(coefs[0])*cos(lambda *t) + TVar(coefs[1])*sin(lambda*t) );
+               // std::cout<<"valor da funcao no 1o. Q "<<disp[0]<<std::endl;
+               // disp[0]=pow(r, lambda)*(cos(lambda *t)+TVar(-1.)*TVar(0.1)*sin(lambda*t));
+                
+            }
+            
+            if(( xval[0] <= (0.)) && (xval[1] >=(0.))){
+               // std::cout<<"2o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
+                
+                disp[0]= hom*pow(r, lambda)*(TVar(coefs[2])*cos(lambda*t) + TVar(coefs[3])*sin(lambda* t));
+                
+             //    std::cout<<"valor da funcao no 2o. Q "<<disp[0]<<std::endl;
+            }
+            
+            if((xval[0] <(0.)) && ( xval[1] <= (0.))){
+               // std::cout<<"3o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
+                disp[0]= hom*pow(r, lambda)*(TVar(coefs[4] )*cos(lambda*t) + TVar(coefs[5])*sin(lambda* t));
+                //disp[0]= pow(r, lambda)*(TVar(-1.)*TVar(0.882757 )*cos(lambda*t) + TVar(-1.)*TVar(0.480355)*sin(lambda* t));
+              //   std::cout<<"valor da funcao no 3o. Q "<<disp[0]<<std::endl;
+            }
+            if(( xval[0] >= (0.)) && ( xval[1] < (0.))){
+              //  std::cout<<"4o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
+
+                disp[0]= hom*pow(r, lambda)*(TVar(coefs[6])*cos(lambda*t) +  TVar(coefs[7])*sin(lambda* t));
+                
+               // std::cout<<"valor da funcao no 4o. Q "<<disp[0]<<std::endl;
+                
+            }
+            
+            
+        }
+            break;
+
             case EGalvisNonConst:
         {
             
@@ -1722,7 +1822,27 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
             disp[0] = FADatan(alpha*(rCircle-r0));
         }
             break;
+        
+        case ESteepWave2:
+        {
+            TPZManVector<TVar,3> x0(fDimension,TVar(0.));
+            TVar r2Circle = TVar(0);
+            TVar r0 = TVar(0.7);
+            TVar alpha = TVar(5.);//TVar(100.)
+            TVar factor = TVar(1.);
+            for (int i=0; i<fDimension; i++) {
+//                x0[i] = TVar(-0.05);
+                r2Circle += (xloc[i]-x0[i])*(xloc[i]-x0[i]);
+                //factor *= FADsqrt(TVar(1.)-xloc[i]*xloc[i]);
+                factor *= TVar(1.)-xloc[i]*xloc[i];
 
+            }
+//            TVar rCircle = FADsqrt(r2Circle);
+//            disp[0] = FADatan(alpha*(rCircle-r0));
+            disp[0] = factor*TVar(0.4)*(TVar(M_PI)/TVar(2.)+FADatan(alpha*(TVar(3.)-TVar(10.)*r2Circle)));
+
+        }
+            break;
         case ESinSinDirNonHom: //sin(2pi x)sin(2pi y)+1/(x+y+1)
         {
             
@@ -1759,6 +1879,49 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
             
         }
             break;
+            
+        case ESinMark2:
+        {
+            
+            TVar theta=FADatan2(xloc[1],xloc[0]);//theta=atan(y/x)
+#ifdef STATE_COMPLEX
+            if( theta.val().val().real() < 0.) theta += 2.*M_PI;
+#else
+            if( theta < TVar(0.)) theta += 2.*M_PI;
+#endif
+            
+            // Verification to avoid numerical errors when x > 0 and y = 0
+#ifdef STATE_COMPLEX
+            if ((xloc[0].val().val().real() > 0.) && (xloc[1].val().val().real() <  (1e-15)) && (xloc[1].val().val().real() > (-1e-15))) {
+               disp[0] = TVar(0.);
+            }
+#else
+            if ((xloc[0] > TVar(0.)) && (xloc[1] < TVar (1e-15)) && (xloc[1] > TVar(-1e-15))) {
+               disp[0] = TVar(0.);
+            }
+#endif
+            else{
+                
+            TVar factor = pow(r,TVar (2.)/TVar (3.));
+//            TVar factor2 = TVar(3.)*(TVar(1.)-xloc[0]*xloc[0])*(TVar(1.)-xloc[1]*xloc[1])/TVar(2.);
+//            disp[0] = factor2*factor*(FADsin((TVar)(2.)*theta/TVar(3.)));
+                TVar factor2 = FADcos(TVar(M_PI)*xloc[0]/TVar(2.))*FADcos(TVar(M_PI)*xloc[1]/TVar(2.));
+            disp[0] = factor2*factor*(FADsin((TVar)(2.)*theta/TVar(3.)));
+            
+            }
+            
+        }
+            break;
+
+        case ESharpGaussian2D:
+        {
+            
+            //TVar ep = -100.;
+            //TVar quadad = xloc[0]*xloc[0]+xloc[1]*xloc[1];
+            disp[0] = (xloc[0]*xloc[0]-(TVar)(1.0))*(xloc[1]*xloc[1]-(TVar)(1.))*FADexp(-(TVar)(1000.)*(xloc[0]*xloc[0]+xloc[1]*xloc[1]));
+        }
+            break;
+            
         case ESteklovNonConst://Steklov function for eigenvalue lambda=0.126902 and permeability Omega1=Omega=3=5, Omega2=Omega4=1
         {
             
@@ -1805,6 +1968,62 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
                // std::cout<<"4o. Q"<<xloc<<std::endl;
                 
                 disp[0]= pow(r, lambda)*(TVar(coefs[6])*FADcos(lambda*t) +  TVar(coefs[7])*FADsin(lambda* t));
+                //disp[0]= pow(r, lambda)*(TVar(-1.)*TVar(6.45646)*cos(lambda*t) +  TVar(7.70156 )*sin(lambda* t));
+              //  std::cout<<"valor da funcao no 4o. Q "<<disp[0]<<std::endl;
+                
+            }
+
+        }
+            break;
+        
+        case ESteklovNonConst2://Steklov function for eigenvalue lambda=0.126902 and permeability Omega1=Omega=3=5, Omega2=Omega4=1
+        {
+            
+            TVar coefs[] = {1., 0.44721359549995787, 2.3333333333333326,
+                -0.7453559924999296, 0.5555555555555556,
+                -0.9441175904999111, -0.48148148148148173,
+                -2.4017026424997736};
+            TVar lambda = 0.53544094560246;
+#ifdef STATE_COMPLEX
+            double xr = xloc[0].val().val().real();
+            double yr = xloc[1].val().val().real();
+#else
+            double xr = xloc[0].val().val();
+            double yr = xloc[1].val().val();
+#endif
+            TVar t = FADatan2(xloc[1], xloc[0]);
+            TVar hom = FADcos(M_PI*xloc[0]/TVar(2.))*FADcos(M_PI*xloc[1]/TVar(2.));
+
+            double tval = atan2(yr,xr);
+            if(tval < (0.)) t += TVar(2.*M_PI);
+
+            if((xr >= (0.)) && (yr >= (0.))){
+              //  std::cout<<"1o. Q"<<xloc<<std::endl;
+                
+                disp[0]=hom*pow(r, lambda)*(TVar(coefs[0])*FADcos(lambda *t) + TVar(coefs[1])*FADsin(lambda*t));
+              //  std::cout<<"valor da funcao no 1o. Q "<<disp[0]<<std::endl;
+                // disp[0]=pow(r, lambda)*(cos(lambda *t)+TVar(-1.)*TVar(0.1)*sin(lambda*t));
+                
+            }
+            
+            if(( xr < (0)) && (yr >(0.))){
+               // std::cout<<"2o. Q"<<xloc<<std::endl;
+                
+                disp[0]=hom*pow(r, lambda)*(TVar(coefs[2])*FADcos(lambda*t) + TVar(coefs[3])*FADsin(lambda* t));
+                //disp[0]= pow(r, lambda)*(TVar(2.9604)*cos(lambda*t) +TVar(-1.)* TVar(9.60396)*sin(lambda* t));
+                //std::cout<<"valor da funcao no 2o. Q "<<disp[0]<<std::endl;
+            }
+            
+            if((xr < (0.)) && ( yr <= (0.))){
+             //   std::cout<<"3o. Q"<<xloc<<std::endl;
+                disp[0]=hom*pow(r, lambda)*(TVar(coefs[4] )*FADcos(lambda*t) + TVar(coefs[5])*FADsin(lambda* t));
+                //disp[0]= pow(r, lambda)*(TVar(-1.)*TVar(0.882757 )*cos(lambda*t) + TVar(-1.)*TVar(0.480355)*sin(lambda* t));
+               // std::cout<<"valor da funcao no 3o. Q "<<disp[0]<<std::endl;
+            }
+            if(( xr >= (0.)) && ( yr < 0.)){
+               // std::cout<<"4o. Q"<<xloc<<std::endl;
+                
+                disp[0]=hom*pow(r, lambda)*(TVar(coefs[6])*FADcos(lambda*t) +  TVar(coefs[7])*FADsin(lambda* t));
                 //disp[0]= pow(r, lambda)*(TVar(-1.)*TVar(6.45646)*cos(lambda*t) +  TVar(7.70156 )*sin(lambda* t));
               //  std::cout<<"valor da funcao no 4o. Q "<<disp[0]<<std::endl;
                 
