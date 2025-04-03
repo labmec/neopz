@@ -34,7 +34,7 @@ TPZSubMeshAnalysis::~TPZSubMeshAnalysis()
 }
 
 /** @brief Set the computational mesh of the analysis. */
-void TPZSubMeshAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth)
+void TPZSubMeshAnalysis::SetCompMesh(TPZCompMesh * mesh, RenumType mustOptimizeBandwidth)
 {
     TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *>(mesh);
     if (submesh) {

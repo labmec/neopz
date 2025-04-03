@@ -143,10 +143,10 @@ fSolType(mesh->GetSolType()),
 fSolution(fSolType == EComplex ? true : false)
 {
   //we must not call virtual methods in constructor
-  bool mustOptimizeBandwidth = false;
+  RenumType mustOptimizeBandwidth = RenumType::ENone;
   if (renumtype != RenumType::ENone){
     CreateRenumberObject(renumtype);
-    mustOptimizeBandwidth = true;
+    mustOptimizeBandwidth = RenumType::EDefault;
   }
   this->SetCompMeshInit(mesh, mustOptimizeBandwidth);
 }
@@ -158,10 +158,10 @@ fSolType(mesh->GetSolType()),
 fSolution(fSolType == EComplex ? true : false)
 {
   //we must not call virtual methods in constructor
-  bool mustOptimizeBandwidth = false;
+  RenumType mustOptimizeBandwidth = RenumType::ENone;
   if (renumtype != RenumType::ENone){
     CreateRenumberObject(renumtype);
-    mustOptimizeBandwidth = true;
+    mustOptimizeBandwidth = RenumType::EDefault;
   }
 	this->SetCompMeshInit(mesh.operator ->(), mustOptimizeBandwidth);
 }
@@ -198,7 +198,7 @@ void TPZAnalysis::CreateRenumberObject(const RenumType& renumtype) {
   DebugStop();
 }
 
-void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, bool mustOptimizeBandwidth)
+void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, RenumType mustOptimizeBandwidth)
 {
   if(mesh)
     {
@@ -220,17 +220,17 @@ void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, bool mustOptimizeBandwidth)
         if(fSolver) fSolver->ResetMatrix();
 //        fCompMesh->InitializeBlock();
         int64_t neq = fCompMesh->NEquations();
-        if(neq > 20000 && mustOptimizeBandwidth)
+        if(neq > 20000 && mustOptimizeBandwidth != RenumType::ENone)
         {
             std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth neq = " << neq << "\n";
             std::cout.flush();
         }
-        if(mustOptimizeBandwidth)
+        if(mustOptimizeBandwidth != RenumType::ENone)
         {
             TPZSimpleTimer bd("Optimize bandwidth",false);
             OptimizeBandwidth();
         }
-        if(neq > 20000 && mustOptimizeBandwidth)
+        if(neq > 20000 && mustOptimizeBandwidth != RenumType::ENone)
         {
             std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth finished\n";
             std::cout.flush();
@@ -245,7 +245,7 @@ void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, bool mustOptimizeBandwidth)
     fStep = 0;
 }
 
-void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
+void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, RenumType mustOptimizeBandwidth) {
   SetCompMeshInit(mesh,mustOptimizeBandwidth);
 }
 

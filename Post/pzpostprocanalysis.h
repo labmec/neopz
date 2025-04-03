@@ -33,7 +33,7 @@ TPZPostProcAnalysis();
     virtual ~TPZPostProcAnalysis();
 	
     /// Set the computational mesh we are going to post process
-    void SetCompMesh(TPZCompMesh *pRef, bool mustOptimizeBandwidth = false) override;
+    void SetCompMesh(TPZCompMesh *pRef, RenumType mustOptimizeBandwidth = RenumType::ENone) override;
     
     TPZCompMesh *ReferenceCompMesh()
     {

@@ -186,7 +186,7 @@ protected:
 	/** @brief Returns the pointer to the computational mesh */
 	TPZCompMesh *Mesh()const { return fCompMesh;}
   /** @brief Set the computational mesh of the analysis. */
-	virtual void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
+	virtual void SetCompMesh(TPZCompMesh * mesh, RenumType mustOptimizeBandwidth);
   /// Change the renumbering scheme
   void SetRenumber(TPZAutoPointer<TPZRenumbering> renumber)
   {
@@ -341,7 +341,7 @@ protected:
   virtual void PostProcessErrorParallel(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
 
   /** @brief Common steps in setting a computational mesh. */
-	void SetCompMeshInit(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
+	void SetCompMeshInit(TPZCompMesh * mesh, RenumType mustOptimizeBandwidth);
   /** @brief Build a sequence solver based on the block graph and its colors */
   template <class TVar>
   TPZMatrixSolver<TVar> *

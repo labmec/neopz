@@ -289,7 +289,7 @@ void TPZLinearAnalysis::SetSolver(const TPZSolver &solver){
     DebugStop();
 }
 
-void TPZLinearAnalysis::SetCompMesh(TPZCompMesh *cmesh, bool optimize){
+void TPZLinearAnalysis::SetCompMesh(TPZCompMesh *cmesh, RenumType optimize){
   TPZAnalysis::SetCompMesh(cmesh,optimize);
   fRhs.SetSolType(this->fSolType);
 }
