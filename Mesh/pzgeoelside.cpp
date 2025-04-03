@@ -1305,6 +1305,18 @@ void  TPZGeoElSide::Normal(TPZVec<REAL> &qsi_side, TPZVec<REAL> &normal) const{
         for(int i=0; i<3; i++) normal[i] = axes(0,(i+1)%3)*axes(1,(i+2)%3)-axes(0,(i+2)%3)*axes(1,(i+1)%3);
         return;
     }
+    if(Dimension() == 1 && fGeoEl->Dimension() == 1) {
+        TPZFNMatrix<9,REAL> gradx(3,1);
+        fGeoEl->GradX(qsi_side, gradx);
+        TPZFNMatrix<6,REAL> jac(1,1),jacinv(1,1),axes(1,3);
+        REAL detjac;
+        fGeoEl->Jacobian(gradx, jac, axes, detjac, jacinv);
+        if(fabs(axes(0,2)) > 1.e-9) DebugStop();
+        normal[0] = axes(0,1);
+        normal[1] = -axes(0,0);
+        normal[2] = 0.;
+        return;
+    }
     if (Dimension() != fGeoEl->Dimension()-1) {
         DebugStop();
     }
