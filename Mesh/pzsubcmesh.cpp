@@ -414,7 +414,10 @@ void TPZSubCompMesh::TransferDependencies(int64_t local)
 	}
 #endif
 
+    // we need to adapt the sequence number
+    int64_t seqnum = ConnectVec()[local].SequenceNumber();
   ConnectVec()[local] = father->ConnectVec()[superind];
+    ConnectVec()[local].SetSequenceNumber(seqnum);
 
   //now we adjust the indices of the dependencies
 	TPZConnect::TPZDependBase *listdepend = ConnectVec()[local].FirstDepend();
@@ -587,6 +590,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 				std::stringstream sout;
                 int64_t localindex = fExternalLocIndex[*itset];
                 int64_t fatherindex = fConnectIndex[localindex];
+                sout << "Connect in the father mesh - father index " << fatherindex << "local index : " << localindex << std::endl;
                 father->ConnectVec()[fatherindex].Print(*father,sout);
                 sout << "Making the connect index " << *itset << " internal " << " index in the father mesh " << fatherindex << std::endl;
                 sout << "Connect indexes " << fConnectIndex;
@@ -675,6 +679,16 @@ void TPZSubCompMesh::MakeAllInternal(){
 	if (count != (int64_t)fFatherToLocal.size()) {
 		DebugStop();
 	}
+#endif
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
+    {
+        std::stringstream sout;
+        int64_t nc = ConnectVec().NElements();
+        sout << "Number of connects of subcmesh " << nc << std::endl;
+        
+        LOGPZ_DEBUG(logger,sout.str())
+    }
 #endif
 	TPZCompMesh::ExpandSolution();
 	//TPZCompMesh::Print();
@@ -1426,7 +1440,7 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned){
 void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZRenumbering> renumber){
     fAnalysis = new TPZSubMeshAnalysis;
     fAnalysis->SetRenumber(renumber);
-    fAnalysis->SetCompMesh(this, true);
+    fAnalysis->SetCompMesh(this, RenumType::EDefault);
     TPZAutoPointer<TPZStructMatrix> str = NULL;
     
     str = new TPZSkylineStructMatrix<STATE>(this);
