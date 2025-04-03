@@ -1277,6 +1277,8 @@ int TPZCompElHDiv<TSHAPE>::CheckRestrainedSideOrientation(TPZGeoElSide &thisgeos
     for(int i=0; i<3; i++) normalprod += normalLarge[i]*normalThis[i];
     if(fabs(fabs(normalprod)-1.) >= 1.e-7) DebugStop();
     if(normalprod*orient < 0.) {
+        std::cout << "this element\n";
+        for(int in = 0; in < this->Reference()->NNodes(); in++) this->Reference()->NodePtr(in)->Print();
         this->Reference()->Print();
         std::cout << "Side node indexes of this geoside ";
         TPZGeoEl *geo = thisgeoside.Element();
@@ -1285,7 +1287,7 @@ int TPZCompElHDiv<TSHAPE>::CheckRestrainedSideOrientation(TPZGeoElSide &thisgeos
         std::cout << "Large element\n";
         largegeoside.Element()->Print();
         TPZFNMatrix<9> gradx(3,3),jac(3,3),jacinv(3,3),axes(3,3);
-        TPZManVector<REAL,3> xi(3);
+        TPZManVector<REAL,3> xi(geo->Dimension());
         geo->CenterPoint(geo->NSides()-1, xi);
         geo->GradX(xi, gradx);
         REAL detjac;
