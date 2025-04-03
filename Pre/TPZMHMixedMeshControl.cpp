@@ -686,6 +686,16 @@ void TPZMHMixedMeshControl::HideTheElements()
     std::cout << "After putting in substructures\n";
     fMHMtoSubCMesh = submeshindices;
     fCMesh->ComputeNodElCon();
+    
+    // remove dependencies of connects that have no elements connected
+    {
+        int64_t nc = fCMesh->ConnectVec().NElements();
+        for(int64_t ic = 0; ic<nc; ic++) {
+            TPZConnect &c = fCMesh->ConnectVec()[ic];
+            if(c.NElConnected() == 0 && c.HasDependency()) c.RemoveDepend();
+        }
+    }
+    
     fCMesh->CleanUpUnconnectedNodes();
     
     GroupandCondenseElements();
