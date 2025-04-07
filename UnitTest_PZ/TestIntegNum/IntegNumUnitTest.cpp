@@ -326,9 +326,13 @@ TEST_CASE("geom_integration_tests","[geomtests]") {
 
 static REAL Function(TPZManVector<REAL,3> &point, int p, int dim) {
 	REAL functionvalue = (REAL)(0.0L);
-	REAL xi = point[0];
-	REAL eta = point[1];
-	REAL zeta = point[2];
+    TPZManVector<REAL,3> xi(3,0.L);
+    for (int i=0;i<dim;i++) {
+        xi[i] = point[i];
+    }
+	// REAL xi = point[0];
+	// REAL eta = point[1];
+	// REAL zeta = point[2];
     REAL epsilon = 0.1;
     int p1 = 0;
     int p2 = 0;
@@ -358,7 +362,7 @@ static REAL Function(TPZManVector<REAL,3> &point, int p, int dim) {
             for(int i = 0; i <= p1; i++)
             {
                 if (i+j+k <= p) {
-                    functionvalue += (i+1)*power(i,xi+epsilon) * (j+1)*power(j,eta+epsilon) * (k+1)*power(k,zeta+epsilon);
+                    functionvalue += (i+1)*power(i,xi[0]+epsilon) * (j+1)*power(j,xi[1]+epsilon) * (k+1)*power(k,xi[2]+epsilon);
                 }
             }
         }
@@ -376,11 +380,10 @@ void TestingNumericIntegrationRule(int p,int type,std::ifstream &input) {
   }
 
 	// Variables to computing numerical integration
-	TPZManVector<REAL,3> point(3);
 	REAL weight = 0.L;
 	REAL NeopzIntegral = 0.L;
 	TPZManVector<int,20> order(3,p);
-		
+    
 	// Creating the integration rule
 	NumInteg IntegrationRule(p);
 	IntegrationRule.SetOrder(order,type);
@@ -390,6 +393,7 @@ void TestingNumericIntegrationRule(int p,int type,std::ifstream &input) {
 	std::string namerule;
 	IntegrationRule.Name(namerule);
     
+	TPZManVector<REAL,3> point(dimension);
 	
 	// Integrates Fucntion on parametric element space
     std::cout << " Cubature rule: " << namerule << "  Type " << type << " \tOrder " << p << " \tNumber of Points " << npoints << std::endl;
@@ -480,9 +484,12 @@ void ComputeError(REAL alpha, TPZManVector<REAL,3> &coordinate,TPZGeoEl * Geomet
   TPZManVector<REAL,3> result(3,0.0);
   TPZManVector<REAL,3> resultAlpha(3,0.0);
 
-  coordinateAlpha[0] += alpha;
-  coordinateAlpha[1] += alpha;
-  coordinateAlpha[2] += alpha;
+  for (int i=0; i<dimension; i++){
+    coordinateAlpha[i] += alpha;
+  }
+//   coordinateAlpha[0] += alpha;
+//   coordinateAlpha[1] += alpha;
+//   coordinateAlpha[2] += alpha;
 
   GeometricEl->X(coordinate,result);
   GeometricEl->X(coordinateAlpha,resultAlpha);
@@ -534,7 +541,6 @@ void IntegrateCurve(TPZCurve &curve)
   int type = 0;  
   TPZVec<int> order(3,IntegrationOrder);
   
-  TPZManVector<REAL,3> point(3,0.L);
   TPZFMatrix<REAL> jac;
   TPZFMatrix<REAL> axes;
   REAL detjac;
@@ -561,7 +567,7 @@ void IntegrateCurve(TPZCurve &curve)
     IntegrationRule.SetType(type,IntegrationOrder);
     int npoints = IntegrationRule.NPoints();
     REAL weight = 0.0;
-
+    TPZManVector<REAL,3> point(geldim,0.L);
     // Integrates Fucntion on parametric element space
     for (int it=0;it<npoints;it++) {
       IntegrationRule.Point(it,point,weight);
