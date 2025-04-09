@@ -259,7 +259,7 @@ void TPZMHMixedMeshControl::InsertPeriferalHdivMaterialObjects()
     gmesh->ResetReference();
     cmeshHDiv->LoadReferences();
     cmeshHDiv->SetDimModel(meshdim);
-    cmeshHDiv->ApproxSpace().SetHDivFamily(HDivFamily::EHDivConstant);
+    cmeshHDiv->ApproxSpace().SetHDivFamily(fHDivFamily);
     cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
     cmeshHDiv->SetDefaultOrder(fpOrderInternal);
     if(fMaterialIds.size() == 0) DebugStop();
@@ -306,7 +306,8 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
         DebugStop();
     }
 
-    int porder = 0;//fpOrderInternal;
+    int porder = fpOrderInternal;
+    if (fHDivFamily == HDivFamily::EHDivConstant) porder = 0;
     // create and organize the pressure mesh
     // the pressure mesh is composed of discontinuous H1 elements
     TPZCompMesh * cmeshPressure = fPressureFineMesh.operator->();
@@ -857,7 +858,7 @@ void TPZMHMixedMeshControl::HybridizeSkeleton(int skeletonmatid, int pressuremat
         int side = gel->NSides()-1;
         TPZGeoElSide gelside(gel,side);
         TPZGeoElBC skeleton2(gelside,fSecondSkeletonMatId);
-        fFluxMesh->ApproxSpace().SetHDivFamily(HDivFamily::EHDivConstant);
+        fFluxMesh->ApproxSpace().SetHDivFamily(fHDivFamily);
         auto meshdim = fFluxMesh->Dimension();
         fFluxMesh->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
         // fFluxMesh->SetAllCreateFunctionsHDiv();
@@ -978,7 +979,7 @@ void TPZMHMixedMeshControl::CreateInternalFluxElements() {
     gmesh->ResetReference();
     cmeshHDiv->LoadReferences();
     cmeshHDiv->SetDimModel(meshdim);
-    cmeshHDiv->ApproxSpace().SetHDivFamily(HDivFamily::EHDivConstant);
+    cmeshHDiv->ApproxSpace().SetHDivFamily(fHDivFamily);
     cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
     cmeshHDiv->SetDefaultOrder(fpOrderInternal);
 
@@ -1034,7 +1035,7 @@ void TPZMHMixedMeshControl::CreateSkeleton()
 {
     // comment this line or not to switch the type of skeleton elements
     int meshdim = fFluxMesh->Dimension();
-    fFluxMesh->ApproxSpace().SetHDivFamily(HDivFamily::EHDivConstant);
+    fFluxMesh->ApproxSpace().SetHDivFamily(fHDivFamily);
     fFluxMesh->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
     // fFluxMesh->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
     fGMesh->ResetReference();
@@ -1043,7 +1044,12 @@ void TPZMHMixedMeshControl::CreateSkeleton()
         order = 1;
     }
     // create the skeleton elements without applying the restraints of the elements of the subdomains
-    fFluxMesh->SetDefaultOrder(0);
+    if (fHDivFamily==HDivFamily::EHDivConstant){
+        fFluxMesh->SetDefaultOrder(0);
+    } else {
+        fFluxMesh->SetDefaultOrder(order);
+    }
+    
     std::map<int64_t, std::pair<int64_t, int64_t> >::iterator it = fInterfaces.begin();
     while (it != fInterfaces.end()) {
         int64_t elindex = it->first;

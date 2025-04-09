@@ -46,6 +46,7 @@ protected:
     
     /// number of state variables
     int fNState = 1;
+
     
 public:
     /// material id associated with the skeleton elements
@@ -111,6 +112,9 @@ protected:
     
     /// flag to indicate whether the lagrange multipliers should switch signal
     bool fSwitchLagrangeSign = false;
+
+    HDivFamily fHDivFamily = HDivFamily::EHDivStandard;
+
     
 public:
     /// number of equations when not condensing anything
@@ -323,6 +327,15 @@ public:
     virtual void CheckMeshConsistency()
     {
         
+    }
+
+    void SetHDivFamily(HDivFamily family)
+    {
+        fHDivFamily = family;
+    }
+    HDivFamily GetHDivFamily() const
+    {
+        return fHDivFamily;
     }
     
 protected:

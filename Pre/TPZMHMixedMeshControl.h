@@ -24,6 +24,8 @@ protected:
     
     /// computational mesh to contain the rotation elements
     TPZAutoPointer<TPZCompMesh> fRotationMesh;
+
+    
     
 
 public:
@@ -113,6 +115,8 @@ public:
     {
         
     }
+
+    
     
 protected:
     
@@ -163,6 +167,8 @@ protected:
     void DeletePressureElements();
 
     void AdjustBoundaryElements();
+
+    
 };
 
 #endif /* TPZMHMixedMeshControl_hpp */
