@@ -78,6 +78,18 @@ public:
     int pOrderSkeleton() {
         return fpOrderSkeleton;
     }
+    
+    int pOrderInternal() {
+        return fpOrderInternal;
+    }
+
+    void SetpOrderSkeleton(int porder) {
+        fpOrderSkeleton = porder;
+    }
+    
+    void  SetpOrderInternal(int porder) {
+        fpOrderInternal = porder;
+    }
 
 protected:
     
