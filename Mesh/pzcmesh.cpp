@@ -523,6 +523,22 @@ void TPZCompMesh::ExpandSolutionInternal(TPZFMatrix<TVar> &sol) {
 	fSolutionBlock = fBlock;
 }
 
+/** @brief Expand the element solution to have the given number of columns */
+void TPZCompMesh::ExpandElementSolution(int ncols)
+{
+    int64_t nels = fElementVec.NElements();
+    fElementSolution.Resize(nels, ncols);
+    for (int64_t el = 0; el<nels; el++) {
+        TPZCompEl *cel = Element(el);
+        TPZSubCompMesh *sub = dynamic_cast<TPZSubCompMesh *>(cel);
+        if(sub)
+        {
+            sub->ExpandElementSolution(ncols);
+        }
+    }
+}
+
+
 void TPZCompMesh::LoadSolution(const TPZSolutionMatrix &mat){
     /*
       The TPZLinearAnalysis class will store the solution associated with the independent
