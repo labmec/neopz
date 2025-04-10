@@ -268,6 +268,14 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
 
     static void ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
+    std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> ElasticFunc() const {
+        return [this](const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
+        {
+            this->ElasticDummy(loc, result, deriv);
+        };
+
+    }
+
     virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const override;
     
 };
