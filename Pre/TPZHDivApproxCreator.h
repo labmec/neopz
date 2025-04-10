@@ -68,9 +68,11 @@ public:
 
 protected:
 
+public:
     /// Checks if the parameters provided do not violate any condition for mesh generation
     void CheckSetupConsistency() override;
-        
+protected:
+    
     /// Groups the elements in data structure to be condensed
     /// @param mcmesh multiphysics compmesh with elements to be condensed
     void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) override;

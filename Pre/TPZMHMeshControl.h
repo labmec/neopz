@@ -74,6 +74,13 @@ protected:
     /// interpolation order of the skeleton elements
     int fpOrderSkeleton = 1;
     
+public:
+    int pOrderSkeleton() {
+        return fpOrderSkeleton;
+    }
+
+protected:
+    
     //internal order for enrichement spaces
     
     int fHdivmaismais = 0;
