@@ -21,6 +21,9 @@
 #include "tpzquadraticcube.h"
 #include "tpzarc3d.h"
 #include "TPZCylinderMap.h"
+#include "TPZTriangleSphere.h"
+#include "TPZQuadSphere.h"
+#include "TPZTorusMap.h"
 #include "TPZGeoElement.h"
 #include "pzgeoelside.h"
 #include "pzstack.h"
@@ -661,6 +664,190 @@ TPZGeoEl * TPZChangeEl::ChangeToCylinder(TPZGeoMesh *mesh, const int64_t ElemInd
     return ChangeToCylinderT(mesh,ElemIndex,xcenter,axis,radius);
 }
 
+TPZGeoEl * TPZChangeEl::ChangeToSphere(TPZGeoMesh *mesh, const int64_t ElemIndex,
+                                       const TPZVec<REAL> &xcenter,
+                                       const REAL radius)
+{
+    
+    auto SetSphereData = [xcenter,radius,mesh](auto &sp){
+        sp.SetData(radius,xcenter);
+    };
+
+    TPZGeoEl * old_el = mesh->ElementVec()[ElemIndex];
+    if(!old_el)
+    {
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " - NULL geometric element.\n";
+        return nullptr;
+    }
+    const MElementType oldType = old_el->Type();
+    if (oldType == EPoint){
+        return old_el;
+    }
+    
+    const int64_t oldId = old_el->Id();
+    const int oldMatId = old_el->MaterialId();
+    const int nsides = old_el->NSides();
+    const int nnodes = old_el->NCornerNodes();
+    
+    TPZVec<TPZGeoElSideIndex> oldNeigh(nsides);
+    TPZChangeEl::StoreNeighbours(old_el, oldNeigh);
+    TPZManVector<int64_t,4> nodeindexes(nnodes);
+    for(int in = 0; in < nnodes; in++){
+        nodeindexes[in] = old_el->NodeIndex(in);
+    }
+
+    
+    mesh->DeleteElement(old_el);
+    TPZGeoEl *new_el{nullptr};
+
+    TPZManVector<REAL,3> axis(3,0.);
+    if(oldType == ETriangle){
+        using namespace pzgeom;
+        auto sp =
+            new TPZGeoElRefPattern<TPZTriangleSphere<TPZGeoTriangle>>(nodeindexes,
+                                                                      oldMatId, *mesh);
+        SetSphereData(sp->Geom());
+        new_el = sp;
+    }else if (oldType == EQuadrilateral){
+        auto sp =
+            new TPZGeoElRefPattern<TPZQuadSphere<TPZGeoQuad>>(nodeindexes,
+                                                              oldMatId, *mesh);
+        SetSphereData(sp->Geom());
+        new_el = sp;
+    }else {
+        DebugStop();
+    }
+
+    // //for 2d elements we know it is a cylinder shell with constant radius
+    // if(new_el->Dimension() ==2){
+    //     TPZManVector<REAL,3> xnode(3,0);
+    //     for(int in = 0; in < nnodes; in++){
+    //         new_el->NodePtr(in)->GetCoordinates(xnode);
+    //         //component of xnode that is orthogonal to cyl axis
+    //         TPZManVector<REAL,3> x_orth= xnode - xcenter;
+    //         const REAL dax = Dot(x_orth,axis);
+    //         for(int ix = 0; ix < 3; ix++){x_orth[ix]-=dax*axis[ix];}
+    //         const auto normdiff = fabs(Norm(x_orth)-radius);
+    //         if(normdiff > 1e-10){
+    //             PZError<<__PRETTY_FUNCTION__
+    //                    <<"\nMat id: "<<oldMatId
+    //                    <<"\nComputed radius: "<<Norm(xnode-xcenter)
+    //                    <<"\nGiven radius: "<<radius
+    //                    <<"\nElement index: "<<ElemIndex
+    //                    <<std::endl;
+    //             PZError<<"Center: ";
+    //             for(auto x : xcenter){PZError<<x<<' ';}
+    //             PZError<<std::endl;
+    //             if constexpr (std::is_same_v<T,TPZFMatrix<REAL>>){
+    //                 axis_or_mat.Print("RotationMatrix");
+    //             }else{
+    //                 PZError<<"Axis: ";
+    //                 for(auto x : axis_or_mat){PZError<<x<<' ';}
+    //                 PZError<<std::endl;
+    //             }
+                
+    //             DebugStop();
+    //         }
+    //     }
+    // }
+    
+    TPZChangeEl::RestoreNeighbours(new_el, oldNeigh);
+    return new_el;
+}
+
+TPZGeoEl * TPZChangeEl::ChangeToTorus(TPZGeoMesh *mesh, const int64_t ElemIndex,
+                                      const TPZVec<REAL> &xcenter,
+                                      const REAL rsmall,
+                                      const REAL rlarge)
+{
+    
+    auto SetTorusData = [xcenter,rsmall,rlarge,mesh](auto &sp){
+        sp.SetRadii(rlarge, rsmall);
+        sp.SetOrigin(xcenter);
+        sp.ComputeCornerCoordinates(*mesh);
+    };
+
+    TPZGeoEl * old_el = mesh->ElementVec()[ElemIndex];
+    if(!old_el)
+    {
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " - NULL geometric element.\n";
+        return nullptr;
+    }
+    const MElementType oldType = old_el->Type();
+    if (oldType == EPoint){
+        return old_el;
+    }
+    
+    const int64_t oldId = old_el->Id();
+    const int oldMatId = old_el->MaterialId();
+    const int nsides = old_el->NSides();
+    const int nnodes = old_el->NCornerNodes();
+    
+    TPZVec<TPZGeoElSideIndex> oldNeigh(nsides);
+    TPZChangeEl::StoreNeighbours(old_el, oldNeigh);
+    TPZManVector<int64_t,4> nodeindexes(nnodes);
+    for(int in = 0; in < nnodes; in++){
+        nodeindexes[in] = old_el->NodeIndex(in);
+    }
+
+    
+    mesh->DeleteElement(old_el);
+    TPZGeoEl *new_el{nullptr};
+
+    TPZManVector<REAL,3> axis(3,0.);
+    if(oldType == ETriangle){
+        using namespace pzgeom;
+        auto sp =
+            new TPZGeoElRefPattern<TPZTorusMap<TPZGeoTriangle>>(nodeindexes,
+                                                                oldMatId, *mesh);
+        SetTorusData(sp->Geom());
+        new_el = sp;
+    }else if (oldType == EQuadrilateral){
+        auto sp =
+            new TPZGeoElRefPattern<TPZTorusMap<TPZGeoQuad>>(nodeindexes,
+                                                            oldMatId, *mesh);
+        SetTorusData(sp->Geom());
+        new_el = sp;
+    }else {
+        DebugStop();
+    }
+
+    // //for 2d elements we know it is a cylinder shell with constant radius
+    // if(new_el->Dimension() ==2){
+    //     TPZManVector<REAL,3> xnode(3,0);
+    //     for(int in = 0; in < nnodes; in++){
+    //         new_el->NodePtr(in)->GetCoordinates(xnode);
+    //         //component of xnode that is orthogonal to cyl axis
+    //         TPZManVector<REAL,3> x_orth= xnode - xcenter;
+    //         const REAL dax = Dot(x_orth,axis);
+    //         for(int ix = 0; ix < 3; ix++){x_orth[ix]-=dax*axis[ix];}
+    //         const auto normdiff = fabs(Norm(x_orth)-radius);
+    //         if(normdiff > 1e-10){
+    //             PZError<<__PRETTY_FUNCTION__
+    //                    <<"\nMat id: "<<oldMatId
+    //                    <<"\nComputed radius: "<<Norm(xnode-xcenter)
+    //                    <<"\nGiven radius: "<<radius
+    //                    <<"\nElement index: "<<ElemIndex
+    //                    <<std::endl;
+    //             PZError<<"Center: ";
+    //             for(auto x : xcenter){PZError<<x<<' ';}
+    //             PZError<<std::endl;
+    //             if constexpr (std::is_same_v<T,TPZFMatrix<REAL>>){
+    //                 axis_or_mat.Print("RotationMatrix");
+    //             }else{
+    //                 PZError<<"Axis: ";
+    //                 for(auto x : axis_or_mat){PZError<<x<<' ';}
+    //                 PZError<<std::endl;
+    //             }
+                
+    //             DebugStop();
+    //         }
+    //     }
+    // }
+    
+    TPZChangeEl::RestoreNeighbours(new_el, oldNeigh);
+    return new_el;
+}
 
 
 //------------------------------------------------------------------------------------------------------------

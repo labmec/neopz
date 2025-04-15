@@ -45,6 +45,15 @@ public:
                                        const TPZVec<REAL> &xcenter,
                                        const TPZVec<REAL> &axis,
                                        const REAL radius);
+    /** @brief Turns a regular 2D element into a TPZTriangleSphere or TPZQuadSphere*/
+    static TPZGeoEl * ChangeToSphere(TPZGeoMesh *mesh, const int64_t ElemIndex,
+                                     const TPZVec<REAL> &xcenter,
+                                     const REAL radius);
+    /** @brief Turns a regular 2D element into a TPZTriangleTorus or TPZQuadTorus*/
+    static TPZGeoEl * ChangeToTorus(TPZGeoMesh *mesh, const int64_t ElemIndex,
+                                    const TPZVec<REAL> &xcenter,
+                                    const REAL rsmall,
+                                    const REAL rlarge);
     
     /** @brief Slide middle nodes of an quadratic geoelement to the quarterpoint with respect to a given side */
     static TPZGeoEl * ChangeToQuarterPoint(TPZGeoMesh *Mesh, int64_t ElemIndex, int targetSide);
