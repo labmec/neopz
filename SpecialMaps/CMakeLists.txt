@@ -7,8 +7,7 @@ target_include_directories(pz PUBLIC
 
 set(headers
     TPZCylinderMap.h
-    TPZQuadTorus.h
-    TPZTriangleTorus.h
+    TPZTorusMap.h
     convtest.h
     tpzblendnaca.h
     tpzellipse3d.h
@@ -30,8 +29,7 @@ set(headers
 
 set(sources
     TPZCylinderMap.cpp
-    TPZQuadTorus.cpp
-    TPZTriangleTorus.cpp
+    TPZTorusMap.cpp
     convtest.cpp
     tpzblendnaca.cpp
     tpzellipse3d.cpp

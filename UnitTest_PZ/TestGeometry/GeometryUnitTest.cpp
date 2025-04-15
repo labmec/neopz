@@ -30,6 +30,7 @@
 
 #include "tpzarc3d.h"
 #include "tpzellipse3d.h"
+#include "TPZTorusMap.h"
 #include "TPZQuadSphere.h"
 #include "TPZTriangleSphere.h"
 #include "TPZCylinderMap.h"
@@ -113,13 +114,16 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZCylinderMap<TPZGeoCube>>(mesh,lowercorner,size);
     AddElement<TPZCylinderMap<TPZGeoPrism>>(mesh,lowercorner,size);
     AddElement<TPZCylinderMap<TPZGeoPyramid>>(mesh,lowercorner,size);
+
+    lowercorner[0] = 1.;
+    lowercorner[1] = 5.;
+    AddElement<TPZTorusMap<TPZGeoTriangle>>(mesh,lowercorner,size);
+    AddElement<TPZTorusMap<TPZGeoQuad>>(mesh,lowercorner,size);
     
     // TODO: Test these mappings
 //    AddElement<TPZWavyLine>(mesh,lowercorner,size);
 //    AddElement<TPZQuadTorus>(mesh,lowercorner,size);
-//    AddElement<TPZTriangleTorus>(mesh,lowercorner,size);
 //    AddElement<TPZQuadSphere<> >(mesh,lowercorner,size);
-//    AddElement<TPZTriangleSphere<> >(mesh,lowercorner,size);
     mesh.BuildConnectivity();
 }
 

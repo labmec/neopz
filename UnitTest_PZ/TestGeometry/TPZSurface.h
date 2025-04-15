@@ -25,9 +25,6 @@
 #include "TPZQuadSphere.h"
 #include "TPZTriangleSphere.h"
 
-#include "TPZQuadTorus.h"
-#include "TPZTriangleTorus.h"
-
 
 #include "tpzgeoblend.h"
 
