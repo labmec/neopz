@@ -282,7 +282,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 
 // Generate an output of all geomesh to VTK, associating to each one the given data
 
-void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVec<int> &elData, bool finestmesh) {
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVec<int> &elData, const std::string name, bool finestmesh) {
     if (gmesh->NElements() != elData.NElements()) {
         std::cout << "Wrong vector size of elements data!" << std::endl;
         std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
@@ -358,7 +358,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
     file << "CELL_DATA" << " " << nVALIDelements << std::endl;
     file << "FIELD FieldData 4" << std::endl;
 
-    file << "ElData 1 " << nVALIDelements << " int" << std::endl;
+    file << name << " 1 " << nVALIDelements << " int" << std::endl;
     file << eldat.str();
 
     file << "Material 1 " << nVALIDelements << " int" << std::endl;

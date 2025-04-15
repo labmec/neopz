@@ -619,9 +619,15 @@ void TPZInterpolationSpace::SolutionInternal(TPZVec<REAL> &qsi,int var,
     
 	data.x.Resize(3);
 	this->Reference()->X(qsi, data.x);
-	
+
+#ifdef PZDEBUG
 	int solSize = this->Material()->NSolutionVariables(var);
-	sol.Resize(solSize);
+	if (sol.size() != solSize) {
+		DebugStop();
+	}
+#endif
+
+//	sol.Resize(solSize);
 	sol.Fill(0.);
 	material->Solution(data, var, sol);
 }
@@ -1216,7 +1222,7 @@ void TPZInterpolationSpace::EvaluateErrorT(TPZVec<REAL> &errors,bool store_error
         }
         return max_int_order;
     }();
-	TPZManVector<int,3> maxorder(dim, maxIntOrder);
+    TPZManVector<int,3> maxorder(dim, intrule->GetMaxOrder());
 	intrule->SetOrder(maxorder);
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
 	REAL weight;
@@ -1258,7 +1264,7 @@ void TPZInterpolationSpace::EvaluateErrorT(TPZVec<REAL> &errors,bool store_error
             elvals(index,ier) = errors[ier];
         }
     }
-	intrule->SetOrder(prevOrder);
+//	intrule->SetOrder(prevOrder);
 	
 }//method
 

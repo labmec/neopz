@@ -154,6 +154,9 @@ void TPZLinearAnalysis::SolveT()
       if (logger.isDebugEnabled())
         {
           TPZFMatrix<TVar> res2(fRhs);
+          if(fSolution.Cols() != fRhs.Cols()) {
+            fSolution.Redim(fSolution.Rows(),fRhs.Cols());
+          }
           mySolver->Matrix()->Residual(fSolution,fRhs,res2);
           std::stringstream sout;
           sout << "Residual norm " << Norm(res2) << std::endl;

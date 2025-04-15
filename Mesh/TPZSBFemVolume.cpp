@@ -9,9 +9,12 @@
 #include "TPZSBFemVolume.h"
 #include "TPZSBFemElementGroup.h"
 #include "pzintel.h"
+#include "pzmultiphysicselement.h"
 #include "TPZMaterialT.h"
 #include "TPZMatSingleSpace.h"
+#include "TPZMatCombinedSpaces.h"
 #include "TPZMatErrorSingleSpace.h"
+#include "TPZMatErrorCombinedSpaces.h"
 #include "TPZMaterial.h"
 #include "pzelmat.h"
 #include "pzgraphelq2dd.h"
@@ -50,7 +53,8 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMa
 
     TPZCompMesh *cmesh = Mesh();
 
-    TPZInterpolatedElement *CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
+    TPZMultiphysicsElement *mpSkel = dynamic_cast<TPZMultiphysicsElement *> (cmesh->Element(fSkeleton));
+    TPZInterpolatedElement *CSkeleton = SkeletonElement();
 
     CSkeleton->InitializeElementMatrix(E0, efmat);
     CSkeleton->InitializeElementMatrix(E1, efmat);
@@ -77,8 +81,11 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMa
 
     TPZMaterial *mat2d = cmesh->FindMaterial(matid);
     auto *mat2dSingle = dynamic_cast<TPZMatSingleSpaceT<STATE>*>(mat2d);
+    auto *mat2dMult = dynamic_cast<TPZMatCombinedSpacesT<STATE>*>(mat2d);
     
-    if (!mat2dSingle) DebugStop();
+    if (!mat2dSingle && !mat2dMult) {
+        DebugStop();
+    }
 
     int nstate = mat2d->NStateVariables();
 
@@ -92,7 +99,8 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMa
     TPZIntPoints &intpoints = CSkeleton->GetIntegrationRule();
 
     TPZMaterialDataT<STATE> data1d;
-    TPZMaterialDataT<STATE> data2d;
+    TPZManVector<TPZMaterialDataT<STATE>,2> datavec(2);
+    TPZMaterialDataT<STATE> &data2d = datavec[0];
     CSkeleton->InitMaterialData(data1d);
     CSkeleton->InitMaterialData(data2d);
     int nshape = data2d.fH1.fPhi.Rows();
@@ -124,7 +132,17 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMa
                 norm += (axes(0, i) - data2d.axes(0, i))*(axes(0, i) - data2d.axes(0, i));
             }
             norm = sqrt(norm);
-            if (norm > 1.e-8) DebugStop();
+            if (norm > 1.e-8) {
+                Ref1D->Print();
+                Ref2D->Print();
+                axes.Print("axes 1D", std::cout);
+                data2d.axes.Print("axes 2D", std::cout);
+                {
+                    std::ofstream out("gmesh.txt");
+                    gmesh->Print(out);
+                }
+                DebugStop();
+            }
         }
 #endif
         // adjust the axes of the 3D element to match the axes of the side element
@@ -165,7 +183,27 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMa
             }
         }
         // compute the contributions to K11 K12 and K22
-        mat2dSingle->Contribute(data2d, weight, ek, ef);
+        if (mat2dSingle) {
+            mat2dSingle->Contribute(data2d, weight, ek, ef);
+        } else if(mat2dMult) {
+            if(Norm(data2d.axes)<1.e-6) {
+                DebugStop();
+            }
+            // data2d.axes.Print("axes = ",std::cout);
+            TPZAxesTools<REAL>::Axes2XYZ(data2d.dphix, data2d.fDeformedDirections, data2d.axes);
+            int nshape = data2d.dphix.Cols();
+            for(int ish = 0; ish<nshape; ish++) {
+                REAL tmp = data2d.fDeformedDirections(0,ish);
+                data2d.fDeformedDirections(0,ish) = -data2d.fDeformedDirections(1,ish);
+                data2d.fDeformedDirections(1,ish) = tmp;
+            }
+            // data2d.dphix.Print("dphix = ",std::cout);
+            // data2d.fDeformedDirections.Print("DeformedDirections = ",std::cout);
+            // datavec[0].fDeformedDirections.Print("DeformedDirections = ",std::cout);
+            mat2dMult->Contribute(datavec, weight, ek, ef);
+        } else {
+            DebugStop();
+        }
     }
     for (int i = 0; i < nstate * nshape; i++) {
         for (int j = 0; j < nstate * nshape; j++) {
@@ -295,6 +333,20 @@ void TPZSBFemVolume::LoadCoef(TPZFMatrix<std::complex<double> > &coef)
     fCoeficients = coef;
 }
 
+/// Return the Computational Skeleton element
+TPZInterpolatedElement *TPZSBFemVolume::SkeletonElement() {
+    TPZCompMesh *cmesh = Mesh();
+    TPZMultiphysicsElement *mpSkel = dynamic_cast<TPZMultiphysicsElement *> (cmesh->Element(fSkeleton));
+    TPZInterpolatedElement *CSkeleton = 0;
+    if(mpSkel) {
+        CSkeleton = dynamic_cast<TPZInterpolatedElement *> (mpSkel->Element(0));
+    } else {
+        CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
+    }
+    if(!CSkeleton) DebugStop();
+    return CSkeleton;
+}
+
 /**
  * @brief Computes solution and its derivatives in the local coordinate qsi.
  * @param qsi master element coordinate
@@ -334,7 +386,8 @@ void TPZSBFemVolume::ReallyComputeSolution(TPZMaterialDataT<STATE>& data)
             qsi[dim - 1] = 1. - 2.e-4;
         }
     }
-    TPZInterpolatedElement *CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
+    TPZInterpolatedElement *CSkeleton = SkeletonElement();
+
     TPZMaterialDataT<STATE> data1d, data2d;
     // compute the lower dimensional shape functions
     TPZManVector<REAL, 3> qsilow(qsi);
@@ -425,6 +478,16 @@ void TPZSBFemVolume::ReallyComputeSolution(TPZMaterialDataT<STATE>& data)
             }
         }
     }
+    TPZMatCombinedSpacesT<STATE> *matcomb = dynamic_cast<TPZMatCombinedSpacesT<STATE> *> (mat2d);
+    if(matcomb) {
+        data.divsol = sol;
+        data.sol[0].resize(3);
+        data.sol[0].Fill(0.);
+        TPZFNMatrix<3,STATE> dsolLoc(3,1,0.);
+        TPZAxesTools<STATE>::Axes2XYZ(dsol[0], dsolLoc, data.axes);
+        data.sol[0][0] = -dsolLoc(1,0);
+        data.sol[0][1] = dsolLoc(0,0);
+    }
 }
 
 void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
@@ -462,7 +525,7 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
             qsi[dim - 1] = 1. - 2.e-4;
         }
     }
-    TPZInterpolatedElement *CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
+    TPZInterpolatedElement *CSkeleton = SkeletonElement();
     TPZMaterialDataT<STATE> data1d, data2d;
     // compute the lower dimensional shape functions
     TPZManVector<REAL, 3> qsilow(qsi);
@@ -614,6 +677,10 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
 void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphidxi)
 {
     TPZCompMesh *cmesh = Mesh();
+    if(fElementGroupIndex < 0)
+    {
+        DebugStop();
+    }
     TPZCompEl *celgroup = cmesh->Element(fElementGroupIndex);
     TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *> (celgroup);
     TPZFMatrix<std::complex<double> > &CoefficientLoc = elgr->PhiInverse();
@@ -650,7 +717,7 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
             qsi[dim - 1] = 1. - 2.e-4;
         }
     }
-    TPZInterpolatedElement *CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
+    TPZInterpolatedElement *CSkeleton = SkeletonElement();
     TPZMaterialDataT<STATE> data1d, data2d;
     // compute the lower dimensional shape functions
     TPZManVector<REAL, 3> qsilow(qsi);
@@ -760,7 +827,9 @@ void TPZSBFemVolume::Solution(TPZVec<REAL> &qsi, int var, TPZVec<STATE> &sol) {
 
     auto *mat2d =
         dynamic_cast<TPZMatSingleSpaceT<STATE>*>(cmesh->FindMaterial(matid));
-    TPZMaterialDataT<STATE> data2d;
+    auto *mat2dCS = dynamic_cast<TPZMatCombinedSpacesT<STATE>*>(cmesh->FindMaterial(matid));
+    TPZManVector<TPZMaterialDataT<STATE>,2> datavec(2);
+    TPZMaterialDataT<STATE> &data2d = datavec[0];
 
     if(TPZSBFemElementGroup::gDefaultPolynomialOrder == 0)
     {
@@ -773,7 +842,13 @@ void TPZSBFemVolume::Solution(TPZVec<REAL> &qsi, int var, TPZVec<STATE> &sol) {
     }
     data2d.x.Resize(3, 0.);
     Reference()->X(qsi, data2d.x);
-    mat2d->Solution(data2d, var, sol);
+    if(mat2d) {
+        mat2d->Solution(data2d, var, sol);
+    } else if(mat2dCS) {
+        mat2dCS->Solution(datavec, var, sol);
+    } else {
+        DebugStop();
+    }
 
 }
 
@@ -800,11 +875,21 @@ void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error)
     auto *material = this->Material();
 	auto* matError =
         dynamic_cast<TPZMatErrorSingleSpace<STATE> *>(this->Material());
-    if (!matError || !(matError->HasExactSol()))
+    auto *matErrorCS =
+        dynamic_cast<TPZMatErrorCombinedSpaces<STATE> *>(this->Material());
+    if (!matError && !matErrorCS)
     {
         PZError<<__PRETTY_FUNCTION__;
-        PZError<<" the material has no associated exact solution\n";
+        PZError<<" the material has no error interface\n";
         PZError<<"Aborting...";
+        DebugStop();
+    }
+    if (matError && !matError->HasExactSol()) {
+        std::cout << "Exiting EvaluateError - null error - no exact solution.";
+        DebugStop();
+    }
+    if (matErrorCS && !matErrorCS->HasExactSol()) {
+        std::cout << "Exiting EvaluateError - null error - no exact solution.";
         DebugStop();
     }
     if (dynamic_cast<TPZBndCond *> (matError))
@@ -812,7 +897,15 @@ void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error)
         std::cout << "Exiting EvaluateError - null error - boundary condition material.";
         DebugStop();
     }
-    int NErrors = matError->NEvalErrors();
+    int NErrors = 0;
+    if(matError)
+    {
+        NErrors = matError->NEvalErrors();
+    }
+    else
+    {
+        NErrors = matErrorCS->NEvalErrors();
+    }
     errors.Resize(NErrors);
     errors.Fill(0.);
     int problemdimension = Mesh()->Dimension();
@@ -830,12 +923,12 @@ void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error)
     int ndof = material->NStateVariables();
     TPZManVector<STATE, 10> u_exact(ndof);
     TPZFNMatrix<90, STATE> du_exact(dim, ndof);
-    TPZManVector<REAL, 10> intpoint(problemdimension), values(NErrors);
-    values.Fill(0.0);
+    TPZManVector<REAL, 10> intpoint(problemdimension), values(NErrors,0.0);
     REAL weight;
     TPZManVector<STATE, 9> flux_el(0, 0.);
 
-    TPZMaterialDataT<STATE> data;
+    TPZManVector<TPZMaterialDataT<STATE>,2> datavec(2);
+    TPZMaterialDataT<STATE> &data = datavec[0];
     data.x.Resize(3);
     int nintpoints = intrule->NPoints();
 
@@ -858,8 +951,14 @@ void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error)
         }
         //contribuicoes dos erros
         ref->X(intpoint, data.x);
-
-        matError->Errors(data, values);
+        if(matError)
+        {
+            matError->Errors(data, values);
+        }
+        else
+        {
+            matErrorCS->Errors(datavec, values);
+        }
 
         for (int ier = 0; ier < NErrors; ier++)
             errors[ier] += values[ier] * weight;
@@ -869,6 +968,13 @@ void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error)
     for (int ier = 0; ier < NErrors; ier++) {
         errors[ier] = sqrt(errors[ier]);
     }//for ier
+    if(store_error) {
+        TPZFMatrix<STATE> &elsol = Mesh()->ElementSolution();
+        int64_t elindex = Index();
+        for (int ier = 0; ier < NErrors; ier++) {
+            elsol(elindex, ier) = errors[ier];
+        }
+    }
 
     // intrule->SetOrder(prevorder);
     intrule->SetOrder(maxorder);
@@ -932,14 +1038,22 @@ void TPZSBFemVolume::InitMaterialData(TPZMaterialData &data)
 {
     data.fShapeType = TPZMaterialData::EVecShape;
     data.gelElId = this->Reference()->Id();
+    TPZManVector<TPZMaterialDataT<STATE>,2> datavec;
     auto *mat =
         dynamic_cast<TPZMatSingleSpaceT<STATE>*>(Material());
+    auto *matMF = dynamic_cast<TPZMatCombinedSpacesT<STATE>*>(Material());
 #ifdef PZDEBUG
-    if (!mat) {
+    if (!mat && !matMF) {
         DebugStop();
     }
 #endif
-    mat->FillDataRequirements(data);
+    if (mat) {
+        mat->FillDataRequirements(data);
+    } else {
+        datavec.Resize(2);
+        matMF->FillDataRequirements(datavec);
+        data = datavec[0];
+    }
     const int dim = this->Dimension();
     const int nshape = this->NShapeF();
     const int nstate = this->Material()->NStateVariables();
@@ -950,7 +1064,7 @@ void TPZSBFemVolume::InitMaterialData(TPZMaterialData &data)
     data.jacobian.Redim(dim, dim);
     data.jacinv.Redim(dim, dim);
     data.x.Resize(3);
-    if (data.fNeedsSol)
+    if (mat && data.fNeedsSol)
     {
         uint64_t ulen,durow,ducol;
         mat->GetSolDimensions(ulen,durow,ducol);
@@ -1005,6 +1119,12 @@ void TPZSBFemVolume::SetSkeleton(int64_t skeleton) {
     fSkeleton = skeleton;
     TPZCompEl *cel = Mesh()->Element(fSkeleton);
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *> (cel);
+    TPZMultiphysicsElement *mpcel = dynamic_cast<TPZMultiphysicsElement *> (cel);
+    if(mpcel)
+    {
+        intel = dynamic_cast<TPZInterpolationSpace *>(mpcel->Element(0));
+    }
+    if(!intel) DebugStop();
     int order = intel->GetPreferredOrder();
     SetIntegrationRule(2 * order);
 }
@@ -1047,7 +1167,7 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
     TPZManVector<REAL> bodyforce(nstate, 0.);
     TPZFMatrix<REAL> dbodyforce(nstate, dim2, 0.);
     
-    TPZInterpolatedElement *CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
+    TPZInterpolatedElement *CSkeleton = SkeletonElement();
     CSkeleton->InitMaterialData(data1d);
     
     TPZGeoEl *Ref1D = CSkeleton->Reference();

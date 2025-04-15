@@ -96,6 +96,31 @@ void ComputeFieldAtEl(TPZCompEl *cel,
   TPZManVector<TVar,9> sol;
 
   const auto celdim = cel->Dimension();
+  const TPZGeoEl *gel = cel->Reference();
+  if(!gel) DebugStop();
+  bool collapsed = false;
+  int64_t node1 = -1;
+  int64_t node2 = -1;
+  int dir = -1;
+  int leftright = 0;
+  TPZManVector<REAL,2> scale(2,1.);
+  if(gel->Type() == EQuadrilateral) {
+    for(int in=0; in<4; in++) {
+      node1 = gel->NodeIndex(in);
+      node2 = gel->NodeIndex((in+1)%4);
+      if(node1 == node2) {
+        collapsed = true;
+        if(in%2==0) {
+          dir = 1;
+          leftright = 2*(in/2)-1;
+        } else {
+          dir = 0;
+          leftright = 2*(1-in/2)-1;
+        }
+        break;
+      }
+    }
+  }
 
   TPZPostProcEl<TVar> *graphel = safe_check ? new TPZPostProcElSafe<TVar>(cel) : new TPZPostProcEl<TVar>(cel);
 
@@ -104,9 +129,13 @@ void ComputeFieldAtEl(TPZCompEl *cel,
   //vertex counter
   int iv = 0;
   //iterate through points in the reference element
-  for (auto &ip : ref_vertices){
-    
+  REAL shift_distance = 1.0e-2;
+  for (auto ip : ref_vertices){
     ip.Resize(celdim);
+#ifdef PZDEBUG
+    if(ip.size() != celdim) DebugStop();
+#endif
+    if(collapsed && fabs(ip[dir]-leftright) < shift_distance) ip[dir] *= 1.-shift_distance;
     //computes all relevant data for a given integration point
     graphel->ComputeRequiredData(ip);
     const int nfields = fields.size();
@@ -177,14 +206,15 @@ TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
     fPostProcDim = dim;
   }
   
-  const int nvars = fields.size();
+    const auto nvars = fields.size();
   
   //let us check for valid post-processing matials
   for(auto [id,matp] : cmesh->MaterialVec()){
     auto bnd =
       dynamic_cast<TPZBndCond *>(matp);
+      auto bnd2 = dynamic_cast<TPZMatCombinedSpacesBC<STATE> *>(matp);
     //we skip boundary materials
-    if(matp && !bnd){
+    if(matp && !bnd && !bnd2){
       if(matp->Dimension() != fPostProcDim) {continue;}
       bool foundAllVars{true};
       for(int i = 0; (i < nvars) && foundAllVars; i++){
@@ -812,7 +842,17 @@ void TPZPostProcEl<TVar>::Solution(const TPZVec<REAL> &qsi, const int id, TPZVec
     auto intel = dynamic_cast<TPZInterpolationSpace*>(fCel);
     auto *matSingle =
        dynamic_cast<TPZMatSingleSpaceT<TVar>*>(material);
-    matSingle->Solution(fMatdata,id,sol);
+    if(matSingle) {
+        matSingle->Solution(fMatdata,id,sol);
+    } else {
+      auto *matCombined = dynamic_cast<TPZMatCombinedSpacesT<TVar>*>(material);
+      if(!matCombined) {
+        DebugStop();
+      }
+      fDatavec.Resize(2);
+      fDatavec[0] = fMatdata;
+      matCombined->Solution(fDatavec,id,sol);
+    }
   }
 }
 

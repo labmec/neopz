@@ -235,8 +235,11 @@ void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, RenumType mustOptimizeBandw
             std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth finished\n";
             std::cout.flush();
         }
-        fSolution = fCompMesh->Solution();
-        fSolution.Resize(neq,1);
+        // fSolution = fCompMesh->Solution();
+        // fSolution.Resize(neq,1);
+
+        int nsols = fCompMesh->Solution().Cols();
+        fSolution.Redim(neq,nsols);
     }
     else
     {
@@ -693,7 +696,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
             out << endl << "error " << ier << "  = " << ervec[ier];
     }
     else {
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
         out << "############" << endl;
         out << "Norma H1 or L2 -> p = " << ervec[0] << std::endl;
         out << "Norma L2 or L2 -> u = " << ervec[1] << std::endl;
