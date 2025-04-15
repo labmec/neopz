@@ -620,10 +620,22 @@ TPZGeoEl * ChangeToCylinderT(TPZGeoMesh *mesh, const int64_t ElemIndex,
             const auto normdiff = fabs(Norm(x_orth)-radius);
             if(normdiff > 1e-10){
                 PZError<<__PRETTY_FUNCTION__
-                       <<"\nComputed radius: "<<Norm(x_orth)
+                       <<"\nMat id: "<<oldMatId
+                       <<"\nComputed radius: "<<Norm(xnode-xcenter)
                        <<"\nGiven radius: "<<radius
                        <<"\nElement index: "<<ElemIndex
                        <<std::endl;
+                PZError<<"Center: ";
+                for(auto x : xcenter){PZError<<x<<' ';}
+                PZError<<std::endl;
+                if constexpr (std::is_same_v<T,TPZFMatrix<REAL>>){
+                    axis_or_mat.Print("RotationMatrix");
+                }else{
+                    PZError<<"Axis: ";
+                    for(auto x : axis_or_mat){PZError<<x<<' ';}
+                    PZError<<std::endl;
+                }
+                
                 DebugStop();
             }
         }
