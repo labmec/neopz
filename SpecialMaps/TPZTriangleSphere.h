@@ -60,7 +60,7 @@ namespace pzgeom {
         }
         
 
-        void SetData(const REAL R, TPZVec<REAL> &Xc)
+        void SetData(const REAL R, const TPZVec<REAL> &Xc)
         {
 #ifdef PZDEBUG
             if (Xc.size() != 3 || R == 0.0 ) {
