@@ -22,6 +22,7 @@ namespace pzgeom {
     void TPZTorusMap<TGeo>::ComputeCornerCoordinates(TPZGeoMesh &gmesh)
     {
 
+      fPhiTheta.Redim(2,TGeo::NNodes);
       auto TestX = [this](const REAL phi, const REAL theta,
                           const TPZVec<REAL> &codiff){
         TPZManVector<REAL,3> xcalc(3);
@@ -51,14 +52,27 @@ namespace pzgeom {
         REAL phi = atan2(codiff[1],codiff[0]);
         //we will treat the edge case in which codiff[2]/fr = 1+eps
         REAL theta_arg{codiff[2]/fr};
-        constexpr REAL eps = 1e-10;
-        if(theta_arg > 1 && theta_arg -1 < eps){
-          theta_arg = 1;
-        }else if(theta_arg < -1 && abs(theta_arg +1) < eps){
-          theta_arg = -1;
+        constexpr REAL eps = 1e-12;
+
+        if(std::abs(theta_arg) > 1){
+#ifdef PZDEBUG
+          if(std::abs(theta_arg)-1 > 1e-3){
+            //ok, this is definitely weird
+            DebugStop();
+          }
+#endif
+          theta_arg = std::signbit(theta_arg) ? -1 : 1;
         }
         
         REAL theta = asin(theta_arg);
+
+#ifdef PZDEBUG
+        if(std::isnan(theta) || std::isnan(phi)){
+          PZError<<__PRETTY_FUNCTION__
+                 <<"\ntheta "<<theta<<" phi "<<phi<<std::endl;
+          DebugStop();
+        }
+#endif
         TPZManVector<REAL,2> phivec = {phi, M_PI+phi};
         TPZManVector<REAL,2> thetavec = {theta, M_PI-theta};
 
@@ -78,18 +92,64 @@ namespace pzgeom {
             }
           }
         }
-        if(found){continue;}
-        
-        PZError<<__PRETTY_FUNCTION__
-               <<"\nNode "<<in<<" with coords \n";
-        for(int ix = 0; ix < 3; ix++){PZError<<co[ix]<<' ';}
-        PZError<<"\nDoes not lie in the torus surface for radii "
-               <<fr<<" and "<<fR
-               <<"\nand origin: ";
+        if(!found){
+          PZError<<__PRETTY_FUNCTION__
+                 <<"\nNode "<<in<<" with coords \n";
+          for(int ix = 0; ix < 3; ix++){PZError<<co[ix]<<' ';}
+          PZError<<"\nDoes not lie in the torus surface for radii "
+                 <<fr<<" and "<<fR
+                 <<"\nand origin: ";
           for(int ix = 0; ix < 3; ix++){PZError<<fOrigin[ix]<<' ';}
-        PZError<<std::endl;
-        DebugStop();
-            
+          PZError<<std::endl;
+          DebugStop();
+        }
+      }
+
+      //now we need to check if our computed values of theta
+      //and phi are not too distant
+
+      for(int ii = 0; ii < 2; ii++){
+        REAL smallest_phi{20}, smallest_theta{20};
+        REAL biggest_phi{-20}, biggest_theta{-20};
+        for(int in = 0; in < nnodes; in++){
+          smallest_phi = std::min(fPhiTheta(0,in),smallest_phi);
+          smallest_theta = std::min(fPhiTheta(1,in),smallest_theta);
+          biggest_phi = std::max(fPhiTheta(0,in),biggest_phi);
+          biggest_theta = std::max(fPhiTheta(1,in),biggest_theta);
+        }
+        if(biggest_phi - smallest_phi > M_PI){
+          for(int in = 0; in < nnodes; in++){
+            if(IsZero(fPhiTheta(0,in)-smallest_phi)){
+              fPhiTheta(0,in) += 2*M_PI;
+            }
+          } 
+        }
+        if(biggest_theta - smallest_theta > M_PI){
+          for(int in = 0; in < nnodes; in++){
+            if(IsZero(fPhiTheta(1,in)-smallest_theta)){
+              fPhiTheta(1,in) += 2*M_PI;
+            }
+          } 
+        }
+      }
+      //not really necessary
+      bool every_phi_bigger_pi{true};
+      for(int in = 0; in < nnodes && every_phi_bigger_pi; in++){
+        if(fPhiTheta(0,in) < M_PI - 1e-6){every_phi_bigger_pi = false;}
+      }
+      if(every_phi_bigger_pi){
+        for(int in = 0; in < nnodes && every_phi_bigger_pi; in++){
+          fPhiTheta(0,in)-=2*M_PI;
+        }
+      }
+      bool every_theta_bigger_pi{true};
+      for(int in = 0; in < nnodes && every_theta_bigger_pi; in++){
+        if(fPhiTheta(1,in) < M_PI - 1e-6){every_theta_bigger_pi = false;}
+      }
+      if(every_theta_bigger_pi){
+        for(int in = 0; in < nnodes && every_theta_bigger_pi; in++){
+          fPhiTheta(1,in)-=2*M_PI;
+        }
       }
     }
 

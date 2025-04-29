@@ -78,6 +78,12 @@ namespace pzgeom{
       fOrigin = origin;
     }
 
+    void PrintData(std::ostream &out){
+      out << "r_small "<<fr<<" r_large "<<fR
+          <<"\nfOrigin: ";
+      for(int ix = 0; ix < 3; ix++){out<<fOrigin[ix]<<' ';}
+      fPhiTheta.Print("phi theta", out);
+    }
     /// compute the parametric coordinates of the corner nodes
     void ComputeCornerCoordinates(TPZGeoMesh &gmesh);
 
@@ -90,7 +96,7 @@ namespace pzgeom{
     void GradX(TPZFMatrix<REAL> &cornerco, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
     {
       TPZFNMatrix<6,T> DxDphi(3,2,0.), gradphi(2,2);
-      TPZManVector<T,3> ft(3,0.);
+      TPZManVector<T,2> ft(2,0.);
       TGeo::X(fPhiTheta,par,ft);
       TGeo::GradX(fPhiTheta, par, gradphi);
 
