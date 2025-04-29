@@ -119,7 +119,16 @@ namespace pzgeom{
             
     }
 
-		
+
+    /* @brief Computes the coordinate of a point given in parameter space */
+    template<class T>
+    void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
+    {
+      TPZFNMatrix<3*TGeo::NNodes> coord(3,TGeo::NNodes);
+      CornerCoordinates(gel, coord);
+      X(coord,loc,result);
+    }
+    
     void Read(TPZStream& buf, void* context) override
     {
       DebugStop();

@@ -49,30 +49,37 @@ namespace pzgeom {
         for(int ix = 0; ix < 3; ix++){codiff[ix] -= fOrigin[ix];}
         //first guess for phi, between -pi/2 and pi/2
         REAL phi = atan2(codiff[1],codiff[0]);
-        REAL theta = asin(codiff[2]/fr);
-        //now we compute the point based on phi and theta and check if it
-        //matches codiff
-        auto normdiff = TestX(phi,theta,codiff);
-
-        constexpr REAL eps = 1e-8;
-        if(normdiff < eps){
-          fPhiTheta(0,in) = phi;
-          fPhiTheta(1,in) = theta;
-          //next point
-          continue;
+        //we will treat the edge case in which codiff[2]/fr = 1+eps
+        REAL theta_arg{codiff[2]/fr};
+        constexpr REAL eps = 1e-10;
+        if(theta_arg > 1 && theta_arg -1 < eps){
+          theta_arg = 1;
+        }else if(theta_arg < -1 && abs(theta_arg +1) < eps){
+          theta_arg = -1;
         }
+        
+        REAL theta = asin(theta_arg);
+        TPZManVector<REAL,2> phivec = {phi, M_PI+phi};
+        TPZManVector<REAL,2> thetavec = {theta, M_PI-theta};
 
-        //now we test for theta over pi_2, 3pi_2
-        theta += M_PI;
-        normdiff = TestX(phi,theta,codiff);
-
-        if(normdiff < eps){
-          fPhiTheta(0,in) = phi;
-          fPhiTheta(1,in) = theta;
-          //next point
-          continue;
+        bool found{false};
+        for(auto phi : phivec){
+          if(found){break;}
+          for(auto theta: thetavec){
+            if(found){break;}
+            //now we compute the point based on phi and theta and check if it
+            //matches codiff
+            auto normdiff = TestX(phi,theta,codiff);
+            if(normdiff < eps){
+              fPhiTheta(0,in) = phi;
+              fPhiTheta(1,in) = theta;
+              //next point
+              found=true;
+            }
+          }
         }
-
+        if(found){continue;}
+        
         PZError<<__PRETTY_FUNCTION__
                <<"\nNode "<<in<<" with coords \n";
         for(int ix = 0; ix < 3; ix++){PZError<<co[ix]<<' ';}
