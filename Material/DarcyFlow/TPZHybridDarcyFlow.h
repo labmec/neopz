@@ -42,6 +42,10 @@ public:
     TPZMatErrorCombinedSpaces<STATE>(copy){
 
     }
+    TPZHybridDarcyFlow(const TPZDarcyFlow &copy) : TPZDarcyFlow(copy){
+        SetExactSol(copy.ExactSol(), copy.PolynomialOrderExact());
+        SetForcingFunction(copy.ForcingFunction(), copy.ForcingFunctionPOrder());
+    }
     TPZHybridDarcyFlow &operator=(const TPZHybridDarcyFlow &copy){
         TPZDarcyFlow::operator=(copy);
         TPZMatCombinedSpacesT<STATE>::operator=(copy);
