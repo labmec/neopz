@@ -263,6 +263,11 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
 #ifdef PZ_LOG
         if (loggerel.isDebugEnabled()) {
             std::stringstream sout;
+            sout << "\n";
+            int64_t nc = el->NConnects();
+            for(int ic = 0; ic<nc; ic++) {
+                el->Connect(ic).Print(*el->Mesh(),sout);
+            }
             TPZGeoEl *gel = el->Reference();
             if (gel) {
                 TPZManVector<REAL> center(gel->Dimension()), xcenter(3, 0.);
