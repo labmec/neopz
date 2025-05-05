@@ -1080,11 +1080,14 @@ void TPZBuildMultiphysicsMesh::ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<at
         TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(mesh);
         for (int64_t i=0; i<indexes.size(); i++) {
             if(mesh->ConnectVec()[i].SequenceNumber() < 0) continue;
+            if(mesh->ConnectVec()[i].NElConnected() == 0) continue;
             if(subcmesh && subcmesh->IsExternal(i)) continue;
             if(noworries.find(i) != noworries.end()) continue;
             if(indexes[i].first == 0){
                 notfound++;
                 std::cout << "index " << i << std::endl;
+                TPZConnect &c = mesh->ConnectVec()[i];
+                c.Print(*mesh);
             }
         }
         if(notfound)
