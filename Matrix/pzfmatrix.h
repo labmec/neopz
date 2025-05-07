@@ -225,7 +225,7 @@ public:
      * @param alpha Is alpha on the above operation
      */
     virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, int transpA, const TPZFMatrix<TVar>& B, 
-						 		 int transpB, const TVar alpha = 1.0) override;
+						 		 int transpB, const TVar alpha) override;
 
     /**
      * @name Generic operator with TVar type

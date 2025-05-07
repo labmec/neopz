@@ -218,11 +218,11 @@ TPZWgma::ContributeA(
     tmp = curl_phi;
     ur.Substitution(&tmp);
     tmp *= weight;
-    ek.AddContribution(firsthcurl, firsthcurl, tmp, true, curl_phi, false);
+    ek.AddContribution(firsthcurl, firsthcurl, tmp, true, curl_phi, false, 1.);
     //Ctt term
     er.Multiply(phi_hcurl,tmp);
     tmp *= -k0*k0*weight;
-    ek.AddContribution(firsthcurl,firsthcurl,tmp,true,phi_hcurl,false);
+    ek.AddContribution(firsthcurl,firsthcurl,tmp,true,phi_hcurl,false, 1.);
 }
 
 void
@@ -280,20 +280,20 @@ TPZWgma::ContributeB(
     tmp = rot_phi_hcurl;
     ur.Substitution(&tmp);
     tmp *= weight;
-    ek.AddContribution(firsthcurl, firsthcurl, tmp, true, rot_phi_hcurl, false);
+    ek.AddContribution(firsthcurl, firsthcurl, tmp, true, rot_phi_hcurl, false, 1.);
     //Atz term
-    ek.AddContribution(firsthcurl,firsth1,tmp,true,rot_grad_phi,false);
+    ek.AddContribution(firsthcurl,firsth1,tmp,true,rot_grad_phi,false, 1.);
     //Azt term
     tmp = rot_grad_phi;
     ur.Substitution(&tmp);
     tmp *= weight;
-    ek.AddContribution(firsth1,firsthcurl,tmp, true, rot_phi_hcurl, false);
+    ek.AddContribution(firsth1,firsthcurl,tmp, true, rot_phi_hcurl, false, 1.);
     //Azz term
-    ek.AddContribution(firsth1,firsth1,tmp,true,rot_grad_phi,false);
+    ek.AddContribution(firsth1,firsth1,tmp,true,rot_grad_phi,false, 1.);
     //Czz term
     er.Multiply(phi_h1,tmp);
     tmp *= -k0*k0*weight;
-    ek.AddContribution(firsth1,firsth1,tmp,true,phi_h1,false);
+    ek.AddContribution(firsth1,firsth1,tmp,true,phi_h1,false, 1.);
 }
 
 

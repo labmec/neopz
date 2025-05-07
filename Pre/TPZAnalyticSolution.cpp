@@ -196,10 +196,12 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
     typedef FADFADSTATE TVar;
     if(fProblemType == Etest1)
     {
-        FADFADSTATE tmp = (FADFADSTATE)(1./27.)*x[0]*x[0]*x[1]*x[1];
-        disp[0] = tmp*FADcos((FADFADSTATE)(6.*M_PI)*x[0])*FADsin((FADFADSTATE)(7.*M_PI)*x[1]);
-        disp[1] = (FADFADSTATE)(0.2)*FADexp(x[1])*FADsin((FADFADSTATE)(4.*M_PI)*x[0]);
-    
+//        FADFADSTATE tmp = (FADFADSTATE)(1./27.)*x[0]*x[0]*x[1]*x[1];
+//        disp[0] = tmp*FADcos((FADFADSTATE)(6.*M_PI)*x[0])*FADsin((FADFADSTATE)(7.*M_PI)*x[1]);
+//        disp[1] = (FADFADSTATE)(0.2)*FADexp(x[1])*FADsin((FADFADSTATE)(4.*M_PI)*x[0]);
+        disp[0] = x[0]*x[0];
+        disp[1] = x[0]*0.;
+
     }
     else if(fProblemType == Etest2)
     {
@@ -392,8 +394,10 @@ template<typename TVar1, typename TVar2>
 void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) const {
     
     if (fProblemType == Etest1) {
-        disp[0] = TVar2(1. / 27.) * x[0] * x[0] * x[1] * x[1] * cos(TVar2(6. * M_PI) * x[0]) * sin(TVar2(7. * M_PI) * x[1]);
-        disp[1] = TVar2(0.2) * exp(x[1]) * sin(TVar2(4. * M_PI) * x[0]);
+//        disp[0] = TVar2(1. / 27.) * x[0] * x[0] * x[1] * x[1] * cos(TVar2(6. * M_PI) * x[0]) * sin(TVar2(7. * M_PI) * x[1]);
+//        disp[1] = TVar2(0.2) * exp(x[1]) * sin(TVar2(4. * M_PI) * x[0]);
+        disp[0] = x[0]*x[0];
+        disp[1] = x[0]*0.;
     } else if (fProblemType == Etest2) {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;

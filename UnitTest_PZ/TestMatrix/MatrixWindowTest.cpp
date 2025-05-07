@@ -112,7 +112,7 @@ TEMPLATE_TEST_CASE("AddContribution","[matrix_tests]",
       const int opt=GENERATE(0,1,2);
       if(opt){A.Transpose();}
       SECTION(optname[opt]){
-        REQUIRE_THROWS(C.AddContribution(0,0,A,opt,B,false));
+        REQUIRE_THROWS(C.AddContribution(0,0,A,opt,B,false, 1.));
       }
     }
     SECTION("Wrong B"){
@@ -121,7 +121,7 @@ TEMPLATE_TEST_CASE("AddContribution","[matrix_tests]",
       const int opt=GENERATE(0,1,2);
       if(opt){B.Transpose();}
       SECTION(optname[opt]){
-        REQUIRE_THROWS(C.AddContribution(0,0,A,false,B,opt));
+        REQUIRE_THROWS(C.AddContribution(0,0,A,false,B,opt, 1.));
       }
     }
     SECTION("A and B incompatible"){
@@ -137,7 +137,7 @@ TEMPLATE_TEST_CASE("AddContribution","[matrix_tests]",
           if(opt_b){
             B.Transpose();
           }
-          REQUIRE_THROWS(C.AddContribution(0,0,A,opt_a,B,opt_b));
+          REQUIRE_THROWS(C.AddContribution(0,0,A,opt_a,B,opt_b, 1.));
         }
       }
     }
@@ -151,22 +151,22 @@ TEMPLATE_TEST_CASE("AddContribution","[matrix_tests]",
       SECTION("Rows out"){
         TPZFMatrix<SCAL> A(nr,nc,0.0);
         TPZFMatrix<SCAL> B(nc,nc,0.0);
-        REQUIRE_THROWS(C.AddContribution(2,0,A,false,B,false));
+        REQUIRE_THROWS(C.AddContribution(2,0,A,false,B,false, 1.));
       }
       SECTION("Cols out"){
         TPZFMatrix<SCAL> A(nr,nc,0.0);
         TPZFMatrix<SCAL> B(nc,nc,0.0);
-        REQUIRE_THROWS(C.AddContribution(0,2,A,false,B,false));
+        REQUIRE_THROWS(C.AddContribution(0,2,A,false,B,false, 1.));
       }
       SECTION("All out:1"){
         TPZFMatrix<SCAL> A(nr,nc,0.0);
         TPZFMatrix<SCAL> B(nc,nc,0.0);
-        REQUIRE_THROWS(C.AddContribution(2,2,A,false,B,false));
+        REQUIRE_THROWS(C.AddContribution(2,2,A,false,B,false, 1.));
       }
       SECTION("All out:2"){
         TPZFMatrix<SCAL> A(too_big,nc,0.0);
         TPZFMatrix<SCAL> B(nc,too_big,0.0);
-        REQUIRE_THROWS(C.AddContribution(2,2,A,false,B,false));
+        REQUIRE_THROWS(C.AddContribution(2,2,A,false,B,false, 1.));
       }
       TPZFMatrix<SCAL> A(1,nr,0.);
       TPZFMatrix<SCAL> B(nc,2,0.);
