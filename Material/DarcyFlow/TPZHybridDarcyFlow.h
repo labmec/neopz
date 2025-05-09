@@ -112,7 +112,9 @@ public:
         @param[out] sol FEM Solution at the integration point
     */
     virtual void Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
-                          int var, TPZVec<STATE> &sol) override {}
+                          int var, TPZVec<STATE> &sol) override {
+        TPZDarcyFlow::Solution(datavec[1],var,sol);
+    }
     /**
      * @brief Returns an integer associated with a post-processing variable name
      * @param [in] name string containing the name of the post-processing variable. Ex: "Pressure".
