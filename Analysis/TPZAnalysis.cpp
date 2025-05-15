@@ -228,6 +228,7 @@ void TPZAnalysis::SetCompMeshInit(TPZCompMesh *mesh, RenumType mustOptimizeBandw
         if(mustOptimizeBandwidth != RenumType::ENone)
         {
             TPZSimpleTimer bd("Optimize bandwidth",false);
+            CreateRenumberObject(mustOptimizeBandwidth);
             OptimizeBandwidth();
         }
         if(neq > 20000 && mustOptimizeBandwidth != RenumType::ENone)
