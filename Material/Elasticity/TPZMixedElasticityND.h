@@ -252,6 +252,8 @@ public:
      */
     void FillDataRequirements(TPZVec<TPZMaterialDataT<STATE> > &datavec) const override;
 
+    void FillBoundaryConditionDataRequirements(int type, TPZVec<TPZMaterialDataT<STATE> > &datavec) const override;
+
 
     /** inner product of two tensors. See Gurtin (2003), p. 5. */
     STATE Inner(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T);

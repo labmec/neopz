@@ -71,6 +71,14 @@ void TPZMixedElasticityND::FillDataRequirements(TPZVec<TPZMaterialDataT<STATE> >
     }
 }
 
+void TPZMixedElasticityND::FillBoundaryConditionDataRequirements(int type, TPZVec<TPZMaterialDataT<STATE>> &datavec) const
+{
+    int nref = datavec.size();
+    for (int i = 0; i < nref; i++) {
+        datavec[i].fNeedsNormal = true;
+    }
+}
+
 int TPZMixedElasticityND::NStateVariables() const {
     return fDimension;
 }
@@ -851,9 +859,38 @@ void TPZMixedElasticityND::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &d
         TPZManVector<STATE, 3> res(fDimension);
         TPZFNMatrix<9, STATE> tens(fDimension, fDimension);
         bc.ForcingFunctionBC()(datavec[0].x, res, tens);
+        TPZFNMatrix<9, STATE> strain = tens;
+        for (int i = 0; i < fDimension; i++) {
+            for (int j = 0; j < fDimension; j++) {
+                strain(i, j) += tens(j,i);
+            }
+        }
+        strain *= 0.5;
         v_2[0] = res[0];
         v_2[1] = res[1];
         if(fDimension == 3) v_2[2] = res[2];
+        if(bc.Type() == 1) { // Neuman condition
+            TElasticityAtPoint elast(fE_const, fnu_const);
+            if (fElasticity) {
+                TPZManVector<STATE, 3> result(2);
+                TPZFNMatrix<4, STATE> Dres(0, 0);
+                fElasticity(datavec[0].x, result, Dres);
+                REAL E = result[0];
+                REAL nu = result[1];
+                elast = TElasticityAtPoint(E, nu);
+            }
+            int nterms = fDimension*fDimension;
+            TPZManVector<STATE,9> deform(nterms,0.),stressvec(nterms,0.);
+            ToVoigt(strain, deform);
+            ComputeStressVector(deform, stressvec, elast);
+            FromVoigt(stressvec, tens);
+            const TPZManVector<STATE, 3>& normal = datavec[0].normal;
+            for (int i = 0; i < fDimension; i++)
+                v_2[i] = 0.0;
+            for (int i = 0; i < fDimension; i++)
+                for (int j = 0; j < fDimension; j++)
+                    v_2[i] += tens(i,j) * normal[j];
+        }
     }
 
     // Setting the phis
