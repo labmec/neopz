@@ -68,10 +68,14 @@ void TPZGmshReader::ReadVersion(std::istream &readfile)
             
         if(str == "$MeshFormat" || str == "$MeshFormat\r"){
             readfile >> m_format_version;
-            std::cout << "Reading mesh format = " << m_format_version << std::endl;
+            if(m_verbose) {
+                std::cout << "Reading mesh format = " << m_format_version << std::endl;
+            }
         }
         if(str == "$EndMeshFormat" || str == "$EndMeshFormat\r"){
-            std::cout << "Finished Reading mesh format = " << str << std::endl;
+            if(m_verbose) {
+                std::cout << "Finished Reading mesh format = " << str << std::endl;
+            }
             read_version = true;
         }
     }
@@ -131,9 +135,9 @@ void TPZGmshReader::ReadPhysicalProperties4(std::istream &read)
 
         std::string str_end;
         read >> str_end;
-        if (str_end == "$EndPhysicalNames" ||
-            str_end == "$EndPhysicalNames\r") {
-          std::cout << "Finished reading mesh physical entities = " << n_physical_names
+        if (m_verbose && (str_end == "$EndPhysicalNames" ||
+            str_end == "$EndPhysicalNames\r")) {
+            std::cout << "Finished reading mesh physical entities = " << n_physical_names
                     << std::endl;
         }
         break;
@@ -212,7 +216,7 @@ void TPZGmshReader::ReadElements4(std::istream &read)
 
         std::string str_end;
         read >> str_end;
-        if (str_end == "$EndEntities" || str_end == "$EndEntities\r") {
+        if (m_verbose && (str_end == "$EndEntities" || str_end == "$EndEntities\r")) {
           std::cout << "total number of mesh entities = "
                     << m_n_points + m_n_curves + m_n_surfaces + m_n_volumes
                     << std::endl;
@@ -274,8 +278,8 @@ void TPZGmshReader::ReadElements4(std::istream &read)
         }
         std::string str_end;
         read >> str_end;
-        if (str_end == "$EndNodes" || str_end == "$EndNodes\r") {
-          std::cout << "Finished reading mesh nodes, nnodes = " << m_gmesh->NNodes() << std::endl;
+        if (m_verbose && (str_end == "$EndNodes" || str_end == "$EndNodes\r")) {
+            std::cout << "Finished reading mesh nodes, nnodes = " << m_gmesh->NNodes() << std::endl;
         }
         continue;
       }
@@ -377,7 +381,7 @@ void TPZGmshReader::ReadElements4(std::istream &read)
         }
         std::string str_end;
         read >> str_end;
-        if (str_end == "$EndElements" || str_end == "$EndElements\r") {
+        if (m_verbose && (str_end == "$EndElements" || str_end == "$EndElements\r")) {
           std::cout << "Finished reading elements nelements = " << m_gmesh->NElements()
                     << std::endl;
         }
@@ -539,11 +543,14 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(const std::string &file_name, TPZ
       }
     }
     
-    
-    std::cout << "Read General Mesh Data -> done!" << std::endl;
-    std::cout << "Number of elements " << gmesh->NElements() << std::endl;
+    if(m_verbose) {
+        std::cout << "Read General Mesh Data -> done!" << std::endl;
+        std::cout << "Number of elements " << gmesh->NElements() << std::endl;
+    }
     gmesh->BuildConnectivity();
-    std::cout << "Geometric Mesh Connectivity -> done!" << std::endl;
+    if(m_verbose) {
+        std::cout << "Geometric Mesh Connectivity -> done!" << std::endl;
+    }
 
     /*now we need to find the correspondence between periodic elements
      we will both:
@@ -851,7 +858,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(const std::string &file_name, TPZ
                 read.getline(buf_end, 1024);
                 read.getline(buf_end, 1024);
                 std::string str_end(buf_end);
-                if(str_end == "$EndPhysicalNames" || str_end == "$EndPhysicalNames\r")
+                if(m_verbose && (str_end == "$EndPhysicalNames" || str_end == "$EndPhysicalNames\r"))
                 {
                     std::cout << "Read mesh physical entities = " << n_entities << std::endl;
                 }
@@ -894,7 +901,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(const std::string &file_name, TPZ
                 read.getline(buf_end, 1024);
                 read.getline(buf_end, 1024);
                 std::string str_end(buf_end);
-                if(str_end == "$EndNodes" || str_end == "$EndNodes\r")
+                if(m_verbose && (str_end == "$EndNodes" || str_end == "$EndNodes\r"))
                 {
                     std::cout << "Read mesh nodes = " <<  gmesh->NNodes() << std::endl;
                 }
@@ -916,7 +923,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(const std::string &file_name, TPZ
                 read.getline(buf_end, 1024);
                 read.getline(buf_end, 1024);
                 std::string str_end(buf_end);
-                if(str_end == "$EndElements" || str_end == "$EndElements\r")
+                if(m_verbose && (str_end == "$EndElements" || str_end == "$EndElements\r"))
                 {
                     std::cout << "Read mesh elements = " << gmesh->NElements() << std::endl;
                 }
@@ -927,10 +934,12 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(const std::string &file_name, TPZ
         
     }
     
-    std::cout << "Read General Mesh Data -> done!" << std::endl;
-    std::cout << "Number of elements " << gmesh->NElements() << std::endl;
+    if(m_verbose) {
+        std::cout << "Read General Mesh Data -> done!" << std::endl;
+        std::cout << "Number of elements " << gmesh->NElements() << std::endl;
+    }
     gmesh->BuildConnectivity();
-    std::cout << "Geometric Mesh Connectivity -> done!" << std::endl;
+    if(m_verbose) std::cout << "Geometric Mesh Connectivity -> done!" << std::endl;
     return gmesh;
     
 }// End Method

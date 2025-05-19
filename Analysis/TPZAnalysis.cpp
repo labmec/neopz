@@ -835,8 +835,12 @@ void TPZAnalysis::Run(std::ostream &out)
     }
 
     {
-        TPZSimpleTimer t("Time for assembly",true);
-        Assemble();
+        if(neq > 20000) {
+            TPZSimpleTimer t("Time for assembly",true);
+            Assemble();
+        } else {
+            Assemble();
+        }
     }
     
     if(neq > 20000)
@@ -846,8 +850,12 @@ void TPZAnalysis::Run(std::ostream &out)
     }
     
     {
-        TPZSimpleTimer t("Time for solving",true);
-        Solve();
+        if(neq > 20000) {
+            TPZSimpleTimer t("Time for solving",true);
+            Solve();
+        } else {
+            Solve();
+        }
     }
 }
 

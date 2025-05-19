@@ -232,7 +232,7 @@ TPZVTKGenerator::TPZVTKGenerator(TPZCompMesh* cmesh,
     std::cout<<"No post processing materials could be found!"<<std::endl;
     return;
   }
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
   std::cout<<"The following materials will be post-processed:";
   for(auto id : fPostProcMats){std::cout<<" "<<id;}
   std::cout<<std::endl;
@@ -748,7 +748,7 @@ void TPZVTKGenerator::Do()
   fFileout->close();
   fOutputCount++;
   if(fStep > -1){fStep++;}
-  std::cout << " Done." << std::endl;
+//  std::cout << " Done." << std::endl;
 
 }
 
