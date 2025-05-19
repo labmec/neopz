@@ -34,6 +34,8 @@ public:
 	/** @brief Creates a geometric element along side of el. */
 	/** The new geometric element is inserted in mesh and a pointer to it is stored here. */
 	TPZGeoElBC(const TPZGeoElSide &elside,int matid);
+    
+    TPZGeoElBC(const TPZGeoElBC &gbc, int matid);
 	
 	/** @brief Recovers pointer to the geometric element created */
 	TPZGeoEl * CreatedElement(){ return this->fCreatedElement; }
