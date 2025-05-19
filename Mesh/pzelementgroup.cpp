@@ -278,19 +278,22 @@ void TPZElementGroup::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZElementMa
         
 #endif
         int nelcon = ekloc.NConnects();
+        int64_t ncol = ef.fMat.Cols();
         for (int ic=0; ic<nelcon; ic++) {
             int iblsize = ekloc.fBlock.Size(ic);
-            int icindex = ekloc.fConnect[ic];
-            int ibldest = locindex[icindex];
+            int64_t icindex = ekloc.fConnect[ic];
+            int64_t ibldest = locindex[icindex];
             for (int idf = 0; idf<iblsize; idf++) {
-                const auto [my_r,my_c] = ef.fBlock.at(ibldest,0,idf,0);
-                const auto [loc_r,loc_c] = efloc.fBlock.at(ic,0,idf,0);
-                ef.fMat.g(my_r,my_c) += efloc.fMat.g(loc_r,loc_c);
+                int64_t my_r = ef.fBlock.Index(ibldest,idf);
+                int64_t loc_r = efloc.fBlock.Index(ic, idf);
+                for(int c = 0; c<ncol; c++) {
+                    ef.fMat.g(my_r,c) += efloc.fMat.g(loc_r,c);
+                }
             }
             for (int jc = 0; jc<nelcon; jc++) {
                 int jblsize = ekloc.fBlock.Size(jc);
-                int jcindex = ekloc.fConnect[jc];
-                int jbldest = locindex[jcindex];
+                int64_t jcindex = ekloc.fConnect[jc];
+                int64_t jbldest = locindex[jcindex];
                 for (int idf = 0; idf<iblsize; idf++) {
                     for (int jdf=0; jdf<jblsize; jdf++) {
                         const auto [my_r,my_c] = ek.fBlock.at(ibldest,jbldest,idf,jdf);
