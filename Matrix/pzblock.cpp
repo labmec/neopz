@@ -193,7 +193,10 @@ int64_t TPZBlock::Index(const int64_t bRow, const int r) const
     int64_t row(r);
 #ifdef PZDEBUG
     if(bRow <0 || bRow >= MaxBlocks || row < 0 || row >= fBlock[bRow].dim) {
+        int dim = -1;
+        if(bRow >=0 && bRow < MaxBlocks) dim = fBlock[bRow].dim;
         PZError << __PRETTY_FUNCTION__ <<" indexes out of range\n";
+        PZError << "bRow = " << bRow << " MaxBlocks = " << MaxBlocks << " r = " << r << " dim = " << dim << std::endl;
         DebugStop();
     }
 #endif
