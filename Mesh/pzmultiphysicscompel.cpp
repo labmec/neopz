@@ -1286,9 +1286,9 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateErrorT(TPZVec<REAL> &errors, bool
   }//fim for : integration rule
   //Norma sobre o elemento
   for (int ier = 0; ier < NErrors; ier++) {
-      if(ier < 7) {
-          errors[ier] = sqrt(errors[ier]);
-      }
+      
+    errors[ier] = sqrt(errors[ier]);
+    
   }//for ier
 
   if (store_errors) {

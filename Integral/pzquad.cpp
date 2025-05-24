@@ -189,7 +189,7 @@ void TPZIntQuad::SetOrder(TPZVec<int> &ord,int type) {
 }
 
 void TPZIntQuad::GetOrder(TPZVec<int> &ord) const {
-	ord[0] = fOrdKsi;
+    ord[0] = fOrdKsi;
 	ord[1] = fOrdEta;
 }
 

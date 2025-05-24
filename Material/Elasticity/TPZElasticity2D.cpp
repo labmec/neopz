@@ -52,6 +52,23 @@ TPZElasticity2D::TPZElasticity2D(int id, STATE E, STATE nu,
 {
     ff[0] = fx;
     ff[1] = fy;
+fE_def    = E;  // Young modulus
+fnu_def    = nu;   // poisson coefficient
+ff[0]    = fx; // X component of the body force
+ff[1]    = fy; // Y component of the body force
+ff[2] = 0.; // Z component of the body force - not used for this class
+fPlaneStress = planestress;
+
+
+//Added by Cesar 2001/03/16
+fPreStressXX = 0.;  //Prestress in the x direction
+fPreStressYY = 0.;  //Prestress in the y direction
+fPreStressXY = 0.;  //Prestress in the z direction
+fPreStressZZ = 0.;  //Prestress in the z direction
+fPlaneStress = 0;
+
+// Added by Philippe 2012
+fPostProcIndex = 0;
     
 }
 
@@ -137,7 +154,10 @@ void TPZElasticity2D::Contribute(const TPZMaterialDataT<STATE> &data,
         fElasticity(data.x, result, Dres);
         E = result[0];
         nu = result[1];
+
     }
+    
+
     
     REAL Eover1MinNu2 = E/(1-nu*nu);
     REAL Eover21PlusNu = E/(2.*(1+nu));
@@ -220,7 +240,7 @@ void TPZElasticity2D::ContributeBC(const TPZMaterialDataT<STATE> &data,
 	const TPZFMatrix<REAL> &phi = data.fPhi;
      int dim = Dimension();
 
-	const auto &BIGNUMBER  = TPZMaterial::fBigNumber;
+	const auto &BIGNUMBER  = TPZMaterial::fBigNumber*1000.;
     
 	int phr = phi.Rows();
 	short in,jn;
@@ -448,6 +468,7 @@ int TPZElasticity2D::VariableIndex(const std::string &name) const
     if(!strcmp("ShearStrain",name.c_str()))        return 26;
     if(!strcmp("Young_Modulus",name.c_str()))        return 28;
     if(!strcmp("Poisson",name.c_str()))        return 29;
+    if (!strcmp("DisplacementExact",name.c_str())) return 30;
     
     
     
@@ -493,6 +514,7 @@ int TPZElasticity2D::NSolutionVariables(int var) const
         case 25:
         case 26:
         case 27:
+        case 30:
             return 3;
         case 28:
         case 29:
@@ -599,6 +621,9 @@ void TPZElasticity2D::Solution(const TPZMaterialDataT<STATE> &data,
         SigY = E/((1.-2.*nu)*(1.+nu))*(nu*epsx+(1.-nu)*epsy)+fPreStressYY;
         SigZ = fPreStressZZ+lambda*(epsx+epsy);
     }
+    
+    TPZManVector<STATE,3> u_exact(3,0.);
+    TPZFNMatrix<9,STATE> du_exact(2,2,0.);
     
 	switch(var) {
 		case 0:
@@ -738,6 +763,12 @@ void TPZElasticity2D::Solution(const TPZMaterialDataT<STATE> &data,
             Solout[0] = 0.;
             Solout[1] = 0.;
             Solout[2] = 0.;
+            break;
+        case 30:
+            this->ExactSol()(data.x,u_exact,du_exact);
+            Solout[0]=u_exact[0];
+            Solout[1]=u_exact[1];
+            Solout[2]=0.;
             break;
 		default:
 			TBase::Solution(data,var,Solout);
@@ -1053,6 +1084,10 @@ void TPZElasticity2D::Errors(const TPZMaterialDataT<STATE> &data,
     values[5] = sigx*sigx;
 	
 	//values[1] : erro em norma L2 em deslocamentos
+    
+    //std::cout<<"----disp exact "<< u_exact<<std::endl;
+    //std::cout<<"----disp h1 "<< u<<std::endl;
+    
 	values[1] = (u[0] - u_exact[0])*(u[0] - u_exact[0])+(u[1] - u_exact[1])*(u[1] - u_exact[1]);
 	
 	//values[2] : erro estimado na norma H1
