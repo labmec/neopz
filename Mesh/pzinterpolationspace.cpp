@@ -1152,12 +1152,12 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
 	
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
     TPZManVector<int,3> prevOrder(dim);
-	const int maxIntOrder = [&](){
+    const int maxIntOrder = [&](){
         int max_int_order = intrule->GetMaxOrder();
         
         intrule->GetOrder(prevOrder);
-        const int order_limit =15;
-            //materror->PolynomialOrderExact();
+        const int order_limit =
+            materror->PolynomialOrderExact();
         if(max_int_order > order_limit){
             if (prevOrder[0] > order_limit) {
                 max_int_order = prevOrder[0];
@@ -1167,7 +1167,7 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
             }
         }
         return max_int_order;
-    }
+    }();
     
 	TPZManVector<int,3> maxorder(dim, maxIntOrder);
 	intrule->SetOrder(maxorder);
