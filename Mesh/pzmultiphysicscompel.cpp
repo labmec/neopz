@@ -427,32 +427,28 @@ void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<STATE> & v
         if(!msp) continue;
         msp->InitMaterialData(datavec[iref]);
     }
-    
-    
-    //	TPZManVector<REAL, 3> intpoint(dim,0.);
-    //	const int varsize = material->NSolutionVariables(variable);
-    //	value.Resize(varsize);
+
+    TPZManVector<REAL, 3> intpoint(this->Dimension(), 0.);
+    const int varsize = material->NSolutionVariables(variable);
+    value.Resize(varsize);
     value.Fill(0.);
     //
-    //	const TPZIntPoints &intrule = this->GetIntegrationRule();
-    //	int npoints = intrule.NPoints(), ip, iv;
-    //	TPZManVector<REAL> sol(varsize);
-    //	for(ip=0;ip<npoints;ip++){
-    //		intrule.Point(ip,intpoint,weight);
-    //		sol.Fill(0.);
-    //		this->Solution(intpoint, variable, sol);
-    //		//Tiago: Next call is performed only for computing detcaj. The previous method (Solution) has already computed jacobian.
-    //		//       It means that the next call would not be necessary if I wrote the whole code here.
-    //		this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
-    //		weight *= fabs(data.detjac);
-    //		for(iv = 0; iv < varsize; iv++) {
-    //#if !BUILD_COMPLEX_PROJECTS
-    //			DebugStop();
-    //#else
-    //			value[iv] += sol[iv]*weight;
-    //#endif
-    //		}//for iv
-    //	}//for ip
+    const TPZIntPoints &intrule = this->GetIntegrationRule();
+    int npoints = intrule.NPoints(), ip;
+    TPZManVector<REAL> sol(varsize);
+    STATE weight = 0., detjac = 0.;
+    for (ip = 0; ip < npoints; ip++) {
+      intrule.Point(ip, intpoint, weight);
+      sol.Fill(0.);
+      this->Solution(intpoint, variable, sol);
+      // Tiago: Next call is performed only for computing detcaj. The previous method (Solution) has already computed jacobian.
+      //        It means that the next call would not be necessary if I wrote the whole code here.
+      this->Reference()->Jacobian(intpoint, datavec[0].jacobian, datavec[0].axes, detjac, datavec[0].jacinv);
+      weight *= fabs(detjac);
+      for (int iv = 0; iv < varsize; iv++) {
+        value[iv] += sol[iv] * weight;
+      }  // for iv
+    }  // for ip
 }//method
 
 
