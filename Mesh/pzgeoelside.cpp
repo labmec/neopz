@@ -1083,7 +1083,7 @@ void TPZGeoElSide::EqualorHigherCompElementList3(TPZStack<TPZCompElSide> &celsid
 		}
 	}
 	this->EqualLevelCompElementList3(celside,onlymultiphysicelement,removeduplicates);
-	if(ncelsides != celside.NElements()) return;
+//	if(ncelsides != celside.NElements()) return;
 	TPZStack<TPZGeoElSide> gelsides;
 	TPZGeoElSide neighbour(*this);
 	do {
