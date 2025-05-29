@@ -794,13 +794,22 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         disp[2] = x[0]*TVar(0.);
     }
     
-    else if(fProblemType ==ERot)//rotation
+    else if(fProblemType ==ERot)//rotation about the Z-axis
     {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
         disp[0] = (TVar)-x[1];
         disp[1] = (TVar)x[0];
         disp[2] = x[0]*TVar(0.);
+    }
+
+    else if(fProblemType == ERotXYZ)//sucessive rotations about X, Y and Z-axes
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] = (TVar)-x[1] + (TVar)x[2];
+        disp[1] = (TVar)x[0] -(TVar)x[2];
+        disp[2] = (TVar)-x[0] + (TVar)x[1];
     }
     
     else if(fProblemType == EShear)//pure shear
@@ -952,7 +961,7 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[2] = x[0]*TVar(0.);
     }
     
-    else if(fProblemType ==ERot)//rotation
+    else if(fProblemType ==ERot)//rotation about the Z-axis
     {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
@@ -960,6 +969,16 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[1] =(FADFADSTATE) x[0];
         disp[2] = x[0]*TVar(0.);
 
+    }
+
+    else if(fProblemType == ERotXYZ)//sucessive rotations about X, Y and Z-axes
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
+        disp[0] = (FADFADSTATE)-x[1] + (FADFADSTATE)x[2];
+        disp[1] = (FADFADSTATE) x[0] - (FADFADSTATE)x[2];
+        disp[2] = (FADFADSTATE)-x[0] + (FADFADSTATE)x[1];
     }
     
     else if(fProblemType == EShear)//pure shear
