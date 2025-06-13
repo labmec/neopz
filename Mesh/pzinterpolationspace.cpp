@@ -1157,7 +1157,10 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
         
         intrule->GetOrder(prevOrder);
         const int order_limit =
-            materror->PolynomialOrderExact();
+        materror->PolynomialOrderExact();
+
+        const int order_limit =15;
+            //materror->PolynomialOrderExact();
         if(max_int_order > order_limit){
             if (prevOrder[0] > order_limit) {
                 max_int_order = prevOrder[0];
@@ -1168,7 +1171,6 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
         }
         return max_int_order;
     }();
-    
 	TPZManVector<int,3> maxorder(dim, maxIntOrder);
 	intrule->SetOrder(maxorder);
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);

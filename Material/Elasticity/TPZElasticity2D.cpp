@@ -50,8 +50,6 @@ TPZElasticity2D::TPZElasticity2D(int id, STATE E, STATE nu,
                                  STATE fx, STATE fy, int planestress): TPZRegisterClassId(&TPZElasticity2D::ClassId),
                                  TBase(id), ff(3,0.), fE_def(E), fnu_def(nu), fPlaneStress(planestress) 
 {
-    ff[0] = fx;
-    ff[1] = fy;
 fE_def    = E;  // Young modulus
 fnu_def    = nu;   // poisson coefficient
 ff[0]    = fx; // X component of the body force
