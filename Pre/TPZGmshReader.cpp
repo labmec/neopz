@@ -1472,30 +1472,214 @@ void TPZGmshReader::FillPeriodicData(
 void TPZGmshReader::AdjustPeriodicNodes(TPZGeoMesh *gmesh)
 {
     
-    //just to make it easier to read
-    auto &dep_mat_ids = m_periodic_data->dep_mat_ids;
-    auto &indep_mat_ids = m_periodic_data->indep_mat_ids;
     auto &nodes_map = m_periodic_data->nodes_map;
     //number of periodic regions
-    const auto n_periodic_reg = dep_mat_ids.size();
-    /*
-      now we just want to change the ids of the periodic nodes
-      as to ensure that their relative ordering is the same on both
-      dependent and independent entities
-    */
+    const auto n_periodic_reg = nodes_map.size();
+
+    //first we find the number of periodic connections
+    //number of periodic connections: not const because we will remove some entries
+    int64_t nc = 0;
     for(auto ireg = 0; ireg < n_periodic_reg; ireg++)
     {
-        const auto &node_map = *(nodes_map[ireg]);
-        const int n_nodes = node_map.size();
-        for(const auto &[dep_node_idx,indep_node_idx] : node_map){
-            auto &indep_node = m_gmesh->NodeVec()[indep_node_idx];
-            auto &dep_node = m_gmesh->NodeVec()[dep_node_idx];
-            indep_node.SetNodeId(m_gmesh->CreateUniqueNodeId());
-            dep_node.SetNodeId(m_gmesh->CreateUniqueNodeId());
+        nc += (nodes_map[ireg])->size();
+    }
+    TPZVec<int64_t> indep_nodes(nc,-1), dep_nodes(nc,-1);
+
+    
+    int64_t count{0};
+    for(auto ireg = 0; ireg < n_periodic_reg; ireg++)
+    {
+        for(const auto &[dep_idx,indep_idx] : *(nodes_map[ireg])){
+            //first we check if this connections is already present
+            auto it = indep_nodes.begin();
+            bool found{false};
+            while(it != indep_nodes.begin() + count){
+                it = std::find(it, indep_nodes.begin()+count,indep_idx);
+                const auto pos = it - indep_nodes.begin();
+                if(pos < count){
+                    if(indep_nodes[pos] == indep_idx &&
+                       dep_nodes[pos] == dep_idx){
+                        found=true;
+                        break;
+                    }
+                    //now we search on the next position onwards
+                    it++;
+                }
+            }
+            if(found==false){
+                indep_nodes[count] = indep_idx;
+                dep_nodes[count] = dep_idx;
+                count++;
+            }
+        }
+    }
+   
+    //perhaps we had repeated connections
+    nc = count;
+    /*
+      now we must search for nodes that depend twice on independent nodes
+      and remove unnecessary dependencies
+
+      i.e.
+
+      3 - 1
+      4 - 0
+      4 - 2
+      5 - 1
+      5 - 3
+      0 - 2
+
+      is identical to
+
+      3 - 1
+      4 - 0
+      5 - 3
+      0 - 2
+
+      since 3-1 and 5-3 eliminate the need for 5-1 (the same for 4-0, 0-2 and 4-2)
+     */
+    for(auto ic = 0; ic < nc; ic++){
+        auto indep = indep_nodes[ic];
+        //look for another entry of indep in indep_nodes
+        const auto found_it = std::find(&indep_nodes[ic+1], indep_nodes.end(), indep);
+        const bool has_more_deps = found_it != indep_nodes.end();
+        if (has_more_deps ){
+            const int64_t found_pos = found_it - indep_nodes.begin();
+            const auto found_another = std::find(found_it+1, indep_nodes.end(),indep);
+            if (found_another != indep_nodes.end()){
+                const int64_t another_pos = found_another - indep_nodes.begin();
+                //no clue on how to proceed if we have more than two occurrences of the same
+                //independent node
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\nUnexpected periodic relationships:\n"
+                       <<indep_nodes[ic]<<' '<<dep_nodes[ic]<<'\n'
+                       <<indep_nodes[found_pos]<<' '<<dep_nodes[found_pos]<<'\n'
+                       <<indep_nodes[another_pos]<<' '<<dep_nodes[another_pos]<<'\n'
+                       <<"Aborting..."<<std::endl;
+                DebugStop();
+            }
+
+            const auto dep1 = dep_nodes[ic];
+            const auto dep2 = dep_nodes[found_pos];
+            //now we see which dependency is also an independent node
+            const auto found1 = std::find(indep_nodes.begin(), indep_nodes.end(),dep1);
+            const auto found2 = std::find(indep_nodes.begin(), indep_nodes.end(),dep2);
+            if(found1 == found2){
+                //we are in an exclusive-or situation.
+                //only one of them must be also an independent node
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\nUnexpected periodic relationships found while analysing "
+                       <<indep<<' '<<dep1<<" and "
+                       <<indep<<' '<<dep2<<std::endl;
+                if(found1 != indep_nodes.end()){
+                    const auto pos1 = found1 - indep_nodes.begin();
+                    PZError<<dep1<<" is also independent: "
+                           <<indep_nodes[pos1]<<' '<<dep_nodes[pos1]<<std::endl;
+                }
+                if(found2 != indep_nodes.end()){
+                    const auto pos2 = found2 - indep_nodes.begin();
+                    PZError<<dep2<<" is also independent: "
+                           <<indep_nodes[pos2]<<' '<<dep_nodes[pos2]<<std::endl;
+                }
+                DebugStop();
+            }
+            //find the position of the redundant connection
+            const int64_t remove_pos = found1 == indep_nodes.end() ? ic :  found_pos;
+            
+            //now we shift everyone one position back and the rest of the vector is no longer valid
+            for(auto iic = remove_pos; iic < nc-1; iic++){
+                indep_nodes[iic] = indep_nodes[iic+1];
+                dep_nodes[iic] = dep_nodes[iic+1];
+            }
+            indep_nodes[nc-1] = -1;
+            dep_nodes[nc-1] = -1;
+            nc--;
+            //perhaps we need to check this position again
+            if(remove_pos == ic){
+                ic--;
+            }
+        }
+    }
+    /*
+      now we need to sort the nodes such that nodes that are both dependent
+      and independent will appear sequentially, with their dependent connection first
+
+      i.e.
+
+      3 - 1
+      4 - 0
+      5 - 3
+      0 - 2
+
+      will become
+
+      5 - 3
+      3 - 1
+      4 - 0
+      0 - 2
+     */
+    TPZVec<bool> been_inserted(nc,false);
+    int64_t nodecount{0};
+    //we allocate all the memory at once, even if more than we need
+    TPZVec<int64_t> all_nodes(2*nc,-1);
+    for(int ic = 0; ic < nc; ic++){
+        if(been_inserted[ic] == true){continue;}
+        const auto indep = indep_nodes[ic];
+        const auto dep = dep_nodes[ic];
+        //first we check if the independent node also depends on someone
+        auto found_it = std::find(dep_nodes.begin(),dep_nodes.end(),indep);
+        if(found_it != dep_nodes.end()){
+
+            const auto found_pos = found_it - dep_nodes.begin();
+            if(been_inserted[found_pos] == true){
+                //how the hell could this happen?
+                PZError<<__PRETTY_FUNCTION__
+                       <<"Repeated nodes!\n";
+                for(auto i = 0; i < nodecount; i++){
+                    PZError<<all_nodes[i]<<' ';
+                }
+                PZError<<"\nAnd we tried to add "<<indep_nodes[found_pos]
+                       <<"\tfrom the relationship "
+                       <<indep_nodes[found_pos]<<' '<<dep_nodes[found_pos]
+                       <<"\nwhile analysing "<<indep<<' '<<dep<<std::endl;
+                DebugStop();
+            }
+            been_inserted[found_pos] = true;
+            all_nodes[nodecount++] = indep_nodes[found_pos];
+        }
+        all_nodes[nodecount++] = indep;
+        all_nodes[nodecount++] = dep;
+        been_inserted[ic] = true;
+        //now we check the opposite: if the dependent node is also independent,
+        //it should be inserted now
+        found_it = std::find(indep_nodes.begin(),indep_nodes.end(),dep);
+        if(found_it != indep_nodes.end()){
+            const auto found_pos = found_it - indep_nodes.begin();
+            if(been_inserted[found_pos] == true){
+                //how the hell could this happen?
+                PZError<<__PRETTY_FUNCTION__
+                       <<"Repeated nodes!\n";
+                for(auto i = 0; i < nodecount; i++){
+                    PZError<<all_nodes[i]<<' ';
+                }
+                PZError<<"\nAnd we tried to add "<<dep_nodes[found_pos]
+                       <<"\tfrom the relationship "
+                       <<indep_nodes[found_pos]<<' '<<dep_nodes[found_pos]
+                       <<"\nwhile analysing "<<indep<<' '<<dep<<std::endl;
+                DebugStop();
+            }
+            been_inserted[found_pos] = true;
+            all_nodes[nodecount++] = dep_nodes[found_pos];
         }
     }
 
+    for(auto ic = 0; ic < nodecount; ic++){
+        const auto node_idx = all_nodes[ic];
+        auto &node = m_gmesh->NodeVec()[node_idx];
+        node.SetNodeId(m_gmesh->CreateUniqueNodeId());
+    }
 }
+
 void TPZGmshReader::AdjustPeriodicElements(TPZGeoMesh *gmesh)
 {
     //just to make it easier to read
