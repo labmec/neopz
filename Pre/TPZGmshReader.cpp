@@ -51,6 +51,7 @@
 #include "TPZParallelUtils.h"
 #include <cassert>
 
+#include <numeric>      // std::iota
 TPZGmshReader::TPZGmshReader() {
     m_dim_entity_tag_and_physical_tag.Resize(4);
     m_dim_physical_tag_and_name.Resize(4);
@@ -1521,9 +1522,10 @@ void TPZGmshReader::AdjustPeriodicElements(TPZGeoMesh *gmesh)
             auto indepel = gmesh->Element(indep_el_idx);
             const auto nnodes = depel->NNodes();
             constexpr int max_nnodes{8};
-            TPZManVector<int64_t,max_nnodes> mapped_nodes(nnodes);
+            TPZManVector<int64_t,max_nnodes> mapped_nodes(nnodes), depnodes(nnodes);
             for (auto in = 0; in < nnodes; in++) {
                 const auto depnode = depel->NodeIndex(in);
+                depnodes[in] = depnode;
                 mapped_nodes[in] = nodes_map[iper]->at(depnode);
             }
             TPZManVector<int64_t,max_nnodes> indepnodes(nnodes);
@@ -1548,6 +1550,72 @@ void TPZGmshReader::AdjustPeriodicElements(TPZGeoMesh *gmesh)
                 const auto mapped = mapped_nodes[in];
                 indepel->SetNodeIndex(in, mapped);
             }
+            //now we check if the id ordering is the same
+            CheckElementOrientation(gmesh, dep_el_idx, indep_el_idx,
+                                    depnodes, mapped_nodes);
+        }
+    }
+}
+
+
+void
+TPZGmshReader::CheckElementOrientation(TPZGeoMesh *gmesh,
+                                        const int64_t depel,
+                                        const int64_t indepel,
+                                        const TPZVec<int64_t> &depnodes,
+                                        const TPZVec<int64_t> &indepnodes)
+{
+    const auto nnodes = depnodes.size();
+    TPZManVector<int64_t,10> indep_ids(nnodes,0), dep_ids(nnodes,0);
+    for(int in = 0; in < nnodes; in++){
+        indep_ids[in] = gmesh->NodeVec()[indepnodes[in]].Id();
+        dep_ids[in] = gmesh->NodeVec()[depnodes[in]].Id();
+    }
+
+            
+    TPZManVector<int64_t,10> indep_idx(nnodes,0), dep_idx(nnodes,0);
+    std::iota(indep_idx.begin(),indep_idx.end(),0);
+    std::iota(dep_idx.begin(),dep_idx.end(),0);
+
+    std::sort(indep_idx.begin(), indep_idx.end(),
+              [&indep_ids](const int64_t i1, const int64_t i2)
+              {return indep_ids[i1] < indep_ids[i2];});
+
+    std::sort(dep_idx.begin(), dep_idx.end(),
+              [&dep_ids](const int64_t i1, const int64_t i2)
+              {return dep_ids[i1] < dep_ids[i2];});
+
+
+    for(int in = 0; in < nnodes; in++){
+        if(indep_idx[in]!=dep_idx[in]){
+            PZError<<__PRETTY_FUNCTION__
+                   <<"\n wrong node orientation of node ids!"<<std::endl;
+            PZError<<"dep el: "<<depel<<" indep el: "<<indepel<<std::endl;
+
+            PZError<<"dep el node indexes:";
+            for(int i = 0; i < nnodes; i++){
+                PZError<<" "<<depnodes[i];
+            }
+            PZError<<std::endl;
+                    
+            PZError<<"indep el node indexes:";
+            for(int i = 0; i < nnodes; i++){
+                PZError<<" "<<indepnodes[i];
+            }
+            PZError<<std::endl;
+
+            PZError<<"dep el node indices:";
+            for(int i = 0; i < nnodes; i++){
+                PZError<<" "<<dep_ids[i];
+            }
+            PZError<<std::endl;
+                    
+            PZError<<"indep el node indices:";
+            for(int i = 0; i < nnodes; i++){
+                PZError<<" "<<indep_ids[i];
+            }
+            PZError<<std::endl;
+            DebugStop();
         }
     }
 }

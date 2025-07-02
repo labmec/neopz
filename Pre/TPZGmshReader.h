@@ -195,6 +195,12 @@ private:
      */
     void AdjustPeriodicElements(TPZGeoMesh *gmesh);
 
+    void CheckElementOrientation(TPZGeoMesh *gmesh,
+                                 const int64_t depel,
+                                 const int64_t indepel,
+                                 const TPZVec<int64_t> &depnodes,
+                                 const TPZVec<int64_t> &indepnodes);
+
   public:
     /// Default constructor
     TPZGmshReader();
