@@ -1256,8 +1256,9 @@ void TPZInterpolationSpace::EvaluateErrorT(TPZVec<REAL> &errors,bool store_error
         int64_t index = Index();
         TPZFMatrix<TVar> &elvals = Mesh()->ElementSolution();
         if (elvals.Cols() < NErrors) {
-            PZError<<__PRETTY_FUNCTION__;
-            PZError << " The element solution of the mesh should be resized before EvaluateError\n";
+            std::cout<<__PRETTY_FUNCTION__;
+            std::cout << " The element solution of the mesh should be resized before EvaluateError\n";
+			std::cout << "elvals.Cols() = " << elvals.Cols() << " NErrors = " << NErrors << std::endl;
             DebugStop();
         }
         for (int ier=0; ier <NErrors; ier++) {

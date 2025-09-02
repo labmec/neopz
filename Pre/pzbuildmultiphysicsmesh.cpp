@@ -1085,12 +1085,16 @@ void TPZBuildMultiphysicsMesh::ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<at
             if(indexes[i].first == 0){
                 notfound++;
                 std::cout << "index " << i << std::endl;
+                TPZConnect &c = mesh->ConnectVec()[i];
+                c.Print(*mesh);
             }
         }
         if(notfound)
         {
             std::cout << __PRETTY_FUNCTION__ << " number of missing connects " << notfound << std::endl;
-            mesh->Print();
+            std::ofstream out("CMeshmissingconnects.txt");
+            mesh->Print(out);
+            DebugStop();
         }
     }
 #endif

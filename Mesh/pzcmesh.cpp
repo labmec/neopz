@@ -1535,10 +1535,20 @@ void TPZCompMesh::AccountForElementError(TPZCompEl* cel, bool store_error, TPZVe
     // Skipping cels that are not included in the set of materials to compute error
     const int celmatid = cel->Reference()->MaterialId();
     if(matset.find(celmatid) == matset.end()) return;
-    
+    TPZMaterial *material = cel->Material();
+    if(!material) DebugStop();
+    TPZMatError<STATE> *matError = dynamic_cast<TPZMatError<STATE> *>(material);
+    if(!matError) DebugStop();
+    int64_t nerrors = matError->NEvalErrors();
+    if(nerrors != true_error.NElements()) {
+        std::cout << "TPZCompMesh::EvaluateError error vector incompatible with material\n";
+        std::cout << "nerrors " << nerrors << " true_error.NElements " << true_error.NElements() << std::endl;
+        DebugStop();
+    }
+
     cel->EvaluateError(true_error, store_error);
 
-    int64_t nerrors = true_error.NElements();
+//    int64_t nerrors = true_error.NElements();
     errorSum.Resize(nerrors, 0.);
     for (int64_t ii = 0; ii < nerrors; ii++)
         errorSum[ii] += true_error[ii] * true_error[ii];
