@@ -211,7 +211,7 @@ void SBFemTest::SBFemBubblesDarcy(const int nThreads) {
   an.SetExact(SBFemTest::LaplaceExact.ExactSolution());
 
   auto start = std::chrono::system_clock::now();
-  TPZManVector<REAL> errorVecSer;
+  TPZManVector<REAL> errorVecSer(3,0.);
   Analysis(an, 0, errorVecSer);
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsedSerial = end - start;
