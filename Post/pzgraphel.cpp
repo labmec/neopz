@@ -145,8 +145,11 @@ void TPZGraphEl::DrawSolutionT(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle 
 		if(st == EMVStyle || st == EV3DStyle) fGraphMesh->Out() << ip++ << " ";
 		for(int64_t is=0; is<numsol; is++) 
 		{
-			fCompEl->Solution(qsi,solind[is],sol);
 			numvar = fCompEl->Material()->NSolutionVariables(solind[is]);
+			TPZManVector<TVar,10> solloc(numvar,0.);
+			fCompEl->Solution(qsi,solind[is],solloc);
+			for(int iv=0; iv<numvar; iv++) sol[iv] = solloc[iv];
+				//sol[iv] = solloc[iv];
 			if(st == EVTKStyle)
 			{
 				if(numvar > 9) numvar = 9; // Because it 3x3 tensor variables
