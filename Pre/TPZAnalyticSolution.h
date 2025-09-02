@@ -340,8 +340,9 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
 struct TLaplaceExample1 : public TPZAnalyticSolution
 {
     
-    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos,  EArcTan, EArcTanSingular, ESteepWave, ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark,ECosMark,ESteklovNonConst,EPerpendicularSteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble, EBubble2D,ESinCosCircle, EHarmonic, EHarmonic2,
-    ESquareRootUpper, ESquareRootLower, ESquareRoot, ELaplace2D, EHarmonic3, EHarmonicPoly};
+    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos,  EArcTan, EArcTanSingular, ESteepWave, ESteepWave2, ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark, ESinMark2, ECosMark,ESteklovNonConst, ESteklovNonConst2, EPerpendicularSteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble, EBubble2D,ESinCosCircle, EHarmonic, EHarmonic2,
+    ESquareRootUpper, ESquareRootLower, ESquareRoot, ELaplace2D, EHarmonic3, EHarmonicPoly,
+    ESharpGaussian2D};
     
     std::string Name() {
         switch (fExact)
@@ -367,6 +368,9 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
         case ESteepWave:
             return "SteepWave";
             break;
+        case ESteepWave2:
+            return "SteepWave2";
+            break;
         case ESinDist:
             return "SinDist";
             break;
@@ -382,8 +386,14 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
         case ESinMark:
             return "SinMark";
             break;
+        case ESinMark2:
+            return "SinMark2";
+            break;
         case ESteklovNonConst:
             return "SteklovNonConst";
+            break;
+        case ESteklovNonConst2:
+            return "SteklovNonConst2";
             break;
         case EGalvisNonConst:
             return "GalvisNonConst";
@@ -424,8 +434,16 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
         case EHarmonicPoly:
             return "HarmonicPoly";
             break;
-        
+        case EPerpendicularSteklovNonConst:
+            return "PerpendicularSteklovNonConst";
+            break;
+
+        case ESharpGaussian2D:
+            return "SharpGaussian2D";
+            break;
+
         default:
+            DebugStop();
             return "None";
             break;
         }
