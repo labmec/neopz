@@ -306,7 +306,7 @@ void TPZHybridDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZ
     TPZFMatrix<REAL> &dsolaxes = data[1].dsol[0];
     TPZFNMatrix<9,REAL> flux(3,0);
     TPZAxesTools<REAL>::Axes2XYZ(dsolaxes, flux, data[1].axes);
-
+    errors[1] = 0.;
     for(int id=0; id<fDim; id++) {
         REAL diff = fabs(flux(id,0) - du_exact(id,0));
         errors[1]  += diff*diff;
