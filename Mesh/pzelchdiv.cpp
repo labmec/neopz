@@ -46,6 +46,11 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(TSHAPE::NFacets,1), fhdivfam(hdivfa
 	int nconflux= TPZCompElHDiv::NConnects();
     this->fConnectIndexes.Resize(nconflux);
 	gel->SetReference(this);
+    int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
+    for(int side = firstside ; side < TSHAPE::NSides-1; side++ )
+    {
+        fSideOrient[side-firstside] = this->Reference()->NormalOrientation(side);
+    }
 
 //    int nfaces = TSHAPE::NumSides(TSHAPE::Dimension-1);
     TPZStack<int> facesides;
@@ -58,10 +63,16 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(TSHAPE::NFacets,1), fhdivfam(hdivfa
 #ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
-            std::stringstream sout;
-            sout << "After creating last flux connect " << i << std::endl;
+            TPZConnect &c = this->Connect(i);
+            if(c.HasDependency()) {
+                std::stringstream sout;
+                sout << "After creating hdiv connect " << i << " index " << this->fConnectIndexes[i] << std::endl;
+                TPZConnect::TPZDependBase *depb = c.FirstDepend();
+                TPZConnect::TPZDepend<STATE> *dep = dynamic_cast<TPZConnect::TPZDepend<STATE> *>(c.FirstDepend());
+                dep->PrintMat(sout);
             //	this->Print(sout);
-            LOGPZ_DEBUG(logger,sout.str())
+                LOGPZ_DEBUG(logger,sout.str())
+            }
         }
 #endif
 
@@ -82,11 +93,6 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(TSHAPE::NFacets,1), fhdivfam(hdivfa
 	if (sideorder > this->fIntRule.GetMaxOrder()) sideorder = this->fIntRule.GetMaxOrder();
 	TPZManVector<int,3> order(3,sideorder);
 	this->fIntRule.SetOrder(order);
-    int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
-    for(int side = firstside ; side < TSHAPE::NSides-1; side++ )
-    {
-        fSideOrient[side-firstside] = this->Reference()->NormalOrientation(side);
-    }
     auto *mat =
         dynamic_cast<TPZMatSingleSpace *>(this->Material());
     if (mat)
@@ -497,7 +503,9 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
     switch(sidetype){
     case EOned:
         if (fhdivfam == HDivFamily::EHDivStandard){
-            TPZShapeHDivBound<pzshape::TPZShapeLinear>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
+            int sideorient = fSideOrient[connectlocid];
+            // TPZShapeHDivBound<pzshape::TPZShapeLinear>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
+            TPZShapeHDivBound<pzshape::TPZShapeLinear>::Initialize(ids,connectOrder,sideorient,shapedata);
             nsideshape = TPZShapeHDivBound<pzshape::TPZShapeLinear>::NShape(shapedata);
         } else 
         if (fhdivfam == HDivFamily::EHDivConstant){
@@ -1208,10 +1216,21 @@ void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large
         int sOrientLarge = large->GetSideOrient(neighbourside);
 
         int equal_orient = sOrientThis * sOrientLarge;
+#ifdef PZ_LOG
+        if(logger.isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "TPZCompElHDiv::RestrainSide thisel index " << this->Index() << " largeel index " << large->Index() << std::endl;
+            sout << "thisside " << thisside << " largegeoside " << largegeoside.Side() << std::endl;
+            sout << "sOrientThis " << sOrientThis << " sOrientLarge " << sOrientLarge << std::endl;
+            sout << "equal_orient " << equal_orient << " det_orient " << det_orient << std::endl;
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+
+#endif
         if(det_orient == -1) {
 //            std::cout << "incompatible side orientations " << " small index " << this->Index() << " large index " << large->Index() << std::endl;
 //            std::cout << "det_orient " << det_orient << " this orient " << sOrientThis << " large orient " << sOrientLarge << std::endl;
-
         // Checking the normal orientation based on the transformation determinant:
         // If negative, the element sides have opposite orientations and vice-versa.
 
