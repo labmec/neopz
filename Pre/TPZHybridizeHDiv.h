@@ -42,12 +42,12 @@ struct TPZHybridizeHDiv {
     
     TPZHybridizeHDiv() = default;
     
-    TPZHybridizeHDiv(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
-    
-    void ComputeNState(TPZVec<TPZCompMesh*>& meshvec_Hybrid);
+    TPZHybridizeHDiv(const TPZVec<TPZCompMesh *> &meshvec_Hybrid);
+
+    void ComputeNState(const TPZVec<TPZCompMesh*>& meshvec_Hybrid);
 
     /// compute material ids for the periferal material objects
-    void ComputePeriferalMaterialIds(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
+    void ComputePeriferalMaterialIds(const TPZVec<TPZCompMesh *> &meshvec_Hybrid);
     
 	std::set<int>& IdsToHybridize() {return fIdsToHybridize;}
 	const std::set<int>& IdsToHybridize() const {return fIdsToHybridize;}
@@ -76,25 +76,25 @@ struct TPZHybridizeHDiv {
     const int lagrangeInterfaceEndMatId() {return fLagrangeInterfaceEnd;}
     
     /// split the connects between flux elements and create a dim-1 pressure element
-    void HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
+    void HybridizeInternalSides(const TPZVec<TPZCompMesh *> &meshvec_Hybrid);
     
     /// Creates the multiphysics interface for one geoel only
-    void CreateInterfaceElementsForGeoEl(TPZCompMesh *cmesh_Hybrid, TPZVec<TPZCompMesh *> &meshvec_Hybrid, TPZGeoEl *gel);
+    void CreateInterfaceElementsForGeoEl(TPZCompMesh *cmesh_Hybrid, const TPZVec<TPZCompMesh *> &meshvec_Hybrid, TPZGeoEl *gel);
 
     /// Create interface elements with material id InterfaceMatid
-    void CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec<TPZCompMesh *> &meshvec_Hybrid);
+    void CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, const TPZVec<TPZCompMesh *> &meshvec_Hybrid);
 
     /// Create interface elements with material id InterfaceMatid using the first and second
     /// meshes
     void CreateInterfaceElements(TPZMultiphysicsCompMesh *cmesh_Hybrid);
     
     /// Hybridize a single interface based on the fluxmesh side connect
-    bool HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intel, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid,
+    bool HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intel, int side, const TPZVec<TPZCompMesh*>& meshvec_Hybrid,
                             const bool isIntersectEnd = false);
     
     /// create a multiphysics mesh for the hybrid formulation using the materials of another mesh and the given atomic meshes
-    TPZCompMesh * CreateMultiphysicsMesh(TPZCompMesh *cmesh_HDiv, TPZVec<TPZCompMesh *> &meshvec_Hybrid, double Lagrange_term_multiplier = 1.);
-    
+    TPZCompMesh * CreateMultiphysicsMesh(TPZCompMesh *cmesh_HDiv, const TPZVec<TPZCompMesh *> &meshvec_Hybrid, double Lagrange_term_multiplier = 1.);
+
     /// create a multiphysics hybridized mesh based on and input mesh
     TPZCompMesh * CreateMultiphysicsMesh(TPZMultiphysicsCompMesh *cmesh_HDiv, double Lagrange_term_multiplier = 1.);
 
@@ -113,13 +113,13 @@ struct TPZHybridizeHDiv {
     static void GroupandCondenseElements(TPZCompMesh *cmesh_Hybrid, int lagrange_keep);
     
     /// insert the material objects for HDivWrap and LagrangeInterface in the atomic meshes
-    void InsertPeriferalMaterialObjects(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
+    void InsertPeriferalMaterialObjects(const TPZVec<TPZCompMesh *> &meshvec_Hybrid);
     
     /// insert the material objects for HDivWrap, LagrangeInterface and InterfaceMatid in the multiphysics mesh
     void InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid, double Lagrange_term_multiplier = 1.);
     
     /// clones the atomic meshes in meshvec_HDiv and creates a multiphysics hybrid mesh
-    std::tuple<TPZCompMesh *, TPZVec<TPZCompMesh *> > Hybridize(TPZCompMesh *cmesh_Multiphysics, TPZVec<TPZCompMesh *> &meshvec_HDiv, bool group_elements=true, double Lagrange_term_multiplier = 1.);
+    std::tuple<TPZCompMesh *, TPZVec<TPZCompMesh *> > Hybridize(TPZCompMesh *cmesh_Multiphysics,const TPZVec<TPZCompMesh *> &meshvec_HDiv, bool group_elements=true, double Lagrange_term_multiplier = 1.);
     
     /// make a hybrid mesh from a H(div) multiphysics mesh
     TPZMultiphysicsCompMesh *Hybridize(TPZMultiphysicsCompMesh *multiphysics, bool group_elements=true, double Lagrange_term_multiplier = 1.);
@@ -131,9 +131,9 @@ struct TPZHybridizeHDiv {
     static void VerifySolutionConsistency(TPZCompMesh *fluxmesh, std::ostream &out);
 private:
     
-    std::tuple<int64_t,int> SplitConnects(const TPZCompElSide &left, const TPZCompElSide &right, TPZVec<TPZCompMesh *> &meshvec_Hybrid);
-    
-    std::tuple<int64_t, int> SplitConnects(const TPZCompElSide &left, const TPZStack<TPZCompElSide> &cellsidestack, TPZVec<TPZCompMesh *> &meshvec_Hybrid, const bool isIntersectEnd = false);
+    std::tuple<int64_t,int> SplitConnects(const TPZCompElSide &left, const TPZCompElSide &right, const TPZVec<TPZCompMesh *> &meshvec_Hybrid);
+
+    std::tuple<int64_t, int> SplitConnects(const TPZCompElSide &left, const TPZStack<TPZCompElSide> &cellsidestack, const TPZVec<TPZCompMesh *> &meshvec_Hybrid, const bool isIntersectEnd = false);
 
 public:
     

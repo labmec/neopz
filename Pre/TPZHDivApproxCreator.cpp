@@ -215,7 +215,7 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
 }
 
 void TPZHDivApproxCreator::PrintAllMeshes(TPZMultiphysicsCompMesh* mpcmesh){
-    TPZVec<TPZCompMesh*>& meshvec = mpcmesh->MeshVector();
+    const TPZVec<TPZCompMesh*>& meshvec = mpcmesh->MeshVector();
     for(int i = 0 ; i < meshvec.size() ; i++) {
         std::string str = "atomic_mesh_" + std::to_string(i) + ".txt";
         std::ofstream out(str);
