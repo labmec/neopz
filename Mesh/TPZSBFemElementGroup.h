@@ -23,6 +23,7 @@ class TPZSBFemElementGroup : public TPZElementGroup
 public:
     enum EComputationMode {EStiff, EOnlyMass, EMass, EStiffBubble};
 
+private:
     /// Default polynomial order for internal bubble functions
     // if its value is zero, there are no internal functions
     static int gDefaultPolynomialOrder;
@@ -49,6 +50,9 @@ private:
     /// Vector of eigenvalues of the SBFem analyis
     TPZManVector<std::complex<double> > fEigenvaluesBubble;
 
+    /// Stiffness matrix related to the bubble functions
+    TPZFNMatrix<100, STATE > fStiffBubble;
+
     /// Matrix of eigenvectors which compose the stiffness matrix
     TPZFNMatrix<100,std::complex<double> > fQVectors;
     
@@ -70,10 +74,21 @@ private:
     bool fPolynomialShapeFunctions = false;
 
     int64_t fInternalConnectIndex = 0;
+
+    /// @brief Flag to indicate the eigenmodes have been computed
+    bool fEigenComputed = false;
     
+    /// @brief Compute the eigenmodes of the element group
+    void ComputeEigenmodes();
+
     /// Compute the mass matrix based on the value of M0 and the eigenvectors
     void ComputeMassMatrix(TPZElementMatrixT<STATE> &M0);
-    
+
+    /// @brief Computes the right hand side vector
+    /// @param ef element load vector(s)
+    /// this method is private because it is called by CalcStiff and assumes ef has been initialized to zero
+    void ComputeRhs(TPZElementMatrixT<STATE> &ef);
+
 public:
     
     /// constructor
@@ -108,6 +123,25 @@ public:
 
     void CalcStiffBlaze(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef);
 
+
+    /// Get the polynomial order of the internal bubble functions
+    int InternalPolynomialOrder() const
+    {
+        return fInternalPolynomialOrder;
+    }
+
+    static int GetDefaultPolynomialOrder()
+    {
+        return gDefaultPolynomialOrder;
+    }
+    static void SetDefaultPolynomialOrder(int order)
+    {
+        gDefaultPolynomialOrder = order;
+    }
+    void SetInternalPolynomialOrder(int order)
+    {
+        fInternalPolynomialOrder = order;
+    }
     /// set the density or specific heat of the material
     void SetDensity(REAL density)
     {
@@ -117,6 +151,7 @@ public:
     void SetComputeOnlyMassMatrix()
     {
         fComputationMode = EOnlyMass;
+        SetEigenComputed(false);
     }
     
     /// Set the element to compute stiffness plus mass
@@ -124,16 +159,24 @@ public:
     {
         fDelt = delt;
         fComputationMode = EMass;
+        SetEigenComputed(false);
     }
     
     void SetComputeStiff()
     {
         fComputationMode = EStiff;
+        SetEigenComputed(false);
     }
 
     void SetComputeFullBubbleStiff()
     {
         fComputationMode = EStiffBubble;
+        SetEigenComputed(false);
+    }
+
+    void SetEigenComputed(bool computed)
+    {
+        fEigenComputed = computed;
     }
     /**
      * @brief Prints element data
@@ -166,7 +209,7 @@ public:
             }
             out << std::endl;
         }
-
+        out << "The eigenmodes have " << (fEigenComputed ? "been computed" : "not been computed") << std::endl;
         out << "End of " << __PRETTY_FUNCTION__ << std::endl;
     }
     
@@ -195,6 +238,14 @@ public:
     {
         for (int64_t i = 0; i < fElGroup.size(); i++) {
             fElGroup[i]->LoadElementReference();
+        }
+    }
+    
+    /** @brief Loads the geometric element referece */
+    virtual void LoadElementReference(TPZVec<TPZCompEl *> &referenced) override
+    {
+        for (int64_t i = 0; i < fElGroup.size(); i++) {
+            fElGroup[i]->LoadElementReference(referenced);
         }
     }
     

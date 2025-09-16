@@ -165,7 +165,7 @@ void SBFemTest::Analysis(TPZLinearAnalysis & an, const int nThreads, TPZManVecto
 };
 
 void SBFemTest::SBFemElasticity3D(const int nThreads){
-  TPZSBFemElementGroup::gDefaultPolynomialOrder = 0;
+  TPZSBFemElementGroup::SetDefaultPolynomialOrder(0);
   ElastExact.fProblemType = TElasticity3DAnalytic::ELoadedBeam;
   ElastExact.fE = 1.; ElastExact.fPoisson = 0.3;
 
@@ -198,7 +198,7 @@ void SBFemTest::SBFemElasticity3D(const int nThreads){
 }
 
 void SBFemTest::SBFemBubblesDarcy(const int nThreads) {
-  TPZSBFemElementGroup::gDefaultPolynomialOrder = 3;
+  TPZSBFemElementGroup::SetDefaultPolynomialOrder(3);
   constexpr int nDiv{4};
   constexpr int pOrder{3};
   constexpr int dim{2};

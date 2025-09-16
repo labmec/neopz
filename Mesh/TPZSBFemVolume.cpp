@@ -34,7 +34,7 @@ static LoggerPtr loggerLBF(Logger::getLogger("pz.mesh.sbfemvolume.bodyloads"));
 static LoggerPtr loggerEvaluateError(Logger::getLogger("pz.mesh.sbfemvolume.error"));
 #endif
 
-TPZSBFemVolume::TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel) : TPZInterpolationSpace(mesh, gel), fElementGroupIndex(-1), fSkeleton(-1), fDensity(1.) {
+TPZSBFemVolume::TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel) : TPZInterpolationSpace(mesh, gel), fElementGroupIndex(-1), fSkeleton(0), fDensity(1.) {
 
 }
 
@@ -53,7 +53,7 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMa
 
     TPZCompMesh *cmesh = Mesh();
 
-    TPZMultiphysicsElement *mpSkel = dynamic_cast<TPZMultiphysicsElement *> (cmesh->Element(fSkeleton));
+    TPZMultiphysicsElement *mpSkel = dynamic_cast<TPZMultiphysicsElement *> (fSkeleton);
     TPZInterpolatedElement *CSkeleton = SkeletonElement();
 
     CSkeleton->InitializeElementMatrix(E0, efmat);
@@ -336,15 +336,31 @@ void TPZSBFemVolume::LoadCoef(TPZFMatrix<std::complex<double> > &coef)
 /// Return the Computational Skeleton element
 TPZInterpolatedElement *TPZSBFemVolume::SkeletonElement() {
     TPZCompMesh *cmesh = Mesh();
-    TPZMultiphysicsElement *mpSkel = dynamic_cast<TPZMultiphysicsElement *> (cmesh->Element(fSkeleton));
+    TPZMultiphysicsElement *mpSkel = dynamic_cast<TPZMultiphysicsElement *> (fSkeleton);
     TPZInterpolatedElement *CSkeleton = 0;
     if(mpSkel) {
         CSkeleton = dynamic_cast<TPZInterpolatedElement *> (mpSkel->Element(0));
     } else {
-        CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
+        CSkeleton = dynamic_cast<TPZInterpolatedElement *> (fSkeleton);
     }
     if(!CSkeleton) DebugStop();
     return CSkeleton;
+}
+
+/** @brief Compute and fill data with requested attributes */
+void  TPZSBFemVolume::ComputeRequiredData(TPZMaterialDataT<STATE> &data,
+									 TPZVec<REAL> &intpoint) {
+if(data.fNeedsSol == true) {
+    if(ElementGroup()->InternalPolynomialOrder() == 0)
+    {
+        data.xParametric = intpoint;
+        ReallyComputeSolution(data);
+    }
+    else
+    {
+        ComputeSolutionWithBubbles(intpoint, data.sol, data.dsol, data.axes);
+    }
+}
 }
 
 /**
@@ -831,7 +847,7 @@ void TPZSBFemVolume::Solution(TPZVec<REAL> &qsi, int var, TPZVec<STATE> &sol) {
     TPZManVector<TPZMaterialDataT<STATE>,2> datavec(2);
     TPZMaterialDataT<STATE> &data2d = datavec[0];
 
-    if(TPZSBFemElementGroup::gDefaultPolynomialOrder == 0)
+    if(ElementGroup()->InternalPolynomialOrder() == 0)
     {
         data2d.xParametric = qsi;
         ReallyComputeSolution(data2d);
@@ -939,8 +955,8 @@ void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error)
         ref->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 
         weight *= fabs(data.detjac);
-        
-        if(TPZSBFemElementGroup::gDefaultPolynomialOrder == 0)
+
+        if(ElementGroup()->InternalPolynomialOrder() == 0)
         {
             data.xParametric = intpoint;
             ReallyComputeSolution(data);
@@ -998,7 +1014,7 @@ void TPZSBFemVolume::SetElementGroupIndex(int64_t index)
     fElementGroupIndex = index;
     std::map<int64_t, int> globtolocal;
     TPZCompEl *celgr = Mesh()->Element(index);
-    fElementGroup = celgr;
+    fElementGroup = dynamic_cast<TPZSBFemElementGroup *>(celgr);
     int nc = celgr->NConnects();
     TPZManVector<int, 10> firsteq(nc + 1, 0);
     for (int ic = 0; ic < nc; ic++) {
@@ -1007,7 +1023,7 @@ void TPZSBFemVolume::SetElementGroupIndex(int64_t index)
         firsteq[ic + 1] = firsteq[ic] + c.NShape() * c.NState();
     }
     int neq = 0;
-    TPZCompEl *celskeleton = Mesh()->Element(fSkeleton);
+    TPZCompEl *celskeleton = fSkeleton;
     nc = celskeleton->NConnects();
     for (int ic = 0; ic < nc; ic++) {
         TPZConnect &c = celskeleton->Connect(ic);
@@ -1088,36 +1104,49 @@ void TPZSBFemVolume::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 }
 
 void TPZSBFemVolume::BuildCornerConnectList(std::set<int64_t>& connectindexes) const {
-    if (fSkeleton == -1) {
+    if (fSkeleton == 0) {
         DebugStop();
     }
-    Mesh()->Element(fSkeleton)->BuildCornerConnectList(connectindexes);
+    fSkeleton->BuildCornerConnectList(connectindexes);
 }
 
 void TPZSBFemVolume::PRefine(int order) {
-    TPZCompEl *cel = Mesh()->Element(fSkeleton);
+    TPZCompEl *cel = fSkeleton;
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *> (cel);
     intel->PRefine(order);
 }
 
 void TPZSBFemVolume::SetPreferredOrder(int order) {
     fPreferredOrder = order;
-    TPZCompEl *cel = Mesh()->Element(fSkeleton);
+    TPZCompEl *cel = fSkeleton;
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *> (cel);
     intel->SetPreferredOrder(order);
 }
 
+void TPZSBFemVolume::SetSkeleton(TPZCompEl *skeleton) {
+#ifdef PZDEBUG
+    if (fSkeleton != 0) {
+        DebugStop();
+    }
+#endif
+    SetSkeleton(skeleton->Index());
+}
+
 void TPZSBFemVolume::SetSkeleton(int64_t skeleton) {
 #ifdef PZDEBUG
-    if (fSkeleton != -1) {
+    if (fSkeleton != 0) {
         DebugStop();
     }
     if (fLocalIndices.size()) {
         DebugStop();
     }
 #endif
-    fSkeleton = skeleton;
-    TPZCompEl *cel = Mesh()->Element(fSkeleton);
+
+    TPZCompEl *cel = Mesh()->Element(skeleton);
+    fSkeleton = cel;
+    if (!fSkeleton) {
+        DebugStop();
+    }
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *> (cel);
     TPZMultiphysicsElement *mpcel = dynamic_cast<TPZMultiphysicsElement *> (cel);
     if(mpcel)
@@ -1150,6 +1179,7 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
     int problemdimension = Mesh()->Dimension();
     if (Ref2D->Dimension() < problemdimension) return;
     
+    /// use the maximum integration rule??
     TPZAutoPointer<TPZIntPoints> intrule = Ref2D->CreateSideIntegrationRule(Ref2D->NSides() - 1, 7);
     int maxIntOrder = intrule->GetMaxOrder();
     TPZManVector<int, 3> maxorder(Dimension(), maxIntOrder);
@@ -1209,6 +1239,7 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
         CSkeleton->Shape(intskel, data1d.fH1.fPhi, data1d.fH1.fDPhi);
         
         Ref2D->X(intpoint, data.x);
+        // this is where the forcing function is applied
         if (mat2d->HasForcingFunction())
         {
             mat2d->ForcingFunction()(data.x,bodyforce);
@@ -1216,6 +1247,7 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
 
         TPZManVector<std::complex<double>> eigvalb(fEigenvaluesBubble);
         
+        // this is the forcing function for the boundary shape functions
         for (int c = 0; c < numeig; c++) {
             std::complex<double> xiexp;
             if (IsZero(-eigval[c] - 0.5*(dim2-2))){
@@ -1229,6 +1261,7 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
                 }
             }
         }
+        // this is the forcing function for the bubble shape functions
         for (int c = 0; c < numbubbles; c++) {
             std::complex<double> xiexp;
             if (IsZero(eigvalbubbles[c])) {
@@ -1244,6 +1277,7 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
         }
     }
     
+    // project the integral of the boundary shape functions to eigenvector shape functions
     // f = \int \xi^0.5(d-1)*xi^\lambda
     for (int c = 0; c < numeig; c++) {
         for (int i = 0; i < nphixi; i++) {

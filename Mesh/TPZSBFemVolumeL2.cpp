@@ -40,7 +40,7 @@ void TPZSBFemVolumeL2::SetElementGroupIndex(int64_t index)
 {
     fElementGroupIndex = index;
     TPZCompEl *celgr = Mesh()->Element(index);
-    fElementGroup = celgr;
+    fElementGroup = dynamic_cast<TPZSBFemElementGroup *>(celgr);
 }
 
 /**

@@ -15,6 +15,8 @@
 #include "pzinterpolationspace.h"
 #include "TPZMaterialDataT.h"
 
+class TPZSBFemElementGroup;
+
 class TPZSBFemVolume : public TPZInterpolationSpace
 {
 protected:
@@ -22,11 +24,11 @@ protected:
     int64_t fElementGroupIndex = -1;
     
     /// pointer to the element group computational element
-    TPZCompEl *fElementGroup = 0;
+    TPZSBFemElementGroup *fElementGroup = 0;
     
-    /// index of the skeleton element
-    int64_t fSkeleton = -1;
-    
+    /// the skeleton element
+    TPZCompEl *fSkeleton = 0;
+
     /// pointer to the integration rule
     TPZIntPoints *fIntRule = 0;
     
@@ -75,11 +77,20 @@ public:
     void ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMatrixT<STATE> &E1, TPZElementMatrixT<STATE> &E2, TPZElementMatrixT<STATE> &M0);
     
     /// Data structure initialization
+    void SetSkeleton(TPZCompEl *skeleton);
     void SetSkeleton(int64_t skeleton);
+    
+    TPZCompEl *Skeleton()
+    {
+        return fSkeleton;
+    }
     
     int64_t SkeletonIndex()
     {
-        return fSkeleton;
+#ifdef PZDEBUG
+        if(!fSkeleton) DebugStop();
+#endif
+        return fSkeleton->Index();
     }
     
     /**
@@ -87,6 +98,16 @@ public:
      * of state variables and material definitions
      */
     virtual void InitMaterialData(TPZMaterialData &data) override;
+
+        //@{
+	/** @brief Compute and fill data with requested attributes */
+	virtual void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
+									 TPZVec<REAL> &qsi) override;
+    virtual void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
+									 TPZVec<REAL> &qsi) override {
+        DebugStop();
+    }
+        //@}
 
     /// Initialize the data structure indicating the group index
     void SetElementGroupIndex(int64_t index);
@@ -102,6 +123,15 @@ public:
     int64_t ElementGroupIndex() const
     {
         return fElementGroupIndex;
+    }
+
+    TPZSBFemElementGroup *ElementGroup() const
+    {
+        if(fElementGroup == 0)
+        {
+            DebugStop();
+        }
+        return fElementGroup;
     }
     /**
      * @brief Method for creating a copy of the element in a patch mesh
@@ -129,7 +159,8 @@ public:
         if (fElementGroup == 0) {
             return 0;
         }
-        return fElementGroup->NConnects();
+        TPZCompEl *cel = (TPZCompEl *) fElementGroup;
+        return cel->NConnects();
     }
     
     /**
@@ -141,7 +172,8 @@ public:
         if (fElementGroup == 0) {
             DebugStop();
         }
-        return fElementGroup->ConnectIndex(i);
+        TPZCompEl *cel = (TPZCompEl *) fElementGroup;
+        return cel->ConnectIndex(i);
     }
     /** @brief Dimension of the element */
     virtual int Dimension() const override
