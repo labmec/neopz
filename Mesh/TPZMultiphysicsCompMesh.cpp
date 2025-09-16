@@ -202,6 +202,28 @@ void TPZMultiphysicsCompMesh::AutoBuild(){
     BuildMultiphysicsSpace();
 }
 
+static void LoadReferred(TPZCompMesh *cmesh, TPZVec<TPZCompEl *> &Referred)
+{
+    int64_t ncel = cmesh->NElements();
+    for (int64_t icel=0; icel<ncel; icel++) {
+        TPZCompEl *cel = cmesh->Element(icel);
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel) {
+            DebugStop();
+        }
+        int64_t gelindex = gel->Index();
+        if (Referred[gelindex]) {
+            if (Referred[gelindex] != cel) {
+                std::cout << "TPZMultiphysicsCompMesh::LoadReferred inconsistent data structure\n";
+                DebugStop();
+            }
+        }
+        else
+        {
+            Referred[gelindex] = cel;
+        }
+    }
+}
 void TPZMultiphysicsCompMesh::AddElements(){
 
     TPZGeoMesh * geometry = Reference();
@@ -216,7 +238,7 @@ void TPZMultiphysicsCompMesh::AddElements(){
         /// for a given atomic space, load the references
         TPZCompMesh *atom = m_mesh_vector[i_as];
         if(!atom) continue;
-        atom->LoadReferences(Referred);
+        LoadReferred(atom, Referred);
 //        m_mesh_vector[i_as]->LoadReferences();
         int64_t icel;
         // loop over the multiphysics elements
