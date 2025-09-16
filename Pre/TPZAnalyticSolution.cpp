@@ -1333,6 +1333,9 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         case EX:
             disp[0] += xloc[0];
             break;
+            case EX2:
+            disp[0] += xloc[0]*xloc[0];
+            break;
         case ESinSin:
         {
             disp[0] += (TVar)(1.);
@@ -1838,6 +1841,9 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
             break;
         case EX:
             disp[0] += xloc[0];
+            break;
+            case EX2:
+            disp[0] += xloc[0]*xloc[0];
             break;
         case ESinSin:
         {

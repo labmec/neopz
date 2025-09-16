@@ -339,10 +339,9 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
 
 struct TLaplaceExample1 : public TPZAnalyticSolution
 {
-    
-    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos,  EArcTan, EArcTanSingular, ESteepWave, ESteepWave2, ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark, ESinMark2, ECosMark,ESteklovNonConst, ESteklovNonConst2, EPerpendicularSteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble, EBubble2D,ESinCosCircle, EHarmonic, EHarmonic2,
-    ESquareRootUpper, ESquareRootLower, ESquareRoot, ELaplace2D, EHarmonic3, EHarmonicPoly,
-    ESharpGaussian2D};
+    enum EExactSol {ENone, EConst, EX, EX2, ESinSin, ECosCos,  EArcTan, EArcTanSingular, ESteepWave, ESteepWave2, ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark, ESinMark2, ECosMark,ESteklovNonConst, ESteklovNonConst2, EPerpendicularSteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble, EBubble2D,ESinCosCircle, EHarmonic, EHarmonic2,
+        ESquareRootUpper, ESquareRootLower, ESquareRoot, ELaplace2D, EHarmonic3, EHarmonicPoly,
+        ESharpGaussian2D};
     
     std::string Name() {
         switch (fExact)
@@ -352,6 +351,9 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
             break;
         case EX:
             return "X";
+            break;
+        case EX2:
+            return "X2";
             break;
         case ESinSin:
             return "SinSin";
@@ -448,6 +450,107 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
             break;
         }
     }
+
+static EExactSol StringToExactSol(std::string name) {
+    if (!name.compare("Constant")) {
+        return EConst;
+    }
+    if (!name.compare("X")) {
+        return EX;
+    }
+    if (!name.compare("X2")) {
+        return EX2;
+    }
+    if (!name.compare("SinSin")) {
+        return ESinSin;
+    }
+    if (!name.compare("CosCos")) {
+        return ECosCos;
+    }
+    if (!name.compare("ArcTan")) {
+        return EArcTan;
+    }
+    if (!name.compare("ArcTanSingular")) {
+        return EArcTanSingular;
+    }
+    if (!name.compare("SteepWave")) {
+        return ESteepWave;
+    }
+    if (!name.compare("SteepWave2")) {
+        return ESteepWave2;
+    }
+    if (!name.compare("SinDist")) {
+        return ESinDist;
+    }
+    if (!name.compare("10SinSin")) {
+        return E10SinSin;
+    }
+    if (!name.compare("2SinSin")) {
+        return E2SinSin;
+    }
+    if (!name.compare("SinSinDirNonHom")) {
+        return ESinSinDirNonHom;
+    }
+    if (!name.compare("SinMark")) {
+        return ESinMark;
+    }
+    if (!name.compare("SinMark2")) {
+        return ESinMark2;
+    }
+    if (!name.compare("SteklovNonConst")) {
+        return ESteklovNonConst;
+    }
+    if (!name.compare("SteklovNonConst2")) {
+        return ESteklovNonConst2;
+    }
+    if (!name.compare("PerpendicularSteklovNonConst")) {
+        return EPerpendicularSteklovNonConst;
+    }
+    if (!name.compare("GalvisNonConst")) {
+        return EGalvisNonConst;
+    }
+    if (!name.compare("BoundaryLayer")) {
+        return EBoundaryLayer;
+    }
+    if (!name.compare("Bubble")) {
+        return EBubble;
+    }
+    if (!name.compare("Bubble2D")) {
+        return EBubble2D;
+    }
+    if (!name.compare("SinCosCircle")) {
+        return ESinCosCircle;
+    }
+    if (!name.compare("Harmonic")) {
+        return EHarmonic;
+    }
+    if (!name.compare("Harmonic2")) {
+        return EHarmonic2;
+    }
+    if (!name.compare("SquareRootUpper")) {
+        return ESquareRootUpper;
+    }
+    if (!name.compare("SquareRootLower")) {
+        return ESquareRootLower;
+    }
+    if (!name.compare("SquareRoot")) {
+        return ESquareRoot;
+    }
+    if (!name.compare("Laplace2D")) {
+        return ELaplace2D;
+    }
+    if (!name.compare("Harmonic3")) {
+        return EHarmonic3;
+    }
+    if (!name.compare("HarmonicPoly")) {
+        return EHarmonicPoly;
+    }
+    if (!name.compare("SharpGaussian2D")) {
+        return ESharpGaussian2D;
+    }
+    return ENone;
+}
+
     int fDimension = 2;
     
     EExactSol fExact = EArcTan;
