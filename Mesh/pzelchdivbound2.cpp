@@ -647,7 +647,12 @@ void TPZCompElHDivBound2<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMateri
         DebugStop();//You should chose an HDiv family space
         break;
     }
-    
+    {
+        TPZGeoEl *gel = this->Reference();
+        int dim = TSHAPE::Dimension;
+        gel->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+    }
+
     data.phi *= 1./data.detjac;
 
 }
