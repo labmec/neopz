@@ -241,13 +241,6 @@ public:
         }
     }
     
-    /** @brief Loads the geometric element referece */
-    virtual void LoadElementReference(TPZVec<TPZCompEl *> &referenced) override
-    {
-        for (int64_t i = 0; i < fElGroup.size(); i++) {
-            fElGroup[i]->LoadElementReference(referenced);
-        }
-    }
     
     int64_t NumEigenValues()
     {
