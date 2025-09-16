@@ -21,8 +21,6 @@ class TPZMultiphysicsElement : public TPZCompEl {
 	
 protected:
     
-    /// list of restraints applied to one shape function
-    std::list<TPZOneShapeRestraint> fRestraints;
     
     /** @brief List of active approximation spaces */
     TPZManVector<int,5> fActiveApproxSpace;
@@ -68,7 +66,7 @@ public:
     virtual TPZCompEl *Element(int64_t mesh) = 0;
 	
     /** @brief Returns a reference to the element pointers vector */
-    virtual TPZManVector<TPZCompElSide,5>   &ElementVec() = 0;
+    virtual TPZVec<TPZCompElSide>   &ElementVec() = 0;
     
 	virtual TPZCompEl *ReferredElement(int64_t mesh) = 0;
     
@@ -167,7 +165,7 @@ public:
      * @brief Set the active approximation spaces
      * @param indexes List of the active approximation spaces
      */
-    virtual void SetActiveApproxSpaces(TPZManVector<int,5> & active_approx_space)
+    virtual void SetActiveApproxSpaces(TPZVec<int> & active_approx_space)
     {
 #ifdef PZDEBUG
         if(fActiveApproxSpace.size()!= ElementVec().size()){
@@ -196,17 +194,8 @@ public:
     virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override  = 0 ;
     virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override  = 0 ;
     
-    /// Add a shape restraint (meant to fit the pyramid to restraint
-    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint) override
-    {
-        fRestraints.push_back(restraint);
-    }
+
     
-    /// Return a list with the shape restraints
-    virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const override
-    {
-        return fRestraints;
-    }
 
 };
 
