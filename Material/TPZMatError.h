@@ -69,6 +69,12 @@ public:
     /** @brief Returns the number of error norms.
         Default is 3: norm, L2 and seminorm. */
     virtual int NEvalErrors() const{return 3;}
+
+    /** @brief Fills in the name of the errors that are computed */
+    virtual void ErrorNames(TPZVec<std::string> &names) const {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        std::cout << "You should implement this method in your material class\n";
+    }
     /** @}*/
 
 //    [[nodiscard]] int ClassId() const;

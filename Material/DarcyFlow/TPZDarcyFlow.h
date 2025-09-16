@@ -131,6 +131,9 @@ public:
      */
     void Errors(const TPZMaterialDataT<STATE> &data, TPZVec<REAL> &errors) override;
 
+    /** @brief Fills in the name of the errors that are computed */
+    virtual void ErrorNames(TPZVec<std::string> &names) const override;
+
     /*
      * @brief fill requirements for volumetric contribute
      */

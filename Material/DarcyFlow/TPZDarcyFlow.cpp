@@ -314,6 +314,14 @@ void TPZDarcyFlow::GetSolDimensions(uint64_t &u_len, uint64_t &du_row, uint64_t 
     du_col=1;
 }
 
+void TPZDarcyFlow::ErrorNames(TPZVec<std::string> &names) const {
+    int nerr = NEvalErrors();
+    names.Resize(nerr);
+    names[0] = "H1_Norm";
+    names[1] = "L2_Norm";
+    names[2] = "H1_Semi_Norm";
+}
+
 void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
                           TPZVec<REAL> &errors) {
     const TPZVec<REAL> &x = data.x;
