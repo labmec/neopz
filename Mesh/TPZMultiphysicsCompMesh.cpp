@@ -58,13 +58,6 @@ TPZMultiphysicsCompMesh & TPZMultiphysicsCompMesh::operator=(const TPZMultiphysi
     return *this;
 }
 
-TPZVec<TPZCompMesh *> & TPZMultiphysicsCompMesh::MeshVector() {
-    return  m_mesh_vector;
-}
-
-TPZVec<int> &  TPZMultiphysicsCompMesh::GetActiveApproximationSpaces(){
-    return m_active_approx_spaces;
-}
 
 /// Set active approximation spaces
 void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & mesh_vector)
@@ -75,16 +68,15 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & me
 
 void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, const TPZVec<TPZCompMesh * > & mesh_vector){
 
-    m_active_approx_spaces = active_approx_spaces;
-    m_mesh_vector          = mesh_vector;
-    if (m_mesh_vector.size() != m_active_approx_spaces.size()) {
+    SetMeshVectorAndActiveSpaces(mesh_vector, active_approx_spaces);
+    BuildMultiphysicsSpace();
+}
+
+void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace() {
+    if (m_mesh_vector.size() == 0 || m_mesh_vector.size() != m_active_approx_spaces.size()) {
         std::cout<< "TPZMultiphysicsCompMesh:: The vector provided should have the same size." << std::endl;
         DebugStop();
     }
-    
-    int n_approx_spaces = m_mesh_vector.size();
-  
-    SetNMeshes(n_approx_spaces);
     Reference()->ResetReference();
     if (ApproxSpace().Style() == TPZCreateApproximationSpace::EMultiphysics)
     {
@@ -108,16 +100,17 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx
 }
 
 void TPZMultiphysicsCompMesh::BuildMultiphysicsSpaceWithMemory(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector){
-    m_active_approx_spaces = active_approx_spaces;
-    m_mesh_vector          = mesh_vector;
-    if (m_mesh_vector.size() != m_active_approx_spaces.size()) {
+    SetMeshVectorAndActiveSpaces(mesh_vector, active_approx_spaces);
+    BuildMultiphysicsSpaceWithMemory();
+}
+void TPZMultiphysicsCompMesh::BuildMultiphysicsSpaceWithMemory(){
+    if (m_mesh_vector.size() == 0 || m_mesh_vector.size() != m_active_approx_spaces.size()) {
         std::cout<< "TPZMultiphysicsCompMesh:: The vector provided should have the same size." << std::endl;
         DebugStop();
     }
     
     int n_approx_spaces = m_mesh_vector.size();
     
-    SetNMeshes(n_approx_spaces);
     Reference()->ResetReference();
     SetAllCreateFunctionsMultiphysicElemWithMem();
     ApproxSpace().CreateWithMemory(true);
@@ -140,16 +133,15 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpaceWithMemory(TPZVec<int> & act
     
 }
 void TPZMultiphysicsCompMesh::BuildMultiphysicsSpaceWithMemory(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector, std::set<int> matsIdWithMem, std::set<int> matsIdNoMem){
-    m_active_approx_spaces = active_approx_spaces;
-    m_mesh_vector          = mesh_vector;
-    if (m_mesh_vector.size() != m_active_approx_spaces.size()) {
+    SetMeshVectorAndActiveSpaces(mesh_vector, active_approx_spaces);
+    BuildMultiphysicsSpaceWithMemory(matsIdWithMem, matsIdNoMem);
+}
+void TPZMultiphysicsCompMesh::BuildMultiphysicsSpaceWithMemory(std::set<int> matsIdWithMem, std::set<int> matsIdNoMem){
+    if (m_mesh_vector.size() == 0 || m_mesh_vector.size() != m_active_approx_spaces.size()) {
         std::cout<< "TPZMultiphysicsCompMesh:: The vector provided should have the same size." << std::endl;
         DebugStop();
-    }
-    
+    }    
     int n_approx_spaces = m_mesh_vector.size();
-    
-    SetNMeshes(n_approx_spaces);
     Reference()->ResetReference();
     SetAllCreateFunctionsMultiphysicElemWithMem();
     ApproxSpace().CreateWithMemory(true);
@@ -176,12 +168,19 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpaceWithMemory(TPZVec<int> & act
 }
 
 void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & mesh_vector, const TPZVec<int64_t> &gelindexes){
-    
-    m_mesh_vector          = mesh_vector;
-    m_active_approx_spaces.Resize(m_mesh_vector.size());
+    m_active_approx_spaces.Resize(mesh_vector.size());
     for(int64_t i = 0; i< m_active_approx_spaces.size(); i++) m_active_approx_spaces[i] = 1;
+    SetMeshVectorAndActiveSpaces(mesh_vector, m_active_approx_spaces);
+    // call the other signature of
+    BuildMultiphysicsSpace(gelindexes);
+}
+
+void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(const TPZVec<int64_t> &gelindexes){
+    if (m_mesh_vector.size() == 0 || m_mesh_vector.size() != m_active_approx_spaces.size()) {
+        std::cout<< "TPZMultiphysicsCompMesh:: The vector provided should have the same size." << std::endl;
+        DebugStop();
+    }
     int n_approx_spaces = m_mesh_vector.size();
-    SetNMeshes(n_approx_spaces);
     Reference()->ResetReference();
     // if(ApproxSpace().Style() != TPZCreateApproximationSpace::EMultiphysics)
     // {
@@ -200,8 +199,7 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & me
 
 void TPZMultiphysicsCompMesh::AutoBuild(){
     
-    std::cout << __PRETTY_FUNCTION__ << " has not been implemented. Use BuildMultiphysicsSpace instead\n";
-    DebugStop();
+    BuildMultiphysicsSpace();
 }
 
 void TPZMultiphysicsCompMesh::AddElements(){
@@ -209,27 +207,16 @@ void TPZMultiphysicsCompMesh::AddElements(){
     TPZGeoMesh * geometry = Reference();
 //    geometry->ResetReference();
     int64_t n_cels = NElements();
+    // for each geometric element, the computational multiphysics element
     int64_t n_gels = geometry->NElements();
     TPZVec<TPZCompEl *> Referred(n_gels,0);
     int n_approx_spaces = m_mesh_vector.size();
     for(int i_as = 0; i_as < n_approx_spaces; i_as++)
     {
+        /// for a given atomic space, load the references
         TPZCompMesh *atom = m_mesh_vector[i_as];
         if(!atom) continue;
-        // load computational element references in the Referred vector
-        {
-            auto &elemvec = atom->ElementVec();
-            auto &gelvec = geometry->ElementVec();
-            int64_t nel = elemvec.NElements();
-            for(int64_t el=0; el<nel; el++)
-            {
-                TPZCompEl *cel = elemvec[el];
-                if(!cel) continue;
-                int64_t gelindex = cel->ReferenceIndex();
-                if(gelindex < 0) continue;
-                Referred[gelindex] = cel;
-            }
-        }
+        atom->LoadReferences(Referred);
 //        m_mesh_vector[i_as]->LoadReferences();
         int64_t icel;
         // loop over the multiphysics elements
@@ -249,6 +236,7 @@ void TPZMultiphysicsCompMesh::AddElements(){
                 }
                 else
                 {
+                    // look for a multiphysics element in the ancestral tree
                     TPZGeoEl *gel = geometry->Element(gelindex);
                     TPZGeoEl *gelF = gel;
                     while(gelF->Father())
@@ -298,10 +286,6 @@ void TPZMultiphysicsCompMesh::AddElements(){
                 std::cout << "Multiphysics element " << icel << " with matid " <<
                     gel->MaterialId() << " does not refer to any elements "
                 << " geometric index " << gel->Index() << std::endl;
-                TPZCompMesh *flux = this->m_mesh_vector[0];
-                fReference->ResetReference();
-                flux->LoadReferences();
-                std::cout << "Flux reference " << (void *) gel->Reference() << std::endl;
                 DebugStop();
             }
         }
@@ -399,18 +383,7 @@ void TPZMultiphysicsCompMesh::AddConnects(){
             if (!celref) {
                 continue;
             }
-//            std::list<TPZOneShapeRestraint> celrest;
-//            celrest = celref->GetShapeRestraints();
-//            for (std::list<TPZOneShapeRestraint>::iterator it = celrest.begin(); it != celrest.end(); it++) {
-//                TPZOneShapeRestraint rest = *it;
-//                TPZOneShapeRestraint convertedrest(rest);
-//                for(int face = 0; face < rest.fFaces.size(); face++)
-//                {
-//                    int ic = rest.fFaces[face].first;
-//                    convertedrest.fFaces[face].first = ic+FirstConnect[i_as];
-//                }
-//                oneshape.push_back(convertedrest);
-//            }
+
             int64_t ncon = celref->NConnects();
             int64_t ic;
             for (ic=0; ic<ncon; ic++) {
@@ -418,9 +391,7 @@ void TPZMultiphysicsCompMesh::AddConnects(){
             }
         }
         cel->SetConnectIndexes(connectindexes);
-//        for (std::list<TPZOneShapeRestraint>::iterator it = oneshape.begin(); it != oneshape.end(); it++) {
-//            cel->AddShapeRestraint(*it);
-//        }
+
     }
     
 }
