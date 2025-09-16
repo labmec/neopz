@@ -394,6 +394,7 @@ void TPZGeoEl::GetSubElements2(int /*side*/, TPZStack<TPZGeoElSide> &/*subel*/) 
 
 void TPZGeoEl::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dimension) const
 {
+	if(!HasSubElement()) return;
 	TPZStack<TPZGeoElSide> subel2;
 	GetSubElements2(side,subel2);
 	int64_t cap = subel2.NElements();

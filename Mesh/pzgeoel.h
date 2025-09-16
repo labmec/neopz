@@ -705,6 +705,9 @@ public:
 	
 	/** @brief Determine the orientation of the normal vector comparing the ids of the neighbouring elements */
 	int NormalOrientation(int side);
+
+	/// @brief returns if the element is a refpattern element or not
+	virtual bool IsRefPatternEl() const = 0;
 	
 	/** @brief Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
 	virtual void SetRefPattern(TPZAutoPointer<TPZRefPattern> );
