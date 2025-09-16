@@ -1532,6 +1532,17 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
 void TPZCompMesh::AccountForElementError(TPZCompEl* cel, bool store_error, TPZVec<REAL>& true_error,
                                          TPZVec<REAL>& errorSum, std::set<int> &matset) {
     
+    if(!cel) DebugStop();
+    TPZElementGroup* elgr = dynamic_cast<TPZElementGroup*>(cel);
+    if(elgr) {
+        auto& elvec = elgr->GetElGroup();
+        for(auto celgr : elvec){
+            if(!celgr) continue;
+            AccountForElementError(celgr,store_error,true_error,errorSum,matset);
+        }
+        return;
+    }
+    if(!cel->Reference()) DebugStop();
     // Skipping cels that are not included in the set of materials to compute error
     const int celmatid = cel->Reference()->MaterialId();
     if(matset.find(celmatid) == matset.end()) return;
