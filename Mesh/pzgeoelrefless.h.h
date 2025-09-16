@@ -349,7 +349,7 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
 	// Create GeoElement
 	int64_t index;
 	MElementType BCtype = TGeo::Type(side);
-	TPZGeoEl *BCGeoEl = this->Mesh()->CreateGeoElement(BCtype, nodeindices, bc, index);
+	TPZGeoEl *BCGeoEl = this->Mesh()->CreateGeoElement(BCtype, nodeindices, bc, index, IsRefPatternEl());
 
     TPZGeoElSide BCGelside(BCGeoEl);
     TPZGeoElSide thisside(this,side);

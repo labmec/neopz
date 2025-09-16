@@ -96,6 +96,9 @@ virtual int ClassId() const override;
 	
 	static int main_refless();
 	
+		/// @brief returns if the element is a refpattern element or not
+	virtual bool IsRefPatternEl() const override { return false; }
+
 	/** @brief Divides the element and puts the resulting elements in the vector */
 	virtual void Divide(TPZVec < TPZGeoEl * > & pv) override {
 		DebugStop();
