@@ -38,7 +38,7 @@ TPZBuildMultiphysicsMesh::~TPZBuildMultiphysicsMesh(){
 }
 
 
-void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
+void TPZBuildMultiphysicsMesh::AddElements(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
 	TPZGeoMesh *gmesh = MFMesh->Reference();
 	gmesh->ResetReference();
@@ -106,7 +106,7 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> &cmeshVec, TPZC
     }
 }
 
-void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
+void TPZBuildMultiphysicsMesh::AddConnects(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
 	int64_t nmeshes = cmeshVec.size();
     MFMesh->SetNMeshes(nmeshes);
@@ -302,7 +302,7 @@ void TPZBuildMultiphysicsMesh::AppendConnects(TPZCompMesh *cmesh, TPZCompMesh *M
 	}
 }
 
-void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec,
+void TPZBuildMultiphysicsMesh::TransferFromMeshes(const TPZVec<TPZCompMesh *> &cmeshVec,
                                                   TPZCompMesh *MFMesh)
 {
     TPZBaseMatrix &solMF = MFMesh->Solution();
@@ -314,7 +314,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
 }
 
 template<class TVar>
-void TPZBuildMultiphysicsMesh::TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshVec,
+void TPZBuildMultiphysicsMesh::TransferFromMeshesT(const TPZVec<TPZCompMesh *> &cmeshVec,
                                                    TPZCompMesh *MFMesh)
 {
     
@@ -402,7 +402,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshV
     }
 }
 
-void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
+void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
     TPZBaseMatrix &solMF = MFMesh->Solution();
     
@@ -413,7 +413,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
 }
 
 template<class TVar>
-void TPZBuildMultiphysicsMesh::TransferFromMultiPhysicsT(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
+void TPZBuildMultiphysicsMesh::TransferFromMultiPhysicsT(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
     
     TPZVec<atomic_index> indexes;
