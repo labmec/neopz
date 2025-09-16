@@ -77,7 +77,7 @@ namespace pzrefine {
 			TPZManVector<int64_t> cornerindexes(TPZShapeLinear::NCornerNodes);
 			for(int j=0;j<TPZShapeLinear::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
 			int64_t index;
-			TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EOned,cornerindexes,matid,index);
+			TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EOned,cornerindexes,matid,index,0);
 			geo->SetSubElement(i , subel);
 		}
 		
@@ -146,7 +146,7 @@ namespace pzrefine {
 	void TPZRefLinear::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel) {
 //		subel.Resize(0);
 		if(side<0 || side>TPZShapeLinear::NSides || !father->HasSubElement()){
-			PZError << "TPZRefCube::GetSubelements2 called with error arguments\n";
+			PZError << "TPZRefLinear::GetSubelements2 called with error arguments\n";
 			return;
 		}
 		int nsub = NSideSubElements(side);//nsubeldata[side];
