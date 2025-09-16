@@ -15,6 +15,18 @@
 #include "tpzcube.h"
 #include "pzgeopyramid.h"
 
+#include "pzgeoprism.h"
+#include "pzgeoquad.h"
+#include "pzgeotriangle.h"
+#include "pzgeoel.h"
+#include "TPZRefLinear.h"
+#include "pzrefquad.h"
+#include "pzreftetrahedra.h"
+#include "pzrefpyram.h"
+#include "pzrefprism.h"
+#include "pzreftriangle.h"
+#include "TPZRefCube.h"
+
 
 #include "tpzquadraticline.h"
 #include "tpzquadratictrig.h"
@@ -580,47 +592,84 @@ void TPZGmshReader::InsertElement(TPZGeoMesh *gmesh,
   const int el_identifier = el_id - 1;
   switch (el_type) {
   case 1: { // Line
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(el_identifier, nodes,
-                                                 physical_identifier, *gmesh);
+    if(m_create_refpatterns)
+        // Line with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(el_identifier, nodes,
+                                                     physical_identifier, *gmesh);
+    else
+        new TPZGeoElement<pzgeom::TPZGeoLinear, pzrefine::TPZRefLinear>(el_identifier, nodes,
+                                                                 physical_identifier, *gmesh);
     m_n_line_els++;
   } break;
   case 2: {
     // Triangle
-    new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(el_identifier, nodes,
-                                                   physical_identifier, *gmesh);
+    if(m_create_refpatterns)
+        // Triangle with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(el_identifier, nodes,
+                                                       physical_identifier, *gmesh);
+    else
+        new TPZGeoElement<pzgeom::TPZGeoTriangle, pzrefine::TPZRefTriangle>(el_identifier, nodes,
+                                                                     physical_identifier, *gmesh);
     m_n_triangle_els++;
 
   } break;
   case 3: {
-    // Quadrilateral
-    new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(el_identifier, nodes,
-                                               physical_identifier, *gmesh);
+    if(m_create_refpatterns){
+        // Quadrilateral with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(el_identifier, nodes,
+                                                   physical_identifier, *gmesh);
+    } else {
+        new TPZGeoElement<pzgeom::TPZGeoQuad, pzrefine::TPZRefQuad>(
+                el_identifier, nodes, physical_identifier, *gmesh);
+    }
     m_n_quadrilateral_els++;
-
-  } break;
+    } break;
   case 4: {
     // Tetrahedron
-    new TPZGeoElRefPattern<pzgeom::TPZGeoTetrahedra>(
-        el_identifier, nodes, physical_identifier, *gmesh);
+    if(m_create_refpatterns){
+        // Tetrahedron with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoTetrahedra>(
+            el_identifier, nodes, physical_identifier, *gmesh);
+    } else {
+        new TPZGeoElement<pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra>(
+            el_identifier, nodes, physical_identifier, *gmesh);
+    }
     m_n_tetrahedron_els++;
 
   } break;
   case 5: {
     // Hexahedra
-    new TPZGeoElRefPattern<pzgeom::TPZGeoCube>(el_identifier, nodes,
-                                               physical_identifier, *gmesh);
+    if(m_create_refpatterns){
+        // Hexahedra with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoCube>(el_identifier, nodes,
+                                                   physical_identifier, *gmesh);
+    } else {
+        new TPZGeoElement<pzgeom::TPZGeoCube, pzrefine::TPZRefCube>(
+            el_identifier, nodes, physical_identifier, *gmesh);
+    }
     m_n_hexahedron_els++;
   } break;
   case 6: {
     // Prism
-    new TPZGeoElRefPattern<pzgeom::TPZGeoPrism>(el_identifier, nodes,
-                                                physical_identifier, *gmesh);
+    if(m_create_refpatterns){
+        // Prism with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoPrism>(el_identifier, nodes,
+                                                   physical_identifier, *gmesh);
+    } else {
+        new TPZGeoElement<pzgeom::TPZGeoPrism, pzrefine::TPZRefPrism>(
+            el_identifier, nodes, physical_identifier, *gmesh);
+    }
     m_n_prism_els++;
   } break;
   case 7: {
     // Pyramid
-    new TPZGeoElRefPattern<pzgeom::TPZGeoPyramid>(el_identifier, nodes,
-                                                  physical_identifier, *gmesh);
+    if(m_create_refpatterns)
+        // Pyramid with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoPyramid>(el_identifier, nodes,
+                                                      physical_identifier, *gmesh);
+    else
+        new TPZGeoElement<pzgeom::TPZGeoPyramid, pzrefine::TPZRefPyramid>(el_identifier, nodes,
+                                                                        physical_identifier, *gmesh);
     m_n_pyramid_els++;
   } break;
   case 8: {

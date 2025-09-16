@@ -70,6 +70,10 @@ class TPZGmshReader{
     
     /// pointer to the geometric mesh being read
     TPZGeoMesh *m_gmesh = 0;
+
+
+    /// condition whether to create TPZRefPattern objects or TPZGeoElement objects
+    bool m_create_refpatterns = true;
     
     /// Number of volumes
     int m_n_volumes = 0;
@@ -200,7 +204,13 @@ private:
     
     /// Set the Characteristic length (before reading the mesh)
     void SetCharacteristiclength(REAL length);
-    
+
+
+    /// Determine whether to create TPZRefPattern objects or TPZGeoElement objects
+    void SetCreateRefPatterns(bool create_refpatterns){
+        m_create_refpatterns = create_refpatterns;
+    }
+
     /// Print the partition summary after the reading process
     void PrintPartitionSummary(std::ostream & out);
     
