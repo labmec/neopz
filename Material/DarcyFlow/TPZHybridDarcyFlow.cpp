@@ -190,6 +190,80 @@ void TPZHybridDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datav
     }
 }
 
+void TPZHybridDarcyFlow::ContributeBC(const TPZMaterialDataT<STATE> &data, STATE weight, TPZFMatrix<STATE> &ek,
+                                TPZFMatrix<STATE> &ef, TPZBndCondT<STATE> &bc) {
+
+    const TPZFMatrix<REAL> &phi = data.phi;
+    const TPZFMatrix<REAL> &axes = data.axes;
+    int phr = phi.Rows();
+    int in, jn;
+
+    STATE v2 = bc.Val2()[0];
+
+    if (bc.HasForcingFunctionBC()) {
+        TPZManVector<STATE, 1> rhs_val(1);
+        TPZFNMatrix<3, STATE> mat_val(fDim, 1);
+        bc.ForcingFunctionBC()(data.x, rhs_val, mat_val);
+        // MinusKGradU/Flux;
+        const STATE perm = GetPermeability(data.x);
+        TPZManVector<STATE, 3> Flux(fDim, 0.);
+        for (int id = 0; id < fDim; id++) {
+            Flux[id] = - perm * mat_val(id, 0);
+        }
+        TPZManVector<REAL,3> normal(3,0.);
+        for (int i = 0; i < fDim; i++) {
+            normal[i] = data.normal[i];
+        }
+        if(bc.Type() == 0) {
+            v2 = rhs_val[0];
+        } else if(bc.Type() == 1) {
+            v2 = 0.;
+            for (int i = 0; i < fDim; i++) {
+                v2 += Flux[i] * normal[i];
+            }
+        } else if(bc.Type() == 2) {
+            v2 = 0.;
+            for (int i = 0; i < fDim; i++) {
+                v2 += Flux[i] * normal[i];
+            }
+            DebugStop(); // I have to think how to implement this
+            v2 += bc.Val1()(0,0) * rhs_val[0];
+        }
+    }
+
+    switch (bc.Type()) {
+        case 1 : // Neumann condition
+            for (in = 0; in < phr; in++) {
+                ef(in, 0) += (STATE) (TPZMaterial::fBigNumber * phi(in, 0) * weight) * v2;
+                for (jn = 0; jn < phr; jn++) {
+                    ek(in, jn) += TPZMaterial::fBigNumber * phi(in, 0) * phi(jn, 0) * weight;
+                }
+            }
+            break;
+        case 0 : // Dirichlet condition
+            for (in = 0; in < phi.Rows(); in++) {
+                ef(in, 0) += v2 * (STATE) (phi(in, 0) * weight);
+            }
+            break;
+        case 2 : // Robin condition
+            for (in = 0; in < phi.Rows(); in++) {
+                ef(in, 0) += v2 * (STATE) (phi(in, 0) * weight);
+                for (jn = 0; jn < phi.Rows(); jn++) {
+                    ek(in, jn) += bc.Val1()(0, 0) * (STATE) (phi(in, 0) * phi(jn, 0) * weight);
+                }
+            }
+            break;
+        default:
+            PZError << __PRETTY_FUNCTION__
+                    << "\nBoundary condition type not implemented. Please use one of the following:\n"
+                    << "\t 0: Dirichlet\n"
+                    << "\t 1: Neumann\n"
+                    << "\t 2: Robin\n";
+            DebugStop();
+    }
+}
+
+
 void TPZHybridDarcyFlow::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCondT<STATE> &bc)
 {
     TPZFMatrix<REAL>  &phi_u = datavec[1].phi;
@@ -339,4 +413,19 @@ void TPZHybridDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZ
 
     errors[3] = energy;
 }
+
+void TPZHybridDarcyFlow::FillBoundaryConditionDataRequirements(int type, TPZMaterialData &data) const {
+
+    data.SetAllRequirements(false);
+    if (type == 50) {
+        data.fNeedsSol = true;
+    }
+    if (type == 3 || type == 1) {
+        data.fNeedsNormal = true;
+    }
+    if (HasForcingFunction()) {
+        data.fNeedsNormal = true;
+    }
+}
+
 /**@}*/

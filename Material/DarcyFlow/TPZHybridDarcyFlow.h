@@ -104,6 +104,21 @@ public:
                               REAL weight, TPZFMatrix<STATE> &ek,
                               TPZFMatrix<STATE> &ef,
                               TPZBndCondT<STATE> &bc) override;
+    /**
+     * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point
+     * @param[in] data stores all input data
+     * @param[in] weight is the weight of the integration rule
+     * @param[out] ek is the element matrix
+     * @param[out] ef is the rhs vector
+     * @param[in] bc is the boundary condition material
+     */
+    void ContributeBC(const TPZMaterialDataT<STATE> &data, STATE weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
+                      TPZBndCondT<STATE> &bc) override;
+    /*
+     * @brief fill requirements for boundary contribute
+     */
+    void FillBoundaryConditionDataRequirements(int type, TPZMaterialData &data) const override;
+
 
     /**@}*/
     /** @brief Returns the solution associated with a given index
