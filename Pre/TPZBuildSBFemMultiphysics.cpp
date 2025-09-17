@@ -219,7 +219,7 @@ void TPZBuildSBFemMultiphysics::BuildComputationalMeshFromSkeleton(TPZMultiphysi
     // Next method will setup the multiphysics mesh
     // Deleting the Hdiv elements existing in the mesh.
     // The elements must be specified as TPZCompElHDivSBFem elements
-    CreateSBFemMultiphysicsMesh(cmeshm,matidstarget);
+    InsertMaterialObjects(cmeshm,matidstarget);
     cmeshm.ApproxSpace().SetAllCreateFunctionsSBFemMultiphysics(dim);
     cmeshm.SetName("multiphysicssbfem");
     TPZManVector<int> active(2,1);
@@ -300,7 +300,7 @@ void TPZBuildSBFemMultiphysics::BuildMultiphysicsCompMesh(TPZMultiphysicsCompMes
     // ********** CREATING THE GEOMETRY
     // Skeleton Elements + Collapsed Elements + External elements:
 
-    // Before calling this function the Skeleton elements has been already created
+    // Before calling this function the Skeleton elements have been already created
     // So I just need to create the collapsed and external elements
 
     // Creating dim-1 elements CompEls - Skeleton
@@ -348,11 +348,13 @@ void TPZBuildSBFemMultiphysics::BuildMultiphysicsCompMesh(TPZMultiphysicsCompMes
     // Next method will setup the multiphysics mesh
     // Deleting the Hdiv elements existing in the mesh.
     // The elements must be specified as TPZCompElHDivSBFem elements
-    CreateSBFemMultiphysicsMesh(cmeshm,matidstarget);
+    InsertMaterialObjects(cmeshm,matidstarget);
     cmeshm.ApproxSpace().SetAllCreateFunctionsSBFemMultiphysics(dim);
     cmeshm.SetName("multiphysicssbfem");
     TPZManVector<int> active(2,1);
-    cmeshm.BuildMultiphysicsSpace(active, cmeshvec);
+    cmeshm.CleanElementsConnects();
+    fGMesh->ResetReference();
+    cmeshm.BuildMultiphysicsSpace();
     cmeshm.LoadReferences();
     cmeshm.CleanUpUnconnectedNodes();
     {
@@ -948,7 +950,7 @@ void TPZBuildSBFemMultiphysics::CreateSBFemVolumeFlux(TPZCompMesh & cmesh, set<i
     }
 }
 
-void TPZBuildSBFemMultiphysics::CreateSBFemMultiphysicsMesh(TPZMultiphysicsCompMesh & cmeshm, set<int> & matidstarget)
+void TPZBuildSBFemMultiphysics::InsertMaterialObjects(TPZMultiphysicsCompMesh & cmeshm, set<int> & matidstarget)
 {
     // The materials for ESkeleton and Emat1 were already created before.
     auto dim = cmeshm.Dimension();

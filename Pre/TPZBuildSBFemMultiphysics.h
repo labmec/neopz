@@ -66,7 +66,8 @@ public:
 
     void CreateCompElFlux(TPZCompMesh &cmeshflux, set<int> & matidtarget, set<int> & matid1d);
 
-    void CreateSBFemMultiphysicsMesh(TPZMultiphysicsCompMesh & cmeshm, set<int> & matidtarget);
+    // insert material objects corresponding to mixed darcy, interface, left and right flux material ids
+    void InsertMaterialObjects(TPZMultiphysicsCompMesh & cmeshm, set<int> & matidtarget);
 
     void AddInterfaceElements(TPZMultiphysicsCompMesh & cmeshm, set<int> &matids1d);
 
