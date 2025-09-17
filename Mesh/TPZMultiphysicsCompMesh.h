@@ -110,15 +110,22 @@ public:
         return m_active_approx_spaces;
     }
 
+    /// delete the elements and connects
+    virtual void CleanElementsConnects();
+
+
 protected:
+
+/// @brief  populate the Referred vector with the computational elements of cmesh
+/// @param cmesh Computational mesh from which the references will be loaded
+/// @param Referred Vector to store the referred computational elements by geometric element index
+static void LoadReferred(TPZCompMesh *cmesh, TPZVec<TPZCompEl *> &Referred);
+
     /// add the elements from the atomic meshes to the multiphysics elements
     virtual void AddElements();
     /// add the connects from the atomic meshes
     virtual void AddConnects();
     
-    /// delete the elements and connects
-    virtual void CleanElementsConnects();
-
     template<class TVar>
     void LoadSolutionFromMeshesInternal();
     template<class TVar>

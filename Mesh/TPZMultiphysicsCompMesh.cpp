@@ -202,7 +202,7 @@ void TPZMultiphysicsCompMesh::AutoBuild(){
     BuildMultiphysicsSpace();
 }
 
-static void LoadReferred(TPZCompMesh *cmesh, TPZVec<TPZCompEl *> &Referred)
+void TPZMultiphysicsCompMesh::LoadReferred(TPZCompMesh *cmesh, TPZVec<TPZCompEl *> &Referred)
 {
     int64_t ncel = cmesh->NElements();
     for (int64_t icel=0; icel<ncel; icel++) {
