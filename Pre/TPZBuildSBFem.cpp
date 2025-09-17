@@ -235,6 +235,10 @@ void TPZBuildSBFem::AddSkeletonElements()
             {
                 neighbourelpartition = fElementPartition[neighbour.Element()->Index()];
             }
+            if(thisside.HasNeighbour(this->fBoundaryMatIds))
+            {
+                continue;
+            }
             if(thisside.HasNeighbour(fSkeletonMatId))
             {
                 continue;

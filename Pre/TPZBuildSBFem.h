@@ -50,6 +50,9 @@ protected:
 
 public:
     
+    /// @brief  The default constructor
+    TPZBuildSBFem() = default;
+    
     /// simple constructor
     TPZBuildSBFem(TPZAutoPointer<TPZGeoMesh> & gmesh, int skeletonmatid, std::map<int,int> &matidtranslation) : fGMesh(gmesh), fMatIdTranslation(matidtranslation), fSkeletonMatId(skeletonmatid)
     {
