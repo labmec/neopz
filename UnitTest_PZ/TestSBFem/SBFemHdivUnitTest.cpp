@@ -214,9 +214,14 @@ void SBFemTest::SBFemHdivDarcy2D(const int nThreads){
   std::map<int,int> matmap;
   matmap[SBFemTest::EGroup] = SBFemTest::EMat1;
   TPZBuildSBFemMultiphysics build(gMesh, SBFemTest::ESkeleton, matmap);
+  std::set<int> bcs = {SBFemTest::EBc1};
+  build.SetBoundaryMatIds(bcs);
   build.StandardConfiguration();
   build.DivideSkeleton(0);
-
+  {
+    std::ofstream out("gmesh.txt");
+    gMesh->Print(out);
+  }
   auto *cmeshp = CreateCMeshPressure(gMesh);
   cmeshp->LoadReferences();
   auto *cmeshf = CreateCMeshFlux(gMesh);
