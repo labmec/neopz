@@ -96,7 +96,62 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fSideOrient(1), fhdivfam(hdivfam){
       LOGPZ_DEBUG(logger,sout.str())
         }
 #endif
-	 
+
+        if constexpr (TSHAPE::Dimension == 0)
+        {
+            // Computing fsideOrient for the specific case of point element
+            // Here, we check the sign of the distance between the point and the center of the neighboring line
+            // If the point is at the left of the line center, fsideOrient = -1, otherwise fsideOrient = 1
+            TPZGeoElSide gelside(gel, 0);
+            TPZGeoElSide neighgelside = gelside.Neighbour();
+            int neighmatid = neighgelside.Element()->MaterialId();
+            while (neighgelside != gelside)
+            {
+                neighmatid = neighgelside.Element()->MaterialId();
+                if (mesh.FindMaterial(neighmatid) && neighgelside.Element()->Dimension() == 1)
+                {
+                    break;
+                }
+                neighgelside = neighgelside.Neighbour();
+            }
+
+            TPZGeoEl *neighgel = neighgelside.Element();
+            if (neighgel->Dimension() != 1)
+                DebugStop();
+
+            int neighdim = neighgel->Dimension();
+            int neighside = neighgel->NSides() - 1;
+            TPZManVector<REAL, 3> neighCenter(neighdim, 0.);
+            neighgel->CenterPoint(neighside, neighCenter);
+
+            int thisdim = gel->Dimension();
+            int thisside = gel->NSides() - 1;
+            TPZManVector<REAL, 3> thisCenter(thisdim, 0.);
+            gel->CenterPoint(thisside, thisCenter);
+
+            TPZManVector<REAL, 3> thisX(3, 0.), neighbourX(3, 0.);
+            gel->X(thisCenter, thisX);
+            neighgel->X(neighCenter, neighbourX);
+
+            TPZManVector<REAL, 3> vec(3, 0.);
+            for (int i = 0; i < 3; i++)
+                vec[i] = thisX[i] - neighbourX[i]; // vector from the center of the line to the point
+
+            REAL dot = 0; // dot product between vec and positive axes (1,1,1)
+            for (int i = 0; i < 3; i++)
+            {
+                dot += vec[i];
+            }
+
+            if (dot < 0)
+            {
+                fSideOrient = -1;
+            }
+            else
+            {
+                fSideOrient = 1;
+            }
+        }
 }
 
 template<class TSHAPE>
