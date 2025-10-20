@@ -367,6 +367,7 @@ int TPZCompMesh::InsertMaterialObject(TPZMaterial * mat) {
 	if(!mat) return -1;
 	int matid = mat->Id();
     if (fMaterialVec.find(matid) != fMaterialVec.end()) {
+        std::cout << "inserting material with matid " << mat->Id() << " which already exists\n";
         DebugStop();
     }
 	fMaterialVec[matid] = mat;
@@ -1530,7 +1531,7 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
 }
 
 void TPZCompMesh::AccountForElementError(TPZCompEl* cel, bool store_error, TPZVec<REAL>& true_error,
-                                         TPZVec<REAL>& errorSum, std::set<int> &matset) {
+                                         TPZVec<REAL>& errorSum, const std::set<int> &matset) {
     
     if(!cel) DebugStop();
     TPZElementGroup* elgr = dynamic_cast<TPZElementGroup*>(cel);
@@ -1592,7 +1593,7 @@ void TPZCompMesh::AccountForElementError(TPZCompEl* cel, bool store_error, TPZVe
 #endif
 }
 
-void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum, std::set<int> &matset) {
+void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum,const std::set<int> &matset) {
 	
     if(!matset.size()) DebugStop();
 

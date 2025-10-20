@@ -498,7 +498,7 @@ private:
     /// @param errorSum sum of all errors of all compels
     /// @param matset set with matids to compute error
     void AccountForElementError(TPZCompEl* cel, bool store_error, TPZVec<REAL>& true_error,
-                                TPZVec<REAL>& errorSum, std::set<int> &matset);
+                                TPZVec<REAL>& errorSum, const std::set<int> &matset);
     
 	/** @brief Creates the computational elements, and the degree of freedom nodes */ 
 	/** If MaterialIDs is passed, only element of material id in the set<int> will be created */
@@ -687,7 +687,7 @@ public:
     TPZVec<STATE> Integrate(const std::string &varname, const std::set<int> &matids);
 
 
-    void EvaluateError(bool store_error, TPZVec<REAL> &errorSum, std::set<int>& matset);
+    void EvaluateError(bool store_error, TPZVec<REAL> &errorSum, const std::set<int>& matset);
 	/** @} */
 	
     void EvaluateError(bool store_error, TPZVec<REAL> &errorSum);
