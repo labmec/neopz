@@ -136,7 +136,7 @@ void TPZBuildSBFemMultiphysics::CreateVolumetricElementsFromSkeleton(TPZCompMesh
             }
         }
         if (index >= fElementPartition.size()) {
-            fElementPartition.resize(index+1);
+            fElementPartition.Resize(index+1,-1);
         }
         fElementPartition[index] = elpartition;
         
@@ -549,7 +549,7 @@ void TPZBuildSBFemMultiphysics::CreateCollapsedGeoEls(TPZCompMesh & cmeshpressur
                     gel->SetNodeIndex(1,Nodes[0]);
                 }
                 if (index >= fElementPartition.size()) {
-                    fElementPartition.resize(index+1);
+                    fElementPartition.Resize(index+1,-1);
                 }
                 fElementPartition[index] = elpartition;
             }
@@ -583,7 +583,7 @@ void TPZBuildSBFemMultiphysics::CreateExternalElements(TPZAutoPointer<TPZGeoMesh
         if (it == matidtarget.end()) continue;
         if (gel->Dimension() < fGMesh->Dimension()) continue;
 
-        fElementPartition.resize(fElementPartition.size()+6);
+        fElementPartition.Resize(fElementPartition.size()+6,-1);
         auto idcollapsed = fElementPartition[gel->Index()];
 
         // getting the side in which the 1d elements will be constructed as neighbours
