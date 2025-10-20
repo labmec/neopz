@@ -560,17 +560,14 @@ void TPZCompEl::BuildConnectList(std::set<int64_t> &connectlist) {
         buf = connectlist;
     }
     std::set<int64_t> buf2;
-    std::list<TPZOneShapeRestraint> mylist = GetShapeRestraints();
-    for (std::list<TPZOneShapeRestraint>::iterator it = mylist.begin(); it != mylist.end(); it++) {
-        for (int i=0; i<4; i++) {
-            buf2.insert(it->fFaces[i].first);
-        }
-    }
     for(std::set<int64_t>::iterator it=buf.begin(); it != buf.end(); it++) {
         TPZConnect &c = Mesh()->ConnectVec()[*it];
         if (c.HasDependency()) {
             TPZConnect::TPZDependBase * dep= c.FirstDepend();
-            buf2.insert(dep->fDepConnectIndex);
+            while(dep) {
+                buf2.insert(dep->fDepConnectIndex);
+                dep = dep->fNext;
+            }
         }
     }
     TPZConnect::BuildConnectList(buf, buf2, *Mesh());
