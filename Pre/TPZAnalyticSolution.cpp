@@ -1767,7 +1767,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             if (shapeFAD::val(theta) > 0.) {
                 theta -= (2.*M_PI);
             }
-            disp[0] = pow(2.,1/4.)*sqrt(r)*cos(theta/2);
+            disp[0] = -pow(2.,1/4.)*sqrt(r)*cos(theta/2);
             //disp[0] = pow(2.,-1/4.)*sqrt(x[0] + sqrt(x[0]*x[0] + x[1]*x[1]));
         }
             break;
@@ -2331,7 +2331,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
             if (shapeFAD::val(theta) > 0.) {
                 theta -= (2.*M_PI);
             }
-            disp[0] = pow(2.,1/4.)*FADsqrt(r)*FADcos(theta/2);
+            disp[0] = -pow(2.,1/4.)*FADsqrt(r)*FADcos(theta/2);
             //disp[0] = pow(2.,-1/4.)*FADsqrt(x[0] + FADsqrt(x[0]*x[0] + x[1]*x[1]));
         }
             break;
