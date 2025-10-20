@@ -65,6 +65,12 @@ protected:
     /// adjust the axes and jacobian of the 3D element
     void AdjustAxes3D(const TPZFMatrix<REAL> &axes2D, TPZFMatrix<REAL> &axes3D, TPZFMatrix<REAL> &jac3D, TPZFMatrix<REAL> &jacinv3D, REAL detjac);
 public:
+    /// @brief Compute the shape function of the eigenvalue basis at the given point in parameter space
+    void ComputeEigenShape(TPZVec<REAL> &qsi, TPZFMatrix<CSTATE> &phi, TPZFMatrix<CSTATE> &dphidx);
+
+    /// @brief Compute the complex shape function values at the given point in parameter space associated with the bubbles
+    void ComputeBubbleShape(TPZVec<REAL> &qsi, TPZFMatrix<CSTATE> &phi, TPZFMatrix<CSTATE> &dphidx);
+
     
     TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel);
     
@@ -283,6 +289,8 @@ public:
     virtual void SetPreferredOrder ( int order ) override;
     
 
+    /// maximum order of the connects
+    int MaxOrder();
 
     /// initialize the data structures of the eigenvectors and eigenvalues associated with this volume element
     void SetPhiEigVal(TPZFMatrix<std::complex<double> > &phi, TPZManVector<std::complex<double> > &eigval);
@@ -290,6 +298,11 @@ public:
     TPZFMatrix<std::complex<double> > Phi()
     {
         return fPhi;
+    }
+    
+    TPZFMatrix<std::complex<double> > PhiBubble()
+    {
+        return fPhiBubble;
     }
     
     TPZManVector<std::complex<double> > Eigenvalues()
@@ -418,7 +431,15 @@ public:
     
     void CreateGraphicalElement(TPZGraphMesh &, int) override;
 
-    void LocalBodyForces(TPZFNMatrix<100,std::complex<REAL>> &f, TPZFNMatrix<100,std::complex<REAL>> &fbubble, TPZManVector<std::complex<REAL>> &eigval, TPZManVector<std::complex<REAL>> &eigvalbubble, int icon);
+    /// @brief Compute the contribution of the element to the body forces, separating eigenvalue functions from bubble functions contribution
+    void LocalBodyForces(TPZFNMatrix<100,std::complex<REAL>> &feigen, TPZFNMatrix<100,std::complex<REAL>> &fbubble, TPZManVector<std::complex<REAL>> &eigval, TPZManVector<std::complex<REAL>> &eigvalbubble, int icon);
+    /// @brief Compute the contribution of the element of the body forces using the computation of the shape functions as basis
+    void LocalBodyForces2(TPZFNMatrix<100,std::complex<REAL>> &feigen, TPZFNMatrix<100,std::complex<REAL>> &fbubble);
+    /// @brief Compute the contribution of the element of the body forces for the eigenmodes
+    void LocalBodyForcesEigen(TPZFNMatrix<100,std::complex<REAL>> &feigen);
+    /// @brief Compute the contribution of the element of the body forces for the bubble functions
+    void LocalBodyForcesBubble(TPZFNMatrix<100,std::complex<REAL>> &fbubble);
+
 
     void ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
                                     TPZSolVec<STATE> &sol, TPZGradSolVec<STATE> &dsol, TPZFMatrix<REAL> &axes);
@@ -426,6 +447,8 @@ public:
     void SetCoefNonHomogeneous(TPZFNMatrix<100,std::complex<double>> &phi, TPZManVector<std::complex<double> > &eigval, TPZFNMatrix<100,std::complex<double> > &phiinv, TPZFNMatrix<100,std::complex<double> > &rot);
 
 
+    /// @brief Compute the stiffness contribution using numerical integration for Laplace equation
+    void StiffnessMatrix(TPZFMatrix<CSTATE> &stiffeig, TPZFMatrix<CSTATE> &stiffbubble);
 };
 
 
