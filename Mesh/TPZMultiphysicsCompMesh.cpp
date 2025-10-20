@@ -95,6 +95,7 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace() {
     AddElements();
     AddConnects();
     LoadSolutionFromMeshes();
+    ComputeNodElCon();
     // reorder the connect sequence numbers in case there are hanging nodes
     CleanUpUnconnectedNodes();
 }
@@ -207,6 +208,7 @@ void TPZMultiphysicsCompMesh::LoadReferred(TPZCompMesh *cmesh, TPZVec<TPZCompEl 
     int64_t ncel = cmesh->NElements();
     for (int64_t icel=0; icel<ncel; icel++) {
         TPZCompEl *cel = cmesh->Element(icel);
+        if(!cel) continue;
         TPZGeoEl *gel = cel->Reference();
         if (!gel) {
             DebugStop();
@@ -536,13 +538,19 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysicsInternal()
     }
 }
 
+#include "pzelementgroup.h"
 /// delete the elements and connects
 void TPZMultiphysicsCompMesh::CleanElementsConnects()
 {
     int64_t nel = NElements();
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = Element(el);
-        if(cel)
+        TPZElementGroup *grp = dynamic_cast<TPZElementGroup *>(cel);
+        if(grp) {
+            TPZVec<TPZCompEl *> celvec = grp->GetElGroup();
+            grp->Unwrap();
+            for(auto it : celvec) delete it;
+        } else if(cel)
         {
             delete cel;
             fElementVec[el] = 0;
@@ -554,4 +562,8 @@ void TPZMultiphysicsCompMesh::CleanElementsConnects()
         fConnectVec[el].RemoveDepend();
     }
     fConnectVec.Resize(0);
+    fBlock.SetNBlocks(0);
+    fSolutionBlock.SetNBlocks(0);
+    fSolution.Resize(0, 1);
+    fSolN.Resize(0, 1);
 }
