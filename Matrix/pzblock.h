@@ -87,7 +87,7 @@ public:
      * @brief Sets number of blocks on diagonal matrix
      * @param num_of_blocks Number of blocks
 	 */
-	int SetNBlocks(const int num_of_blocks );
+	int SetNBlocks(const int64_t num_of_blocks );
 	
 	/**
      * @brief Modifies existing block dimensions or creates a new block with given index
@@ -95,7 +95,7 @@ public:
      * @param dim New dimension
      * @param pos New position
 	 */
-	int Set(const int index,const int dim,const int pos = -1 );
+	int Set(const int64_t index,const int dim,const int pos = -1 );
 	
 	/**
      * @brief Computes blocks sequence
@@ -150,10 +150,10 @@ public:
      * @brief Returns the position of first element block dependent on matrix diagonal
      * @param block_diagonal Inquired block_diagonal
 	 */
-	int Position(const int64_t block_diagonal) const { return fBlock[block_diagonal].pos;}
+	int64_t Position(const int64_t block_diagonal) const { return fBlock[block_diagonal].pos;}
 	
 	/** @brief Returns matrix dimension pointed by block */
-	int Dim() const {return fBlock.NElements() ? fBlock[fBlock.NElements()-1].pos+fBlock[fBlock.NElements()-1].dim : 0; }
+	int64_t Dim() const {return fBlock.NElements() ? fBlock[fBlock.NElements()-1].pos+fBlock[fBlock.NElements()-1].dim : 0; }
 
     template <class TVar>
     int PutBlock(const int bRow, const int bCol,
@@ -181,9 +181,9 @@ public:
      * @brief Defines a node
 	 */
 	class TNode : public TPZSavable {
-            public :
+public :
                 
-		int pos; /**< Position of node */
+		int64_t pos; /**< Position of node */
 		int dim; /**< Dimension of node */
 		
 		TNode() {

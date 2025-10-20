@@ -85,11 +85,11 @@ TPZBlock::~TPZBlock() {
 /*** Set Blocks ***/
 
 int
-TPZBlock::SetNBlocks(const int num_of_blocks )
+TPZBlock::SetNBlocks(const int64_t num_of_blocks )
 {
 	//modified Philippe 24/7/97
 	// a small optimization
-	int MaxBlocks = fBlock.NAlloc();
+	int64_t MaxBlocks = fBlock.NAlloc();
 	if(num_of_blocks >= MaxBlocks) fBlock.Expand((int) (num_of_blocks*1.2));
 	TNode copy;
 	fBlock.Resize(num_of_blocks,copy);
@@ -98,7 +98,7 @@ TPZBlock::SetNBlocks(const int num_of_blocks )
 }
 
 
-int TPZBlock::Set(const int b,const int dim,const int pos ) {
+int TPZBlock::Set(const int64_t b,const int dim,const int pos ) {
 	if ( b >= fBlock.NElements() ) {
 		cout << "TPZBlock::Set called with parameter out of range\n";
 		return( 0 );
@@ -120,21 +120,21 @@ int TPZBlock::Set(const int b,const int dim,const int pos ) {
 int
 TPZBlock::SetAll( TPZVec<int> & dimensions )
 {
-	int total_dim=0;
-	int i,nel = dimensions.NElements() ;
-	for(i=0;i<nel;i++) total_dim += dimensions[i];
+	int64_t total_dim=0;
+	int64_t nel = dimensions.NElements() ;
+	for(int64_t i=0;i<nel;i++) total_dim += dimensions[i];
 	if ( total_dim != fpMatrix->Rows() ||
 		 total_dim > fpMatrix->Rows() ){
 		PZError<<__PRETTY_FUNCTION__<<"SetAll <new block dimensions not compatible whit matrix dimension>"<<std::endl;
 		DebugStop();
 	}
 	
-	int pos=0;
+	int64_t pos=0;
 	
 	//SetNumBlocks( nel );
 	SetNBlocks( nel );
 	
-	for(i=0; i<nel;i++ )
+	for(int64_t i=0; i<nel;i++ )
     {
 		fBlock[i].pos=pos;
 		pos=pos+(fBlock[i].dim=dimensions[i]);
