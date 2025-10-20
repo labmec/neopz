@@ -67,11 +67,7 @@ public:
         fElementPartition.Fill(-1);
     }
 
-    TPZBuildSBFem(const TPZBuildSBFem &copy) : fGMesh(copy.fGMesh), fMatIdTranslation(copy.fMatIdTranslation), fSkeletonMatId(copy.fSkeletonMatId),
-        fElementPartition(copy.fElementPartition), fPartitionCenterNode(copy.fPartitionCenterNode),
-        fPOrderBubbleFunctions(copy.fPOrderBubbleFunctions), fSkeletonPOrder(copy.fSkeletonPOrder)
-    {
-    }
+    TPZBuildSBFem(const TPZBuildSBFem &copy);
 
     /// destructor
     virtual ~TPZBuildSBFem() {
@@ -87,6 +83,12 @@ public:
     std::map<int,int> GetMatIdTranslation() const
     {
         return fMatIdTranslation;
+    }
+    
+    std::set<int> GetMaterialIds() const {
+        std::set<int> result;
+        for(auto it : fMatIdTranslation) result.insert(it.second);
+        return result;
     }
 
     void SetSkeletonMatid(int skeleton) {
@@ -150,7 +152,17 @@ public:
     void Configure(TPZVec<int64_t> &scalingcenters);
     
     /// add a partition manually
-    void AddPartition(TPZVec<int64_t> &elids, int64_t centernodeindex);
+    int64_t AddPartition(TPZVec<int64_t> &elids, int64_t centernodeindex);
+    
+    /// add a partition manually
+    int64_t AddPartition(const std::set<int64_t> &elids, int64_t centernodeindex) {
+        TPZManVector<int64_t> elvecids(elids.size());
+        int count = 0;
+        for(auto &it : elids) {
+            elvecids[count++] = it;
+        }
+        return AddPartition(elvecids, centernodeindex);
+    }
     
     /// define the partition index of each element and the ids of the scaling centers
     void SetPartitions(TPZVec<int64_t> &gelpartitionids, TPZVec<int64_t> &partition_nodeindices)
@@ -195,13 +207,14 @@ public:
     /// create geometric volumetric elements
     virtual void CreateVolumetricElements(TPZCompMesh &cmesh);
     
-protected:
+public:
     /// create the geometric skeleton elements
     void AddSkeletonElements();
 
     /// create a geometric node at the center of each partition
     void CreateElementCenterNodes(TPZVec<int64_t> &elindices);
     
+protected:
     /// create geometric volumetric elements
     void CreateVolumetricElementsFromSkeleton(TPZCompMesh &cmesh);
     
