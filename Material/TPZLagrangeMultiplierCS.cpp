@@ -6,6 +6,12 @@
 #endif
 
 template<class TVar>
+TPZLagrangeMultiplierCS<TVar>::~TPZLagrangeMultiplierCS() {
+//    std::cout << __PRETTY_FUNCTION__ << " with matid " << this->Id() << std::endl;
+}
+
+
+template<class TVar>
 void TPZLagrangeMultiplierCS<TVar>::ContributeInterface(
     const TPZMaterialDataT<TVar> &data,
     const std::map<int, TPZMaterialDataT<TVar>> &dataleft,
@@ -72,31 +78,42 @@ void TPZLagrangeMultiplierCS<TVar>::ContributeInterface(
 template<>
 void TPZLagrangeMultiplierCS<STATE>::ContributeInterface(
                                                          const TPZMaterialDataT<STATE> &data,
-                                                         const std::map<int, TPZMaterialDataT<STATE>> &dataleft,
-                                                         const std::map<int, TPZMaterialDataT<STATE>> &dataright,
+                                                         const std::map<int, TPZMaterialDataT<STATE>> &datavecleft,
+                                                         const std::map<int, TPZMaterialDataT<STATE>> &datavecright,
                                                          REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    
+    int nactiveleft = 0, nactiveright = 0;
+    int leftmatid, rightmatid;
+    for(auto &it : datavecleft) if(it.second.fActiveApproxSpace)
+    {
+        leftmatid = it.first;
+        nactiveleft++;
+    }
+    for(auto &it : datavecright) if(it.second.fActiveApproxSpace) {
+        rightmatid = it.first;
+        nactiveright++;
+    }
 #ifdef PZDEBUG
-    if(dataleft.size() != 1 || dataright.size() != 1)
+    if(nactiveleft != 1 || nactiveright != 1)
         DebugStop();
 #endif
-
+    const TPZMaterialDataT<STATE> &dataleft = datavecleft.find(leftmatid)->second;
+    const TPZMaterialDataT<STATE> &dataright = datavecright.find(rightmatid)->second;
 
         //const TPZFMatrix<REAL> *phiL = &(dataleft.begin()->second.phi);
-        TPZFMatrix<REAL> phiLdummy = dataleft.begin()->second.phi;
+        TPZFMatrix<REAL> phiLdummy = dataleft.phi;
         TPZFMatrix<REAL> *phiL = &phiLdummy;
 
-        TPZFMatrix<REAL> phiRdummy = dataright.begin()->second.phi;
+        TPZFMatrix<REAL> phiRdummy = dataright.phi;
         TPZFMatrix<REAL> *phiR = &phiRdummy;
     
-        TPZManVector<REAL,3> solLvec = dataleft.begin()->second.sol[0];
-        TPZManVector<REAL,3> solRvec = dataright.begin()->second.sol[0];
+        TPZManVector<REAL,3> solLvec = dataleft.sol[0];
+        TPZManVector<REAL,3> solRvec = dataright.sol[0];
         REAL solL = solLvec[0];
         REAL solR = solRvec[0];
 
-        int nrowl = phiL->Rows();
-        int nrowr = phiR->Rows();
+        int64_t nrowl = phiL->Rows();
+        int64_t nrowr = phiR->Rows();
         static int count  = 0;
 
         if((nrowl+nrowr)*fNStateVariables != ek.Rows() && count < 20)
@@ -169,8 +186,10 @@ void TPZLagrangeMultiplierCS<STATE>::ContributeInterface(
 
         // 3) phi_I_left, phi_J_right
         for(il=0; il<nrowl; il++) {
-            for (int ist=0; ist<fNStateVariables; ist++) {
-                ef(fNStateVariables*il+ist,0) += weight *(-1.0)* fMultiplier * phiL->GetVal(il,0) * solR;
+            if(fLinear == false) {
+                for (int ist=0; ist<fNStateVariables; ist++) {
+                    ef(fNStateVariables*il+ist,0) += weight *(-1.0)* fMultiplier * phiL->GetVal(il,0) * solR;
+                }
             }
             for(jr=0; jr<nrowr; jr++) {
                 for (int ist=0; ist<fNStateVariables; ist++) {
@@ -183,8 +202,10 @@ void TPZLagrangeMultiplierCS<STATE>::ContributeInterface(
 
         //    // 4) phi_I_right, phi_J_left
         for(ir=0; ir<nrowr; ir++) {
-            for (int ist=0; ist<fNStateVariables; ist++) {
-                ef(ir*fNStateVariables+ist+secondblock,0) += weight * (-1.0)*fMultiplier * phiR->GetVal(ir,0) * solL;
+            if(fLinear == false) {
+                for (int ist=0; ist<fNStateVariables; ist++) {
+                    ef(ir*fNStateVariables+ist+secondblock,0) += weight * (-1.0)*fMultiplier * phiR->GetVal(ir,0) * solL;
+                }
             }
             for(jl=0; jl<nrowl; jl++) {
                 for (int ist=0; ist<fNStateVariables; ist++) {
