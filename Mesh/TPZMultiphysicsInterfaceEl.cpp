@@ -91,8 +91,6 @@ TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, re
     }
     
 	this->SetLeftRightElement(leftside, rightside);
-	this->IncrementElConnected();
-    this->CreateIntegrationRule();
 }
 
 void TPZMultiphysicsInterfaceElement::IncrementElConnected(){
@@ -291,6 +289,8 @@ void TPZMultiphysicsInterfaceElement::SetLeftRightElementIndices(const TPZVec<in
     if (count != fConnectIndexes.size() ) {
         DebugStop();
     }
+    this->IncrementElConnected();
+    this->CreateIntegrationRule();
 }
 
 
