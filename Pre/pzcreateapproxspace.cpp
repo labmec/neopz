@@ -369,8 +369,12 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
             
             if(!gel->Reference() && gel->NumInterfaces() == 0)
             {
-                index = CreateCompEl(gel,cmesh)->Index();
-                if (fCreateHybridMesh) {
+                TPZCompEl *cel = CreateCompEl(gel,cmesh);
+                if(!cel) {
+                    std::cout << "Creating a computational element for gel with matid " << gel->MaterialId() << " returned null\n";
+                }
+                if (cel && fCreateHybridMesh) {
+                    index = cel->Index();
                     cmesh.ElementVec()[index]->Reference()->ResetReference();
                 }
 #ifdef PZ_LOG
