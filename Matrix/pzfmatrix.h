@@ -744,6 +744,11 @@ inline const TVar TPZFMatrix<TVar>::GetVal( const int64_t row, const int64_t col
 template<class TVar>
 inline TVar &TPZFMatrix<TVar>::operator()( const int64_t row, const int64_t col) {
 #ifndef PZNODEBUG
+    if(this->fDecomposed != ENoDecompose)
+    {
+        PZError << "TPZFMatrix::operator() const - matrix is decomposed\n";
+        DebugStop();
+    }
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
         DebugStop();

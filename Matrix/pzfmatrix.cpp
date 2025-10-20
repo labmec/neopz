@@ -2476,6 +2476,7 @@ int TPZFMatrix<TVar>::Error(const char *msg1,const char *msg2 ) {
     out << "TPZFMatrix::" << msg1;
     if(msg2) out << msg2;
     out << ".\n";
+    std::cout << out.str() << " STOP " << std::endl;
     LOGPZ_ERROR (logger, out.str().c_str());
     DebugStop();
     return 0;
