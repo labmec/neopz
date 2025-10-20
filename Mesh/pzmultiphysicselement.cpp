@@ -432,8 +432,12 @@ template<class TVar>
 void TPZMultiphysicsElement::ComputeRequiredDataT(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialDataT<TVar>> &datavec)
 {
     int64_t ElemVecSize = NMeshes();
+    TPZGeoEl *gel = Reference();
     for (int64_t iref = 0; iref < ElemVecSize; iref++)
     {
+        if(gel && iref==0) {
+            gel->X(intpointtemp,datavec[0].x);
+        }
         TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(Element(iref));
         if (!msp) {
             continue;
