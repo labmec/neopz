@@ -84,6 +84,17 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
         out << ConnectIndex(i) << "/" << c.IsCondensed() << ' ';
     }
     out << std::endl;
+//    int64_t fNumInternalEqs = 0;
+//    int64_t fNumTotalEqs = 0;
+//    TPZCompEl *fReferenceCompEl;
+//    TPZManVector<int64_t,62> fIndexes;
+//    TPZManVector<int64_t,55> fCondensedConnectIndexes;
+//    TPZManVector<int64_t,10> fActiveConnectIndexes;
+//    bool fKeepMatrix = true;
+    out << "Number of internal equations " << fNumInternalEqs << " No total eqs " << fNumTotalEqs << std::endl;
+    out << "fIndexes " << fIndexes << std::endl;
+    out << "fCondensedConnectIndexes " << fCondensedConnectIndexes << std::endl;
+    out << "fActiveConnectIndexes " << fActiveConnectIndexes << std::endl;
     TPZElementGroup *eg = dynamic_cast<TPZElementGroup *>(fReferenceCompEl);
     if(eg)
     {
