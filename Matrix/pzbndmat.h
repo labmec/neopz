@@ -12,6 +12,7 @@ when configuring the library.
 #define _TBNDMATHH_
 
 #include "pzmatrix.h"
+#include "pzmanvector.h"
 
 #ifdef OOPARLIB
 
