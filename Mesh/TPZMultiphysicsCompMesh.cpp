@@ -440,6 +440,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMeshesInternal()
     TPZManVector<int64_t> FirstConnectIndex(n_approx_spaces+1,0);
     for (int i_as = 0; i_as < n_approx_spaces; i_as++) {
         if (m_active_approx_spaces[i_as] == 0) {
+            FirstConnectIndex[i_as+1] = FirstConnectIndex[i_as];
             continue;
         }
         FirstConnectIndex[i_as+1] = FirstConnectIndex[i_as]+m_mesh_vector[i_as]->NConnects();
@@ -491,6 +492,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysicsInternal()
     TPZManVector<int64_t> FirstConnectIndex(n_approx_spaces+1,0);
     for (int i_as = 0; i_as < n_approx_spaces; i_as++) {
         if (m_active_approx_spaces[i_as] == 0) {
+            FirstConnectIndex[i_as+1] = FirstConnectIndex[i_as];
             continue;
         }
         FirstConnectIndex[i_as+1] = FirstConnectIndex[i_as]+m_mesh_vector[i_as]->NConnects();
@@ -548,7 +550,7 @@ void TPZMultiphysicsCompMesh::CleanElementsConnects()
         TPZElementGroup *grp = dynamic_cast<TPZElementGroup *>(cel);
         if(grp) {
             TPZVec<TPZCompEl *> celvec = grp->GetElGroup();
-            grp->Unwrap();
+            grp->Unwrap(true);
             for(auto it : celvec) delete it;
         } else if(cel)
         {
