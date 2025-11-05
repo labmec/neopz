@@ -13,10 +13,22 @@
 #include <iomanip>//std::setw
 
 /// Overloading the operator <<
-inline std::ostream &operator<<(std::ostream &out, const std::pair<int,int> &element)
+inline std::ostream &operator<<(std::ostream &out, std::pair<int,int> &element)
 {
 	out << element.first << "|" << element.second;
 	return out;
+}
+
+inline std::ostream &operator<<(std::ostream &out, std::pair<int64_t,int64_t> &element)
+{
+    out << element.first << "|" << element.second;
+    return out;
+}
+
+inline std::ostream &operator<<(std::ostream &out, std::pair<int,int64_t> &element)
+{
+    out << element.first << "|" << element.second;
+    return out;
 }
 
 /**
@@ -612,6 +624,26 @@ inline void TPZVec<T>::Print(std::ostream &out)
 	out << std::endl << "Number of elements = " << fNElements;
 }
 
+template <class T1, class T2>
+std::ostream& operator<<( std::ostream& Out, const TPZVec< std::pair<T1,T2> >& v )
+{
+    std::streamsize width = Out.width();
+    
+    const char* sep = ( width == 0 ? ", " : "" );
+    
+    int64_t size = v.NElements();
+    
+    if(size) Out << std::setw(width) << v[0].first << '|' << v[0].second;
+    
+    for( int64_t ii = 1; ii < size; ii++ )
+    {
+        Out << std::setw( width ) << sep << v[ii].first << '|' << v[ii].second;
+    }
+    
+    return Out;
+}
+
+
 template <class T>
 std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
 {
@@ -631,25 +663,6 @@ std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
 	return Out;
 }
 
-inline std::ostream& operator<<( std::ostream& Out, const TPZVec< std::pair<double,double> >& v )
-{
-    
-	Out << "{";
-    
-	int64_t size = v.NElements();
-	
-    if(size > 0)
-    {
-        for( int64_t ii = 0; ii < size; ii++ )
-        {
-            Out << "{" << v[ii].first << ',' << v[ii].second << "}";
-            if( ii < size-1) Out << ",";
-        }
-    }
-	
-    Out << "}";
-	return Out;
-}
 
 extern template class TPZVec<float>;
 extern template class TPZVec<float * >;
