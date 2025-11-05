@@ -23,7 +23,15 @@ class TPZMatBase : public TPZMaterialT<TVar>,
                    public virtual Interfaces... {
  public:
     //! Default constructor
-    TPZMatBase() = default;
+//    TPZMatBase() : TPZMaterialT<TVar>(),Interfaces()... {
+//        std::cout << __PRETTY_FUNCTION__ << std::endl;
+//    }
+       //! Constructor taking material identifier
+       explicit TPZMatBase() : TPZMaterialT<TVar>(),Interfaces()... {
+//           std::cout << __PRETTY_FUNCTION__ << std::endl;
+       }
+//    TPZMatBase() = default;
+
     //! Constructor taking material identifier
     explicit TPZMatBase(int id) : TPZMaterialT<TVar>(id),Interfaces()... {
 //        std::cout << __PRETTY_FUNCTION__ << std::endl;

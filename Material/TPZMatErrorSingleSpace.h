@@ -26,7 +26,9 @@ class TPZMatErrorSingleSpace : public virtual TPZMatError<TVar> {
     // this will be used in CreateBC
     using TInterfaceBC = TPZMatErrorSingleSpaceBC<TVar>;
     //! Default constructor
-    TPZMatErrorSingleSpace() = default;
+    TPZMatErrorSingleSpace() : TPZMatError<TVar>() {
+//        std::cout << __PRETTY_FUNCTION__ << std::endl;
+    }
     
     TPZMatErrorSingleSpace(const TPZMatErrorSingleSpace &copy) : TPZMatError<TVar>(copy)
     {
@@ -36,6 +38,11 @@ class TPZMatErrorSingleSpace : public virtual TPZMatError<TVar> {
     }
 
     TPZMatErrorSingleSpace &operator=(const TPZMatErrorSingleSpace &copy) = default;
+//    {
+//        TPZMatError<TVar>::operator=(copy);
+//        std::cout << __PRETTY_FUNCTION__ << std::endl;
+//    return *this;
+//    }
 //    [[nodiscard]] int ClassId() const override;
     //!@name Error
     /** @{*/
