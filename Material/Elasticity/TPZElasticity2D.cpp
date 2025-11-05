@@ -24,6 +24,19 @@ TBase(), ff(3,0.) {
     fPostProcIndex = 0;
 }
 
+TPZElasticity2D::TPZElasticity2D(const TPZElasticity2D &copy) : TBase(copy), TPZMatErrorSingleSpace<STATE>(copy), fE_def(copy.fE_def), fnu_def(copy.fnu_def),
+fElasticity(copy.fElasticity), ff(copy.ff), fEover21PlusNu_def(copy.fEover21PlusNu_def),
+fEover1MinNu2_def(copy.fEover1MinNu2_def), fPreStressXX(copy.fPreStressXX),
+fPreStressYY(copy.fPreStressYY), fPreStressXY(copy.fPreStressXY), fPreStressZZ(copy.fPreStressZZ),
+fPlaneStress(copy.fPlaneStress)
+{
+    if(copy.HasExactSol()) {
+        SetExactSol(copy.ExactSol(), copy.PolynomialOrderExact());
+    }
+//    std::cout << "copy has exact " << copy.HasExactSol() << std::endl;
+//    std::cout << "I have exact sol " << HasExactSol() << std::endl;
+}
+
 TPZElasticity2D::TPZElasticity2D(int id) :
     TPZRegisterClassId(&TPZElasticity2D::ClassId),
     TBase(id), ff(3,0.) {
@@ -48,6 +61,7 @@ TPZElasticity2D::TPZElasticity2D(int id) :
 
 TPZElasticity2D::TPZElasticity2D(int id, STATE E, STATE nu,
                                  STATE fx, STATE fy, int planestress) : TPZRegisterClassId(&TPZElasticity2D::ClassId), TBase(id), ff(3,0.){
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
     fPlaneStress = planestress;
     fE_def = E;
     fnu_def = nu;
@@ -110,7 +124,7 @@ void TPZElasticity2D::Contribute(const TPZMaterialDataT<STATE> &data,
 	const TPZFMatrix<REAL> &phi = data.fH1.fPhi;
 	const TPZFMatrix<REAL> &axes=data.axes;
 	
-	int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
+	int64_t phc,phr,dphc,dphr,efr,efc,ekr,ekc;
 	phc = phi.Cols();
 	phr = phi.Rows();
 	dphc = dphi.Cols();
@@ -141,6 +155,8 @@ void TPZElasticity2D::Contribute(const TPZMaterialDataT<STATE> &data,
 	
     REAL E(fE_def), nu(fnu_def);
     
+    TPZFNMatrix<9,STATE> D(3,3);
+    ComputeDMatrix(E,nu,D);
     if (fElasticity) {
         TPZManVector<STATE,2> result(2);
         TPZFNMatrix<4,STATE> Dres(0,0);
@@ -149,75 +165,26 @@ void TPZElasticity2D::Contribute(const TPZMaterialDataT<STATE> &data,
         nu = result[1];
     }
     
-    REAL Eover1MinNu2 = E/(1-nu*nu);
-    REAL Eover21PlusNu = E/(2.*(1+nu));
+    TPZFNMatrix<60,STATE> dphidx(3,phr),BMat(3,2*phr,0.),DBMat(3,2*phr);
+    TPZAxesTools<STATE>::Axes2XYZ(dphi,dphidx,axes);
 
-	TPZFNMatrix<4,STATE> du(2,2);
-	/*
-	 * Plain strain materials values
-	 */
-	REAL nu1 = 1. - nu;//(1-nu)
-	REAL nu2 = (1.-2.*nu)/2.;
-	REAL F = E/((1.+nu)*(1.-2.*nu));
-    // std::cout << "nu1F = " << nu1*F << " \nnu2F = " << nu2*F << " \nF = " << F << "\nnuF = "<< nu*F << std::endl;
+    for(int i=0; i<phr; i++) {
+        BMat(0,2*i) = dphidx(0,i);
+        BMat(2,2*i) = dphidx(1,i);
+        BMat(1,2*i+1) = dphidx(1,i);
+        BMat(2,2*i+1) = dphidx(0,i);
+    }
+    D.Multiply(BMat,DBMat);
+    ek.AddContribution(0,0,BMat,1,DBMat,0,weight);
+
 	
-	for( int in = 0; in < phr; in++ ) {
-		du(0,0) = dphi(0,in)*axes(0,0)+dphi(1,in)*axes(1,0);//dvx
-		du(1,0) = dphi(0,in)*axes(0,1)+dphi(1,in)*axes(1,1);//dvy
-        // du(0,0) = dphi(0,in);
-        // du(1,0) = dphi(1,in);
-		
-        for (int col = 0; col < efc; col++) 
+    for( int in = 0; in < phr; in++ ) {
+        for (int col = 0; col < efc; col++)
         {
-					ef(2*in, col) += weight * (floc[0]*phi(in,0) - du(0,0)*fPreStressXX - du(1,0)*fPreStressXY);  // direcao x
-					ef(2*in+1, col) += weight * (floc[1]*phi(in,0) - du(0,0)*fPreStressXY - du(1,0)*fPreStressYY);// direcao y <<<----
-        }		
-		for( int jn = 0; jn < phr; jn++ ) {
-			du(0,1) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);//dux
-			du(1,1) = dphi(0,jn)*axes(0,1)+dphi(1,jn)*axes(1,1);//duy
-            // du(0,1) = dphi(0,jn);
-            // du(1,1) = dphi(1,jn);
-			
-			
-			if (fPlaneStress != 1){
-				/* Plane Strain State */
-				ek(2*in,2*jn) += weight * (
-										   nu1 * du(0,0)*du(0,1)+ nu2 * du(1,0)*du(1,1)
-										   ) * F;
-				
-				ek(2*in,2*jn+1) += weight * (
-											 nu*du(0,0)*du(1,1)+ nu2*du(1,0)*du(0,1)
-											 ) * F;
-				
-				ek(2*in+1,2*jn) += weight * (
-											 nu*du(1,0)*du(0,1)+ nu2*du(0,0)*du(1,1)
-											 ) * F;
-				
-				ek(2*in+1,2*jn+1) += weight * (
-											   nu1*du(1,0)*du(1,1)+ nu2*du(0,0)*du(0,1)
-											   ) * F;
-			}
-			else{
-				/* Plain stress state */
-				ek(2*in,2*jn) += weight * (
-										   Eover1MinNu2 * du(0,0)*du(0,1)+ Eover21PlusNu * du(1,0)*du(1,1)
-										   );
-				
-				ek(2*in,2*jn+1) += weight * (
-											 Eover1MinNu2*nu*du(0,0)*du(1,1)+ Eover21PlusNu*du(1,0)*du(0,1)
-											 );
-				
-				ek(2*in+1,2*jn) += weight * (
-											 Eover1MinNu2*nu*du(1,0)*du(0,1)+ Eover21PlusNu*du(0,0)*du(1,1)
-											 );
-				
-				ek(2*in+1,2*jn+1) += weight * (
-											   Eover1MinNu2*du(1,0)*du(1,1)+ Eover21PlusNu*du(0,0)*du(0,1)
-											   );
-			}
-		}
-	}
-	
+            ef(2*in, col) += weight * (floc[0]*phi(in,0) - dphidx(0,in)*fPreStressXX - dphidx(1,in)*fPreStressXY);  // direcao x
+            ef(2*in+1, col) += weight * (floc[1]*phi(in,0) - dphidx(0,in)*fPreStressXY - dphidx(1,0)*fPreStressYY);// direcao y <<<----
+        }
+    }
 }
 
 void TPZElasticity2D::ContributeBC(const TPZMaterialDataT<STATE> &data,
@@ -1006,7 +973,11 @@ void TPZElasticity2D::Errors(const TPZMaterialDataT<STATE> &data,
 #endif
     TPZManVector<STATE,3> u_exact(3,0.);
     TPZFNMatrix<9,STATE> du_exact(2,2,0.);
-    this->ExactSol()(x,u_exact,du_exact);
+    if(this->HasExactSol()) {
+        this->ExactSol()(x,u_exact,du_exact);
+    } else {
+        DebugStop();
+    }
 	values[0] = 0.;
 	TPZManVector<REAL,3> sigma(3,0.),sigma_exact(3,0.);
 	REAL sigx,sigy,sigxy;
@@ -1100,4 +1071,52 @@ void TPZElasticity2D::Errors(const TPZMaterialDataT<STATE> &data,
     REAL SemiH1 =0.;
     for(int i = 0; i < 2; i++) for(int j = 0; j < 2; j++) SemiH1 += (du(i,j) - du_exact(i,j)) * (du(i,j) - du_exact(i,j));
 	values[2] = values[1] + SemiH1;
+}
+
+/// @brief Compute the D matrix
+template<class TVar>
+void TPZElasticity2D::ComputeDMatrix(double E, double nu, TPZFMatrix<TVar> &D) {
+    if(fPlaneStress) {
+        const double denom = 1.0 - nu*nu;      // 1 - nu^2
+        const double C = E / denom;
+        D(0,0) = C * 1.0;
+        D(0,1) = C * nu;
+        D(1,0) = C * nu;
+        D(1,1) = C * 1.0;
+        D(2,2) = C * (1.0 - nu) / 2.0;
+        D(0,2) = D(1,2) = D(2,0) = D(2,1) = 0.0;
+    } else {
+        const double denom = (1.0 + nu) * (1.0 - 2.0*nu); // (1+nu)(1-2nu)
+        const double C = E / denom;
+        D(0,0) = C * (1.0 - nu);
+        D(0,1) = C * nu;
+        D(1,0) = C * nu;
+        D(1,1) = C * (1.0 - nu);
+        D(2,2) = C * (1.0 - 2.0*nu) / 2.0;
+        D(0,2) = D(1,2) = D(2,0) = D(2,1) = 0.0;
+    }
+}
+
+// Plane stress D matrix
+static void D_plane_stress(double E, double nu, TPZFMatrix<STATE> &D) {
+    const double denom = 1.0 - nu*nu;      // 1 - nu^2
+    const double C = E / denom;
+    D(0,0) = C * 1.0;
+    D(0,1) = C * nu;
+    D(1,0) = C * nu;
+    D(1,1) = C * 1.0;
+    D(2,2) = C * (1.0 - nu) / 2.0;
+    D(0,2) = D(1,2) = D(2,0) = D(2,1) = 0.0;
+}
+
+// Plane strain D matrix
+static void D_plane_strain(double E, double nu, TPZFMatrix<STATE> &D) {
+    const double denom = (1.0 + nu) * (1.0 - 2.0*nu); // (1+nu)(1-2nu)
+    const double C = E / denom;
+    D(0,0) = C * (1.0 - nu);
+    D(0,1) = C * nu;
+    D(1,0) = C * nu;
+    D(1,1) = C * (1.0 - nu);
+    D(2,2) = C * (1.0 - 2.0*nu) / 2.0;
+    D(0,2) = D(1,2) = D(2,0) = D(2,1) = 0.0;
 }

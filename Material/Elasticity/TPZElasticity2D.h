@@ -27,6 +27,7 @@ public:
                              TPZMatSingleSpaceT<STATE>,
                              TPZMatErrorSingleSpace<STATE>,
                              TPZMatLoadCases<STATE>>;
+    enum MStressState {EPlaneStrain, EPlaneStress};
 public :
     using ElasticityFunctionType = std::function<void (const TPZVec<REAL>&,
                                                        TPZVec<STATE> &,
@@ -44,14 +45,7 @@ public :
     
     TPZElasticity2D(int id);
 
-    TPZElasticity2D(const TPZElasticity2D &copy) : TBase(copy), fE_def(copy.fE_def), fnu_def(copy.fnu_def),
-    fElasticity(copy.fElasticity), ff(copy.ff), fEover21PlusNu_def(copy.fEover21PlusNu_def),
-    fEover1MinNu2_def(copy.fEover1MinNu2_def), fPreStressXX(copy.fPreStressXX),
-    fPreStressYY(copy.fPreStressYY), fPreStressXY(copy.fPreStressXY), fPreStressZZ(copy.fPreStressZZ),
-    fPlaneStress(copy.fPlaneStress)
-    {
-        
-    }
+    TPZElasticity2D(const TPZElasticity2D &copy);
 
     /** @name Elasticity */
     /** @brief Set elasticity parameters */
@@ -78,6 +72,20 @@ public :
     void SetPlaneStress()
     {
         fPlaneStress = 1;
+    }
+    
+    void SetStressState(MStressState state) {
+        switch (state) {
+            case EPlaneStrain:
+                fPlaneStress = 0;
+                break;
+            case EPlaneStress:
+                fPlaneStress = 1;
+                break;
+            default:
+                DebugStop();
+                break;
+        }
     }
     
     /** @brief Set forcing function */
@@ -125,6 +133,10 @@ public :
 	/** @name Contribute methods */
 	/** @{ */
 	
+    /// @brief Compute the D matrix
+    template<class TVar>
+    void ComputeDMatrix(STATE E, STATE nu, TPZFMatrix<TVar> &DMat);
+    
 	/** @brief Calculates the element stiffness matrix */
 	void Contribute(const TPZMaterialDataT<STATE> &data, STATE weight,
                     TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
@@ -162,6 +174,12 @@ public :
 	/** @{ */
     /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
     int NEvalErrors() const override {return 6;}
+    
+    void ErrorNames(TPZVec<std::string> &errornames) const override {
+        errornames.resize(NEvalErrors());
+        errornames = {"Energy","L2","H1","EnergyExact","L2Stress","L2Sigx"};
+    }
+
 
     void GetSolDimensions(uint64_t &u_len,
                           uint64_t &du_row,
