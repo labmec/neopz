@@ -315,7 +315,7 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleNew(TPZMatrix<TVar> & stiff
 template<class TFront, class TVar, class TPar>
 void TPZFrontStructMatrix<TFront,TVar,TPar>::Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base){
     if(!dynamic_cast<TPZMatrix<TVar>*>(&stiff_base) ||
-       dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
+       !dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<" incompatible types. Aborting...\n";
         DebugStop();
