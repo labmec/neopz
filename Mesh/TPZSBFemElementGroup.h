@@ -207,9 +207,9 @@ public:
     int NState() const {
 #ifdef PZDEBUG
         if(NConnects() == 0) DebugStop();
+#endif
         return Connect(0).NState();
     }
-#endif
     
     /**
      * @brief Computes the element right hand side
