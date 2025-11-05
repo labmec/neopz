@@ -436,7 +436,7 @@ void TPZCompMeshTools::UnGroupElements(TPZCompMesh *cmesh){
         TPZCompEl *el = cmesh->ElementVec()[i];
         TPZElementGroup * group = dynamic_cast<TPZElementGroup*>(el);
         if(group){
-            group->Unwrap();
+            group->Unwrap(true);
         }
     }
     

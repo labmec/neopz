@@ -82,12 +82,18 @@ void TPZElementGroup::AddElement(TPZCompEl *cel)
 }
 
 /** @brief unwrap the condensed element from the computational element and delete the condensed element */
-void TPZElementGroup::Unwrap()
+void TPZElementGroup::Unwrap(bool recursive)
 {
     int nel = fElGroup.size();
     for (int el=0; el<nel; el++) {
         int64_t elindex = fElGroup[el]->Index();
         Mesh()->ElementVec()[elindex] = fElGroup[el];
+    }
+    if(recursive) {
+        for(auto el : fElGroup) {
+            TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(el);
+            if(elgr) elgr->Unwrap(recursive);
+        }
     }
     fElGroup.Resize(0);
     fConnectIndexes.Resize(0);
@@ -421,3 +427,8 @@ bool TPZElementGroup::NeedsComputing(const std::set<int> &matids)
     return result;
 }
 
+template void TPZElementGroup::CalcStiffInternal<STATE>(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef);
+template void TPZElementGroup::CalcStiffInternal<CSTATE>(TPZElementMatrixT<CSTATE> &ek, TPZElementMatrixT<CSTATE> &ef);
+
+template void TPZElementGroup::CalcResidualInternal<STATE>(TPZElementMatrixT<STATE> &ef);
+template void TPZElementGroup::CalcResidualInternal<CSTATE>(TPZElementMatrixT<CSTATE> &ef);

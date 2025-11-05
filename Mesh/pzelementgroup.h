@@ -66,7 +66,8 @@ public:
     }
 
     /** @brief put the elements in the element group back in the mesh and delete the element group */
-    void Unwrap();
+    /// recursive means that, if the group contains group elements, these will be unwrapped too
+    void Unwrap(bool recursive);
     
     /** @brief Dimension of the element */
 	virtual int Dimension() const override

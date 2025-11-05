@@ -93,7 +93,7 @@ TPZSubCompMesh::~TPZSubCompMesh(){
 		TPZCompEl *el = fElementVec[i];
 		TPZElementGroup * group = dynamic_cast<TPZElementGroup*>(el);
 		if(group){
-            group->Unwrap();
+            group->Unwrap(true);
 		}
 	}
 	
