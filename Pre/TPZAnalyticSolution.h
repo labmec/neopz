@@ -148,6 +148,7 @@ struct TPZAnalyticSolution
     
     std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> ExactSolution() const
     {
+        if(!this) DebugStop();
         return [this](const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
         {
             this->Solution(loc,result,deriv);
@@ -197,6 +198,102 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     static REAL gPoisson;
     
     static int gOscilatoryElasticity;
+    
+    std::string Name() {
+        switch (fProblemType)
+        {
+            case EDispx:
+                return "DisplacementX";
+            case EDispy:
+                return "DisplacementY";
+            case ERot:
+                return "Rotation";
+            case EStretchx:
+                return "StretchingX";
+            case EUniAxialx:
+                return "UniaxialStretchingX";
+            case EStretchy:
+                return "StretchingY";
+            case EShear:
+                return "Shear";
+            case EBend:
+                return "Bending";
+            case ELoadedBeam:
+                return "LoadedBeam";
+            case Etest1:
+                return "Test1";
+            case Etest2:
+                return "Test2";
+            case EThiago:
+                return "Thiago";
+            case EPoly:
+                return "Polynomial";
+            case ESquareRootUpper:
+                return "SquareRootUpper";
+            case ESquareRootLower:
+                return "SquareRootLower";
+            case ESquareRoot:
+                return "SquareRoot";
+            default:
+                break;
+                
+                return "none";
+        }
+    }
+    
+    static EDefState StringToExactSol(std::string name) {
+        if (!name.compare("DisplacementX")) {
+            return EDispx;
+        }
+        if (!name.compare("DisplacementY")) {
+            return EDispy;
+        }
+        if (!name.compare("Rotation")) {
+            return ERot;
+        }
+        if (!name.compare("StretchingX")) {
+            return EStretchx;
+        }
+        if (!name.compare("UniaxialStretchingX")) {
+            return EUniAxialx;
+        }
+        if (!name.compare("StretchingY")) {
+            return EStretchy;
+        }
+        if (!name.compare("Shear")) {
+            return EShear;
+        }
+        if (!name.compare("Bending")) {
+            return EBend;
+        }
+        if (!name.compare("LoadedBeam")) {
+            return ELoadedBeam;
+        }
+        if (!name.compare("Test1")) {
+            return Etest1;
+        }
+        if (!name.compare("Test2")) {
+            return Etest2;
+        }
+        if (!name.compare("Thiago")) {
+            return EThiago;
+        }
+        if (!name.compare("Polynomial")) {
+            return EPoly;
+        }
+        if (!name.compare("SquareRootUpper")) {
+            return ESquareRootUpper;
+        }
+        if (!name.compare("SquareRootLower")) {
+            return ESquareRootLower;
+        }
+        if (!name.compare("SquareRoot")) {
+            return ESquareRoot;
+        }
+        return ENone;
+    }
+
+
 
     virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const override
     {
