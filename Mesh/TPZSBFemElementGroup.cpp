@@ -822,6 +822,7 @@ void TPZSBFemElementGroup::ComputeEigenmodes() {
     if(loggercoefmatrices.isDebugEnabled())
     {
         std::stringstream sout;
+        sout << "eigvalorig = {" << eigenvalues << "};\n";
         sout << "eigval = {" << eigvalsel << "};\n";
         LOGPZ_DEBUG(loggercoefmatrices, sout.str())
     }

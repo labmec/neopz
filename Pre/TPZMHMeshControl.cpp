@@ -56,7 +56,7 @@ TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<int6
         std::stringstream sout;
         sout << "Coarse element indexes ";
         for (std::map<int64_t,int64_t>::iterator it=fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
-            sout << *it << " ";
+            sout << it->first << '|' << it->second << " ";
         }
         LOGPZ_DEBUG(logger, sout.str())
     }
@@ -86,7 +86,7 @@ void TPZMHMeshControl::DefinePartition(TPZVec<int64_t> &partitionindex, std::map
         std::stringstream sout;
         sout << "Coarse element indexes ";
         for (std::map<int64_t,int64_t>::iterator it=fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
-            sout << *it << " ";
+            sout << it->first << '|' << it->second << " ";
         }
         LOGPZ_DEBUG(logger, sout.str())
     }
@@ -186,7 +186,7 @@ TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh) : fGMesh(gm
         std::stringstream sout;
         sout << "Coarse element indexes ";
         for (std::map<int64_t,int64_t>::iterator it=fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
-            sout << *it << " ";
+            sout << it->first << '|' << it->second << " ";
         }
         LOGPZ_DEBUG(logger, sout.str())
     }
@@ -1503,7 +1503,7 @@ void TPZMHMeshControl::SubStructure()
 #ifdef PZ_LOG
         if (logger.isDebugEnabled()) {
             std::stringstream sout;
-            sout << "Newly created submesh for element " << *it << "\n";
+            sout << "Newly created submesh for element " << it->first << '|' << it->second << "\n";
             submesh->Print(sout);
             LOGPZ_DEBUG(logger, sout.str())
         }

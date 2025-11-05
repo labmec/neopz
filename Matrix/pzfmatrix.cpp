@@ -763,7 +763,7 @@ void TPZFMatrix<TVar>::AddContribution(int64_t i, int64_t j,
         out << "AddContribution trying to add a submatrix out of the full matrix bounds. ";
         out << "Submatrix bigger row: " << i+nrows << ". Full matrix size: " << this->Rows();
         out << "Submatrix bigger column: " << j+ncols << ". Full matrix size: " << this->Cols();
-        Error( "AddContribution trying to add a submatrix out of the original matrix bounds" );
+        Error( out.str().c_str() );
         return;
     }
 // #endif

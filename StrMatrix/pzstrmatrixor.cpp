@@ -117,7 +117,13 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
     auto &materialIds = myself->MaterialIds();
     TPZMatrix<TVar> &stiffness = dynamic_cast<TPZMatrix<TVar>&>(stiff_base);
     TPZFMatrix<TVar> &rhs = dynamic_cast<TPZFMatrix<TVar>&>(rhs_base);
-    
+#ifdef PZ_LOG
+    if (loggerel.isDebugEnabled()) {
+        std::stringstream sout2;
+        sout2 << "\n\n\n************* ENTERING ASSEMBLY PROCESS ***************\n\n\n\n";
+        LOGPZ_DEBUG(loggerel,sout2.str())
+    }
+#endif
 #ifdef PZDEBUG
     TExceptionManager activateExceptions;
 #endif
@@ -282,7 +288,8 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
                     sout << xco << std::endl;
                 }
             } else {
-                sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
+                sout << "Stiffness for computational element without associated geometric element\ncel index " << el->Index() << "\n";
+//                DebugStop();
             }
             if(ek.HasDependency()){
                 sout << "source index " << ek.fSourceIndex << " destination index " << ek.fDestinationIndex << std::endl;

@@ -1509,7 +1509,7 @@ void TPZGmshReader::SetPeriodicElements(
         PZError<<__PRETTY_FUNCTION__
                <<"\nCould not find "<<depmatid<<" in periodic physical ids:\n";
         for(auto id : periodic_physical_ids){
-          std::cout<<' '<<id;
+          std::cout<<' '<< id.first << '|' << id.second;
         }
         std::cout<<std::endl;
         DebugStop();
@@ -1532,7 +1532,7 @@ void TPZGmshReader::SetPeriodicElements(
                        <<"\nnode "<<depnode<<" was not found in periodic nodes"
                        <<" of mat id "<<depmatid<<":\n";
                 for(auto node : periodic_nodes){
-                  std::cout<<' '<<node;
+                  std::cout<<' '<< node.first << '|' << node.second;
                 }
                 std::cout<<std::endl;
                 DebugStop();

@@ -1354,9 +1354,10 @@ void TPZSBFemVolume::ComputeEigenShape(TPZVec<REAL> &qsi, TPZFMatrix<CSTATE> &ph
     TPZGeoEl *Ref2D = Reference();
     int matid = Ref2D->MaterialId();
     TPZMaterial *mat2d = cmesh->FindMaterial(matid);
+    int nstate = mat2d->NStateVariables();
 
     int dim = Ref2D->Dimension();
-    if(dphidx.Rows() != dim) {
+    if(dphidx.Rows() != dim*nstate) {
         DebugStop();
     }
     Adjustqsi(qsi,dim);
@@ -1379,7 +1380,6 @@ void TPZSBFemVolume::ComputeEigenShape(TPZVec<REAL> &qsi, TPZFMatrix<CSTATE> &ph
     CSkeleton->ComputeRequiredData(data1d, qsilow);
 
     int64_t nshape = data1d.fH1.fPhi.Rows();
-    int nstate = mat2d->NStateVariables();
 #ifdef PZDEBUG
     if (fCoeficients.Rows() != 0 && fPhi.Cols()+fPhiBubble.Cols() != fCoeficients.Rows()) {
         DebugStop();

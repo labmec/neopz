@@ -203,6 +203,13 @@ public:
      */
     virtual void Print(std::ostream &out = std::cout) const override;
 
+    /// @brief return the number of state variables assumed by this group
+    int NState() const {
+#ifdef PZDEBUG
+        if(NConnects() == 0) DebugStop();
+        return Connect(0).NState();
+    }
+#endif
     
     /**
      * @brief Computes the element right hand side
