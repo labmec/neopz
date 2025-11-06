@@ -1097,6 +1097,8 @@ void TPZElasticity2D::ComputeDMatrix(double E, double nu, TPZFMatrix<TVar> &D) {
     }
 }
 
+template void TPZElasticity2D::ComputeDMatrix<STATE>(double E, double nu, TPZFMatrix<STATE> &D);
+template void TPZElasticity2D::ComputeDMatrix<CSTATE>(double E, double nu, TPZFMatrix<CSTATE> &D);
 // Plane stress D matrix
 static void D_plane_stress(double E, double nu, TPZFMatrix<STATE> &D) {
     const double denom = 1.0 - nu*nu;      // 1 - nu^2
