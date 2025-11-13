@@ -48,7 +48,7 @@ public:
   //! Iniatilizes data for the computational element
   void InitData();
   //! Initializes data need at each integration point
-  virtual void ComputeRequiredData(TPZVec<REAL> &qsi);
+  virtual void ComputeRequiredData(TPZVec<REAL> &qsi, const int locpt);
   //! Evalutes the field id at the point qsi and stores result in sol
   void Solution(const TPZVec<REAL> &qsi, const int id, TPZVec<TVar> &sol);
 protected:
@@ -70,7 +70,7 @@ public:
   TPZPostProcElSafe();
   TPZPostProcElSafe(TPZCompEl *cel);
   //! Initializes data need at each integration point with safety checks
-  virtual void ComputeRequiredData(TPZVec<REAL> &qsi) override;
+  virtual void ComputeRequiredData(TPZVec<REAL> &qsi, const int locpt) override;
   //! Checks if the jacobian determinant is zero at the point qsi
   bool IzZeroJacobian(TPZVec<REAL> &qsi);
   //! Shifts the point qsi towards the element center
@@ -137,7 +137,7 @@ void ComputeFieldAtEl(TPZCompEl *cel,
 #endif
     if(collapsed && fabs(ip[dir]-leftright) < shift_distance) ip[dir] *= 1.-shift_distance;
     //computes all relevant data for a given integration point
-    graphel->ComputeRequiredData(ip);
+    graphel->ComputeRequiredData(ip, iv);
     const int nfields = fields.size();
     for (int i = 0; i < nfields; i++){
       auto &field = *(fields[i]);
@@ -806,12 +806,13 @@ void TPZPostProcEl<TVar>::InitData(){
 }
 
 template<class TVar>
-void TPZPostProcEl<TVar>::ComputeRequiredData(TPZVec<REAL> &qsi){
+void TPZPostProcEl<TVar>::ComputeRequiredData(TPZVec<REAL> &qsi, const int locpt){
   if(fIsMultiphysics){
     auto mfcel = dynamic_cast<TPZMultiphysicsElement*>(fCel);
     const int64_t nref = mfcel->NMeshes();
     for(int ir = 0; ir < nref; ir++){
       fDatavec[ir].fNeedsSol= true;
+      fDatavec[ir].intLocPtIndex=locpt;
     }
     TPZManVector<TPZTransform<> > trvec;
     mfcel->AffineTransform(trvec);
@@ -819,6 +820,7 @@ void TPZPostProcEl<TVar>::ComputeRequiredData(TPZVec<REAL> &qsi){
   }else{
     auto intel = dynamic_cast<TPZInterpolationSpace*>(fCel);
     fMatdata.fNeedsSol = true;
+    fMatdata.intLocPtIndex = locpt;
 		intel->ComputeRequiredData(fMatdata, qsi);
   }
 }
@@ -863,10 +865,10 @@ template<class TVar>
 TPZPostProcElSafe<TVar>::TPZPostProcElSafe(TPZCompEl *cel) : TPZPostProcEl<TVar>(cel), shift_distance(1.0e-3) {}
 
 template<class TVar>
-void TPZPostProcElSafe<TVar>::ComputeRequiredData(TPZVec<REAL> &qsi) {
+void TPZPostProcElSafe<TVar>::ComputeRequiredData(TPZVec<REAL> &qsi, const int locpt) {
   bool iszero = IzZeroJacobian(qsi);
   if (iszero) ShiftVertice(qsi);
-  TPZPostProcEl<TVar>::ComputeRequiredData(qsi);
+  TPZPostProcEl<TVar>::ComputeRequiredData(qsi, locpt);
 }
 
 template<class TVar>
