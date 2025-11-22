@@ -352,17 +352,19 @@ TPZInterpolatedElement *TPZSBFemVolume::SkeletonElement() {
 /** @brief Compute and fill data with requested attributes */
 void  TPZSBFemVolume::ComputeRequiredData(TPZMaterialDataT<STATE> &data,
 									 TPZVec<REAL> &intpoint) {
-if(data.fNeedsSol == true) {
-    if(ElementGroup()->InternalPolynomialOrder() == 0)
-    {
-        data.xParametric = intpoint;
-        ReallyComputeSolution(data);
+    TPZGeoEl *gel = Reference();
+    gel->X(intpoint,data.x);
+    if(data.fNeedsSol == true) {
+        if(ElementGroup()->InternalPolynomialOrder() == 0)
+        {
+            data.xParametric = intpoint;
+            ReallyComputeSolution(data);
+        }
+        else
+        {
+            ComputeSolutionWithBubbles(intpoint, data.sol, data.dsol, data.axes);
+        }
     }
-    else
-    {
-        ComputeSolutionWithBubbles(intpoint, data.sol, data.dsol, data.axes);
-    }
-}
 }
 
 static void Adjustqsi(TPZVec<REAL> &qsi, int dim) {
@@ -952,12 +954,29 @@ void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error)
     errors.Fill(0.);
 
     int dim = Dimension();
-    TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides() - 1, 5);
-    int maxIntOrder = intrule->GetMaxOrder();
     
-    TPZManVector<int, 3> prevorder(dim), maxorder(dim, maxIntOrder);
-    intrule->GetOrder(prevorder);
-    intrule->SetOrder(maxorder);
+    int sideorder = 1;
+    for(int ic=0; ic<NConnects(); ic++) {
+        TPZConnect &c = Connect(ic);
+        int corder = c.Order();
+        sideorder = corder > sideorder ? corder : sideorder;
+    }
+    int integrationorder = 2*sideorder;
+    TPZGeoEl *gel = Reference();
+    int firstface = gel->FirstSide(dim-1);
+    TPZAutoPointer<TPZIntPoints> intrule = gel->CreateSideIntegrationRule(firstface, integrationorder);
+    TPZInt1d oned(36);
+    int maxIntOrder = oned.GetMaxOrder();
+//        TPZManVector<int, 3> maxorder(Dimension(), 2*grouporder+8);
+    TPZManVector<int, 3> maxorder(1, maxIntOrder);
+    oned.SetOrder(maxorder);
+
+//    TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides() - 1, 5);
+//    int maxIntOrder = intrule->GetMaxOrder();
+//    
+//    TPZManVector<int, 3> prevorder(dim), maxorder(dim, maxIntOrder);
+//    intrule->GetOrder(prevorder);
+//    intrule->SetOrder(maxorder);
     
     int ndof = material->NStateVariables();
     TPZManVector<STATE, 10> u_exact(ndof);
@@ -969,11 +988,22 @@ void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error)
     TPZManVector<TPZMaterialDataT<STATE>,2> datavec(2);
     TPZMaterialDataT<STATE> &data = datavec[0];
     data.x.Resize(3);
-    int nintpoints = intrule->NPoints();
+//    int nintpoints = intrule->NPoints();
+    TPZManVector<REAL,3> qsione(1,0.),qsilow(dim-1,0.1),qsi(dim,0.);
+    REAL w1,w2;
+    int64_t npts = intrule->NPoints()*oned.NPoints();
 
-    for (int nint = 0; nint < nintpoints; nint++) {
+    for (int ip = 0; ip < npts; ip++) {
 
-        intrule->Point(nint, intpoint, weight);
+        int ip1 = ip%oned.NPoints();
+        int ip2 = ip/oned.NPoints();
+        oned.Point(ip1, qsione, w1);
+        intrule->Point(ip2, qsilow, w2);
+        weight = w1*w2;
+        for(int i=0; i<dim-1; i++) intpoint[i] = qsilow[i];
+        intpoint[dim-1] = qsione[0];
+
+//        intrule->Point(nint, intpoint, weight);
 
         ref->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 
