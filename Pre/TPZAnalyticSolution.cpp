@@ -1603,7 +1603,8 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         }
             break;
 
-        case EPerpendicularSteklovNonConst://Perpendicular Steklov function for eigenvalue lambda=0.53544094560246 and permeability Omega1=Omega=3, Omega2=Omega4=5
+        case EPerpendicularSteklovNonConst://Perpendicular Steklov function for eigenvalue lambda=0.53544094560246 and permeability Omega1=Omega=1, Omega2=Omega4=5
+            // FILHO DA PUTA QUE TINHA COLOCADO 3!!!
             {
                 TVar coefs[] = {1., 0.44721359549995787, 2.3333333333333326,
                     -0.7453559924999296, 0.5555555555555556,
