@@ -61,7 +61,7 @@ TPZElasticity2D::TPZElasticity2D(int id) :
 
 TPZElasticity2D::TPZElasticity2D(int id, STATE E, STATE nu,
                                  STATE fx, STATE fy, int planestress) : TPZRegisterClassId(&TPZElasticity2D::ClassId), TBase(id), ff(3,0.){
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+//    std::cout << __PRETTY_FUNCTION__ << std::endl;
     fPlaneStress = planestress;
     fE_def = E;
     fnu_def = nu;
