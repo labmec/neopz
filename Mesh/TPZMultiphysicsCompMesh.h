@@ -48,6 +48,11 @@ public:
     /// Build the multiphysics space using the previously provided mesh vector and active spaces
     virtual void AutoBuild() override;
 
+    /// Automatic builder for the computational mesh structure
+    /// Build the multiphysics space using the previously provided mesh vector and active spaces only
+    /// for the specified set of matids
+    virtual void AutoBuild(const std::set<int> &matids) override;
+
     /// Set active approximation spaces
     // active_approx_spaces : vector of the size of mesh_vector containing value 0 or 1
     void BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, const TPZVec<TPZCompMesh * > & mesh_vector);

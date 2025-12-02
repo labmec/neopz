@@ -203,6 +203,32 @@ void TPZMultiphysicsCompMesh::AutoBuild(){
     BuildMultiphysicsSpace();
 }
 
+void TPZMultiphysicsCompMesh::AutoBuild(const std::set<int> &matids){
+    if (m_mesh_vector.size() == 0 || m_mesh_vector.size() != m_active_approx_spaces.size()) {
+        std::cout<< "TPZMultiphysicsCompMesh:: The vector provided should have the same size." << std::endl;
+        DebugStop();
+    }
+    int n_approx_spaces = m_mesh_vector.size();
+    Reference()->ResetReference();
+    if (ApproxSpace().Style() == TPZCreateApproximationSpace::EMultiphysics)
+    {
+        SetAllCreateFunctionsMultiphysicElem();
+    }
+    else if (ApproxSpace().Style() == TPZCreateApproximationSpace::EMultiphysicsSBFem)
+    {
+        SetAllCreateFunctionsSBFemMultiphysics();
+    }
+    else {
+        DebugStop(); // Please set one of the above available spaces
+    }
+    CleanElementsConnects();
+    TPZCompMesh::AutoBuild(matids);
+    AddElements();
+    AddConnects();
+    LoadSolutionFromMeshes();
+}
+
+
 void TPZMultiphysicsCompMesh::LoadReferred(TPZCompMesh *cmesh, TPZVec<TPZCompEl *> &Referred)
 {
     int64_t ncel = cmesh->NElements();
