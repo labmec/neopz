@@ -5,6 +5,10 @@
 #ifndef _TPZMATPML_H_
 #define _TPZMATPML_H_
 
+template<class T>
+class TPZVec;
+template<class T>
+class TPZFMatrix;
 #include "pzreal.h"
 /**
  * @ingroup material
@@ -26,9 +30,12 @@ protected:
     return 2 + TMAT::IntegrationRuleOrder(elPMaxOrder);
   }
   TPZMatPML() = default;
+
+  //! Material this PML region is associated with
+  int fRefMat{-999};
 public:
   //! Creates PML based on another domain region
-  TPZMatPML(const int id, const TMAT &mat) : TMAT(mat) {this->SetId(id);};
+  TPZMatPML(const int id, const TMAT &mat) : TMAT(mat) {this->SetId(id);this->fRefMat=mat.Id();};
   //! Gets the permeability of the material
   void GetPermeability(const TPZVec<REAL> &x,TPZFMatrix<CSTATE> &ur) const override = 0;
   //! Gets the permittivity of the material
