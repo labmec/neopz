@@ -1247,6 +1247,12 @@ void TPZInterpolationSpace::EvaluateErrorT(TPZVec<REAL> &errors,bool store_error
             errors[ier] += weight * values[ier];
         }
     }
+	#ifdef PZDEBUG
+	if(errors[0] < 0. || std::isnan(errors[0])) {
+		std::cout << "Error at " << __PRETTY_FUNCTION__ << " : negative error norm " << errors[0] << "\n";
+		DebugStop();
+	}	
+	#endif
     //Norma sobre o elemento
 	for(int ier = 0; ier < NErrors; ier++){
 		errors[ier] = sqrt(errors[ier]);
