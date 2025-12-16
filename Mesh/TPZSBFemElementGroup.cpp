@@ -1374,6 +1374,8 @@ void TPZSBFemElementGroup::ComputeMassMatrix(TPZElementMatrixT<STATE> &M0)
 
 void TPZSBFemElementGroup::LoadEigenVector(int64_t eig)
 {
+    int ncoef = (int) (fPhiInverse.Rows()+fMatBubble.Rows());
+    fCoef.Resize(ncoef,fMesh->Solution().Cols());
     fCoef.Zero();
     fCoef(eig,0) = 1.;
     if(eig>7 && eig < 11)
