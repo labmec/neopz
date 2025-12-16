@@ -290,7 +290,7 @@ public:
     
 
     /// maximum order of the connects
-    int MaxOrder();
+    int MaxOrder() override;
 
     /// initialize the data structures of the eigenvectors and eigenvalues associated with this volume element
     void SetPhiEigVal(TPZFMatrix<std::complex<double> > &phi, TPZManVector<std::complex<double> > &eigval);
@@ -314,7 +314,15 @@ public:
     {
         return fCoeficients;
     }
+
+    /// @brief access method for the Phi matrix
+    TPZFMatrix<std::complex<double> > &GetPhi()
+    {
+        return fPhi;
+    }
     
+    /// @brief access method for real part of phi matrix
+    /// @return real part of phi matrix
     TPZFMatrix<double> PhiReal()
     {
         int64_t rows = fPhi.Rows(),cols = fPhi.Cols();

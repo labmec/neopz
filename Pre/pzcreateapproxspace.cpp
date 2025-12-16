@@ -325,7 +325,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
     TPZAdmChunkVector<TPZGeoEl *> &elvec = cmesh.Reference()->ElementVec();
     int64_t i, nelem = elvec.NElements();
     int64_t neltocreate = 0;
-    int64_t index;
+
     for(i=0; i<nelem; i++) {
         TPZGeoEl *gel = elvec[i];
         if(!gel) continue;
@@ -373,9 +373,12 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
                 if(!cel) {
                     std::cout << "Creating a computational element for gel with matid " << gel->MaterialId() << " returned null\n";
                 }
+                int64_t index = -1;
                 if (cel && fCreateHybridMesh) {
                     index = cel->Index();
                     cmesh.ElementVec()[index]->Reference()->ResetReference();
+                } else if(cel) {
+                    index = cel->Index();
                 }
 #ifdef PZ_LOG
                 if (logger.isDebugEnabled())
