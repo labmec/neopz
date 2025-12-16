@@ -690,6 +690,30 @@ void TElasticity2DAnalytic::GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFM
     
 }
 
+    std::function<void (const TPZVec<REAL> &x, const TPZLinearElasticityConstitutive &Law, TPZVec<STATE> &result)> TElasticity2DAnalytic::ForceFuncAnisotropic() const
+    {
+        return [this](const TPZVec<REAL> &x,const TPZLinearElasticityConstitutive &Law, TPZVec<STATE> &result)
+        {
+            TPZManVector<Fad<STATE>,3> xfad(x.size());
+            TPZFNMatrix<4,Fad<STATE> > gradufad(2,2);
+            for(int i=0; i<2; i++)
+            {
+                xfad[i] = Fad<STATE>(2,i,x[i]);
+            }
+            this->graduxy(xfad, gradufad);
+            TPZManVector<TPZFNMatrix<9, STATE>, 2> hessian(2);;
+            for (int iu = 0; iu < 2; iu++) {
+                hessian[iu].Redim(2,2);
+                for (int i = 0; i < 2; i++) {
+                    for (int j = 0; j < 2; j++) {
+                        hessian[iu](i,j) = gradufad(iu,j).dx(i);
+                    }
+                }
+            }
+            Law.ComputeDivSigma(x, hessian, result);
+        };
+    }
+
 void TElasticity2DAnalytic::Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const
 {
     TPZFNMatrix<4,STATE> grad;

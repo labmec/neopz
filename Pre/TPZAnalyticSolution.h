@@ -6,6 +6,7 @@
 #include "tpzautopointer.h"
 #include "pzcmesh.h"
 #include "pzfunction.h"
+#include "Elasticity/TPZLinearElasticityConstitutive.h"
 
 #include <string>
 
@@ -237,8 +238,8 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
             default:
                 break;
                 
-                return "none";
         }
+        return "none";
     }
     
     static EDefState StringToExactSol(std::string name) {
@@ -304,6 +305,8 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
         force[1] = -locforce[1];
     }
     
+    std::function<void (const TPZVec<REAL> &x, const TPZLinearElasticityConstitutive &Law, TPZVec<STATE> &result)> ForceFuncAnisotropic() const;
+
     virtual void GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
     
     
