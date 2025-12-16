@@ -63,6 +63,7 @@ namespace pzrefine {
 			for(i=0;i<NSubEl;i++) SubElVec[i] = geo->SubElement(i);
 			return;//If exist fSubEl return this sons
 		}
+		bool islinear = geo->IsLinearMapping();
 		int j,sub,matid=geo->MaterialId();
 		int64_t index;
 		int np[TPZShapeLinear::NSides];//guarda conectividades dos 8 subelementos
@@ -77,7 +78,9 @@ namespace pzrefine {
 			TPZManVector<int64_t> cornerindexes(TPZShapeLinear::NCornerNodes);
 			for(int j=0;j<TPZShapeLinear::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
 			int64_t index;
-			TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EOned,cornerindexes,matid,index,0);
+			TPZGeoEl *subel;
+			if(islinear) subel = geo->Mesh()->CreateGeoElement(EOned,cornerindexes,matid,index,0);
+			else subel = geo->Mesh()->CreateGeoElementMapped(EOned,cornerindexes,matid,index,0);
 			geo->SetSubElement(i , subel);
 		}
 		
