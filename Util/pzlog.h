@@ -90,6 +90,15 @@ public:
         if(fLogNotInitialized) InitializeLogLevels();
         return fIsDebugEnabled;
     }
+
+
+    /// @brief Change the loglevel to debug
+    void SetDebugEnabled();
+
+    /// @brief Change the loglevel to info
+    void SetInfoEnabled();
+
+
     bool isWarnEnabled()
     {
         if(fLogNotInitialized) InitializeLogLevels();

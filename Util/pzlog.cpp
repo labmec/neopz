@@ -35,6 +35,22 @@ void TPZLogger::InitializeLogLevels()
      fLogNotInitialized = false;
 }
 
+    /// @brief Change the loglevel to debug
+    void TPZLogger::SetDebugEnabled() {
+      auto logPtr = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(fLogName));
+      logPtr->setLevel(log4cxx::Level::getDebug());
+    }
+
+    /// @brief Change the loglevel to info
+    void TPZLogger::SetInfoEnabled() {
+      auto logPtr = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(fLogName));
+      logPtr->setLevel(log4cxx::Level::getInfo());
+
+    }
+
+
+
+
 
 void pzinternal::LogPzDebugImpl(TPZLogger pzlg, std::string msg,
                                 const char *funcName,const char *fileName,
