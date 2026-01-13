@@ -37,6 +37,7 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, const std::set<int> &
 	for(i=0;i<nel;i++) {
 		ce = (TPZCompEl *) celvec[i];
 		if(!ce) continue;
+		if (!ce->HasMaterial(fMaterialIds)) continue;
 		ce->CreateGraphicalElement(*this, dimension);
 	}
 	
@@ -57,6 +58,7 @@ fCompMesh(cm), fDimension(dimension), fMaterialIds(matids), fScalarNames(scalarn
     for(i=0;i<nel;i++) {
         ce = (TPZCompEl *) celvec[i];
         if(!ce) continue;
+		if (!ce->HasMaterial(fMaterialIds)) continue;
         ce->CreateGraphicalElement(*this, dimension);
     }
     
