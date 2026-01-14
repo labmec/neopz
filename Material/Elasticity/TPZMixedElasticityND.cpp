@@ -1097,6 +1097,8 @@ int TPZMixedElasticityND::VariableIndex(const std::string &name) const {
     if (!strcmp("TauXY", name.c_str())) return 8;
     if (!strcmp("TauXZ", name.c_str())) return 30;
     if (!strcmp("TauYZ", name.c_str())) return 31;
+    if (!strcmp("SigmaXY", name.c_str())) return 36;
+    if (!strcmp("SigmaYX", name.c_str())) return 37;
     if (!strcmp("Strain", name.c_str())) return 11; //Philippe
     if (!strcmp("SigmaZ", name.c_str())) return 12; //Philippe
     if (!strcmp("sig_x", name.c_str())) return 5;
@@ -1122,6 +1124,7 @@ int TPZMixedElasticityND::VariableIndex(const std::string &name) const {
     if(!strcmp("Poisson",name.c_str()))        return 29;
     if (!strcmp("ExactDisplacement", name.c_str())) return 33;
     if (!strcmp("ExactStress", name.c_str())) return 34;
+    if (!strcmp("ExactStrain", name.c_str())) return 35;
     if (!strcmp("ElementSigmaError", name.c_str())) return 100;
 
     return TPZMaterial::VariableIndex(name);
@@ -1173,7 +1176,11 @@ int TPZMixedElasticityND::NSolutionVariables(int var) const {
             return 1;
         case 33:
         case 34:
+        case 35:
             return nstate;
+        case 36:
+        case 37:
+            return 1;
         case 100:
             return 1;
         default:
@@ -1323,6 +1330,16 @@ void TPZMixedElasticityND::Solution(const TPZVec<TPZMaterialDataT<STATE>> &data,
         Solout[0] = 0.5 * (sigma(1, 2) + sigma(2, 1));
         return;
     }
+    //  SigmaXY
+    if (var == 36) {
+        Solout[0] = sigma(0, 1);
+        return;
+    }
+    //  SigmaYX
+    if (var == 37) {
+        Solout[0] = sigma(1, 0);
+        return;
+    }
 
     // Exact displacement                
     if (var == 33) {
@@ -1338,7 +1355,30 @@ void TPZMixedElasticityND::Solution(const TPZVec<TPZMaterialDataT<STATE>> &data,
     }
     // Exact stress                
     if (var == 34) {
-        
+        TPZVec<STATE> u_exact(fDimension,0.);
+        TPZFMatrix<STATE> du_exact(fDimension,fDimension,0.);
+        if (this->fExactSol) {
+            this->fExactSol(data[0].x, u_exact, du_exact);
+        }
+        TPZManVector<STATE, 9> epsV(dim*dim, 0.), sigmaExactV(dim*dim, 0.);
+
+        ToVoigt(du_exact, epsV);
+
+        ComputeStressVector(epsV, sigmaExactV, elast);
+
+        TPZFMatrix<STATE> sigmaExact(dim,dim,0.);
+        FromVoigt(sigmaExactV, sigmaExact);
+        // std::cout << "duexact = " << du_exact << std::endl;
+        // For 2D only
+        Solout[0] = sigmaExact(0,0);//Sigma x
+        Solout[1] = sigmaExact(1,1);//Sigma y
+        Solout[2] = (sigmaExact(1,0)+sigmaExact(0,1))/2;//Tau xy
+
+        return;
+    }
+
+    // Exact strain                
+    if (var == 35) {
         TPZVec<STATE> u_exact(fDimension,0.);
         TPZFMatrix<STATE> du_exact(fDimension,fDimension,0.);
         if (this->fExactSol) {
@@ -1349,13 +1389,8 @@ void TPZMixedElasticityND::Solution(const TPZVec<TPZMaterialDataT<STATE>> &data,
         Solout[0] = du_exact(0,0);//Sigma x
         Solout[1] = du_exact(1,1);//Sigma y
         Solout[2] = (du_exact(1,0)+du_exact(0,1))/2;//Tau xy
-
-
         return;
     }
-
-
-
 
     //Strain
     if (var == 11) {
