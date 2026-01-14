@@ -1159,7 +1159,7 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
         const int order_limit =
         materror->PolynomialOrderExact();
 
-        const int order_limit =15;
+        //const int order_limit =15;
             //materror->PolynomialOrderExact();
         if(max_int_order > order_limit){
             if (prevOrder[0] > order_limit) {

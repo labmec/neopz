@@ -90,8 +90,8 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
         for(int i=0; i<nel-1; i++){
             out << eg->GetElGroup()[i]->Index() <<", ";
         }
-        out << eg->GetElGroup()[nel-1]->Index() <<std::endl;
-        out << "Connect indexes of the contained elements \n";
+        out << eg->GetElGroup()[nel-1]->Index() << std::endl;
+        out << "Connect indexes of the contained elements" << std::endl;
         for(int i=0; i<nel; i++){
             TPZCompEl *cel = eg->GetElGroup()[i];
             TPZGeoEl *gel = cel->Reference();
@@ -101,7 +101,7 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
                 out << cel->ConnectIndex(ic) << " ";
             }
             if (gel) {
-                out << "\ngelindex " << gel->Index() << " ";
+                out << std::endl << "gelindex " << gel->Index() << " ";
                 out << "matid " << gel->MaterialId();
                 TPZManVector<REAL,3> xi(gel->Dimension()), xco(3);
                 gel->CenterPoint(gel->NSides()-1, xi);
