@@ -18,6 +18,10 @@
 #include "TPZYSMPPardiso.h"
 #endif
 
+#ifdef USING_MUMPS
+#include "TPZYSMPMumps.h"
+#endif
+
 #include "pzlog.h"
 #ifdef PZ_LOG
 static TPZLogger logger("pz.StrMatrix");
@@ -62,6 +66,8 @@ TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph,
     const int64_t neq = this->fEquationFilter.NActiveEquations();
 #ifdef USING_MKL
     TPZFYsmpMatrixPardiso<TVar> * mat = new TPZFYsmpMatrixPardiso<TVar>(neq,neq);
+#elif USING_MUMPS
+    TPZFYsmpMatrixMumps<TVar> * mat = new TPZFYsmpMatrixMumps<TVar>(neq,neq);
 #elif USING_EIGEN
     TPZEigenSparseMatrix<TVar> * mat = new TPZEigenSparseMatrix<TVar>(neq,neq);
 #else
@@ -198,6 +204,11 @@ TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph,
         DebugStop();
     }
     mat->SetData(std::move(Eq),std::move(EqCol),std::move(EqValue));
+
+#ifdef USING_MUMPS
+    // Prepare COO format for MUMPS during assembly phase
+    mat->UpdateCOOFormat();
+#endif
     return mat;
 }
 

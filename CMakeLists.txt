@@ -8,7 +8,7 @@ cmake_minimum_required (VERSION 3.14)
 project(PZ LANGUAGES CXX)
 
 message("We strongly recommend usage of the following options
-(specially when testing changes in NeoPZ or in the develop branch):\nUSING_MKL=ON\nUSING_LOG4CXX=ON\n\nAlso, for multiple NeoPZ installs,
+(specially when testing changes in NeoPZ or in the develop branch):\nUSING_MKL=ON (APPLE: USING_MUMPS=ON instead)\nUSING_LOG4CXX=ON\n\nAlso, for multiple NeoPZ installs,
 changing CMAKE_INSTALL_PREFIX might be desirable\nfor setting up a local install.\n\n")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -195,7 +195,12 @@ else()
     ENDIF(APPLE)
 endif(USING_MKL)
 
-
+#enabling MUMPS library
+option(USING_MUMPS "Whether the MUMPS library will be linked in" OFF)
+if(USING_MUMPS)
+    include(cmake/EnableMUMPS.cmake)
+    enable_mumps(pz)
+endif(USING_MUMPS)
 
 #enabling LAPACK library
 option(USING_LAPACK "Whether the LAPACK library will be linked in" OFF)
