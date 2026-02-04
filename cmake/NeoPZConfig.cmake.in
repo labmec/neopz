@@ -5,6 +5,43 @@
 
 @PACKAGE_INIT@
 
+include(CMakeFindDependencyMacro)
+
+# Setup dependencies for MUMPS if enabled
+if(@USING_MUMPS@)
+  # Enable Fortran for MUMPS OpenMP support
+  enable_language(Fortran)
+  
+  # Setup OpenMP for MUMPS (handle macOS Clang case)
+  if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Find MacPorts libomp
+    find_library(XCODE_OMP_LIB NAMES libiomp5.dylib omp PATHS /opt/local/lib/libomp /opt/local/lib /usr/local/lib)
+    find_path(XCODE_OMP_INCLUDE omp.h PATHS /opt/local/include/libomp /opt/local/include /usr/local/include)
+    if(XCODE_OMP_LIB AND XCODE_OMP_INCLUDE)
+      # Set OpenMP CMake variables for MUMPS config
+      set(OpenMP_C_FLAGS "-Xclang -fopenmp" CACHE STRING "" FORCE)
+      set(OpenMP_CXX_FLAGS "-Xclang -fopenmp" CACHE STRING "" FORCE)
+      set(OpenMP_C_LIB_NAMES "omp" CACHE STRING "" FORCE)
+      set(OpenMP_CXX_LIB_NAMES "omp" CACHE STRING "" FORCE)
+      set(OpenMP_omp_LIBRARY "${XCODE_OMP_LIB}" CACHE FILEPATH "" FORCE)
+      set(OpenMP_Fortran_FLAGS "-fopenmp" CACHE STRING "" FORCE)
+      set(OpenMP_Fortran_LIB_NAMES "gomp" CACHE STRING "" FORCE)
+      # Find gomp for Fortran
+      find_library(GOMP_LIB NAMES gomp PATHS /opt/local/lib/gcc14 /opt/local/lib)
+      if(GOMP_LIB)
+        set(OpenMP_gomp_LIBRARY "${GOMP_LIB}" CACHE FILEPATH "" FORCE)
+      endif()
+    endif()
+  endif()
+  
+  # Add MUMPS prefix to CMAKE_PREFIX_PATH temporarily
+  set(_mumps_prefix "@MUMPS_PREFIX@")
+  list(PREPEND CMAKE_PREFIX_PATH "${_mumps_prefix}")
+  find_dependency(MUMPS CONFIG HINTS "${_mumps_prefix}/cmake")
+  list(REMOVE_ITEM CMAKE_PREFIX_PATH "${_mumps_prefix}")
+  unset(_mumps_prefix)
+endif()
+
 include(@PZ_CMAKE_INSTALL_DIR@/NeoPZTargets.cmake)
 include(@PZ_CMAKE_INSTALL_DIR@/add_pz_target.cmake)
 include(@PZ_CMAKE_INSTALL_DIR@/check_pz_opt.cmake)
