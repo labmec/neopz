@@ -130,13 +130,6 @@ else()
   set(PZ_LOG OFF)
 endif()
 
-#enabling METIS library
-option(USING_METIS "Whether the METIS library will be linked in" OFF)
-if(USING_METIS)
-    include(cmake/EnableMetis.cmake)
-    enable_metis(pz)
-endif()
-
 #enabling OPENSSL library (used for MD5 computation)
 option(USING_OPENSSL "Whether the OPENSSL library will be linked in" OFF)
 if(USING_OPENSSL)
@@ -201,6 +194,17 @@ if(USING_MUMPS)
     include(cmake/EnableMUMPS.cmake)
     enable_mumps(pz)
 endif(USING_MUMPS)
+
+#enabling METIS library (deferred check after MUMPS)
+option(USING_METIS "Whether the METIS library will be linked in" OFF)
+if(USING_METIS)
+    if(USING_MUMPS AND MUMPS_metis)
+        message(STATUS "[NeoPZ] MUMPS already configured with METIS support, skipping separate METIS setup")
+    else()
+        include(cmake/EnableMetis.cmake)
+        enable_metis(pz)
+    endif()
+endif()
 
 #enabling LAPACK library
 option(USING_LAPACK "Whether the LAPACK library will be linked in" OFF)
