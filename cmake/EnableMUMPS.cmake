@@ -86,11 +86,33 @@ function(enable_mumps target)
         INTERFACE PZ_USING_MUMPS
     )
 
+    if (NOT BUILD_SHARED_LIBS)
+        target_compile_definitions(${target}
+            INTERFACE MUMPS_ROOT="${MUMPS_ROOT}"
+        )
+    endif()
+
     # ------------------------------------------------------------------------
     # 5. Include header directories and link libraries
     # INTERFACE: Propagate to downstream users but not used by this target internally
-    # ------------------------------------------------------------------------
     
+    # ------------------------------------------------------------------------
+    if (NOT BUILD_SHARED_LIBS) # Still need some tests with APPLE!!
+        if (gfortran) # this is to avoid the need to link with gfortran libraries manually in exterior projects
+            message(STATUS "[EnableMUMPS] Linking gfortran runtime libraries for static build")
+            target_link_libraries(${target} INTERFACE gfortran)
+        elseif(APPLE)
+            find_library(GFORTRAN_LIB gfortran PATHS /opt/homebrew/lib/gcc/current /opt/homebrew/Cellar/gcc//lib/gcc/current /opt/local/lib/gcc /opt/local/lib/libgcc)
+            find_library(GOMP_LIB gomp PATHS /opt/homebrew/lib/gcc/current /opt/homebrew/Cellar/gcc//lib/gcc/current /opt/local/lib/gcc /opt/local/lib/libgcc)
+            if(GFORTRAN_LIB)
+                target_link_libraries(${target} PRIVATE ${GFORTRAN_LIB})
+            endif()
+            if(GOMP_LIB)
+                target_link_libraries(${target} PRIVATE ${GOMP_LIB})
+            endif()
+        endif()
+    endif()
+
     target_link_libraries(${target} PRIVATE MUMPS::MUMPS MUMPS::MPISEQ OpenMP::OpenMP_C)
     target_include_directories(${target} INTERFACE ${MUMPS_ROOT}/include)
 
