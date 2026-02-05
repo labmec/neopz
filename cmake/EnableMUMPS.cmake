@@ -21,6 +21,21 @@ if(NOT MUMPS_ROOT)
     endif()
 endif()
 
+# On Apple/Clang, prefer Homebrew libomp when OpenMP isn't explicitly configured.
+if(APPLE)
+    if(NOT OpenMP_ROOT AND NOT DEFINED ENV{OpenMP_ROOT})
+        if(EXISTS "/opt/homebrew/opt/libomp")
+            set(OpenMP_ROOT "/opt/homebrew/opt/libomp" CACHE PATH "OpenMP (libomp) prefix" FORCE)
+        elseif(EXISTS "/usr/local/opt/libomp")
+            set(OpenMP_ROOT "/usr/local/opt/libomp" CACHE PATH "OpenMP (libomp) prefix" FORCE)
+        endif()
+        if(OpenMP_ROOT)
+            message(STATUS "[EnableMUMPS] OpenMP_ROOT defaulted to: ${OpenMP_ROOT}")
+            list(PREPEND CMAKE_PREFIX_PATH "${OpenMP_ROOT}")
+        endif()
+    endif()
+endif()
+
 function(enable_mumps target)
 
     message(STATUS "[EnableMUMPS] Looking for MUMPS")
@@ -86,9 +101,12 @@ function(enable_mumps target)
         INTERFACE PZ_USING_MUMPS
     )
 
-    if (NOT BUILD_SHARED_LIBS)
+    if (APPLE OR NOT BUILD_SHARED_LIBS)
         target_compile_definitions(${target}
-            INTERFACE MUMPS_ROOT="${MUMPS_ROOT}"
+            PUBLIC MUMPS_ROOT="${MUMPS_ROOT}"
+        )
+        target_compile_definitions(${target}
+            PUBLIC OpenMP_ROOT="${OpenMP_ROOT}"
         )
     endif()
 
