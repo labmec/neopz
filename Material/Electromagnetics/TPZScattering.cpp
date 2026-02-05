@@ -184,6 +184,7 @@ int TPZScattering::VariableIndex(const std::string &name) const
   if( strcmp(name.c_str(), "Deriv_imag") == 0) return 4;
   if( strcmp(name.c_str(), "Deriv_abs") == 0) return 5;
   if( strcmp(name.c_str(), "Material") == 0) return 6;
+  if( strcmp(name.c_str(), "Permittivity") == 0) return 7;
   return TPZMaterial::VariableIndex(name);
 }
 //! Number of variables associated with a given solution
@@ -196,6 +197,7 @@ int TPZScattering::NSolutionVariables(int var) const
   case 3://deriv (real part)
   case 4://deriv (imag val)
   case 5://deriv (abs val)
+  case 7:
     return this->Dimension();
   case 6:
     return 1;
@@ -208,8 +210,13 @@ void TPZScattering::Solution(const TPZMaterialDataT<CSTATE> &data,
               int var, TPZVec<CSTATE> &solout)
 {
 
-  const auto &sol = data.sol[0];
-  const auto &curlsol = data.curlsol[0];
+  TPZFNMatrix<9,CSTATE> er(3,3,0.), ur(3,3,0.);
+
+  GetPermittivity(data.x, er);
+  TPZManVector<CSTATE,3> epsvec = {er.g(0,0), er.g(1,1),er.g(2,2)};
+  
+  const TPZVec<CSTATE> &sol = data.sol[0];
+  const TPZVec<CSTATE>&curlsol = data.curlsol[0];
   if(var == 6){
     solout[0] = this->Id();
     return;
@@ -224,6 +231,8 @@ void TPZScattering::Solution(const TPZMaterialDataT<CSTATE> &data,
       return std::imag(val);
     case 2:
     case 5:
+    case 6:
+    case 7:
       return std::abs(val);
     default:
       DebugStop();
@@ -231,7 +240,8 @@ void TPZScattering::Solution(const TPZMaterialDataT<CSTATE> &data,
     }
   };
 
-  const auto &val = var < 3 ? sol : curlsol;
+  const TPZVec<CSTATE> &val = var < 3 ? sol :
+    (var == 7 ? epsvec : curlsol);
 
   for(auto x = 0; x < 3; x++){
     solout[x] = op(val[x]);
