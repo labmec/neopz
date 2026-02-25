@@ -12,6 +12,10 @@
 #include "TPZYSMPPardiso.h"
 #include "TPZSYSMPPardiso.h"
 #endif
+#ifdef PZ_USING_MUMPS
+#include "TPZYSMPMumps.h"
+#include "TPZSYSMPMumps.h"
+#endif
 #include "pzblockdiag.h"
 #include "tpzsparseblockdiagonal.h"
 #include "fad.h"
@@ -52,6 +56,10 @@ struct SymmetricStorage<TPZSYsmpMatrix<TVar>> : std::true_type {};
 #ifdef PZ_USING_MKL
 template<class TVar>
 struct SymmetricStorage<TPZSYsmpMatrixPardiso<TVar>> : std::true_type {};
+#endif
+#ifdef PZ_USING_MUMPS
+template<class TVar>
+struct SymmetricStorage<TPZSYsmpMatrixMumps<TVar>> : std::true_type {};
 #endif
 
 template<class MAT>
