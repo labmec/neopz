@@ -14,10 +14,6 @@
 #include "TPZSYSMPPardiso.h"
 #endif
 
-#ifdef USING_MUMPS
-#include "TPZSYSMPMumps.h"
-#endif
-
 #ifdef USING_EIGEN
 #include "TPZEigenSparseMatrix.h"
 #endif
@@ -64,16 +60,7 @@ template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex){
     
     const int64_t neq = this->fEquationFilter.NActiveEquations();
-#ifdef USING_MKL
-    TPZSYsmpMatrixPardiso<TVar> * mat = new TPZSYsmpMatrixPardiso<TVar>(neq,neq);
-#elif USING_MUMPS
-    TPZSYsmpMatrixMumps<TVar> * mat = new TPZSYsmpMatrixMumps<TVar>(neq,neq);
-#elif USING_EIGEN
-    TPZEigenSparseMatrix<TVar> * mat = new TPZEigenSparseMatrix<TVar>(neq,neq);
-#else
-    TPZSYsmpMatrix<TVar> *mat = new TPZSYsmpMatrix<TVar>(neq,neq);
-    DebugStop();
-#endif
+    TPZSYsmpMatrix<TVar> * mat = NewSparseMatrix(neq);
     
     /**Creates a element graph*/
     TPZRenumbering graph;
@@ -212,12 +199,19 @@ TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_
     Eq[ieq] = pos;
     mat->SetData(std::move(Eq),std::move(EqCol),std::move(EqValue));
 
-#ifdef USING_MUMPS
-    // Prepare COO format for MUMPS during assembly phase
-    mat->UpdateCOOFormat();
-#endif
-
     return mat;
+}
+
+template<class TVar, class TPar>
+TPZSYsmpMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::NewSparseMatrix(const int64_t neq) const {
+#ifdef USING_MKL
+    return new TPZSYsmpMatrixPardiso<TVar>(neq,neq);
+#elif USING_EIGEN
+    return new TPZEigenSparseMatrix<TVar>(neq,neq);
+#else
+    DebugStop();
+    return nullptr;
+#endif
 }
 
 template<class TVar, class TPar>

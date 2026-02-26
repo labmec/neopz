@@ -27,6 +27,8 @@ set(public_headers
     #sparse
     TPZSpStructMatrix.h
     TPZSSpStructMatrix.h
+    TPZSpStructMatrixMumps.h
+    TPZSSpStructMatrixMumps.h
     #front
     TPZFrontStructMatrix.h
     TPZParFrontStructMatrix.h
@@ -59,6 +61,8 @@ set(headers
     #sparse
     TPZSpStructMatrix.h
     TPZSSpStructMatrix.h
+    TPZSpStructMatrixMumps.h
+    TPZSSpStructMatrixMumps.h
     #front
     TPZFrontStructMatrix.h
     TPZParFrontStructMatrix.h
@@ -93,6 +97,8 @@ set(sources
     #sparse
     TPZSpStructMatrix.cpp
     TPZSSpStructMatrix.cpp
+    TPZSpStructMatrixMumps.cpp
+    TPZSSpStructMatrixMumps.cpp
     #front
     TPZFrontStructMatrix.cpp
     TPZParFrontStructMatrix.cpp

@@ -124,6 +124,18 @@ void TPZSYsmpMatrixMumps<TVar>::MultAdd(const TPZFMatrix<TVar> &x,
     // CSR symmetric matrix-vector multiplication here using OpenMP
 }
 
+template<class TVar>
+void TPZSYsmpMatrixMumps<TVar>::SetData(const TPZVec<int64_t> &IA, const TPZVec<int64_t> &JA, const TPZVec<TVar> &A) {
+    TPZSYsmpMatrix<TVar>::SetData(IA, JA, A);
+    fCOOValid = false;
+}
+
+template<class TVar>
+void TPZSYsmpMatrixMumps<TVar>::SetData(TPZVec<int64_t> &&IA, TPZVec<int64_t> &&JA, TPZVec<TVar> &&A) {
+    TPZSYsmpMatrix<TVar>::SetData(std::move(IA), std::move(JA), std::move(A));
+    fCOOValid = false;
+}
+
 template <class TVar>
 void TPZSYsmpMatrixMumps<TVar>::SetIsDecomposed(DecomposeType val)
 {
@@ -158,8 +170,16 @@ int TPZSYsmpMatrixMumps<TVar>::Decompose(const DecomposeType dt)
         fMumpsControl.SetMatrixType(sysType, prop);
     }
 
+    if (!fCOOValid) {
+       UpdateCOOFormat();
+    }
+
     // Perform decomposition
     fMumpsControl.Decompose(this);
+    fIRN1Based.Resize(0);
+    fJCN1Based.Resize(0);
+    fCOOValid = false;
+
     this->SetIsDecomposed(dt);
 
     return 0;
@@ -261,32 +281,15 @@ void TPZSYsmpMatrixMumps<TVar>::UpdateCOOFormat()
     fCOOValid = true;
 }
 
-template <class TVar>
-void TPZSYsmpMatrixMumps<TVar>::GetCOOFormat(TPZVec<MUMPS_INT> &irn, TPZVec<MUMPS_INT> &jcn) const
-{
-    if (!fCOOValid)
-    {
-        const_cast<TPZSYsmpMatrixMumps<TVar> *>(this)->UpdateCOOFormat();
-    }
-    irn = fIRN1Based;
-    jcn = fJCN1Based;
-}
-
 // Explicit template instantiations for all supported types
 template void TPZSYsmpMatrixMumps<double>::UpdateCOOFormat();
-template void TPZSYsmpMatrixMumps<double>::GetCOOFormat(TPZVec<MUMPS_INT> &, TPZVec<MUMPS_INT> &) const;
 template void TPZSYsmpMatrixMumps<float>::UpdateCOOFormat();
-template void TPZSYsmpMatrixMumps<float>::GetCOOFormat(TPZVec<MUMPS_INT> &, TPZVec<MUMPS_INT> &) const;
 template void TPZSYsmpMatrixMumps<std::complex<float>>::UpdateCOOFormat();
-template void TPZSYsmpMatrixMumps<std::complex<float>>::GetCOOFormat(TPZVec<MUMPS_INT> &, TPZVec<MUMPS_INT> &) const;
 template void TPZSYsmpMatrixMumps<std::complex<double>>::UpdateCOOFormat();
-template void TPZSYsmpMatrixMumps<std::complex<double>>::GetCOOFormat(TPZVec<MUMPS_INT> &, TPZVec<MUMPS_INT> &) const;
 
 // Note: long double instantiations for completeness, even though MUMPS
 // doesn't natively support long double (uses double precision internally)
 template void TPZSYsmpMatrixMumps<long double>::UpdateCOOFormat();
-template void TPZSYsmpMatrixMumps<long double>::GetCOOFormat(TPZVec<MUMPS_INT> &, TPZVec<MUMPS_INT> &) const;
 template void TPZSYsmpMatrixMumps<std::complex<long double>>::UpdateCOOFormat();
-template void TPZSYsmpMatrixMumps<std::complex<long double>>::GetCOOFormat(TPZVec<MUMPS_INT> &, TPZVec<MUMPS_INT> &) const;
 
 #endif // USING_MUMPS

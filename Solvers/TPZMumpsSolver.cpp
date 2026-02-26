@@ -2,7 +2,7 @@
 //  TPZMumpsSolver.cpp
 //  PZ
 //
-//  Created by Philippe Devloo on 5/5/16.
+//
 //
 //
 
@@ -176,6 +176,16 @@ void TPZMumpsSolver<TVar>::Decompose(TPZMatrix<TVar> *mat) {
 #ifndef USING_MUMPS
     NOMUMPS
 #else
+if constexpr (std::is_same_v<TVar, std::complex<float>>  ||
+  std::is_same_v<TVar, std::complex<double>>  ||
+  std::is_same_v<TVar, std::complex<long double>>) {
+    PZError << __PRETTY_FUNCTION__
+    << "\nMUMPS support is currently limited to real-valued types (double/float)."
+    << " Complex types are not supported.\n";
+    DebugStop();
+    return;
+  }
+
   auto *symSystem = dynamic_cast<TPZSYsmpMatrixMumps<TVar> *>(mat);
   auto *nSymSystem = dynamic_cast<TPZFYsmpMatrixMumps<TVar> *>(mat);
 
@@ -230,15 +240,15 @@ void TPZMumpsSolver<TVar>::Decompose(TPZMatrix<TVar> *mat) {
   // Get COO format from matrix (conversion done once in matrix class)
   TPZVec<MUMPS_INT> irn, jcn;
   if (symSystem) {
-    symSystem->GetCOOFormat(irn, jcn);
+    fMumpsData.irn = symSystem->fIRN1Based.begin();
+    fMumpsData.jcn = symSystem->fJCN1Based.begin();
   } else {
-    nSymSystem->GetCOOFormat(irn, jcn);
+    fMumpsData.irn = nSymSystem->fIRN1Based.begin();
+    fMumpsData.jcn = nSymSystem->fJCN1Based.begin();
   }
 
   fMumpsData.n = n;
   fMumpsData.nz = nnz;
-  fMumpsData.irn = irn.begin();
-  fMumpsData.jcn = jcn.begin();
   fMumpsData.a = reinterpret_cast<DMUMPS_REAL *>(a);
 
   /**

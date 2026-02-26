@@ -1,9 +1,9 @@
 /**
  * @file
- * @brief Contains TPZSYsmpMatrix class which implements a nonsymmetric sparse matrix. \n
- * Purpose: Defines operations on symmetric sparse matrices stored in the (old) Yale Sparse Matrix Package format.
- * Some of the functionalities of this class depends on the MKL library and thus needs the NeoPZ library
- * to be configured using USING_MKL=ON during the CMake process. Search on this header for MKL to see which functionalities are these.
+ * @brief Contains TPZFYsmpMatrixMumps class which implements a nonsymmetric sparse matrix with MUMPS solver. \n
+ * Purpose: Defines operations on nonsymmetric sparse matrices stored in the (old) Yale Sparse Matrix Package format.
+ * @note Only real-valued types (double, float) are supported.
+ * Attempting to use complex types will abort at runtime.
  */
 
 #ifndef YSMPMATMUMPS_H
@@ -14,7 +14,7 @@
 #include "TPZMumpsSolver.h"
 
  /**
-  * @brief Implements a symmetric sparse matrix using Mumps. \ref matrix "Matrix"
+  * @brief Implements a nonsymmetric sparse matrix using Mumps. \ref matrix "Matrix"
   * @ingroup matrix
   */
 template<class TVar>
@@ -78,11 +78,33 @@ public :
   TPZMumpsSolver<TVar> & GetMumpsControl()
   {return fMumpsControl;}
   
-  //! Update COO format from CSR (called by StructMatrix during assembly)
-  void UpdateCOOFormat();
+  void SetData(TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A) override;
+  void SetData(TPZVec<int64_t> &&IA, TPZVec<int64_t> &&JA, TPZVec<TVar> &&A) override;
   
-  //! Get COO format arrays (1-based indexing for MUMPS)
-  void GetCOOFormat(TPZVec<MUMPS_INT> &irn, TPZVec<MUMPS_INT> &jcn) const;
+  //! Update COO format from CSR (called by StructMatrix during assembly)
+  /**
+    * @brief Converts the internal CSR (Compressed Sparse Row) representation
+    *        to the COO (Coordinate) format required by MUMPS.
+    *
+    * NeoPZ stores sparse matrices in CSR format (fIA, fJA, fA), where fIA holds
+    * row pointers, fJA holds column indices (0-based), and fA holds values.
+    * MUMPS requires COO format with 1-based indices: explicit (row, col) pairs
+    * for every non-zero entry.
+    *
+    * This method builds fIRN1Based (row indices) and fJCN1Based (column indices),
+    * both 1-based, from the CSR structure. The values array fA is passed directly
+    * to MUMPS as a pointer — no copy is made.
+    *
+    * The converted arrays are held only until MUMPS completes factorization and
+    * are freed immediately after (see Decompose), since MUMPS uses its own
+    * internal representation for the solve phase.
+    *
+    * @note fCOOValid tracks whether fIRN1Based/fJCN1Based are up-to-date.
+    *       It is set to false by SetData (sparsity pattern changed) and after
+    *       Decompose (arrays freed). UpdateCOOFormat is called lazily at the
+    *       start of Decompose if fCOOValid is false.
+    */
+  void UpdateCOOFormat();
   
 private:
   
