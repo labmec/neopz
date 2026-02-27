@@ -1,7 +1,7 @@
 /**
  * @file
  * @brief Contains TPZSYsmpMatrixMumps class which implements a symmetric sparse matrix with MUMPS solver. \n
- * Purpose: Defines operations on symmetric sparse matrices stored in the (old) Yale Sparse Matrix Package format.
+ * Purpose: Defines operations on symmetric sparse matrices stored in the C00 Sparse Matrix format.
  * @note Only real-valued types (double, float) are supported.
  * Attempting to use complex types will abort at runtime.
  * @note Support for complex types (std::complex<float>, std::complex<double>) is planned
@@ -79,6 +79,13 @@ public :
   
   void SetData(const TPZVec<int64_t> &IA, const TPZVec<int64_t> &JA, const TPZVec<TVar> &A) override;
   void SetData(TPZVec<int64_t> &&IA, TPZVec<int64_t> &&JA, TPZVec<TVar> &&A) override;
+
+  // Raw pointer overload: caller receives direct access to internal arrays,
+  // so COO arrays may become stale after this call.
+  void GetData(int64_t* &IA, int64_t* &JA, TVar* &A) override {
+    TPZSYsmpMatrix<TVar>::GetData(IA, JA, A);
+    fCOOValid = false;
+  }
   
   //! Update COO format from CSR (called by StructMatrix during assembly)
   /**
