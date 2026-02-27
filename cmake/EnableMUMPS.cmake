@@ -31,8 +31,6 @@ if(APPLE)
         elseif(EXISTS "/opt/local/lib/libomp")
             # MacPorts installs libomp in /opt/local/lib/libomp and /opt/local/include/libomp
             set(OpenMP_ROOT "/opt/local" CACHE PATH "OpenMP (libomp) prefix" FORCE)
-        # else()
-        #     message(WARNING "[EnableMUMPS] OpenMP (libomp) not found in common Homebrew/MacPorts locations. If you have OpenMP support, please set OpenMP_ROOT to its location.")
         endif()
         if(OpenMP_ROOT)
             message(STATUS "[EnableMUMPS] OpenMP_ROOT defaulted to: ${OpenMP_ROOT}")
@@ -126,6 +124,15 @@ function(enable_mumps target)
     message(STATUS "[EnableMUMPS] MUMPS found: ${MUMPS_DIR}")
     message(STATUS "[EnableMUMPS] MUMPS version: ${MUMPS_VERSION}")
 
+    # NeoPZ requires double-precision real MUMPS (dmumps).
+    # Complex MUMPS support (zmumps/cmumps) is planned for a future release.
+    if(NOT MUMPS_DOUBLE AND NOT MUMPS_d_FOUND)
+        message(WARNING
+            "[EnableMUMPS] MUMPS does not appear to have been built with double-precision "
+            "real support (dmumps). NeoPZ requires dmumps. "
+            "Please rebuild MUMPS with double precision enabled.")
+    endif()
+
     # ------------------------------------------------------------------------
     # 4. Compilation macros
     # ------------------------------------------------------------------------
@@ -138,9 +145,11 @@ function(enable_mumps target)
         target_compile_definitions(${target}
             PUBLIC MUMPS_ROOT="${MUMPS_ROOT}"
         )
-        target_compile_definitions(${target}
-            PUBLIC OpenMP_ROOT="${OpenMP_ROOT}"
-        )
+        if(OpenMP_ROOT)
+            target_compile_definitions(${target}
+                PUBLIC OpenMP_ROOT="${OpenMP_ROOT}"
+            )
+        endif()
     endif()
 
     # ------------------------------------------------------------------------

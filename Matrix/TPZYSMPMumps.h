@@ -4,6 +4,8 @@
  * Purpose: Defines operations on nonsymmetric sparse matrices stored in the (old) Yale Sparse Matrix Package format.
  * @note Only real-valued types (double, float) are supported.
  * Attempting to use complex types will abort at runtime.
+ * @note Support for complex types (std::complex<float>, std::complex<double>) is planned
+ * for a future release.
  */
 
 #ifndef YSMPMATMUMPS_H
