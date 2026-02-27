@@ -27,19 +27,7 @@ set(public_headers
     #sparse
     TPZSpStructMatrix.h
     TPZSSpStructMatrix.h
-    TPZSpStructMatrixMumps.h
-    TPZSSpStructMatrixMumps.h
     #front
-    TPZFrontStructMatrix.h
-    TPZParFrontStructMatrix.h
-    #block
-    pzbdstrmatrix.h
-    TPZBSpStructMatrix.h
-    # tpzsparseblockdiagonalstructmatrix.h # needsreview
-    #other
-    TPZEquationFilter.h
-   )
-set(headers
     TPZStrMatParInterface.h
     TPZStructMatrix.h
     TPZStructMatrixT.h
@@ -61,8 +49,6 @@ set(headers
     #sparse
     TPZSpStructMatrix.h
     TPZSSpStructMatrix.h
-    TPZSpStructMatrixMumps.h
-    TPZSSpStructMatrixMumps.h
     #front
     TPZFrontStructMatrix.h
     TPZParFrontStructMatrix.h
@@ -97,8 +83,6 @@ set(sources
     #sparse
     TPZSpStructMatrix.cpp
     TPZSSpStructMatrix.cpp
-    TPZSpStructMatrixMumps.cpp
-    TPZSSpStructMatrixMumps.cpp
     #front
     TPZFrontStructMatrix.cpp
     TPZParFrontStructMatrix.cpp
@@ -110,6 +94,21 @@ set(sources
     TPZEquationFilter.cpp
     TPZStructMatrixTBBFlowUtils.cpp
    )
+
+if(USING_MUMPS)
+  list(APPEND public_headers
+    TPZSpStructMatrixMumps.h
+    TPZSSpStructMatrixMumps.h
+  )
+  list(APPEND headers
+    TPZSpStructMatrixMumps.h
+    TPZSSpStructMatrixMumps.h
+  )
+  list(APPEND sources
+    TPZSpStructMatrixMumps.cpp
+    TPZSSpStructMatrixMumps.cpp
+  )
+endif()
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/StrMatrix)
 
