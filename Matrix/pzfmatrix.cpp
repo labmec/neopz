@@ -12,6 +12,7 @@
 #include <cmath>
 #include <complex>
 #include <map>
+#include <numeric>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -303,47 +304,47 @@ void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &destination
 }
 
 template<class TVar>
-void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination) {
+template<bool TAtomic>
+void TPZFMatrix<TVar>::AddFelImpl(TPZFMatrix<TVar> &rhs,
+                                  TPZVec<int64_t> &source, TPZVec<int64_t> &destination) {
+#ifdef PZDEBUG
     if(rhs.Cols() != this->Cols() && source.NElements()) {
         PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
         DebugStop();
         return;
     }
-    int64_t ncol = this->Cols();
-    int64_t nrow = source.NElements();
-    int64_t i,j;
-    /*
-      enables op for double, float and resp. complex types
-     */
-    if constexpr (std::is_same_v<RTVar,double> ||
-                  std::is_same_v<RTVar,float>){
-        for(j=0; j<ncol; j++) {
-            for(i=0; i<nrow; i++) {
-                pzutils::AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
-            }
-        }
-    }else{
-        for(j=0; j<ncol; j++) {
-            for(i=0; i<nrow; i++) {
-                operator()(destination[i],j) += rhs(source[i],j);
-            }
-        }
-    }
-}
+#endif
+    // initialize original index locations
+    const int64_t neq = destination.size();
+    
+    TPZManVector<int64_t,800> idx(neq);
+    std::iota(idx.begin(), idx.end(), 0);
 
-template<class TVar>
-void TPZFMatrix<TVar>::AddFelNonAtomic(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination) {
-    if(rhs.Cols() != this->Cols() && source.NElements()) {
-        PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
-        DebugStop();
-        return;
-    }
-    int64_t ncol = this->Cols();
-    int64_t nrow = source.NElements();
-    int64_t i,j;
-    for(j=0; j<ncol; j++) {
-        for(i=0; i<nrow; i++) {
-            operator()(destination[i],j) += rhs(source[i],j);
+    // sort indexes based on comparing values in v
+    // using std::stable_sort instead of std::sort
+    // to avoid unnecessary index re-orderings
+    // when v contains elements of equal values 
+    std::sort(idx.begin(), idx.end(),
+              [&destination](const int64_t i1, const int64_t i2)
+              {return destination[i1] < destination[i2];});
+  
+
+    const auto ncol = this->Cols();
+    for(auto j=0; j<ncol; j++) {
+        for(auto dummy_i=0; dummy_i<neq; dummy_i++) {
+            const auto i = idx[dummy_i];
+    // const auto ncol = this->Cols();
+    // for(auto j=0; j<ncol; j++) {
+    //     for(auto i=0; i<neq; i++) {
+            const auto idest=destination[i];
+            const auto isrc=source[i];
+            const auto &value=rhs.g(isrc,j);
+            auto dest = this->fElem+j*this->fRow+idest;
+            if constexpr(TAtomic && is_arithmetic_pz<TVar>::value){
+                pzutils::AtomicAdd(*dest,value);
+            }else{
+                *dest+=value;
+            }
         }
     }
 }
@@ -2936,35 +2937,30 @@ int TPZFMatrix<TVar>::SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix
 
 #include <complex>
 
-template class TPZFMatrix<int >;
-template class TPZFMatrix<int64_t >;
-template class TPZFMatrix<float >;
-template class TPZFMatrix<double >;
-template class TPZFMatrix<long double>;
 
-template class TPZFMatrix< std::complex<float> >;
-template class TPZFMatrix< std::complex<double> >;
-template class TPZFMatrix< std::complex<long double> >;
+#define TEMPL_INST(T)                                                   \
+    template class TPZFMatrix<T>;                                       \
+    template void TPZFMatrix<T>::AddFelImpl<true>(TPZFMatrix<T>&rhs,    \
+                                                  TPZVec<int64_t> &source, \
+                                                  TPZVec<int64_t> &destination); \
+    template void TPZFMatrix<T>::AddFelImpl<false>(TPZFMatrix<T>&rhs,   \
+                                                   TPZVec<int64_t> &source, \
+                                                   TPZVec<int64_t> &destination); \
+    template class TPZRestoreClass<TPZFMatrix<T>>;                      
 
-template class TPZFMatrix<TPZFlopCounter>;
-
-template class TPZRestoreClass< TPZFMatrix<int> >;
-template class TPZRestoreClass< TPZFMatrix<int64_t> >;
-template class TPZRestoreClass< TPZFMatrix<double> >;
-template class TPZRestoreClass< TPZFMatrix<float> >;
-template class TPZRestoreClass< TPZFMatrix<long double> >;
-
-template class TPZRestoreClass< TPZFMatrix<std::complex<float> > >;
-template class TPZRestoreClass< TPZFMatrix<std::complex<double> > >;
-template class TPZRestoreClass< TPZFMatrix<std::complex<long double> > >;
-template class TPZRestoreClass< TPZFMatrix<TPZFlopCounter > >;
-
-template class TPZFMatrix<TFad<6,REAL> >;
-template class TPZFMatrix<Fad<double> >;
-template class TPZFMatrix<Fad<float> >;
-template class TPZFMatrix<Fad<long double> >;
-
-template class TPZRestoreClass<TPZFMatrix<TFad<6,REAL> >>;
-template class TPZRestoreClass<TPZFMatrix<Fad<double> >>;
-template class TPZRestoreClass<TPZFMatrix<Fad<float> >>;
-template class TPZRestoreClass<TPZFMatrix<Fad<long double> >>;
+TEMPL_INST(int)
+TEMPL_INST(int64_t)
+TEMPL_INST(double)
+TEMPL_INST(float)
+TEMPL_INST(long double)
+TEMPL_INST(std::complex<float>)
+TEMPL_INST(std::complex<double>)
+TEMPL_INST(std::complex<long double>)
+TEMPL_INST(Fad<double>)
+TEMPL_INST(Fad<float>)
+TEMPL_INST(Fad<long double>)
+TEMPL_INST(TPZFlopCounter)
+//we cannot have a comma in the macro argument
+typedef TFad<6,REAL> tfadtype;
+TEMPL_INST(tfadtype)
+#undef TEMPL_INST

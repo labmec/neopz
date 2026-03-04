@@ -195,10 +195,16 @@ public:
      * @param source Source index on rhs
      * @param destination Destine index on current matrix
      */
-    void AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination);
+    inline void AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source,
+                       TPZVec<int64_t> &destination){
+        AddFelImpl<true>(rhs,source,destination);
+    }
 
     ///Idem AddFel, but uses Non Atomic sum
-    void AddFelNonAtomic(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination);
+    inline void AddFelNonAtomic(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source,
+                                TPZVec<int64_t> &destination){
+        AddFelImpl<false>(rhs,source,destination);
+    }
     
     
     /**
@@ -600,6 +606,10 @@ protected:
     {
         return this->Rows()*this->Cols();
     }
+
+    template<bool TAtomic>
+    void AddFelImpl(TPZFMatrix<TVar>&rhs, TPZVec<int64_t> &sourceindex,
+                    TPZVec<int64_t> &destinationindex);
 private:
     
     static int Error(const char *msg1,const char *msg2=0 );
@@ -771,7 +781,7 @@ inline TVar TPZFMatrix<TVar>::operator()( const int64_t row, const int64_t col) 
 template<class TVar>
 inline TVar &TPZFMatrix<TVar>::s(const int64_t row, const int64_t col) {
     // verificando se o elemento a inserir esta dentro da matriz
-    return operator()(row,col);
+    return *(this->fElem+col*this->fRow+row);
 }
 
 template<class TVar>
