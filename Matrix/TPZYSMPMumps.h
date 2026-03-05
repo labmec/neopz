@@ -2,10 +2,8 @@
  * @file
  * @brief Contains TPZFYsmpMatrixMumps class which implements a nonsymmetric sparse matrix with MUMPS solver. \n
  * Purpose: Defines operations on nonsymmetric sparse matrices stored in the C00 Sparse Matrix format.
- * @note Only real-valued types (double, float) are supported.
- * Attempting to use complex types will abort at runtime.
- * @note Support for complex types (std::complex<float>, std::complex<double>) is planned
- * for a future release.
+ * @note Supported types: float (SMUMPS), double/long double (DMUMPS), complex<float> (CMUMPS),
+ * complex<double>/complex<long double> (ZMUMPS). Each requires the corresponding MUMPS_HAVE_* flag.
  */
 
 #ifndef YSMPMATMUMPS_H

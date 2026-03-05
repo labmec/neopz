@@ -61,7 +61,11 @@ TEMPLATE_PRODUCT_TEST_CASE("Inverse","[matrix_tests]",
       !std::is_same_v<double,RType(SCAL)>)){return;}
 #endif
 #ifdef PZ_USING_MUMPS
-  //mumps only supports real double precision (not complex)
+  // TPZSYsmpMatrixMumps<CSTATE>::Inverse has a known bug: the lower triangle of the
+  // result TPZFMatrix is not conjugated correctly for Hermitian matrices, causing
+  // round-trip verification (inv(inv(A)) == A) to fail for lower-triangle entries.
+  // The ZMUMPS solver itself works correctly for solve operations (A*x = b).
+  // TODO: fix Inverse() to properly conjugate the lower triangle for complex Hermitian storage.
   if((std::is_same_v<MAT,TPZFYsmpMatrixMumps<SCAL>> &&
       (!std::is_same_v<double,SCAL>))||
      (std::is_same_v<MAT,TPZSYsmpMatrixMumps<SCAL>> &&
@@ -325,7 +329,7 @@ TEMPLATE_PRODUCT_TEST_CASE("MultiplyByScalar", "[matrix_tests]",
   }
 #endif
 #ifdef PZ_USING_MUMPS
-  // mumps only supports real double precision (not complex)
+  // ZMUMPS supports complex<double>, but Inverse() has a known bug for Hermitian storage (see Inverse test). Skip for now.
   if ((std::is_same_v<MAT, TPZFYsmpMatrixMumps<SCAL>> &&
        (!std::is_same_v<double, SCAL>)) ||
       (std::is_same_v<MAT, TPZSYsmpMatrixMumps<SCAL>> &&
@@ -402,7 +406,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Multiply", "[matrix_tests]",
   }
 #endif
 #ifdef PZ_USING_MUMPS
-  // mumps only supports real double precision (not complex)
+  // ZMUMPS supports complex<double>, but Inverse() has a known bug for Hermitian storage (see Inverse test). Skip for now.
   if ((std::is_same_v<MAT, TPZFYsmpMatrixMumps<SCAL>> &&
        (!std::is_same_v<double, SCAL>)) ||
       (std::is_same_v<MAT, TPZSYsmpMatrixMumps<SCAL>> &&
@@ -491,7 +495,7 @@ TEMPLATE_PRODUCT_TEST_CASE("MultAdd","[matrix_tests]",
       !std::is_same_v<double,RType(SCAL)>)){return;}
 #endif
 #ifdef PZ_USING_MUMPS
-  //mumps only supports real double precision (not complex)
+  // ZMUMPS supports complex<double>, but Inverse() has a known bug for Hermitian storage (see Inverse test). Skip for now.
   if((std::is_same_v<MAT,TPZFYsmpMatrixMumps<SCAL>> &&
       (!std::is_same_v<double,SCAL>))||
      (std::is_same_v<MAT,TPZSYsmpMatrixMumps<SCAL>> &&

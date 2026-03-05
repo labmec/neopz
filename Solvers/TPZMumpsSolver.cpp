@@ -10,11 +10,11 @@
 #include "TPZMumpsSolver.h"
 #else
 #define NOMUMPS
-    PZError<<"The class TPZPardisoSolver should not be used ";  \
-    PZError<<"if NeoPZ was configured with USING_MUMPS=OFF\n";    \
-    PZError<<"Aborting..."<<std::endl;                          \
-    DebugStop();
-#endif 
+PZError << "The class TPZMumpsSolver should not be used ";
+PZError << "if NeoPZ was configured with USING_MUMPS=OFF\n";
+PZError << "Aborting..." << std::endl;
+DebugStop();
+#endif
 
 #include "TPZSYSMPMumps.h"
 #include "TPZYSMPMumps.h"
@@ -56,6 +56,34 @@ TPZMumpsSolver<TVar>::TPZMumpsSolver(TPZMumpsSolver &&copy) noexcept
 }
 
 template <class TVar>
+void TPZMumpsSolver<TVar>::CallMumps() const {
+#ifdef MUMPS_HAVE_SINGLE
+  if constexpr (std::is_same_v<TVar, float>) {
+    smumps_c(&fMumpsData);
+    return;
+  }
+#endif
+#ifdef MUMPS_HAVE_DOUBLE
+  if constexpr (std::is_same_v<TVar, double> || std::is_same_v<TVar, long double>) {
+    dmumps_c(&fMumpsData);
+    return;
+  }
+#endif
+#ifdef MUMPS_HAVE_COMPLEX
+  if constexpr (std::is_same_v<TVar, std::complex<float>>) {
+    cmumps_c(&fMumpsData);
+    return;
+  }
+#endif
+#ifdef MUMPS_HAVE_COMPLEX16
+  if constexpr (std::is_same_v<TVar, std::complex<double>> || std::is_same_v<TVar, std::complex<long double>>) {
+    zmumps_c(&fMumpsData);
+    return;
+  }
+#endif
+}
+
+template <class TVar>
 TPZMumpsSolver<TVar> &TPZMumpsSolver<TVar>::operator=(TPZMumpsSolver &&copy) noexcept {
   if (this != &copy) {
     // Free our own MUMPS memory first
@@ -93,7 +121,7 @@ void TPZMumpsSolver<TVar>::FreeMumpsMemory() {
     fMumpsData.job = JOB_END;
 
     // Call MUMPS to release the internal memory
-    dmumps_c(&fMumpsData);
+    CallMumps();
 
     // Check for errors
     if (fMumpsData.info[0] < 0) {
@@ -107,7 +135,7 @@ void TPZMumpsSolver<TVar>::FreeMumpsMemory() {
     fMumpsInitialized = false;
   }
 #else
-    NOMUMPS
+  NOMUMPS
 #endif
 }
 
@@ -174,18 +202,8 @@ void TPZMumpsSolver<TVar>::Decompose() {
 template <class TVar>
 void TPZMumpsSolver<TVar>::Decompose(TPZMatrix<TVar> *mat) {
 #ifndef USING_MUMPS
-    NOMUMPS
+  NOMUMPS
 #else
-if constexpr (std::is_same_v<TVar, std::complex<float>>  ||
-  std::is_same_v<TVar, std::complex<double>>  ||
-  std::is_same_v<TVar, std::complex<long double>>) {
-    PZError << __PRETTY_FUNCTION__
-    << "\nMUMPS support is currently limited to real-valued types (double/float)."
-    << " Complex types are not supported.\n";
-    DebugStop();
-    return;
-  }
-
   auto *symSystem = dynamic_cast<TPZSYsmpMatrixMumps<TVar> *>(mat);
   auto *nSymSystem = dynamic_cast<TPZFYsmpMatrixMumps<TVar> *>(mat);
 
@@ -223,7 +241,7 @@ if constexpr (std::is_same_v<TVar, std::complex<float>>  ||
     fMumpsData.job = JOB_INIT;                // Initialize MUMPS
 
     // Call MUMPS to initialize the internal data structures
-    dmumps_c(&fMumpsData);
+    CallMumps();
 
     if (fMumpsData.info[0] < 0) {
       std::cerr << "MUMPS Error during initialization: "
@@ -249,7 +267,7 @@ if constexpr (std::is_same_v<TVar, std::complex<float>>  ||
 
   fMumpsData.n = n;
   fMumpsData.nz = nnz;
-  fMumpsData.a = reinterpret_cast<DMUMPS_REAL *>(a);
+  fMumpsData.a = reinterpret_cast<decltype(fMumpsData.a)>(a);
 
   /**
    * INCTL(1): is the output stream for error messages
@@ -430,7 +448,7 @@ if constexpr (std::is_same_v<TVar, std::complex<float>>  ||
 
   // --- Analysis phase
   fMumpsData.job = JOB_ANALYSIS;
-  dmumps_c(&fMumpsData);
+  CallMumps();
 
   if (fMumpsData.info[0] < 0) {
     std::cerr << "MUMPS analysis error: "
@@ -442,7 +460,7 @@ if constexpr (std::is_same_v<TVar, std::complex<float>>  ||
 
   // --- Factorization phase
   fMumpsData.job = JOB_FACTORIZE;
-  dmumps_c(&fMumpsData);
+  CallMumps();
 
   if (fMumpsData.info[0] < 0) {
     std::cerr << "MUMPS factorization error: "
@@ -460,7 +478,7 @@ if constexpr (std::is_same_v<TVar, std::complex<float>>  ||
 template <class TVar>
 void TPZMumpsSolver<TVar>::Solve(const TPZMatrix<TVar> *mat, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const {
 #ifndef USING_MUMPS
-    NOMUMPS
+  NOMUMPS
 #else
 
 #ifdef PZDEBUG
@@ -523,7 +541,7 @@ void TPZMumpsSolver<TVar>::Solve(const TPZMatrix<TVar> *mat, const TPZFMatrix<TV
   // Configure RHS and solution in MUMPS data structure
   fMumpsData.nrhs = nrhs;
   fMumpsData.lrhs = n;
-  fMumpsData.rhs = reinterpret_cast<double *>(&rhs_copy.g(0, 0));
+  fMumpsData.rhs = reinterpret_cast<decltype(fMumpsData.rhs)>(&rhs_copy.g(0, 0));
 
   // MUMPS overwrites RHS with the solution, so copy to sol afterwards
 
@@ -543,7 +561,7 @@ void TPZMumpsSolver<TVar>::Solve(const TPZMatrix<TVar> *mat, const TPZFMatrix<TV
   // Solve phase
   fMumpsData.job = JOB_SOLVE;
 
-  dmumps_c(&fMumpsData);
+  CallMumps();
 
   // Check for errors
   if (fMumpsData.info[0] < 0) {
@@ -558,7 +576,7 @@ void TPZMumpsSolver<TVar>::Solve(const TPZMatrix<TVar> *mat, const TPZFMatrix<TV
 
       // Redo analysis and factorization
       fMumpsData.job = JOB_ANALYSIS; // Analysis
-      dmumps_c(&fMumpsData);
+      CallMumps();
 
       if (fMumpsData.info[0] < 0) {
         std::cerr << "MUMPS re-analysis error: "
@@ -568,7 +586,7 @@ void TPZMumpsSolver<TVar>::Solve(const TPZMatrix<TVar> *mat, const TPZFMatrix<TV
       }
 
       fMumpsData.job = JOB_FACTORIZE; // Factorization
-      dmumps_c(&fMumpsData);
+      CallMumps();
 
       if (fMumpsData.info[0] < 0) {
         std::cerr << "MUMPS re-factorization error: "
@@ -578,9 +596,9 @@ void TPZMumpsSolver<TVar>::Solve(const TPZMatrix<TVar> *mat, const TPZFMatrix<TV
       }
 
       // Try solving again
-      fMumpsData.rhs = (double *)&rhs_copy.g(0, 0);
+      fMumpsData.rhs = reinterpret_cast<decltype(fMumpsData.rhs)>(&rhs_copy.g(0, 0));
       fMumpsData.job = JOB_SOLVE;
-      dmumps_c(&fMumpsData);
+      CallMumps();
 
       if (fMumpsData.info[0] < 0) {
         std::cerr << "MUMPS solve error after refactorization: "
@@ -1078,9 +1096,17 @@ void Error_check(MUMPS_INT INFO1, TVar INFO2) {
   }
 }
 
+#ifdef MUMPS_HAVE_SINGLE
+template class TPZMumpsSolver<float>;
+#endif
+#ifdef MUMPS_HAVE_DOUBLE
 template class TPZMumpsSolver<double>;
 template class TPZMumpsSolver<long double>;
-template class TPZMumpsSolver<float>;
+#endif
+#ifdef MUMPS_HAVE_COMPLEX
 template class TPZMumpsSolver<std::complex<float>>;
+#endif
+#ifdef MUMPS_HAVE_COMPLEX16
 template class TPZMumpsSolver<std::complex<double>>;
 template class TPZMumpsSolver<std::complex<long double>>;
+#endif

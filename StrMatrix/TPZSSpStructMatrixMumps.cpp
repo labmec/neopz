@@ -25,3 +25,10 @@ template class TPZSSpStructMatrixMumps<STATE, TPZStructMatrixOR<STATE>>;
 template class TPZSSpStructMatrixMumps<STATE, TPZStructMatrixOT<STATE>>;
 template class TPZSSpStructMatrixMumps<STATE, TPZStructMatrixTBBFlow<STATE>>;
 template class TPZSSpStructMatrixMumps<STATE, TPZStructMatrixOMPorTBB<STATE>>;
+
+#if defined(MUMPS_HAVE_COMPLEX) || defined(MUMPS_HAVE_COMPLEX16)
+template class TPZSSpStructMatrixMumps<CSTATE, TPZStructMatrixOR<CSTATE>>;
+template class TPZSSpStructMatrixMumps<CSTATE, TPZStructMatrixOT<CSTATE>>;
+template class TPZSSpStructMatrixMumps<CSTATE, TPZStructMatrixTBBFlow<CSTATE>>;
+template class TPZSSpStructMatrixMumps<CSTATE, TPZStructMatrixOMPorTBB<CSTATE>>;
+#endif

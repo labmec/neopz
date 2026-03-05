@@ -1,6 +1,6 @@
 # ============================================================================
 #  EnableMUMPS.cmake
-#  Integration of SEQUENTIAL MUMPS (dmumps) with NeoPZ
+#  Integration of SEQUENTIAL MUMPS ([s/d/c/z]mumps) with NeoPZ
 #  Based on package:
 #    https://github.com/giavancini/mumps
 #
@@ -42,7 +42,7 @@ endif()
 function(enable_mumps target)
 
     message(STATUS "[EnableMUMPS] Looking for MUMPS")
-    
+
     # Helper to set MUMPS_DIR from MUMPS_ROOT
     if(MUMPS_ROOT)
         message(STATUS "[EnableMUMPS] MUMPS_ROOT: ${MUMPS_ROOT}")
@@ -57,7 +57,7 @@ function(enable_mumps target)
         else()
             set(MUMPS_DIR "${MUMPS_ROOT}" CACHE PATH "Path to MUMPSConfig.cmake" FORCE)
         endif()
-        if (EXISTS "${MUMPS_ROOT}/include")
+        if(EXISTS "${MUMPS_ROOT}/include")
             set(MUMPS_INCLUDE_DIR "${MUMPS_ROOT}/include" CACHE PATH "Path to MUMPS include directory" FORCE)
         else()
             message(WARNING "[EnableMUMPS] MUMPS include dir NOT found at: ${MUMPS_ROOT}/include")
@@ -84,53 +84,122 @@ function(enable_mumps target)
     endif()
 
     enable_language(C Fortran)
-    
+
     # Handle OpenMP for native Apple Clang with MacPorts libomp (non-standard structure)
     # MacPorts Clang doesn't need this - it has native OpenMP support
     if(APPLE AND CMAKE_C_COMPILER_ID STREQUAL "AppleClang" AND EXISTS "/opt/local/lib/libomp")
         message(STATUS "[EnableMUMPS] Configuring OpenMP for native Apple Clang with MacPorts libomp")
         # MacPorts installs at /opt/local/lib/libomp and /opt/local/include/libomp
         if(NOT DEFINED OpenMP_C_FLAGS)
-        set(OpenMP_C_FLAGS "-Xclang -fopenmp -I/opt/local/include/libomp" CACHE STRING "OpenMP C flags")
-        message(STATUS "[EnableMUMPS] Setting OpenMP_C_FLAGS=\"${OpenMP_C_FLAGS}\" for Apple Clang with MacPorts libomp")
+            set(OpenMP_C_FLAGS "-Xclang -fopenmp -I/opt/local/include/libomp" CACHE STRING "OpenMP C flags")
+            message(STATUS "[EnableMUMPS] Setting OpenMP_C_FLAGS=\"${OpenMP_C_FLAGS}\" for Apple Clang with MacPorts libomp")
         endif()
         if(NOT DEFINED OpenMP_CXX_FLAGS)
-        set(OpenMP_CXX_FLAGS "-Xclang -fopenmp -I/opt/local/include/libomp" CACHE STRING "OpenMP CXX flags")
-        message(STATUS "[EnableMUMPS] Setting OpenMP_CXX_FLAGS=\"${OpenMP_CXX_FLAGS}\" for Apple Clang with MacPorts libomp")
+            set(OpenMP_CXX_FLAGS "-Xclang -fopenmp -I/opt/local/include/libomp" CACHE STRING "OpenMP CXX flags")
+            message(STATUS "[EnableMUMPS] Setting OpenMP_CXX_FLAGS=\"${OpenMP_CXX_FLAGS}\" for Apple Clang with MacPorts libomp")
         endif()
         if(NOT DEFINED OpenMP_C_LIB_NAMES)
-        set(OpenMP_C_LIB_NAMES "omp" CACHE STRING "OpenMP library name")
-        message(STATUS "[EnableMUMPS] Setting OpenMP_C_LIB_NAMES=\"${OpenMP_C_LIB_NAMES}\" for Apple Clang with MacPorts libomp")
+            set(OpenMP_C_LIB_NAMES "omp" CACHE STRING "OpenMP library name")
+            message(STATUS "[EnableMUMPS] Setting OpenMP_C_LIB_NAMES=\"${OpenMP_C_LIB_NAMES}\" for Apple Clang with MacPorts libomp")
         endif()
         if(NOT DEFINED OpenMP_CXX_LIB_NAMES)
-        set(OpenMP_CXX_LIB_NAMES "omp" CACHE STRING "OpenMP library name")
-        message(STATUS "[EnableMUMPS] Setting OpenMP_CXX_LIB_NAMES=\"${OpenMP_CXX_LIB_NAMES}\" for Apple Clang with MacPorts libomp")
+            set(OpenMP_CXX_LIB_NAMES "omp" CACHE STRING "OpenMP library name")
+            message(STATUS "[EnableMUMPS] Setting OpenMP_CXX_LIB_NAMES=\"${OpenMP_CXX_LIB_NAMES}\" for Apple Clang with MacPorts libomp")
         endif()
         if(NOT DEFINED OpenMP_omp_LIBRARY)
             set(OpenMP_omp_LIBRARY "/opt/local/lib/libomp/libomp.dylib" CACHE FILEPATH "OpenMP library path")
             message(STATUS "[EnableMUMPS] OpenMP library: ${OpenMP_omp_LIBRARY}")
         endif()
     endif()
-    
+
     find_package(MUMPS CONFIG REQUIRED)
-    if (NOT MUMPS_FOUND)
-        message(FATAL_ERROR 
+    if(NOT MUMPS_FOUND)
+        message(FATAL_ERROR
             "[EnableMUMPS] MUMPS package configuration could not be loaded.\n"
             "Please verify MUMPS_ROOT or MUMPS_DIR is set correctly.")
     endif()
-    if (NOT TARGET MUMPS::MUMPS)
+    if(NOT TARGET MUMPS::MUMPS)
         message(FATAL_ERROR "[EnableMUMPS] MUMPS target not found. Please check MUMPS installation.")
     endif()
     message(STATUS "[EnableMUMPS] MUMPS found: ${MUMPS_DIR}")
     message(STATUS "[EnableMUMPS] MUMPS version: ${MUMPS_VERSION}")
 
-    # NeoPZ requires double-precision real MUMPS (dmumps).
-    # Complex MUMPS support (zmumps/cmumps) is planned for a future release.
-    if(NOT MUMPS_DOUBLE AND NOT MUMPS_d_FOUND)
-        message(WARNING
-            "[EnableMUMPS] MUMPS does not appear to have been built with double-precision "
-            "real support (dmumps). NeoPZ requires dmumps. "
-            "Please rebuild MUMPS with double precision enabled.")
+    # NeoPZ requires at least one of the float, double, complex and complex double ([s/d/c/z]mumps).
+    message(STATUS "[EnableMUMPS] Available variants:"
+        "\n  - MUMPS_s_FOUND: ${MUMPS_s_FOUND}"
+        "\n  - MUMPS_d_FOUND: ${MUMPS_d_FOUND}"
+        "\n  - MUMPS_c_FOUND: ${MUMPS_c_FOUND}"
+        "\n  - MUMPS_z_FOUND: ${MUMPS_z_FOUND}"
+    )
+    if(
+        NOT MUMPS_SINGLE AND NOT MUMPS_s_FOUND
+        AND NOT MUMPS_DOUBLE AND NOT MUMPS_d_FOUND
+        AND NOT MUMPS_COMPLEX AND NOT MUMPS_c_FOUND
+        AND NOT MUMPS_COMPLEX16 AND NOT MUMPS_z_FOUND
+    )
+        message(FATAL_ERROR
+            "[EnableMUMPS] MUMPS must be built with at least one of the following variants: [s/d/c/z]mumps")
+    endif()
+
+    # If NeoPZ compile definitions is not set to REALfloat, then we can assume it's using double precision as default.
+    # In that case, we can check if MUMPS was built with double precision support and if not, we can throw an error.
+    get_target_property(_pz_defs ${target} INTERFACE_COMPILE_DEFINITIONS)
+    if(_pz_defs MATCHES "REALfloat")
+        set(_pz_real_float ON)
+        message(STATUS "[EnableMUMPS] NeoPZ REAL_TYPE detected: float (default)")
+    else()
+        set(_pz_real_float OFF)
+        message(STATUS "[EnableMUMPS] NeoPZ REAL_TYPE detected: double (default)")
+    endif()
+
+    # Defaults: enable the real variant that matches NeoPZ REAL_TYPE
+    if(_pz_real_float AND MUMPS_SINGLE)
+        set(_default_single ON)
+        set(_default_double OFF)
+    elseif(NOT _pz_real_float AND MUMPS_DOUBLE)
+        set(_default_single OFF)
+        set(_default_double ON)
+    else()
+        set(_default_single OFF)
+        set(_default_double OFF)
+    endif()
+
+    # --- User options to override defaults ---
+    # Allow users to explicitly enable/disable float/double/complex/complex16 variants via cache variables.
+    option(MUMPS_USE_SINGLE "Enable MUMPS float variant (smumps)" ${_default_single})
+    option(MUMPS_USE_DOUBLE "Enable MUMPS double variant (dmumps)" ${_default_double})
+    option(MUMPS_USE_COMPLEX "Enable MUMPS complex variant (cmumps)" OFF)
+    option(MUMPS_USE_COMPLEX16 "Enable MUMPS complex16 variant (zmumps)" OFF)
+
+    if(MUMPS_USE_SINGLE)
+        message(STATUS "[EnableMUMPS] MUMPS float variant (smumps) enabled by user")
+    endif()
+    if(MUMPS_USE_DOUBLE)
+        message(STATUS "[EnableMUMPS] MUMPS double variant (dmumps) enabled by user")
+    endif()
+    if(MUMPS_USE_COMPLEX)
+        message(STATUS "[EnableMUMPS] MUMPS complex variant (cmumps) enabled by user")
+    endif()
+    if(MUMPS_USE_COMPLEX16)
+        message(STATUS "[EnableMUMPS] MUMPS complex16 variant (zmumps) enabled by user")
+    endif()
+
+    # Validate: chosen variant must actually have been compiled
+    if(MUMPS_USE_SINGLE AND NOT MUMPS_SINGLE)
+        message(FATAL_ERROR "[EnableMUMPS] MUMPS_USE_SINGLE=ON but MUMPS single precision variant not found. Please check MUMPS installation.")
+    endif()
+    if(MUMPS_USE_DOUBLE AND NOT MUMPS_DOUBLE)
+        message(FATAL_ERROR "[EnableMUMPS] MUMPS_USE_DOUBLE=ON but MUMPS double precision variant not found. Please check MUMPS installation.")
+    endif()
+    if(MUMPS_USE_COMPLEX AND NOT MUMPS_COMPLEX)
+        message(FATAL_ERROR "[EnableMUMPS] MUMPS_USE_COMPLEX=ON but MUMPS complex precision variant not found. Please check MUMPS installation.")
+    endif()
+    if(MUMPS_USE_COMPLEX16 AND NOT MUMPS_COMPLEX16)
+        message(FATAL_ERROR "[EnableMUMPS] MUMPS_USE_COMPLEX16=ON but MUMPS complex16 precision variant not found. Please check MUMPS installation.")
+    endif()
+    if(NOT MUMPS_USE_SINGLE AND NOT MUMPS_USE_DOUBLE AND NOT MUMPS_USE_COMPLEX AND NOT MUMPS_USE_COMPLEX16)
+        message(FATAL_ERROR "[EnableMUMPS] No MUMPS variant enabled. "
+            "Set at least one of MUMPS_USE_SINGLE/DOUBLE/COMPLEX/COMPLEX16=ON")
     endif()
 
     # ------------------------------------------------------------------------
@@ -140,8 +209,20 @@ function(enable_mumps target)
         PUBLIC USING_MUMPS
         INTERFACE PZ_USING_MUMPS
     )
+    if(MUMPS_USE_SINGLE)
+        target_compile_definitions(${target} PUBLIC MUMPS_HAVE_SINGLE)
+    endif()
+    if(MUMPS_USE_DOUBLE)
+        target_compile_definitions(${target} PUBLIC MUMPS_HAVE_DOUBLE)
+    endif()
+    if(MUMPS_USE_COMPLEX)
+        target_compile_definitions(${target} PUBLIC MUMPS_HAVE_COMPLEX)
+    endif()
+    if(MUMPS_USE_COMPLEX16)
+        target_compile_definitions(${target} PUBLIC MUMPS_HAVE_COMPLEX16)
+    endif()
 
-    if (APPLE OR NOT BUILD_SHARED_LIBS)
+    if(APPLE OR NOT BUILD_SHARED_LIBS)
         target_compile_definitions(${target}
             PUBLIC MUMPS_ROOT="${MUMPS_ROOT}"
         )
@@ -155,10 +236,10 @@ function(enable_mumps target)
     # ------------------------------------------------------------------------
     # 5. Include header directories and link libraries
     # INTERFACE: Propagate to downstream users but not used by this target internally
-    
+
     # ------------------------------------------------------------------------
-    if (NOT BUILD_SHARED_LIBS) # Still need some tests with APPLE!!
-        if (gfortran) # this is to avoid the need to link with gfortran libraries manually in exterior projects
+    if(NOT BUILD_SHARED_LIBS) # Still need some tests with APPLE!!
+        if(gfortran) # this is to avoid the need to link with gfortran libraries manually in exterior projects
             message(STATUS "[EnableMUMPS] Linking gfortran runtime libraries for static build")
             target_link_libraries(${target} INTERFACE gfortran)
         elseif(APPLE)

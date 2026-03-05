@@ -3,7 +3,19 @@
 
 #include "TPZMatrixSolver.h"
 
+#ifdef MUMPS_HAVE_SINGLE
+#include "smumps_c.h"
+#endif
+#ifdef MUMPS_HAVE_DOUBLE
 #include "dmumps_c.h"
+#endif
+#ifdef MUMPS_HAVE_COMPLEX
+#include "cmumps_c.h"
+#endif
+#ifdef MUMPS_HAVE_COMPLEX16
+#include "zmumps_c.h"
+#endif
+
 #include "pzmanvector.h"
 #include "tpzautopointer.h"
 #include <optional>
@@ -22,6 +34,33 @@ class TPZFYsmpMatrixMumps;
 
 template <class TVar>
 class TPZSYsmpMatrixMumps;
+
+/**
+ * @brief Maps TVar to the corresponding MUMPS struct type.
+ *
+ * Specializations are enabled only for the variants built into MUMPS
+ * (controlled by MUMPS_HAVE_SINGLE/DOUBLE/COMPLEX/COMPLEX16 defines).
+ * Using an unsupported TVar will produce a clear "incomplete type" error.
+ */
+template<class TVar> struct MumpsStrucSelector {
+       static_assert(sizeof(TVar)==0,
+           "No MUMPS support for this TVar. Check MUMPS_HAVE_* compile definitions.");
+   };
+   #ifdef MUMPS_HAVE_SINGLE
+   template<> struct MumpsStrucSelector<float>                { using type = SMUMPS_STRUC_C; };
+   #endif
+   #ifdef MUMPS_HAVE_DOUBLE
+   template<> struct MumpsStrucSelector<double>               { using type = DMUMPS_STRUC_C; };
+   template<> struct MumpsStrucSelector<long double>          { using type = DMUMPS_STRUC_C; };
+   #endif
+   #ifdef MUMPS_HAVE_COMPLEX
+   template<> struct MumpsStrucSelector<std::complex<float>>  { using type = CMUMPS_STRUC_C; };
+   #endif
+   #ifdef MUMPS_HAVE_COMPLEX16
+   template<> struct MumpsStrucSelector<std::complex<double>> { using type = ZMUMPS_STRUC_C; };
+   template<> struct MumpsStrucSelector<std::complex<long double>> { using type = ZMUMPS_STRUC_C; };
+   #endif
+   template<typename TVar> using MumpsStruc_t = typename MumpsStrucSelector<TVar>::type;
 
 template <typename TVar>
 class TPZMumpsSolver : public TPZMatrixSolver<TVar> {
@@ -80,9 +119,9 @@ public:
 
   [[nodiscard]] bool HasCustomSettings() const { return fCustomSettings; }
 
-  [[nodiscard]] inline DMUMPS_STRUC_C &GetMumpsData() { return fMumpsData; }
+  [[nodiscard]] inline MumpsStruc_t<TVar> &GetMumpsData() { return fMumpsData; }
 
-  [[nodiscard]] inline const DMUMPS_STRUC_C &GetMumpsData() const { return fMumpsData; }
+  [[nodiscard]] inline const MumpsStruc_t<TVar> &GetMumpsData() const { return fMumpsData; }
 
   TPZVec<long long> &GetPermutationVec() { return fPermutation; }
 
@@ -95,11 +134,13 @@ protected:
 
   void Solve(const TPZMatrix<TVar> *mat, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const;
 
+  void CallMumps() const;
+
   SymProp fSymmetry{SymProp::NonSym};
 
   MProperty fProperty{MProperty::ENonInitialized};
 
-  mutable DMUMPS_STRUC_C fMumpsData;
+  mutable MumpsStruc_t<TVar> fMumpsData;
 
   long long fMax_num_factors{1};
 

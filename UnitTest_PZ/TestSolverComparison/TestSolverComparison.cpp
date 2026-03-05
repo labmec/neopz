@@ -227,6 +227,8 @@ static STATE RelativeL2Error(const TPZFMatrix<STATE> &ref,
 // Test cases
 // -----------------------------------------------------------------------
 
+#if defined(MUMPS_HAVE_DOUBLE)
+
 TEST_CASE("Symmetric solvers: Mumps vs Pardiso - 3D Darcy flow",
           "[solver_comparison][symmetric]") {
     using namespace solvercomparison;
@@ -292,5 +294,143 @@ TEST_CASE("Symmetric vs non-symmetric storage: same solution - 3D Darcy flow",
 }
 
 #undef SOLVE_WITH
+
+#endif // MUMPS_HAVE_DOUBLE
+
+// -----------------------------------------------------------------------
+// Complex solver comparison (ZMUMPS vs Pardiso with CSTATE)
+// Requires ZMUMPS (MUMPS_HAVE_COMPLEX16) and MKL Pardiso
+// -----------------------------------------------------------------------
+
+#if defined(MUMPS_HAVE_COMPLEX16)
+
+#include "Projection/TPZL2Projection.h"
+#include "TPZSSpStructMatrix.h"
+#include "TPZSSpStructMatrixMumps.h"
+
+namespace solvercomparison {
+
+static TPZAutoPointer<TPZGeoMesh> CreateGeoMesh3DComplex(const int nDiv) {
+    TPZVec<REAL> minX(3, 0.);
+    TPZVec<REAL> maxX(3, 1.);
+    TPZVec<int> nelDiv = {nDiv, nDiv, nDiv};
+    MMeshType elType = MMeshType::ETetrahedral;
+    TPZGenGrid3D gen3d(minX, maxX, nelDiv, elType);
+    gen3d.BuildVolumetricElements(EMatId);
+    // EBCDirichlet=-1, EBCNeumann=-2 (same convention as main_mumps_3d_complex.cpp)
+    TPZGeoMesh *gmesh = gen3d.BuildBoundaryElements(-1, -2, -1, -1, -1, -1);
+    return TPZAutoPointer<TPZGeoMesh>(gmesh);
+}
+
+/// Complex mass-matrix mesh via TPZL2Projection<CSTATE>.
+/// The stiffness matrix is real-valued stored as CSTATE (Hermitian SPD),
+/// with a complex RHS f = 1+i.
+static TPZAutoPointer<TPZCompMesh> CreateCompMeshComplex(TPZAutoPointer<TPZGeoMesh> gmesh,
+                                                         const int pord) {
+    TPZCompMesh *cmesh = new TPZCompMesh(gmesh, /*isComplex=*/true);
+    cmesh->SetDimModel(gmesh->Dimension());
+    cmesh->SetDefaultOrder(pord);
+    cmesh->SetAllCreateFunctionsContinuous();
+
+    auto *mat = new TPZL2Projection<CSTATE>(EMatId, gmesh->Dimension(), 1);
+    mat->SetForcingFunction([](const TPZVec<REAL> &, TPZVec<CSTATE> &f) {
+        f.resize(1);
+        f[0] = CSTATE(1.0, 1.0);
+    }, 2);
+    cmesh->InsertMaterialObject(mat);
+
+    TPZFMatrix<CSTATE> val1(1, 1, 0.);
+    TPZManVector<CSTATE, 1> val2(1, CSTATE(0., 0.));
+    cmesh->InsertMaterialObject(mat->CreateBC(mat, -1, 0 /*Dirichlet*/, val1, val2));
+    cmesh->InsertMaterialObject(mat->CreateBC(mat, -2, 1 /*Neumann*/,   val1, val2));
+
+    cmesh->AutoBuild();
+    return TPZAutoPointer<TPZCompMesh>(cmesh);
+}
+
+static TPZFMatrix<CSTATE> SolveComplexWithMumps(TPZAutoPointer<TPZCompMesh> cmesh,
+                                                int nthreads) {
+    TPZLinearAnalysis an(cmesh, RenumType::ENone);
+    TPZSSpStructMatrixMumps<CSTATE> matsp(cmesh);
+    matsp.SetNumThreads(nthreads);
+    an.SetStructuralMatrix(matsp);
+
+    TPZStepSolver<CSTATE> step;
+    step.SetDirect(ECholesky);
+    an.SetSolver(step);
+    an.Assemble();
+
+    an.MatrixSolver<CSTATE>().Matrix()->SetDefPositive(true);
+    an.Solve();
+    return an.Solution();
+}
+
+static TPZFMatrix<CSTATE> SolveComplexWithPardiso(TPZAutoPointer<TPZCompMesh> cmesh,
+                                                  int nthreads) {
+    TPZLinearAnalysis an(cmesh, RenumType::ENone);
+    TPZSSpStructMatrix<CSTATE> matsp(cmesh);
+    matsp.SetNumThreads(nthreads);
+    an.SetStructuralMatrix(matsp);
+
+    TPZStepSolver<CSTATE> step;
+    step.SetDirect(ECholesky);
+    an.SetSolver(step);
+    an.Assemble();
+
+    an.MatrixSolver<CSTATE>().Matrix()->SetDefPositive(true);
+    an.Solve();
+    return an.Solution();
+}
+
+/// Returns ||a - b||_2 / ||a||_2 using complex norms.
+static REAL RelativeL2ErrorComplex(const TPZFMatrix<CSTATE> &ref,
+                                   const TPZFMatrix<CSTATE> &other) {
+    const int64_t n = ref.Rows();
+    REAL normDiff = 0., normRef = 0.;
+    for (int64_t i = 0; i < n; i++) {
+        const CSTATE d = ref.GetVal(i, 0) - other.GetVal(i, 0);
+        normDiff += std::norm(d);
+        normRef  += std::norm(ref.GetVal(i, 0));
+    }
+    normDiff = std::sqrt(normDiff);
+    normRef  = std::sqrt(normRef);
+    constexpr REAL smallVal = 1e-10;
+    return (normRef > smallVal) ? normDiff / normRef : normDiff;
+}
+
+} // namespace solvercomparison
+
+#define SOLVE_COMPLEX_WITH(SolverFn, nDivVal, pordVal, nthreadsVal)                         \
+    [&]() -> TPZFMatrix<CSTATE> {                                                           \
+        using namespace solvercomparison;                                                   \
+        TPZAutoPointer<TPZGeoMesh> gmesh = CreateGeoMesh3DComplex(nDivVal);                 \
+        TPZAutoPointer<TPZCompMesh> cmesh = CreateCompMeshComplex(gmesh, pordVal);          \
+        return SolverFn(cmesh, nthreadsVal);                                                \
+    }()
+
+TEST_CASE("Complex symmetric solvers: ZMUMPS vs Pardiso - 3D L2 projection",
+          "[solver_comparison][complex][symmetric]") {
+    using namespace solvercomparison;
+
+    const int nDiv    = GENERATE(1, 2, 3);
+    const int pord    = GENERATE(1, 2);
+    constexpr int nthreads = 4;
+    constexpr REAL tol     = 1e-10;
+
+    CAPTURE(nDiv, pord);
+
+    const auto solPardiso = SOLVE_COMPLEX_WITH(SolveComplexWithPardiso, nDiv, pord, nthreads);
+    const auto solMumps   = SOLVE_COMPLEX_WITH(SolveComplexWithMumps,   nDiv, pord, nthreads);
+
+    REQUIRE(solPardiso.Rows() == solMumps.Rows());
+
+    const REAL err = RelativeL2ErrorComplex(solPardiso, solMumps);
+    CAPTURE(err);
+    REQUIRE(err < tol);
+}
+
+#undef SOLVE_COMPLEX_WITH
+
+#endif // MUMPS_HAVE_COMPLEX16
 
 #endif // PZ_USING_MKL && PZ_USING_MUMPS
