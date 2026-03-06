@@ -600,7 +600,7 @@ public:
 
     void SetAllCreateFunctionsHCurlWithMem()
     {
-      fCreate.SetAllCreateFunctionsHCurlWithMem(Dimension());
+      fCreate.SetAllCreateFunctionsHCurl(Dimension());
     }
 		
 	/** @brief Will build the list of element boundary conditions build the list of connect boundary conditions. */

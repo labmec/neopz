@@ -781,6 +781,8 @@ int TPZLapackEigenSolver<TVar>::SolveGeneralisedEigenProblem(
 
 template class TPZLapackEigenSolver<std::complex<float>>;
 template class TPZLapackEigenSolver<std::complex<double>>;
+template class TPZLapackEigenSolver<std::complex<long double>>;
 
 template class TPZLapackEigenSolver<float>;
 template class TPZLapackEigenSolver<double>;
+template class TPZLapackEigenSolver<long double>;
