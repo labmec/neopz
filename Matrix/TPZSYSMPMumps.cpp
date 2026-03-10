@@ -174,11 +174,11 @@ int TPZSYsmpMatrixMumps<TVar>::Decompose(const DecomposeType dt)
        UpdateCOOFormat();
     }
 
-    // Perform decomposition
+    // Perform decomposition. fIRN1Based/fJCN1Based remain valid and cached:
+    // they will be reused if Decompose is called again with the same sparsity
+    // pattern (e.g., reassembly with new values). They are invalidated by
+    // SetIsDecomposed(ENoDecompose) and by any structural change to the matrix.
     fMumpsControl.Decompose(this);
-    fIRN1Based.Resize(0);
-    fJCN1Based.Resize(0);
-    fCOOValid = false;
 
     this->SetIsDecomposed(dt);
 
@@ -266,7 +266,24 @@ void TPZSYsmpMatrixMumps<TVar>::UpdateCOOFormat()
     fIRN1Based.Resize(nnz);
     fJCN1Based.Resize(nnz);
 
-    // Convert CSR to COO format
+    // Convert CSR (upper-triangular, NeoPZ convention) to COO format.
+    //
+    // NOTE FOR COMPLEX HERMITIAN MATRICES (known limitation — https://github.com/labmec/neopz/pull/212#issuecomment-4031369566):
+    //   MUMPS with SYM=1 or SYM=2 expects entries from the LOWER triangular
+    //   part, i.e. irn[k] >= jcn[k]. NeoPZ stores the UPPER triangular part
+    //   (irn[k] <= jcn[k]).
+    //
+    //   For real symmetric matrices this is harmless: A[i,j] == A[j,i], so
+    //   MUMPS can mirror the stored entries without any value change.
+    //
+    //   For complex Hermitian matrices A[i,j] = conj(A[j,i]), so mirroring an
+    //   upper-triangle entry (i,j) as if it were a lower-triangle entry
+    //   produces the wrong conjugate. The correct fix is to swap irn<->jcn
+    //   AND conjugate fA values for each entry when TVar is complex Hermitian.
+    //   Until this is implemented, Solve (A*x=b) still works correctly because
+    //   MUMPS uses both triangles internally; only Inverse() is affected, and
+    //   only the lower-triangle block of the result will be wrong.
+    //   TODO: implement conjugated lower-triangle conversion for complex Hermitian.
     long long k = 0;
     for (long long i = 0; i < n; i++)
     {

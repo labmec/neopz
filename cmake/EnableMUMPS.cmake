@@ -141,22 +141,22 @@ function(enable_mumps target)
             "[EnableMUMPS] MUMPS must be built with at least one of the following variants: [s/d/c/z]mumps")
     endif()
 
-    # If NeoPZ compile definitions is not set to REALfloat, then we can assume it's using double precision as default.
-    # In that case, we can check if MUMPS was built with double precision support and if not, we can throw an error.
+    # MUMPS is used to solve matrices of STATE type, so we match the MUMPS variant to STATE_TYPE,
+    # not REAL_TYPE (which may differ in NeoPZ configurations where STATE != REAL).
     get_target_property(_pz_defs ${target} INTERFACE_COMPILE_DEFINITIONS)
-    if(_pz_defs MATCHES "REALfloat")
-        set(_pz_real_float ON)
-        message(STATUS "[EnableMUMPS] NeoPZ REAL_TYPE detected: float (default)")
+    if(_pz_defs MATCHES "STATEfloat")
+        set(_pz_state_float ON)
+        message(STATUS "[EnableMUMPS] NeoPZ STATE_TYPE detected: float")
     else()
-        set(_pz_real_float OFF)
-        message(STATUS "[EnableMUMPS] NeoPZ REAL_TYPE detected: double (default)")
+        set(_pz_state_float OFF)
+        message(STATUS "[EnableMUMPS] NeoPZ STATE_TYPE detected: double (default)")
     endif()
 
-    # Defaults: enable the real variant that matches NeoPZ REAL_TYPE
-    if(_pz_real_float AND MUMPS_SINGLE)
+    # Defaults: enable the real variant that matches NeoPZ STATE_TYPE
+    if(_pz_state_float AND MUMPS_SINGLE)
         set(_default_single ON)
         set(_default_double OFF)
-    elseif(NOT _pz_real_float AND MUMPS_DOUBLE)
+    elseif(NOT _pz_state_float AND MUMPS_DOUBLE)
         set(_default_single OFF)
         set(_default_double ON)
     else()

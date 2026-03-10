@@ -64,12 +64,11 @@ TEMPLATE_PRODUCT_TEST_CASE("Inverse","[matrix_tests]",
   // TPZSYsmpMatrixMumps<CSTATE>::Inverse has a known bug: the lower triangle of the
   // result TPZFMatrix is not conjugated correctly for Hermitian matrices, causing
   // round-trip verification (inv(inv(A)) == A) to fail for lower-triangle entries.
-  // The ZMUMPS solver itself works correctly for solve operations (A*x = b).
+  // For TPZSYsmpMatrixMumps, only ECholesky/ELDLt with Herm are ever exercised
+  // (ELU is skipped due to sym_storage), so the buggy path is always hit for complex types.
+  // TPZFYsmpMatrixMumps uses ELU (non-symmetric MUMPS) and is unaffected — it is tested normally.
   // TODO: fix Inverse() to properly conjugate the lower triangle for complex Hermitian storage.
-  if((std::is_same_v<MAT,TPZFYsmpMatrixMumps<SCAL>> &&
-      (!std::is_same_v<double,SCAL>))||
-     (std::is_same_v<MAT,TPZSYsmpMatrixMumps<SCAL>> &&
-      (!std::is_same_v<double,SCAL>))){return;}
+  if(std::is_same_v<MAT,TPZSYsmpMatrixMumps<SCAL>> && is_complex<SCAL>::value){return;}
 #endif
   DecomposeType dec = GENERATE(ELU,ECholesky,ELDLt);
   SECTION(DecomposeTypeName(dec)){
@@ -328,16 +327,8 @@ TEMPLATE_PRODUCT_TEST_CASE("MultiplyByScalar", "[matrix_tests]",
     return;
   }
 #endif
-#ifdef PZ_USING_MUMPS
-  // ZMUMPS supports complex<double>, but Inverse() has a known bug for Hermitian storage (see Inverse test). Skip for now.
-  if ((std::is_same_v<MAT, TPZFYsmpMatrixMumps<SCAL>> &&
-       (!std::is_same_v<double, SCAL>)) ||
-      (std::is_same_v<MAT, TPZSYsmpMatrixMumps<SCAL>> &&
-       (!std::is_same_v<double, SCAL>)))
-  {
-    return;
-  }
-#endif
+  // Note: MUMPS complex types are fully supported for scalar multiplication
+  // (no factorization involved). No skip needed here.
   SymProp sp = GENERATE(SymProp::NonSym, SymProp::Sym, SymProp::Herm);
   SECTION(SymPropName(sp))
   {
@@ -405,16 +396,8 @@ TEMPLATE_PRODUCT_TEST_CASE("Multiply", "[matrix_tests]",
     return;
   }
 #endif
-#ifdef PZ_USING_MUMPS
-  // ZMUMPS supports complex<double>, but Inverse() has a known bug for Hermitian storage (see Inverse test). Skip for now.
-  if ((std::is_same_v<MAT, TPZFYsmpMatrixMumps<SCAL>> &&
-       (!std::is_same_v<double, SCAL>)) ||
-      (std::is_same_v<MAT, TPZSYsmpMatrixMumps<SCAL>> &&
-       (!std::is_same_v<double, SCAL>)))
-  {
-    return;
-  }
-#endif
+  // Note: MUMPS complex types are fully supported for matrix multiplication
+  // (no factorization involved). No skip needed here.
   SymProp sp = GENERATE(SymProp::NonSym, SymProp::Sym, SymProp::Herm);
   SECTION(SymPropName(sp))
   {
@@ -494,13 +477,8 @@ TEMPLATE_PRODUCT_TEST_CASE("MultAdd","[matrix_tests]",
      (std::is_same_v<MAT,TPZSYsmpMatrixPardiso<SCAL>> &&
       !std::is_same_v<double,RType(SCAL)>)){return;}
 #endif
-#ifdef PZ_USING_MUMPS
-  // ZMUMPS supports complex<double>, but Inverse() has a known bug for Hermitian storage (see Inverse test). Skip for now.
-  if((std::is_same_v<MAT,TPZFYsmpMatrixMumps<SCAL>> &&
-      (!std::is_same_v<double,SCAL>))||
-     (std::is_same_v<MAT,TPZSYsmpMatrixMumps<SCAL>> &&
-      (!std::is_same_v<double,SCAL>))){return;}
-#endif
+  // Note: MUMPS complex types are fully supported for MultAdd
+  // (no factorization involved). No skip needed here.
   SCAL alpha{0.0};
   SCAL beta{0.0};
   TPZFMatrix<SCAL> x,y,z;

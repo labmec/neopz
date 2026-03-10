@@ -81,6 +81,13 @@ void TPZMumpsSolver<TVar>::CallMumps() const {
     return;
   }
 #endif
+  // If we reach here, no MUMPS variant matched TVar. This means the
+  // MumpsStrucSelector specialisation exists but CallMumps() was not updated
+  // to handle the new type, or the matching MUMPS_HAVE_* macro is missing.
+  PZError << __PRETTY_FUNCTION__
+          << ": no MUMPS variant found for the current TVar."
+             " Check MUMPS_HAVE_* compile definitions.\n";
+  DebugStop();
 }
 
 template <class TVar>
@@ -184,17 +191,20 @@ void TPZMumpsSolver<TVar>::Solve(const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &
 
 template <class TVar>
 void TPZMumpsSolver<TVar>::Decompose() {
-  auto *tmpSym =
-      dynamic_cast<TPZSYsmpMatrix<TVar> *>(this->Matrix().operator->());
-  auto *tmpNSym =
-      dynamic_cast<TPZFYsmpMatrix<TVar> *>(this->Matrix().operator->());
-  if (tmpSym) {
-    Decompose(tmpSym);
-  } else if (tmpNSym) {
-    Decompose(tmpNSym);
+  // Cast directly to the concrete MUMPS matrix types, skipping the
+  // intermediate parent-class cast that was previously done here.
+  auto *symSystem =
+      dynamic_cast<TPZSYsmpMatrixMumps<TVar> *>(this->Matrix().operator->());
+  auto *nSymSystem =
+      dynamic_cast<TPZFYsmpMatrixMumps<TVar> *>(this->Matrix().operator->());
+  if (symSystem) {
+    Decompose(symSystem);
+  } else if (nSymSystem) {
+    Decompose(nSymSystem);
   } else {
     PZError << __PRETTY_FUNCTION__;
-    PZError << "This solver is only compatible with sparse matrices.\nAborting...\n";
+    PZError << "This solver is only compatible with TPZSYsmpMatrixMumps or "
+               "TPZFYsmpMatrixMumps.\nAborting...\n";
     DebugStop();
   }
 }

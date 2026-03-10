@@ -176,11 +176,11 @@ int TPZFYsmpMatrixMumps<TVar>::Decompose(const DecomposeType dt) {
        UpdateCOOFormat();
     }
     
-    // Perform decomposition using MUMPS
+    // Perform decomposition using MUMPS. fIRN1Based/fJCN1Based remain valid
+    // and cached: they will be reused if Decompose is called again with the
+    // same sparsity pattern (e.g., reassembly with new values). They are
+    // invalidated by SetIsDecomposed(ENoDecompose) and by any structural change.
     fMumpsControl.Decompose(this);
-    fIRN1Based.Resize(0);
-    fJCN1Based.Resize(0);
-    fCOOValid = false;
 
     this->SetIsDecomposed(dt);
     
