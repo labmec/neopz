@@ -64,7 +64,7 @@ void TPZMumpsSolver<TVar>::CallMumps() const {
   }
 #endif
 #ifdef MUMPS_HAVE_DOUBLE
-  if constexpr (std::is_same_v<TVar, double> || std::is_same_v<TVar, long double>) {
+  if constexpr (std::is_same_v<TVar, double>) {
     dmumps_c(&fMumpsData);
     return;
   }
@@ -76,7 +76,7 @@ void TPZMumpsSolver<TVar>::CallMumps() const {
   }
 #endif
 #ifdef MUMPS_HAVE_COMPLEX16
-  if constexpr (std::is_same_v<TVar, std::complex<double>> || std::is_same_v<TVar, std::complex<long double>>) {
+  if constexpr (std::is_same_v<TVar, std::complex<double>>) {
     zmumps_c(&fMumpsData);
     return;
   }
@@ -123,23 +123,25 @@ TPZMumpsSolver<TVar> &TPZMumpsSolver<TVar>::operator=(TPZMumpsSolver &&copy) noe
 template <class TVar>
 void TPZMumpsSolver<TVar>::FreeMumpsMemory() {
 #ifdef USING_MUMPS
-  if (fMumpsInitialized) {
-    // MUMPS memory release phase
-    fMumpsData.job = JOB_END;
+  if constexpr (MumpsTypeIsSupported_v<TVar>) {
+    if (fMumpsInitialized) {
+      // MUMPS memory release phase
+      fMumpsData.job = JOB_END;
 
-    // Call MUMPS to release the internal memory
-    CallMumps();
+      // Call MUMPS to release the internal memory
+      CallMumps();
 
-    // Check for errors
-    if (fMumpsData.info[0] < 0) {
-      std::cerr << "MUMPS Error during memory deallocation: "
-                << "INFO(1) = " << fMumpsData.info[0]
-                << ", INFO(2) = " << fMumpsData.info[1] << std::endl;
-      Error_check(MUMPS_INT(fMumpsData.info[0]), fMumpsData.info[1]);
-      DebugStop();
+      // Check for errors
+      if (fMumpsData.info[0] < 0) {
+        std::cerr << "MUMPS Error during memory deallocation: "
+                  << "INFO(1) = " << fMumpsData.info[0]
+                  << ", INFO(2) = " << fMumpsData.info[1] << std::endl;
+        Error_check(MUMPS_INT(fMumpsData.info[0]), fMumpsData.info[1]);
+        DebugStop();
+      }
+
+      fMumpsInitialized = false;
     }
-
-    fMumpsInitialized = false;
   }
 #else
   NOMUMPS
@@ -214,6 +216,11 @@ void TPZMumpsSolver<TVar>::Decompose(TPZMatrix<TVar> *mat) {
 #ifndef USING_MUMPS
   NOMUMPS
 #else
+  if constexpr (!MumpsTypeIsSupported_v<TVar>) {
+    PZError << __PRETTY_FUNCTION__
+            << ": TVar not supported by available MUMPS build.\n";
+    DebugStop();
+  } else {
   auto *symSystem = dynamic_cast<TPZSYsmpMatrixMumps<TVar> *>(mat);
   auto *nSymSystem = dynamic_cast<TPZFYsmpMatrixMumps<TVar> *>(mat);
 
@@ -481,15 +488,19 @@ void TPZMumpsSolver<TVar>::Decompose(TPZMatrix<TVar> *mat) {
   }
 
   fDecomposed = true;
+  } // end if constexpr (MumpsTypeIsSupported_v<TVar>)
 #endif
 }
-
-/// Use the decomposed matrix to invert the system of equations
 template <class TVar>
 void TPZMumpsSolver<TVar>::Solve(const TPZMatrix<TVar> *mat, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const {
 #ifndef USING_MUMPS
   NOMUMPS
 #else
+  if constexpr (!MumpsTypeIsSupported_v<TVar>) {
+    PZError << __PRETTY_FUNCTION__
+            << ": TVar not supported by available MUMPS build.\n";
+    DebugStop();
+  } else {
 
 #ifdef PZDEBUG
   if (!fDecomposed) {
@@ -675,6 +686,7 @@ void TPZMumpsSolver<TVar>::Solve(const TPZMatrix<TVar> *mat, const TPZFMatrix<TV
   // #ifdef PZDEBUG
   //   std::cout << "MUMPS: linear solve complete.\n";
   // #endif
+  } // end if constexpr (MumpsTypeIsSupported_v<TVar>)
 #endif // USING_MUMPS
 }
 
@@ -752,11 +764,17 @@ long long TPZMumpsSolver<TVar>::MatrixType() {
       fMatrixType = 2; // Symmetric complex (general)
       break;
     case SymProp::Herm:
-      if (fProperty == MProperty::EPositiveDefinite) {
-        fMatrixType = 1; // Hermitian positive definite
-      } else {
-        fMatrixType = 2; // Hermitian general
-      }
+      // MUMPS does not support Hermitian matrices (confirmed in the MUMPS user
+      // guide, section on SYM parameter: "We do not have a version for Hermitian
+      // matrices in this release of MUMPS. For the complex version, SYM=1 is
+      // currently treated as SYM=2."). Using Hermitian with complex types would
+      // silently produce wrong results, so we reject it explicitly.
+      PZError << __PRETTY_FUNCTION__
+              << ": MUMPS does not support Hermitian complex matrices."
+                 " Use SymProp::Sym for complex symmetric or SymProp::NonSym"
+                 " for the general unsymmetric case.\n";
+      throw std::invalid_argument(
+          "MUMPS does not support Hermitian complex matrices.");
       break;
     }
   } else {
@@ -776,6 +794,7 @@ long long TPZMumpsSolver<TVar>::MatrixType() {
     }
   }
 
+  if constexpr (MumpsTypeIsSupported_v<TVar>) {
   // ICNTL(1-3): Output streams
   fMumpsData.icntl[0] = fICNTL[0].has_value() ? fICNTL[0].value() : (fMessageLevel > 0 ? 6 : -1); // Error messages
   fMumpsData.icntl[1] = fICNTL[1].has_value() ? fICNTL[1].value() : (fMessageLevel > 1 ? 6 : -1); // Diagnostics
@@ -868,6 +887,7 @@ long long TPZMumpsSolver<TVar>::MatrixType() {
     // CNTL(5): Fixation for null pivots
     fMumpsData.cntl[4] = 0.0;
   }
+  } // end if constexpr (MumpsTypeIsSupported_v<TVar>)
 
   return fMatrixType;
 }
@@ -1106,17 +1126,10 @@ void Error_check(MUMPS_INT INFO1, TVar INFO2) {
   }
 }
 
-#ifdef MUMPS_HAVE_SINGLE
+// Explicit instantiations for all types.
+// Methods that call actual MUMPS routines are guarded by
+// MumpsTypeIsSupported_v<TVar> and will DebugStop() for unsupported types.
 template class TPZMumpsSolver<float>;
-#endif
-#ifdef MUMPS_HAVE_DOUBLE
 template class TPZMumpsSolver<double>;
-template class TPZMumpsSolver<long double>;
-#endif
-#ifdef MUMPS_HAVE_COMPLEX
 template class TPZMumpsSolver<std::complex<float>>;
-#endif
-#ifdef MUMPS_HAVE_COMPLEX16
 template class TPZMumpsSolver<std::complex<double>>;
-template class TPZMumpsSolver<std::complex<long double>>;
-#endif

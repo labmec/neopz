@@ -237,21 +237,12 @@ int TPZFYsmpMatrixMumps<TVar>::SolveDirect(TPZFMatrix<TVar> &F,
     return 0;
 }
 
-// Explicit template instantiations
-#ifdef MUMPS_HAVE_SINGLE
+// Explicit template instantiations for all types.
+// Methods accessing MUMPS structs are guarded by MumpsTypeIsSupported_v<TVar>.
 template class TPZFYsmpMatrixMumps<float>;
-#endif
-#ifdef MUMPS_HAVE_DOUBLE
 template class TPZFYsmpMatrixMumps<double>;
-template class TPZFYsmpMatrixMumps<long double>;
-#endif
-#ifdef MUMPS_HAVE_COMPLEX
 template class TPZFYsmpMatrixMumps<std::complex<float>>;
-#endif
-#ifdef MUMPS_HAVE_COMPLEX16
 template class TPZFYsmpMatrixMumps<std::complex<double>>;
-template class TPZFYsmpMatrixMumps<std::complex<long double>>;
-#endif
 
 template<class TVar>
 void TPZFYsmpMatrixMumps<TVar>::UpdateCOOFormat() {
@@ -281,19 +272,9 @@ void TPZFYsmpMatrixMumps<TVar>::UpdateCOOFormat() {
     fCOOValid = true;
 }
 
-#ifdef MUMPS_HAVE_DOUBLE
-template void TPZFYsmpMatrixMumps<double>::UpdateCOOFormat();
-template void TPZFYsmpMatrixMumps<long double>::UpdateCOOFormat();
-#endif
-#ifdef MUMPS_HAVE_SINGLE
 template void TPZFYsmpMatrixMumps<float>::UpdateCOOFormat();
-#endif
-#ifdef MUMPS_HAVE_COMPLEX
+template void TPZFYsmpMatrixMumps<double>::UpdateCOOFormat();
 template void TPZFYsmpMatrixMumps<std::complex<float>>::UpdateCOOFormat();
-#endif
-#ifdef MUMPS_HAVE_COMPLEX16
 template void TPZFYsmpMatrixMumps<std::complex<double>>::UpdateCOOFormat();
-template void TPZFYsmpMatrixMumps<std::complex<long double>>::UpdateCOOFormat();
-#endif
 
 #endif

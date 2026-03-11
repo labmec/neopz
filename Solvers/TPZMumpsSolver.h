@@ -38,29 +38,48 @@ class TPZSYsmpMatrixMumps;
 /**
  * @brief Maps TVar to the corresponding MUMPS struct type.
  *
- * Specializations are enabled only for the variants built into MUMPS
+ * Specializations exist for variants built into MUMPS
  * (controlled by MUMPS_HAVE_SINGLE/DOUBLE/COMPLEX/COMPLEX16 defines).
- * Using an unsupported TVar will produce a clear "incomplete type" error.
+ * The primary template uses `char` as a placeholder so that
+ * TPZMumpsSolver<T> and TPZFYsmpMatrixMumps<T>/TPZSYsmpMatrixMumps<T>
+ * are well-formed for any T. Methods that call actual MUMPS routines are
+ * guarded by MumpsTypeIsSupported_v<T> and will DebugStop() if called
+ * for an unsupported type at runtime.
  */
-template<class TVar> struct MumpsStrucSelector {
-       static_assert(sizeof(TVar)==0,
-           "No MUMPS support for this TVar. Check MUMPS_HAVE_* compile definitions.");
-   };
+template<class TVar> struct MumpsStrucSelector { using type = char; };
    #ifdef MUMPS_HAVE_SINGLE
    template<> struct MumpsStrucSelector<float>                { using type = SMUMPS_STRUC_C; };
    #endif
    #ifdef MUMPS_HAVE_DOUBLE
    template<> struct MumpsStrucSelector<double>               { using type = DMUMPS_STRUC_C; };
-   template<> struct MumpsStrucSelector<long double>          { using type = DMUMPS_STRUC_C; };
    #endif
    #ifdef MUMPS_HAVE_COMPLEX
    template<> struct MumpsStrucSelector<std::complex<float>>  { using type = CMUMPS_STRUC_C; };
    #endif
    #ifdef MUMPS_HAVE_COMPLEX16
    template<> struct MumpsStrucSelector<std::complex<double>> { using type = ZMUMPS_STRUC_C; };
-   template<> struct MumpsStrucSelector<std::complex<long double>> { using type = ZMUMPS_STRUC_C; };
    #endif
    template<typename TVar> using MumpsStruc_t = typename MumpsStrucSelector<TVar>::type;
+
+/**
+ * @brief True when TVar has an available MUMPS variant (i.e., MUMPS_HAVE_* is set).
+ * Used to guard methods that access the MUMPS struct fields.
+ */
+template<class TVar> struct MumpsTypeIsSupported : std::false_type {};
+#ifdef MUMPS_HAVE_SINGLE
+template<> struct MumpsTypeIsSupported<float>                      : std::true_type {};
+#endif
+#ifdef MUMPS_HAVE_DOUBLE
+template<> struct MumpsTypeIsSupported<double>                     : std::true_type {};
+#endif
+#ifdef MUMPS_HAVE_COMPLEX
+template<> struct MumpsTypeIsSupported<std::complex<float>>        : std::true_type {};
+#endif
+#ifdef MUMPS_HAVE_COMPLEX16
+template<> struct MumpsTypeIsSupported<std::complex<double>>       : std::true_type {};
+#endif
+template<class TVar>
+inline constexpr bool MumpsTypeIsSupported_v = MumpsTypeIsSupported<TVar>::value;
 
 template <typename TVar>
 class TPZMumpsSolver : public TPZMatrixSolver<TVar> {
@@ -106,7 +125,14 @@ public:
    * Returns the ICNTL array used by MUMPS
    * @return Pointer to the ICNTL array
    */
-  [[nodiscard]] inline MUMPS_INT *GetICNTL() { return fMumpsData.icntl; }
+  [[nodiscard]] inline MUMPS_INT *GetICNTL() {
+    if constexpr (MumpsTypeIsSupported_v<TVar>) {
+      return fMumpsData.icntl;
+    } else {
+      DebugStop();
+      return nullptr;
+    }
+  }
 
   /**
    * Sets a specific ICNTL parameter in MUMPS
@@ -118,6 +144,14 @@ public:
   void ResetICNTL();
 
   [[nodiscard]] bool HasCustomSettings() const { return fCustomSettings; }
+
+  /**
+   * Locks the current settings so that TPZSYsmpMatrixMumps::Decompose will
+   * not auto-detect the matrix type from the matrix's SymProp.
+   * Call this after SetMatrixType() when you need to override the auto-detection
+   * (e.g., to use SymProp::Sym for a complex matrix that reports SymProp::Herm).
+   */
+  void LockSettings() { fCustomSettings = true; }
 
   [[nodiscard]] inline MumpsStruc_t<TVar> &GetMumpsData() { return fMumpsData; }
 
