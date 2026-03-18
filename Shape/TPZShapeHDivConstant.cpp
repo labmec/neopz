@@ -39,9 +39,9 @@ void TPZShapeHDivConstant<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
         {
             data.fH1.fConnectOrders[i] = connectorders[i]+1;
         }
-        // if (TSHAPE::Type() == ETriangle){
-        //     data.fH1.fConnectOrders[i][conSize-1]++;
-        // }
+        if (TSHAPE::Type() == ETriangle){
+            data.fH1.fConnectOrders[conSize-1]++;
+        }
 
         // Initialize H1 data structures
         TPZShapeH1<TSHAPE>::Initialize(ids, data.fH1.fConnectOrders, data);
@@ -357,7 +357,7 @@ int TPZShapeHDivConstant<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
             return (order);
         else
         {
-            // order++;
+            order++;
             return (order - 1) * (order - 2) / 2;
         }
     }
