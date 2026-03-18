@@ -1,12 +1,4 @@
 function(enable_metis target)
-  # # If MUMPS was built with METIS, use the METIS from MUMPS
-  # if(MUMPS_metis)
-  #   message(STATUS "[EnableMetis] Using METIS bundled with MUMPS")
-  #   if(MUMPS_ROOT)
-  #     set(METIS_DIR "${MUMPS_ROOT}" CACHE PATH "METIS from MUMPS" FORCE)
-  #   endif()
-  # endif()
-
   if(USING_MUMPS AND MUMPS_metis)
     message(STATUS "[NeoPZ] MUMPS already configured with METIS support, skipping separate METIS setup")
   else()
