@@ -1,5 +1,17 @@
 function(enable_metis target)
-  find_package(METIS REQUIRED)
+  # # If MUMPS was built with METIS, use the METIS from MUMPS
+  # if(MUMPS_metis)
+  #   message(STATUS "[EnableMetis] Using METIS bundled with MUMPS")
+  #   if(MUMPS_ROOT)
+  #     set(METIS_DIR "${MUMPS_ROOT}" CACHE PATH "METIS from MUMPS" FORCE)
+  #   endif()
+  # endif()
+
+  if(USING_MUMPS AND MUMPS_metis)
+    message(STATUS "[NeoPZ] MUMPS already configured with METIS support, skipping separate METIS setup")
+  else()
+    find_package(METIS REQUIRED)
+  endif()
   target_link_libraries(${target} PRIVATE ${METIS_LIBRARIES})
   target_include_directories(${target} PRIVATE ${METIS_INCLUDE_DIRS})
   target_compile_definitions(${target} PRIVATE PZ_USING_METIS)
