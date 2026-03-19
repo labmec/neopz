@@ -7,49 +7,166 @@ on:
   pull_request:
     branches: [main, develop]
 env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/neopz-deps
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
 
-jobs:
-  build:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [[macos-latest],[ubuntu-latest]]
+permissions:
+  contents: read
+  packages: read
 
+jobs:
+  resolve-image:
+    runs-on: ubuntu-latest
+    outputs:
+      image_ref: ${{ steps.resolve.outputs.image_ref }}
+      image_exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve image tag
+        id: resolve
+        shell: bash
+        run: |
+          BRANCH_NAME="${GITHUB_REF_NAME}"
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            BRANCH_NAME="${GITHUB_HEAD_REF}"
+          fi
+          BRANCH_TAG="$(echo "${BRANCH_NAME}" | tr '[:upper:]' '[:lower:]' | sed 's#[^a-z0-9._-]#-#g')-container"
+          if [ "${BRANCH_NAME}" = "main" ] || [ "${BRANCH_NAME}" = "develop" ]; then
+            TARGET_TAG="latest"
+          else
+            TARGET_TAG="${BRANCH_TAG}"
+          fi
+          IMAGE_REF="${{ env.REGISTRY }}/$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]'):${TARGET_TAG}"
+          echo "image_ref=${IMAGE_REF}" >> $GITHUB_OUTPUT
+
+      - name: Check if image exists
+        id: check
+        shell: bash
+        run: |
+          if docker manifest inspect "${{ steps.resolve.outputs.image_ref }}" > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+  build-linux:
+    if: needs.resolve-image.outputs.image_exists == 'true'
+    needs: resolve-image
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.resolve-image.outputs.image_ref }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - uses: actions/checkout@v3
+
+    - name: Restore ccache
+      uses: actions/cache@v3
+      with:
+        path: ${{ github.workspace }}/.ccache
+        key: linux-ccache-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**', '**/*.cmake', '.github/workflows/run_unittests.yml') }}
+        restore-keys: |
+          linux-ccache-${{ env.BUILD_TYPE }}-
+    
+    - name: Restore build cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ github.workspace }}/build
+        key: linux-build-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**', '**/*.cmake', '.github/workflows/run_unittests.yml') }}
+        restore-keys: |
+          linux-build-${{ env.BUILD_TYPE }}-
     
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
       # We'll use this as our working directory for all subsequent commands
       run: cmake -E make_directory ${{github.workspace}}/build
 
+    - name: Configure ccache
+      shell: bash
+      run: |
+        echo "CCACHE_DIR=${{ github.workspace }}/.ccache" >> $GITHUB_ENV
+        ccache --set-config=max_size=500M
+        ccache --zero-stats
+
     - name: Configure CMake
-      # Use a bash shell so we can use the same syntax for environment variable
-      # access regardless of the host operating system
       shell: bash
       working-directory: ${{github.workspace}}/build
-      # Note the current convention is to use the -S and -B options here to specify source 
-      # and build directories, but this is only available with CMake 3.13 and higher.  
-      # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_Fortran_COMPILER_LAUNCHER=ccache
     - name: Build
       working-directory: ${{github.workspace}}/build
       shell: bash
-      # Execute the build.  You can specify a specific target with "--target <NAME>"
       run: cmake --build . --config $BUILD_TYPE
       env:
         MAKEFLAGS: "-j4"
+    - name: ccache stats
+      shell: bash
+      run: ccache --show-stats
     - name: Run Unit Tests
       working-directory: ${{github.workspace}}/build
       shell: bash
-      # Execute tests defined by the CMake configuration.  
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest -C $BUILD_TYPE
+      env:
+        CTEST_OUTPUT_ON_FAILURE: 1
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install ccache
+      run: brew install ccache
+
+    - name: Restore ccache
+      uses: actions/cache@v3
+      with:
+        path: ${{ github.workspace }}/.ccache
+        key: macos-ccache-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**', '**/*.cmake', '.github/workflows/run_unittests.yml') }}
+        restore-keys: |
+          macos-ccache-${{ env.BUILD_TYPE }}-
+    
+    - name: Restore build cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ github.workspace }}/build
+        key: macos-build-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**', '**/*.cmake', '.github/workflows/run_unittests.yml') }}
+        restore-keys: |
+          macos-build-${{ env.BUILD_TYPE }}-
+    
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Configure ccache
+      shell: bash
+      run: |
+        echo "CCACHE_DIR=${{ github.workspace }}/.ccache" >> $GITHUB_ENV
+        ccache --set-config=max_size=500M
+        ccache --zero-stats
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{github.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_Fortran_COMPILER_LAUNCHER=ccache
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE
+      env:
+        MAKEFLAGS: "-j4"
+    - name: ccache stats
+      shell: bash
+      run: ccache --show-stats
+    - name: Run Unit Tests
+      working-directory: ${{github.workspace}}/build
+      shell: bash
       run: ctest -C $BUILD_TYPE
       env:
         CTEST_OUTPUT_ON_FAILURE: 1
