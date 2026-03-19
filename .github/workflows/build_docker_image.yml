@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - '*'
+    paths:
+      - '.github/docker/Dockerfile'
+      - '.github/workflows/build_docker_image.yml'
   workflow_dispatch:
     inputs:
       force_rebuild:
@@ -26,8 +29,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Resolve image tag
         id: image-tag
@@ -52,38 +53,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check if image already exists
-        id: check
-        run: |
-          IMAGE="${{ env.REGISTRY }}/$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]'):${{ steps.image-tag.outputs.target_tag }}"
-          if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Check if Dockerfile changed
-        id: dockerfile
-        shell: bash
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          elif ! git cat-file -e "${{ github.event.before }}^{commit}" 2>/dev/null; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          elif git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" | grep -q '^.github/docker/Dockerfile$'; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Build and push Docker image
-        # Rebuild when forced, when Dockerfile changed, or when image tag is missing
+        # Build on push path filters or when manually forced
         if: |
-          inputs.force_rebuild == true ||
-          steps.dockerfile.outputs.changed == 'true' ||
-          steps.check.outputs.exists == 'false'
+          github.event_name == 'push' ||
+          inputs.force_rebuild == true
         uses: docker/build-push-action@v7
         with:
           context: .github/docker
