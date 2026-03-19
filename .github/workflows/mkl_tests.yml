@@ -90,6 +90,10 @@ jobs:
           echo "CCACHE_DIR=${{ github.workspace }}/.ccache" >> $GITHUB_ENV
           ccache --set-config=max_size=500M
           ccache --zero-stats
+      - name: Validate Intel oneAPI in image
+        shell: bash
+        run: |
+          test -f /opt/intel/oneapi/setvars.sh
       - name: Setup Intel oneAPI environment
         shell: bash
         run: |
