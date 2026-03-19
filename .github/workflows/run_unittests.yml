@@ -128,7 +128,14 @@ jobs:
     - name: Setup GNU Fortran
       shell: bash
       run: |
-        GFORTRAN_BIN="$(find "$(brew --prefix)/bin" -maxdepth 1 -type f -name 'gfortran-*' | sort -V | tail -n1)"
+        GFORTRAN_BIN=""
+        GCC_PREFIX="$(brew --prefix gcc || true)"
+        if [ -n "$GCC_PREFIX" ]; then
+          GFORTRAN_BIN="$(find "$GCC_PREFIX/bin" -maxdepth 1 -type f -name 'gfortran-*' | sort -V | tail -n1)"
+        fi
+        if [ -z "$GFORTRAN_BIN" ]; then
+          GFORTRAN_BIN="$(find "$(brew --prefix)/bin" -maxdepth 1 -type f -name 'gfortran-*' | sort -V | tail -n1)"
+        fi
         if [ -z "$GFORTRAN_BIN" ]; then
           GFORTRAN_BIN="$(command -v gfortran || true)"
         fi
