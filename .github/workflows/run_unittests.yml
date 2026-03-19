@@ -70,7 +70,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Restore ccache
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: ${{ github.workspace }}/.ccache
         key: linux-ccache-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**', '**/*.cmake', '.github/workflows/run_unittests.yml') }}
@@ -78,7 +78,7 @@ jobs:
           linux-ccache-${{ env.BUILD_TYPE }}-
     
     - name: Restore build cache
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: ${{ github.workspace }}/build
         key: linux-build-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**', '**/*.cmake', '.github/workflows/run_unittests.yml') }}
@@ -149,7 +149,7 @@ jobs:
         echo "CMAKE_FORTRAN_COMPILER=$GFORTRAN_BIN" >> $GITHUB_ENV
 
     - name: Restore ccache
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: ${{ github.workspace }}/.ccache
         key: macos-ccache-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**', '**/*.cmake', '.github/workflows/run_unittests.yml') }}
@@ -157,7 +157,7 @@ jobs:
           macos-ccache-${{ env.BUILD_TYPE }}-
     
     - name: Restore build cache
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: ${{ github.workspace }}/build
         key: macos-build-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**', '**/*.cmake', '.github/workflows/run_unittests.yml') }}
@@ -165,7 +165,7 @@ jobs:
           macos-build-${{ env.BUILD_TYPE }}-
 
     - name: Restore MUMPS install cache
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: ${{ github.workspace }}/mumps-install
         key: macos-mumps-${{ hashFiles('.github/workflows/run_unittests.yml') }}

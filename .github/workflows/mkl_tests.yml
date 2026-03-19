@@ -69,14 +69,14 @@ jobs:
       - name: Checkout NeoPZ
         uses: actions/checkout@v6
       - name: Restore ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/.ccache
           key: linux-ccache-mkl-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**', '**/*.cmake', '.github/workflows/mkl_tests.yml') }}
           restore-keys: |
             linux-ccache-mkl-${{ env.BUILD_TYPE }}-
       - name: Restore build cache
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/build
           key: linux-build-mkl-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**', '**/*.cmake', '.github/workflows/mkl_tests.yml') }}
