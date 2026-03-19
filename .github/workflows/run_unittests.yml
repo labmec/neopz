@@ -122,6 +122,9 @@ jobs:
     - name: Install ccache
       run: brew install ccache
 
+    - name: Install MUMPS build dependencies
+      run: brew install gcc openblas metis libomp
+
     - name: Restore ccache
       uses: actions/cache@v3
       with:
@@ -137,9 +140,41 @@ jobs:
         key: macos-build-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**', '**/*.cmake', '.github/workflows/run_unittests.yml') }}
         restore-keys: |
           macos-build-${{ env.BUILD_TYPE }}-
+
+    - name: Restore MUMPS install cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ github.workspace }}/mumps-install
+        key: macos-mumps-${{ hashFiles('.github/workflows/run_unittests.yml') }}
+        restore-keys: |
+          macos-mumps-
     
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Build and install MUMPS
+      shell: bash
+      run: |
+        if [ ! -f "$GITHUB_WORKSPACE/mumps-install/lib/cmake/mumps/MUMPSConfig.cmake" ] && [ ! -f "$GITHUB_WORKSPACE/mumps-install/cmake/MUMPSConfig.cmake" ]; then
+          rm -rf "$GITHUB_WORKSPACE/mumps-src" "$GITHUB_WORKSPACE/mumps-build"
+          git clone --depth=1 https://github.com/giavancini/mumps.git "$GITHUB_WORKSPACE/mumps-src"
+          cmake -S "$GITHUB_WORKSPACE/mumps-src" -B "$GITHUB_WORKSPACE/mumps-build" -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/mumps-install" \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_SINGLE=ON \
+            -DBUILD_DOUBLE=ON \
+            -DBUILD_COMPLEX=ON \
+            -DBUILD_COMPLEX16=ON \
+            -DMUMPS_parallel=OFF \
+            -DMUMPS_openmp=ON \
+            -DMUMPS_intsize64=ON \
+            -DMUMPS_metis=ON \
+            -DMUMPS_find_SCALAPACK=OFF \
+            -DMUMPS_scalapack=OFF
+          cmake --build "$GITHUB_WORKSPACE/mumps-build" --config Release -j4
+          cmake --install "$GITHUB_WORKSPACE/mumps-build"
+        fi
 
     - name: Configure ccache
       shell: bash
@@ -150,7 +185,7 @@ jobs:
 
     - name: Configure CMake
       shell: bash
-      run: cmake -S "$GITHUB_WORKSPACE" -B "$GITHUB_WORKSPACE/build" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_Fortran_COMPILER_LAUNCHER=ccache
+      run: cmake -S "$GITHUB_WORKSPACE" -B "$GITHUB_WORKSPACE/build" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DUSING_MUMPS=ON -DMUMPS_ROOT="$GITHUB_WORKSPACE/mumps-install" -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_Fortran_COMPILER_LAUNCHER=ccache
     - name: Build
       shell: bash
       run: cmake --build "$GITHUB_WORKSPACE/build" --config $BUILD_TYPE
