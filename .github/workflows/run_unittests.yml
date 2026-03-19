@@ -125,6 +125,22 @@ jobs:
     - name: Install MUMPS build dependencies
       run: brew install gcc openblas metis libomp
 
+    - name: Setup GNU Fortran
+      shell: bash
+      run: |
+        GFORTRAN_BIN="$(find "$(brew --prefix)/bin" -maxdepth 1 -type f -name 'gfortran-*' | sort -V | tail -n1)"
+        if [ -z "$GFORTRAN_BIN" ]; then
+          GFORTRAN_BIN="$(command -v gfortran || true)"
+        fi
+        if [ -z "$GFORTRAN_BIN" ]; then
+          echo "gfortran not found after brew install gcc" >&2
+          exit 1
+        fi
+        echo "FC=$GFORTRAN_BIN" >> $GITHUB_ENV
+        echo "F77=$GFORTRAN_BIN" >> $GITHUB_ENV
+        echo "F90=$GFORTRAN_BIN" >> $GITHUB_ENV
+        echo "CMAKE_FORTRAN_COMPILER=$GFORTRAN_BIN" >> $GITHUB_ENV
+
     - name: Restore ccache
       uses: actions/cache@v3
       with:
@@ -160,6 +176,7 @@ jobs:
           git clone --depth=1 https://github.com/giavancini/mumps.git "$GITHUB_WORKSPACE/mumps-src"
           cmake -S "$GITHUB_WORKSPACE/mumps-src" -B "$GITHUB_WORKSPACE/mumps-build" -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_Fortran_COMPILER="$FC" \
             -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/mumps-install" \
             -DBUILD_SHARED_LIBS=ON \
             -DBUILD_SINGLE=ON \
@@ -185,7 +202,7 @@ jobs:
 
     - name: Configure CMake
       shell: bash
-      run: cmake -S "$GITHUB_WORKSPACE" -B "$GITHUB_WORKSPACE/build" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DUSING_MUMPS=ON -DMUMPS_ROOT="$GITHUB_WORKSPACE/mumps-install" -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_Fortran_COMPILER_LAUNCHER=ccache
+      run: cmake -S "$GITHUB_WORKSPACE" -B "$GITHUB_WORKSPACE/build" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DUSING_MUMPS=ON -DMUMPS_ROOT="$GITHUB_WORKSPACE/mumps-install" -DCMAKE_Fortran_COMPILER="$FC" -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_Fortran_COMPILER_LAUNCHER=ccache
     - name: Build
       shell: bash
       run: cmake --build "$GITHUB_WORKSPACE/build" --config $BUILD_TYPE
