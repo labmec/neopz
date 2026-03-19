@@ -37,7 +37,7 @@ jobs:
           if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
             BRANCH_NAME="${GITHUB_HEAD_REF}"
           fi
-          BRANCH_TAG="$(echo "${BRANCH_NAME}" | tr '[:upper:]' '[:lower:]' | sed 's#[^a-z0-9._-]#-#g')-container"
+          BRANCH_TAG="$(echo "${BRANCH_NAME}" | tr '[:upper:]' '[:lower:]' | sed 's#[^a-z0-9._-]#-#g')"
           if [ "${BRANCH_NAME}" = "main" ] || [ "${BRANCH_NAME}" = "develop" ]; then
             TARGET_TAG="latest"
           else

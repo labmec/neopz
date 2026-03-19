@@ -38,7 +38,7 @@ jobs:
           if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
             BRANCH_NAME="${GITHUB_HEAD_REF}"
           fi
-          BRANCH_TAG="$(echo "${BRANCH_NAME}" | tr '[:upper:]' '[:lower:]' | sed 's#[^a-z0-9._-]#-#g')-container"
+          BRANCH_TAG="$(echo "${BRANCH_NAME}" | tr '[:upper:]' '[:lower:]' | sed 's#[^a-z0-9._-]#-#g')"
           if [ "${BRANCH_NAME}" = "main" ] || [ "${BRANCH_NAME}" = "develop" ]; then
             TARGET_TAG="latest"
           else
@@ -99,21 +99,18 @@ jobs:
 
     - name: Configure CMake
       shell: bash
-      working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_Fortran_COMPILER_LAUNCHER=ccache
+      run: cmake -S "$GITHUB_WORKSPACE" -B "$GITHUB_WORKSPACE/build" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_Fortran_COMPILER_LAUNCHER=ccache
     - name: Build
-      working-directory: ${{github.workspace}}/build
       shell: bash
-      run: cmake --build . --config $BUILD_TYPE
+      run: cmake --build "$GITHUB_WORKSPACE/build" --config $BUILD_TYPE
       env:
         MAKEFLAGS: "-j4"
     - name: ccache stats
       shell: bash
       run: ccache --show-stats
     - name: Run Unit Tests
-      working-directory: ${{github.workspace}}/build
       shell: bash
-      run: ctest -C $BUILD_TYPE
+      run: ctest --test-dir "$GITHUB_WORKSPACE/build" -C $BUILD_TYPE
       env:
         CTEST_OUTPUT_ON_FAILURE: 1
 
@@ -153,20 +150,17 @@ jobs:
 
     - name: Configure CMake
       shell: bash
-      working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_Fortran_COMPILER_LAUNCHER=ccache
+      run: cmake -S "$GITHUB_WORKSPACE" -B "$GITHUB_WORKSPACE/build" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_Fortran_COMPILER_LAUNCHER=ccache
     - name: Build
-      working-directory: ${{github.workspace}}/build
       shell: bash
-      run: cmake --build . --config $BUILD_TYPE
+      run: cmake --build "$GITHUB_WORKSPACE/build" --config $BUILD_TYPE
       env:
         MAKEFLAGS: "-j4"
     - name: ccache stats
       shell: bash
       run: ccache --show-stats
     - name: Run Unit Tests
-      working-directory: ${{github.workspace}}/build
       shell: bash
-      run: ctest -C $BUILD_TYPE
+      run: ctest --test-dir "$GITHUB_WORKSPACE/build" -C $BUILD_TYPE
       env:
         CTEST_OUTPUT_ON_FAILURE: 1
