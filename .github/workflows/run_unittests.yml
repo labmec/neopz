@@ -147,6 +147,9 @@ jobs:
         echo "F77=$GFORTRAN_BIN" >> $GITHUB_ENV
         echo "F90=$GFORTRAN_BIN" >> $GITHUB_ENV
         echo "CMAKE_FORTRAN_COMPILER=$GFORTRAN_BIN" >> $GITHUB_ENV
+        echo "MUMPS_INSTALL_DIR=${{ runner.temp }}/mumps-install" >> $GITHUB_ENV
+        echo "MUMPS_SRC_DIR=${{ runner.temp }}/mumps-src" >> $GITHUB_ENV
+        echo "MUMPS_BUILD_DIR=${{ runner.temp }}/mumps-build" >> $GITHUB_ENV
 
     - name: Restore ccache
       uses: actions/cache@v5
@@ -167,7 +170,7 @@ jobs:
     - name: Restore MUMPS install cache
       uses: actions/cache@v5
       with:
-        path: ${{ github.workspace }}/mumps-install
+        path: ${{ runner.temp }}/mumps-install
         key: macos-mumps-${{ hashFiles('.github/workflows/run_unittests.yml') }}
         restore-keys: |
           macos-mumps-
@@ -178,13 +181,13 @@ jobs:
     - name: Build and install MUMPS
       shell: bash
       run: |
-        if [ ! -f "$GITHUB_WORKSPACE/mumps-install/lib/cmake/mumps/MUMPSConfig.cmake" ] && [ ! -f "$GITHUB_WORKSPACE/mumps-install/cmake/MUMPSConfig.cmake" ]; then
-          rm -rf "$GITHUB_WORKSPACE/mumps-src" "$GITHUB_WORKSPACE/mumps-build"
-          git clone --depth=1 https://github.com/giavancini/mumps.git "$GITHUB_WORKSPACE/mumps-src"
-          cmake -S "$GITHUB_WORKSPACE/mumps-src" -B "$GITHUB_WORKSPACE/mumps-build" -GNinja \
+        if [ ! -f "$MUMPS_INSTALL_DIR/lib/cmake/mumps/MUMPSConfig.cmake" ] && [ ! -f "$MUMPS_INSTALL_DIR/cmake/MUMPSConfig.cmake" ]; then
+          rm -rf "$MUMPS_SRC_DIR" "$MUMPS_BUILD_DIR"
+          git clone --depth=1 https://github.com/giavancini/mumps.git "$MUMPS_SRC_DIR"
+          cmake -S "$MUMPS_SRC_DIR" -B "$MUMPS_BUILD_DIR" -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_Fortran_COMPILER="$FC" \
-            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/mumps-install" \
+            -DCMAKE_INSTALL_PREFIX="$MUMPS_INSTALL_DIR" \
             -DBUILD_SHARED_LIBS=ON \
             -DBUILD_SINGLE=ON \
             -DBUILD_DOUBLE=ON \
@@ -196,8 +199,8 @@ jobs:
             -DMUMPS_metis=ON \
             -DMUMPS_find_SCALAPACK=OFF \
             -DMUMPS_scalapack=OFF
-          cmake --build "$GITHUB_WORKSPACE/mumps-build" --config Release -j4
-          cmake --install "$GITHUB_WORKSPACE/mumps-build"
+          cmake --build "$MUMPS_BUILD_DIR" --config Release -j4
+          cmake --install "$MUMPS_BUILD_DIR"
         fi
 
     - name: Configure ccache
@@ -209,7 +212,7 @@ jobs:
 
     - name: Configure CMake
       shell: bash
-      run: cmake -S "$GITHUB_WORKSPACE" -B "$GITHUB_WORKSPACE/build" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DUSING_MUMPS=ON -DMUMPS_ROOT="$GITHUB_WORKSPACE/mumps-install" -DCMAKE_Fortran_COMPILER="$FC" -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_Fortran_COMPILER_LAUNCHER=ccache
+      run: cmake -S "$GITHUB_WORKSPACE" -B "$GITHUB_WORKSPACE/build" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON -DUSING_MUMPS=ON -DMUMPS_ROOT="$MUMPS_INSTALL_DIR" -DMUMPS_USE_SINGLE=ON -DMUMPS_USE_DOUBLE=ON -DMUMPS_USE_COMPLEX=ON -DMUMPS_USE_COMPLEX16=ON -DCMAKE_Fortran_COMPILER="$FC" -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_Fortran_COMPILER_LAUNCHER=ccache
     - name: Build
       shell: bash
       run: cmake --build "$GITHUB_WORKSPACE/build" --config $BUILD_TYPE
