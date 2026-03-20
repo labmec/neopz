@@ -60,14 +60,7 @@ TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph,
                                               TPZVec<int64_t> &elgraphindex){
     
     const int64_t neq = this->fEquationFilter.NActiveEquations();
-#ifdef USING_MKL
-    TPZFYsmpMatrixPardiso<TVar> * mat = new TPZFYsmpMatrixPardiso<TVar>(neq,neq);
-#elif USING_EIGEN
-    TPZEigenSparseMatrix<TVar> * mat = new TPZEigenSparseMatrix<TVar>(neq,neq);
-#else
-    TPZFYsmpMatrix<TVar> *mat = new TPZFYsmpMatrix<TVar>(neq,neq);
-    DebugStop();
-#endif
+    TPZFYsmpMatrix<TVar> * mat = NewSparseMatrix(neq);
     
     /**Creates a element graph*/
     TPZRenumbering graph;
@@ -199,6 +192,18 @@ TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph,
     }
     mat->SetData(std::move(Eq),std::move(EqCol),std::move(EqValue));
     return mat;
+}
+
+template<class TVar, class TPar>
+TPZFYsmpMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::NewSparseMatrix(const int64_t neq) const {
+#ifdef USING_MKL
+    return new TPZFYsmpMatrixPardiso<TVar>(neq,neq);
+#elif USING_EIGEN
+    return new TPZEigenSparseMatrix<TVar>(neq,neq);
+#else
+    DebugStop();
+    return nullptr;
+#endif
 }
 
 template<class TVar, class TPar>

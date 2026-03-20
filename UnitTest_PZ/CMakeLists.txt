@@ -51,3 +51,5 @@ endif()
 if(USING_LAPACK)
   add_subdirectory(TestSBFem)
 endif()
+
+add_subdirectory(TestSolverComparison)

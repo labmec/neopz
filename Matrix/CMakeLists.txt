@@ -72,6 +72,16 @@ set(sources
       TPZSYSMPPardiso.cpp
       )
   endif()
+  if(USING_MUMPS)
+    list(APPEND headers
+      TPZYSMPMumps.h
+      TPZSYSMPMumps.h
+    )
+    list(APPEND sources
+      TPZYSMPMumps.cpp
+      TPZSYSMPMumps.cpp
+      )
+  endif()
 	if(USING_EIGEN)
 		list(APPEND headers
 			TPZEigenSparseMatrix.h

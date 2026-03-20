@@ -10,6 +10,7 @@ set(public_headers
     TPZEigenSort.h
     TPZEigenSolver.h
     TPZPardisoSolver.h
+    TPZMumpsSolver.h
     TPZIdentitySolver.h
     TPZJacobiPrecond.h
     pzstepsolver.h
@@ -32,6 +33,15 @@ if(USING_MKL)
     )
     list(APPEND sources
       TPZPardisoSolver.cpp
+      )
+endif()
+
+if(USING_MUMPS)
+    list(APPEND headers
+      TPZMumpsSolver.h
+    )
+    list(APPEND sources
+      TPZMumpsSolver.cpp
       )
 endif()
     

@@ -8,7 +8,7 @@ cmake_minimum_required (VERSION 3.14)
 project(PZ LANGUAGES CXX)
 
 message("We strongly recommend usage of the following options
-(specially when testing changes in NeoPZ or in the develop branch):\nUSING_MKL=ON\nUSING_LOG4CXX=ON\n\nAlso, for multiple NeoPZ installs,
+(specially when testing changes in NeoPZ or in the develop branch):\nUSING_MKL=ON (APPLE: USING_MUMPS=ON instead)\nUSING_LOG4CXX=ON\n\nAlso, for multiple NeoPZ installs,
 changing CMAKE_INSTALL_PREFIX might be desirable\nfor setting up a local install.\n\n")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -130,13 +130,6 @@ else()
   set(PZ_LOG OFF)
 endif()
 
-#enabling METIS library
-option(USING_METIS "Whether the METIS library will be linked in" OFF)
-if(USING_METIS)
-    include(cmake/EnableMetis.cmake)
-    enable_metis(pz)
-endif()
-
 #enabling OPENSSL library (used for MD5 computation)
 option(USING_OPENSSL "Whether the OPENSSL library will be linked in" OFF)
 if(USING_OPENSSL)
@@ -195,7 +188,19 @@ else()
     ENDIF(APPLE)
 endif(USING_MKL)
 
+#enabling MUMPS library
+option(USING_MUMPS "Whether the MUMPS library will be linked in" OFF)
+if(USING_MUMPS)
+    include(cmake/EnableMUMPS.cmake)
+    enable_mumps(pz)
+endif(USING_MUMPS)
 
+#enabling METIS library (deferred check after MUMPS)
+option(USING_METIS "Whether the METIS library will be linked in" OFF)
+if(USING_METIS)
+    include(cmake/EnableMetis.cmake)
+    enable_metis(pz)
+endif()
 
 #enabling LAPACK library
 option(USING_LAPACK "Whether the LAPACK library will be linked in" OFF)
