@@ -47,10 +47,11 @@ void TPZApproxCreator::ComputePeriferalMaterialIds(int base) {
     int remain = max_matid % base;
     int matid_base = max_matid - remain + base;
     fHybridizationData.fWrapMatId = matid_base;
-    fHybridizationData.fInterfaceMatId = matid_base+base;
-    fHybridizationData.fLagrangeMatId = matid_base + 2*base;
-    fHybridizationData.fSecondInterfaceMatId = matid_base + 3*base;
-    fHybridizationData.fSecondLagrangeMatId = matid_base + 4*base;
+    fHybridizationData.fLeftInterfaceMatId = matid_base+base;
+    fHybridizationData.fRightInterfaceMatId = matid_base+2*base;
+    fHybridizationData.fLagrangeMatId = matid_base + 3*base;
+    fHybridizationData.fSecondInterfaceMatId = matid_base + 4*base;
+    fHybridizationData.fSecondLagrangeMatId = matid_base + 5*base;
 }
 
 void TPZApproxCreator::AddHybridizationGeoElements(){
@@ -101,7 +102,7 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
             // if there is a neighbour that is a boundary condition
             // do not create the wrap layers
             bool hasBCNeighbour = gelside.HasNeighbour(bcMatIds);
-            if(hasBCNeighbour)
+            if(hasBCNeighbour && fHybridizationData.fHybridizeBCLevel == 0)
             {
                 // no interface will be created between the element and a flux space
                 continue;
@@ -128,53 +129,60 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
     {
         TPZGeoEl *gel = fGeoMesh->Element(el);
         if(!gel || gel->HasSubElement() || gel->Dimension() != dim-1) continue;
-        int matid = gel->MaterialId();
+        int gelmatid = gel->MaterialId();
+        if(gelmatid != fHybridizationData.fWrapMatId) continue;
         TPZGeoElSide gelside(gel);
         TPZGeoElSide neighbour = gelside.Neighbour();
         // if the neighbour is a boundary condition and no hybridization is applied
         // do not create the wrap layers
         int neighmat = neighbour.Element()->MaterialId();
-        int interface = fHybridizationData.fInterfaceMatId;
-        bool iswrapMatId = (matid == fHybridizationData.fWrapMatId);
-        
-        // we create the elements starting from the wrap element
-        if(!iswrapMatId) continue;
+        int leftinterface = fHybridizationData.fLeftInterfaceMatId;
+        int rightinterface = fHybridizationData.fRightInterfaceMatId;
         
         bool hasLagrangeElement = gelside.HasNeighbour(fHybridizationData.fLagrangeMatId);
         
         bool hasLargeElementNeighbour = gelside.HasLowerLevelNeighbour(fHybridizationData.fWrapMatId);
         TPZGeoElSide wrapNeighbour = neighbour.HasNeighbour(fHybridizationData.fWrapMatId);
+        // haswrapneighbour is false
+        // if on a boundary and if bc hybridization is 0
+        // if there are smaller elements connected
         bool haswrapNeighbour = (wrapNeighbour != gelside);
-        // if there is no equal level neighbour and no large element, do not create interface elements
-        if(!haswrapNeighbour && !hasLargeElementNeighbour) continue;
         
-        // we create the interface geometric element (necessarily)
-        TPZGeoElBC gbc(gelside,fHybridizationData.fInterfaceMatId);
+        if(hasLargeElementNeighbour && haswrapNeighbour) DebugStop();
+        
+        if(haswrapNeighbour) { // neighbouring elements of the same level
+            if(hasLagrangeElement) {
+                // we create the interface geometric element (necessarily)
+                TPZGeoElBC gbc(gelside,rightinterface);
 #ifdef PZ_LOG
-        {
-            numcreated[fHybridizationData.fInterfaceMatId]++;
-        }
+                numcreated[rightinterface]++;
 #endif
-
-        if(!hasLagrangeElement)
-        {
-            // we create the lagrange geometric element (necessarily)
-            TPZGeoElBC gbcLagrange(gbc.CreatedElement(),fHybridizationData.fLagrangeMatId);
+            } else {
+                TPZGeoElBC gbc(gelside,leftinterface);
+                // we create the lagrange geometric element (necessarily)
+                TPZGeoElBC gbcLagrange(gbc.CreatedElement(),fHybridizationData.fLagrangeMatId);
 #ifdef PZ_LOG
-        {
-            numcreated[fHybridizationData.fLagrangeMatId]++;
-        }
+                numcreated[leftinterface]++;
+                numcreated[fHybridizationData.fLagrangeMatId]++;
 #endif
+            }
 
+        } else { // it has no wrap neighbour
+                // handling hanging sides
             if(hasLargeElementNeighbour) {
                 // we create the lagrange geometric element (necessarily)
-                TPZGeoElBC(gbcLagrange.CreatedElement(),fHybridizationData.fInterfaceMatId);
+                TPZGeoElBC(gelside,leftinterface);
 #ifdef PZ_LOG
-                {
-                    numcreated[fHybridizationData.fInterfaceMatId]++;
-                }
+                numcreated[leftinterface]++;
 #endif
-
+            } else {
+                TPZGeoElBC gbc(gelside,rightinterface);
+                // we create the lagrange geometric element (necessarily)
+                TPZGeoElBC gbcLagrange(gbc.CreatedElement(),fHybridizationData.fLagrangeMatId);
+#ifdef PZ_LOG
+                numcreated[leftinterface]++;
+                numcreated[fHybridizationData.fLagrangeMatId]++;
+#endif
             }
         }
     }
@@ -221,7 +229,8 @@ void TPZApproxCreator::CheckNeighborhoodHybridization() const {
             
             // must have element of same size
             TPZGeoEl* gelInter = gelside.Neighbour().Neighbour().Element();
-            if (gelInter->MaterialId() != fHybridizationData.fInterfaceMatId) {
+            if (gelInter->MaterialId() != fHybridizationData.fLeftInterfaceMatId &&
+                gelInter->MaterialId() != fHybridizationData.fRightInterfaceMatId) {
                 DebugStop(); // Wrap has to be the first neighbor
             }
             
@@ -285,12 +294,20 @@ void TPZApproxCreator::InsertInterfaceMaterialObjects(TPZMultiphysicsCompMesh *m
         if(nstate < 1) DebugStop();
                 
         //TODO Should we support more general interface classes? Support CSTATE?
-        TPZLagrangeMultiplierCS<STATE> *interface = new TPZLagrangeMultiplierCS<STATE>(fHybridizationData.fInterfaceMatId, fGeoMesh->Dimension()-1, nstate);
+        TPZLagrangeMultiplierCS<STATE> *interface = new TPZLagrangeMultiplierCS<STATE>(fHybridizationData.fLeftInterfaceMatId, fGeoMesh->Dimension()-1, nstate);
         if(fProbType == ProblemType::EElastic){
             interface->SetMultiplier(-1.);
         }
         mphys->InsertMaterialObject(interface);
 
+        if(fHybridizationData.fLeftInterfaceMatId != fHybridizationData.fRightInterfaceMatId) {
+            TPZLagrangeMultiplierCS<STATE> *interface = new TPZLagrangeMultiplierCS<STATE>(fHybridizationData.fRightInterfaceMatId, fGeoMesh->Dimension()-1, nstate);
+            if(fProbType == ProblemType::EElastic){
+                interface->SetMultiplier(-1.);
+            }
+            mphys->InsertMaterialObject(interface);
+        }
+        
         if (fHybridType == HybridizationType::EStandardSquared) {
 
             //TODO Should we support more general interface classes? Support CSTATE?
@@ -392,7 +409,8 @@ void TPZApproxCreator::Print(std::ostream &ofs){
     if(this->fHybridType == HybridizationType::EStandard || this->fHybridType == HybridizationType::EStandardSquared) {
         ss << "peripheralMatids:\n";
         ss << "\tfWrapMatId = " << fHybridizationData.fWrapMatId;
-        ss << "\n\tfInterfaceMatId = " << fHybridizationData.fInterfaceMatId;
+        ss << "\n\tfLeftInterfaceMatId = " << fHybridizationData.fLeftInterfaceMatId;
+        ss << "\n\tfRightInterfaceMatId = " << fHybridizationData.fRightInterfaceMatId;
         ss << "\n\tfLagrangeMatId = " << fHybridizationData.fLagrangeMatId;
         if( this->fHybridType == HybridizationType::EStandardSquared) {
             ss << "\n\tfSecondInterfaceMatId = " << fHybridizationData.fSecondInterfaceMatId;

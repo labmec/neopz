@@ -53,7 +53,8 @@ protected:
         int fWrapMatId = -123456; // to check if it has been initialized
 
         /// Matid of element at the interface between elements
-        int fInterfaceMatId;
+        int fLeftInterfaceMatId;
+        int fRightInterfaceMatId;
 
         /// Matid of lagrange multiplier element
         int fLagrangeMatId;

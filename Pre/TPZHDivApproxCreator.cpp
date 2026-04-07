@@ -825,7 +825,8 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
         TPZCompElSide cLagrange = neighLag.Reference();
 
         TPZGeoElSide ginterface = gelside.Neighbour();
-        if(ginterface.Element()->MaterialId() != fHybridizationData.fInterfaceMatId){
+        if(ginterface.Element()->MaterialId() != fHybridizationData.fLeftInterfaceMatId &&
+           ginterface.Element()->MaterialId() != fHybridizationData.fRightInterfaceMatId){
             DebugStop();
         }
         
@@ -838,7 +839,8 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsComp
             TPZGeoElSide ginterface = neighLag.Neighbour();
             TPZCompElSide cLarge = LargeNeigh.Reference();
 #ifdef PZDEBUG
-            if(ginterface.Element()->MaterialId() != fHybridizationData.fInterfaceMatId) DebugStop();
+            if(ginterface.Element()->MaterialId() != fHybridizationData.fLeftInterfaceMatId &&
+               ginterface.Element()->MaterialId() != fHybridizationData.fRightInterfaceMatId) DebugStop();
 #endif
             if (fHybridType == HybridizationType::ESemi){
                 auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),celside,cLagrange,semiHybridInterface[cLagrange.Element()->Index()]);

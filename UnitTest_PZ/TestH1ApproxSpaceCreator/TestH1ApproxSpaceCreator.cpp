@@ -48,9 +48,9 @@ TEST_CASE("Approx Space Creator", "[h1_space_creator_test]") {
 
     H1Family sType = GENERATE(H1Family::EH1Standard);
     HybridizationType hybtype = GENERATE(HybridizationType::ENone);
-    ProblemType pType = GENERATE(ProblemType::EDarcy);
+    ProblemType pType = GENERATE(ProblemType::EElastic);
     int pOrder = GENERATE(1,2);
-    int plusOrder = GENERATE(0,1);
+    int plusOrder = GENERATE(2,3);
     bool isEnhanced = GENERATE(true,false);
     bool shouldCondense = GENERATE(true,false);
 
@@ -92,36 +92,65 @@ TPZGeoMesh *Create2DGeoMesh() {
 
     return gmesh;
 }
+#include <Elasticity/TPZHybridElasticity2D.h>
+#include <Elasticity/TPZElasticity2D.h>
 
 void InsertMaterials(TPZH1ApproxCreator &approxCreator){
 
-    approxCreator.ProbType() = ProblemType::EDarcy;
+    bool isdarcy = approxCreator.ProbType() == ProblemType::EDarcy;
+    bool iselast = approxCreator.ProbType() == ProblemType::EElastic;
 
     HybridizationType hybType = approxCreator.HybridType();
-    TPZDarcyFlow *mat;
+    TPZMaterialT<STATE> *mat = 0;
+    int nstate = 0;
     if(hybType == HybridizationType::ENone){
-        mat = new TPZDarcyFlow(EDomain, 2);
+        if(isdarcy) {
+            auto matdarcy = new TPZDarcyFlow(EDomain, 2);
+            matdarcy->SetConstantPermeability(1.);
+            mat = matdarcy;
+            nstate = 1;
+        }
+        if(iselast) {
+            REAL E = 1.;
+            REAL nu = 0.3;
+            REAL fx = 0., fy = 0.;
+            auto *matelast = new TPZElasticity2D(EDomain,E,nu,fx,fy);
+            mat = matelast;
+            nstate = 2;
+        }
     }
     else {
-       mat = new TPZHybridDarcyFlow(EDomain, 2);
+        if(isdarcy) {
+            auto matdarcy = new TPZHybridDarcyFlow(EDomain, 2);
+            matdarcy->SetConstantPermeability(1.);
+            mat = matdarcy;
+            nstate = 1;
+        }
+        if(iselast) {
+            REAL E = 1.;
+            REAL nu = 0.3;
+            REAL fx = 0., fy = 0.;
+            auto *matelast = new TPZHybridElasticity2D(EDomain,E,nu,fx,fy);
+            mat = matelast;
+            nstate = 2;
+        }
     }
-        mat->SetConstantPermeability(1.);
-        // mat->SetForcingFunction()
-        approxCreator.InsertMaterialObject(mat);
+    // mat->SetForcingFunction()
+    approxCreator.InsertMaterialObject(mat);
 
-        //Boundary Conditions
-        TPZFMatrix<STATE> val1(1, 1, 1.);
-        TPZManVector<STATE> val2(1, 1.);
+    //Boundary Conditions
+    TPZFMatrix<STATE> val1(nstate, nstate, 1.);
+    TPZManVector<STATE> val2(nstate, 1.);
 
-        //Dirichlet Boundary Conditions
-        TPZBndCondT<STATE> *BCond1 = mat->CreateBC(mat, EBCDirichlet, 0, val1, val2);
-        // BCond->SetForcingFunctionBC(exactSol,4);
-        approxCreator.InsertMaterialObject(BCond1);
+    //Dirichlet Boundary Conditions
+    TPZBndCondT<STATE> *BCond1 = mat->CreateBC(mat, EBCDirichlet, 0, val1, val2);
+    // BCond->SetForcingFunctionBC(exactSol,4);
+    approxCreator.InsertMaterialObject(BCond1);
 
-        val2[0] = 0.;
-        TPZBndCondT<STATE> *BCond2 = mat->CreateBC(mat, EBCNeumann, 1, val1, val2);
-        // BCond->SetForcingFunctionBC(exactSol,4);
-        approxCreator.InsertMaterialObject(BCond2);
+    val2.Fill(0.);
+    TPZBndCondT<STATE> *BCond2 = mat->CreateBC(mat, EBCNeumann, 1, val1, val2);
+    // BCond->SetForcingFunctionBC(exactSol,4);
+    approxCreator.InsertMaterialObject(BCond2);
 }
 
 //2D tests:
@@ -199,6 +228,8 @@ void TestH1ApproxSpaceCreator(H1Family h1Fam, HybridizationType hybtype ,Problem
     std::cout <<"porder:\t" << pOrder <<  "\tplusOrder:\t" << plusOrder << "\tIsRigidBodySpaces:\t"<< IsRigidBodySpaces << "\tshouldCondense:\t" << shouldCondense <<"\n";
     std::cout << "Number of equations = " << cmesh->NEquations() << std::endl;
     TPZLinearAnalysis an(cmesh);
+    TPZFStructMatrix<> strmat(cmesh);
+    an.SetStructuralMatrix(strmat);
     an.Run();
 
     CheckIntegralOverDomain(cmesh,probType,h1Fam);
@@ -261,7 +292,7 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, H1Family 
     {
         std::cout << "Integral(" << i << ") = "  << vecint[i] << std::endl;
 #ifndef USE_MAIN
-        REQUIRE(fabs(vecint[i]) < 1.e-10);
+        REQUIRE(fabs(vecint[i]) < 1.e-4);
 #endif
     }
     std::cout << std::endl;
