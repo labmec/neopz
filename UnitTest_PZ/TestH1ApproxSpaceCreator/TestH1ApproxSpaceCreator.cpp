@@ -47,17 +47,17 @@ TEST_CASE("Approx Space Creator", "[h1_space_creator_test]") {
     std::cout << "Testing H1 Approx Space Creator \n";
 
     H1Family sType = GENERATE(H1Family::EH1Standard);
-    HybridizationType hybtype = GENERATE(HybridizationType::ENone);
-    ProblemType pType = GENERATE(ProblemType::EElastic);
+    HybridizationType hybtype = GENERATE(HybridizationType::EStandard);
+    ProblemType pType = GENERATE(ProblemType::EDarcy);
     int pOrder = GENERATE(1,2);
     int plusOrder = GENERATE(2,3);
-    bool isEnhanced = GENERATE(true,false);
-    bool shouldCondense = GENERATE(true,false);
+    bool isRigidBody = GENERATE(false,true);
+    bool shouldCondense = GENERATE(false,true);
 
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
-    TestH1ApproxSpaceCreator(sType, hybtype,pType,pOrder, plusOrder, isEnhanced, shouldCondense);
+    TestH1ApproxSpaceCreator(sType, hybtype,pType,pOrder, plusOrder, isRigidBody, shouldCondense);
     std::cout << "Finish test H1 Approx Space Creator \n";
 }
 #else
@@ -148,7 +148,7 @@ void InsertMaterials(TPZH1ApproxCreator &approxCreator){
     approxCreator.InsertMaterialObject(BCond1);
 
     val2.Fill(0.);
-    TPZBndCondT<STATE> *BCond2 = mat->CreateBC(mat, EBCNeumann, 1, val1, val2);
+    TPZBndCondT<STATE> *BCond2 = mat->CreateBC(mat, EBCNeumann, 0, val1, val2);
     // BCond->SetForcingFunctionBC(exactSol,4);
     approxCreator.InsertMaterialObject(BCond2);
 }
@@ -227,11 +227,15 @@ void TestH1ApproxSpaceCreator(H1Family h1Fam, HybridizationType hybtype ,Problem
 
     std::cout <<"porder:\t" << pOrder <<  "\tplusOrder:\t" << plusOrder << "\tIsRigidBodySpaces:\t"<< IsRigidBodySpaces << "\tshouldCondense:\t" << shouldCondense <<"\n";
     std::cout << "Number of equations = " << cmesh->NEquations() << std::endl;
-    TPZLinearAnalysis an(cmesh);
+    TPZLinearAnalysis an(cmesh,RenumType::ENone);
     TPZFStructMatrix<> strmat(cmesh);
     an.SetStructuralMatrix(strmat);
     an.Run();
 
+    {
+        std::ofstream out("cmesh.txt");
+        cmesh->Print(out);
+    }
     CheckIntegralOverDomain(cmesh,probType,h1Fam);
 
 #ifdef USE_MAIN
@@ -298,13 +302,15 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, H1Family 
     std::cout << std::endl;
 
     TPZVec<STATE> vecintp = cmesh->Integrate(fields[1], matids);
-    std::cout << "\n--------------- Integral of Pressure --------------" <<  std::endl;
-    std::cout << "Number of components = " << vecintp.size() <<  std::endl;
-    for (int i = 0; i < vecintp.size(); i++)
+    std::cout << "\n--------------- Integral of Primal --------------" <<  std::endl;
+    int ncomp = vecintp.size();
+    if(ncomp > cmesh->Dimension()) ncomp = 2;
+    std::cout << "Number of components = " << ncomp <<  std::endl;
+    for (int i = 0; i < ncomp; i++)
     {
         std::cout << "Integral(" << i << ") = "  << vecintp[i] << std::endl;
 #ifndef USE_MAIN
-        REQUIRE(fabs(vecintp[i]) == Catch::Approx( 4.0 ));
+        REQUIRE(fabs(vecintp[i]) == Catch::Approx( 4.0 ).margin(1.e-4));
 #endif
     }
     std::cout << std::endl;

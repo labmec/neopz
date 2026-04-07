@@ -860,7 +860,7 @@ REAL TPZLinearElasticityConstitutive::ComputeStrainZ(TPZFMatrix<REAL> &strain2D)
         }
         REAL exx = strain2D(0,0);
         REAL eyy = strain2D(1,0);
-        std::cout << - fNuxy/(1-fNuxy) << " "<< exx << "+"<< - fNuxy/(1-fNuxy) << " "<< eyy <<std::endl;
+//        std::cout << - fNuxy/(1-fNuxy) << " "<< exx << "+"<< - fNuxy/(1-fNuxy) << " "<< eyy <<std::endl;
         REAL ezz = - fNuxy/(1-fNuxy)*(exx + eyy);
         return ezz;
     } else {

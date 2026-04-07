@@ -193,7 +193,11 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateMultiphysicsSpace(TPZManVect
         InsertInterfaceMaterialObjects(cmesh);
         auto *intf = cmesh->FindMaterial(fHybridizationData.fRightInterfaceMatId);
          TPZLagrangeMultiplierCS<STATE> *intmat = dynamic_cast<TPZLagrangeMultiplierCS<STATE> *>(intf);
-        intmat->SetMultiplier(-1.);
+        if(fProbType == ProblemType::EDarcy) {
+            intmat->SetMultiplier(-1.);
+        } else if(fProbType == ProblemType::EElastic) {
+            intmat->SetMultiplier(1.);
+        }
         AddInterfaceComputationalElements(cmesh);
     }
     if(fShouldCondense)
