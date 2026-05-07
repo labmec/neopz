@@ -442,7 +442,9 @@ void TPZVTKGenerator::ComputePointsAndCells()
         std::array<int, TPZVTK::MAX_PTS + 2> new_elem = elem;
         
         const int npts = new_elem[1];
-        for (int i = 0; i <= npts; ++i)
+        auto sz = new_elem.size();
+        if(sz < npts+2) DebugStop();
+        for (int i = 0; i < npts; ++i)
           new_elem[i+2] += offset;
         AppendToVec(fCells, new_elem);
       }
