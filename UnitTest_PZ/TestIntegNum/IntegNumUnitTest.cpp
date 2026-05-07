@@ -193,14 +193,13 @@ TEST_CASE("numinteg2DT_tests","[numinteg_tests]") {
 //    MathematicaData.close();
 //}
 //
-//TEST_CASE("numinteg3DPr_tests","[numinteg_tests]") {
-//	
-//	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-//	filename += "Prism.txt";
-//	std::ifstream MathematicaData(filename.c_str());
-//	TestingCubatureRuleAllOrders<TPZIntPrism3D>(0,MathematicaData);
-//    MathematicaData.close();
-//}
+TEST_CASE("numinteg3DPr_tests","[numinteg_tests]") {
+	
+	std::string filename = "Prism.txt";
+	std::ifstream MathematicaData(filename.c_str());
+	TestingCubatureRuleAllOrders<TPZIntPrism3D>(0,MathematicaData);
+   MathematicaData.close();
+}
 
 
 
