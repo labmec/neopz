@@ -106,7 +106,7 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateApproximationSpace(){
         meshvec[countMesh++] = CreateL2Space();
 
     if (fIsRBSpaces){
-        int lagMult1 = 2, lagMult2 = 4;
+        int lagMult1 = EDistFlux, lagMult2 = EAvSol;
         meshvec[countMesh++] = CreateConstantSpace(lagMult1);
         meshvec[countMesh++] = CreateConstantSpace(lagMult2);
     }
@@ -191,12 +191,15 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateMultiphysicsSpace(TPZManVect
 
     if(isHybrid) {
         InsertInterfaceMaterialObjects(cmesh);
-        auto *intf = cmesh->FindMaterial(fHybridizationData.fRightInterfaceMatId);
-         TPZLagrangeMultiplierCS<STATE> *intmat = dynamic_cast<TPZLagrangeMultiplierCS<STATE> *>(intf);
+        auto *rintf = cmesh->FindMaterial(fHybridizationData.fRightInterfaceMatId);
+        TPZLagrangeMultiplierCS<STATE> *rintmat = dynamic_cast<TPZLagrangeMultiplierCS<STATE> *>(rintf);
+        auto *lintf = cmesh->FindMaterial(fHybridizationData.fLeftInterfaceMatId);
+        TPZLagrangeMultiplierCS<STATE> *lintmat = dynamic_cast<TPZLagrangeMultiplierCS<STATE> *>(lintf);
         if(fProbType == ProblemType::EDarcy) {
-            intmat->SetMultiplier(-1.);
+            lintmat->SetMultiplier(-1.);
+            rintmat->SetMultiplier(1.);
         } else if(fProbType == ProblemType::EElastic) {
-            intmat->SetMultiplier(1.);
+            rintmat->SetMultiplier(1.);
         }
         AddInterfaceComputationalElements(cmesh);
     }
@@ -244,6 +247,7 @@ TPZCompMesh* TPZH1ApproxCreator::CreateConstantSpace(const int &lagMult){
 TPZCompMesh *TPZH1ApproxCreator::CreateL2Space()
 {
     TPZCompMesh *L2mesh = new TPZCompMesh(fGeoMesh);
+    int dim = fGeoMesh->Dimension();
     InsertL2MaterialObjects(L2mesh);
     L2mesh->ApproxSpace().SetAllCreateFunctionsContinuous();
     if(fHybridType != HybridizationType::ENone){
@@ -261,21 +265,26 @@ TPZCompMesh *TPZH1ApproxCreator::CreateL2Space()
         return L2mesh;
     }
 
-    int lagMult1 = 1, lagMult2 =1;
+    int lagMult1 = EL2, lagMult2 = EDelayDec;
     if(fShouldCondense && !fIsRBSpaces){
-        lagMult2 = 3;
+        lagMult2 = EAvSol;
         if(fHybridType == HybridizationType::ENone) {
             lagMult1 = lagMult2 =  0;
         }
     }
 
+    int nrigidconnects = 1;
+    if(fProbType == ProblemType::EElastic && dim == 2) nrigidconnects = 2;
+    if(fProbType == ProblemType::EElastic && dim == 3) nrigidconnects = 3;
     int64_t nelem = L2mesh->NElements();
     for (int64_t el = 0; el<nelem; el++) {
         TPZCompEl *cel = L2mesh->Element(el);
         TPZGeoEl *gel = cel->Reference();
         int nconnects = cel->NConnects();
-        cel->Connect(0).SetLagrangeMultiplier(lagMult2);
-        for (int ic=1; ic<nconnects; ic++) {
+        for(int ic = 0; ic<nrigidconnects; ic++) {
+            cel->Connect(ic).SetLagrangeMultiplier(lagMult2);
+        }
+        for (int ic=nrigidconnects; ic<nconnects; ic++) {
             cel->Connect(ic).SetLagrangeMultiplier(lagMult1);
         }
     }
@@ -301,7 +310,8 @@ TPZCompMesh *TPZH1ApproxCreator::CreateL2Space()
         L2mesh->AutoBuild(matids);
     }
 
-    int lagMult3 = 5;
+    /// set the lagrange level of the hybridized flux
+    int lagMult3 = EHybFlux;
     int64_t nelem_big = L2mesh->NElements();
     for (int64_t el = nelem; el<nelem_big; el++) {
         TPZCompEl *cel = L2mesh->Element(el);
@@ -447,7 +457,8 @@ void TPZH1ApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsCompMe
             TPZGeoElSide gelsideflux(gel);
             TPZGeoElSide neighbour = gelsideflux.Neighbour();
             // we only handle the flux element neighbour to second lagrange multiplier
-            if(neighbour.Element()->MaterialId() != fHybridizationData.fSecondInterfaceMatId) continue;
+            if(neighbour.Element()->MaterialId() != fHybridizationData.fSecondLeftInterfaceMatId) continue;
+            // @TODO handle the secondright material id
             TPZGeoElSide anteriorSecondInterface = neighbour; // Second interface before second Lagrange Multiplier
             TPZGeoElSide secondLagrange = anteriorSecondInterface.Neighbour();
             if(secondLagrange.Element()->MaterialId() != fHybridizationData.fSecondLagrangeMatId)
@@ -458,11 +469,13 @@ void TPZH1ApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsCompMe
             }
             else {
                 TPZGeoElSide posteriorSecondInterface = secondLagrange.Neighbour();
-                if(posteriorSecondInterface.Element()->MaterialId() !=  fHybridizationData.fSecondInterfaceMatId) DebugStop();
+                if(posteriorSecondInterface.Element()->MaterialId() !=  fHybridizationData.fSecondLeftInterfaceMatId) DebugStop();
+                // @TODO handle the right interface material id
                 // now we have to find the second flux element
                 TPZGeoElSide lagrangeCandidate = posteriorSecondInterface.HasNeighbour(fHybridizationData.fLagrangeMatId);
                 // if the fluxelement found is the first flux element
                 if(lagrangeCandidate == gelsideflux) {
+                    // we did not find a distinct flux element
                     // we have to find a larger (lower level) flux element
                     lagrangeCandidate = gelsideflux.HasLowerLevelNeighbour(fHybridizationData.fLagrangeMatId);
                     if(!lagrangeCandidate)
@@ -596,6 +609,9 @@ TPZCompMesh *TPZH1ApproxCreator::CreateBoundaryHDivSpace()
     }
 
     int lagMult = 0;
+    // This should be a data of Approx Creator
+    hdivmesh->ApproxSpace().SetHDivFamily(HDivFamily::EHDivConstant);
+    hdivmesh->ApproxSpace().SetHDivFamily(HDivFamily::EHDivStandard);
     hdivmesh->ApproxSpace().SetAllCreateFunctionsHDiv(fGeoMesh->Dimension());
     hdivmesh->ApproxSpace().CreateDisconnectedElements(true);
     hdivmesh->SetDefaultOrder(fDefaultPOrder);
@@ -682,7 +698,8 @@ void TPZH1ApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmes
     mcmesh->ComputeNodElCon();
     if(fHybridType == HybridizationType::EStandard)
     {
-        int lagCTEspace2 = 4;
+        bool rgb = IsRigidBodySpaces();
+        int lagCTEspace2 = EAvSol;
         int64_t nconnects = mcmesh->NConnects();
         for (int64_t ic = 0; ic<nconnects; ic++) {
             TPZConnect &c = mcmesh->ConnectVec()[ic];
@@ -698,6 +715,8 @@ void TPZH1ApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmes
             cond->SetKeepMatrix(false);
         }
     }
+    mcmesh->InitializeBlock();
+    mcmesh->ComputeNodElCon();
 }
 
 void TPZH1ApproxCreator::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &elementgroup)

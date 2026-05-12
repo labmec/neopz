@@ -15,6 +15,24 @@ class TPZMultiphysicsCompMesh;
 enum class HybridizationType {ENone, EStandard, EStandardSquared, ESemi};
 enum class ProblemType {ENone, EElastic, EDarcy, EStokes};
 
+/// @struct TPZHybrid
+/// @brief stores the geometric elements involved in a hybridization
+struct TPZHybrid {
+    /// geometric element associated with the lagrange multiplier
+    int64_t fLagrange;
+    /// left geometric element
+    int64_t fLeft;
+    /// right geometric element
+    int64_t fRight;
+    
+    TPZHybrid() : fLagrange(-1), fLeft(-1), fRight(-1) {
+        
+    }
+    TPZHybrid(int64_t lagrange, int64_t left, int64_t right) : fLagrange(lagrange), fLeft(left), fRight(right)
+    {
+        
+    }
+};
 /// @class TPZApproxCreator
 /// @brief Manages the construction of approximation spaces
 class TPZApproxCreator {
@@ -26,9 +44,11 @@ protected:
     /// Variable controling the problem (Darcy, elasticity, etc.). This may influence the number of compmeshes
     ProblemType fProbType = ProblemType::ENone;
 
-    /// Vector of materials. Will be used to to create the compmeshes
+    /// Vector of materials. Will be used to to create the computational meshes
     std::map<int,TPZMaterial *> fMaterialVec;
 
+    /// number of state variables
+    int fNState = 1;
     /// Pointer to geomesh
     TPZGeoMesh *fGeoMesh = nullptr;
 
@@ -60,13 +80,19 @@ protected:
         int fLagrangeMatId;
 
         /// Material ids generated due second hybridization
-        int fSecondInterfaceMatId;
+        int fSecondLeftInterfaceMatId;
+
+        /// Material ids generated due second hybridization
+        int fSecondRightInterfaceMatId;
 
         /// Matid of second lagrange multiplier, useful in double hybridizations
         int fSecondLagrangeMatId;
 
         /// indicates whether the boundary conditions should be hybridized and how many times it should be
         int fHybridizeBCLevel = 0;
+        
+        /// vector of all interface configurations
+        TPZStack<TPZHybrid,500> fInterfaces;
     };
 
     /// Attribute of struct with all the data regarding hybridization between elements
@@ -93,6 +119,14 @@ public:
     /// Inserts a bc material to the vector of materials of this class. These are used to build the cmeshes
     /// @param mat boundary condition material to be added
     int InsertMaterialObject(TPZBndCond * mat);
+    
+    void SetNState(int nstate) {
+        fNState = nstate;
+    }
+    
+    int NState() {
+        return fNState;
+    }
 
     /// Get/Set GeoMesh
     TPZGeoMesh *GeoMesh(){return fGeoMesh;}

@@ -18,6 +18,8 @@ protected:
     /// Type of H1 family to be used. Currently only standard is available.
     H1Family fH1Fam = H1Family::EH1Standard;
 
+    enum MLagrangeLevel {EL2,EFlux,EDistFlux,EDelayDec,EAvSol,EHybFlux};
+    
 public:
 
     /// Default constructor

@@ -47,16 +47,25 @@ TEST_CASE("Approx Space Creator", "[h1_space_creator_test]") {
     std::cout << "Testing H1 Approx Space Creator \n";
 
     H1Family sType = GENERATE(H1Family::EH1Standard);
-    HybridizationType hybtype = GENERATE(HybridizationType::EStandard);
-    ProblemType pType = GENERATE(ProblemType::EDarcy);
+//    HybridizationType hybtype = GENERATE(HybridizationType::ENone,HybridizationType::EStandardSquared,HybridizationType::EStandard);
+    HybridizationType hybtype = GENERATE(HybridizationType::ENone,HybridizationType::EStandard);
+
+    ProblemType pType = GENERATE(ProblemType::EElastic,ProblemType::EDarcy);
     int pOrder = GENERATE(1,2);
     int plusOrder = GENERATE(2,3);
-    bool isRigidBody = GENERATE(false,true);
-    bool shouldCondense = GENERATE(false,true);
+    bool isRigidBody = GENERATE(true,false);
+    bool shouldCondense = GENERATE(true,false);
 
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
+    std::cout << "H1Family sType " << (int) sType << std::endl;
+    std::cout << "HybridizationType " << (int) hybtype << std::endl;
+    std::cout << "pType " << (int)pType << std::endl;
+    std::cout << "pOrder " << pOrder << std::endl;
+    std::cout << "plusOrder " << (int)plusOrder << std::endl;
+    std::cout << "isRigidBody " << (int)isRigidBody << std::endl;
+    std::cout << "shouldCondense " << (int)shouldCondense << std::endl;
     TestH1ApproxSpaceCreator(sType, hybtype,pType,pOrder, plusOrder, isRigidBody, shouldCondense);
     std::cout << "Finish test H1 Approx Space Creator \n";
 }
@@ -200,11 +209,17 @@ void TestH1ApproxSpaceCreator(H1Family h1Fam, HybridizationType hybtype ,Problem
     InsertMaterials(h1Creator);
 
     TPZCompMesh *cmesh;
-    if(h1Creator.HybridType() == HybridizationType::ENone)
+    if(h1Creator.HybridType() == HybridizationType::ENone) {
         cmesh = h1Creator.CreateClassicH1ApproximationSpace();
-    else
+    } else {
+        h1Creator.SetHybridizeBoundary();
         cmesh = h1Creator.CreateApproximationSpace();
+    }
 
+    {
+        std::ofstream out("cmesh.txt");
+        cmesh->Print(out);
+    }
 #ifdef USE_MAIN
     std::string txt = "cmesh.txt";
     std::ofstream myfile(txt);
@@ -235,6 +250,8 @@ void TestH1ApproxSpaceCreator(H1Family h1Fam, HybridizationType hybtype ,Problem
     {
         std::ofstream out("cmesh.txt");
         cmesh->Print(out);
+        std::ofstream out2("solution.txt");
+        an.Solution().Print("Solution",out2);
     }
     CheckIntegralOverDomain(cmesh,probType,h1Fam);
 
@@ -309,6 +326,9 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, H1Family 
     for (int i = 0; i < ncomp; i++)
     {
         std::cout << "Integral(" << i << ") = "  << vecintp[i] << std::endl;
+    }
+    for (int i = 0; i < ncomp; i++)
+    {
 #ifndef USE_MAIN
         REQUIRE(fabs(vecintp[i]) == Catch::Approx( 4.0 ).margin(1.e-4));
 #endif
