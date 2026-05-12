@@ -24,9 +24,8 @@ protected:
     int64_t fNumInternalEqs = 0;
     int64_t fNumTotalEqs = 0;
     TPZCompEl *fReferenceCompEl;
-    TPZManVector<int64_t,62> fIndexes;
     TPZManVector<int64_t,55> fCondensedConnectIndexes;
-    TPZManVector<int64_t,10> fActiveConnectIndexes;
+    TPZManVector<int64_t,62> fActiveConnectIndexes;
     bool fKeepMatrix = true;
     virtual void Resequence() = 0;
 public:
@@ -63,7 +62,6 @@ public:
 	virtual int64_t ConnectIndex(int i) const override 
     {
         return fActiveConnectIndexes[i];
-//        return fReferenceCompEl->ConnectIndex(fIndexes[i]);
     }
 
     /**
@@ -150,8 +148,6 @@ public:
     }
 
     
-    /// Assemble the stiffness matrix in locally kept datastructure
-    virtual void Assemble() override = 0;
     
     /** @brief Verifies if the material associated with the element is contained in the set */
     virtual bool HasMaterial(const std::set<int> &materialids) const override;
@@ -228,8 +224,6 @@ public:
 									std::map<int64_t,int64_t> & gl2lcElMap) const override;
 
 
-    /// Assemble the stiffness matrix in locally kept datastructure
-    void Assemble() override;
     /** @brief Loads the solution within the internal data structure of the element */ 
 	/** 
 	 * Is used to initialize the solution of connect objects with dependency \n
@@ -256,3 +250,4 @@ public:
 };
 
 #endif
+

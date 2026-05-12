@@ -50,6 +50,17 @@ struct TPZElementMatrixT : public TPZElementMatrix {
     void PermuteGather(TPZVec<int64_t> &permute) override;
 	/** @brief Apply the constraints applied to the nodes by transforming the tangent matrix and right hand side */
 	void ApplyConstraints() override;
+    
+    /// @brief Transfer the uncontrained equations from the constrained matrix to the uncontrained matrix
+    /// this method will change the configuration of the element matrix
+    virtual void MakeUnconstrained() override;
+    
+    /// @brief Transfer the uncontrained equations from the constrained matrix to the uncontrained matrix
+    /// this method will change the configuration of the element matrix
+    /// the resulting matrix will have the indicated order defined by connectindexes
+    virtual void MakeUnconstrained(TPZVec<int64_t> &connectindexes) override;
+    
+
 
     TVar &at(int64_t ibl, int64_t jbl, int idf, int jdf)
     {

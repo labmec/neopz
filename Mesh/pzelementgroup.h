@@ -100,6 +100,9 @@ public:
         return fConnectIndexes.size();
     }
     
+    /// @brief Expand the connect to include the connects which will receive contributions through the constraints
+    void ExpandConnects();
+
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override
     {

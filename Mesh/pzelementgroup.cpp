@@ -427,6 +427,26 @@ bool TPZElementGroup::NeedsComputing(const std::set<int> &matids)
     return result;
 }
 
+/// @brief Expand the connect to include the connects which will receive contributions through the constraints
+void TPZElementGroup::ExpandConnects() {
+  std::set<int64_t> expanded;
+  for (int64_t ic=0; ic<fConnectIndexes.size(); ic++) {
+      int64_t cindex = fConnectIndexes[ic];
+      expanded.insert(cindex);
+      TPZConnect &c = Mesh()->ConnectVec()[cindex];
+      TPZConnect::TPZDependBase *dep = c.FirstDepend();
+      while (dep) {
+          expanded.insert(dep->fDepConnectIndex);
+          dep = dep->fNext;
+      }
+  }
+  fConnectIndexes.Resize(expanded.size());
+  int i=0;
+  for (auto it : expanded) {
+      fConnectIndexes[i++] = it;
+  }
+}
+
 template void TPZElementGroup::CalcStiffInternal<STATE>(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef);
 template void TPZElementGroup::CalcStiffInternal<CSTATE>(TPZElementMatrixT<CSTATE> &ek, TPZElementMatrixT<CSTATE> &ef);
 

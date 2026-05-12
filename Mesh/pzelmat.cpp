@@ -74,7 +74,7 @@ void TPZElementMatrix::ComputeDestinationIndices(){
         int64_t fullmatindex = 0L;
         this->fDestinationIndex.Resize(constrMat.Rows());
         this->fSourceIndex.Resize(constrMat.Rows());
-        int numnod = this->fConstrConnect.NElements();
+        int64_t numnod = this->fConstrConnect.NElements();
         for(int in = 0; in < numnod; in++){
             const int64_t npindex = this->fConstrConnect[in];
             TPZConnect &np = this->fMesh->ConnectVec()[npindex];
@@ -142,3 +142,4 @@ void TPZElementMatrix::BuildDependencyOrder(TPZVec<int64_t> &connectlist, TPZVec
         CurrentOrder++;
     }
 }
+

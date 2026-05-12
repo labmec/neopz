@@ -85,7 +85,16 @@ struct TPZElementMatrix {
 	/** @brief Apply the constraints applied to the nodes by transforming the tangent matrix and right hand side */
 	virtual void ApplyConstraints() = 0;
     
+    /// @brief Transfer the uncontrained equations from the constrained matrix to the uncontrained matrix
+    /// this method will change the configuration of the element matrix
+    virtual void MakeUnconstrained() = 0;
     
+    /// @brief Transfer the uncontrained equations from the constrained matrix to the uncontrained matrix
+    /// this method will change the configuration of the element matrix
+    /// the resulting matrix will have the indicated order defined by connectindexes
+    virtual void MakeUnconstrained(TPZVec<int64_t> &connectindexes) = 0;
+    
+
     /// Compute the dependency order of the connects, considering the one shape restraints
     void BuildDependencyOrder(TPZVec<int64_t> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh);
 
