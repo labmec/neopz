@@ -112,10 +112,10 @@ endif()
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/StrMatrix)
 
-target_sources(pz PRIVATE ${headers} ${sources})
+target_sources(pz PRIVATE ${public_headers} ${sources})
 
 #for doxygen
 foreach(header ${public_headers})
-    list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
+    list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${public_headers}")
 endforeach()
 set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)
