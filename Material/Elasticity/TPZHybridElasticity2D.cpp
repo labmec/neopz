@@ -76,16 +76,18 @@ void TPZHybridElasticity2D::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &da
 {
     TPZFMatrix<REAL> &dphi = datavec[1].dphix;
     int64_t phr = dphi.Cols();
+    TPZFMatrix<REAL> dphixyz(Dimension(),phr);
+    TPZAxesTools<REAL>::Axes2XYZ(dphi,dphixyz,datavec[1].axes);
     
     
     TPZFNMatrix<30,REAL> BMat(3, phr*2, 0.), DBMat(3, phr, 0.);
     TPZFNMatrix<9,REAL> D(3, 3, 0.);
     ComputeD(datavec[0].x, D);
     for (int64_t i = 0; i<phr; i++) {
-        BMat(0,2*i) = dphi(0,i);
-        BMat(2,2*i) = dphi(1,i);
-        BMat(1,2*i+1) = dphi(1,i);
-        BMat(2,2*i+1) = dphi(0,i);
+        BMat(0,2*i) = dphixyz(0,i);
+        BMat(2,2*i) = dphixyz(1,i);
+        BMat(1,2*i+1) = dphixyz(1,i);
+        BMat(2,2*i+1) = dphixyz(0,i);
     }
     D.Multiply(BMat, DBMat);
     ek.AddContribution(0, 0, BMat, 1, DBMat, 0, weight);
@@ -114,7 +116,7 @@ void TPZHybridElasticity2D::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &da
         rigcouple(1,2) = (x[0]-xcenter[0])*weight;
         rigcouple(2,0) = rigcouple(0,2);
         rigcouple(2,1) = rigcouple(1,2);
-        rigcouple(2,2) = (x[0]-xcenter[0])*(x[0]-xcenter[0])+(x[1]-xcenter[1])*(x[1]-xcenter[1])*weight;
+        rigcouple(2,2) = ((x[0]-xcenter[0])*(x[0]-xcenter[0])+(x[1]-xcenter[1])*(x[1]-xcenter[1]))*weight;
         for(int i=0; i<3; i++) for(int j=0; j<3; j++) {
             ek(2*phr+i,2*phr+3+j) += -rigcouple(i,j);
             ek(2*phr+3+i,2*phr+j) += -rigcouple(j,i);
@@ -285,7 +287,7 @@ void TPZHybridElasticity2D::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &
             case 1 :            // Neumann condition
                 for(in = 0 ; in < phr_hybrid; in++) {
                     for(int idf = 0; idf<2; idf++) {
-                        ef(2*in+idf,0) += (STATE)(fBigNumber* phi_flux(in,0) * weight) * v2[idf];
+                        ef(2*in+idf,0) -= (STATE)(fBigNumber* phi_flux(in,0) * weight) * v2[idf];
                         for (jn = 0 ; jn < phr_hybrid; jn++) {
                             ek(2*in+idf,2*jn+idf) += fBigNumber * phi_flux(in,0) * phi_flux(jn,0) * weight;
                         }
