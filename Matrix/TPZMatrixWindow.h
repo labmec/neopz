@@ -36,10 +36,10 @@ public:
      @param mem_area First position of block to be windowed
      @param nrows Number of rows of window
      @param ncols Number of cols of window
-     @param leading_dim Distance in memory between two sucessive rows
+     @param leading_dim Distance in memory between two sucessive cols
      @param size size of memory area (must be able to accomodate nrows*ncols)
    */
-  TPZMatrixWindow(TVar* mem_area, const int nrows, const int ncols, const int leading_dim, const int size_mem);
+  TPZMatrixWindow(TVar* mem_area, const int64_t nrows, const int64_t ncols, const int64_t leading_dim, const int64_t size_mem);
   /**
      @brief Constructs a window based on a memory area
      @param mat original TPZFmatrix
@@ -48,7 +48,7 @@ public:
      @param nrows Number of rows of window
      @param ncols Number of cols of window
    */
-  TPZMatrixWindow(TPZFMatrix<TVar> &mat, const int i, const int j, const int nrows, const int ncols);
+  TPZMatrixWindow(TPZFMatrix<TVar> &mat, const int64_t i, const int64_t j, const int64_t nrows, const int64_t ncols);
 
   //! Multiply itself by a given scalar
   TPZMatrixWindow<TVar> &operator*=(const TVar val) override;

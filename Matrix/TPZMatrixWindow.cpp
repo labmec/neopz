@@ -6,20 +6,20 @@
 #endif
 
 template<class TVar>
-TPZMatrixWindow<TVar>::TPZMatrixWindow(TVar* mem_area, const int nrows, const int ncols,
-                                       const int leading_dim, const int size_mem)
+TPZMatrixWindow<TVar>::TPZMatrixWindow(TVar* mem_area, const int64_t nrows, const int64_t ncols,
+                                       const int64_t leading_dim, const int64_t size_mem)
   : fStorage(mem_area), fLeadingDim(leading_dim)
 {
-  const int nr_orig = leading_dim;
-  const int nc_orig = size_mem/leading_dim;
+  const int64_t nr_orig = leading_dim;
+  const int64_t nc_orig = size_mem/leading_dim;
   CheckConstructor(0,0,nrows,ncols,nr_orig,nc_orig);
   this->fRow = nrows;
   this->fCol = ncols;
 }
 
 template<class TVar>
-TPZMatrixWindow<TVar>::TPZMatrixWindow(TPZFMatrix<TVar> &mat, const int i, const int j,
-                                       const int nrows, const int ncols)
+TPZMatrixWindow<TVar>::TPZMatrixWindow(TPZFMatrix<TVar> &mat, const int64_t i, const int64_t j,
+                                       const int64_t nrows, const int64_t ncols)
   : fLeadingDim(mat.Rows())
 {
   CheckConstructor(i,j,nrows,ncols,mat.Rows(),mat.Cols());
