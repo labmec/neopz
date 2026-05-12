@@ -671,7 +671,7 @@ void TPZCompElHCurl<TSHAPE>::RestrainSideT(int side, TPZInterpolatedElement *lar
     if (sideOrder < largeOrder && thisSideDimension && largeSideDimension) {
         DebugStop();
     }
-    TPZIntPoints *intrule = this->Reference()->CreateSideIntegrationRule(side, maxord * 2);
+    TPZIntPoints *intrule = this->Reference()->CreateSideIntegrationRule(side, (maxord+1) * 2);
     if (!intrule) {
         LOGPZ_ERROR(logger, "Exiting RestrainSide - cannot create side integration rule");
         return;
