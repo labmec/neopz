@@ -46,7 +46,7 @@ using namespace pzshape;
 
 #undef USE_MAIN
 
-//#define EXPORTVTK
+#define EXPORTVTK
 //#define DEBUGTEST
 
 #ifndef USE_MAIN
@@ -85,6 +85,9 @@ TPZCompMesh * CreateCMeshHDiv(TPZGeoMesh* gmesh, int pOrder, const int volId, HD
 TPZCompMesh * CreateCMeshHDiv2(TPZGeoMesh* gmesh, int pOrder, const int volId, HDivFamily hdivfam);
 TPZCompMesh * CreateCMeshHCurl(TPZGeoMesh* gmesh, int pOrder, const int volId, HCurlFamily hcurlfam);
 
+/// @brief group all elments that are siblings of a root element. Then condense the group
+void GroupAndCondenseElements(TPZCompMesh &cmesh);
+
 constexpr const char* STypeToChar(SpaceType stype) {
   switch (stype){
     case SpaceType::EHDivStandard: return "EHDivStandard";
@@ -105,11 +108,12 @@ TEST_CASE("Constrained Space", "[constrained_space_test]") {
     std::cout << "Testing Hanging Nodes \n";
     
     const int xdiv = GENERATE(2);
-    const int pOrder = GENERATE(1,2);
+    const int pOrder = GENERATE(2,1);
+    // apply the constraint transforming the element matrix through a hack in the structural matrix
     const bool applyconstraint = GENERATE(false,true);
-    SpaceType sType = GENERATE(EHDivConstant,EHDivStandard,
-                               EHCurl,
-                               EH1);
+    SpaceType sType = GENERATE(EH1,EHDivConstant,EHDivStandard,
+                               EHCurl
+                               );
     
     TestConstrainedSpace<pzshape::TPZShapeTriang>(xdiv,pOrder,sType, applyconstraint);
     TestConstrainedSpace<pzshape::TPZShapeQuad>(xdiv,pOrder,sType, applyconstraint);
@@ -279,6 +283,14 @@ void TestConstrainedSpace(const int &xdiv, const int &pOrder, SpaceType stype, b
 #endif
     
     CheckElementInterfaces(cmesh);
+    
+    GroupAndCondenseElements(*cmesh);
+#ifdef EXPORTVTK
+    {
+        std::ofstream out("cmesh.txt");
+        cmesh->Print(out);
+    }
+#endif
 
     TPZLinearAnalysis an(cmesh);
     TPZFStructMatrix<> strmat(cmesh);
@@ -560,6 +572,37 @@ void CheckSideOrientation(TPZGeoElSide &thisGeoSide, TPZGeoElSide &largeGeoSide)
 
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
+
+#include "pzelementgroup.h"
+#include "pzcondensedcompel.h"
+/// @brief group all elments that are siblings of a root element. Then condense the group
+void GroupAndCondenseElements(TPZCompMesh &cmesh) {
+    int64_t nel = cmesh.NElements();
+    // for a root element, the set of elements that will be grouped
+    std::map<int64_t,std::set<int64_t>> grouped;
+    for(int64_t el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh.Element(el);
+        TPZGeoEl *gel = cel->Reference();
+        if(!gel) DebugStop();
+        TPZGeoEl *gelfather = gel->LowestFather();
+        int64_t fatherindex = gelfather->Index();
+        grouped[fatherindex].insert(el);
+    }
+    std::set<TPZElementGroup *> groups;
+    for(auto it : grouped) {
+        TPZElementGroup *elgr = new TPZElementGroup(cmesh);
+        groups.insert(elgr);
+        for(auto elindex : it.second) {
+            TPZCompEl *cel = cmesh.Element(elindex);
+            elgr->AddElement(cel);
+        }
+    }
+    cmesh.ComputeNodElCon();
+    for(auto elgr : groups) {
+        TPZCondensedCompElT<STATE> *cond = new TPZCondensedCompElT<STATE>(elgr);
+    }
+    cmesh.CleanUpUnconnectedNodes();
+}
 
 #undef EXPORTVTK
 #undef DEBUGTEST

@@ -127,6 +127,15 @@ public:
         return fEquationFilter.NActiveEquations();
     }
     
+    /// Set the flag for applying restraints internally
+    void SetApplyConstraintInternal(bool flag) {
+        fApplyConstraintsinElmat = flag;
+    }
+    
+    bool ApplyConstraintInternal() {
+        return fApplyConstraintsinElmat;
+    }
+    
     /*! Computes a color for each element.
       \return Number of colors for parallel assembly and the color -1 when the element should not be computed */
     int ComputeElementColors(TPZVec<int> &elementcolors);
@@ -148,6 +157,8 @@ public:
     std::set<int> fMaterialIds;
     //! Object which will determine which equations will be assembled.
     TPZEquationFilter fEquationFilter;
+    /// flag if the constraints need to be applied within the element matrix
+    bool fApplyConstraintsinElmat = false;
 };
 
 

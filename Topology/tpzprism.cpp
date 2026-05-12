@@ -1653,6 +1653,7 @@ namespace pztopology {
         }
         for (int i=0; i<3; i++)
         {
+            // face 0 and face 4
             for (int iv=0; iv<7; iv++)
             {
                 directions(i,iv) = -v3[i]*NormalScales[0]*6.;
@@ -1689,6 +1690,8 @@ namespace pztopology {
             directions(i,32) = -v1[i]*Nv2v3*NormalScales[1];
             directions(i,33) = ( directions(i,30)+directions(i,32) )/2.;
             
+            
+            // directions for the volume shape functions
             //arestas
             directions(i,41) = v1[i]*Nv2v3*NormalScales[1];//
             directions(i,42) = (v2[i]-v1[i])/2.;//*Nvdiag

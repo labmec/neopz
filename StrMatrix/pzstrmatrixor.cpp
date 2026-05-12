@@ -257,13 +257,23 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
             //			test2.Print("matriz de rigidez interface",std::cout);
 
         } else {
+            bool applyconstraint = myself->ApplyConstraintInternal();
             // the element has dependent nodes
             ek.ApplyConstraints();
             ef.ApplyConstraints();
+            if(applyconstraint == true) {
+                ek.MakeUnconstrained();
+                ef.MakeUnconstrained();
+            }
             ek.ComputeDestinationIndices();
             equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
-            stiffness.AddKel(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
-            if(ComputeRhs())rhs.AddFel(ef.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+            if(!applyconstraint) {
+                stiffness.AddKel(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+                if(ComputeRhs())rhs.AddFel(ef.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+            } else {
+                stiffness.AddKel(ek.fMat, ek.fSourceIndex, ek.fDestinationIndex);
+                if(ComputeRhs())rhs.AddFel(ef.fMat, ek.fSourceIndex, ek.fDestinationIndex);
+            }
         }
 
 #ifdef PZ_LOG
@@ -293,8 +303,10 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
             }
             if(ek.HasDependency()){
                 sout << "source index " << ek.fSourceIndex << " destination index " << ek.fDestinationIndex << std::endl;
-                ek.fConstrMat.Print(sout);
-                ef.fConstrMat.Print(sout);
+                ek.fMat.Print("ekOrig = ", sout, EMathematicaInput);
+                ef.fMat.Print("efOrig = ", sout, EMathematicaInput);
+                ek.fConstrMat.Print("ek = ", sout, EMathematicaInput);
+                ef.fConstrMat.Print("ef = ", sout, EMathematicaInput);
             }else{
                 ek.fMat.Print("ek = ", sout, EMathematicaInput);
                 ef.fMat.Print("ef = ", sout, EMathematicaInput);
