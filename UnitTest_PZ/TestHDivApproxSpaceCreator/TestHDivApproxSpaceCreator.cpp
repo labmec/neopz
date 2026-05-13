@@ -9,6 +9,9 @@
 #include <TPZLinearAnalysis.h>
 #include <pzskylstrmatrix.h>
 #include <pzfstrmatrix.h>
+#ifdef PZ_USING_MKL
+#include "TPZSSpStructMatrix.h"
+#endif
 #include "TPZEnumApproxFamily.h"
 
 #include <DarcyFlow/TPZMixedDarcyFlow.h>
@@ -16,7 +19,6 @@
 #include "TPZHDivApproxCreator.h"
 #include "TPZVTKGenerator.h"
 #include "pzbuildmultiphysicsmesh.h"
-#include "TPZSSpStructMatrix.h"
 #include "pzstepsolver.h"
 #include "pzcheckgeom.h"
 #include "pzcheckmesh.h"
@@ -95,6 +97,18 @@ constexpr const char* ProblemTypeToChar(ProblemType ptype) {
     return "Unimplemented item";//silences compiler warning on gcc
 }
 
+constexpr const char* MeshTypeToChar(MMeshType mtype)
+{
+    switch (mtype){
+        case MMeshType::EQuadrilateral: return "EQuadrilateral";
+        case MMeshType::ETriangular: return "ETriangular";
+        case MMeshType::EHexahedral: return "EHexahedral";
+        case MMeshType::ETetrahedral: return "ETetrahedral";
+        default: std::invalid_argument("Unimplemented item");
+    }
+    return "Unimplemented item"; // silences compiler warning on gcc
+}
+
 auto exactSolDarcy = [](const TPZVec<REAL> &loc,
     TPZVec<STATE>&u,
     TPZFMatrix<STATE>&gradU){
@@ -123,34 +137,52 @@ auto exactSolElastic = [](const TPZVec<REAL> &loc,
 
 
 #ifndef USE_MAIN
-TEST_CASE("Approx Space Creator", "[hdiv_space_creator_test][!mayfail]") {
-    std::cout << "Testing HDiv Approx Space Creator \n";
-    
-    // HDivFamily sType = GENERATE(HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
-    HDivFamily sType = GENERATE(HDivFamily::EHDivConstant,HDivFamily::EHDivStandard);
-    ProblemType pType = GENERATE(ProblemType::EDarcy,ProblemType::EElastic);
-    // ProblemType pType = GENERATE(ProblemType::EElastic);
-    int pOrder = GENERATE(1);
-    bool isRBSpaces = GENERATE(false);
-    MMeshType mType = GENERATE(MMeshType::EQuadrilateral,MMeshType::ETriangular,MMeshType::EHexahedral,MMeshType::ETetrahedral);
-    int extraporder = GENERATE(0);
-//    bool isCondensed = GENERATE(true);
-    bool isCondensed = GENERATE(false,true);
-//    HybridizationType hType = GENERATE(HybridizationType::ENone);
-//    HybridizationType hType = GENERATE(HybridizationType::ESemi);
-    HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ESemi,HybridizationType::ENone);
-    // HybridizationType hType = GENERATE(HybridizationType::EStandard,HybridizationType::ENone);
-    bool isRef = GENERATE(true,false);
-    // bool isRef = GENERATE(true);
-    bool isMHM = GENERATE(false);
+TEST_CASE("HDiv Approx Space Creator", "[hdiv_space_creator_test]")
+{
 
-    if (!(isRef && hType == HybridizationType::ESemi) && !(isCondensed && sType == HDivFamily::EHDivConstant) &&
-    !(sType == HDivFamily::EHDivConstant && pType == ProblemType::EElastic && mType == MMeshType::ETetrahedral) &&
-    !(sType != HDivFamily::EHDivConstant && hType == HybridizationType::ESemi))
+    HDivFamily sType = GENERATE(HDivFamily::EHDivConstant, HDivFamily::EHDivStandard, HDivFamily::EHDivOptimized);
+    SECTION("HDiv family type: " + std::string(HDivFamilyToChar(sType)))
     {
-        TestHdivApproxSpaceCreator(sType, pType, pOrder, isRBSpaces, mType, extraporder, isCondensed, hType, isRef, isMHM);
+        ProblemType pType = GENERATE(ProblemType::EDarcy, ProblemType::EElastic);
+        SECTION("Problem type: " + std::string(ProblemTypeToChar(pType)))
+        {
+            int pOrder = GENERATE(1);
+            SECTION("pOrder=" + std::to_string(pOrder))
+            {
+                bool isRBSpaces = GENERATE(true, false);
+                SECTION("isRigidBodySpaces=" + std::to_string(isRBSpaces))
+                {
+                    MMeshType mType = GENERATE(MMeshType::EQuadrilateral, MMeshType::ETriangular, MMeshType::EHexahedral, MMeshType::ETetrahedral);
+                    SECTION("Mesh type: " + std::string(MeshTypeToChar(mType)))
+                    {
+                        int extraporder = GENERATE(0);
+                        SECTION("extraporder=" + std::to_string(extraporder))
+                        {
+                            bool isCondensed = GENERATE(true, false);
+                            SECTION("isCondensed=" + std::to_string(isCondensed))
+                            {
+                                HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::ESemi);
+                                SECTION("Hybridization type: " + std::string(HybridizationTypeToChar(hType)))
+                                {
+                                    bool isRef = GENERATE(true, false);
+                                    SECTION("isRef=" + std::to_string(isRef))
+                                    {
+                                        bool isMHM = false;
+                                        if (!(isRef && hType == HybridizationType::ESemi) && !(isCondensed && sType == HDivFamily::EHDivConstant) &&
+                                            !(sType == HDivFamily::EHDivConstant && pType == ProblemType::EElastic && mType == MMeshType::ETetrahedral) &&
+                                            !(sType != HDivFamily::EHDivConstant && hType == HybridizationType::ESemi))
+                                        {
+                                            TestHdivApproxSpaceCreator(sType, pType, pOrder, isRBSpaces, mType, extraporder, isCondensed, hType, isRef, isMHM);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-    std::cout << "Finish test HDiv Approx Space Creator \n";
 }
 #else
 int main(){
@@ -480,7 +512,11 @@ void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol) {
 #else
     constexpr int nThreads{12};
 #endif
-    TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>> matsp(cmesh);
+#ifdef PZ_USING_MKL
+    TPZSSpStructMatrix<STATE, TPZStructMatrixOR<STATE>> matsp(cmesh);
+#else
+    TPZSkylineStructMatrix<STATE> matsp(cmesh);
+#endif
     matsp.SetNumThreads(nThreads);
 
     std::cout << "\n=====> Number of equations = " << cmesh->NEquations() << std::endl << std::endl;
