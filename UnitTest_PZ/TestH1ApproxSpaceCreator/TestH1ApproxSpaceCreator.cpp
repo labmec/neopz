@@ -22,12 +22,19 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-//#define USE_MAIN
+// #define USE_MAIN
 
+static const std::map<ProblemType, const char *> ProblemNames({{ProblemType::EElastic, "Elasticity"},
+                                                               {ProblemType::EDarcy, "Darcy"}});
+
+static const std::map<HybridizationType, const char *> HybridNames({{HybridizationType::ENone, "None"},
+                                                                    {HybridizationType::EStandard, "Standard"},
+                                                                    {HybridizationType::EStandardSquared, "StandardSquared"}});
 #ifndef USE_MAIN
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators_all.hpp>
 #include <catch2/matchers/catch_matchers_all.hpp>
+#include <catch2/catch_approx.hpp>
 #endif
 
 /// Creates a simple mesh used for testing
@@ -35,7 +42,7 @@ TPZGeoMesh *Create2DGeoMesh();
 
 void InsertMaterials(TPZH1ApproxCreator &approxCreator);
 
-void TestH1ApproxSpaceCreator(H1Family h1Fam, HybridizationType hybType, ProblemType probType, int pOrder, int plusOrder, bool IsRigidBodySpaces,bool shouldCondense);
+void TestH1ApproxSpaceCreator(H1Family h1Fam, HybridizationType hybType, ProblemType probType, int pOrder, int plusOrder, bool IsRigidBodySpaces, bool shouldCondense);
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, H1Family h1fam);
 
@@ -44,39 +51,35 @@ enum MaterialIds {EDomain,EBCDirichlet,EBCNeumann};
 
 #ifndef USE_MAIN
 TEST_CASE("Approx Space Creator", "[h1_space_creator_test]") {
-    std::cout << "Testing H1 Approx Space Creator \n";
-
-    H1Family sType = GENERATE(H1Family::EH1Standard);
-//    HybridizationType hybtype = GENERATE(HybridizationType::ENone,HybridizationType::EStandardSquared,HybridizationType::EStandard);
-    HybridizationType hybtype = GENERATE(HybridizationType::ENone,HybridizationType::EStandard);
-
-    ProblemType pType = GENERATE(ProblemType::EElastic,ProblemType::EDarcy);
-    int pOrder = GENERATE(1,2);
-    int plusOrder = GENERATE(2,3);
-    bool isRigidBody = GENERATE(true,false);
-    bool shouldCondense = GENERATE(true,false);
-
-#ifdef PZ_LOG
-    TPZLogger::InitializePZLOG();
-#endif
-    std::cout << "H1Family sType " << (int) sType << std::endl;
-    std::cout << "HybridizationType " << (int) hybtype << std::endl;
-    std::cout << "pType " << (int)pType << std::endl;
-    std::cout << "pOrder " << pOrder << std::endl;
-    std::cout << "plusOrder " << (int)plusOrder << std::endl;
-    std::cout << "isRigidBody " << (int)isRigidBody << std::endl;
-    std::cout << "shouldCondense " << (int)shouldCondense << std::endl;
-    TestH1ApproxSpaceCreator(sType, hybtype,pType,pOrder, plusOrder, isRigidBody, shouldCondense);
-    std::cout << "Finish test H1 Approx Space Creator \n";
+    H1Family sType = H1Family::EH1Standard;
+    HybridizationType hybtype = GENERATE(HybridizationType::ENone, HybridizationType::EStandard);
+    SECTION("HybridizationType = " + std::string(HybridNames.at(hybtype))) {
+        ProblemType pType = GENERATE(ProblemType::EElastic, ProblemType::EDarcy);
+        SECTION("ProblemType = " + std::string(ProblemNames.at(pType))) {
+            int pOrder = GENERATE(1, 2);
+            SECTION("pOrder=" + std::to_string(pOrder)) {
+                int plusOrder = GENERATE(2, 3);
+                SECTION("plusOrder=" + std::to_string(plusOrder)) {
+                    bool isRigidBody = GENERATE(true, false);
+                    SECTION("isRigidBody=" + std::to_string(isRigidBody)) {
+                        bool shouldCondense = GENERATE(true, false);
+                        SECTION("shouldCondense=" + std::to_string(shouldCondense)) {
+                            TestH1ApproxSpaceCreator(sType, hybtype, pType, pOrder, plusOrder, isRigidBody, shouldCondense);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 #else
-int main(){
+int main() {
 
 #ifdef PZ_LOG
     TPZLogger::InitializePZLOG();
 #endif
     HybridizationType hybtype = HybridizationType::ENone;
-    TestH1ApproxSpaceCreator(H1Family::EH1Standard, hybtype, ProblemType::EDarcy,2, 1, true,true);
+    TestH1ApproxSpaceCreator(H1Family::EH1Standard, hybtype, ProblemType::EDarcy, 2, 1, true, true);
     return 0;
 }
 #endif
