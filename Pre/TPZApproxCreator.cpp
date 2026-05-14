@@ -191,8 +191,14 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
             if(hasLargeElementNeighbour) {
                 // we create the lagrange geometric element (necessarily)
                 // from small to large -> leftinterface
+                if(hasLagrangeElement) DebugStop();
+                TPZGeoElSide lagrange = hasLargeElementNeighbour.HasNeighbour(fHybridizationData.fLagrangeMatId);
+                if(!lagrange) {
+                    TPZGeoElBC gbcLagrange(hasLargeElementNeighbour,fHybridizationData.fLagrangeMatId);
+                    lagrange = TPZGeoElSide(gbcLagrange.CreatedElement());
+                }
                 TPZGeoElBC gbc(gelside,leftinterface);
-                int64_t lagr_id = hasLargeElementNeighbour.Element()->Index();
+                int64_t lagr_id = lagrange.Element()->Index();
                 int64_t int_id = gbc.CreatedElement()->Index();
                 int64_t wrap_id = gel->Index();
                 TPZHybrid hybrid(int_id,wrap_id,lagr_id);
@@ -208,8 +214,13 @@ void TPZApproxCreator::AddHybridizationGeoElements(){
                 
                 // we create the lagrange geometric element if there is no boundary element as neighbour
                 if(!hasbcNeighbour) { // if there is a BC element, it will act as lagrange element
-                    TPZGeoElBC gbcLagrange(gbc.CreatedElement(),fHybridizationData.fLagrangeMatId);
-                    int64_t lagr_id = gbc.CreatedElement()->Index();
+                    int64_t lagr_id = -1;
+                    if(hasLagrangeElement) {
+                        lagr_id = hasLagrangeElement.Element()->Index();
+                    } else {
+                        TPZGeoElBC gbcLagrange(gbc.CreatedElement(),fHybridizationData.fLagrangeMatId);
+                        lagr_id = gbcLagrange.CreatedElement()->Index();
+                    }
                     TPZHybrid hybrid(int_id,wrap_id,lagr_id);
                     AddHybridGeometry(int_id,hybrid);
                 } else { // connected to a boundary element
@@ -533,6 +544,7 @@ void TPZApproxCreator::SetMeshElementType(){
 
 /// Add a hybrid geometric configuration
 void TPZApproxCreator::AddHybridGeometry(int64_t interface_id, TPZHybrid &hybrid) {
+//    std::cout << "AddHybridG adding interface " << interface_id << " left " << hybrid.fLeft << " right " << hybrid.fRight << std::endl;
 #ifdef PZDEBUG
     if(fHybridizationData.fInterfaces.find(interface_id) != fHybridizationData.fInterfaces.end()) {
         DebugStop();
@@ -543,7 +555,7 @@ void TPZApproxCreator::AddHybridGeometry(int64_t interface_id, TPZHybrid &hybrid
 
 /// Add a hybrid geometric configuration
 void AddHybrid(std::map<int64_t,TPZHybrid> &tree, int64_t interface_id, TPZHybrid &hybrid) {
-    std::cout << "Hybrid adding interface " << interface_id << " left " << hybrid.fLeft << " right " << hybrid.fRight << std::endl;
+//    std::cout << "Hybrid adding interface " << interface_id << " left " << hybrid.fLeft << " right " << hybrid.fRight << std::endl;
 #ifdef PZDEBUG
     if(tree.find(interface_id) != tree.end()) {
         DebugStop();
