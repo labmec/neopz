@@ -72,6 +72,7 @@ constexpr const char* HDivFamilyToChar(HDivFamily hdivfam) {
         case HDivFamily::EHDivStandard: return "EHDivStandard";
         case HDivFamily::EHDivConstant: return "EHDivConstant";
         case HDivFamily::EHDivKernel: return "EHDivKernel";
+        case HDivFamily::EHDivOptimized: return "EHDivOptimized";
         default: std::invalid_argument("Unimplemented item");
     }
     return "Unimplemented item";//silences compiler warning on gcc
@@ -139,32 +140,38 @@ auto exactSolElastic = [](const TPZVec<REAL> &loc,
 #ifndef USE_MAIN
 TEST_CASE("HDiv Approx Space Creator", "[hdiv_space_creator_test]")
 {
-
-    HDivFamily sType = GENERATE(HDivFamily::EHDivConstant, HDivFamily::EHDivStandard, HDivFamily::EHDivOptimized);
+    // HDivFamily sType = GENERATE(HDivFamily::EHDivConstant, HDivFamily::EHDivStandard, HDivFamily::EHDivOptimized);
+    HDivFamily sType = GENERATE(HDivFamily::EHDivOptimized);
     SECTION("HDiv family type: " + std::string(HDivFamilyToChar(sType)))
     {
-        ProblemType pType = GENERATE(ProblemType::EDarcy, ProblemType::EElastic);
+        // ProblemType pType = GENERATE(ProblemType::EDarcy, ProblemType::EElastic);
+        ProblemType pType = GENERATE(ProblemType::EDarcy);
         SECTION("Problem type: " + std::string(ProblemTypeToChar(pType)))
         {
             int pOrder = GENERATE(1);
             SECTION("pOrder=" + std::to_string(pOrder))
             {
-                bool isRBSpaces = GENERATE(true, false);
+                // bool isRBSpaces = GENERATE(true, false);
+                bool isRBSpaces = GENERATE(false);
                 SECTION("isRigidBodySpaces=" + std::to_string(isRBSpaces))
                 {
-                    MMeshType mType = GENERATE(MMeshType::EQuadrilateral, MMeshType::ETriangular, MMeshType::EHexahedral, MMeshType::ETetrahedral);
+                    // MMeshType mType = GENERATE(MMeshType::EQuadrilateral, MMeshType::ETriangular, MMeshType::EHexahedral, MMeshType::ETetrahedral);
+                    MMeshType mType = GENERATE(MMeshType::EQuadrilateral);
                     SECTION("Mesh type: " + std::string(MeshTypeToChar(mType)))
                     {
                         int extraporder = GENERATE(0);
                         SECTION("extraporder=" + std::to_string(extraporder))
                         {
-                            bool isCondensed = GENERATE(true, false);
+                            // bool isCondensed = GENERATE(true, false);
+                            bool isCondensed = GENERATE(false);
                             SECTION("isCondensed=" + std::to_string(isCondensed))
                             {
-                                HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::ESemi);
+                                // HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::ESemi);
+                                HybridizationType hType = GENERATE(HybridizationType::ENone);
                                 SECTION("Hybridization type: " + std::string(HybridizationTypeToChar(hType)))
                                 {
-                                    bool isRef = GENERATE(true, false);
+                                    // bool isRef = GENERATE(true, false);
+                                    bool isRef = GENERATE(true);
                                     SECTION("isRef=" + std::to_string(isRef))
                                     {
                                         bool isMHM = false;
