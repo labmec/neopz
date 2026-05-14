@@ -204,8 +204,8 @@ void TestH1ApproxSpaceCreator(H1Family h1Fam, HybridizationType hybtype ,Problem
     TPZH1ApproxCreator h1Creator(gmesh);
 
     h1Creator.SetShouldCondense(shouldCondense);
-    h1Creator.HybridType() = hybtype;
-    h1Creator.ProbType() = probType;
+    h1Creator.SetHybridType(hybtype);
+    h1Creator.SetProbType(probType);
     h1Creator.IsRigidBodySpaces() = IsRigidBodySpaces;
     h1Creator.SetDefaultOrder(pOrder);
     h1Creator.SetExtraInternalOrder(plusOrder);
