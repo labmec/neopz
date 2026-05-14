@@ -69,34 +69,54 @@ protected:
 
     /// Struct with all the data regarding hybridization between elements
     struct HybridizationData{
+        
+        HybridizationData(const HybridizationData &copy) = default;
+        
+        HybridizationData() {
+            
+        }
+        
+        HybridizationData &operator=(const HybridizationData &copy) = default;
+        
+        /// compute the lagrange multiplier coeficients as a function of the problem type and hybridization
+        void SetProblemHybrid(ProblemType prob, HybridizationType &hybrid);
+        
         /// Matid of element at the border or higher domain element
         int fWrapMatId = -123456; // to check if it has been initialized
 
         /// Matid of element at the interface between elements
-        int fLeftInterfaceMatId;
-        int fRightInterfaceMatId;
+        int fLeftInterfaceMatId = -123456;
+        int fRightInterfaceMatId = -123456;
 
         /// Matid of lagrange multiplier element
-        int fLagrangeMatId;
+        int fLagrangeMatId = -123456;
 
         /// Material ids generated due second hybridization
-        int fSecondLeftInterfaceMatId;
+        int fSecondLeftInterfaceMatId = -123456;
 
         /// Material ids generated due second hybridization
-        int fSecondRightInterfaceMatId;
+        int fSecondRightInterfaceMatId = -123456;
 
         /// Matid of second lagrange multiplier, useful in double hybridizations
-        int fSecondLagrangeMatId;
+        int fSecondLagrangeMatId = -123456;
 
         /// indicates whether the boundary conditions should be hybridized and how many times it should be
         int fHybridizeBCLevel = 0;
         
-        /// vector of all interface configurations
-        TPZStack<TPZHybrid,500> fInterfaces;
+        /// Vector of multipliers associated with the interface elements.
+        /// The multipliers are influenced by the type of problem and whether the hybridization is simple or squared
+        /// The order is left, right, second left, second right
+        TPZManVector<REAL,4> fMultipliers = {0.,0.,0.,0.};
+        
+        /// map linking the element index of an interface to left and right elements
+        std::map<int64_t,TPZHybrid> fInterfaces;
     };
 
     /// Attribute of struct with all the data regarding hybridization between elements
     HybridizationData fHybridizationData;
+    
+    /// Add a hybrid geometric configuration
+    void AddHybridGeometry(int64_t interface_id, TPZHybrid &hybrid);
 
     /// Predominant GeoMesh dimension element
     MElementType fElementType = MElementType::ENoType;
@@ -134,22 +154,30 @@ public:
     const TPZGeoMesh *GeoMesh() const {return fGeoMesh;}
 
     /// Get/Set Hybridization type
-    HybridizationType &HybridType(){return fHybridType;}
+    HybridizationType HybridType() const {return fHybridType;}
     /// Get Hybridization type
-    const HybridizationType &HybridType() const {return fHybridType;}
+    void SetHybridType(HybridizationType hybrid)  {
+        fHybridType = hybrid;
+        fHybridizationData.SetProblemHybrid(fProbType, fHybridType);
+    }
 
     /// Get/Set Enhanced spaces
     bool &IsRigidBodySpaces(){return fIsRBSpaces;}
     /// Get Enhanced spaces
     const bool &IsRigidBodySpaces() const {return fIsRBSpaces;}
     
-    HybridizationData& HybridData() {return fHybridizationData;}
-    const HybridizationData& HybridData() const {return fHybridizationData;}
+    HybridizationData HybridData() const {return fHybridizationData;}
+    void SetHybridData(const HybridizationData &copy) {
+        fHybridizationData = copy;
+    }
 
     /// Get/Set Problem type
-    ProblemType &ProbType(){return fProbType;}
+    void SetProbType(ProblemType prob){
+        fProbType = prob;
+        fHybridizationData.SetProblemHybrid(fProbType, fHybridType);
+    }
     /// Get Problem type
-    const ProblemType &ProbType() const {return fProbType;}
+    const ProblemType ProbType() const {return fProbType;}
 
     /// return number of meshes
     const int NumMeshes() const {return fNumMeshes;}
@@ -187,7 +215,7 @@ public:
     
     /// Sets if should hybridize boundary
     void SetHybridizeBoundary() {
-        if(fHybridType == HybridizationType::EStandardSquared) fHybridizationData.fHybridizeBCLevel = 2;
+        if(fHybridType == HybridizationType::EStandardSquared) fHybridizationData.fHybridizeBCLevel = 1;
         else if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::ESemi) fHybridizationData.fHybridizeBCLevel = 1;
         else{
             std::cout << "ERROR! Please set a hybridization type before calling SetToHybridizeBoundary()" << std::endl;
@@ -205,6 +233,9 @@ protected:
 
     /// Adds the geo els related to the hybridization
     void AddHybridizationGeoElements();
+    
+    /// Add geometric elements to represent squared hybridization
+    void AddHybridSquareGeoElements();
 
     ///This method checks if the current configuration is valid
     virtual void CheckSetupConsistency() = 0;

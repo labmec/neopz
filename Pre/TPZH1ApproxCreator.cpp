@@ -416,6 +416,50 @@ void TPZH1ApproxCreator::AddInterfaceComputationalElements(TPZMultiphysicsCompMe
     std::map<int,int> numcreated;
 #endif
     TPZGeoMesh *gmesh = mphys->Reference();
+    int meshdim = gmesh->Dimension();
+    gmesh->ResetReference();
+    mphys->LoadReferences();
+    for (auto &it : fHybridizationData.fInterfaces) {
+        int64_t leftindex = it.second.fLeft;
+        int64_t rightindex = it.second.fRight;
+        TPZGeoEl *leftgel = fGeoMesh->Element(leftindex);
+        TPZGeoEl *rightgel = fGeoMesh->Element(rightindex);
+        TPZGeoEl *interfacegel = fGeoMesh->Element(it.first);
+        if(leftgel->Dimension() != meshdim-1 || rightgel->Dimension() != meshdim-1) {
+            DebugStop();
+        }
+        TPZCompEl *leftcel = leftgel->Reference();
+        TPZCompEl *rightcel = rightgel->Reference();
+        if(!leftcel || !rightcel) {
+            DebugStop();
+        }
+        int nsides = leftgel->NSides();
+        TPZCompElSide leftcelside(leftcel,nsides-1);
+        TPZCompElSide rightcelside(rightcel,nsides-1);
+        int interfacematid = interfacegel->MaterialId();
+
+        new TPZMultiphysicsInterfaceElement(*mphys,interfacegel,leftcelside,rightcelside);
+#ifdef LOG4CXX
+            numcreated[interfacematid]++;
+#endif
+    }
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << __PRETTY_FUNCTION__ << "Number of computational interface elements created by material id\n";
+        for(auto it : numcreated) sout << "Material id " << it.first << " number of elements created " << it.second << std::endl;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+}
+
+void TPZH1ApproxCreator::AddInterfaceComputationalElementsBackup(TPZMultiphysicsCompMesh *mphys)
+{
+#ifdef LOG4CXX
+    std::map<int,int> numcreated;
+#endif
+    TPZGeoMesh *gmesh = mphys->Reference();
     gmesh->ResetReference();
     mphys->LoadReferences();
     int64_t nel = mphys->NElements();
@@ -745,6 +789,7 @@ void TPZH1ApproxCreator::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &
         }
     }
 
+    std::cout << "group index 8 " << groupindex[8] << std::endl;
     int numloops = 1;
     if( fHybridType == HybridizationType::EStandardSquared) numloops = 2;
     // this loop will associate a first layer of interface elements to the group
@@ -764,9 +809,32 @@ void TPZH1ApproxCreator::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &
             int matid = cel->Reference()->MaterialId();
             int64_t celindex = cel->Index();
 
-            TPZVec<int> connectgroup(connectlist.size());
-            for(int i=0; i<connectlist.size(); i++) connectgroup[i] = groupindex[connectlist[i]];
+            TPZManVector<int> connectgroup(connectlist.size());
+            for(int i=0; i<connectlist.size(); i++) {
+                int64_t cindex = connectlist[i];
+                connectgroup[i] = groupindex[cindex];
+            }
             int64_t groupfound = -1;
+#ifdef PZDEBUG
+            {
+                std::set<int64_t> groups;
+                for(auto cindex : connectlist) {
+                    if(groupindex[cindex] != -1) {
+                        groups.insert(groupindex[cindex]);
+                    }
+                }
+                if(groups.size() > 1) {
+                    std::cout << "the connects of element " << celindex << " belong to different groups\n";
+                    for(auto cindex : connectlist) std::cout << "cindex " << cindex << " group " << groupindex[cindex] << std::endl;
+                    {
+                        cmesh->ComputeNodElCon();
+                        std::ofstream out("cmesh.txt");
+                        cmesh->Print(out);
+                    }
+                    DebugStop();
+                }
+            }
+#endif
             for (auto cindex : connectlist) {
                 if (groupindex[cindex] != -1) {
                     elementgroup[celindex] = groupindex[cindex];
