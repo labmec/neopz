@@ -290,11 +290,14 @@ void TPZCondensedCompElT<TVar>::Resequence()
   TPZStack<int64_t> notcondensed;
   TPZStack<int64_t> active;
   int nint = 0, next = 0;
-  int64_t ncon = fReferenceCompEl->NConnects();
-  for (int i = 0; i < ncon; ++i)
+    std::set<int64_t> allconnects;
+    fReferenceCompEl->BuildConnectList(allconnects);
+    int64_t ncon = allconnects.size();
+  for (int64_t cindex : allconnects)
   {
-    TPZConnect &c = fReferenceCompEl->Connect(i);
-    int64_t cindex = fReferenceCompEl->ConnectIndex(i);
+//    TPZConnect &c = fReferenceCompEl->Connect(i);
+//    int64_t cindex = fReferenceCompEl->ConnectIndex(i);
+      TPZConnect &c = Mesh()->ConnectVec()[cindex];
     //        if(c.NElConnected() == 1 && c.HasDependency() == 0 && depreceive.find(cindex) == depreceive.end())
     if (c.NElConnected() == 1 && c.HasDependency() == 0)
     {
@@ -309,18 +312,18 @@ void TPZCondensedCompElT<TVar>::Resequence()
         std::cout << "Not Implemented yet\n";
         DebugStop();
       }
-      condensed.Push(i);
+      condensed.Push(cindex);
       nint += c.NDof();
     }
     else // the connect is not condensed (either with or without dependency
     {
       // either way it is put in notcondensed
-      notcondensed.Push(i);
+      notcondensed.Push(cindex);
       if (!c.HasDependency())
       {
         // if the connect has no dependencies it is part of the stiffness matrix
         next += c.NDof();
-        active.Push(i);
+        active.Push(cindex);
       }
     }
   }
@@ -332,13 +335,13 @@ void TPZCondensedCompElT<TVar>::Resequence()
   fCondensedConnectIndexes.Resize(ncond);
   for (int64_t i = 0; i < ncond; ++i)
   {
-    fCondensedConnectIndexes[i] = fReferenceCompEl->ConnectIndex((int)condensed[i]);
+    fCondensedConnectIndexes[i] = condensed[i];
   }
   const int64_t nactive = static_cast<int64_t>(active.size());
   fActiveConnectIndexes.Resize(nactive);
   for (int64_t i = 0; i < nactive; ++i)
   {
-    fActiveConnectIndexes[i] = fReferenceCompEl->ConnectIndex((int)active[i]);
+    fActiveConnectIndexes[i] = active[i];
   }
 
   // TPZAutoPointer<TPZMatrix<TVar> > k00 = new TPZFMatrix<TVar>(nint,nint,0.);
