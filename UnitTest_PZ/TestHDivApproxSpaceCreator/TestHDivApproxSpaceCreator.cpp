@@ -499,7 +499,11 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     // Checks if the integral over the domain is a known value (most of the cases a constant value so just the volume of the domain)
     CheckIntegralOverDomain(cmesh,probType,hdivFam);
     // Checks if error with respect to exact solution is close to 0
-    TPZManVector<REAL,5> error;
+    TPZMaterial *mat = cmesh->FindMaterial(EDomain);
+    TPZMatErrorCombinedSpaces<STATE>* materror = dynamic_cast<TPZMatErrorCombinedSpaces<STATE>*>(mat);
+    if (!materror) DebugStop();
+    int nerror = materror->NEvalErrors();
+    TPZManVector<REAL,5> error(nerror);
     CheckError(cmesh,error,probType);
     
     cout << "\n------------------ Test ended without crashing ------------------" << endl;
