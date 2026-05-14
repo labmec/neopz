@@ -508,7 +508,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
             TPZShapeHDivBound<pzshape::TPZShapeLinear>::Initialize(ids,connectOrder,sideorient,shapedata);
             nsideshape = TPZShapeHDivBound<pzshape::TPZShapeLinear>::NShape(shapedata);
         } else 
-        if (fhdivfam == HDivFamily::EHDivConstant){
+        if (fhdivfam == HDivFamily::EHDivConstant || fhdivfam == HDivFamily::EHDivOptimized){
             TPZShapeHDivConstantBound<pzshape::TPZShapeLinear>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
             nsideshape = TPZShapeHDivConstantBound<pzshape::TPZShapeLinear>::ComputeNConnectShapeF(0,connectOrder);
         } else {
@@ -521,7 +521,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
             TPZShapeHDivBound<pzshape::TPZShapeTriang>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
             nsideshape = TPZShapeHDivBound<pzshape::TPZShapeTriang>::NShape(shapedata);
         } else 
-        if (fhdivfam == HDivFamily::EHDivConstant){
+        if (fhdivfam == HDivFamily::EHDivConstant || fhdivfam == HDivFamily::EHDivOptimized){
             TPZShapeHDivConstantBound<pzshape::TPZShapeTriang>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
             nsideshape = TPZShapeHDivConstantBound<pzshape::TPZShapeTriang>::ComputeNConnectShapeF(0,connectOrder);
         } else {
@@ -534,7 +534,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
             TPZShapeHDivBound<pzshape::TPZShapeQuad>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
             nsideshape = TPZShapeHDivBound<pzshape::TPZShapeQuad>::NShape(shapedata);
         } else 
-        if (fhdivfam == HDivFamily::EHDivConstant){
+        if (fhdivfam == HDivFamily::EHDivConstant || fhdivfam == HDivFamily::EHDivOptimized){
             TPZShapeHDivConstantBound<pzshape::TPZShapeQuad>::Initialize(ids,connectOrder,fSideOrient[connectlocid],shapedata);
             nsideshape = TPZShapeHDivConstantBound<pzshape::TPZShapeQuad>::ComputeNConnectShapeF(0,connectOrder);
         } else {
@@ -555,7 +555,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
         if (fhdivfam == HDivFamily::EHDivStandard){
             TPZShapeHDivBound<pzshape::TPZShapeLinear>::Shape(point, shapedata, philoc);
         } else 
-        if (fhdivfam == HDivFamily::EHDivConstant){
+        if (fhdivfam == HDivFamily::EHDivConstant || fhdivfam == HDivFamily::EHDivOptimized){
             TPZShapeHDivConstantBound<pzshape::TPZShapeLinear>::Shape(point, shapedata, philoc);
         } else {
             DebugStop();
@@ -565,7 +565,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
         if (fhdivfam == HDivFamily::EHDivStandard){
             TPZShapeHDivBound<pzshape::TPZShapeTriang>::Shape(point, shapedata, philoc);
         } else 
-        if (fhdivfam == HDivFamily::EHDivConstant){
+        if (fhdivfam == HDivFamily::EHDivConstant || fhdivfam == HDivFamily::EHDivOptimized){
             TPZShapeHDivConstantBound<pzshape::TPZShapeTriang>::Shape(point, shapedata, philoc);
         } else {
             DebugStop();
@@ -575,7 +575,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
         if (fhdivfam == HDivFamily::EHDivStandard){
             TPZShapeHDivBound<pzshape::TPZShapeQuad>::Shape(point, shapedata, philoc);
         } else 
-        if (fhdivfam == HDivFamily::EHDivConstant){
+        if (fhdivfam == HDivFamily::EHDivConstant || fhdivfam == HDivFamily::EHDivOptimized){
             TPZShapeHDivConstantBound<pzshape::TPZShapeQuad>::Shape(point, shapedata, philoc);
         } else {
             DebugStop();
