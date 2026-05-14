@@ -35,6 +35,9 @@ public:
 	/** The new geometric element is inserted in mesh and a pointer to it is stored here. */
 	TPZGeoElBC(const TPZGeoElSide &elside,int matid);
     
+    /// @brief Creates a geometric element neighbour on the created element with matid
+    /// @param gbc object that created a boundary geometric element
+    /// @param matid matid of the new element
     TPZGeoElBC(const TPZGeoElBC &gbc, int matid);
 	
 	/** @brief Recovers pointer to the geometric element created */
