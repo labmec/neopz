@@ -321,7 +321,7 @@ void InsertMaterials(TPZHDivApproxCreator &approxCreator, ProblemType &ptype){
     }
     const int dim = approxCreator.GeoMesh()->Dimension();
 
-    approxCreator.ProbType() = ptype;
+    approxCreator.SetProbType(ptype);
 
     TPZMaterial *mat = nullptr;
     TPZMixedDarcyFlow* matdarcy = nullptr;
@@ -466,12 +466,12 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
         hdivCreator = new TPZHDivApproxCreator(gmesh);
     }
     hdivCreator->HdivFamily() = hdivFam;
-    hdivCreator->ProbType() = probType;
+    hdivCreator->SetProbType(probType);
     hdivCreator->IsRigidBodySpaces() = isRigidBodySpaces;
     hdivCreator->SetDefaultOrder(pOrder);
     hdivCreator->SetExtraInternalOrder(extrapOrder);
     hdivCreator->SetShouldCondense(isCondensed);
-    hdivCreator->HybridType() = hType;
+    hdivCreator->SetHybridType(hType);
 //    hdivCreator->SetHybridizeBoundary();
     InsertMaterials(*hdivCreator,probType);
     TPZMultiphysicsCompMesh *cmesh = hdivCreator->CreateApproximationSpace();
