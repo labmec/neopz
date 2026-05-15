@@ -49,6 +49,10 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
                                 bool isRigidBodySpaces, MMeshType mType, int extrapOrder,
                                 bool isCondensed, HybridizationType hType, bool isRef, bool isMHM);
 
+void TestHdivApproxSpaceCreator2(HDivFamily hdivFam, ProblemType probType, int pOrder,
+                                bool isRigidBodySpaces, MMeshType mType, int extrapOrder,
+                                bool isCondensed, HybridizationType hType, bool isRef, bool isMHM);
+
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, HDivFamily hdivfam);
 
 void CheckError(TPZMultiphysicsCompMesh *cmesh, TPZVec<REAL> &error, ProblemType pType);
@@ -64,6 +68,8 @@ void PostProcessVTK(TPZMultiphysicsCompMesh* cmesh, ProblemType probType);
 void CheckNEqCondensedProb(TPZMultiphysicsCompMesh* mpcmesh,
                            TPZHDivApproxCreator& hdivcreator,
                            MMeshType& elType);
+
+void SetConstantPrimalSol(TPZMultiphysicsCompMesh* cmesh, ProblemType probType, bool isRigidBodySpaces);
 
 enum MaterialIds {EDomain,EBCDirichlet,EBCNeumann,EBCDisplacementLeft,EBCDisplacementRight};
 
@@ -141,7 +147,7 @@ auto exactSolElastic = [](const TPZVec<REAL> &loc,
 TEST_CASE("HDiv Approx Space Creator", "[hdiv_space_creator_test]")
 {
     // HDivFamily sType = GENERATE(HDivFamily::EHDivConstant, HDivFamily::EHDivStandard, HDivFamily::EHDivOptimized);
-    HDivFamily sType = GENERATE(HDivFamily::EHDivOptimized);
+    HDivFamily sType = GENERATE(HDivFamily::EHDivConstant);
     SECTION("HDiv family type: " + std::string(HDivFamilyToChar(sType)))
     {
         // ProblemType pType = GENERATE(ProblemType::EDarcy, ProblemType::EElastic);
@@ -167,11 +173,11 @@ TEST_CASE("HDiv Approx Space Creator", "[hdiv_space_creator_test]")
                             SECTION("isCondensed=" + std::to_string(isCondensed))
                             {
                                 // HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::ESemi);
-                                HybridizationType hType = GENERATE(HybridizationType::ENone);
+                                HybridizationType hType = GENERATE(HybridizationType::ESemi);
                                 SECTION("Hybridization type: " + std::string(HybridizationTypeToChar(hType)))
                                 {
-                                    // bool isRef = GENERATE(true, false);
-                                    bool isRef = GENERATE(true);
+                                    bool isRef = GENERATE(true, false);
+                                    // bool isRef = GENERATE(true);
                                     SECTION("isRef=" + std::to_string(isRef))
                                     {
                                         bool isMHM = false;
@@ -180,6 +186,60 @@ TEST_CASE("HDiv Approx Space Creator", "[hdiv_space_creator_test]")
                                             !(sType != HDivFamily::EHDivConstant && hType == HybridizationType::ESemi))
                                         {
                                             TestHdivApproxSpaceCreator(sType, pType, pOrder, isRBSpaces, mType, extraporder, isCondensed, hType, isRef, isMHM);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+TEST_CASE("Rigid Body", "[hdiv_space_creator_test]")
+{
+    // HDivFamily sType = GENERATE(HDivFamily::EHDivConstant, HDivFamily::EHDivStandard, HDivFamily::EHDivOptimized);
+    HDivFamily sType = GENERATE(HDivFamily::EHDivConstant);
+    SECTION("HDiv family type: " + std::string(HDivFamilyToChar(sType)))
+    {
+        // ProblemType pType = GENERATE(ProblemType::EDarcy, ProblemType::EElastic);
+        ProblemType pType = GENERATE(ProblemType::EDarcy);
+        SECTION("Problem type: " + std::string(ProblemTypeToChar(pType)))
+        {
+            int pOrder = GENERATE(1);
+            SECTION("pOrder=" + std::to_string(pOrder))
+            {
+                // bool isRBSpaces = GENERATE(true, false);
+                bool isRBSpaces = GENERATE(false);
+                SECTION("isRigidBodySpaces=" + std::to_string(isRBSpaces))
+                {
+                    // MMeshType mType = GENERATE(MMeshType::EQuadrilateral, MMeshType::ETriangular, MMeshType::EHexahedral, MMeshType::ETetrahedral);
+                    MMeshType mType = GENERATE(MMeshType::EQuadrilateral);
+                    SECTION("Mesh type: " + std::string(MeshTypeToChar(mType)))
+                    {
+                        int extraporder = GENERATE(0);
+                        SECTION("extraporder=" + std::to_string(extraporder))
+                        {
+                            // bool isCondensed = GENERATE(true, false);
+                            bool isCondensed = GENERATE(false);
+                            SECTION("isCondensed=" + std::to_string(isCondensed))
+                            {
+                                // HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::ESemi);
+                                HybridizationType hType = GENERATE(HybridizationType::ESemi);
+                                SECTION("Hybridization type: " + std::string(HybridizationTypeToChar(hType)))
+                                {
+                                    bool isRef = GENERATE(true, false);
+                                    // bool isRef = GENERATE(true);
+                                    SECTION("isRef=" + std::to_string(isRef))
+                                    {
+                                        bool isMHM = false;
+                                        if (!(isRef && hType == HybridizationType::ESemi) && !(isCondensed && sType == HDivFamily::EHDivConstant) &&
+                                            !(sType == HDivFamily::EHDivConstant && pType == ProblemType::EElastic && mType == MMeshType::ETetrahedral) &&
+                                            !(sType != HDivFamily::EHDivConstant && hType == HybridizationType::ESemi))
+                                        {
+                                            TestHdivApproxSpaceCreator2(sType, pType, pOrder, isRBSpaces, mType, extraporder, isCondensed, hType, isRef, isMHM);
                                         }
                                     }
                                 }
@@ -517,6 +577,130 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     std::cout << "==> Total time: " << totaltime.ReturnTimeDouble()/1000. << " seconds" << std::endl << endl;
 }
 
+void TestHdivApproxSpaceCreator2(HDivFamily hdivFam, ProblemType probType, int pOrder,
+                                 bool isRigidBodySpaces, MMeshType mType, int extrapOrder,
+                                 bool isCondensed, HybridizationType hType, bool isRef, bool isMHM){
+
+    
+    TPZSimpleTimer totaltime;
+    // ==========> Initial headers <==========
+    // =======================================
+    static int globcount = 0;
+    cout << "\n------------------ Starting test " << globcount++ << " ------------------" << endl;
+    cout << "HdivFam = " << HDivFamilyToChar(hdivFam) <<
+    "\nProblemType = " << ProblemTypeToChar(probType) <<
+    "\npOrder = " << pOrder << "\nisRBSpaces = " << std::boolalpha << isRigidBodySpaces << 
+    "\nMeshType = " << mType << "\nExtra POrder = " << extrapOrder <<
+    "\nisCondensed = " << std::boolalpha << isCondensed <<
+    "\nHybridization type = " << HybridizationTypeToChar(hType) <<
+    "\nisRef = " << std::boolalpha << isRef << endl << endl;
+    
+    // TODO: WARNING!!!! Things to be fixed and for now we are skipping
+     if(isCondensed && hdivFam == HDivFamily::EHDivConstant){
+         std::cout << "\n\t======> WARNING! Condensing hdivconst spaces leads to singular K00. This happens because of the rotation space that has linear and constant functions."
+         " One option is to separate the linear and constant functions is two different spaces. Please implement before using." << std::endl;
+         cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
+         DebugStop();
+         return;
+     }
+    if(isRef && hType == HybridizationType::ESemi){
+        cout << "\n\t======> This test is not working because the global matrix has wrong size!!\n" << endl;
+        cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
+        DebugStop();
+        return;
+    }
+    if(hdivFam == HDivFamily::EHDivConstant && probType == ProblemType::EElastic && mType == MMeshType::ETetrahedral){
+        cout << "\n\t======> We don't know why this configuration does not work!!\n" << endl;
+        cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
+        DebugStop();
+        return;
+    }
+    if(hdivFam == HDivFamily::EHDivConstant && extrapOrder > 0){
+        cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
+        DebugStop();
+        return;
+    }
+    if (hdivFam == HDivFamily::EHDivKernel && isRigidBodySpaces) {
+        std::cout << "ERROR! Hdiv kernel currently does not support rigid body spaces \n";
+        DebugStop();
+        return;
+    }
+    if (hdivFam != HDivFamily::EHDivConstant && hType == HybridizationType::ESemi) {
+        std::cout << "ERROR! The only HDiv space with available Semi hybridization is HDivConstant \n";
+        DebugStop();
+        return;
+    }
+    
+    // ==========> Creating GeoMesh <==========
+    // ========================================
+    TPZGeoMesh *gmesh;
+    if (mType == MMeshType::EQuadrilateral || mType == MMeshType::ETriangular){
+        gmesh = Create2DGeoMesh(probType,mType);
+    } else if (mType == MMeshType::EHexahedral || mType == MMeshType::ETetrahedral){
+        gmesh = Create3DGeoMesh(probType,mType);
+    } else {
+        DebugStop();
+    }
+    
+    if(isRef) Refinement(gmesh);
+    
+    std::ofstream out("GeoMesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+
+    // ==========> Creating Multiphysics mesh <==========
+    // ==================================================
+    TPZHDivApproxCreator* hdivCreator = nullptr;
+    if(isMHM){
+        hdivCreator = new TPZMHMHDivApproxCreator(gmesh);
+    }
+    else{
+        hdivCreator = new TPZHDivApproxCreator(gmesh);
+    }
+    hdivCreator->HdivFamily() = hdivFam;
+    hdivCreator->SetProbType(probType);
+    hdivCreator->IsRigidBodySpaces() = isRigidBodySpaces;
+    hdivCreator->SetDefaultOrder(pOrder);
+    hdivCreator->SetExtraInternalOrder(extrapOrder);
+    hdivCreator->SetShouldCondense(isCondensed);
+    hdivCreator->SetHybridType(hType);
+//    hdivCreator->SetHybridizeBoundary();
+    InsertMaterials(*hdivCreator,probType);
+    TPZMultiphysicsCompMesh *cmesh = hdivCreator->CreateApproximationSpace();
+    std::ofstream outtxt("geomeshmodified.txt");
+//    gmesh->Print(outtxt);
+
+    // ==========> Check number of equations for condensed problems <==========
+    // ========================================================================
+    if(isCondensed && hType != HybridizationType::ENone) {
+        CheckNEqCondensedProb(cmesh,*hdivCreator,mType);
+    }
+    
+#ifdef PZDEBUG
+//    hdivCreator->PrintMeshElementsConnectInfo(cmesh);
+    hdivCreator->PrintAllMeshes(cmesh);
+#endif
+    
+    TPZLinearAnalysis an(cmesh);
+    an.Assemble();
+    SetConstantPrimalSol(cmesh,probType,isRigidBodySpaces);
+    // Transfering multiphysics solution to the analysis solution
+    int cmesh_neq = cmesh->NEquations();
+    TPZFMatrix<STATE> &cmesh_sol = cmesh->Solution();
+    TPZFMatrix<STATE> &sol = an.Solution();
+    for (int i = 0; i < cmesh_neq; i++)
+    {
+        sol.PutVal(i, 0, cmesh_sol.GetVal(i, 0));
+    }
+
+    TPZFMatrix<STATE> rhs = an.Rhs();
+    auto mat = an.MatrixSolver<STATE>().Matrix();
+    TPZFMatrix<STATE> res(rhs);
+    mat->MultAdd(sol, rhs, res, -1., 1.);
+
+    cout << "\n------------------ Test ended without crashing ------------------" << endl;
+    std::cout << "==> Total time: " << totaltime.ReturnTimeDouble()/1000. << " seconds" << std::endl << endl;
+}
+
 void SolveSystem(TPZMultiphysicsCompMesh* cmesh, const bool isTestKnownSol) {
 #ifdef USE_MAIN
     constexpr int nThreads{0};
@@ -783,4 +967,106 @@ void CheckNEqCondensedProb(TPZMultiphysicsCompMesh* mpcmesh,
 #ifndef USE_MAIN
     REQUIRE(nEquations == expNEquations);
 #endif
+}
+
+void SetConstantPrimalSol(TPZMultiphysicsCompMesh *cmesh, ProblemType probType, bool isRigidBodySpaces)
+{
+
+    cmesh->LoadReferences();
+    TPZGeoMesh *gmesh = cmesh->Reference();
+    const int dim = gmesh->Dimension();
+
+    TPZFMatrix<STATE> &mp_cmesh_sol = cmesh->Solution();
+    TPZCompMesh *L2_cmesh = cmesh->MeshVector()[1]; // pressure for Darcy and displacement for elasticity
+    TPZFMatrix<STATE> &L2_cmesh_sol = L2_cmesh->Solution();
+
+    TPZManVector<REAL, 3> val(3, 1.0); //constant pressure or displacement value to be set in the solution
+
+    for (TPZCompEl *cel : L2_cmesh->ElementVec())
+    {
+        TPZGeoEl *gel = cel->Reference();
+        if (gel->Dimension() != dim)
+            continue;
+        int ncorner = gel->NCornerNodes();
+        TPZMultiphysicsElement *mp_el = dynamic_cast<TPZMultiphysicsElement *>(gel->Reference());
+#ifdef PZDEBUG
+        if (!mp_el)
+        {
+            DebugStop();
+        }
+#endif
+        int cindex = mp_el->ElementVec()[0].Element()->NConnects(); // pressure  (or displacement) connects come after flux connects
+        for (int i = 0; i < ncorner; i++)
+        {
+            TPZConnect &cloc = cel->Connect(i);
+            TPZConnect &c = mp_el->Connect(cindex + i);
+            int64_t seqloc = cloc.SequenceNumber(); //
+            int64_t seq = c.SequenceNumber();
+            int64_t firstEqLoc = L2_cmesh->Block().Position(seqloc);
+            int64_t firstEq = cmesh->Block().Position(seq);
+            int blockSize = cmesh->Block().Size(seq);
+            int blockSizeloc = L2_cmesh->Block().Size(seqloc);
+#ifdef PZDEBUG
+            if (blockSize != blockSizeloc)
+            {
+                DebugStop();
+            }
+#endif
+            for (int64_t eqloc = firstEqLoc; eqloc < firstEqLoc + blockSizeloc; eqloc++)
+            { // atomic mesh solution
+                L2_cmesh_sol.PutVal(eqloc, 0, val[0]);
+            }
+            for (int64_t eq = firstEq; eq < firstEq + blockSize; eq++)
+            { // multiphysics mesh solution
+                mp_cmesh_sol.PutVal(eq, 0, val[0]);
+            }
+        }
+    }
+
+    if (isRigidBodySpaces) // in this case we have extra avg pressure (or displacement) connects that we need to fill as well
+    {
+        int meshpos = (probType == ProblemType::EDarcy) ? 3 : 4; // avg pressure mesh for Darcy and avg displacement mesh for elasticity position in mesh vec
+        TPZCompMesh *avg_cmesh = cmesh->MeshVector()[meshpos];
+        TPZFMatrix<STATE> &avg_cmesh_sol = avg_cmesh->Solution();
+        for (TPZCompEl *cel : avg_cmesh->ElementVec())
+        { // Average pressure elements
+            TPZGeoEl *gel = cel->Reference();
+            if (gel->Dimension() != dim)
+                continue;
+            TPZMultiphysicsElement *mp_el = dynamic_cast<TPZMultiphysicsElement *>(gel->Reference());
+#ifdef PZDEBUG
+            if (!mp_el)
+            {
+                DebugStop();
+            }
+#endif
+#ifdef PZDEBUG
+            if (cel->NConnects() != 1)
+                DebugStop();
+#endif
+            int cindex = mp_el->NConnects() - 1; // avg pressure connect is the last one
+            TPZConnect &cloc = cel->Connect(0);
+            TPZConnect &c = mp_el->Connect(cindex);
+            int64_t seqloc = cloc.SequenceNumber(); //
+            int64_t seq = c.SequenceNumber();
+            int64_t firstEqLoc = avg_cmesh->Block().Position(seqloc);
+            int64_t firstEq = cmesh->Block().Position(seq);
+            int blockSize = cmesh->Block().Size(seq);
+            int blockSizeloc = avg_cmesh->Block().Size(seqloc);
+#ifdef PZDEBUG
+            if (blockSize != blockSizeloc)
+            {
+                DebugStop();
+            }
+#endif
+            for (int64_t eqloc = firstEqLoc; eqloc < firstEqLoc + blockSizeloc; eqloc++)
+            { // atomic pressure solution
+                avg_cmesh_sol.PutVal(eqloc, 0, val[0]);
+            }
+            for (int64_t eq = firstEq; eq < firstEq + blockSize; eq++)
+            { // multiphysics pressure solution
+                mp_cmesh_sol.PutVal(eq, 0, val[0]);
+            }
+        }
+    }
 }
