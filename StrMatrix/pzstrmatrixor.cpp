@@ -282,6 +282,7 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
             sout << "\n";
             int64_t nc = el->NConnects();
             for(int ic = 0; ic<nc; ic++) {
+                sout << "index " << el->ConnectIndex(ic) << " ";
                 el->Connect(ic).Print(*el->Mesh(),sout);
             }
             TPZGeoEl *gel = el->Reference();
@@ -308,6 +309,7 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
                 ek.fConstrMat.Print("ek = ", sout, EMathematicaInput);
                 ef.fConstrMat.Print("ef = ", sout, EMathematicaInput);
             }else{
+                sout << "elmat indices " << ek.fConnect << std::endl;
                 ek.fMat.Print("ek = ", sout, EMathematicaInput);
                 ef.fMat.Print("ef = ", sout, EMathematicaInput);
             }
@@ -678,6 +680,7 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
                 sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
             }
             if(ek->HasDependency()){
+                ek->fMat.Print(sout);
                 ek->fConstrMat.Print(sout);
                 if(computeRhs){ef->fConstrMat.Print(sout);}
             }else{

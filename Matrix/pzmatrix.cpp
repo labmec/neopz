@@ -1330,6 +1330,7 @@ TVar TPZMatrix<TVar>::MatrixNorm(int p, int64_t numiter, REAL tol) const{
 		<< " - matrix must be square - Rows() = "
 		<< this->Rows() << " - Cols() = "
 		<< this->Cols() << std::endl;
+        DebugStop();
 	}
 	switch(p){
 		case 0:{
