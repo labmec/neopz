@@ -116,7 +116,7 @@ protected:
   TPZVec<TPZManVector<REAL,3>> fPoints;
   /** @brief Domain triangulation after subdivisions.
       Each cell is organised as type nnodes node0 node1 node2 ... nodeN*/
-  TPZVec<std::array<int,TPZVTK::MAX_PTS+2>> fCells;//max 
+  TPZVec<std::array<int,TPZVTK::MAX_PTS+3>> fCells;//max
   //! Used for exporting .VTK series (time-steps, different modes, etc)
   int fOutputCount = 0;
   //! Used for manually setting the step value (fOutputCount is ignored if fStep>0)
@@ -128,7 +128,7 @@ protected:
   //! All nodes in the reference element in which quantities are evaluated
   std::map<MElementType,TPZVec<TPZManVector<REAL,3>>> fRefVertices;
   //! All sub-elements resulting of dividing the original reference element
-  std::map<MElementType,TPZVec<std::array<int,TPZVTK::MAX_PTS+2>>> fRefEls;
+  std::map<MElementType,TPZVec<std::array<int,TPZVTK::MAX_PTS+3>>> fRefEls;
   //! (el,first pos) list of elements and the initial position of their solution in the field vec
   TPZVec<std::pair<TPZCompEl*,int>> fElementVec;
   //! number of threads to be used for computing the fields
@@ -139,7 +139,7 @@ protected:
   //! Computes points (at reference element) for evaluating fields
   template<class TOPOL>
   void FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
-                       TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems);
+                       TPZVec<std::array<int,TPZVTK::MAX_PTS + 3>> &ref_elems);
   //! Calls FillReferenceEl to fill fRefVertices and fRefEls for all relevant topologies
   void FillRefEls();
   //! Print all points in VTK Legacy format

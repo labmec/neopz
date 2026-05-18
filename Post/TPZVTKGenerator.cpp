@@ -346,7 +346,7 @@ void TPZVTKGenerator::FillRefEls()
     auto refp = gRefDBase.GetUniformRefPattern(type);
     if(!refp){gRefDBase.InitializeUniformRefPattern(type);}
     TPZVec<TPZManVector<REAL,3>> ref_coords;
-    TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> ref_elems;
+    TPZVec<std::array<int,TPZVTK::MAX_PTS + 3>> ref_elems;
     switch(type){
     case EOned:
       FillReferenceEl<pztopology::TPZLine>(ref_coords, ref_elems);
@@ -439,7 +439,7 @@ void TPZVTKGenerator::ComputePointsAndCells()
         2--(nnodes+2) positions = node indexes
       */
       for (const auto &elem : fRefEls[type]) {
-        std::array<int, TPZVTK::MAX_PTS + 2> new_elem = elem;
+        std::array<int, TPZVTK::MAX_PTS + 3> new_elem = elem;
         
         const int npts = new_elem[1];
         auto sz = new_elem.size();
@@ -474,7 +474,7 @@ void TPZVTKGenerator::ResetArrays()
 
 template <class TOPOL>
 void TPZVTKGenerator::FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
-                                      TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &ref_elems){
+                                      TPZVec<std::array<int,TPZVTK::MAX_PTS + 3>> &ref_elems){
   /*
     Computes every post-processing node at the REFERENCE element along with
     the VTK cells resulting from its subdivision
@@ -509,7 +509,7 @@ void TPZVTKGenerator::FillReferenceEl(TPZVec<TPZManVector<REAL,3>> &ref_coords,
   for(TPZGeoEl* gel : refpmesh->ElementVec()){
     if(gel->HasSubElement()==false){
       const int gnnodes = gel->NNodes();
-      AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS+2>{});
+      AppendToVec(ref_elems,std::array<int,TPZVTK::MAX_PTS+3>{});
       //cell type
       ref_elems[ic][0] = TPZVTK::CellType(gel->Type());
       //nnodes
@@ -917,7 +917,7 @@ void TPZPostProcElSafe<TVar>::ShiftVertice(TPZVec<REAL> &qsi) {
 #define FILLREF(T)\
   template \
   void TPZVTKGenerator::FillReferenceEl<T>(TPZVec<TPZManVector<REAL,3>> &, \
-                                           TPZVec<std::array<int,TPZVTK::MAX_PTS + 2>> &);
+                                           TPZVec<std::array<int,TPZVTK::MAX_PTS + 3>> &);
 
 FILLREF(pztopology::TPZTriangle)
 FILLREF(pztopology::TPZQuadrilateral)
