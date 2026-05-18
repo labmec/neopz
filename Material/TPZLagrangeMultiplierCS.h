@@ -141,7 +141,7 @@ protected:
     
     TVar fMultiplier{1.};
     
-    bool fLinear = false;
+    bool fLinear = true;
     
 };
 
