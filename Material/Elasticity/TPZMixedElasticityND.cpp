@@ -293,16 +293,16 @@ void TPZMixedElasticityND::FromVoigt(const TPZVec<STATE> &Svoigt, TPZFMatrix<STA
 
 /** @brief Calculates the element stiffness matrix using 3 spaces - Stress tensor, displacement, and skew-symmetric tensor (for weak symmetry) */
 void TPZMixedElasticityND::Contribute_3spaces(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-    REAL R = datavec[0].x[0];
-    // Setting the phi's
-    // E
-    TPZFMatrix<REAL> &phiS = datavec[0].phi;
-    TPZFMatrix<REAL> &dphiS = datavec[0].dphix;
-    // U
-    TPZFMatrix<REAL> &phiU = datavec[1].phi;
-//    TPZFMatrix<REAL> &dphiU = datavec[1].dphix;
-    // P
-    TPZFMatrix<REAL> &phiP = datavec[2].phi;
+    int nshapeS, nshapeU, nshapeP;
+    nshapeS = datavec[0].fDeformedDirections.Cols();
+    nshapeU = datavec[1].phi.Rows();
+    nshapeP = datavec[2].phi.Rows();
+    const int firstequation_S = 0;
+    const int firstequation_U = firstequation_S + nshapeS*fDimension;
+    const int firstequation_P = firstequation_U + nshapeU*fDimension;
+
+    // Number of voight terms
+    int voigtdim = fDimension*fDimension;
 
     TElasticityAtPoint elast(fE_const, fnu_const);
     if (fElasticity) {
@@ -313,279 +313,88 @@ void TPZMixedElasticityND::Contribute_3spaces(const TPZVec<TPZMaterialDataT<STAT
         REAL nu = result[1];
         elast = TElasticityAtPoint(E, nu);
     }
-    //    
-//    TPZFNMatrix<220, REAL> dphiSx(fDimension, dphiS.Cols());
-//    TPZAxesTools<REAL>::Axes2XYZ(dphiS, dphiSx, datavec[0].axes);
 
-//    TPZFNMatrix<220, REAL> dphiUx(fDimension, phiU.Cols());
-//    TPZAxesTools<REAL>::Axes2XYZ(dphiU, dphiUx, datavec[1].axes);
-
-//    TPZFNMatrix<220, REAL> dphiPx(fDimension, phiP.Cols());
-//    TPZAxesTools<REAL>::Axes2XYZ(dphiU, dphiPx, datavec[2].axes);
-
-    int nshapeS, nshapeU, nshapeP;
-    nshapeS = datavec[0].fVecShapeIndex.NElements();
-    nshapeU = datavec[1].phi.Rows();
-    nshapeP = datavec[2].phi.Rows();
-    const int firstequation_S = 0;
-    const int firstequation_U = firstequation_S + nshapeS*fDimension;
-    //const int firstequation_P = firstequation_U + nshapeU*fDimension;
-    
     // number of asymetric tensors for each shape function
     int nrotations = (fDimension == 3) ? 3 : 1;
 
-    TPZManVector<STATE, 3>  force(fDimension, 0.);
-    
-    TPZFNMatrix<3,STATE>    phiSi(3, 1, 0.), 
-                            phiSj(fDimension, 1, 0.);
-    
-    TPZManVector<STATE, 3>  divSi1x(fDimension, 0.), 
-                            divSi1y(fDimension, 0.), 
-                            divSi1z(fDimension, 0.);
-    
-    int voigtdim = fDimension*fDimension;
-    TPZManVector<STATE, 9>  phiSi1x(voigtdim, 0.0), phiSi1y(voigtdim, 0.0), phiSi1z(voigtdim, 0.0),
-                            phiSj1x(voigtdim, 0.0), phiSj1y(voigtdim, 0.0), phiSj1z(voigtdim, 0.0),
-                            phiPj1x(voigtdim, 0.0), phiPj1y(voigtdim, 0.0), phiPj1z(voigtdim, 0.0);
-    
-    TPZManVector<STATE, 3>  phiUi(fDimension, 0.0), 
-                            phiUj(fDimension, 0.0), 
-                            phiUj1x(fDimension, 0.0), 
-                            phiUj1y(fDimension, 0.0), 
-                            phiUj1z(fDimension, 0.0);;
-    
-    TPZFNMatrix<3,STATE>    phiPi(fDimension, 1, 0.0), 
-                            phiPj(fDimension, 1, 0.0);
-    
-    TPZFNMatrix<3, REAL>    ivecS(3, 1, 0.);
+    //K11 - (Matrix A * stress tensor) x test-function stress tensor
+    TPZFNMatrix<200, STATE> PhiSVoight(voigtdim, nshapeS*fDimension, 0.);
 
-    force = fForce;
-    if (this->HasForcingFunction()) {
-        fForcingFunction(datavec[0].x, force);
-#ifdef LOG4CXX
-        if (logdata->isDebugEnabled()) {
-            std::stringstream sout;
-            sout << " x = " << datavec[0].x << " force = " << force << std::endl;
-            LOGPZ_DEBUG(logdata, sout.str())
-        }
-#endif
-    }
-//    datavec[0].ComputeFunctionDivergence();
     for (int i = 0; i < nshapeS; i++) {
-        int iphi = datavec[0].fVecShapeIndex[i].second;
-        int ivec = datavec[0].fVecShapeIndex[i].first;
-
-        REAL divSi = 0.;
-
-        for (int e = 0; e < 3; e++) {
-            ivecS(e, 0) = datavec[0].fDeformedDirections(e, ivec);
-            phiSi(e, 0) = phiS(iphi, 0) * ivecS(e, 0);
-        }
-//        TPZFNMatrix<3, REAL> axesvec(fDimension, 1, 0.);
-//        datavec[0].axes.Multiply(ivecS, axesvec);
-//
-//        //calculando div(Si)
-//        for (int f = 0; f < fDimension; f++) {
-//            divSi += axesvec(f, 0) * dphiS(f, iphi);
-//        }
-        divSi = datavec[0].divphi(i);
-
-        TPZFNMatrix<9, STATE> phiTensx(fDimension, fDimension, 0.), phiTensy(fDimension, fDimension, 0.),
-        phiTensz(fDimension,fDimension,0.);
-
-        for (int d = 0; d < fDimension; d++) {
-            phiTensx(0, d) = phiSi(d, 0);
-            phiTensy(1, d) = phiSi(d, 0);
-            if (fDimension == 3) {
-                phiTensz(2, d) = phiSi(d, 0);
-            }
-        }
-        ToVoigt(phiTensx, phiSi1x);
-        ToVoigt(phiTensy, phiSi1y);
-        if (fDimension == 3) {
-            ToVoigt(phiTensz, phiSi1z);
-        }
-
-        divSi1x[0] = divSi;
-        divSi1y[1] = divSi;
-        if(fDimension == 3) divSi1z[2] = divSi;
-
-        // matrix K11 - (Matrix A * stress tensor) x test-function stress tensor
-        for (int j = 0; j < nshapeS; j++) {
-            int jphi = datavec[0].fVecShapeIndex[j].second;
-            int jvec = datavec[0].fVecShapeIndex[j].first;
-
+        for (int k = 0; k < fDimension; k++) {
+            TPZFNMatrix<9,STATE> phiCrossX(fDimension, fDimension, 0.);
             for (int e = 0; e < fDimension; e++) {
-                phiSj(e, 0) = phiS(jphi, 0) * datavec[0].fDeformedDirections(e, jvec);
+                phiCrossX(k, e) = datavec[0].fDeformedDirections(e, i);
             }
 
-            
-            TPZFNMatrix<9, STATE> phjTensx(fDimension, fDimension, 0.), phjTensy(fDimension, fDimension, 0.)
-            , phjTensz(fDimension, fDimension, 0.);
-
-            for(int d = 0; d< fDimension; d++)
-            {
-                phjTensx(0,d) = phiSj(d,0);
-                phjTensy(1,d) = phiSj(d,0);
-                if(fDimension == 3)
-                {
-                    phjTensz(2,d) = phiSj(d,0);
-                }
-            }
-            ToVoigt(phjTensx, phiSj1x);
-            ToVoigt(phjTensy, phiSj1y);
-            if(fDimension == 3)
-            {
-                ToVoigt(phjTensz, phiSj1z);
-            }
-
-            //Multiply by Lamé parameters
-            TPZManVector<STATE, 9> AphiSi1x(voigtdim, 0.0), AphiSi1y(voigtdim, 0.0), AphiSi1z(voigtdim, 0.0);
-
-            ComputeDeformationVector(phiSi1x, AphiSi1x, elast);
-            ComputeDeformationVector(phiSi1y, AphiSi1y, elast);
-            if(fDimension == 3)
-            {
-                ComputeDeformationVector(phiSi1z, AphiSi1z, elast);
-            }
-
-            STATE valxx = InnerVec(AphiSi1x, phiSj1x);
-            STATE valxy = InnerVec(AphiSi1x, phiSj1y);
-            STATE valyx = InnerVec(AphiSi1y, phiSj1x);
-            STATE valyy = InnerVec(AphiSi1y, phiSj1y);
-
-            //Matrix K11
-            if (fAxisSymmetric) {
-                valxx /= R;
-                valxy /= R;
-                valyx /= R;
-                valyy /= R;
-            }
-            ek(fDimension * i, fDimension * j) += weight * valxx;
-            ek(fDimension * i, fDimension * j + 1) += weight * valxy;
-            ek(fDimension * i + 1, fDimension * j) += weight * valyx;
-            ek(fDimension * i + 1, fDimension * j + 1) += weight * valyy;
-            if(fDimension == 3)
-            {
-                STATE valxz = InnerVec(AphiSi1x, phiSj1z);
-                ek(fDimension * i, fDimension * j+2) += weight * valxz;
-                STATE valyz = InnerVec(AphiSi1y, phiSj1z);
-                ek(fDimension * i+1, fDimension * j+2) += weight * valyz;
-                STATE valzx = InnerVec(AphiSi1z, phiSj1x);
-                ek(fDimension * i + 2, fDimension * j) += weight * valzx;
-                STATE valzy = InnerVec(AphiSi1z, phiSj1y);
-                ek(fDimension * i + 2, fDimension * j + 1) += weight * valzy;
-                STATE valzz = InnerVec(AphiSi1z, phiSj1z);
-                ek(fDimension * i + 2, fDimension * j + 2) += weight * valzz;
-
-            }
-        }
-
-        // matrix K21 and K12 - divergent of test-function stress tensor * displacement vector
-        for (int j = 0; j < nshapeU; j++) {
-            phiUj1x[0] = phiU(j, 0);
-            phiUj1y[1] = phiU(j, 0);
-            
-            STATE valx = weight * InnerVec(divSi1x, phiUj1x);
-            STATE valy = weight * InnerVec(divSi1y, phiUj1y);
-
-            //position K21
-            ek(fDimension * j + nshapeS * fDimension, fDimension * i) += valx;
-            ek(fDimension * j + 1 + nshapeS * fDimension, fDimension * i + 1) += valy;
-
-            //position K12
-            ek(fDimension * i, fDimension * j + nshapeS * fDimension) += valx;
-            ek(fDimension * i + 1, fDimension * j + 1 + nshapeS * fDimension) += valy;
-            
-            if(fDimension == 3)
-            {
-                phiUj1z[2] = phiU(j,0);
-                REAL valz = weight * InnerVec(divSi1z, phiUj1z);
-                ek(fDimension * j + 2 + nshapeS * fDimension, fDimension * i + 2) += valz;
-                ek(fDimension * i + 2, fDimension * j + 2 + nshapeS * fDimension) += valz;
-            }
-
-        }
-
-        // matrix K31 and K13 - test-function stress tensor x rotation tensor p
-        for (int j = 0; j < nshapeP; j++) {
-            TPZFNMatrix<9, STATE> phiPTensor(fDimension, fDimension, 0.);
-            phiPTensor(0, 1) = phiP(j, 0);
-            phiPTensor(1, 0) = -phiP(j, 0);
-            ToVoigt(phiPTensor, phiPj1x);
-
-            STATE valxx = InnerVec(phiSi1x, phiPj1x);
-            STATE valxy = InnerVec(phiSi1y, phiPj1x);
-            //Matrix K31
-            ek(nrotations*j + nshapeS * fDimension + nshapeU * fDimension, fDimension * i) += weight * valxx;
-            ek(nrotations*j + nshapeS * fDimension + nshapeU * fDimension, fDimension * i + 1) += weight * valxy;
-
-            //Matrix K13
-            ek(fDimension * i, nrotations*j + nshapeS * fDimension + nshapeU * fDimension) += weight * valxx;
-            ek(fDimension * i + 1, nrotations*j + nshapeS * fDimension + nshapeU * fDimension) += weight * valxy;
-            
-            if(fDimension == 3)
-            {
-                STATE valxz = InnerVec(phiSi1z, phiPj1x);
-                ek(nrotations*j + nshapeS * fDimension + nshapeU * fDimension, fDimension * i + 2) += weight * valxz;
-                ek(fDimension * i + 2, nrotations*j + nshapeS * fDimension + nshapeU * fDimension) += weight * valxz;
-                for(int d=0; d<2; d++)
-                {
-                    phiPTensor.Zero();
-                    phiPTensor(d, 2) = phiP(j, 0);
-                    phiPTensor(2, d) = -phiP(j, 0);
-                    ToVoigt(phiPTensor, phiPj1x);
-
-                    STATE valxx = InnerVec(phiSi1x, phiPj1x);
-                    STATE valxy = InnerVec(phiSi1y, phiPj1x);
-                    STATE valxz = InnerVec(phiSi1z, phiPj1x);
-
-                    //Matrix K31
-                    ek(nrotations*j + d + 1 + nshapeS * fDimension + nshapeU * fDimension, fDimension * i) += weight * valxx;
-                    ek(nrotations*j + d + 1 + nshapeS * fDimension + nshapeU * fDimension, fDimension * i + 1) += weight * valxy;
-                    ek(nrotations*j + d + 1 + nshapeS * fDimension + nshapeU * fDimension, fDimension * i + 2) += weight * valxz;
-
-                    //Matrix K13
-                    ek(fDimension * i, nrotations*j + d + 1 + nshapeS * fDimension + nshapeU * fDimension) += weight * valxx;
-                    ek(fDimension * i + 1, nrotations*j + d + 1 + nshapeS * fDimension + nshapeU * fDimension) += weight * valxy;
-                    ek(fDimension * i + 2, nrotations*j + d + 1 + nshapeS * fDimension + nshapeU * fDimension) += weight * valxz;
-
-                }
+            TPZManVector<STATE, 9>  phiCrossXVoight(voigtdim, 0.0);
+            ToVoigt(phiCrossX, phiCrossXVoight);
+            for (int l = 0; l < voigtdim; l++) {
+                PhiSVoight(l, i*fDimension + k) = phiCrossXVoight[l];
             }
         }
     }
 
+    TPZFNMatrix<200, STATE> APhiSVoight(voigtdim, nshapeS*fDimension, 0.);
+    TPZFNMatrix<81, STATE> MatrixElast(voigtdim, voigtdim, 0.);
+    ElasticityModulusTensor(MatrixElast, elast);
+    MatrixElast.Multiply(PhiSVoight, APhiSVoight);
+
+    REAL factor = weight;
+    ek.AddContribution(firstequation_S, firstequation_S, PhiSVoight, true, APhiSVoight, false, weight);
+
+    //K21 and K12 - divergent of test-function stress tensor * displacement vector
+    TPZFNMatrix<200, STATE> PhiU(fDimension, nshapeU*fDimension, 0.);
     for (int i = 0; i < nshapeU; i++) {
-        phiUj1x[0] = phiU(i, 0);
-        phiUj1y[1] = phiU(i, 0);
-
-        // Load vector f:
-        STATE factfx = -weight * phiUj1x[0] * force[0];
-        STATE factfy = -weight * phiUj1y[1] * force[1];
-        if (fAxisSymmetric) {
-            factfx *= R;
-            factfy *= R;
+        for (int k = 0; k < fDimension; k++) {
+            PhiU(k, i*fDimension + k) = datavec[1].phi(i, 0);
         }
-        //if(factfx != 0) DebugStop();
-        ef(nshapeS * fDimension + fDimension * i, 0) += factfx;
-        ef(nshapeS * fDimension + fDimension * i + 1, 0) += factfy;
-        
-        if(fDimension == 3)
-        {
-            phiUj1z[2] = phiU(i, 0);
-            STATE factfz = -weight * phiUj1z[2] * force[2];
-            ef(nshapeS * fDimension + fDimension * i + 2, 0) += factfz;
+    }
 
+    TPZFNMatrix<200, STATE> DivPhiS(fDimension, nshapeS*fDimension, 0.);
+    for (int i = 0; i < nshapeS; i++) {
+        for (int k = 0; k < fDimension; k++) {
+            DivPhiS(k, i*fDimension + k) = datavec[0].divphi(i);
         }
+    }
 
-        //if(ef(nshapeS*2+2*j) != 0.) DebugStop();
-        if (fAxisSymmetric)
-        {
-            for (int j = 0; j < nshapeU; j++) {
-                ek(nshapeS * 2 + 2 * i, nshapeS * 2 + 2 * j) -= weight * phiU(i, 0) * phiU(j, 0) / (elast.fE * R);
+    ek.AddContribution(firstequation_S, firstequation_U, DivPhiS, true, PhiU, false, factor);
+    ek.AddContribution(firstequation_U, firstequation_S, PhiU, true, DivPhiS, false, factor);
+
+    //K31 and K13 - test-function stress tensor x rotation tensor p
+    TPZFNMatrix<200, STATE> PhiPVoight(voigtdim, nshapeP*nrotations, 0.);
+    for (int i = 0; i < nshapeP; i++) {
+        int cont = 0; // counter for the number of rotations
+        for (int k = 0; k < fDimension-1; k++) {
+            for (int l = k+1; l < fDimension; l++) {
+                TPZFNMatrix<9,STATE> phiPTensor(fDimension, fDimension, 0.);
+                phiPTensor(k, l) = datavec[2].phi(i, 0);
+                phiPTensor(l, k) = -datavec[2].phi(i, 0);
+                TPZManVector<STATE, 9> phiPTensorVoigt(voigtdim, 0.0);
+                ToVoigt(phiPTensor, phiPTensorVoigt);
+                for (int e = 0; e < voigtdim; e++)
+                {
+                    PhiPVoight(e, i * nrotations + cont) = phiPTensorVoigt[e];
+                }
+                cont++;
             }
         }
     }
+
+    factor = weight;
+    ek.AddContribution(firstequation_S, firstequation_P, PhiSVoight, true, PhiPVoight, false, factor);
+    ek.AddContribution(firstequation_P, firstequation_S, PhiPVoight, true, PhiSVoight, false, factor);
+
+    //Body force contribution
+    TPZFNMatrix<3,STATE>  force(fDimension,1, 0.);
+    if (this->HasForcingFunction()) {
+        fForcingFunction(datavec[0].x, fForce);
+    }
+    for (int i = 0; i < fDimension; i++) {
+        force(i, 0) = fForce[i];
+    }
+
+    ef.AddContribution(firstequation_U,0, PhiU, true, force, false, -factor);
 }
 
 /** @brief Calculates the element stiffness matrix using 5 spaces - 3 from Contribute_3spaces() + Rigid body motions, and distributed forces */
