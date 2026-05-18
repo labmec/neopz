@@ -751,7 +751,7 @@ void TPZApproxCreator::AddHybridSquareGeoElements() {
 }
 
 /// compute the lagrange multiplier coeficients as a function of the problem type and hybridization
-void TPZApproxCreator::HybridizationData::SetProblemHybrid(ProblemType prob, HybridizationType &hybrid) {
+void TPZApproxCreator::HybridizationData::SetProblemHybridH1(ProblemType prob, HybridizationType hybrid) {
     if(prob == ProblemType::ENone || hybrid == HybridizationType::ENone) return;
     if(prob == ProblemType::EDarcy) {
         fMultipliers[0] = 1.;
@@ -763,6 +763,41 @@ void TPZApproxCreator::HybridizationData::SetProblemHybrid(ProblemType prob, Hyb
         fMultipliers[1] = -1.;
         fMultipliers[2] = -1.;
         fMultipliers[3] = 1.;
+    } else {
+        DebugStop();
+    }
+}
+
+/// compute the lagrange multiplier coeficients as a function of the problem type and hybridization
+void TPZApproxCreator::HybridizationData::SetProblemHybridHDiv(ProblemType prob, HybridizationType hybrid) {
+    if(prob == ProblemType::ENone || hybrid == HybridizationType::ENone) return;
+    if(prob == ProblemType::EDarcy){
+        if(hybrid == HybridizationType::EStandard) {
+            fMultipliers[0] = 1.;
+            fMultipliers[1] = 1.;
+            fMultipliers[2] = 1.;
+            fMultipliers[3] = -1.;
+        } else if (hybrid == HybridizationType::ESemi) {
+            fMultipliers[0] = 1.;
+            fMultipliers[1] = -1.;
+            fMultipliers[2] = 1.;
+            fMultipliers[3] = -1.;
+        } else {
+            DebugStop();
+        }
+    } else if(prob == ProblemType::EElastic) {
+        if(hybrid == HybridizationType::EStandard) {
+            fMultipliers[0] = -1.;
+            fMultipliers[1] = -1.;
+            fMultipliers[2] = -1.;
+            fMultipliers[3] = 1.;
+        } else if(hybrid == HybridizationType::ESemi) {
+            fMultipliers[0] = -1.;
+            fMultipliers[1] = 1.;
+            fMultipliers[2] = -1.;
+            fMultipliers[3] = 1.;
+        }
+
     } else {
         DebugStop();
     }

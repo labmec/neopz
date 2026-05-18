@@ -37,7 +37,7 @@ TPZHDivApproxCreator::~TPZHDivApproxCreator()
 
 void TPZHDivApproxCreator::CheckSetupConsistency() {
     
-    if (fProbType == ProblemType::EElastic) {
+    if ( 0 && fProbType == ProblemType::EElastic) {
         std::cout << "WARNING! In elasticity problems, convergence has been checked only for Triangles and Tetrahedra. Please, check the convergence rates for the other topologies!\n";
     }
 
@@ -198,7 +198,7 @@ void TPZHDivApproxCreator::CreateMultiPhysicsMesh(TPZManVector<TPZCompMesh*,7>& 
 }
 
 TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
-    std::cout << "\n---------------- Creating Space -----------------" << std::endl;
+//    std::cout << "\n---------------- Creating Space -----------------" << std::endl;
     CheckSetupConsistency();
     SetMeshElementType();
 
@@ -209,7 +209,7 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateApproximationSpace(){
     TPZMultiphysicsCompMesh *cmeshmulti = nullptr;
     CreateMultiPhysicsMesh(meshvec,lagLevelCounter,cmeshmulti);
     
-    std::cout << "\n---------------- Finished Creating Space -----------------" << std::endl;
+//    std::cout << "\n---------------- Finished Creating Space -----------------" << std::endl;
     
     return cmeshmulti;
 }

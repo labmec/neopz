@@ -30,6 +30,18 @@ public:
 
     /// Default destructor
     ~TPZH1ApproxCreator() = default;
+    
+    /// Set Hybridization type
+    virtual void SetHybridType(HybridizationType hybrid)  {
+        fHybridType = hybrid;
+        fHybridizationData.SetProblemHybridH1(fProbType, fHybridType);
+    }
+
+    /// Get/Set Problem type
+    virtual void SetProbType(ProblemType prob){
+        fProbType = prob;
+        fHybridizationData.SetProblemHybridH1(fProbType, fHybridType);
+    }
 
     /// Driver function. Will create the atomic meshes (HDiv, L2, etc.) and an associate multiphysics mesh
     TPZMultiphysicsCompMesh *CreateApproximationSpace() override;

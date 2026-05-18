@@ -79,8 +79,12 @@ protected:
         HybridizationData &operator=(const HybridizationData &copy) = default;
         
         /// compute the lagrange multiplier coeficients as a function of the problem type and hybridization
-        void SetProblemHybrid(ProblemType prob, HybridizationType &hybrid);
+        void SetProblemHybridH1(ProblemType prob, HybridizationType hybrid);
         
+        /// set the lagrange multiplier coefficients for hybrid Hdiv problems
+        /// compute the lagrange multiplier coeficients as a function of the problem type and hybridization
+        void SetProblemHybridHDiv(ProblemType prob, HybridizationType hybrid);
+
         /// Matid of element at the border or higher domain element
         int fWrapMatId = -123456; // to check if it has been initialized
 
@@ -155,11 +159,8 @@ public:
 
     /// Get/Set Hybridization type
     HybridizationType HybridType() const {return fHybridType;}
-    /// Get Hybridization type
-    void SetHybridType(HybridizationType hybrid)  {
-        fHybridType = hybrid;
-        fHybridizationData.SetProblemHybrid(fProbType, fHybridType);
-    }
+    /// Set Hybridization type
+    virtual void SetHybridType(HybridizationType hybrid) = 0;
 
     /// Get/Set Enhanced spaces
     bool &IsRigidBodySpaces(){return fIsRBSpaces;}
@@ -172,10 +173,8 @@ public:
     }
 
     /// Get/Set Problem type
-    void SetProbType(ProblemType prob){
-        fProbType = prob;
-        fHybridizationData.SetProblemHybrid(fProbType, fHybridType);
-    }
+    virtual void SetProbType(ProblemType prob) = 0;
+    
     /// Get Problem type
     const ProblemType ProbType() const {return fProbType;}
 
