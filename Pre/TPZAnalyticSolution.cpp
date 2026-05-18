@@ -234,6 +234,13 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[0] += (FADFADSTATE) x[0];
         disp[1] += (FADFADSTATE) 0.;
     }
+    else if(fProblemType == EHomogeneous)//strech x
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (FADFADSTATE) (x[0]+x[1]);
+        disp[1] += (FADFADSTATE) (x[0]+x[1]);
+    }
     else if(fProblemType == EUniAxialx)
     {
         if (fPlaneStress == 0) {
@@ -265,6 +272,13 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
         disp[0] += (FADFADSTATE) 0.;
+        disp[1] += (FADFADSTATE) 1.;
+    }
+    else if(fProblemType==EDispxy)
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (FADFADSTATE) 1.;
         disp[1] += (FADFADSTATE) 1.;
     }
     else if (fProblemType == EThiago){
@@ -421,6 +435,12 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) con
         disp[1] = x[0]*0.;
         disp[0] += (TVar2) x[0];
         disp[1] += (TVar2) 0.;
+    } else if (fProblemType == EHomogeneous)//strech x
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (TVar2) (x[0]+x[1]);
+        disp[1] += (TVar2) (x[0]+x[1]);
     } else if (fProblemType == EUniAxialx) {
         if (fPlaneStress == 0) {
             disp[0] = x[0]*(1. - gPoisson * gPoisson) / gE;
@@ -444,6 +464,11 @@ void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) con
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
         disp[0] += (TVar2) 0.;
+        disp[1] += (TVar2) 1.;
+    } else if (fProblemType == EDispxy) {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (TVar2) 1.;
         disp[1] += (TVar2) 1.;
     } else if (fProblemType == EThiago){
         disp[0] = x[0]*0.;
@@ -852,6 +877,15 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         disp[1] += (TVar) 0.;
         disp[2] = x[0]*TVar(0.);
     }
+    else if(fProblemType == EHomogeneous)//strech x
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
+        disp[0] += (TVar) (x[0]+x[1]+x[2]);
+        disp[1] += (TVar) (x[0]+x[1]+x[2]);
+        disp[2] += (TVar) (x[0]+x[1]+x[2]);
+    }
     else if(fProblemType == EUniAxialx)//strech x
     {
         disp[0] += (TVar) x[0]/fE;
@@ -890,6 +924,15 @@ void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         disp[0] += (TVar) 0.;
         disp[1] += (TVar) 1.;
         disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType==EDispxyz)
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
+        disp[0] += (TVar) 1.;
+        disp[1] += (TVar) 1.;
+        disp[2] += (TVar) 1.;
     }
     else if(fProblemType==EBend)
     {
@@ -1021,6 +1064,15 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[1] += (FADFADSTATE) 0.;
         disp[2] = x[0]*TVar(0.);
     }
+    else if(fProblemType == EHomogeneous)//strech x
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
+        disp[0] += (FADFADSTATE) (x[0]+x[1]+x[2]);
+        disp[1] += (FADFADSTATE) (x[0]+x[1]+x[2]);
+        disp[2] += (FADFADSTATE) (x[0]+x[1]+x[2]);
+    }
     else if(fProblemType == EUniAxialx)//strech x
     {
         disp[0] += (TVar) x[0]/fE;
@@ -1059,6 +1111,15 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         disp[0] += (FADFADSTATE) 0.;
         disp[1] += (FADFADSTATE) 1.;
         disp[2] = x[0]*TVar(0.);
+    }
+    else if(fProblemType==EDispxyz)
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[2] = x[0]*0.;
+        disp[0] += (FADFADSTATE) 1.;
+        disp[1] += (FADFADSTATE) 1.;
+        disp[2] += (FADFADSTATE) 1.;
     }
     else if(fProblemType==EBend)
     {
@@ -1357,8 +1418,18 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         case EX:
             disp[0] += xloc[0];
             break;
-            case EX2:
+        case EY:
+            disp[0] += xloc[1];
+            break;
+        case EZ:
+            disp[0] += xloc[2];
+            break;
+        case EX2:
             disp[0] += xloc[0]*xloc[0];
+            break;
+        case EXpY:
+            disp[0] += xloc[0]+xloc[1];
+            if(fDimension>2) disp[0] += x[2];
             break;
         case ESinSin:
         {
@@ -1867,8 +1938,18 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
         case EX:
             disp[0] += xloc[0];
             break;
-            case EX2:
+        case EY:
+            disp[0] += xloc[1];
+            break;
+        case EZ:
+            disp[0] += xloc[2];
+            break;
+        case EX2:
             disp[0] += xloc[0]*xloc[0];
+            break;
+        case EXpY:
+            disp[0] += (xloc[0]+xloc[1]);
+            if(fDimension >2) disp[0]+=xloc[2];
             break;
         case ESinSin:
         {

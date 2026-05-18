@@ -184,7 +184,7 @@ struct TPZAnalyticSolution
 
 struct TElasticity2DAnalytic : public TPZAnalyticSolution
 {
-     enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1, Etest2, EThiago, EPoly,
+     enum EDefState  {ENone, EDispx, EDispy, EDispxy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EHomogeneous, EBend, ELoadedBeam, Etest1, Etest2, EThiago, EPoly,
          ESquareRootUpper, ESquareRootLower, ESquareRoot
      };
     
@@ -217,6 +217,8 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
                 return "StretchingY";
             case EShear:
                 return "Shear";
+            case EHomogeneous:
+                return "Homogeneous";
             case EBend:
                 return "Bending";
             case ELoadedBeam:
@@ -263,6 +265,9 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
         }
         if (!name.compare("Shear")) {
             return EShear;
+        }
+        if (!name.compare("Homogeneous")) {
+            return EHomogeneous;
         }
         if (!name.compare("Bending")) {
             return EBend;
@@ -382,7 +387,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
 
 struct TElasticity3DAnalytic : public TPZAnalyticSolution
 {
-    enum EDefState  {ENone, EDispx, EDispy, ERot, ERotXYZ, EStretchx, EUniAxialx, EStretchy, EStretchz, EShear, EBend, ELoadedBeam, Etest1,Etest2, ETestShearMoment, ESphere, EYotov };
+    enum EDefState  {ENone, EDispx, EDispy, EDispxyz, ERot, ERotXYZ, EStretchx, EUniAxialx, EStretchy, EStretchz, EHomogeneous, EShear, EBend, ELoadedBeam, Etest1,Etest2, ETestShearMoment, ESphere, EYotov };
     
     EDefState fProblemType = ENone;
     
@@ -439,7 +444,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
 
 struct TLaplaceExample1 : public TPZAnalyticSolution
 {
-    enum EExactSol {ENone, EConst, EX, EX2, ESinSin, ECosCos,  EArcTan, EArcTanSingular, ESteepWave, ESteepWave2, ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark, ESinMark2, ECosMark,ESteklovNonConst, ESteklovNonConst2, EPerpendicularSteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble, EBubble2D,ESinCosCircle, EHarmonic, EHarmonic2,
+    enum EExactSol {ENone, EConst, EX, EY, EZ, EXpY, EX2, ESinSin, ECosCos,  EArcTan, EArcTanSingular, ESteepWave, ESteepWave2, ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark, ESinMark2, ECosMark,ESteklovNonConst, ESteklovNonConst2, EPerpendicularSteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble, EBubble2D,ESinCosCircle, EHarmonic, EHarmonic2,
         ESquareRootUpper, ESquareRootLower, ESquareRoot, ELaplace2D, EHarmonic3, EHarmonicPoly,
         ESharpGaussian2D};
     
@@ -451,6 +456,15 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
             break;
         case EX:
             return "X";
+            break;
+        case EY:
+            return "Y";
+            break;
+        case EZ:
+            return "Z";
+            break;
+        case EXpY:
+            return "X+Y";
             break;
         case EX2:
             return "X2";
@@ -557,6 +571,15 @@ static EExactSol StringToExactSol(std::string name) {
     }
     if (!name.compare("X")) {
         return EX;
+    }
+    if (!name.compare("Y")) {
+        return EY;
+    }
+    if (!name.compare("Z")) {
+        return EZ;
+    }
+    if (!name.compare("X+Y")) {
+        return EXpY;
     }
     if (!name.compare("X2")) {
         return EX2;
