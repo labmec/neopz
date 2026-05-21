@@ -16,7 +16,19 @@ using namespace std;
 
 /// groups all classes dedicated to the computation of shape functions
 namespace pzshape {
-	
+
+int TPZShapeWidePrism::ClassId() const{
+        return Hash("TPZShapeWidePrism");
+    }
+
+    void TPZShapeWidePrism::Read(TPZStream& buf, void* context) {
+
+    }
+
+    void TPZShapeWidePrism::Write(TPZStream& buf, int withclassid) const {
+
+    }
+
 void TPZShapeWidePrism::InternalShapeOrder(const TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders)
 {
     int nshape = (order-1)*(order)*(order-1)/2;
@@ -42,6 +54,9 @@ void TPZShapeWidePrism::InternalShapeOrder(const TPZVec<int64_t> &id, int order,
                 }
             }
         }
+    }
+    if (count != nshape) {
+        DebugStop();
     }
 }
 

@@ -6,6 +6,7 @@
 #include "pzshapetetra.h"
 #include "pzshapecube.h"
 #include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "pzshapepiram.h"
 #include "pzshapepoint.h"
 
@@ -194,7 +195,10 @@ static void ShapeInternal(int side, TPZVec<T> &x, int order, TPZFMatrix<T> &phi,
             pzshape::TPZShapeTetra::ShapeInternal(x, order, phi, dphi);
             break;
         case EPrisma:
-            pzshape::TPZShapePrism::ShapeInternal(x, order, phi, dphi);
+            // We have two H1 shape families on prisms: TPZShapePrism and TPZShapeWidePrism.
+            // There is no easy way to choose between them, so we call "ShapeInternal" through 
+            // the TSHAPE template parameter.
+            TSHAPE::ShapeInternal(x, order, phi, dphi);
             break;
         case EPiramide:
             pzshape::TPZShapePiram::ShapeInternal(x, order, phi, dphi);
@@ -308,6 +312,8 @@ void TPZShapeH1<pzshape::TPZShapeCube>::Shape(const TPZVec<FADREAL> &pt, TPZShap
 template
 void TPZShapeH1<pzshape::TPZShapePrism>::Shape(const TPZVec<FADREAL> &pt, TPZShapeData &data, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
 template
+void TPZShapeH1<pzshape::TPZShapeWidePrism>::Shape(const TPZVec<FADREAL> &pt, TPZShapeData &data, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
+template
 void TPZShapeH1<pzshape::TPZShapeTetra>::Shape(const TPZVec<FADREAL> &pt, TPZShapeData &data, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
 template
 void TPZShapeH1<pzshape::TPZShapePiram>::Shape(const TPZVec<FADREAL> &pt, TPZShapeData &data, TPZFMatrix<FADREAL> &phi, TPZFMatrix<FADREAL> &dphi);
@@ -324,6 +330,8 @@ template
 void TPZShapeH1<pzshape::TPZShapeCube>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 template
 void TPZShapeH1<pzshape::TPZShapePrism>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+template
+void TPZShapeH1<pzshape::TPZShapeWidePrism>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 template
 void TPZShapeH1<pzshape::TPZShapeTetra>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 template
@@ -563,6 +571,9 @@ template
 struct TPZShapeH1<pzshape::TPZShapePrism>;
 
 template
+struct TPZShapeH1<pzshape::TPZShapeWidePrism>;
+
+template
 struct TPZShapeH1<pzshape::TPZShapePiram>;
 
 template
@@ -585,6 +596,9 @@ struct TPZSideShapeH1<pzshape::TPZShapeCube>;
 
 template
 struct TPZSideShapeH1<pzshape::TPZShapePrism>;
+
+template
+struct TPZSideShapeH1<pzshape::TPZShapeWidePrism>;
 
 template
 struct TPZSideShapeH1<pzshape::TPZShapePiram>;

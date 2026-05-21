@@ -1213,6 +1213,7 @@ int64_t TPZGeoMesh::NodeIndex(TPZGeoNode *nod)
 #include "pzreftriangle.h"
 #include "pzgeotriangle.h"
 #include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "pzrefprism.h"
 #include "pzgeoprism.h"
 #include "pzshapetetra.h"

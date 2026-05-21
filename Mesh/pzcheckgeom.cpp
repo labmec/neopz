@@ -259,6 +259,7 @@ int TPZCheckGeom::CheckSubFatherTransform(TPZGeoEl *subel, int sidesub) {
 #include "pzshapecube.h"
 #include "pzshapepiram.h"
 #include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "pzshapequad.h"
 #include "pzshapetetra.h"
 #include "pzshapetriang.h"

@@ -5,7 +5,7 @@
 enum class HDivFamily {EHDivStandard,EHDivConstant,EHDivKernel,EHDivOptimized};
 
 /// Enum stating which flavor of H1 spaces is being used
-enum class H1Family {EH1Standard};
+enum class H1Family {EH1Standard, EH1WidePrism};
 
 /// Enum stating which flavor of HCurl spaces is being used
 enum class HCurlFamily {EHCurlStandard,EHCurlNoGrads};

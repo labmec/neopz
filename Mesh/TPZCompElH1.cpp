@@ -284,6 +284,7 @@ void TPZCompElH1<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
 #include "pzshapequad.h"
 #include "pzshapetetra.h"
 #include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "pzshapecube.h"
 #include "pzshapepiram.h"
 #include "pzshapepiramHdiv.h"
@@ -371,7 +372,6 @@ void TPZCompElH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMat
 }
 
 
-
 using namespace pzshape;
 
 template class TPZCompElH1<TPZShapeTriang>;
@@ -380,6 +380,7 @@ template class TPZCompElH1<TPZShapeLinear>;
 template class TPZCompElH1<TPZShapeQuad>;
 template class TPZCompElH1<TPZShapeTetra>;
 template class TPZCompElH1<TPZShapePrism>;
+template class TPZCompElH1<TPZShapeWidePrism>;
 template class TPZCompElH1<TPZShapePiram>;
 template class TPZCompElH1<TPZShapeCube>;
 
@@ -390,4 +391,5 @@ template class TPZRestoreClass< TPZCompElH1<TPZShapeQuad>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapeCube>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapeTetra>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapePrism>>;
+template class TPZRestoreClass< TPZCompElH1<TPZShapeWidePrism>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapePiram>>;

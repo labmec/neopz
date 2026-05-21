@@ -27,6 +27,14 @@ namespace pzshape {
 		
 	public:
 		
+        // Workaround to avoid TPZShapeWidePrism to have the same ClassId as TPZShapePrism
+        virtual int ClassId() const override;
+        void Read(TPZStream& buf, void* context) override;
+        void Write(TPZStream& buf, int withclassid) const override;
+
+        /** @brief Default constructor */
+        TPZShapeWidePrism() : TPZRegisterClassId(&TPZShapeWidePrism::ClassId) {
+		}
         
         /**
          * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction

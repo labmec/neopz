@@ -202,6 +202,7 @@ using namespace pzshape;
 #include "pzshapecube.h"
 #include "pzshapetetra.h"
 #include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "pzshapepiram.h"
 #include "pzshapepiramHdiv.h"
 template<>
@@ -262,6 +263,7 @@ template class TPZIntelGen<TPZShapeLinear>;
 template class TPZIntelGen<TPZShapeQuad>;
 template class TPZIntelGen<TPZShapeTetra>;
 template class TPZIntelGen<TPZShapePrism>;
+template class TPZIntelGen<TPZShapeWidePrism>;
 template class TPZIntelGen<TPZShapePiram>;
 template class TPZIntelGen<TPZShapeCube>;
 

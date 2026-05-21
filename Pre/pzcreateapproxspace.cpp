@@ -15,6 +15,7 @@
 #include "pzshapepiram.h"
 #include "pzshapepoint.h"
 #include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "pzshapequad.h"
 #include "pzshapetetra.h"
 #include "pzshapetriang.h"
@@ -108,8 +109,13 @@ TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam) {
 	return NULL;
 }
 TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,const H1Family h1fam) {
-	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElH1<TPZShapePrism>(mesh,gel,h1fam);
+	if(!gel->Reference() && gel->NumInterfaces() == 0) {
+        if (h1fam == H1Family::EH1WidePrism) {
+            return new TPZCompElH1<TPZShapeWidePrism>(mesh,gel,h1fam);
+        } else {
+            return new TPZCompElH1<TPZShapePrism>(mesh,gel,h1fam);
+        }
+    }
     
 	return NULL;
 }
