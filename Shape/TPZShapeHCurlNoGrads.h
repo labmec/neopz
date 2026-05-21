@@ -56,6 +56,7 @@ struct TPZShapeHCurlNoGrads
   static void HighOrderFunctionsFilter(
     const TPZVec<int> &firstHCurlFunc,
     const TPZVec<int> &conOrders,
+    TPZShapeData &data,
     TPZVec<int> &filteredHCurlFuncs);
 };
 

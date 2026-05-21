@@ -1,5 +1,7 @@
 #include "TPZShapeHCurlNoGrads.h"
 #include "TPZShapeHCurl.h"
+#include "TPZShapeH1.h"
+#include "TPZShapeHDiv.h"
 #include "pzeltype.h"
 
 #include "pzshapelinear.h"
@@ -86,7 +88,7 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &d
     if constexpr (dim < 2) return;
 
     TPZManVector<int,30> filtVecShape;
-    HighOrderFunctionsFilter(first_hcurl_side, connectorders,filtVecShape);
+    HighOrderFunctionsFilter(first_hcurl_side, connectorders, data, filtVecShape);
 
     const auto newfuncs = filtVecShape.size();
     
@@ -159,7 +161,7 @@ void TPZShapeHCurlNoGrads<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeDa
     if constexpr (dim < 2) return;
 
     TPZVec<int> filtVecShape;
-    HighOrderFunctionsFilter(first_hcurl_side, connectorders,filtVecShape);
+    HighOrderFunctionsFilter(first_hcurl_side, connectorders, data,filtVecShape);
 
     const auto newfuncs = filtVecShape.size();
     
@@ -214,9 +216,11 @@ int TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(const int icon, const in
                 return (order-1)*(order-2)*(2*order+3)/6;
             } else if constexpr (TSHAPE::Type() == ECube){
                 return order*order*(2*order+3);
-            }
-            else if constexpr (TSHAPE::Type() == ECube){
-              return order*order*(2*order+3);
+            } else if constexpr (TSHAPE::Type() == EPrisma){
+              if (order < 2) return 0;
+              int n_hdiv = TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(5, order-1);
+              int n_l2 = (order)*(order)*(order+1)/2;
+              return n_hdiv - n_l2 + 1;
             }
             else{
                 PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
@@ -237,6 +241,7 @@ template<class TSHAPE>
 void TPZShapeHCurlNoGrads<TSHAPE>::HighOrderFunctionsFilter(
   const TPZVec<int> &firstHCurlFunc,
   const TPZVec<int> &conOrders,
+  TPZShapeData &data,
   TPZVec<int> &filteredFuncs){
   
   constexpr auto dim = TSHAPE::Dimension;
@@ -513,6 +518,58 @@ void TPZShapeHCurlNoGrads<TSHAPE>::HighOrderFunctionsFilter(
       filteredFuncs[fcount] = firstyfunc+ifunc;
       fcount++;
     }
+  } else if constexpr (TSHAPE::Type() == EPrisma){
+    const auto icon = nEdges + nFaces;
+    const auto order = conOrders[icon];
+    const auto firstSideShape = firstHCurlFunc[icon];
+    /**
+       In prisms, similar to cubes, it sufices to remove the internal functions
+       associated with one triangular face (we pick the bottom one) and the 
+       volume functtions in the z direction.
+    */
+
+    if (order < 2) return;//there are no internal functions for k < 2, so we can skip all this
+
+    int n_hdiv = TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(5, order-1);
+    int n_L2 = (order)*(order)*(order+1)/2;
+    const auto nintfuncs =  n_hdiv - n_L2 + 1;
+
+    filteredFuncs.Resize(fcount+nintfuncs);
+    // std::cout << filteredFuncs << std::endl;
+    const auto firstvkf = firstSideShape;
+    
+    const auto offset = (order)*(order-1)/2;// we skip the first trig face
+    const auto nvkf = 3*(order-1)*(order-1) + (order)*(order-1); // total faces (3 quad + 2 trig)
+    for(auto ifunc = offset; ifunc < nvkf; ifunc++){
+      filteredFuncs[fcount] = firstvkf + ifunc;
+      fcount++;
+    }
+    
+    /**
+       we now iterate over the phi_ki hcurl functions.
+       We have to remove all volume functions in the z direction.
+       Those functions are associated with the master direction of index 62.
+       We shall use this to filter them out, since they are not sorted in a way that we can easily skip them.
+    */
+
+    // std::cout << filteredFuncs << std::endl;
+
+    const auto firstVki = firstSideShape + nvkf;
+    const auto nvkik = (order-2)*(order-1)*(order-1) + (order-2)*(order)*(order-1)/2; // all volumes
+    const int directionToSkip = 62;
+    
+    for(auto ifunc = 0; ifunc < nvkik; ifunc++){
+      auto vecAndShape = data.fHCurl.fSDVecShapeIndex[firstVki+ifunc];
+      if(vecAndShape.first == directionToSkip) continue;//skip z direction
+      filteredFuncs[fcount] = firstVki+ifunc;
+      fcount++;
+    }
+
+    // std::cout << filteredFuncs << std::endl;
+  }
+   else{
+    PZError<<__PRETTY_FUNCTION__<<" error. Not yet implemented"<<std::endl;
+    DebugStop();
   }
 }
 

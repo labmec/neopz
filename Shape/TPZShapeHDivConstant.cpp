@@ -41,6 +41,10 @@ void TPZShapeHDivConstant<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
         }
         if (TSHAPE::Type() == ETriangle){
             data.fH1.fConnectOrders[conSize-1]++;
+        } else if (TSHAPE::Type() == EPrisma){
+            data.fH1.fConnectOrders[conSize-1]++;
+            data.fH1.fConnectOrders[9]++;
+            data.fH1.fConnectOrders[13]++;
         }
 
         // Initialize H1 data structures
@@ -71,6 +75,13 @@ void TPZShapeHDivConstant<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
                 data.fHCurl.fConnectOrders[ic]++;
             }
             data.fHCurl.fConnectOrders[nHcurlCon-1]++;
+        }
+
+        if constexpr(TSHAPE::Type() == EPrisma)
+        {
+            data.fHCurl.fConnectOrders[9]++;
+            data.fHCurl.fConnectOrders[13]++;
+            data.fHCurl.fConnectOrders[14]++;
         }
 
         TPZShapeHCurlNoGrads<TSHAPE>::Initialize(ids, data.fHCurl.fConnectOrders, data);
@@ -382,10 +393,13 @@ int TPZShapeHDivConstant<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
     }
     else if (thistype == EPrisma)
     {
-        DebugStop();
-        // if(connect == 0 || connect == 4) return (order+1)*(order+2)/2;
-        // else if(connect < TSHAPE::NFacets) return (order+1)*(order+1);
-        // else return order*order*(3*order+5)/2+7*order-2;
+        if (connect == 0 || connect == 4) {
+            return (order + 1) * (order + 2) / 2;
+        } else if (connect < TSHAPE::NFacets) {
+            return (order + 1) * (order + 1);
+        } else {
+            return TPZShapeHCurlNoGrads<TSHAPE>::ComputeNConnectShapeF(14, order+1);
+        }
     }
     else if (thistype == ECube)
     {

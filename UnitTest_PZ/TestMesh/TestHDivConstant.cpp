@@ -855,15 +855,7 @@ void CheckL2ProductRank(int kFacet)
 
     SECTION(MMeshType_Name(elType))
     {
-        if (elType == MMeshType::EPrismatic && space == ESpace::HDivConst)
-        {
-            return; // TODOFIX
-        }
         const auto elDim = MMeshType_Dimension(elType);
-        if (elType == MMeshType::EPrismatic && space == ESpace::HCurl)
-        {
-            return; // TODOFIX
-        }
 
         // if dimension does not correspond, skip
         if (elDim != dim)
