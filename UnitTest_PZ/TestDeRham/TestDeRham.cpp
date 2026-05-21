@@ -241,15 +241,7 @@ void CheckRankKerDim(int kRight)
 
   SECTION(MMeshType_Name(elType))
   {
-    if (elType == MMeshType::EPrismatic && leftSpace == ESpace::HDivConst)
-    {
-      return; // TODOFIX
-    }
     const auto elDim = MMeshType_Dimension(elType);
-    if (elType == MMeshType::EPrismatic && leftSpace == ESpace::HCurl)
-    {
-      return; // TODOFIX
-    }
 
     // if dimension does not correspond, skip
     if (elDim != dim)
@@ -370,15 +362,6 @@ void CheckInclusion(int kRight)
   {
     const auto elDim = MMeshType_Dimension(elType);
 
-    if (elType == MMeshType::EPrismatic && leftSpace == ESpace::HDivConst)
-    {
-      return; // TODOFIX
-    }
-
-    if (elType == MMeshType::EPrismatic && leftSpace == ESpace::HCurl)
-    {
-      return; // TODOFIX
-    }
     // skips if dimension is not compatible
     if (elDim != dim)
       return;
@@ -513,7 +496,7 @@ void CreateMeshes(int &kRight, MMeshType elType,
     }
     else if constexpr (leftSpace == ESpace::HCurl)
     {
-      if (elType == MMeshType::EQuadrilateral || elType == MMeshType::EHexahedral)
+      if (elType == MMeshType::EQuadrilateral || elType == MMeshType::EHexahedral || elType == MMeshType::EPrismatic)
       {
         kLeft = kRight;
       }
@@ -594,6 +577,23 @@ void CreateMeshes(int &kRight, MMeshType elType,
     cmesh->ExpandSolution();
   };
 
+  auto EnrichHCurlPrismaticMesh = [](TPZAutoPointer<TPZCompMesh> cmesh, const int k)
+  {
+    for (auto cel : cmesh->ElementVec())
+    {
+      if (cel->Dimension() != dim)
+        continue;
+      auto intel =
+          dynamic_cast<TPZInterpolatedElement *>(cel);
+      const auto nsides = intel->Reference()->NSides();
+      intel->SetSideOrder(15, k + 1); // Bottom trig face
+      intel->SetSideOrder(19, k + 1); // Top trig face
+      intel->SetSideOrder(20, k + 1); // Internal side
+      intel->AdjustIntegrationRule();
+    }
+    cmesh->ExpandSolution();
+  };
+
   cmeshL = CreateCMesh(gmesh, matLeft, matId, kLeft, leftSpace);
 
   // Enriching the internal functions for Hdiv or HdivConst
@@ -623,14 +623,20 @@ void CreateMeshes(int &kRight, MMeshType elType,
     {
       EnrichMesh(cmeshL, kLeft);
     }
-    else if constexpr (rightSpace == ESpace::HCurl)
-    {
-      EnrichMesh(cmeshR, kRight);
-    }
+  }
 
-    if constexpr (leftSpace == ESpace::H1)
-    {
-      EnrichMesh(cmeshL, kLeft);
+  /*
+  Ajust H(curl) space on prisms: 
+  - To be de Rham compatible with the H(div) space on the right we have to 
+    increase the the order of the internal and trig faces connects.
+  - To be de Rham compatible with the H1 space on the left, we have to 
+    increase the internal order only.
+  */
+  if (elType == MMeshType::EPrismatic) {
+    if (leftSpace == ESpace::HCurl) {
+      EnrichHCurlPrismaticMesh(cmeshL, kLeft);
+    } else if (rightSpace == ESpace::HCurl) {
+      EnrichMesh(cmeshR, kRight);
     }
   }
 }
@@ -655,6 +661,13 @@ TPZAutoPointer<TPZCompMesh> CreateCMesh(TPZAutoPointer<TPZGeoMesh> gmesh,
                                         const int k, ESpace space)
 {
 
+  auto HasPrisms = [](TPZAutoPointer<TPZGeoMesh> gmesh) {
+    for(auto gel : gmesh->ElementVec()) {
+        if(gel && gel->Type() == EPrisma) return true;
+    }
+    return false;
+  };
+
   TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
   const int nel = cmesh->NElements();
   cmesh->SetDefaultOrder(k);
@@ -663,6 +676,14 @@ TPZAutoPointer<TPZCompMesh> CreateCMesh(TPZAutoPointer<TPZGeoMesh> gmesh,
   switch (space)
   {
   case ESpace::H1:
+    // Check if it is a prismatic mesh (may there is a better way to do it?)
+    // On prisms the de Rham compatible H1 space is the wide prism.
+    // It has a higher horizontal order when compared with the standard H1 prism.
+    if (HasPrisms(gmesh)) {
+      cmesh->ApproxSpace().SetH1Family(H1Family::EH1WidePrism);
+    } else {
+      cmesh->ApproxSpace().SetH1Family(H1Family::EH1Standard);
+    }
     cmesh->SetAllCreateFunctionsContinuous();
     break;
   case ESpace::HCurl:

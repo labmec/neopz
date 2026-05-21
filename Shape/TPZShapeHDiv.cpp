@@ -225,12 +225,22 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
         int firstshape = FirstIndex[side];
         int lastshape = FirstIndex[side+1];
 
+        // Check if the vector is horizontal (z=0)
+        bool isHorizontal = std::abs(data.fHDiv.fMasterDirections(2,ivec)) <= 1e-10;
+
         for (int ish = firstshape; ish<lastshape; ish++) {
             int sidedimension = TSHAPE::SideDimension(side);
             int maxorder[3] = {pressureorder,pressureorder,pressureorder};
             if (bil) {
                 maxorder[dir]++;
             }
+
+            // Increase maxorder for horizontal directions in prisms
+            if (tipo == EPrisma && isHorizontal) {
+                maxorder[0]++;
+                maxorder[1]++;
+            }
+
             int shord[3] = {0};
             int include=true;
             for (int d=0; d<sidedimension; d++)
@@ -497,9 +507,20 @@ int TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
     }
     else if(thistype == EPrisma)
     {
-        if(connect == 0 || connect == 4) return (order+1)*(order+2)/2;
-        else if(connect < TSHAPE::NFacets) return (order+1)*(order+1);
-        else return order*order*(3*order+5)/2+7*order-2;
+        if(connect == 0 || connect == 4) 
+        {
+            return (order+1)*(order+2)/2;
+        } else if(connect < TSHAPE::NFacets) {
+             return (order+1)*(order+1);
+        } else {
+            int edge = order;
+            int faceTrig = (order)*(order-1)/2 * 2;
+            int faceQuad = (order)*(order-1) * 2;
+            int internalXY = order*(order-1)*(order-1);
+            int internalZ = order*(order-1)*(order-2)/2;
+            int total = 9*edge + 2*faceTrig + 3*faceQuad + internalXY + internalZ;
+            return total;
+        }
     }
     else if(thistype == ECube)
     {

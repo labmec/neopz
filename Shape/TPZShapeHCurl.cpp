@@ -308,7 +308,12 @@ int TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(const int icon, const int order
                 return 3*order*order*(order+1);
             }
             else if constexpr (TSHAPE::Type() == EPrisma){
-                return 3*order*(order-1)*(order+1)/2;
+                int internal_trig = order*(order-1)/2;
+                int internal_quad = (order-1)*(order-1);
+                int internal_vol_xy = (order-2)*(order-1)*(order-1); 
+                int internal_vol_z = (order)*(order-1)*(order-2)/2;
+
+                return 2*internal_trig + 3*internal_quad + internal_vol_xy + internal_vol_z;
             }
             else{
                 PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
@@ -729,7 +734,7 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
                 skip = true;
                 if((TSHAPE::Type(faceSide) == EQuadrilateral) &&
                    (ordvec[0] <= sideOrder) &&
-                   (ordvec[1] <= sideOrder+1)){
+                   (ordvec[1] <= sideOrder)){
                     //for quad faces ordvec[0] = xord and ordvec[1] = zord
                     skip = false;
                     
@@ -802,13 +807,13 @@ void TPZShapeHCurl<TSHAPE>::StaticIndexShapeToVec(TPZShapeData &data) {
         else if constexpr(TSHAPE::Type() == EPrisma){
             if((xord <= sideOrder) &&
                (yord <= sideOrder) &&
-               (zord <= sideOrder+1)){
+               (zord <= sideOrder)){
                 addFunc(xVecIndex,shapeIndex);
                 addFunc(yVecIndex,shapeIndex);
             }
             if((xord <= sideOrder+1) &&
                (yord <= sideOrder+1) &&
-               (zord <= sideOrder)){
+               (zord <= sideOrder-1)){
                 addFunc(zVecIndex,shapeIndex);
             }
         }
