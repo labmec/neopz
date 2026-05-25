@@ -114,7 +114,7 @@ void TPZHDivApproxCreator::CreateAtomicMeshes(TPZManVector<TPZCompMesh*,7>& mesh
     meshvec[countMesh++] = CreateHDivSpace();
     meshvec[countMesh-1]->SetName("HDiv");
     // lagLevelCounter = 1;
-    meshvec[countMesh++] = CreateL2Space(fDefaultPOrder,lagLevelCounter++);
+    meshvec[countMesh++] = CreateL2Space(fDefaultPOrder+fExtraInternalPOrder,lagLevelCounter++);
     meshvec[countMesh-1]->SetName("Pressure");
 
 #ifdef PZDEBUG
