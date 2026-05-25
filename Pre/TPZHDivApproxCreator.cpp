@@ -114,7 +114,7 @@ void TPZHDivApproxCreator::CreateAtomicMeshes(TPZManVector<TPZCompMesh*,7>& mesh
     meshvec[countMesh++] = CreateHDivSpace();
     meshvec[countMesh-1]->SetName("HDiv");
     // lagLevelCounter = 1;
-    meshvec[countMesh++] = CreateL2Space(fDefaultPOrder+fExtraInternalPOrder,lagLevelCounter++);
+    meshvec[countMesh++] = CreateL2Space(fDefaultPOrder,lagLevelCounter++);
     meshvec[countMesh-1]->SetName("Pressure");
 
 #ifdef PZDEBUG
@@ -287,8 +287,8 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     }
     
 #ifdef PZDEBUG
-//    std::ofstream out("fluxmesh_at_CreateHDivSpace.txt");
-//    cmesh->Print(out);
+    std::ofstream out("fluxmesh_at_CreateHDivSpace.txt");
+    cmesh->Print(out);
 //    PrintMeshElementsConnectInfo(cmesh);
 #endif
 
@@ -424,9 +424,9 @@ TPZCompMesh * TPZHDivApproxCreator::CreateConstantSpace(const int lagLevel) {
 
 TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(int pOrder, const int lagLevel){
 
-    if (fProbType == ProblemType::EElastic){//Se triangular.
-        pOrder = fDefaultPOrder+fExtraInternalPOrder;
-    }
+//    if (fProbType == ProblemType::EElastic){//Se triangular.
+//        pOrder = fDefaultPOrder+fExtraInternalPOrder;
+//    }
 
     fGeoMesh->ResetReference();
     int dim = fGeoMesh->Dimension();
@@ -434,6 +434,8 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(int pOrder, const int lagLevel
     cmesh->SetDimModel(dim);
 
     int nstate = 0;
+    // insert the material objects
+    // if HDivKerner no L2 space should be created
     if (fHDivFam != HDivFamily::EHDivKernel){
         for (std::pair<int,TPZMaterial*> matpair : fMaterialVec) {
             TPZMaterial* mat = matpair.second;
@@ -444,6 +446,8 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(int pOrder, const int lagLevel
                 TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(mat->Id(),dim,mat->NStateVariables());
                 cmesh->InsertMaterialObject(nullmat);
                 if(fProbType == ProblemType::EElastic && fIsRBSpaces && lagLevel > 2){
+                    std::cout << "I don't understand";
+                    DebugStop();
                     if(dim == 2) nullmat->SetNStateVariables(3);
                     else if(dim == 3) nullmat->SetNStateVariables(6);
                 }
@@ -458,8 +462,8 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(int pOrder, const int lagLevel
     {
     case HDivFamily::EHDivStandard:
     case HDivFamily::EHDivOptimized:
-        if (pOrder > 0){
-            cmesh->SetDefaultOrder(pOrder);
+        if (pOrder+fExtraInternalPOrder > 0){
+            cmesh->SetDefaultOrder(pOrder+fExtraInternalPOrder);
             cmesh->SetAllCreateFunctionsContinuous();
             cmesh->ApproxSpace().CreateDisconnectedElements(true);
         } else {
@@ -493,7 +497,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(int pOrder, const int lagLevel
         cmesh->InsertMaterialObject(nullmat);
         
         int lagpord = pOrder;
-        if (fProbType == ProblemType::EElastic) lagpord -= fExtraInternalPOrder;
+//        if (fProbType == ProblemType::EElastic) lagpord -= fExtraInternalPOrder;
         if (fHybridType == HybridizationType::ESemi) lagpord = 0;
         if (lagpord > 0){
             cmesh->SetDefaultOrder(lagpord);
@@ -513,8 +517,8 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(int pOrder, const int lagLevel
         // cmesh->Print(out2);
     }
 
-    int ncon = cmesh->NConnects();
-    for(int i=0; i<ncon; i++)
+    int64_t ncon = cmesh->NConnects();
+    for(int64_t i=0; i<ncon; i++)
     {
         TPZConnect &newnod = cmesh->ConnectVec()[i]; 
         newnod.SetLagrangeMultiplier(lagLevel);
