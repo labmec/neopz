@@ -179,6 +179,8 @@ void TPZShapeHDivOptimized<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &
                 count++;
                 countKernel++;
             }
+            int diff = data.fH1.fNumConnectShape[i]-data.fHDiv.fNumConnectShape[i]+1;
+            countKernel += diff;
         }
 
         // Internal functions
