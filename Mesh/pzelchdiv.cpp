@@ -1236,9 +1236,10 @@ void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large
 
             auto depend = myconnect.FirstDepend();
             HDivFamily divfam = GetHDivFamily();
-            auto Invert = [divfam](auto dep){
+            int dim = largegeoside.Dimension();
+            auto Invert = [divfam,dim](auto dep){
                 while(dep){
-                    if(divfam == HDivFamily::EHDivConstant || divfam == HDivFamily::EHDivOptimized) {
+                    if(dim == 2 && (divfam == HDivFamily::EHDivConstant || divfam == HDivFamily::EHDivOptimized)) {
                         int64_t nc = dep->fDepMatrix.Cols();
                         for(int ic=0; ic<nc; ic++) {
                             dep->fDepMatrix(ic,0) *= -1.;
