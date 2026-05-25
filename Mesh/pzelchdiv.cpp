@@ -1235,10 +1235,19 @@ void TPZCompElHDiv<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large
         // If negative, the element sides have opposite orientations and vice-versa.
 
             auto depend = myconnect.FirstDepend();
-            auto Invert = [](auto dep){
+            HDivFamily divfam = GetHDivFamily();
+            auto Invert = [divfam](auto dep){
                 while(dep){
-                    dep->fDepMatrix.MultiplyByScalar(-1.,dep->fDepMatrix);
-                    dep = dynamic_cast<decltype(dep)>(dep->fNext);
+                    if(divfam == HDivFamily::EHDivConstant || divfam == HDivFamily::EHDivOptimized) {
+                        int64_t nc = dep->fDepMatrix.Cols();
+                        for(int ic=0; ic<nc; ic++) {
+                            dep->fDepMatrix(ic,0) *= -1.;
+                        }
+                        dep = dynamic_cast<decltype(dep)>(dep->fNext);
+                    } else {
+                        dep->fDepMatrix.MultiplyByScalar(-1.,dep->fDepMatrix);
+                        dep = dynamic_cast<decltype(dep)>(dep->fNext);
+                    }
                 }
             };
             auto dep_real =
