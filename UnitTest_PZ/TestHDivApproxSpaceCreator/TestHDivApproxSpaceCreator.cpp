@@ -146,102 +146,80 @@ TElasticity2DAnalytic gElast2d;
 TElasticity3DAnalytic gElast3d;
 TLaplaceExample1 gDarcy;
 
-#define TESTALL
+// #define TESTALL
+
 #ifndef USE_MAIN
 TEST_CASE("HDiv Approx Space Creator", "[hdiv_linear_solution_representation]")
 {
-    {
 #ifdef TESTALL
-             HDivFamily sType = GENERATE(HDivFamily::EHDivConstant, HDivFamily::EHDivStandard, HDivFamily::EHDivOptimized);
+    HDivFamily sType = GENERATE(HDivFamily::EHDivConstant, HDivFamily::EHDivStandard, HDivFamily::EHDivOptimized);
 #else
-        HDivFamily sType = GENERATE(HDivFamily::EHDivOptimized);
+    HDivFamily sType = GENERATE(HDivFamily::EHDivConstant, HDivFamily::EHDivStandard, HDivFamily::EHDivOptimized);
 #endif
-        SECTION("HDiv family type: " + std::string(HDivFamilyToChar(sType)))
-        {
+    SECTION("HDiv family type: " + std::string(HDivFamilyToChar(sType))) {
 #ifdef TESTALL
-            ProblemType pType = GENERATE(ProblemType::EDarcy, ProblemType::EElastic);
+        ProblemType pType = GENERATE(ProblemType::EDarcy, ProblemType::EElastic);
 #else
-                    ProblemType pType = GENERATE(ProblemType::EDarcy);
+        ProblemType pType = GENERATE(ProblemType::EDarcy);
 #endif
-            SECTION("Problem type: " + std::string(ProblemTypeToChar(pType)))
-            {
+        SECTION("Problem type: " + std::string(ProblemTypeToChar(pType))) {
 #ifdef TESTALL
-                MMeshType mType = GENERATE(MMeshType::EQuadrilateral, MMeshType::ETriangular, MMeshType::ETetrahedral, MMeshType::EHexahedral);
+            MMeshType mType = GENERATE(MMeshType::EQuadrilateral, MMeshType::ETriangular, MMeshType::ETetrahedral, MMeshType::EHexahedral);
 #else
-                MMeshType mType = GENERATE(MMeshType::EHexahedral);
+            MMeshType mType = GENERATE(MMeshType::ETriangular, MMeshType::EHexahedral);
 #endif
-                SECTION("Mesh type: " + std::string(MeshTypeToChar(mType)))
-                {
+            SECTION("Mesh type: " + std::string(MeshTypeToChar(mType))) {
 #ifdef TESTALL
-                    int pOrder = GENERATE(1,2);
+                int pOrder = GENERATE(1, 2);
 #else
-                    int pOrder = GENERATE(1);
+                int pOrder = GENERATE(1);
 #endif
-                    SECTION("pOrder=" + std::to_string(pOrder))
-                    {
+                SECTION("pOrder=" + std::to_string(pOrder)) {
 #ifdef TESTALL
-                        int extraporder = GENERATE(0,1);
+                    int extraporder = GENERATE(0, 1);
 #else
-                        int extraporder = GENERATE(1);
+                    int extraporder = GENERATE(0, 1);
 #endif
-                        SECTION("extraporder=" + std::to_string(extraporder))
-                        {
+                    SECTION("extraporder=" + std::to_string(extraporder)) {
 #ifdef TESTALL
-                            HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::ESemi);
+                        HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::ESemi);
 #else
-                            HybridizationType hType = GENERATE(HybridizationType::ENone);
+                        HybridizationType hType = GENERATE(HybridizationType::ENone);
 #endif
-                            SECTION("Hybridization type: " + std::string(HybridizationTypeToChar(hType)))
-                            {
-                                // bool isRBSpaces = GENERATE(true, false);
-                                bool isRBSpaces = GENERATE(false,true);
-                                SECTION("isRigidBodySpaces=" + std::to_string(isRBSpaces))
-                                {
+                        SECTION("Hybridization type: " + std::string(HybridizationTypeToChar(hType))) {
+                            bool isRBSpaces = GENERATE(false, true);
+                            SECTION("isRigidBodySpaces=" + std::to_string(isRBSpaces)) {
 #ifdef TESTALL
-                                    bool isCondensed = GENERATE(false, true);
+                                bool isCondensed = GENERATE(false, true);
 #else
-                                    bool isCondensed = GENERATE(false, true);
+                                bool isCondensed = GENERATE(false, true);
 #endif
-                                    //                            bool isCondensed = false;
-                                    SECTION("isCondensed=" + std::to_string(isCondensed))
-                                    {
+                                SECTION("isCondensed=" + std::to_string(isCondensed)) {
 #ifdef TESTALL
-                                        bool isRef = GENERATE(false, true);
+                                    bool isRef = GENERATE(false, true);
 #else
-                                        bool isRef = GENERATE(false);
+                                    bool isRef = GENERATE(false, true);
 #endif
-                                        SECTION("isRef=" + std::to_string(isRef))
-                                        {
-                                            // skip extra p order for EHDivOptimized
-                                            bool skipPorder = sType == HDivFamily::EHDivOptimized && extraporder > 0;
-                                            skipPorder = false;
-                                            // skipping 3d elements with hdivconstant and no hybridization
-                                            bool skipadapt = isRef && (sType == HDivFamily::EHDivConstant || sType == HDivFamily::EHDivOptimized) && (mType == MMeshType::EPrismatic || mType == MMeshType::EHexahedral || mType == MMeshType::ETetrahedral) && hType == HybridizationType::ENone;
-                                            skipadapt = false;
-                                            bool isMHM = false;
-                                            bool skipsemi1 = (isRef && hType == HybridizationType::ESemi);
-                                            bool skipsemi2 = sType != HDivFamily::EHDivConstant && sType != HDivFamily::EHDivOptimized && hType == HybridizationType::ESemi;
-                                            bool skipcondensed = (isCondensed && sType == HDivFamily::EHDivConstant);
-                                            bool shouldnotskip = !skipPorder && !skipadapt && !skipsemi1 && !skipcondensed && !skipsemi2;
-                                            if (shouldnotskip)
-                                            {
-                                                TestHdivApproxSpaceCreator(sType, pType, pOrder, isRBSpaces, mType, extraporder, isCondensed, hType, isRef, isMHM);
-                                            }
-                                            else {
-                                                cout << "----------------- Skipping ---------------------\n" <<
-                                                "HdivFam = " << HDivFamilyToChar(sType) <<
-                                                "\nProblemType = " << ProblemTypeToChar(pType) <<
-                                                "\nMeshType = " << mType <<
-                                                "\npOrder = " << pOrder <<
-                                                "\nExtra POrder = " << extraporder <<
-                                                "\nHybridization type = " << HybridizationTypeToChar(hType) <<
-                                                "\nisRBSpaces = " << std::boolalpha << isRBSpaces <<
-                                                "\nisCondensed = " << std::boolalpha << isCondensed <<
-                                                "\nisRef = " << std::boolalpha << isRef << endl;
-                                                std::cout << std::boolalpha << "\nskip extra p order " << skipPorder << "\nskip adaptivity " << skipadapt <<
-                                                "\nskip semi 1 (semi and refined) " << skipsemi1 << "\nskip condensed " << skipcondensed << "\nskip semi 2 (semi and hdiv family) " << skipsemi2 << std::endl
-                                                << std::endl;
-                                            }
+                                    SECTION("isRef=" + std::to_string(isRef)) {
+                                        // skip extra p order for EHDivOptimized
+                                        bool skipPorder = sType == HDivFamily::EHDivOptimized && extraporder > 0;
+                                        skipPorder = false;
+                                        // skipping 3d elements with hdivconstant and no hybridization
+                                        bool skipadapt = isRef && (sType == HDivFamily::EHDivConstant || sType == HDivFamily::EHDivOptimized) && (mType == MMeshType::EPrismatic || mType == MMeshType::EHexahedral || mType == MMeshType::ETetrahedral) && hType == HybridizationType::ENone;
+                                        skipadapt = false;
+                                        bool isMHM = false;
+                                        bool skipsemi1 = (isRef && hType == HybridizationType::ESemi);
+                                        bool skipsemi2 = sType != HDivFamily::EHDivConstant && sType != HDivFamily::EHDivOptimized && hType == HybridizationType::ESemi;
+                                        bool skipcondensed = (isCondensed && sType == HDivFamily::EHDivConstant);
+                                        bool shouldnotskip = !skipPorder && !skipadapt && !skipsemi1 && !skipcondensed && !skipsemi2;
+                                        if (shouldnotskip) {
+                                            TestHdivApproxSpaceCreator(sType, pType, pOrder, isRBSpaces, mType, extraporder, isCondensed, hType, isRef, isMHM);
+                                        }
+                                        else {
+                                            cout << "----------------- Skipping ---------------------\n"
+                                                 << "HdivFam = " << HDivFamilyToChar(sType) << "\nProblemType = " << ProblemTypeToChar(pType) << "\nMeshType = " << mType << "\npOrder = " << pOrder << "\nExtra POrder = " << extraporder << "\nHybridization type = " << HybridizationTypeToChar(hType) << "\nisRBSpaces = " << std::boolalpha << isRBSpaces << "\nisCondensed = " << std::boolalpha << isCondensed << "\nisRef = " << std::boolalpha << isRef << endl;
+                                            std::cout << std::boolalpha << "\nskip extra p order " << skipPorder << "\nskip adaptivity " << skipadapt << "\nskip semi 1 (semi and refined) " << skipsemi1 << "\nskip condensed " << skipcondensed << "\nskip semi 2 (semi and hdiv family) " << skipsemi2 << std::endl
+                                                      << std::endl;
                                         }
                                     }
                                 }
@@ -253,62 +231,7 @@ TEST_CASE("HDiv Approx Space Creator", "[hdiv_linear_solution_representation]")
         }
     }
 }
-/*
- TEST_CASE("Rigid Body", "[hdiv_space_creator_residual_test]")
- {
- HDivFamily sType = GENERATE(HDivFamily::EHDivConstant, HDivFamily::EHDivStandard, HDivFamily::EHDivOptimized);
- //    HDivFamily sType = GENERATE(HDivFamily::EHDivConstant);
- SECTION("HDiv family type: " + std::string(HDivFamilyToChar(sType)))
- {
- ProblemType pType = GENERATE(ProblemType::EDarcy, ProblemType::EElastic);
- //        ProblemType pType = GENERATE(ProblemType::EElastic);
- SECTION("Problem type: " + std::string(ProblemTypeToChar(pType)))
- {
- int pOrder = GENERATE(2,1);
- SECTION("pOrder=" + std::to_string(pOrder))
- {
- bool isRBSpaces = GENERATE(true, false);
- //                bool isRBSpaces = GENERATE(true);
- SECTION("isRigidBodySpaces=" + std::to_string(isRBSpaces))
- {
- MMeshType mType = GENERATE(MMeshType::EQuadrilateral, MMeshType::ETriangular, MMeshType::EHexahedral, MMeshType::ETetrahedral);
- //                    MMeshType mType = GENERATE(MMeshType::ETetrahedral);
- SECTION("Mesh type: " + std::string(MeshTypeToChar(mType)))
- {
- int extraporder = GENERATE(1,0);
- SECTION("extraporder=" + std::to_string(extraporder))
- {
- bool isCondensed = GENERATE(false, true);
- //                            bool isCondensed = GENERATE(true);
- SECTION("isCondensed=" + std::to_string(isCondensed))
- {
- HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::ESemi);
- //                                HybridizationType hType = GENERATE(HybridizationType::EStandard);
- SECTION("Hybridization type: " + std::string(HybridizationTypeToChar(hType)))
- {
- bool isRef = GENERATE(true, false);
- //                                    bool isRef = GENERATE(true);
- SECTION("isRef=" + std::to_string(isRef))
- {
- bool isMHM = false;
- if (!(isRef && hType == HybridizationType::ESemi) && !(isCondensed && sType == HDivFamily::EHDivConstant) &&
- !(sType != HDivFamily::EHDivConstant && sType != HDivFamily::EHDivOptimized && hType == HybridizationType::ESemi))
- {
- TestHdivApproxSpaceCreator2(sType, pType, pOrder, isRBSpaces, mType, extraporder, isCondensed, hType, isRef, isMHM);
- } else {
- std::cout << "Skipping test\n";
- }
- }
- }
- }
- }
- }
- }
- }
- }
- }
- }
- */
+
 #else
 int main(){
     
