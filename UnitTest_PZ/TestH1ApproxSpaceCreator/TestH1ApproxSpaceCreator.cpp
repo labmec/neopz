@@ -18,8 +18,14 @@
 #include "TPZH1ApproxCreator.h"
 #include "TPZVTKGenerator.h"
 #include "pzbuildmultiphysicsmesh.h"
+#include "TPZAnalyticSolution.h"
+#include "pzstepsolver.h"
 
 #include <pzlog.h>
+#include "TPZSimpleTimer.h"
+#ifdef PZ_USING_MKL
+#include "TPZSSpStructMatrix.h"
+#endif
 
 // ----- Unit test includes -----
 // #define USE_MAIN
@@ -37,22 +43,171 @@ static const std::map<HybridizationType, const char *> HybridNames({{Hybridizati
 #include <catch2/catch_approx.hpp>
 #endif
 
-/// Creates a simple mesh used for testing
 TPZGeoMesh *Create2DGeoMesh();
+
+TPZGeoMesh *Create2DGeoMesh(ProblemType& pType, MMeshType &mType);
+
+TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType);
 
 void InsertMaterials(TPZH1ApproxCreator &approxCreator);
 
-void TestH1ApproxSpaceCreator(H1Family h1Fam, HybridizationType hybType, ProblemType probType, int pOrder, int plusOrder, bool IsRigidBodySpaces, bool shouldCondense);
+void Refinement(TPZGeoMesh *gmesh);
+
+void CheckNEqCondensedProb(TPZCompMesh* cmesh, TPZH1ApproxCreator& h1creator, MMeshType& elType);
+
+void SolveSystem(TPZCompMesh* cmesh, const bool isTestKnownSol);
+
+void TestKnownSol(TPZLinearAnalysis& an, const REAL cteSol, TPZCompMesh* cmesh);
+
+void PostProcessVTK(TPZCompMesh* cmesh, ProblemType probType);
+
+void Test2DRigidBodyMotion(H1Family h1Fam, HybridizationType hybType, ProblemType probType, int pOrder, int plusOrder, bool IsRigidBodySpaces, bool shouldCondense);
+
+void TestH1ApproxSpaceCreator(H1Family h1Fam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType, int extrapOrder, bool isCondensed, HybridizationType hType, bool isRef);
 
 void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, H1Family h1fam);
 
-enum MaterialIds {EDomain,EBCDirichlet,EBCNeumann};
+enum MaterialIds {EDomain,EBCDirichlet,EBCNeumann,EBCDisplacementLeft,EBCDisplacementRight};
 
+constexpr const char* H1FamilyToChar(H1Family h1fam) {
+    switch (h1fam){
+        case H1Family::EH1Standard: return "EH1Standard";
+        default: std::invalid_argument("Unimplemented item");
+    }
+    return "Unimplemented item";//silences compiler warning on gcc
+}
+constexpr const char* HybridizationTypeToChar(HybridizationType hType) {
+    switch (hType){
+        case HybridizationType::ENone: return "ENone";
+        case HybridizationType::EStandard: return "EStandard";
+        case HybridizationType::EStandardSquared: return "EStandardSquared";
+        case HybridizationType::ESemi: return "ESemi";
+        default: std::invalid_argument("Unimplemented item");
+    }
+    return "Unimplemented item";//silences compiler warning on gcc
+}
+constexpr const char* ProblemTypeToChar(ProblemType ptype) {
+    switch (ptype){
+        case ProblemType::EDarcy: return "EDarcy";
+        case ProblemType::EElastic: return "EElastic";
+        case ProblemType::EStokes: return "EStokes";
+        case ProblemType::ENone: return "ENone";
+        default: std::invalid_argument("Unimplemented item");
+    }
+    return "Unimplemented item";//silences compiler warning on gcc
+}
+
+constexpr const char* MeshTypeToChar(MMeshType mtype)
+{
+    switch (mtype){
+        case MMeshType::EQuadrilateral: return "EQuadrilateral";
+        case MMeshType::ETriangular: return "ETriangular";
+        case MMeshType::EHexahedral: return "EHexahedral";
+        case MMeshType::ETetrahedral: return "ETetrahedral";
+        default: std::invalid_argument("Unimplemented item");
+    }
+    return "Unimplemented item"; // silences compiler warning on gcc
+}
+
+auto exactSolDarcy = [](const TPZVec<REAL> &loc,
+                        TPZVec<STATE>&u,
+                        TPZFMatrix<STATE>&gradU){
+    const auto &x=loc[0];
+    const auto &y=loc[1];
+    const auto &z=loc[2];
+    
+    u[0] = 1.;
+    gradU.Zero();
+};
+
+auto exactSolElastic = [](const TPZVec<REAL> &loc,
+                          TPZVec<STATE>&disp,
+                          TPZFMatrix<STATE>&gradU){
+    const auto &x=loc[0];
+    const auto &y=loc[1];
+    const auto &z=loc[2];
+    
+    disp.Fill(0.);
+    disp[0] = 1.;
+    disp[1] = 1.;
+    
+    gradU.Zero();
+    gradU(0,0) = 0.;
+};
+
+TElasticity2DAnalytic gElast2d;
+TElasticity3DAnalytic gElast3d;
+TLaplaceExample1 gDarcy;
 
 #ifndef USE_MAIN
-TEST_CASE("Approx Space Creator", "[h1_space_creator_test]") {
+//#define TESTALL
+TEST_CASE("2D and 3D linear solution", "[h1_space_creator_test]")
+{
+#ifdef TESTALL
+    H1Family sType = GENERATE(H1Family::EH1Standard);
+#else
+    H1Family sType = GENERATE(H1Family::EH1Standard);
+#endif
+    SECTION("H1 family type: " + std::string(H1FamilyToChar(sType))) {
+#ifdef TESTALL
+        ProblemType pType = GENERATE(ProblemType::EDarcy, ProblemType::EElastic);
+#else
+        ProblemType pType = GENERATE(ProblemType::EDarcy, ProblemType::EElastic);
+#endif
+        SECTION("Problem type: " + std::string(ProblemTypeToChar(pType))) {
+#ifdef TESTALL
+            MMeshType mType = GENERATE(MMeshType::EQuadrilateral, MMeshType::ETriangular, MMeshType::ETetrahedral, MMeshType::EHexahedral);
+#else
+            MMeshType mType = GENERATE(MMeshType::ETriangular, MMeshType::EHexahedral);
+#endif
+            SECTION("Mesh type: " + std::string(MeshTypeToChar(mType))) {
+#ifdef TESTALL
+                int pOrder = GENERATE(1, 2);
+#else
+                int pOrder = GENERATE(1);
+#endif
+                SECTION("pOrder=" + std::to_string(pOrder)) {
+#ifdef TESTALL
+                    int extraporder = GENERATE(0, 1);
+#else
+                    int extraporder = GENERATE(0, 1);
+#endif
+                    SECTION("extraporder=" + std::to_string(extraporder)) {
+#ifdef TESTALL
+                        HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::EStandardSquared);
+#else
+                        HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard);
+#endif
+                        SECTION("Hybridization type: " + std::string(HybridizationTypeToChar(hType))) {
+                            bool isRBSpaces = GENERATE(false, true);
+                            SECTION("isRigidBodySpaces=" + std::to_string(isRBSpaces)) {
+#ifdef TESTALL
+                                bool isCondensed = GENERATE(false, true);
+#else
+                                bool isCondensed = GENERATE(false, true);
+#endif
+                                SECTION("isCondensed=" + std::to_string(isCondensed)) {
+#ifdef TESTALL
+                                    bool isRef = GENERATE(false, true);
+#else
+                                    bool isRef = GENERATE(false, true);
+#endif
+                                    SECTION("isRef=" + std::to_string(isRef)) {
+                                        TestH1ApproxSpaceCreator(sType, pType, pOrder, isRBSpaces, mType, extraporder, isCondensed, hType, isRef);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+TEST_CASE("2D Constant solution", "[h1_space_creator_test]") {
     H1Family sType = H1Family::EH1Standard;
-    HybridizationType hybtype = GENERATE(HybridizationType::ENone, HybridizationType::EStandard);
+    HybridizationType hybtype = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::EStandardSquared);
     SECTION("HybridizationType = " + std::string(HybridNames.at(hybtype))) {
         ProblemType pType = GENERATE(ProblemType::EElastic, ProblemType::EDarcy);
         SECTION("ProblemType = " + std::string(ProblemNames.at(pType))) {
@@ -64,7 +219,7 @@ TEST_CASE("Approx Space Creator", "[h1_space_creator_test]") {
                     SECTION("isRigidBody=" + std::to_string(isRigidBody)) {
                         bool shouldCondense = GENERATE(true, false);
                         SECTION("shouldCondense=" + std::to_string(shouldCondense)) {
-                            TestH1ApproxSpaceCreator(sType, hybtype, pType, pOrder, plusOrder, isRigidBody, shouldCondense);
+                            Test2DRigidBodyMotion(sType, hybtype, pType, pOrder, plusOrder, isRigidBody, shouldCondense);
                         }
                     }
                 }
@@ -79,7 +234,7 @@ int main() {
     TPZLogger::InitializePZLOG();
 #endif
     HybridizationType hybtype = HybridizationType::ENone;
-    TestH1ApproxSpaceCreator(H1Family::EH1Standard, hybtype, ProblemType::EDarcy, 2, 1, true, true);
+    Test2DRigidBodyMotion(H1Family::EH1Standard, hybtype, ProblemType::EDarcy, 2, 1, true, true);
     return 0;
 }
 #endif
@@ -104,6 +259,69 @@ TPZGeoMesh *Create2DGeoMesh() {
 
     return gmesh;
 }
+
+TPZGeoMesh *Create2DGeoMesh(ProblemType& pType, MMeshType &mType) {
+    
+    // ----- Create Geo Mesh -----
+    const TPZManVector<REAL,2> minX = {-1.,-1.};
+    const TPZManVector<REAL,2> maxX = {1.,1.};
+    const TPZManVector<int,2> nelDiv = {2,1};
+    TPZGenGrid2D gen2d(nelDiv,minX,maxX);
+    gen2d.SetElementType(mType);
+    TPZGeoMesh* gmesh = new TPZGeoMesh;
+    gen2d.Read(gmesh,EDomain);
+    
+    if(pType == ProblemType::EDarcy){
+        gen2d.SetBC(gmesh, 4, EBCDirichlet);
+        gen2d.SetBC(gmesh, 5, EBCDirichlet);
+        gen2d.SetBC(gmesh, 6, EBCDirichlet);
+        gen2d.SetBC(gmesh, 7, EBCDirichlet);
+    }
+    else if (pType == ProblemType::EElastic){
+        const bool isrbmProb = false;
+        if(isrbmProb){
+            gen2d.SetBC(gmesh, 4, EBCDirichlet);
+            gen2d.SetBC(gmesh, 5, EBCDirichlet);
+            gen2d.SetBC(gmesh, 6, EBCDirichlet);
+            gen2d.SetBC(gmesh, 7, EBCDirichlet);
+        }
+        else{
+            gen2d.SetBC(gmesh, 4, EBCNeumann);
+            gen2d.SetBC(gmesh, 5, EBCDisplacementRight);
+            gen2d.SetBC(gmesh, 6, EBCNeumann);
+            gen2d.SetBC(gmesh, 7, EBCDisplacementLeft);
+        }
+    }
+    
+    return gmesh;
+}
+
+TPZGeoMesh *Create3DGeoMesh(ProblemType& pType, MMeshType &mType) {
+    
+    // ----- Create Geo Mesh -----
+    const TPZManVector<REAL,3> minX = {-1.,-1.,-1.};
+    const TPZManVector<REAL,3> maxX = {1.,1.,1.};
+    const TPZManVector<int,3> nelDiv = {2,1,1};
+    TPZGenGrid3D gen3d(minX,maxX,nelDiv,mType);
+    TPZGeoMesh* gmesh = new TPZGeoMesh;
+    gmesh = gen3d.BuildVolumetricElements(EDomain);
+    
+    if(pType == ProblemType::EDarcy){
+        gmesh = gen3d.BuildBoundaryElements(EBCNeumann,EBCNeumann,EBCNeumann,EBCDirichlet,EBCNeumann,EBCNeumann);
+    }
+    else if (pType == ProblemType::EElastic){
+        const bool isrbmProb = false;
+        if(isrbmProb){
+            gmesh = gen3d.BuildBoundaryElements(EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet,EBCDirichlet);
+        }
+        else {
+            gmesh = gen3d.BuildBoundaryElements(EBCNeumann,EBCDisplacementLeft,EBCNeumann,EBCDisplacementRight,EBCNeumann,EBCNeumann);
+        }
+    }
+    
+    return gmesh;
+}
+
 #include <Elasticity/TPZHybridElasticity2D.h>
 #include <Elasticity/TPZElasticity2D.h>
 
@@ -197,7 +415,7 @@ void InsertMaterials(TPZH1ApproxCreator &approxCreator){
 //        ExtraInternalOrder = 1:
 //            RBS = false (NOT TESTED)
 //            RBS = true  (NOT TESTED)
-void TestH1ApproxSpaceCreator(H1Family h1Fam, HybridizationType hybtype ,ProblemType probType, int pOrder, int plusOrder, bool IsRigidBodySpaces, bool shouldCondense){
+void Test2DRigidBodyMotion(H1Family h1Fam, HybridizationType hybtype ,ProblemType probType, int pOrder, int plusOrder, bool IsRigidBodySpaces, bool shouldCondense){
 
     TPZGeoMesh *gmesh = Create2DGeoMesh();
 
@@ -339,3 +557,354 @@ void CheckIntegralOverDomain(TPZCompMesh *cmesh, ProblemType probType, H1Family 
     std::cout << std::endl;
 }
 
+void Refinement(TPZGeoMesh *gmesh){
+    // children[0]->Divide(children);
+    const int nel = gmesh->NElements();
+    // for (int i = 0; i < nel; i++){
+    int dim = gmesh->Dimension();
+    TPZManVector<TPZGeoEl*,10> children;
+    if (gmesh->ElementVec()[0]->Dimension() == dim) gmesh->ElementVec()[0]->Divide(children);
+    for(int64_t el = 0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if(gel->Dimension() != dim-1) continue;
+        if(gel->HasSubElement()) continue;
+        TPZGeoElSide gelside(gel);
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        if(neighbour.HasSubElement()) {
+            TPZManVector<TPZGeoEl*,10> children;
+            gel->Divide(children);
+        }
+    }
+}
+
+void CheckNEqCondensedProb(TPZCompMesh* cmesh, TPZH1ApproxCreator& h1creator, MMeshType& elType) {
+    
+    std::cout << "\n--------------- Checking number of equations --------------" <<  std::endl;
+    TPZMultiphysicsCompMesh* mpcmesh = dynamic_cast<TPZMultiphysicsCompMesh*>(cmesh);
+    if (!mpcmesh) {
+        std::cout << "Hybrid H1 must have a multiphysics mesh.\n";
+        return;
+    }
+    TPZCompMesh* pmesh = mpcmesh->MeshVector()[1];
+    const int lagmatid = h1creator.HybridData().fLagrangeMatId;
+    const int dim = mpcmesh->Dimension();
+    
+    int nlag = 0;
+    for(auto cel : pmesh->ElementVec()) {
+        if(!cel) continue;
+        TPZGeoEl* gel = cel->Reference();
+        if(!gel) DebugStop();
+        const int gelmatid = gel->MaterialId();
+        if (gelmatid == lagmatid) {
+            ++nlag;
+        }
+    }
+    
+    const int nEquations = mpcmesh->NEquations();
+    const int pOrder = mpcmesh->GetDefaultOrder();
+    
+    int nstate = 0;
+    if (h1creator.ProbType()==ProblemType::EDarcy){
+        nstate = 1;
+    } else if (h1creator.ProbType()==ProblemType::EElastic) {
+        nstate = dim;
+    } else {
+        DebugStop();
+    }
+    
+    int expNEquations = nlag * (pOrder+1) * nstate;
+    if(elType == MMeshType::ETetrahedral){
+        expNEquations = nstate * nlag * (pOrder+1) * (pOrder+2) / 2;
+    }
+    if(elType == MMeshType::EHexahedral) {
+        expNEquations = nstate * nlag * (pOrder+1) * (pOrder+1);
+    }
+    int extrap = h1creator.GetExtraInternalOrder();
+    std::cout << "Expected equations: " << expNEquations << std::endl;
+    std::cout << "Mesh equations: " << nEquations << std::endl;
+    bool condition = (nEquations == expNEquations) || (extrap != 0);
+    if(!condition) {
+        std::cout << "I should stop\n";
+    }
+#ifndef USE_MAIN
+    REQUIRE(condition);
+#endif
+}
+
+void SolveSystem(TPZCompMesh* cmesh, const bool isTestKnownSol) {
+#ifdef USE_MAIN
+    constexpr int nThreads{0};
+#else
+    constexpr int nThreads{0};
+#endif
+#ifdef PZ_USING_MKL
+    TPZSSpStructMatrix<STATE, TPZStructMatrixOR<STATE>> matsp(cmesh);
+#else
+    TPZFStructMatrix<STATE> matsp(cmesh);
+#endif
+    matsp.SetNumThreads(nThreads);
+    matsp.SetApplyConstraintInternal(true);
+    
+    std::cout << "\n=====> Number of equations = " << cmesh->NEquations() << std::endl << std::endl;
+#ifdef USE_MAIN
+    TPZLinearAnalysis an(cmesh,RenumType::ENone);
+#else
+    TPZLinearAnalysis an(cmesh, RenumType::ENone);
+#endif
+    
+    an.SetStructuralMatrix(matsp);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    an.SetSolver(step);
+    
+    if(isTestKnownSol){
+        TestKnownSol(an,1.,cmesh);
+    }
+    else{
+        an.Run();
+    }
+}
+
+void TestKnownSol(TPZLinearAnalysis& an, const REAL cteSol, TPZCompMesh* cmesh) {
+    
+    // Assemble matrix and rhs
+    an.Assemble();
+    
+    // Fill the connects related with displacement with solution cteSol
+    TPZMultiphysicsCompMesh* mpcmesh = dynamic_cast<TPZMultiphysicsCompMesh*>(an.Mesh());
+    if (mpcmesh) {
+        int64_t nc = mpcmesh->NConnects();
+        TPZFMatrix<STATE> &sol = mpcmesh->Solution();
+        for (int64_t ic = 0; ic<nc; ic++) {
+            TPZConnect &c = mpcmesh->ConnectVec()[ic];
+            int64_t seqnum = c.SequenceNumber();
+            if(seqnum < 0) continue;
+            unsigned char lagrange = c.LagrangeMultiplier();
+            STATE fill = 0.;
+            if(lagrange == 1)
+            {
+                fill = cteSol;
+            }
+            if(c.Order() > 1) continue;
+            int ndof = c.NShape() * c.NState();
+            for (int idf = 0; idf < ndof ; idf++) {
+                int64_t index = mpcmesh->Block().Index(seqnum, idf);
+                sol(index,0) = fill;
+            }
+        }
+        
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(mpcmesh->MeshVector(), mpcmesh);
+        
+        // Get Matrix
+        TPZMatrix<STATE>* mat = an.MatrixSolver<STATE>().Matrix().operator->();
+        
+        // Multiply matrix by known solution vector
+        const int neq = mpcmesh->NEquations();
+        TPZFMatrix<STATE> res(neq,1,0.);
+        mat->Multiply(mpcmesh->Solution(), res);
+        res = res - an.Rhs();
+        std::ofstream out("problematicElsGlob.txt");
+        an.PrintVectorByElement(out, res, 1.e-6);
+        
+        for(int i = 0 ; i < mpcmesh->MeshVector().size() ; i++){
+            std::string name = "Mesh_" + std::to_string(i) + ".txt";
+            std::ofstream outmesh(name);
+            mpcmesh->MeshVector()[i]->Print(outmesh);
+        }
+
+    } else {
+        int64_t nc = cmesh->NConnects();
+        TPZFMatrix<STATE> &sol = cmesh->Solution();
+        for (int64_t ic = 0; ic<nc; ic++) {
+            TPZConnect &c = cmesh->ConnectVec()[ic];
+            int64_t seqnum = c.SequenceNumber();
+            if(seqnum < 0) continue;
+            unsigned char lagrange = c.LagrangeMultiplier();
+            STATE fill = 0.;
+            if(lagrange == 1)
+            {
+                fill = cteSol;
+            }
+            if(c.Order() > 1) continue;
+            int ndof = c.NShape() * c.NState();
+            for (int idf = 0; idf < ndof ; idf++) {
+                int64_t index = cmesh->Block().Index(seqnum, idf);
+                sol(index,0) = fill;
+            }
+        }
+        
+        // Get Matrix
+        TPZMatrix<STATE>* mat = an.MatrixSolver<STATE>().Matrix().operator->();
+        
+        // Multiply matrix by known solution vector
+        const int neq = cmesh->NEquations();
+        TPZFMatrix<STATE> res(neq,1,0.);
+        mat->Multiply(cmesh->Solution(), res);
+        res = res - an.Rhs();
+        std::ofstream out("problematicElsGlob.txt");
+        an.PrintVectorByElement(out, res, 1.e-6);
+        
+        std::ofstream outmesh("Mesh.txt");
+        cmesh->Print(outmesh);
+    }
+}
+
+void PostProcessVTK(TPZCompMesh* cmesh, ProblemType probType) {
+    TPZMultiphysicsCompMesh* mpcmesh = dynamic_cast<TPZMultiphysicsCompMesh*>(cmesh);
+    if (mpcmesh) {
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(mpcmesh->MeshVector(), mpcmesh);
+    }
+    const std::string plotfile = "PostProcess"; //sem o .vtk no final
+    constexpr int vtkRes{0};
+    
+    TPZManVector<std::string,2> fields = {"Flux","Pressure"};
+    if(probType == ProblemType::EElastic){
+        fields[0] = "SigmaX";
+        fields[1] = "Displacement";
+    }
+    if (mpcmesh) {
+        auto vtk = TPZVTKGenerator(mpcmesh, fields, plotfile, vtkRes);
+        vtk.Do();
+    } else {
+        auto vtk = TPZVTKGenerator(cmesh, fields, plotfile, vtkRes);
+        vtk.Do();
+    }
+}
+
+void CheckError(TPZCompMesh *cmesh, TPZVec<REAL> &error, ProblemType pType){
+    
+    cmesh->LoadReferences();
+    cmesh->EvaluateError(false,error);
+    const int dim = cmesh->Dimension();
+    
+    std::cout << "Error = " << error << std::endl;
+    if(pType == ProblemType::EDarcy){
+        if(error[1] >= 1.e-6) {
+            std::cout << "Deu errado\n";
+        }
+        REQUIRE(error[1] < 1.e-6);
+    }
+    if(pType == ProblemType::EElastic) {
+        if(error[0] >= 1.e-6) {
+            std::cout << "Deu errado\n";
+        }
+        REQUIRE(error[0] < 1.e-6);
+    }
+    /*
+     for (int i = 0 ; i < error.size() ; i++) {
+     #ifndef USE_MAIN
+     if( pType == ProblemType::EElastic && i == 6 ) {
+     // In Elastic mat i == 6 means energy error of the exact solution
+     if(dim == 2){
+     REQUIRE(error[i] == Catch::Approx(1.));
+     }
+     else if(dim == 3) {
+     REQUIRE(error[i] == Catch::Approx(M_SQRT2));
+     }
+     continue;
+     }
+     
+     // if elastic we dont check error in displacement for HDivConstant spaces
+     if(pType == ProblemType::EElastic && i == 3 && isHDivConst){
+     continue;
+     }
+     REQUIRE(fabs(error[i]) < 1.e-10);
+     #endif
+     }
+     std::cout << std::endl;
+     */
+}
+
+void TestH1ApproxSpaceCreator(H1Family h1Fam, ProblemType probType, int pOrder, bool isRigidBodySpaces, MMeshType mType, int extrapOrder, bool isCondensed, HybridizationType hType, bool isRef) {
+
+    gDarcy.fExact = TLaplaceExample1::EXpY;
+    gDarcy.fExact = TLaplaceExample1::EY;
+    gElast2d.fProblemType = TElasticity2DAnalytic::EHomogeneous;
+    gElast3d.fProblemType = TElasticity3DAnalytic::EHomogeneous;
+    
+    TPZSimpleTimer totaltime;
+    // ==========> Initial headers <==========
+    // =======================================
+    static int globcount = 0;
+    std::cout << "\n------------------ Starting test " << globcount++ << " ------------------" << std::endl;
+    std::cout <<
+    "H1Fam = " << H1FamilyToChar(h1Fam) <<
+    "\nProblemType = " << ProblemTypeToChar(probType) <<
+    "\nMeshType = " << mType <<
+    "\npOrder = " << pOrder <<
+    "\nExtra POrder = " << extrapOrder <<
+    "\nHybridization type = " << HybridizationTypeToChar(hType) <<
+    "\nisRBSpaces = " << std::boolalpha << isRigidBodySpaces <<
+    "\nisCondensed = " << std::boolalpha << isCondensed <<
+    "\nisRef = " << std::boolalpha << isRef << std::endl;
+    
+    // ==========> Creating GeoMesh <==========
+    // ========================================
+    TPZGeoMesh *gmesh;
+    if (mType == MMeshType::EQuadrilateral || mType == MMeshType::ETriangular){
+        gmesh = Create2DGeoMesh(probType,mType);
+    } else if (mType == MMeshType::EHexahedral || mType == MMeshType::ETetrahedral){
+        gmesh = Create3DGeoMesh(probType,mType);
+    } else {
+        DebugStop();
+    }
+    
+    if(isRef) Refinement(gmesh);
+    
+    std::ofstream out("GeoMesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+    
+    // ==========> Creating Multiphysics mesh <==========
+    // ==================================================
+    TPZH1ApproxCreator* h1Creator = nullptr;
+    h1Creator = new TPZH1ApproxCreator(gmesh);
+    h1Creator->SetProbType(probType);
+    h1Creator->IsRigidBodySpaces() = isRigidBodySpaces;
+    h1Creator->SetDefaultOrder(pOrder);
+    h1Creator->SetExtraInternalOrder(extrapOrder);
+    h1Creator->SetShouldCondense(isCondensed);
+    h1Creator->SetHybridType(hType);
+    InsertMaterials(*h1Creator);
+    TPZCompMesh *cmesh = nullptr;
+    if (h1Creator->HybridType() == HybridizationType::ENone) {
+        cmesh = h1Creator->CreateClassicH1ApproximationSpace();
+    } else {
+    TPZMultiphysicsCompMesh *cmesh = h1Creator->CreateApproximationSpace();
+    }
+    //    std::ofstream outtxt("geomeshmodified.txt");
+    //    gmesh->Print(outtxt);
+    
+    // ==========> Check number of equations for condensed problems <==========
+    // ========================================================================
+    if(isCondensed && hType != HybridizationType::ENone) {
+        CheckNEqCondensedProb(cmesh,*h1Creator,mType);
+    }
+    
+    
+    // ==========> Solving problem <==========
+    // =======================================
+    const bool isTestKnownSol = false;
+    SolveSystem(cmesh,isTestKnownSol);
+    if(isTestKnownSol) return; // do not perform checks if just testing known sol
+    
+    // ==========> Post processing <==========
+    // =======================================
+    //#ifdef USE_MAIN
+    PostProcessVTK(cmesh,probType);
+    //#endif
+    
+    // ==========> Unit test checks <==========
+    // ========================================
+    // Checks if the integral over the domain is a known value (most of the cases a constant value so just the volume of the domain)
+    //    CheckIntegralOverDomain(cmesh,probType,hdivFam);
+    // Checks if error with respect to exact solution is close to 0
+    TPZMaterial *mat = cmesh->FindMaterial(EDomain);
+    TPZMatError<STATE>* materror = dynamic_cast<TPZMatError<STATE>*>(mat);
+    if (!materror) DebugStop();
+    int nerror = materror->NEvalErrors();
+    TPZManVector<REAL,5> error(nerror);
+    CheckError(cmesh,error,probType);
+    
+    std::cout << "\n------------------ Test ended without crashing ------------------" << std::endl;
+    std::cout << "==> Total time: " << totaltime.ReturnTimeDouble()/1000. << " seconds" << std::endl << std::endl;
+}
