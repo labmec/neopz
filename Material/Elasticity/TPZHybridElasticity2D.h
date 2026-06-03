@@ -107,7 +107,7 @@ public:
     /*
      * @brief fill requirements for boundary contribute
      */
-    void FillBoundaryConditionDataRequirements(int type, TPZMaterialData &data) const override;
+    void FillBoundaryConditionDataRequirements(int type, TPZVec<TPZMaterialDataT<STATE>> &data) const override;
 
 
     /**@}*/

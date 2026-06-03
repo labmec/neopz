@@ -364,14 +364,18 @@ void TPZHybridElasticity2D::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, 
     errors[3] = energy;
 }
 
-void TPZHybridElasticity2D::FillBoundaryConditionDataRequirements(int type, TPZMaterialData &data) const {
+void TPZHybridElasticity2D::FillBoundaryConditionDataRequirements(int type, TPZVec<TPZMaterialDataT<STATE>> &datavec) const {
 
-    data.SetAllRequirements(false);
-    if (type == 3 || type == 1) {
-        data.fNeedsNormal = true;
-    }
-    if (HasForcingFunction()) {
-        data.fNeedsNormal = true;
+    int64_t nsp = datavec.size();
+    for(int i=0; i<nsp; i++) {
+        auto &data = datavec[i];
+        data.SetAllRequirements(false);
+        if (type == 3 || type == 1) {
+            data.fNeedsNormal = true;
+        }
+        if (HasForcingFunction()) {
+            data.fNeedsNormal = true;
+        }
     }
 }
 
