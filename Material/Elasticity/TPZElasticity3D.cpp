@@ -789,6 +789,7 @@ int TPZElasticity3D::VariableIndex(const std::string &name) const {
 	if(!strcmp("NormalStress",name.c_str()))  return TPZElasticity3D::ENormalStress;
 	if(!strcmp("NormalStrain",name.c_str()))  return TPZElasticity3D::ENormalStrain;
 	if(!strcmp("StressX",name.c_str()))  return TPZElasticity3D::EStressX;
+    if(!strcmp("SigmaX",name.c_str()))  return TPZElasticity3D::EStressX;
 	if(!strcmp("StressY",name.c_str()))  return TPZElasticity3D::EStressY;
 	if(!strcmp("StressZ",name.c_str()))  return TPZElasticity3D::EStressZ;
 	if(!strcmp("I1",name.c_str()))  return TPZElasticity3D::EI1;
