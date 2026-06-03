@@ -32,7 +32,7 @@ public:
     ~TPZH1ApproxCreator() = default;
     
     /// Set Hybridization type
-    virtual void SetHybridType(HybridizationType hybrid)  {
+    virtual void SetHybridType(HybridizationType hybrid) override {
         fHybridType = hybrid;
         fHybridizationData.SetProblemHybridH1(fProbType, fHybridType);
     }

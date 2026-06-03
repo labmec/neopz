@@ -37,13 +37,13 @@ public:
     const HDivFamily &HdivFamily() const {return fHDivFam;}
     
     /// Set Hybridization type
-    virtual void SetHybridType(HybridizationType hybrid)  {
+    virtual void SetHybridType(HybridizationType hybrid) override {
         fHybridType = hybrid;
         fHybridizationData.SetProblemHybridHDiv(fProbType, fHybridType);
     }
 
     /// Get/Set Problem type
-    virtual void SetProbType(ProblemType prob){
+    virtual void SetProbType(ProblemType prob) override {
         fProbType = prob;
         fHybridizationData.SetProblemHybridHDiv(fProbType, fHybridType);
     }

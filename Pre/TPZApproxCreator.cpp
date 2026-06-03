@@ -570,6 +570,18 @@ void AddHybrid(std::map<int64_t,TPZHybrid> &tree, int64_t interface_id, TPZHybri
 /// Add geometric elements to represent squared hybridization
 void TPZApproxCreator::AddHybridSquareGeoElements() {
   if(fHybridType != HybridizationType::EStandardSquared) DebugStop();
+    if(0) {
+        std::cout << "Hybridization structure before hybrid square\n";
+        for(auto &it : fHybridizationData.fInterfaces) {
+            TPZHybrid &hybridlarge = it.second;
+            std::cout << "lag " << it.first << " left " << hybridlarge.fLeft << " right " << hybridlarge.fRight << std::endl;
+        }
+    }
+#ifdef PZDEBUG
+    std::set<int64_t> largeflux;
+#endif
+
+
     std::map<int64_t,TPZHybrid> hybridsq;
     int bchybridlevel = fHybridizationData.fHybridizeBCLevel;
     for(auto &it : fHybridizationData.fInterfaces) {
@@ -596,6 +608,9 @@ void TPZApproxCreator::AddHybridSquareGeoElements() {
           // copy the TPZHybrid object
           TPZHybrid hybridlarge =(it.second);
           AddHybrid(hybridsq,it.first,hybridlarge);
+#ifdef PZDEBUG
+            largeflux.insert(it.second.fRight);
+#endif
           continue;
         }
         if(hasbcNeighbour) {
@@ -677,6 +692,7 @@ void TPZApproxCreator::AddHybridSquareGeoElements() {
           geoelem[4] = gbcsecondlagrange.CreatedElement()->Index();
           TPZGeoElBC gbcsecondinterfacer(gbcsecondlagrange,fHybridizationData.fSecondRightInterfaceMatId);
           geoelem[5] = gbcsecondinterfacer.CreatedElement()->Index();
+//            std::cout << "geoelem " << geoelem << std::endl;
           TPZHybrid h1(geoelem[1],geoelem[0],geoelem[2]);
           TPZHybrid h2(geoelem[3],geoelem[2],geoelem[4]);
           TPZHybrid h3(geoelem[5],geoelem[6],geoelem[4]);
@@ -691,18 +707,20 @@ void TPZApproxCreator::AddHybridSquareGeoElements() {
     {
         // number of times an element appears in a position (only once)
         std::set<int64_t> asleft, asright, aslagrange;
-        // number of times an element is references (max 2)
+        // number of times an element is referenced (max 2)
         std::map<int64_t,int> numref;
         int error = 0;
         for(auto &it : hybridsq) {
             int64_t lag = it.first;
             int64_t left = it.second.fLeft;
             int64_t right = it.second.fRight;
-            if(asleft.find(left) != asleft.end()) {
+            bool leftlarge = largeflux.find(left) != largeflux.end();
+            bool rightlarge = largeflux.find(right) != largeflux.end();
+            if(!leftlarge && asleft.find(left) != asleft.end()) {
                 std::cout << "left " << left << " appears more than once\n";
                 error++;
             }
-            if(asright.find(right) != asright.end()) {
+            if(rightlarge && asright.find(right) != asright.end()) {
                 TPZGeoEl *gel = fGeoMesh->Element(right);
                 int matid = gel->MaterialId();
                 if(matid != fHybridizationData.fSecondLagrangeMatId) {
@@ -722,7 +740,8 @@ void TPZApproxCreator::AddHybridSquareGeoElements() {
             numref[lag]++;
         }
         for(auto &it : numref) {
-            if(it.second > 2) {
+            bool islarge = largeflux.find(it.first) != largeflux.end();
+            if(!islarge && it.second > 2) {
                 std::cout << "element " << it.first << " appears more than twice\n";
                 error++;
             }

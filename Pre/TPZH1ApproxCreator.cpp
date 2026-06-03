@@ -112,6 +112,7 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateApproximationSpace(){
     }
     
 #ifdef PZDEBUG
+    if(0)
     {
         std::ofstream out1("gmesh.txt");
         this->fGeoMesh->Print(out1);
@@ -789,7 +790,7 @@ void TPZH1ApproxCreator::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &
         }
     }
 
-    std::cout << "group index 8 " << groupindex[8] << std::endl;
+//    std::cout << "group index 8 " << groupindex[8] << std::endl;
     int numloops = 1;
     if( fHybridType == HybridizationType::EStandardSquared) numloops = 2;
     // this loop will associate a first layer of interface elements to the group
