@@ -140,7 +140,7 @@ TElasticity3DAnalytic gElast3d;
 TLaplaceExample1 gDarcy;
 
 #ifndef USE_MAIN
-#define TESTALL
+//#define TESTALL
 TEST_CASE("2D and 3D linear solution", "[h1_space_creator_test]")
 {
 #ifdef TESTALL
@@ -152,13 +152,13 @@ TEST_CASE("2D and 3D linear solution", "[h1_space_creator_test]")
 #ifdef TESTALL
         ProblemType pType = GENERATE(ProblemType::EDarcy, ProblemType::EElastic);
 #else
-        ProblemType pType = GENERATE(ProblemType::EElastic);
+        ProblemType pType = GENERATE(ProblemType::EDarcy, ProblemType::EElastic);
 #endif
         SECTION("Problem type: " + std::string(ProblemTypeToChar(pType))) {
 #ifdef TESTALL
             MMeshType mType = GENERATE(MMeshType::EQuadrilateral, MMeshType::ETriangular, MMeshType::ETetrahedral, MMeshType::EHexahedral);
 #else
-            MMeshType mType = GENERATE(MMeshType::EHexahedral);
+            MMeshType mType = GENERATE(MMeshType::ETriangular, MMeshType::EHexahedral);
 #endif
             SECTION("Mesh type: " + std::string(MeshTypeToChar(mType))) {
 #ifdef TESTALL
@@ -176,15 +176,20 @@ TEST_CASE("2D and 3D linear solution", "[h1_space_creator_test]")
 #ifdef TESTALL
                         HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::EStandardSquared);
 #else
-                        HybridizationType hType = GENERATE(HybridizationType::ENone);
+                        HybridizationType hType = GENERATE(HybridizationType::EStandard);
 #endif
                         SECTION("Hybridization type: " + std::string(HybridizationTypeToChar(hType))) {
+                            
+#ifdef TESTALL
                             bool isRBSpaces = GENERATE(false, true);
+#else
+                            bool isRBSpaces = GENERATE(true);
+#endif
                             SECTION("isRigidBodySpaces=" + std::to_string(isRBSpaces)) {
 #ifdef TESTALL
                                 bool isCondensed = GENERATE(false, true);
 #else
-                                bool isCondensed = GENERATE(false);
+                                bool isCondensed = GENERATE(true);
 #endif
                                 SECTION("isCondensed=" + std::to_string(isCondensed)) {
 #ifdef TESTALL
