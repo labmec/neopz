@@ -1146,7 +1146,7 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
     const TPZGeoEl *ref = this->Reference();
 	const auto problemdimension = Mesh()->Dimension();
     const auto dim = ref->Dimension();
-	if(dim < problemdimension) return;
+	//if(dim < problemdimension) return;
 	
 	// Adjust the order of the integration rule
 	
