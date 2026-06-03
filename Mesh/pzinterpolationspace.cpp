@@ -172,6 +172,10 @@ void TPZInterpolationSpace::ReallyComputeSolutionT(TPZMaterialDataT<TVar>& data)
 			const int64_t dfseq = df->SequenceNumber();
 			const int dfvar = block.Size(dfseq);
 			const int64_t pos = block.Position(dfseq);
+            TPZFNMatrix<9,TVar> locsol(dfvar, numbersol,0.);
+            for(int jn=0; jn<dfvar; jn++) for(int is=0; is<numbersol; is++) {
+                locsol(jn,is) = MeshSol(pos+jn,is);
+            }
 			for(int jn=0; jn<dfvar; jn++) {
 				for (int64_t is=0; is<numbersol; is++) {
 					sol[is][iv%nstate] +=
