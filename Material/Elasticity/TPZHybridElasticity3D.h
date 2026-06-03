@@ -44,6 +44,22 @@ public :
     
     TPZHybridElasticity3D() : TPZElasticity3D(){}
 
+    /** @brief Creates an associated boundary condition.
+     @param[in] reference The volumetric material associated with the BC.
+     @param[in] id Boundary condition identifier.
+     @param[in] type Type of the boundary condition.
+     @param[in] val1 Value to be set at the element matrix.
+     @param[in] val2 Value to be set at the rhs vector.
+    */
+    virtual TPZBndCondT<STATE>* CreateBC(TPZMaterial *reference,
+                                        int id, int type,
+                                        const TPZFMatrix<STATE> &val1,
+                                        const TPZVec<STATE> &val2) override
+    {
+        return new  TPZBndCondBase<STATE,TPZMatCombinedSpacesBC<STATE>, TPZMatErrorCombinedSpacesBC<STATE> >
+        (reference,id, type,val1,val2);
+    }
+
     /** @brief Returns the material name*/
     std::string Name()  const override { return "TPZHybridElasticity3D"; }
         
