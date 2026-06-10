@@ -74,8 +74,8 @@ void TPZH1ApproxCreator::CheckSetupConsistency(){
     }
 }
 
-TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateApproximationSpace(){
-
+/// Adjust the geometric mesh and create the vector of atomic meshes
+void TPZH1ApproxCreator::CreateAtomicMeshes(TPZVec<TPZCompMesh *> &meshvec) {
     CheckSetupConsistency();
 
     if(fHybridType == HybridizationType::ENone){
@@ -99,7 +99,7 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateApproximationSpace(){
     }
     if (fIsRBSpaces) fNumMeshes += 2;
 
-    TPZManVector<TPZCompMesh*,7> meshvec(fNumMeshes);
+     meshvec.resize(fNumMeshes);
     int countMesh = 0;
     if(HybridType() != HybridizationType::ENone)
         meshvec[countMesh++] = CreateBoundaryHDivSpace();
@@ -130,6 +130,14 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateApproximationSpace(){
 #endif
 
     if (countMesh != fNumMeshes) DebugStop();
+
+}
+
+
+TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateApproximationSpace(){
+
+    TPZManVector<TPZCompMesh *,10> meshvec;
+    CreateAtomicMeshes(meshvec);
 
     TPZMultiphysicsCompMesh *cmeshmulti = CreateMultiphysicsSpace(meshvec);
 
@@ -707,6 +715,12 @@ void TPZH1ApproxCreator::InsertL2MaterialObjects(TPZCompMesh * L2Mesh){
 }
 
 void TPZH1ApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh){
+    GroupElements(mcmesh);
+    CondenseElements(mcmesh);
+}
+
+/// Put elements in element groups
+void TPZH1ApproxCreator::GroupElements(TPZMultiphysicsCompMesh *mcmesh) {
     if(mcmesh->GetSolType()==ESolType::EComplex){
         //we dont create condensed complex elements yet
         DebugStop();
@@ -751,7 +765,13 @@ void TPZH1ApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmes
             if(c.LagrangeMultiplier() == lagCTEspace2) c.IncrementElConnected();
         }
     }
-    nel = mcmesh->NElements();
+
+}
+
+/// Create condensed elements around group elements
+/// this method will adjust the connect count of DOF's that should not be condensed
+void TPZH1ApproxCreator::CondenseElements(TPZMultiphysicsCompMesh *mcmesh) {
+    int64_t nel = mcmesh->NElements();
     for (int64_t el = 0; el < nel; el++) {
         TPZCompEl *cel = mcmesh->Element(el);
         TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *> (cel);
@@ -762,7 +782,9 @@ void TPZH1ApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmes
     }
     mcmesh->InitializeBlock();
     mcmesh->ComputeNodElCon();
+
 }
+
 
 void TPZH1ApproxCreator::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &elementgroup)
 {

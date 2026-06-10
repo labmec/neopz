@@ -38,16 +38,26 @@ public:
     }
 
     /// Get/Set Problem type
-    virtual void SetProbType(ProblemType prob){
+    virtual void SetProbType(ProblemType prob) override {
         fProbType = prob;
         fHybridizationData.SetProblemHybridH1(fProbType, fHybridType);
     }
 
-    /// Driver function. Will create the atomic meshes (HDiv, L2, etc.) and an associate multiphysics mesh
+    /// Driver function. Will create the atomic meshes (HDiv, L2, etc.) and an associated multiphysics mesh
     TPZMultiphysicsCompMesh *CreateApproximationSpace() override;
+    
+    /// Adjust the geometric mesh and create the vector of atomic meshes
+    void CreateAtomicMeshes(TPZVec<TPZCompMesh *> &meshvec);
 
     /// Driver function. Will create the atomic meshes (HDiv, L2, etc.) and an associate multiphysics mesh
     TPZCompMesh *CreateClassicH1ApproximationSpace();
+    
+    /// Put elements in element groups
+    virtual void GroupElements(TPZMultiphysicsCompMesh *mcmesh);
+    
+    /// Create condensed elements around group elements
+    /// this method will adjust the connect count of DOF's that should not be condensed
+    void CondenseElements(TPZMultiphysicsCompMesh *mcmesh);
 
     /// Group and condense computational elements
     void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) override;

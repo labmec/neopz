@@ -166,7 +166,7 @@ TEST_CASE("HDiv Approx Space Creator", "[hdiv_linear_solution_representation]")
 #ifdef TESTALL
             MMeshType mType = GENERATE(MMeshType::EQuadrilateral, MMeshType::ETriangular, MMeshType::ETetrahedral, MMeshType::EHexahedral);
 #else
-            MMeshType mType = GENERATE(MMeshType::ETriangular, MMeshType::EHexahedral);
+            MMeshType mType = GENERATE(MMeshType::EHexahedral,MMeshType::ETriangular);
 #endif
             SECTION("Mesh type: " + std::string(MeshTypeToChar(mType))) {
 #ifdef TESTALL
@@ -541,7 +541,6 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     if(isCondensed && hType != HybridizationType::ENone) {
         CheckNEqCondensedProb(cmesh,*hdivCreator,mType);
     }
-    
     
     // ==========> Solving problem <==========
     // =======================================

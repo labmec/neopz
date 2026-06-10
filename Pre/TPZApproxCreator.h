@@ -231,10 +231,10 @@ protected:
     void ComputePeriferalMaterialIds(int base = 10);
 
     /// Adds the geo els related to the hybridization
-    void AddHybridizationGeoElements();
+    virtual void AddHybridizationGeoElements();
     
     /// Add geometric elements to represent squared hybridization
-    void AddHybridSquareGeoElements();
+    virtual void AddHybridSquareGeoElements();
 
     ///This method checks if the current configuration is valid
     virtual void CheckSetupConsistency() = 0;
