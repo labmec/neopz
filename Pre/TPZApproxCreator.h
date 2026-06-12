@@ -67,6 +67,7 @@ protected:
     /// Enhances space with constant fields that allow for the condensation of internal degrees of freedom
     bool fIsRBSpaces = false;
 
+public:
     /// Struct with all the data regarding hybridization between elements
     struct HybridizationData{
         
@@ -84,6 +85,9 @@ protected:
         /// set the lagrange multiplier coefficients for hybrid Hdiv problems
         /// compute the lagrange multiplier coeficients as a function of the problem type and hybridization
         void SetProblemHybridHDiv(ProblemType prob, HybridizationType hybrid);
+
+        /// Print the hybridization data for debugging
+        void Print(std::ostream &out = std::cout) const;
 
         /// Matid of element at the border or higher domain element
         int fWrapMatId = -123456; // to check if it has been initialized
@@ -116,6 +120,7 @@ protected:
         std::map<int64_t,TPZHybrid> fInterfaces;
     };
 
+protected:
     /// Attribute of struct with all the data regarding hybridization between elements
     HybridizationData fHybridizationData;
     

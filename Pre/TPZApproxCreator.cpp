@@ -391,6 +391,23 @@ std::set<int> TPZApproxCreator::GetVolumetricMatIds(){
     return volumeMatIds;
 }
 
+void TPZApproxCreator::HybridizationData::Print(std::ostream &out) const {
+    out << "peripheralMatids:\n";
+    out << "\tfWrapMatId = " << fWrapMatId << "\n";
+    out << "\tfLeftInterfaceMatId = " << fLeftInterfaceMatId << "\n";
+    out << "\tfRightInterfaceMatId = " << fRightInterfaceMatId << "\n";
+    out << "\tfLagrangeMatId = " << fLagrangeMatId << "\n";
+    out << "\tfSecondLeftInterfaceMatId = " << fSecondLeftInterfaceMatId << "\n";
+    out << "\tfSecondRightInterfaceMatId = " << fSecondRightInterfaceMatId << "\n";
+    out << "\tfSecondLagrangeMatId = " << fSecondLagrangeMatId << "\n";
+    out << "\tfHybridizeBCLevel = " << fHybridizeBCLevel << "\n";
+    out << "\tfMultipliers = {" << fMultipliers[0] << ", " << fMultipliers[1] << ", " << fMultipliers[2] << ", " << fMultipliers[3] << "}\n";
+    out << "\tfInterfaces:\n";
+    for (auto &it : fInterfaces) {
+        out << "\t\tinterface " << it.first << ": (lagrange=" << it.second.fLagrange << ", left=" << it.second.fLeft << ", right=" << it.second.fRight << ")\n";
+    }
+}
+
 void TPZApproxCreator::Print(std::ostream &ofs){
     std::stringstream ss;
     ss << "\n";
@@ -451,17 +468,7 @@ void TPZApproxCreator::Print(std::ostream &ofs){
     ss << "}\n";
 
     if(this->fHybridType == HybridizationType::EStandard || this->fHybridType == HybridizationType::EStandardSquared) {
-        ss << "peripheralMatids:\n";
-        ss << "\tfWrapMatId = " << fHybridizationData.fWrapMatId;
-        ss << "\n\tfLeftInterfaceMatId = " << fHybridizationData.fLeftInterfaceMatId;
-        ss << "\n\tfRightInterfaceMatId = " << fHybridizationData.fRightInterfaceMatId;
-        ss << "\n\tfLagrangeMatId = " << fHybridizationData.fLagrangeMatId;
-        if( this->fHybridType == HybridizationType::EStandardSquared) {
-            ss << "\n\tfSecondLeftInterfaceMatId = " << fHybridizationData.fSecondLeftInterfaceMatId;
-            ss << "\n\tfSecondRightInterfaceMatId = " << fHybridizationData.fSecondRightInterfaceMatId;
-            ss << "\n\tfSecondLagrangeMatId = " << fHybridizationData.fSecondLagrangeMatId;
-        }
-        ss << "\n";
+        fHybridizationData.Print(ss);
     }
 
     for(int istar = 0; istar < numStars ; istar++)
@@ -554,7 +561,7 @@ void TPZApproxCreator::AddHybridGeometry(int64_t interface_id, TPZHybrid &hybrid
 }
 
 /// Add a hybrid geometric configuration
-void AddHybrid(std::map<int64_t,TPZHybrid> &tree, int64_t interface_id, TPZHybrid &hybrid) {
+static void AddHybrid(std::map<int64_t,TPZHybrid> &tree, int64_t interface_id, TPZHybrid &hybrid) {
 //    std::cout << "Hybrid adding interface " << interface_id << " left " << hybrid.fLeft << " right " << hybrid.fRight << std::endl;
 #ifdef PZDEBUG
     if(tree.find(interface_id) != tree.end()) {
