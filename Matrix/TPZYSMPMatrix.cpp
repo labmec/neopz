@@ -15,6 +15,11 @@
 #include "tpzverysparsematrix.h"
 #include "pzstack.h"
 #include "TPZParallelUtils.h"
+#ifdef USING_MKL
+  #define MKL_Complex8 std::complex<float>
+  #define MKL_Complex16 std::complex<double>
+  #include <mkl_spblas.h>
+#endif
 #include <numeric>      // std::iota
 using namespace std;
 
@@ -564,6 +569,156 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	//          z and x cannot share storage
 	
 	this->MultAddChecks(x,y,z,alpha,beta,opt);
+
+#ifdef USING_MKL
+
+	if constexpr (std::is_same_v<TVar, float> ||
+				  std::is_same_v<TVar, double> ||
+				  std::is_same_v<TVar, std::complex<float>> ||
+				  std::is_same_v<TVar, std::complex<double>>)
+	{ // MKL only supports these types. If the method is called with other types, it will fallback to the default implementation.
+
+		const int64_t m_rows = this->Rows();
+		const int64_t m_cols = this->Cols();
+		const int64_t x_rows = x.Rows();
+		const int64_t z_cols = z.Cols();
+		const int64_t z_rows = z.Rows();
+
+		if (beta == (TVar)0.0)
+		{
+			const auto zr = opt ? m_cols : m_rows;
+			const auto zc = x.Cols();
+			z.Redim(zr, zc);
+		}
+		else
+		{
+			z = y;
+			const auto r = (opt) ? this->Cols() : this->Rows();
+			if (r == 0)
+			{
+				z *= beta;
+				return;
+			}
+		}
+
+		sparse_status_t status;
+		sparse_operation_t op =
+			opt ? (opt == 1 ? SPARSE_OPERATION_TRANSPOSE : SPARSE_OPERATION_CONJUGATE_TRANSPOSE)
+				: SPARSE_OPERATION_NON_TRANSPOSE;
+		sparse_index_base_t idx = SPARSE_INDEX_BASE_ZERO;
+		sparse_matrix_t A;
+		matrix_descr descr;
+		switch (this->GetSymmetry())
+		{
+		case SymProp::NonSym:
+			descr.type = SPARSE_MATRIX_TYPE_GENERAL;
+			break;
+		case SymProp::Sym:
+			descr.type = SPARSE_MATRIX_TYPE_SYMMETRIC;
+			break;
+		case SymProp::Herm:
+			descr.type = SPARSE_MATRIX_TYPE_HERMITIAN;
+			break;
+		}
+		descr.mode = SPARSE_FILL_MODE_FULL;
+		descr.diag = SPARSE_DIAG_NON_UNIT;
+
+		auto CheckStatus = [](auto status)
+		{
+			switch (status)
+			{
+			case SPARSE_STATUS_SUCCESS:
+				return;
+				break;
+			case SPARSE_STATUS_NOT_INITIALIZED:
+				std::cout << "The routine encountered an empty handle or matrix array. " << std::endl;
+				DebugStop();
+				break;
+			case SPARSE_STATUS_ALLOC_FAILED:
+				std::cout << "Internal memory allocation failed. " << std::endl;
+				DebugStop();
+				break;
+			case SPARSE_STATUS_INVALID_VALUE:
+				std::cout << "The input parameters contain an invalid value. " << std::endl;
+				DebugStop();
+				break;
+			case SPARSE_STATUS_EXECUTION_FAILED:
+				std::cout << "Execution failed. " << std::endl;
+				DebugStop();
+				break;
+			case SPARSE_STATUS_INTERNAL_ERROR:
+				std::cout << "An error in algorithm implementation occurred. " << std::endl;
+				DebugStop();
+				break;
+			case SPARSE_STATUS_NOT_SUPPORTED:
+				std::cout << "The requested operation is not supported. " << std::endl;
+				DebugStop();
+				break;
+			}
+		};
+		static_assert(sizeof(int64_t) == sizeof(long long), "incompatible sizes for MKL");
+		long long *ia_b = (long long *)this->fIA.begin();
+		long long *ja_b = (long long *)this->fJA.begin();
+		// create A mat
+		if constexpr (std::is_same_v<TVar, double>)
+		{
+			status = mkl_sparse_d_create_csr(&A, idx, m_rows, m_cols,
+											 ia_b, ia_b + 1,
+											 ja_b, this->fA.begin());
+			CheckStatus(status);
+		}
+		else if constexpr (std::is_same_v<TVar, float>)
+		{
+			status = mkl_sparse_s_create_csr(&A, idx, m_rows, m_cols, ia_b, ia_b + 1,
+											 ja_b, this->fA.begin());
+			CheckStatus(status);
+		}
+		else if constexpr (std::is_same_v<TVar, std::complex<double>>)
+		{
+			status = mkl_sparse_z_create_csr(&A, idx, m_rows, m_cols, ia_b, ia_b + 1,
+											 ja_b, this->fA.begin());
+			CheckStatus(status);
+		}
+		else if constexpr (std::is_same_v<TVar, std::complex<float>>)
+		{
+			status = mkl_sparse_c_create_csr(&A, idx, m_rows, m_cols, ia_b, ia_b + 1,
+											 ja_b, this->fA.begin());
+			CheckStatus(status);
+		}
+
+		for (int c = 0; c < z_cols; c++)
+		{
+			const TVar *x_ptr = x.Elem() + x_rows * c;
+			TVar *z_ptr = z.Elem() + z_rows * c;
+			if constexpr (std::is_same_v<TVar, double>)
+			{
+				status = mkl_sparse_d_mv(op, alpha, A, descr, x_ptr, beta, z_ptr);
+				CheckStatus(status);
+			}
+			else if constexpr (std::is_same_v<TVar, float>)
+			{
+				status = mkl_sparse_s_mv(op, alpha, A, descr, x_ptr, beta, z_ptr);
+				CheckStatus(status);
+			}
+			else if constexpr (std::is_same_v<TVar, std::complex<double>>)
+			{
+				status = mkl_sparse_z_mv(op, alpha, A, descr, x_ptr, beta, z_ptr);
+				CheckStatus(status);
+			}
+			else if constexpr (std::is_same_v<TVar, std::complex<float>>)
+			{
+				status = mkl_sparse_c_mv(op, alpha, A, descr, x_ptr, beta, z_ptr);
+				CheckStatus(status);
+			}
+		}
+
+		status = mkl_sparse_destroy(A);
+		CheckStatus(status);
+
+		return;
+	}
+#endif
+
 	this->PrepareZ(y,z,beta,opt);
 	int64_t  r = (opt) ? this->Cols() : this->Rows();
 	if(r==0){return;}

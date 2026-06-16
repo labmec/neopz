@@ -9,6 +9,11 @@
 #include "pzfmatrix.h"
 #include "pzstack.h"
 #include "TPZParallelUtils.h"
+#ifdef USING_MKL
+  #define MKL_Complex8 std::complex<float>
+  #define MKL_Complex16 std::complex<double>
+  #include <mkl_spblas.h>
+#endif
 // ****************************************************************************
 // 
 // Constructors and the destructor
@@ -200,65 +205,222 @@ TPZMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator*=(const TVar val)
 	return *this;
 }
 
-template<class TVar>
-void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
-							 TPZFMatrix<TVar> &z,
-							 const TVar alpha,const TVar beta,const int opt) const {	
+template <class TVar>
+void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> &y,
+                                   TPZFMatrix<TVar> &z,
+                                   const TVar alpha, const TVar beta, const int opt) const{
 
-  this->MultAddChecks(x,y,z,alpha,beta,opt);
+  this->MultAddChecks(x, y, z, alpha, beta, opt);
 
-    // Determine how to initialize z
-    this->PrepareZ(y,z,beta,opt);
-    int64_t  r = (opt) ? this->Cols() : this->Rows();
-    if(r==0){return;}
-	// Compute alpha * A * x
-    const int64_t ncols = x.Cols();
-    const int64_t nrows = this->Rows();
+#ifdef USING_MKL
 
-    const bool must_conj =
+  if constexpr (std::is_same_v<TVar, float> ||
+                std::is_same_v<TVar, double> ||
+                std::is_same_v<TVar, std::complex<float>> ||
+                std::is_same_v<TVar, std::complex<double>>)
+  { //MKL only supports these types. If the method is called with other types, it will fallback to the default implementation.
+    const int64_t m_rows = this->Rows();
+    const int64_t m_cols = this->Cols();
+    const int64_t x_rows = x.Rows();
+    const int64_t z_cols = z.Cols();
+    const int64_t z_rows = z.Rows();
+
+    if (beta == (TVar)0.0)
+    {
+      const auto zr = opt ? m_cols : m_rows;
+      const auto zc = x.Cols();
+      z.Redim(zr, zc);
+    }
+    else
+    {
+      z = y;
+      const auto r = (opt) ? this->Cols() : this->Rows();
+      if (r == 0)
+      {
+        z *= beta;
+        return;
+      }
+    }
+
+    sparse_status_t status;
+    sparse_operation_t op =
+        opt ? (opt == 1 ? SPARSE_OPERATION_TRANSPOSE : SPARSE_OPERATION_CONJUGATE_TRANSPOSE)
+            : SPARSE_OPERATION_NON_TRANSPOSE;
+    sparse_index_base_t idx = SPARSE_INDEX_BASE_ZERO;
+    sparse_matrix_t A;
+    matrix_descr descr;
+    descr.type = this->GetSymmetry() == SymProp::Herm ? SPARSE_MATRIX_TYPE_HERMITIAN : SPARSE_MATRIX_TYPE_SYMMETRIC;
+    descr.mode = SPARSE_FILL_MODE_UPPER;
+    descr.diag = SPARSE_DIAG_NON_UNIT;
+
+    auto CheckStatus = [](auto status)
+    {
+      switch (status)
+      {
+      case SPARSE_STATUS_SUCCESS:
+        return;
+        break;
+      case SPARSE_STATUS_NOT_INITIALIZED:
+        std::cout << "The routine encountered an empty handle or matrix array. " << std::endl;
+        DebugStop();
+        break;
+      case SPARSE_STATUS_ALLOC_FAILED:
+        std::cout << "Internal memory allocation failed. " << std::endl;
+        DebugStop();
+        break;
+      case SPARSE_STATUS_INVALID_VALUE:
+        std::cout << "The input parameters contain an invalid value. " << std::endl;
+        DebugStop();
+        break;
+      case SPARSE_STATUS_EXECUTION_FAILED:
+        std::cout << "Execution failed. " << std::endl;
+        DebugStop();
+        break;
+      case SPARSE_STATUS_INTERNAL_ERROR:
+        std::cout << "An error in algorithm implementation occurred. " << std::endl;
+        DebugStop();
+        break;
+      case SPARSE_STATUS_NOT_SUPPORTED:
+        std::cout << "The requested operation is not supported. " << std::endl;
+        DebugStop();
+        break;
+      }
+    };
+    static_assert(sizeof(int64_t) == sizeof(long long), "incompatible sizes for MKL");
+    long long *ia_b = (long long *)this->fIA.begin();
+    long long *ja_b = (long long *)this->fJA.begin();
+    // create A mat
+    if constexpr (std::is_same_v<TVar, double>)
+    {
+      status = mkl_sparse_d_create_csr(&A, idx, m_rows, m_cols,
+                                       ia_b, ia_b + 1,
+                                       ja_b, this->fA.begin());
+      CheckStatus(status);
+    }
+    else if constexpr (std::is_same_v<TVar, float>)
+    {
+      status = mkl_sparse_s_create_csr(&A, idx, m_rows, m_cols, ia_b, ia_b + 1,
+                                       ja_b, this->fA.begin());
+      CheckStatus(status);
+    }
+    else if constexpr (std::is_same_v<TVar, std::complex<double>>)
+    {
+      status = mkl_sparse_z_create_csr(&A, idx, m_rows, m_cols, ia_b, ia_b + 1,
+                                       ja_b, this->fA.begin());
+      CheckStatus(status);
+    }
+    else if constexpr (std::is_same_v<TVar, std::complex<float>>)
+    {
+      status = mkl_sparse_c_create_csr(&A, idx, m_rows, m_cols, ia_b, ia_b + 1,
+                                       ja_b, this->fA.begin());
+      CheckStatus(status);
+    }
+
+    for (int c = 0; c < z_cols; c++)
+    {
+      const TVar *x_ptr = x.Elem() + x_rows * c;
+      TVar *z_ptr = z.Elem() + z_rows * c;
+      if constexpr (std::is_same_v<TVar, double>)
+      {
+        status = mkl_sparse_d_mv(op, alpha, A, descr, x_ptr, beta, z_ptr);
+        CheckStatus(status);
+      }
+      else if constexpr (std::is_same_v<TVar, float>)
+      {
+        status = mkl_sparse_s_mv(op, alpha, A, descr, x_ptr, beta, z_ptr);
+        CheckStatus(status);
+      }
+      else if constexpr (std::is_same_v<TVar, std::complex<double>>)
+      {
+        status = mkl_sparse_z_mv(op, alpha, A, descr, x_ptr, beta, z_ptr);
+        CheckStatus(status);
+      }
+      else if constexpr (std::is_same_v<TVar, std::complex<float>>)
+      {
+        status = mkl_sparse_c_mv(op, alpha, A, descr, x_ptr, beta, z_ptr);
+        CheckStatus(status);
+      }
+    }
+
+    status = mkl_sparse_destroy(A);
+    CheckStatus(status);
+
+    return;
+  }
+#endif
+
+  // Determine how to initialize z
+  this->PrepareZ(y, z, beta, opt);
+  int64_t r = (opt) ? this->Cols() : this->Rows();
+  if (r == 0)
+  {
+    return;
+  }
+  // Compute alpha * A * x
+  const int64_t ncols = x.Cols();
+  const int64_t nrows = this->Rows();
+
+  const bool must_conj =
       is_complex<TVar>::value && this->GetSymmetry() == SymProp::Herm;
 
-
-    //0 and 2 are the same for conj matrices
-    const bool bool_opt= opt==1 ? true : false;
-    if(must_conj){
-      if constexpr (is_complex<TVar>::value){
-        auto GetMyVal = [](const int64_t ir, const int64_t ic,
-                           const bool opt, const TVar val){
-          if((ir <= ic && !opt)||(ir > ic && opt)) return val;
-          else return std::conj(val);
-        };
-        for (int64_t col=0; col<ncols; col++){
-          for(int64_t row=0; row<nrows; row++) {
-            for(int64_t iv=fIA[row]; iv<fIA[row+1]; iv++) {
-              const int64_t ic = fJA[iv];
-              const TVar val = GetMyVal(row,ic,bool_opt,fA[iv]);
-              z(row,col) += alpha * val * x.GetVal(ic,col);
-              if(row != ic){
-                z(ic,col) += alpha* std::conj(val) * x.GetVal(row,col);
-              }
-            }
-          }
-        }
-      }//no need for else
-    }
-    else{
-      for (int64_t col=0; col<ncols; col++){
-        for(int64_t row=0; row<nrows; row++) {
-          for(int64_t iv=fIA[row]; iv<fIA[row+1]; iv++) {
+  // 0 and 2 are the same for conj matrices
+  const bool bool_opt = opt == 1 ? true : false;
+  if (must_conj)
+  {
+    if constexpr (is_complex<TVar>::value)
+    {
+      auto GetMyVal = [](const int64_t ir, const int64_t ic,
+                         const bool opt, const TVar val)
+      {
+        if ((ir <= ic && !opt) || (ir > ic && opt))
+          return val;
+        else
+          return std::conj(val);
+      };
+      for (int64_t col = 0; col < ncols; col++)
+      {
+        for (int64_t row = 0; row < nrows; row++)
+        {
+          for (int64_t iv = fIA[row]; iv < fIA[row + 1]; iv++)
+          {
             const int64_t ic = fJA[iv];
-            auto matval = fA[iv];
-            if constexpr(is_complex<TVar>::value){
-              if(opt==2){matval=std::conj(matval);}
-            }
-            z(row,col) += alpha * matval * x.GetVal(ic,col);
-            if(row != ic){
-              z(ic,col) += alpha * matval * x.GetVal(row,col);
+            const TVar val = GetMyVal(row, ic, bool_opt, fA[iv]);
+            z(row, col) += alpha * val * x.GetVal(ic, col);
+            if (row != ic)
+            {
+              z(ic, col) += alpha * std::conj(val) * x.GetVal(row, col);
             }
           }
         }
       }
+    } // no need for else
+  }
+  else
+  {
+    for (int64_t col = 0; col < ncols; col++)
+    {
+      for (int64_t row = 0; row < nrows; row++)
+      {
+        for (int64_t iv = fIA[row]; iv < fIA[row + 1]; iv++)
+        {
+          const int64_t ic = fJA[iv];
+          auto matval = fA[iv];
+          if constexpr (is_complex<TVar>::value)
+          {
+            if (opt == 2)
+            {
+              matval = std::conj(matval);
+            }
+          }
+          z(row, col) += alpha * matval * x.GetVal(ic, col);
+          if (row != ic)
+          {
+            z(ic, col) += alpha * matval * x.GetVal(row, col);
+          }
+        }
+      }
     }
+  }
 }
 
 // ****************************************************************************
