@@ -22,7 +22,7 @@
  * Iterative template routine -- CG \n
  * CG follows the algorithm described on p. 15 in the SIAM Templates book.
  */
-#define TEST
+// #define TEST
 #ifdef TEST
 #include <list> 
 #include <fstream>
