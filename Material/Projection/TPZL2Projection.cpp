@@ -178,35 +178,52 @@ void TPZL2Projection<TVar>::Errors(const TPZMaterialDataT<TVar>&data,
     }
 #endif
     TPZManVector<TVar,1> u_exact={0.};
+    u_exact.Resize(u.size(),0.);
     TPZFNMatrix<3,TVar> du_exact(3,1,0.);
+    du_exact.Resize(3,u.size());
     
     this->ExactSol()(x,u_exact,du_exact);
     
     values.Resize(this->NEvalErrors());
     values.Fill(0.0);
     
-    TPZFNMatrix<3,TVar> gradu(3,1);
+    TPZFNMatrix<3,TVar> gradu(3,u.size());
+    gradu.Resize(3,u.size());
     TPZAxesTools<TVar>::Axes2XYZ(dudx,gradu,axes);
     
     //values[0] : error in H1 norm
     //values[1] : error in L2 norm
     //values[2] : error in H1 semi-norm
-    TVar diff = (u[0] - u_exact[0]);
+    TPZManVector<TVar,1> diffs = {0.};
+    diffs.Resize(u.size(),0.);
+    for (int i=0; i<u.size(); i++) {
+        diffs[i] = u[i] - u_exact[i];
+    }
     if constexpr (is_complex<TVar>::value){
-        values[1]  = std::real((diff*std::conj(diff)));
+        for (int i=0; i<u.size(); i++) {
+            values[1]  += std::real(diffs[i]*std::conj(diffs[i]));
+        }
     }else{
-        values[1]  = diff*diff;
+        for (int i=0; i<u.size(); i++) {
+            values[1]  += std::real(diffs[i]*diffs[i]);
+        }
     }
   
     values[2] = 0.;
 
     for(auto id=0; id<fDim; id++) {
-      diff = (gradu(id) - du_exact(id,0));
-      if constexpr(is_complex<TVar>::value){
-          values[2]  += std::real(diff*std::conj(diff));
-      }else{
-          values[2]  += diff*diff;
-      }
+        for (int i=0; i<u.size(); i++) {
+            diffs[i] = gradu(id,i) - du_exact(id,i);
+        }
+        if constexpr(is_complex<TVar>::value){
+            for (int i=0; i<u.size(); i++) {
+                values[2]  += std::real(diffs[i]*std::conj(diffs[i]));
+            }
+        } else {
+            for (int i=0; i<u.size(); i++) {
+                values[2]  += diffs[i]*diffs[i];
+            }
+        }
     }
     values[0]  = values[1]+values[2];
 }

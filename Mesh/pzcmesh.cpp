@@ -638,9 +638,9 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 		}
 	}
     TPZManVector<int64_t> permute(nblocks,-1);
-    // the down datastructure will be equal 1 for the sequence numbers that
-    // have been assigned and zero for the others
-    // the down data structure allows for sequence numbers with "holes"
+    // The down datastructure will be equal to 1 for the sequence numbers that
+    // have been assigned and zero for the others.
+    // The down datastructure allows for sequence numbers with "holes".
     TPZManVector<int64_t> down(nblocks,0);
 	int64_t idepblocks = 0, iremovedblocks= 0, icondensed = 0;
 	

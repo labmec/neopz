@@ -923,20 +923,20 @@ void TPZBuildMultiphysicsMesh::AddWrap(TPZMultiphysicsElement *mfcel, int matske
 
 static void FillAtomic(TPZCompEl *cel, TPZVec<atomic_index> &indexes);
 
-static void FillAtomic(TPZMultiphysicsElement *mphys, TPZVec<atomic_index> &indexes)
+static void FillAtomic(TPZMultiphysicsElement *mphysEl, TPZVec<atomic_index> &indexes)
 {
-    int ncon = mphys->NConnects();
+    int ncon = mphysEl->NConnects();
     int count = 0;
-    int nmeshes = mphys->NMeshes();
-    for (int imesh = 0; imesh<nmeshes; imesh++) {
-        if(mphys->IsActiveApproxSpaces(imesh) == false) continue;
-        TPZCompEl *cel = mphys->Element(imesh);
+    int nmeshes = mphysEl->NMeshes();
+    for (unsigned int imesh = 0; imesh<nmeshes; ++imesh) {
+        if(mphysEl->IsActiveApproxSpaces(imesh) == false) continue;
+        TPZCompEl *cel = mphysEl->Element(imesh);
         if(!cel) continue;
         TPZCompMesh *atomic_mesh = cel->Mesh();
         int nc = cel->NConnects();
-        for (int ic=0; ic<nc; ic++) {
+        for (unsigned int ic=0; ic<nc; ++ic) {
             int64_t atomic_conindex = cel->ConnectIndex(ic);
-            int64_t conindex = mphys->ConnectIndex(count);
+            int64_t conindex = mphysEl->ConnectIndex(count);
             indexes[conindex] = atomic_index(atomic_mesh,atomic_conindex);
             count++;
         }
@@ -1011,18 +1011,18 @@ static void FillAtomic(TPZCondensedCompEl *cond, TPZVec<atomic_index> &indexes)
 
 static void FillAtomic(TPZCompEl *cel, TPZVec<atomic_index> &indexes)
 {
-    TPZMultiphysicsElement *mphys = dynamic_cast<TPZMultiphysicsElement *>(cel);
+    TPZMultiphysicsElement *mphysEl = dynamic_cast<TPZMultiphysicsElement *>(cel);
     TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
     TPZCondensedCompEl *condense = dynamic_cast<TPZCondensedCompEl *>(cel);
     TPZMultiphysicsInterfaceElement *intface = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
-    if(!mphys && !elgr && !condense && !intface)
+    if(!mphysEl && !elgr && !condense && !intface)
     {
         std::cout << "Element not handled \n";
         cel->Print();
     }
-    if(mphys)
+    if(mphysEl)
     {
-        FillAtomic(mphys, indexes);
+        FillAtomic(mphysEl, indexes);
     }
     if(elgr)
     {
@@ -1039,18 +1039,22 @@ static void FillAtomic(TPZCompEl *cel, TPZVec<atomic_index> &indexes)
 }
 
 /**
- * Compute the correspondence between the connect index in the multiphysics
- * mesh and the connect indexes in the atomic meshes
+ * Computes the correspondence between the connect index in the multiphysics
+ * mesh and the connect indexes in the atomic meshes with active approximation spaces.
+ * Iterates through the connects in "mesh" and registers them in the "indexes" vector.
+ * The entry indexes[i] is a std::pair<TPZCompMesh *, int64_t>(m, j) such that
+ * the connect of mesh "mesh" with index i corresponds to the connect of atomic mesh m
+ * with index j. 
  */
 void TPZBuildMultiphysicsMesh::ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<atomic_index> &indexes)
 {
     int64_t ncon = mesh->NConnects();
     int64_t nel = mesh->NElements();
-    atomic_index def(0,-1);
+    atomic_index def(NULL,-1);
     indexes.Resize(ncon, def);
     // the values of the connects of submeshes will be transferred by the elements of the submeshes
     std::set<int64_t> noworries;
-    for (int64_t el = 0; el<nel; el++) {
+    for (int64_t el = 0; el<nel; ++el) {
         TPZCompEl *cel = mesh->Element(el);
         TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *>(cel);
         if(submesh)
@@ -1076,7 +1080,7 @@ void TPZBuildMultiphysicsMesh::ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<at
             if(mesh->ConnectVec()[i].SequenceNumber() < 0) continue;
             if(subcmesh && subcmesh->IsExternal(i)) continue;
             if(noworries.find(i) != noworries.end()) continue;
-            if(indexes[i].first == 0){
+            if(indexes[i].first == NULL){
                 notfound++;
                 std::cout << "index " << i << std::endl;
             }
@@ -1084,7 +1088,9 @@ void TPZBuildMultiphysicsMesh::ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<at
         if(notfound)
         {
             std::cout << __PRETTY_FUNCTION__ << " number of missing connects " << notfound << std::endl;
-            mesh->Print();
+            std::string fileName = "cmesh_error.txt";
+            std::ofstream file(fileName, std::ios::app);
+            mesh->Print(file);
         }
     }
 #endif

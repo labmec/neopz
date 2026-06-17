@@ -1,6 +1,7 @@
 *.msh
 .vscode
 .DS_Store
+CMakePresets.json
 CMakeLists.txt.user
 cmake-build-debug
 cmake-build-release
