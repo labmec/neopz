@@ -60,9 +60,6 @@ public :
 
 
   
-  void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const override;
-  
   void SetIsDecomposed(DecomposeType val) override;
   virtual int Decompose(const DecomposeType dt) override;
   virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override;
