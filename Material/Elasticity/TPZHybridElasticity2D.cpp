@@ -122,6 +122,38 @@ void TPZHybridElasticity2D::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &da
             ek(2*phr+3+i,2*phr+j) += -rigcouple(j,i);
         }
     }
+#ifdef PZDEBUG
+    if(fForcingFunction && fAnisotropicForcingFunction) {
+        PZError << "TPZElasticity2D::Contribute error both forcing functions are set\n";
+        DebugStop();
+    }
+#endif
+    TPZManVector<STATE,3> floc(ff);
+    if(fAnisotropicForcingFunction) {
+        TPZManVector<STATE,3> res(3,0.);
+        fAnisotropicForcingFunction(datavec[0].x, fConstitutiveLaw, res);
+        floc[0] = res[0];
+        floc[1] = res[1];
+    }
+    else if(fForcingFunction) {            // phi(in, 0) :  node in associated forcing function
+        TPZManVector<STATE,3> res(3,0.);
+        fForcingFunction(datavec[0].x,res);
+        floc[0] = res[0];
+        floc[1] = res[1];
+        floc[2] = res[2];
+    }
+    {
+        int64_t efc=ef.Cols();
+        for( int64_t in = 0; in < phr; in++ ) {
+            for (int col = 0; col < efc; col++)
+            {
+                ef(2*in, col) += weight * (floc[0]*phi(in,0) - dphixyz(0,in)*fPreStressXX - dphixyz(1,in)*fPreStressXY);  // direcao x
+                ef(2*in+1, col) += weight * (floc[1]*phi(in,0) - dphixyz(0,in)*fPreStressXY - dphixyz(1,in)*fPreStressYY);// direcao y <<<----
+            }
+        }
+
+    }
+
     //equacoes de restricao de pressao media
     if(datavec.size() >4) {
         DebugStop();
