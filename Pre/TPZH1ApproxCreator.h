@@ -57,7 +57,7 @@ public:
     
     /// Create condensed elements around group elements
     /// this method will adjust the connect count of DOF's that should not be condensed
-    void CondenseElements(TPZMultiphysicsCompMesh *mcmesh);
+    virtual void CondenseElements(TPZMultiphysicsCompMesh *mcmesh);
 
     /// Group and condense computational elements
     void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) override;

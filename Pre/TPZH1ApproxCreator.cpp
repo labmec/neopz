@@ -737,9 +737,6 @@ void TPZH1ApproxCreator::GroupElements(TPZMultiphysicsCompMesh *mcmesh) {
     for (int64_t el = 0; el<nel; el++) {
         int64_t groupnum = groupnumber[el];
         if(groupnum == -1) {
-            TPZCompEl *cel = mcmesh->Element(el);
-            TPZGeoEl *gel = cel->Reference();
-            int matid = gel->MaterialId();
             continue;
         }
         auto iter = groupmap.find(groupnum);
@@ -754,6 +751,12 @@ void TPZH1ApproxCreator::GroupElements(TPZMultiphysicsCompMesh *mcmesh) {
             iter->second->AddElement(mcmesh->Element(el));
         }
     }
+
+}
+
+/// Create condensed elements around group elements
+/// this method will adjust the connect count of DOF's that should not be condensed
+void TPZH1ApproxCreator::CondenseElements(TPZMultiphysicsCompMesh *mcmesh) {
     mcmesh->ComputeNodElCon();
     if(fHybridType == HybridizationType::EStandard)
     {
@@ -765,12 +768,6 @@ void TPZH1ApproxCreator::GroupElements(TPZMultiphysicsCompMesh *mcmesh) {
             if(c.LagrangeMultiplier() == lagCTEspace2) c.IncrementElConnected();
         }
     }
-
-}
-
-/// Create condensed elements around group elements
-/// this method will adjust the connect count of DOF's that should not be condensed
-void TPZH1ApproxCreator::CondenseElements(TPZMultiphysicsCompMesh *mcmesh) {
     int64_t nel = mcmesh->NElements();
     for (int64_t el = 0; el < nel; el++) {
         TPZCompEl *cel = mcmesh->Element(el);
