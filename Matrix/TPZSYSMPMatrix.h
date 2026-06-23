@@ -77,6 +77,9 @@ public :
   
   /** @brief Sets symmetry property of current matrix (only hermitian/symmetric allowed)*/
   void SetSymmetry (SymProp sp) override;
+
+  virtual SymProp VerifySymmetry(REAL tol=1e-12) const override;
+
   /** @brief Checks if current matrix is square */
   inline int IsSquare() const { return 1;}
     

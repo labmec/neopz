@@ -482,6 +482,11 @@ void TPZSYsmpMatrix<TVar>::SetSymmetry (SymProp sp){
     TPZBaseMatrix::SetSymmetry(sp);
 }
 
+template<class TVar>
+SymProp TPZSYsmpMatrix<TVar>::VerifySymmetry(REAL tol) const{
+    return TPZBaseMatrix::fSymProp;
+}
+
 /** @brief Fill matrix storage with randomic values */
 /** This method use GetVal and PutVal which are implemented by each type matrices */
 template<class TVar>
