@@ -190,7 +190,7 @@ public:
 	 * @param alpha scalar to be multiplied with
 	 * @param res TPZFMatrix<TVar>containing the result
 	 */
-  void MultiplyByScalar(const TVar alpha,TPZMatrix<TVar>& res) const;
+  virtual void MultiplyByScalar(const TVar alpha,TPZMatrix<TVar>& res) const;
 	/**
 	 * @brief It adds itself to TPZMatrix<TVar>A putting the result in res
 	 * @param A TPZMatrix<TVar>to added to current matrix

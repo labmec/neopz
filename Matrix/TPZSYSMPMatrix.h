@@ -42,7 +42,7 @@ public :
   void CopyFrom(const TPZMatrix<TVar> *  mat) override
   {                                                           
     auto *from = dynamic_cast<const TPZSYsmpMatrix<TVar> *>(mat);                
-    if (from) {                                               
+    if (from && from != this) {                                               
       *this = *from;                                          
     }                                                         
     else                                                      
