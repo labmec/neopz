@@ -146,6 +146,12 @@ can be added to a startup file of your shell. In both examples, `pz_install_dir`
 A Doxygen documentation can be found 
 [here](http://www.labmec.org.br/pz/arquivos-html/html/index.html).
 
+Additionally, the [`ai-analysis`](ai-analysis) folder contains an AI-generated
+codebase analysis (architecture overview, algorithm notes, and a findings/roadmap
+report). It is not an official, human-reviewed report, and some findings may be
+outdated or refer to a different checkout of the code — treat it as a
+starting point, not ground truth.
+
 ## How to cite NeoPZ
 
 Devloo, P.R. B., 1997. PZ: An object oriented environment
