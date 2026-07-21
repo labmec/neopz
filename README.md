@@ -148,9 +148,7 @@ A Doxygen documentation can be found
 
 Additionally, the [`ai-analysis`](ai-analysis) folder contains an AI-generated
 codebase analysis (architecture overview, algorithm notes, and a findings/roadmap
-report). It is not an official, human-reviewed report, and some findings may be
-outdated or refer to a different checkout of the code — treat it as a
-starting point, not ground truth.
+report).
 
 ## How to cite NeoPZ
 
