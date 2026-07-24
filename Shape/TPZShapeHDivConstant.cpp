@@ -301,7 +301,7 @@ void TPZShapeHDivConstant<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeDa
             count++;
 
             // Kernel HDiv functions
-            for (int k = 0; k < data.fHCurl.fNumConnectShape[nedges]; k++)
+            for (int k = 0; k < data.fHCurl.fNumConnectShape[nedges + i]; k++)
             {
                 for (auto d = 0; d < dim; d++)
                 {
