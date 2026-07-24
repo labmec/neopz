@@ -639,7 +639,7 @@ TPZCompMesh *TPZH1ApproxCreator::CreateBoundaryHDivSpace()
     int nstate = 1;
     if(fProbType == ProblemType::EElastic) nstate = fGeoMesh->Dimension();
     //Inserting HDiv material
-    if (fHybridType!= HybridizationType::EStandard || fHybridType!= HybridizationType::EStandardSquared) {
+    if (fHybridType== HybridizationType::EStandard || fHybridType== HybridizationType::EStandardSquared) {
         int matid = fHybridizationData.fLagrangeMatId;
         auto nullmat = new TPZNullMaterial(matid);
         nullmat->SetDimension(fGeoMesh->Dimension()-1);
