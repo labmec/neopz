@@ -266,9 +266,9 @@ CSTATE TPZMixedElasticityND::GetMaxComplianceEigenvalue(TPZVec<REAL> &x) const {
         // Not implemented for variable elasticity coefficients yet!
         DebugStop();
     } else {
-        if (fDimension != 2){
-            DebugStop();
-        }
+        // if (fDimension != 2){
+        //     DebugStop();
+        // }
 
         return 1/fmu_const;
 
