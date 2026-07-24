@@ -101,9 +101,10 @@ void TPZH1ApproxCreator::CreateAtomicMeshes(TPZVec<TPZCompMesh *> &meshvec) {
 
      meshvec.resize(fNumMeshes);
     int countMesh = 0;
-    if(HybridType() != HybridizationType::ENone)
+    if(HybridType() != HybridizationType::ENone) {
         meshvec[countMesh++] = CreateBoundaryHDivSpace();
-        meshvec[countMesh++] = CreateL2Space();
+    }
+    meshvec[countMesh++] = CreateL2Space();
 
     if (fIsRBSpaces){
         int lagMult1 = EDistFlux, lagMult2 = EAvSol;
