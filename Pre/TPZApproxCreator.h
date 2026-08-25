@@ -11,6 +11,8 @@
 
 class TPZMaterial;
 class TPZMultiphysicsCompMesh;
+class TPZInterpolationSpace;
+class TPZMultiphysicsElement;
 
 enum class HybridizationType {ENone, EStandard, EStandardSquared, ESemi};
 enum class ProblemType {ENone, EElastic, EDarcy, EStokes};
@@ -125,7 +127,7 @@ protected:
     HybridizationData fHybridizationData;
     
     /// Add a hybrid geometric configuration
-    void AddHybridGeometry(int64_t interface_id, TPZHybrid &hybrid);
+    virtual void AddHybridGeometry(int64_t interface_id, TPZHybrid &hybrid);
 
     /// Predominant GeoMesh dimension element
     MElementType fElementType = MElementType::ENoType;
@@ -172,7 +174,7 @@ public:
     /// Get Enhanced spaces
     const bool &IsRigidBodySpaces() const {return fIsRBSpaces;}
     
-    HybridizationData HybridData() const {return fHybridizationData;}
+    const HybridizationData &HybridData() const {return fHybridizationData;}
     void SetHybridData(const HybridizationData &copy) {
         fHybridizationData = copy;
     }
@@ -254,13 +256,48 @@ protected:
     void InsertWrapAndLagrangeMaterialObjects(TPZMultiphysicsCompMesh *mphys);
 
     /// Insert interface periferal material objects related to geometric objects created during hybridization
-    void InsertInterfaceMaterialObjects(TPZMultiphysicsCompMesh *mphys);
+    virtual void InsertInterfaceMaterialObjects(TPZMultiphysicsCompMesh *mphys);
 
     /// Groups elements to be condensed
     virtual void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) = 0;
 
     /// Changes the internal order of the volumetric connect of all CompEls in a given CMesh
     void ChangeInternalOrder(TPZCompMesh *cmesh, int pOrder) const;
+
+public:
+    typedef std::map<int64_t, int64_t> CtoMFCel;
+    /// @brief Compute the constraints to orthogonalize the restraints
+    // this function will compute restraints for all boundary flux connects
+    static void ComputeOrthogonalizingRestraints(TPZMultiphysicsCompMesh &mfmesh, CtoMFCel &geltogel, const TPZApproxCreator::HybridizationData &hybridData);
+
+        /// Compute projection directions for a geometric element
+        //// Method related to the Semi hybridization.
+    static void ProjectionDirections(TPZGeoEl *gel, TPZFMatrix<REAL> &projdir);
+
+    /// Compute projection values for a set of relative coordinates
+        //// Method related to the Semi hybridization.
+    static void ProjectionValues(TPZVec<REAL> &xrelative, TPZFMatrix<REAL> &projdir, int ncorner, TPZFMatrix<REAL> &funcval);
+
+    /// Compute the projection matrix for an interpolation space
+        //// Method related to the Semi hybridization.
+    static void ComputeProjectionMatrix(TPZInterpolationSpace *intel, TPZFMatrix<REAL> &projection);
+
+    /// @brief compute the restraints of a connect for a geometric element
+        //// Method related to the Semi hybridization.
+    static void RestraintConnect(TPZInterpolationSpace *intel, TPZMultiphysicsElement *mfcel, int64_t newind1, int64_t newind2);
+
+    /// @brief Copy the restraint of a connect to another connect
+        //// Method related to the Semi hybridization.
+    static void CopyRestraintConnect(TPZConnect &cfrom, TPZConnect &cto);
+
+    /// @brief compute an equivalent B matrix
+        //// Method related to the Semi hybridization.
+    static void ComputeBMatrix(TPZInterpolationSpace *intel, TPZFMatrix<STATE> &B);
+
+    /// @brief  compute orthogonalizing restraint
+        //// Method related to the Semi hybridization.
+    static void ComputeOrthogonalizingR(TPZFMatrix<REAL> &B, TPZFMatrix<REAL> &Restraint);
+
 
 public:
     /// Determine the predominant element type in the GeoMesh
