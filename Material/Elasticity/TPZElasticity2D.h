@@ -181,6 +181,8 @@ public :
 	/** @name Contribute methods */
 	/** @{ */
 	
+    void ComputeStress(const TPZVec<REAL> &x,const TPZFMatrix<STATE> &gradu, TPZFMatrix<STATE> &sigma) const;
+    
 	/** @brief Calculates the element stiffness matrix */
 	void Contribute(const TPZMaterialDataT<STATE> &data, STATE weight,
                     TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
