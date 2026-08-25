@@ -108,6 +108,10 @@ public:
       return fDepMatrix;
     }
     
+    void SetDepMatrix(const TPZFMatrix<TVar> &depmat){
+      fDepMatrix = depmat;
+    }
+    
 
     TPZDepend<TVar>* CreateEmptyInstance() override{
       return new TPZDepend<TVar>;

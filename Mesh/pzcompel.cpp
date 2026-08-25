@@ -250,6 +250,11 @@ void TPZCompEl::LoadSolutionInternal() {
                 auto dept = dynamic_cast<TPZConnect::TPZDepend<TVar>*>(dep);
                 if(!dept){DebugStop();}
                 const auto &depmat = dept->GetDepMatrix();
+                int64_t deprows = depmat.Rows();
+                int64_t depcols = depmat.Cols();
+                if(deprows == nvar) {
+                  numstate = 1;
+                }
                 int64_t depconindex = dep->fDepConnectIndex;
                 TPZConnect &depcon = Mesh()->ConnectVec()[depconindex];
                 int64_t depseq = depcon.SequenceNumber();
