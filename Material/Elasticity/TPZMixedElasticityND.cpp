@@ -300,6 +300,16 @@ void TPZMixedElasticityND::Contribute_3spaces(const TPZVec<TPZMaterialDataT<STAT
     const int firstequation_S = 0;
     const int firstequation_U = firstequation_S + nshapeS*fDimension;
     const int firstequation_P = firstequation_U + nshapeU*fDimension;
+    // number of asymetric tensors for each shape function
+    int nrotations = (fDimension == 3) ? 3 : 1;
+    const int64_t ekdim = ek.Rows();
+    if(firstequation_P + nshapeP*nrotations > ekdim)
+    {
+      std::cout << "TPZMixedElasticityND::Contribute_3spaces error: ek dimension is too small. "
+                << "ek.Rows() = " << ekdim << ", firstequation_P + nshapeP*nrotations = " << firstequation_P + nshapeP*nrotations
+                << std::endl; 
+        DebugStop();
+    }
 
     // Number of voight terms
     int voigtdim = fDimension*fDimension;
@@ -313,9 +323,6 @@ void TPZMixedElasticityND::Contribute_3spaces(const TPZVec<TPZMaterialDataT<STAT
         REAL nu = result[1];
         elast = TElasticityAtPoint(E, nu);
     }
-
-    // number of asymetric tensors for each shape function
-    int nrotations = (fDimension == 3) ? 3 : 1;
 
     //K11 - (Matrix A * stress tensor) x test-function stress tensor
     TPZFNMatrix<200, STATE> PhiSVoight(voigtdim, nshapeS*fDimension, 0.);

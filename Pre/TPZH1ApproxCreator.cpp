@@ -148,9 +148,10 @@ TPZCompMesh * TPZH1ApproxCreator::CreateClassicH1ApproximationSpace() {
 
     CheckSetupConsistency();
 
-    if(fHybridType != HybridizationType::ENone){
-        std::cout << __PRETTY_FUNCTION__ << "Perhaps TPZH1ApproxCreator::CreateApproximationSpace is more suited for your needs\n.";
-        DebugStop();
+    if (fHybridType != HybridizationType::ENone)
+    {
+      std::cout << __PRETTY_FUNCTION__ << "Perhaps TPZH1ApproxCreator::CreateApproximationSpace is more suited for your needs\n.";
+      DebugStop();
     }
 
     bool isDarcy = fProbType == ProblemType::EDarcy;

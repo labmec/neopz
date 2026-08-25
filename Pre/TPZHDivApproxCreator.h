@@ -29,7 +29,7 @@ public:
     TPZHDivApproxCreator(TPZGeoMesh * gmesh);
 
     /// Default destructor
-    ~TPZHDivApproxCreator();
+    virtual ~TPZHDivApproxCreator();
 
     /// Get/Set HDiv family
     HDivFamily &HdivFamily(){return fHDivFam;}
@@ -52,7 +52,7 @@ public:
     
     /// Create interface elements on hybridizes spaces
     /// @param mphys multiphysics compmesh
-    void AddInterfaceComputationalElements(TPZMultiphysicsCompMesh *mphys);
+    virtual void AddInterfaceComputationalElements(TPZMultiphysicsCompMesh *mphys);
     void AddInterfaceComputationalElementsBackup(TPZMultiphysicsCompMesh *mphys);
 
     /// Function used for debugging. Prints the elements and their connects
@@ -95,7 +95,7 @@ protected:
     void FixSideOrientHydridMesh(TPZCompMesh* cmesh);
     
     /// Creates and HDiv approximation space/cmesh
-    TPZCompMesh * CreateHDivSpace();
+    virtual TPZCompMesh * CreateHDivSpace();
 
     /// Creates an L2 approximation space/cmesh
     /// @param pOrder polynomial order of the space

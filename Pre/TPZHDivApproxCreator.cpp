@@ -76,7 +76,10 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
         std::cout << "Standard Squared hybrization not implemented. Please implement if needed" << std::endl;
         DebugStop();
     }
-
+    if(fHybridType != HybridizationType::ENone && fProbType != ProblemType::EDarcy && fHybridizationData.fHybridizeBCLevel > 0){
+        std::cout << "Hybridization of boundary conditions is only available for Darcy problems." << std::endl;
+        DebugStop();
+    }
     if(fHybridType == HybridizationType::ESemi && (fHDivFam != HDivFamily::EHDivConstant && fHDivFam != HDivFamily::EHDivOptimized)){
         std::cout << "The only HDiv spaces with available Semi hybridization is HDivConstant and HDivOptimized" << std::endl;
         DebugStop();
@@ -319,13 +322,16 @@ void TPZHDivApproxCreator::CreateHybridHDivMesh(TPZCompMesh* cmesh) {
         const int firstSide = gel->FirstSide(dim-1);
         for(int is = firstSide ; is < gel->NSides()-1 ; is++) {
             TPZGeoElSide gelside(gel,is);
-            if(gelside.HasNeighbour(bcmatids)) continue;
+            if(gelside.HasNeighbour(bcmatids)) {
+              continue;
+            }
             cel->LoadElementReference();
             TPZGeoElSide neig = gelside.Neighbour();
-            if(neig.Element()->MaterialId() != fHybridizationData.fWrapMatId) DebugStop();
-            auto *celwrap = cmesh->CreateCompEl(neig.Element());
-            neig.Element()->ResetReference();
-            gel->ResetReference();
+            if(neig.Element()->MaterialId() == fHybridizationData.fWrapMatId) {
+              auto *celwrap = cmesh->CreateCompEl(neig.Element());
+              neig.Element()->ResetReference();
+              gel->ResetReference();
+            }
         }
     }
     
@@ -349,7 +355,7 @@ void TPZHDivApproxCreator::FixSideOrientHydridMesh(TPZCompMesh* cmesh) {
             auto neigh = gelside.HasNeighbour(fHybridizationData.fWrapMatId);
             if(neigh){
                 TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
-                intel->SetSideOrient(is, 1.);
+                intel->SetSideOrient(is, 1);
             }
         }
     }
@@ -689,6 +695,7 @@ void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcm
         }
     }
     mcmesh->ComputeNodElCon();
+    // @TODO depending on the hybridization type, we may need to increment the elconnected of the lagrange connects
 //    if(fHybridType == HybridizationType::EStandard)
 //    {
 //        int lagCTEspace2 = 4;
