@@ -1190,7 +1190,10 @@ void TPZSubCompMesh::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMa
 			{
 				sman->SetFront(frontmat->GetFront());
 			}
-		}
+		} else {
+        fAnalysis->Assemble();
+      }
+
 		
 		//Trying to get a derived Analysis which is a SubMeshAnalysis.
 		//It could be better done with an abstract class SubMeshAnalysis which defines CondensedSolution method
