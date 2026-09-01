@@ -801,6 +801,14 @@ void TPZMHMeshControl::CreateInterfaceElements()
             neighbour = neighbour.Neighbour();
         }
         if (neighbour == gelside) {
+          std::cout << "Looking for a neighbour with skelmatid " << fSkeletonMatId << " or boundary wrap matid " << fBoundaryWrapMatId << std::endl;
+          std::cout << "material ids of the neighbours " << gelside.Element()->MaterialId();
+          neighbour = gelside.Neighbour();
+          while (neighbour != gelside) {
+            std::cout << " " << neighbour.Element()->MaterialId();
+            neighbour = neighbour.Neighbour();
+          }
+          std::cout << std::endl;
             DebugStop();
         }
         TPZStack<TPZGeoElSide> gelstack;
