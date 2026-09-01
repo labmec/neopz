@@ -1,11 +1,13 @@
 function(enable_metis target)
-  if(USING_MUMPS AND MUMPS_metis)
-    # Link explicitly against MUMPS's own METIS target instead of relying
-    # on transitive propagation through MUMPS::MUMPS, which is fragile.
-    if(NOT TARGET metis::metis)
-      message(FATAL_ERROR "[NeoPZ] metis::metis target not found (check MUMPS_ROOT)")
-    endif()
-    message(STATUS "[NeoPZ] Linking against the METIS bundled with MUMPS (metis::metis)")
+  # NeoPZ itself calls METIS directly (see External/pzmetis.cpp), so it always
+  # needs a real METIS include dir + library, regardless of MUMPS.
+  # When MUMPS was built with its own METIS (MUMPS_metis), reuse that exact
+  # metis::metis target instead of doing a fresh find_package(METIS): searching
+  # again can pick up a different METIS installed on the system (e.g. via
+  # Homebrew) and mixing two METIS builds in the same binary leads to
+  # ABI/version conflicts.
+  if(USING_MUMPS AND MUMPS_metis AND TARGET metis::metis)
+    message(STATUS "[NeoPZ] Reusing METIS already configured by MUMPS (metis::metis target)")
     target_link_libraries(${target} PRIVATE metis::metis)
   else()
     find_package(METIS REQUIRED)

@@ -345,6 +345,7 @@ void TPZElasticity2D::ContributeBC(const TPZMaterialDataT<STATE> &data,
 	[&bc = std::as_const(bc),
      &bcNumLoads = std::as_const(bcNumLoads),
      &data = std::as_const(data),
+     me = this,
      nvars,nloads]( TPZFMatrix<STATE> &v1, TPZVec<STATE> &v2) {
         if(bc.HasForcingFunctionBC()){
             // v2 is already set
@@ -1133,6 +1134,45 @@ void TPZElasticity2D::ContributeVecShapeBC(const TPZMaterialDataT<STATE> &data,
     }
 
 }
+
+void TPZElasticity2D::ComputeStress(const TPZVec<REAL> &x, const TPZFMatrix<STATE> &gradu, TPZFMatrix<STATE> &sigma) const {
+    
+    REAL E(fE_def), nu(fnu_def);
+    
+    if (fElasticity) {
+        TPZManVector<STATE,2> result(2);
+        TPZFNMatrix<4,STATE> Dres(0,0);
+        fElasticity(x, result, Dres);
+        E = result[0];
+        nu = result[1];
+    }
+    
+    REAL Eover1MinNu2 = E/(1-nu*nu);
+    REAL Eover21PlusNu = E/(2.*(1+nu));
+    
+    STATE epsx,epsy,epsxy, epsz;
+    epsx = gradu(0,0);// du/dx
+    epsy = gradu(1,1);// dv/dy
+    epsxy = 0.5*(gradu(1,0)+gradu(0,1));
+    REAL lambda = GetLambda(E,nu);
+    REAL mu = GetMU(E,nu);
+    if (fPlaneStress) {
+        epsz = -lambda*(epsx+epsy)/(lambda+2.*mu);
+    }
+    else
+    {
+        epsz = 0.;
+    }
+    //    epsz = data[1].sol[0][0];
+    sigma.Zero();
+    sigma(0,0) = lambda*(epsx+epsy+epsz)+2.*mu*epsx + fPreStressXX;
+    sigma(1,1) = lambda*(epsx+epsy+epsz)+2.*mu*epsy + fPreStressYY;
+    
+    sigma(2,2) = lambda*(epsx+epsy+epsz)+2.*mu*epsz;
+    sigma(0,1) = 2*mu*epsxy+fPreStressXY;
+    sigma(1,0) = sigma(0,1);
+}
+
 
 void TPZElasticity2D::Errors(const TPZMaterialDataT<STATE> &data,
                              TPZVec<REAL> &values) {

@@ -197,6 +197,10 @@ endif(USING_MUMPS)
 
 #enabling METIS library (deferred check after MUMPS)
 option(USING_METIS "Whether the METIS library will be linked in" OFF)
+if(USING_MUMPS AND NOT USING_METIS)
+    message(STATUS "[NeoPZ] USING_MUMPS=ON, automatically enabling USING_METIS")
+    set(USING_METIS ON CACHE BOOL "Whether the METIS library will be linked in" FORCE)
+endif()
 if(USING_METIS)
     include(cmake/EnableMetis.cmake)
     enable_metis(pz)
@@ -346,11 +350,8 @@ add_subdirectory(Exception)
 #############INSTALL#############
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  if(WIN32)
-    set(CMAKE_INSTALL_PREFIX "C:/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
-  else()
-    set(CMAKE_INSTALL_PREFIX "/opt/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
-  endif()
+  get_filename_component(PZ_DEFAULT_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/../neopz_install" ABSOLUTE)
+  set(CMAKE_INSTALL_PREFIX "${PZ_DEFAULT_INSTALL_PREFIX}" CACHE PATH "Directory where PZ will be installed" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 # End of pz_config.h part
