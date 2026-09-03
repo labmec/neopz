@@ -1653,6 +1653,7 @@ namespace pztopology {
         }
         for (int i=0; i<3; i++)
         {
+            // face 0 and face 4
             for (int iv=0; iv<7; iv++)
             {
                 directions(i,iv) = -v3[i]*NormalScales[0]*6.;
@@ -1689,6 +1690,8 @@ namespace pztopology {
             directions(i,32) = -v1[i]*Nv2v3*NormalScales[1];
             directions(i,33) = ( directions(i,30)+directions(i,32) )/2.;
             
+            
+            // directions for the volume shape functions
             //arestas
             directions(i,41) = v1[i]*Nv2v3*NormalScales[1];//
             directions(i,42) = (v2[i]-v1[i])/2.;//*Nvdiag
@@ -1725,7 +1728,7 @@ namespace pztopology {
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZPrism::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
+    void TPZPrism::ComputeConstantHDiv(const TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
         REAL scale;        
         
@@ -1760,17 +1763,54 @@ namespace pztopology {
         div[3] = 2. / scale;
     }
 
-    /// Compute the directions of the HCurl vectors
+    /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZPrism::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
+    void TPZPrism::ComputeConstantHDiv(const TPZVec<Fad<REAL>> &point, TPZFMatrix<Fad<REAL>> &RT0function, TPZVec<Fad<REAL>> &div)
     {
-        REAL scale = 1.;    
-        REAL qsi = point[0];
-        REAL eta = point[1];
-        REAL zeta = point[2];
+        FADREAL scale;        
+        
+        FADREAL qsi = point[0];
+        FADREAL eta = point[1];
+        FADREAL zeta = point[2];
+
+        //Face functions
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
+
+        // Top and bottom is the same as cube
+        scale = 0.5;
+        RT0function(2,0) = -0.5 * (1. - zeta) / scale;
+        RT0function(2,4) = 0.5 * (1. + zeta) / scale;
+        div[0] = 0.5 / scale;
+        div[4] = 0.5 / scale;
+
+        //Faces are the same as triangles
+        scale = 2.;
+        RT0function(0,1) = qsi / scale;
+        RT0function(1,1) = (eta - 1.) / scale;   
+        div[1] = 2./scale;
+
+        scale = M_SQRT2 * 2.;
+        RT0function(0,2) = M_SQRT2 * qsi / scale;
+        RT0function(1,2) = M_SQRT2 * eta / scale;
+        div[2] = 2.* M_SQRT2 / scale;
+
+        scale = 2.;
+        RT0function(0,3) = (qsi - 1.) / scale;
+        RT0function(1,3) = eta / scale;
+        div[3] = 2. / scale;
+    }
+
+    /// Compute the directions of the HCurl vectors
+    template <class TVar>
+    void TPZPrism::ComputeConstantHCurl(const TPZVec<TVar> &point, TPZFMatrix<TVar> &N0function, TPZFMatrix<TVar> &curl, const TPZVec<int> &transformationIds)
+    {
+        TVar scale = 1.;    
+        const TVar &qsi = point[0];
+        const TVar &eta = point[1];
+        const TVar &zeta = point[2];
 
         constexpr auto nEdges{9};
-        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        TPZManVector<TVar,nEdges> edgeSign(nEdges,0);
         for(auto iEdge = 0; iEdge < nEdges; iEdge++){
             edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
         }
@@ -1833,7 +1873,7 @@ namespace pztopology {
     }
 
     // Get face orientation
-    int TPZPrism::GetSideOrient(const int &face){
+    int TPZPrism::GetFaceOrient(const int &face){
         return fSideOrient[face];
     }
 
@@ -2019,31 +2059,15 @@ namespace pztopology {
 
 }
 
-/**********************************************************************************************************************
- * The following are explicit instantiation of member function template of this class, both with class T=REAL and its
- * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
- * in BOTH cases.    @orlandini
- **********************************************************************************************************************/
-template bool pztopology::TPZPrism::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
+#define TEMPL(T) \
+    template bool pztopology::TPZPrism::CheckProjectionForSingularity<T>(const int &side, const TPZVec<T> &xiInterior); \
+    template void pztopology::TPZPrism::MapToSide<T>(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide); \
+    template void pztopology::TPZPrism::BlendFactorForSide<T>(const int &, const TPZVec<T> &, T &, TPZVec<T> &); \
+    template void pztopology::TPZPrism::TShape<T>(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi); \
+    template void pztopology::TPZPrism::ComputeHDivDirections<T>(TPZFMatrix<T> &gradx, TPZFMatrix<T> &directions); \
+    template void pztopology::TPZPrism::ComputeHCurlDirections<T>(TPZFMatrix<T> &gradx, TPZFMatrix<T> &directions, const TPZVec<int> &transformationIds); \
+    template void pztopology::TPZPrism::ComputeConstantHCurl(const TPZVec<T> &point, TPZFMatrix<T> &vecDiv, TPZFMatrix<T> &curl, const TPZVec<int> &transformationIds);
 
-template void pztopology::TPZPrism::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
-
-template void pztopology::TPZPrism::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
-
-template void pztopology::TPZPrism::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-
-template void pztopology::TPZPrism::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
-
-template void pztopology::TPZPrism::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, const TPZVec<int> &transformationIds);
-
-template bool pztopology::TPZPrism::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
-
-template void pztopology::TPZPrism::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
-
-template void pztopology::TPZPrism::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
-                                                                   TPZVec<Fad<REAL>> &);
-template void pztopology::TPZPrism::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
-
-template void pztopology::TPZPrism::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
-
-template void pztopology::TPZPrism::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions, const TPZVec<int> &transformationIds);
+TEMPL(REAL)
+TEMPL(Fad<REAL>)
+#undef TEMPL

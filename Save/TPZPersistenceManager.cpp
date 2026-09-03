@@ -116,6 +116,7 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
             {
                 std::cout << "ClassId not registered for a pointer " << classId << std::endl;
                 std::cout << "Class name " << typeid(*pointer).name() << std::endl;
+                std::cout << "Is TPZRestore<class> being instantiated?"<<std::endl;
                 ClassIdError = true;
             }
         }

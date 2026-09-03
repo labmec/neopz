@@ -79,7 +79,7 @@ void TPZNullMaterial<TVar>::Solution(const TPZMaterialDataT<TVar> &data, int var
 template<class TVar>
 int TPZNullMaterial<TVar>::NSolutionVariables(int var) const {
     if (var == 0) {
-        return 1;
+        return fNState;
     } else if (var == 1) {
         return 3;
     } else {

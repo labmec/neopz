@@ -5,11 +5,19 @@
 
 #include "TPZSSpStructMatrix.h"
 #include "pzcmesh.h"
-#include "pzsysmp.h"
+#include "TPZSYSMPMatrix.h"
 #include "TPZRenumbering.h"
-#include "TPZGuiInterface.h"
 #include "TPZTimer.h"
 #include "pzlog.h"
+
+#ifdef USING_MKL
+#include "TPZSYSMPPardiso.h"
+#endif
+
+#ifdef USING_EIGEN
+#include "TPZEigenSparseMatrix.h"
+#endif
+
 #ifdef PZ_LOG
 static TPZLogger logger("pz.StrMatrix");
 #endif
@@ -30,10 +38,12 @@ void TPZSSpStructMatrix<TVar,TPar>::EndCreateAssemble(TPZBaseMatrix *mat){
 template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::Create(){
     int64_t neq = this->fMesh->NEquations();
-    if(this->fMesh->FatherMesh()) {
-		cout << "TPZSSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
-        DebugStop();
-    }
+
+    // if(this->fMesh->FatherMesh()) {
+    //		cout << "TPZSSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
+    //        DebugStop(); // WHY?
+    // }
+    
     /**
      *Longhin implementation
      */
@@ -50,13 +60,12 @@ template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex){
     
     const int64_t neq = this->fEquationFilter.NActiveEquations();
-    TPZSYsmpMatrix<TVar> * mat = new TPZSYsmpMatrix<TVar>(neq,neq);
+    TPZSYsmpMatrix<TVar> * mat = NewSparseMatrix(neq);
     
     /**Creates a element graph*/
     TPZRenumbering graph;
     graph.SetElementsNodes(elgraphindex.NElements() -1
                            ,this->fMesh->NIndependentConnects());
-    graph.SetElementGraph(elgraph,elgraphindex);
     
     TPZManVector<int64_t> nodegraph;
     TPZManVector<int64_t> nodegraphindex;
@@ -188,8 +197,21 @@ TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_
     }
 
     Eq[ieq] = pos;
-    mat->SetData(Eq,EqCol,EqValue);
+    mat->SetData(std::move(Eq),std::move(EqCol),std::move(EqValue));
+
     return mat;
+}
+
+template<class TVar, class TPar>
+TPZSYsmpMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::NewSparseMatrix(const int64_t neq) const {
+#ifdef USING_MKL
+    return new TPZSYsmpMatrixPardiso<TVar>(neq,neq);
+#elif USING_EIGEN
+    return new TPZEigenSparseMatrix<TVar>(neq,neq);
+#else
+    DebugStop();
+    return nullptr;
+#endif
 }
 
 template<class TVar, class TPar>
@@ -213,11 +235,16 @@ void TPZSSpStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid) const
 
 #include "pzstrmatrixot.h"
 #include "pzstrmatrixflowtbb.h"
+#include "TPZStructMatrixOMPorTBB.h"
 
 template class TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
 template class TPZSSpStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
 template class TPZSSpStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
+template class TPZSSpStructMatrix<STATE,TPZStructMatrixOMPorTBB<STATE>>;
 
+#ifndef USING_EIGEN
 template class TPZSSpStructMatrix<CSTATE,TPZStructMatrixOR<CSTATE>>;
 template class TPZSSpStructMatrix<CSTATE,TPZStructMatrixOT<CSTATE>>;
 template class TPZSSpStructMatrix<CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
+template class TPZSSpStructMatrix<CSTATE,TPZStructMatrixOMPorTBB<CSTATE>>;
+#endif

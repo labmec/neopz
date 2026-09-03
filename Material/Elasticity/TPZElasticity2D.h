@@ -11,6 +11,7 @@
 #include "TPZMatSingleSpace.h"
 #include "TPZMatErrorSingleSpace.h"
 #include "TPZMatLoadCases.h"
+#include "TPZLinearElasticityConstitutive.h"
 
 
 /**
@@ -22,14 +23,19 @@ class TPZElasticity2D : public TPZMatBase<STATE,
                                           TPZMatErrorSingleSpace<STATE>,
                                           TPZMatLoadCases<STATE>>
 {
+public:
     using TBase = TPZMatBase<STATE,
                              TPZMatSingleSpaceT<STATE>,
                              TPZMatErrorSingleSpace<STATE>,
                              TPZMatLoadCases<STATE>>;
+    enum MStressState {EPlaneStrain, EPlaneStress};
 public :
     using ElasticityFunctionType = std::function<void (const TPZVec<REAL>&,
                                                        TPZVec<STATE> &,
                                                        TPZFMatrix<STATE>&)>;
+    
+    using AnisotropicForcingFunctionType = std::function<void (const TPZVec<REAL> &x, const TPZLinearElasticityConstitutive &Law, TPZVec<STATE> &result)>;
+
 	/** 
 	 * @brief Creates an elastic material with:
 	 * @param id material id
@@ -43,6 +49,8 @@ public :
     
     TPZElasticity2D(int id);
 
+    TPZElasticity2D(const TPZElasticity2D &copy);
+
     /** @name Elasticity */
     /** @brief Set elasticity parameters */
     void SetElasticity(STATE E, STATE nu)
@@ -51,23 +59,65 @@ public :
         fnu_def	= nu;   // poisson coefficient
 
     }
+
+    void SetConstitutiveLaw(const TPZLinearElasticityConstitutive &constitutive)
+    {
+        fConstitutiveLaw = constitutive;
+        fPlaneStress = fConstitutiveLaw.IsPlaneStress() ? 1 : 0;
+        if(fElasticity != nullptr)
+        {
+            SetElasticityFunction(nullptr);
+        }
+    }
     
     /// Set a variable elasticity and poisson coefficient
     void SetElasticityFunction(ElasticityFunctionType func)
     {
         fElasticity = func;
     }
+
+    void SetAnisotropicForcingFunction(AnisotropicForcingFunctionType func, int porder)
+    {
+        fAnisotropicForcingFunction = func;
+        fForcingFunctionPOrder = porder;
+    }
     
     /// Set the material configuration to plane strain
     void SetPlaneStrain()
     {
         fPlaneStress = 0;
+        fConstitutiveLaw.SetPlaneStress(false);
     }
     
     /// Set the material configuration to plane stress
     void SetPlaneStress()
     {
         fPlaneStress = 1;
+        fConstitutiveLaw.SetPlaneStress(true);
+    }
+    
+    void SetStressState(MStressState state) {
+        switch (state) {
+            case EPlaneStrain:
+                fPlaneStress = 0;
+                fConstitutiveLaw.SetPlaneStress(false);
+                break;
+            case EPlaneStress:
+                fPlaneStress = 1;
+                fConstitutiveLaw.SetPlaneStress(true);
+                break;
+            default:
+                DebugStop();
+                break;
+        }
+    }
+
+    /** @brief Set whether to use vectorial shape functions in the contribute methods
+     * this method is for debugging purposes only
+     * it will, in the contribute method, convert the scalar shape functions into vectorial shape functions, compute the contribution, and convert back to scalar shape functions
+     */
+    void SetVecShapeFunctionUsage(bool usevecshape) {
+        fUseVecShape = usevecshape;
     }
     
     /** @brief Set forcing function */
@@ -80,20 +130,36 @@ public :
     
     STATE GetLambda(STATE E, STATE nu) const
     {
+        if(fConstitutiveLaw.IsIsotropic() == false) {
+            DebugStop();
+        }
         STATE lambda = (nu*E)/((1.+nu)*(1.-2.*nu));
         return lambda;
     }
     
     STATE GetMU(STATE E, STATE nu) const
     {
+        if(fConstitutiveLaw.IsIsotropic() == false) {
+            DebugStop();
+        }
         STATE mu = E/(2.*(1.+nu));
         return mu;
     }
 /** @brief Returns the elasticity modulus E */
-	STATE E() {return fE_def;}
+	STATE E() {
+        if(fConstitutiveLaw.IsIsotropic() == false) {
+            DebugStop();
+        }   
+        return fE_def;
+    }
 	
 	/** @brief Returns the poison coefficient modulus E */
-	STATE Nu() {return fnu_def;}
+	STATE Nu() {
+        if(fConstitutiveLaw.IsIsotropic() == false) {
+            DebugStop();
+        }
+        return fnu_def;
+    }
 	
 	/** @brief Set PresStress Tensor */
 	void SetPreStress(STATE Sigxx, STATE Sigyy, STATE Sigxy, STATE Sigzz);
@@ -115,6 +181,8 @@ public :
 	/** @name Contribute methods */
 	/** @{ */
 	
+    void ComputeStress(const TPZVec<REAL> &x,const TPZFMatrix<STATE> &gradu, TPZFMatrix<STATE> &sigma) const;
+    
 	/** @brief Calculates the element stiffness matrix */
 	void Contribute(const TPZMaterialDataT<STATE> &data, STATE weight,
                     TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
@@ -133,7 +201,9 @@ public :
 
     /** @name Solution */
 	/** @{ */
-    
+    /// @brief returns the variable names associated with the material
+    void VariableNames(TPZVec<std::string> &names) const;
+
 	/** @brief Returns the variable index associated with the name */
 	int VariableIndex(const std::string &name) const override;
 	
@@ -152,6 +222,12 @@ public :
 	/** @{ */
     /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
     int NEvalErrors() const override {return 6;}
+    
+    void ErrorNames(TPZVec<std::string> &errornames) const override {
+        errornames.resize(NEvalErrors());
+        errornames = {"Energy","L2","H1","EnergyExact","L2Stress","L2Sigx"};
+    }
+
 
     void GetSolDimensions(uint64_t &u_len,
                           uint64_t &du_row,
@@ -192,6 +268,10 @@ protected:
                               TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,
                               TPZBndCondT<STATE> &bc);
 
+    /// @brief Compute the constitutive matrix D
+    /// @param x coordinates where D is computed
+    /// @param D constitutive matrix
+    void ComputeD(const TPZVec<REAL> &x, TPZFMatrix<STATE> &D);
     /** @name Errors */
 	/** @{ */
 	void Errors(const TPZMaterialDataT<STATE> &data,
@@ -203,18 +283,18 @@ protected:
 	
 	/** @brief Poison coeficient */
 	STATE fnu_def;
-	
+
+    /** @brief Constitutive law */
+    TPZLinearElasticityConstitutive fConstitutiveLaw;
+
     /** Elasticity function */
     ElasticityFunctionType fElasticity;
     
+    /** @brief Forcing function for anisotropic materials */
+    AnisotropicForcingFunctionType fAnisotropicForcingFunction;
+
 	/** @brief Forcing vector */
 	TPZManVector<STATE,3> ff;
-	
-	/** @brief \f$ G = E/2(1-nu) \f$ */
-	STATE fEover21PlusNu_def;
-	
-	/** @brief \f$ E/(1-nu) \f$ */
-	STATE fEover1MinNu2_def;
 	
 	/** @brief Pre Stress Tensor - Sigma XX */
 	STATE fPreStressXX;
@@ -231,6 +311,11 @@ protected:
 	/** @brief Uses plain stress */
 	int fPlaneStress;
     
+    /** @brief boolean indicating to use vecshape functions
+     * If true, the contribute methods convert the scalar shape functions into vectorial shape functions
+     * this method is for debugging purposes only
+     */
+    bool fUseVecShape;
 };
 
 #endif

@@ -630,7 +630,7 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int64_t>
 		newnodeindexes[index] = -1;
 		REAL smallestDiff = -1.;
 		int smallestDiffIndex = -1;
-		//check if the node has already been created using information previsouly obtained from neighbour
+		//check if the node has already been created using information previously obtained from neighbour
 		for(int i=0; i< sideindices.NElements(); i++)
 		{
 			for(int k=0; k<3; k++) neighbourcoord_X[k] = gmesh->NodeVec()[sideindices[i]].Coord(k);
@@ -664,6 +664,12 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int64_t>
             std::cout << "Either the refinement patterns are incompatible or there is an issue with the mapping.\n";
             std::cout << "newnodecoord_X(" << newnodecoord_X[0] << "," << newnodecoord_X[1] << "," << newnodecoord_X[2] << ")" << std::endl;
             std::cout << "neighbourcoord_X(" << neighbourcoord_X[0] << "," << neighbourcoord_X[1] << "," << neighbourcoord_X[2] << ")" << std::endl;
+            std::cout << "Neighbor information:" << std::endl;
+            neighbour.Print(std::cout);
+            neighbour.Element()->Print(std::cout);
+            std::cout << "Myself information:" << std::endl;
+            gelside.Print(std::cout);
+            gelside.Element()->Print(std::cout);
 			DebugStop();
 		}
 		if (newnodeindexes[index] == -1)
@@ -953,12 +959,28 @@ void TPZRefPattern::ComputePartition(){
     int nSides = fatherEl->NSides();
 
     fFatherSideInfo.Resize(nSides);
+    /*
+      SPZFatherSideInfo stores, for each side, two informations:
+      fSideNodes: vector of internal nodes, i.e., nodes that result from the refinement pattern
+      fSideSons: vector of TPZGeoElSide of (subel, subelside) contained in the side
+
+      This method fills fFatherSideInfo, which is a vector of SPZFatherSideInfo
+      
+     */
     for(int iSide = 0; iSide < nSides; iSide++){
 
-        TPZStack<TPZGeoElSide> sideSonsStack;
+        //for each side:
+        
+        //we want to keep track of corner nodes
         TPZStack<int> cornerNodeStack;
+        //here we store the internal nodes that were found
         TPZStack<int> internalNodesStack;
+        //geoelside of subels
+        TPZStack<TPZGeoElSide> sideSonsStack;
+
+        
         const int nSideNodes = fatherEl->NSideNodes(iSide);
+        //store corner nodes
         for(int iNode = 0; iNode < nSideNodes; iNode++){
             const int nodeIndex = fatherEl->SideNodeIndex(iSide,iNode);
             cornerNodeStack.push_back(nodeIndex);
@@ -969,6 +991,10 @@ void TPZRefPattern::ComputePartition(){
                 int fatherSide = FatherSide(iSubElSide,iSubEl);
                 if(fatherSide == iSide){
                     TPZGeoElSide geoElSideCandidate(subEl,iSubElSide);
+                    /*
+                      if one neighbour of this geoelside is already in sideSonsStack,
+                      we can skip it, it is not new information.
+                     */
                     bool isInList = false;
                     for(int iGelSide = 0; iGelSide < sideSonsStack.size(); iGelSide++){
                         if(isInList) break;
@@ -983,18 +1009,26 @@ void TPZRefPattern::ComputePartition(){
                     }
                     if(!isInList)   {
                         sideSonsStack.push_back(geoElSideCandidate);
+                        /*
+                          if subelside is a node, it has potential to be
+                          an internal nodes
+                         */
                         if(subEl->SideDimension(iSubElSide) == 0){
                             const int nodeIndex = subEl->NodeIndex(iSubElSide);
                             bool isNodeInList = false;
                             const int nCornerNodes = cornerNodeStack.size();
                             const int nInternalNodes = internalNodesStack.size();
+                            //check if it has been already found
                             for(int iNode = 0; iNode < nInternalNodes; iNode++){
                                 if(internalNodesStack[iNode] == nodeIndex) isNodeInList = true;
                             }
-                            //the following garantees that for a 0D side its node is put correctly in internalNodesStack
+                            /*
+                              maybe it could be a corner node instead of internal node? we need to check
+                             */
                             for(int iNode = 0; iNode < nCornerNodes && fatherEl->SideDimension(iSide) > 0; iNode++){
                                 if(cornerNodeStack[iNode] == nodeIndex) isNodeInList = true;
                             }
+                            //we found a new internal node of side iSide
                             if(!isNodeInList){
                                 internalNodesStack.push_back(nodeIndex);
                             }
@@ -1003,6 +1037,7 @@ void TPZRefPattern::ComputePartition(){
                 }
             }
         }
+        //fill all relevant information regarding father's side
         fFatherSideInfo[iSide].fSideNodes.Resize(internalNodesStack.size());
         for(unsigned int iNode = 0; iNode < internalNodesStack.size(); iNode++){
             fFatherSideInfo[iSide].fSideNodes[iNode] = internalNodesStack[iNode];
@@ -1161,6 +1196,8 @@ void TPZRefPattern::ReadAndCreateRefinementPattern(std::istream &pattern){
     TPZGeoEl *father = 0;
     //criacao dos elementos geometricos que definem a particao
     int ntype, nummat, naorners, incid, el;
+    
+    fNSubEl = nElems - 1;
     for(el=0; el<nElems; el++)//os sub-elementos podem nao ter de uma mesma geometria
     {
         pattern >> ntype >> nummat;
@@ -1172,7 +1209,7 @@ void TPZRefPattern::ReadAndCreateRefinementPattern(std::istream &pattern){
             pattern >> nodes[incid];
         }
         int64_t index;
-        TPZGeoEl *subel = fRefPatternMesh.CreateGeoElement(etype, nodes, nummat, index, 0);
+        TPZGeoEl *subel = fRefPatternMesh.CreateGeoElement(etype, nodes, nummat, index, 1);
         if(el == 0)
         {
             father = subel;

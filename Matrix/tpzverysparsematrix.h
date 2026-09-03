@@ -54,7 +54,7 @@ public:
 	TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp);
 	
 	/** @brief Simetrizes copies the data of the matrix to make its data simetric */
-	void Simetrize() override;
+	void Symetrize();
     
 	/** @brief Put values checking bounds */
 	int PutVal(const int64_t row, const int64_t col, const TVar &val) override;
@@ -112,10 +112,33 @@ public:
 	
 	/** @brief It makes *T the transpose of current matrix. */
 	virtual void Transpose(TPZVerySparseMatrix<TVar>* T) const;
-	virtual void Transpose(TPZMatrix<TVar>*const T) const  override {
-        TPZMatrix<TVar>::Transpose(T);
+	virtual void Transpose(TPZMatrix<TVar>*const T, bool conj=false) const  override {
+    TPZMatrix<TVar>::Transpose(T, conj);
     }
     
+    /** @brief decompose the system of equations acording to the decomposition
+     * scheme */
+    virtual int Decompose(const DecomposeType dt) override {
+        DebugStop();
+        return 0;
+    }
+    /**
+     * @brief Solves the linear system using Direct methods
+     * @param F The right hand side of the system and where the solution is stored.
+     * @param dt Indicates type of decomposition
+     */
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override
+    {
+        DebugStop();
+        return 0;
+    }
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
+        DebugStop();
+        return 0;
+    }
+
+
+
 	/** @brief Saveable methods */
 	public:
 int ClassId() const override;

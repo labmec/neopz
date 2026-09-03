@@ -3,15 +3,30 @@
 set(public_headers
     TPZElasticity3D.h
     TPZElasticity2D.h
+    TPZMixedElasticityND.h
+    TPZHybridMixedElasticityUP.h
+    TPZLinearElasticityConstitutive.h
+    TPZHybridElasticity2D.h
+    TPZHybridElasticity3D.h
     )
 
 set(headers
     TPZElasticity3D.h
     TPZElasticity2D.h
+    TPZMixedElasticityND.h
+    TPZHybridMixedElasticityUP.h
+    TPZLinearElasticityConstitutive.h
+    TPZHybridElasticity2D.h
+    TPZHybridElasticity3D.h
    )
 set(sources
     TPZElasticity3D.cpp
     TPZElasticity2D.cpp
+    TPZMixedElasticityND.cpp
+    TPZHybridMixedElasticityUP.cpp
+    TPZLinearElasticityConstitutive.cpp
+    TPZHybridElasticity2D.cpp
+    TPZHybridElasticity3D.cpp
    )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/Elasticity)

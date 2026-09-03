@@ -42,9 +42,9 @@ public:
     //@}
     
     void AssembleBlockDiagonal(TPZBlockDiagonal<TVar> & block);
-private:
-    
+
     void BlockSizes(TPZVec < int > & blocksizes);
+private:
     
     MBlockStructure fBlockStructure{EVertexBased};
     

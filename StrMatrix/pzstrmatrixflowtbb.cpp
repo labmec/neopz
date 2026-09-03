@@ -6,7 +6,6 @@
 #include "pzstrmatrixflowtbb.h"
 #include "TPZStructMatrix.h"
 #include "TPZStructMatrixTBBFlowUtils.h"
-#include "TPZGuiInterface.h"
 
 #ifdef PZ_LOG
 #include "pzlog.h"
@@ -54,7 +53,7 @@ static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
 static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 template<class TVar>
-void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs){
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     ass_stiff.start();
@@ -67,19 +66,19 @@ void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMa
 #endif
         TPZFMatrix<TVar> rhsloc;
         if(ComputeRhs()) rhsloc.Redim(neqcondense, rhs.Cols());
-        this->MultiThread_Assemble(stiffness,rhsloc,guiInterface);
+        this->MultiThread_Assemble(stiffness,rhsloc);
         if(ComputeRhs()) equationFilter.Scatter(rhsloc, rhs);
     }
     else
     {
-        this->MultiThread_Assemble(stiffness,rhs,guiInterface);
+        this->MultiThread_Assemble(stiffness,rhs);
         
     }
     ass_stiff.stop();
 }
 
 template<class TVar>
-void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & rhs_base){
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
@@ -99,12 +98,12 @@ void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPoin
             DebugStop();
         }
         TPZFMatrix<STATE> rhsloc(neqcondense,1,0.);
-        this->MultiThread_Assemble(rhsloc,guiInterface);
+        this->MultiThread_Assemble(rhsloc);
         equationFilter.Scatter(rhsloc,rhs);
     }
     else
     {
-        this->MultiThread_Assemble(rhs,guiInterface);
+        this->MultiThread_Assemble(rhs);
     }
     ass_rhs.stop();
 }
@@ -121,7 +120,7 @@ void TPZStructMatrixTBBFlow<TVar>::InitCreateAssemble()
 }
 
 template<class TVar>
-void TPZStructMatrixTBBFlow<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrixTBBFlow<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs)
 {
 #ifdef USING_TBB
     this->fFlowGraph->ExecuteGraph(&rhs, &mat);
@@ -132,7 +131,7 @@ void TPZStructMatrixTBBFlow<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZ
 }
 
 template<class TVar>
-void TPZStructMatrixTBBFlow<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrixTBBFlow<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs)
 {
 #ifdef USING_TBB
     this->fFlowGraph->ExecuteGraph(&rhs);

@@ -30,8 +30,8 @@ class TPZGeoEl;
  */
 class TPZGeoElSideIndex : public TPZSavable{
 private:
-	int64_t fGeoElIndex;
-	int fSide;
+	int64_t fGeoElIndex{-1};
+	int fSide{-1};
 	
 public:
 	/** @brief Destructor. */
@@ -85,8 +85,8 @@ public:
 /** This class is often used to manipulate neighbouring information between elements */
 class TPZGeoElSide : public TPZSavable {
 	
-	TPZGeoEl *fGeoEl;
-	int fSide;
+	TPZGeoEl *fGeoEl{nullptr};
+	int fSide{-1};
 public:
     
     /// return the number of element/side pairs which compose the current set of points
@@ -247,7 +247,22 @@ public:
 		*this = this->Neighbour();
 		return *this;
 	}
-    
+    /** @brief Next neighbour operator as post-increment */
+    TPZGeoElSide operator--(int){
+        TPZGeoElSide pre = *this;
+        TPZGeoElSide neigh = *this;
+        while(neigh.Neighbour() != *this) neigh = neigh.Neighbour();
+        *this = neigh;
+        return pre;
+    }
+    /** @brief Next neighbour operator as pre-increment */
+    TPZGeoElSide& operator--(){
+        TPZGeoElSide neigh = *this;
+        while(neigh.Neighbour() != *this) neigh = neigh.Neighbour();
+        *this = neigh;
+        return *this;
+    }
+
     /** @brief The conversion to bool indicates whether the object has an associated element */
     operator bool() const
     {
@@ -258,6 +273,8 @@ public:
 	 * @note Third improved version */
 	void SideTransform3(TPZGeoElSide neighbour,TPZTransform<> &t);
 	
+	/// @brief Insert neighbour in the connectivity loop
+	/// @param neighbour will be my direct neighbour
 	void SetConnectivity(const TPZGeoElSide &neighbour) const;
     
 	/** @brief This method inserts the element/side and all lowerdimension sides into the connectivity loop */
@@ -269,7 +286,8 @@ public:
      */
     void InsertConnectivity(TPZGeoElSide &neighbour, const TPZVec<int> &mapsides);
 
-    /// Remove the element from the connectivity loop
+    /// Remove the element/side from the connectivity loop
+	// the neighbour of the element/side will be undefined
 	void RemoveConnectivity();
 	
 	static void BuildConnectivities(TPZVec<TPZGeoElSide> &elvec, TPZVec<TPZGeoElSide> &neighvec);
@@ -279,6 +297,9 @@ public:
 	
 	TPZTransform<REAL> NeighbourSideTransform(const TPZGeoElSide &neighbour);
 	
+    /// Compute if the neighbour along a face has normal pointing outward
+    bool IsNeighbourCounterClockWise(TPZGeoElSide &neighbour);
+    
 	/** 
 	 * @brief Compute the transformation between the master element space of one side
 	 * of an element to the master element space of a higher dimension side
@@ -326,13 +347,17 @@ public:
     /**
      *      verify if a neighbour with the given material id exists
     */
-    TPZGeoElSide HasNeighbour(std::set<int> matIDs) const;
+    TPZGeoElSide HasNeighbour(const std::set<int> &matIDs) const;
     
     /** verifiy if a larger (lower level) neighbour exists with the given material id
      */
     TPZGeoElSide HasLowerLevelNeighbour(int materialid) const;
     
+    /** verifiy if a larger (lower level) neighbour exists with the given material id
+     */
+    TPZGeoElSide HasLowerLevelNeighbour(const std::set<int> &matids) const;
     
+
     /** @brief Will return all elements of equal or higher level than than the current element */
 	void EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celside, int onlyinterpolated, int removeduplicates);
     

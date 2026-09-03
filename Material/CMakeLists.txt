@@ -20,6 +20,7 @@ set(public_headers
     TPZMatWithMem.h
     TPZMatLoadCases.h
     TPZMatGeneralisedEigenVal.h
+    TPZMatQuadraticEigenVal.h
     #single space materials
     TPZMatSingleSpace.h
     TPZMatErrorSingleSpace.h
@@ -35,6 +36,7 @@ set(public_headers
     TPZLagrangeMultiplier.h
     TPZLagrangeMultiplierCS.h
     TPZMatTypes.h
+    TPZMatInterfaceHybridElasticityStokes.h
     )
 
 set(headers
@@ -52,6 +54,7 @@ set(headers
     TPZMatWithMem.h
     TPZMatLoadCases.h
     TPZMatGeneralisedEigenVal.h
+    TPZMatQuadraticEigenVal.h
     #single space materials
     TPZMatSingleSpace.h
     TPZMatErrorSingleSpace.h
@@ -66,6 +69,7 @@ set(headers
     TPZNullMaterialCS.h
     TPZLagrangeMultiplier.h
     TPZLagrangeMultiplierCS.h
+    TPZMatInterfaceHybridElasticityStokes.h
    )
 set(sources
     TPZMaterial.cpp
@@ -78,6 +82,7 @@ set(sources
     TPZMatError.cpp
     TPZMatLoadCases.cpp
     TPZMatGeneralisedEigenVal.cpp
+    TPZMatQuadraticEigenVal.cpp
     #single space materials
     TPZMatSingleSpace.cpp
     TPZMatErrorSingleSpace.cpp
@@ -92,6 +97,7 @@ set(sources
     TPZNullMaterialCS.cpp
     TPZLagrangeMultiplier.cpp
     TPZLagrangeMultiplierCS.cpp
+    TPZMatInterfaceHybridElasticityStokes.cpp
    )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material)

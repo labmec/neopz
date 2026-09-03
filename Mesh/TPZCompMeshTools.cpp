@@ -156,7 +156,7 @@ static int SideIdf(TPZCompElHDiv<TPZShapePiram> *cel, int side)
 {
     TPZManVector<int64_t,3> ids(3);
     GetGeoNodeIds(cel->Reference(),side,ids);
-    int transformid = TPZShapeTriang::GetTransformId2dT(ids);
+    int transformid = TPZShapeTriang::GetTransformId(ids);
     return idf[transformid];
 }
 static TPZOneShapeRestraint SetupPyramidRestraint(TPZCompEl *cel, int side)
@@ -436,7 +436,7 @@ void TPZCompMeshTools::UnGroupElements(TPZCompMesh *cmesh){
         TPZCompEl *el = cmesh->ElementVec()[i];
         TPZElementGroup * group = dynamic_cast<TPZElementGroup*>(el);
         if(group){
-            group->Unwrap();
+            group->Unwrap(true);
         }
     }
     
@@ -484,18 +484,6 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::
                 if (c.LagrangeMultiplier() == KeepOneLagrangian) {
                     c.IncrementElConnected();
                     count++;
-                    if(count == 1 && c.NState() == 1)
-                    {
-                        break;
-                    }
-                    else if(count == 2 && c.NState() == 2)
-                    {
-                        break;
-                    }
-                    else if(count == 3 && c.NState() == 3)
-                    {
-                        break;
-                    }
                 }
             }
         }
@@ -510,9 +498,7 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::
         }
 #endif
     }
-
-    
-    
+	
 }
 
 
@@ -548,6 +534,9 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
 {
 //    cmesh->ComputeNodElCon();
     int64_t nel = cmesh->NElements();
+    
+    const bool real_sol = cmesh->GetSolType() != ESolType::EComplex;
+    
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
         if (!cel) {
@@ -586,7 +575,11 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
         bool cancondense = (ic != nc);
         if(cancondense)
         {
-            TPZCondensedCompEl *cond = new TPZCondensedCompEl(cel, keepmatrix);
+            if(real_sol){
+                new TPZCondensedCompElT<STATE>(cel, keepmatrix);
+            }else{
+                new TPZCondensedCompElT<CSTATE>(cel, keepmatrix);
+            }
         }
         
     }
@@ -600,6 +593,7 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
 // keeping a connect out the condensation loop
 void TPZCompMeshTools::CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNotCondensed, bool keepmatrix)
 {
+    const bool real_sol = cmesh->GetSolType() != ESolType::EComplex;
     //    cmesh->ComputeNodElCon();
     int64_t nel = cmesh->NElements();
     for (int64_t el=0; el<nel; el++) {
@@ -634,8 +628,12 @@ void TPZCompMeshTools::CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNo
         bool cancondense = (ic != nc);
         if(cancondense)
         {
-            if(LagrangeLevelNotCondensed >= 0 && !found) DebugStop();
-            TPZCondensedCompEl *cond = new TPZCondensedCompEl(cel, keepmatrix);
+            //if(LagrangeLevelNotCondensed >= 0 && !found) DebugStop(); //Commented this line to allow the condensation of all dofs that have laglevel < LagrangeLevelNotCondensed
+            if(real_sol){
+                new TPZCondensedCompElT<STATE>(cel, keepmatrix);
+            }else{
+                new TPZCondensedCompElT<CSTATE>(cel, keepmatrix);
+            }
         }
         
     }

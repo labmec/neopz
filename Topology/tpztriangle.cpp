@@ -6,6 +6,8 @@
 #include "tpztriangle.h"
 #include "pzquad.h"
 #include "pznumeric.h"
+#include "pzreal.h"
+
 //#include "pzshapetriang.h"
 
 #include "fad.h"
@@ -21,6 +23,19 @@ using namespace std;
 
 namespace pztopology {
 
+/**Transformation of the point within a triangular face */
+REAL TPZTriangle::gTrans2dT[6][2][2] = {//s* , t*
+    { { 1., 0.},{ 0., 1.} },
+    { { 0., 1.},{ 1., 0.} },
+    { { 0., 1.},{-1.,-1.} },//s* = t   t* = -s-t-1 ,  etc
+    { {-1.,-1.},{ 0., 1.} },
+    { {-1.,-1.},{ 1., 0.} },
+    { { 1., 0.},{-1.,-1.} }
+};
+    
+
+REAL TPZTriangle::gVet2dT[6][2] = {  {0.,0.},{0.,0.},{0.,1.},{1.,0.},{1.,0.},{0.,1.} };
+    
     template<class T>
     inline void TPZTriangle::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T qsi = loc[0], eta = loc[1];
@@ -225,29 +240,31 @@ namespace pztopology {
     template<class T>
     bool TPZTriangle::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
 
-        double zero = pztopology::GetTolerance();
-        T qsi = xiInterior[0]; T eta = xiInterior[1];
+        const double zero = pztopology::GetTolerance();
+        const T& qsi = xiInterior[0];
+        const T& eta = xiInterior[1];
 
         switch(side)
         {
-            case 0:
-            case 1:
-            case 2:
+        case 0:
+        case 1:
+        case 2:
             return true;
-            case 3:
-                if(fabs((T)(eta - 1.)) < zero)  return false;
-            case 4:
-                if((T)(qsi+eta) < (T)zero) return false;
-            case 5:
-                if(fabs((T)(qsi - 1.)) < zero) return false;
-            case 6: return true;
-        }
-        if(side > 6)
-        {
+        case 3:
+            if(fabs((T)(eta - 1.)) < zero)  return false;
+            else {return true;}
+        case 4:
+            if((T)(qsi+eta) < (T)zero) return false;
+            else {return true;}
+        case 5:
+            if(fabs((T)(qsi - 1.)) < zero) return false;
+            else {return true;}
+        case 6: return true;
+        default:
             cout << "Cant compute CheckProjectionForSingularity method in TPZTriangle class!\nParameter (SIDE) must be 3, 4 or 5!\nMethod Aborted!\n";
             DebugStop();
+            return true;
         }
-        return true;
     }
 
     template<class T>
@@ -620,6 +637,19 @@ namespace pztopology {
 		return 0;
 
 	}
+
+TPZTransform<REAL>  TPZTriangle::ParametricTransform(int trans_id){
+    TPZTransform<REAL> trans(2,2);
+    trans.Mult()(0,0) = gTrans2dT[trans_id][0][0];
+    trans.Mult()(0,1) = gTrans2dT[trans_id][0][1];
+    trans.Mult()(1,0) = gTrans2dT[trans_id][1][0];
+    trans.Mult()(1,1) = gTrans2dT[trans_id][1][1];
+    trans.Sum()(0,0) =gVet2dT[trans_id][0];
+    trans.Sum()(1,0) =gVet2dT[trans_id][1];
+    return trans;
+    
+}
+
 	/**
 	 * Method which identifies the transformation of a side based on the IDs
 	 * of the corner nodes
@@ -1074,7 +1104,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
 
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZTriangle::ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
+    void TPZTriangle::ComputeConstantHDiv(const TPZVec<REAL> &point, TPZFMatrix<REAL> &RT0function, TPZVec<REAL> &div)
     {
         REAL scale = 1.;
         REAL qsi = point[0];
@@ -1099,16 +1129,44 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
 
     }
 
+
     /// Compute the directions of the HDiv vectors
     // template <class TVar>
-    void TPZTriangle::ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &N0function, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds)
+    void TPZTriangle::ComputeConstantHDiv(const TPZVec<Fad<REAL>> &point, TPZFMatrix<Fad<REAL>> &RT0function, TPZVec<Fad<REAL>> &div)
+    {
+        Fad<double> scale = 1.;
+        Fad<double> qsi = point[0];
+        Fad<double> eta = point[1];
+
+        //Face functions
+        //For each face function: compute div = \nabla \cdot RT0function = d_RT0/d_qsi + d_RT0/d_eta 
+        scale = 1.;
+        RT0function(0,0) = qsi / scale;
+        RT0function(1,0) = (eta - 1.) / scale;
+        div[0] = 2./scale;
+
+        scale = M_SQRT2;
+        RT0function(0,1) = (M_SQRT2 * qsi) / scale;
+        RT0function(1,1) = (M_SQRT2 * eta) / scale;
+        div[1] = 2. * M_SQRT2/scale;
+
+        scale = 1.;
+        RT0function(0,2) = (qsi - 1.) / scale;
+        RT0function(1,2) = eta / scale;
+        div[2] = 2./scale;
+
+    }
+
+    /// Compute the directions of the HDiv vectors
+    template <class TVar>
+    void TPZTriangle::ComputeConstantHCurl(const TPZVec<TVar> &point, TPZFMatrix<TVar> &N0function, TPZFMatrix<TVar> &curl, const TPZVec<int> &transformationIds)
     {
 
-        REAL qsi = point[0];
-        REAL eta = point[1];
+        const TVar &qsi = point[0];
+        const TVar &eta = point[1];
 
         constexpr auto nEdges{3};
-        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        TPZManVector<TVar,nEdges> edgeSign(nEdges,0);
         for(auto iEdge = 0; iEdge < nEdges; iEdge++){
             edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
         }
@@ -1128,7 +1186,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
     }
 
     // Get face orientation
-    int TPZTriangle::GetSideOrient(const int &face){
+    int TPZTriangle::GetFaceOrient(const int &face){
         return fSideOrient[face];
     }
 
@@ -1240,36 +1298,16 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
     }
 }
 
-/**********************************************************************************************************************
- * The following are explicit instantiation of member function template of this class, both with class T=REAL and its
- * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
- * in BOTH cases.    @orlandini
- **********************************************************************************************************************/
+#define TEMPL(T) \
+    template bool pztopology::TPZTriangle::CheckProjectionForSingularity<T>(const int &side, const TPZVec<T> &xiInterior); \
+    template void pztopology::TPZTriangle::MapToSide<T>(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide); \
+    template void pztopology::TPZTriangle::BlendFactorForSide<T>(const int &, const TPZVec<T> &, T &, TPZVec<T> &); \
+    template void pztopology::TPZTriangle::TShape<T>(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi); \
+    template void pztopology::TPZTriangle::ComputeHDivDirections<T>(TPZFMatrix<T> &gradx, TPZFMatrix<T> &directions); \
+    template void pztopology::TPZTriangle::ComputeHCurlDirections<T>(TPZFMatrix<T> &gradx, TPZFMatrix<T> &directions, const TPZVec<int> &transformationIds); \
+    template void pztopology::TPZTriangle::ComputeHCurlFaceDirections<T>(TPZVec<T> &v1, TPZVec<T> &v2, int transformationId); \
+    template void pztopology::TPZTriangle::ComputeConstantHCurl(const TPZVec<T> &point, TPZFMatrix<T> &vecDiv, TPZFMatrix<T> &curl, const TPZVec<int> &transformationIds);
 
-template bool pztopology::TPZTriangle::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
-
-template void pztopology::TPZTriangle::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
-
-template void pztopology::TPZTriangle::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
-
-template void pztopology::TPZTriangle::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-
-template void pztopology::TPZTriangle::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
-
-template void pztopology::TPZTriangle::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, const TPZVec<int> &transformationIds);
-
-template void pztopology::TPZTriangle::ComputeHCurlFaceDirections<REAL>(TPZVec<REAL> &v1, TPZVec<REAL> &v2, int transformationId);
-
-template bool pztopology::TPZTriangle::CheckProjectionForSingularity<Fad<REAL> >(const int &side, const TPZVec<Fad<REAL> > &xiInterior);
-
-template void pztopology::TPZTriangle::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
-
-template void pztopology::TPZTriangle::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
-                                                                   TPZVec<Fad<REAL>> &);
-template void pztopology::TPZTriangle::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
-
-template void pztopology::TPZTriangle::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
-
-template void pztopology::TPZTriangle::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions, const TPZVec<int> &transformationIds);
-
-template void pztopology::TPZTriangle::ComputeHCurlFaceDirections<Fad<REAL>>(TPZVec<Fad<REAL>> &v1, TPZVec<Fad<REAL>> &v2, int transformationId);
+TEMPL(REAL)
+TEMPL(Fad<REAL>)
+#undef TEMPL

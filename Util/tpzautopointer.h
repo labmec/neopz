@@ -256,7 +256,20 @@ public:
 	{
 		return;
 	}    
-    
+
+
+  /** @brief Comparison operator, checks for equality of references*/
+  bool operator==(const TPZAutoPointer<T> &b){
+    if(!fRef && !b.fRef){return true;}
+    else if(!fRef || !b.fRef){ return false;}
+    else { return fRef->fPointer == b.fRef->fPointer;}
+  }
+
+  /** @brief Comparison operator, checks for equality of references*/
+  bool operator!=(const TPZAutoPointer<T> &b){
+    return ! this->operator==(b);
+  }
+  
 	/** @brief Returns if pointer was attributed */
 	operator bool() const{
 		return (fRef && fRef->fPointer != nullptr);

@@ -23,6 +23,7 @@ class TPZSBFemElementGroup : public TPZElementGroup
 public:
     enum EComputationMode {EStiff, EOnlyMass, EMass, EStiffBubble};
 
+private:
     /// Default polynomial order for internal bubble functions
     // if its value is zero, there are no internal functions
     static int gDefaultPolynomialOrder;
@@ -49,6 +50,12 @@ private:
     /// Vector of eigenvalues of the SBFem analyis
     TPZManVector<std::complex<double> > fEigenvaluesBubble;
 
+    /// Stiffness matrix related to the bubble functions
+    TPZFNMatrix<100, CSTATE > fStiffBubble;
+    
+    /// Right hand side of the bubble functions
+    TPZFNMatrix<100, CSTATE > fRhsBubble;
+
     /// Matrix of eigenvectors which compose the stiffness matrix
     TPZFNMatrix<100,std::complex<double> > fQVectors;
     
@@ -70,10 +77,23 @@ private:
     bool fPolynomialShapeFunctions = false;
 
     int64_t fInternalConnectIndex = 0;
+
+    /// @brief Flag to indicate the eigenmodes have been computed
+    bool fEigenComputed = false;
     
+    /// @brief Compute the eigenmodes of the element group
+    void ComputeEigenmodes();
+
     /// Compute the mass matrix based on the value of M0 and the eigenvectors
     void ComputeMassMatrix(TPZElementMatrixT<STATE> &M0);
-    
+
+    /// @brief Computes the right hand side vector
+    /// @param ef element load vector(s)
+    /// this method is private because it is called by CalcStiff and assumes ef has been initialized to zero
+    void ComputeRhs(TPZElementMatrixT<STATE> &ef);
+
+    /// @brief Compute the fRhs datastructure
+    void ComputeRhsBubble();
 public:
     
     /// constructor
@@ -97,6 +117,7 @@ public:
 
     /// Compute the SBFem matrices
     /// method to assemble E0, E1, E2
+    /// if withBC is false, only SBFemVolume elements of mesh dimension will be assembled
     void ComputeMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMatrixT<STATE> &E1, TPZElementMatrixT<STATE> &E2, TPZElementMatrixT<STATE> &M0);
     
     /**
@@ -108,6 +129,30 @@ public:
 
     void CalcStiffBlaze(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef);
 
+    /// copy the values of the stiffness matrix to the first block of stiff
+    void ContributeStiffness(TPZFMatrix<STATE> &stiff);
+    
+    /// compute the integral of the shape functions
+    void ComputeShapeFunctionIntegral(TPZVec<STATE> &phiint);
+    
+    /// Get the polynomial order of the internal bubble functions
+    int InternalPolynomialOrder() const
+    {
+        return fInternalPolynomialOrder;
+    }
+
+    static int GetDefaultPolynomialOrder()
+    {
+        return gDefaultPolynomialOrder;
+    }
+    static void SetDefaultPolynomialOrder(int order)
+    {
+        gDefaultPolynomialOrder = order;
+    }
+    void SetInternalPolynomialOrder(int order)
+    {
+        fInternalPolynomialOrder = order;
+    }
     /// set the density or specific heat of the material
     void SetDensity(REAL density)
     {
@@ -117,6 +162,7 @@ public:
     void SetComputeOnlyMassMatrix()
     {
         fComputationMode = EOnlyMass;
+        SetEigenComputed(false);
     }
     
     /// Set the element to compute stiffness plus mass
@@ -124,53 +170,46 @@ public:
     {
         fDelt = delt;
         fComputationMode = EMass;
+        SetEigenComputed(false);
     }
     
     void SetComputeStiff()
     {
         fComputationMode = EStiff;
+        SetEigenComputed(false);
     }
 
     void SetComputeFullBubbleStiff()
     {
         fComputationMode = EStiffBubble;
+        SetEigenComputed(false);
+    }
+
+    void SetEigenComputed(bool computed)
+    {
+        fEigenComputed = computed;
+    }
+    
+    /// set the right hand side for the bubble functions
+    void SetBubbleRhs(TPZFMatrix<CSTATE> &rhsbubble) {
+        if(fRhsBubble.Rows() != rhsbubble.Rows()) {
+            DebugStop();
+        }
+        fRhsBubble = rhsbubble;
     }
     /**
      * @brief Prints element data
      * @param out Indicates the device where the data will be printed
      */
-    virtual void Print(std::ostream &out = std::cout) const override
-    {
-        out << __PRETTY_FUNCTION__ << std::endl;
-        TPZElementGroup::Print(out);
-        int nel = fElGroup.size();
-        out << "Element indexes of the volume elements ";
-        for (int el=0; el<nel; el++) {
-            out << fElGroup[el]->Index() << " ";
-        }
-        out << std::endl;
-        out << "Indices of the associated computational skeleton elements\n";
-        for (int el=0; el<nel; el++) {
-            TPZCompEl *cel = fElGroup[el];
-            TPZSBFemVolume *vol = dynamic_cast<TPZSBFemVolume *>(cel);
-            if(!vol) DebugStop();
-            out << vol->SkeletonIndex() << " ";
-        }
-        out << std::endl;
-        out << "Connect indexes of the contained elements\n";
-        for (int el=0; el<nel; el++) {
-            TPZCompEl *cel = fElGroup[el];
-            int nc = cel->NConnects();
-            for (int ic=0; ic<nc; ic++) {
-                out << cel->ConnectIndex(ic) << " ";
-            }
-            out << std::endl;
-        }
+    virtual void Print(std::ostream &out = std::cout) const override;
 
-        out << "End of " << __PRETTY_FUNCTION__ << std::endl;
+    /// @brief return the number of state variables assumed by this group
+    int NState() const {
+#ifdef PZDEBUG
+        if(NConnects() == 0) DebugStop();
+#endif
+        return Connect(0).NState();
     }
-    
-
     
     /**
      * @brief Computes the element right hand side
@@ -189,6 +228,9 @@ public:
      * Is also used to load the solution within SuperElements
      */
     virtual void LoadSolution() override;
+    
+    /// @brief Load the solution using the given solution vector
+    void LoadSolution(TPZFMatrix<CSTATE> &sol, TPZFMatrix<CSTATE> &rhsbubble);
 
     /** @brief Loads the geometric element referece */
     virtual void LoadElementReference() override
@@ -198,9 +240,14 @@ public:
         }
     }
     
+    
     int64_t NumEigenValues()
     {
         return fEigenvalues.size();
+    }
+    
+    int64_t NumEigenValuesBubble() {
+        return fEigenvaluesBubble.size();
     }
     
     /// Load the coeficients such that we visualize an eigenvector
@@ -213,14 +260,28 @@ public:
         return fEigenvalues;
     }
     
+    TPZManVector<std::complex<REAL> > &EigenValuesBubble()
+    {
+        return fEigenvaluesBubble;
+    }
+    
     TPZFMatrix<std::complex<REAL> > &Phi()
     {
         return fPhi;
     }
     
+    TPZFMatrix<std::complex<REAL> > &PhiBubble()
+    {
+        return fPhiBubble;
+    }
+    
     TPZFMatrix<std::complex<REAL> > &PhiInverse()
     {
         return fPhiInverse;
+    }
+    
+    TPZFMatrix<CSTATE> &MatBubble() {
+        return fMatBubble;
     }
     
     TPZFMatrix<STATE> &MassMatrix()
@@ -294,6 +355,10 @@ public:
 
     // 
     void SolveEigenProblemSBFEM(TPZFMatrix<STATE> &globmatkeep, TPZManVector<std::complex<double> > &eigenvalues, TPZFNMatrix<100,std::complex<double> > &eigenvectors);
+    
+    /// @brief Compute the stiffness of Laplace equation using numerical integration
+    /// this method is to test whether the derivative of the shape functions is computed correctly
+    void ComputeStiffnessLaplace(TPZFMatrix<STATE> &ek);
 };
 
 #endif /* TPZSBFemElementGroup_hpp */

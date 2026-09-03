@@ -130,7 +130,19 @@ public:
 //                             TPZVec<REAL> &qsi) override{
 //        ComputeRequiredDataT(data,qsi);
 //    }
-    
+    //@{
+    /** @brief Compute the solution using Hdiv structure */
+    void ReallyComputeSolution(TPZMaterialDataT<STATE> &data) override{
+        ComputeSolutionHDivT(data);
+    }
+    void ReallyComputeSolution(TPZMaterialDataT<CSTATE> &data) override{
+        ComputeSolutionHDivT(data);
+    }
+    template<class TVar>
+    void ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data);
+
+    //@}
+
     void ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
 
 

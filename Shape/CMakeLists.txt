@@ -8,7 +8,7 @@ target_include_directories(pz PUBLIC
 set(headers
     TPZShapeData.h
     TPZShapeDisc.h
-    pzgenericshape.h
+    #pzgenericshape.h
     pzshapeextend.h
     pzshapepiram.h
     pzshapepoint.h
@@ -19,6 +19,7 @@ set(headers
     pzshapelinear.h
     pzshapepiramHdiv.h
     pzshapeprism.h
+	pzshapewideprism.h
     pzshapetetra.h
     TPZShapeH1.h
     TPZShapeHDiv.h
@@ -30,17 +31,19 @@ set(headers
     TPZShapeHDivBound.h
     TPZShapeHDivCollapsed.h
     TPZEnumApproxFamily.h
+    TPZShapeHDivOptimized.h
     )
 
 set(sources
     TPZShapeData.cpp
     TPZShapeDisc.cpp
-    pzgenericshape.cpp
+    #pzgenericshape.cpp
     pzshapecube.cpp
     pzshapelinear.cpp
     pzshapepiram.cpp
     pzshapepiramHdiv.cpp
     pzshapeprism.cpp
+	pzshapewideprism.cpp
     pzshapequad.cpp
     pzshapetetra.cpp
     pzshapetriang.cpp
@@ -53,6 +56,7 @@ set(sources
     TPZShapeHCurlNoGrads.cpp
     TPZShapeHDivBound.cpp
     TPZShapeHDivCollapsed.cpp
+    TPZShapeHDivOptimized.cpp
     )
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Shape)

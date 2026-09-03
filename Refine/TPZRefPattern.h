@@ -93,9 +93,9 @@ protected:
     * @brief Data structure for storage of refinement information for a father's side
     */
 	struct SPZFatherSideInfo{
-	     /// a vector of nodes contained in the i-th side
+	     /// a vector of INTERNAL nodes contained in the i-th side
         TPZVec<int> fSideNodes;
-        /// a vector of TPZGeoElSide relative to its sons
+        /// a vector of TPZGeoElSide relative to the sub els contained in the i-th side
         TPZVec<TPZGeoElSide> fSideSons;
         SPZFatherSideInfo(const TPZVec<int> &sideNodes,
                 const TPZVec<TPZGeoElSide> &sideSons,

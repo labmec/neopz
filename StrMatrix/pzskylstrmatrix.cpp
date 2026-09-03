@@ -50,11 +50,14 @@ void TPZSkylineStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid) c
 
 #include "pzstrmatrixot.h"
 #include "pzstrmatrixflowtbb.h"
+#include "TPZStructMatrixOMPorTBB.h"
 
 template class TPZSkylineStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
 template class TPZSkylineStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
 template class TPZSkylineStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
+template class TPZSkylineStructMatrix<STATE,TPZStructMatrixOMPorTBB<STATE>>;
 
 template class TPZSkylineStructMatrix<CSTATE,TPZStructMatrixOR<CSTATE>>;
 template class TPZSkylineStructMatrix<CSTATE,TPZStructMatrixOT<CSTATE>>;
 template class TPZSkylineStructMatrix<CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
+template class TPZSkylineStructMatrix<CSTATE,TPZStructMatrixOMPorTBB<CSTATE>>;

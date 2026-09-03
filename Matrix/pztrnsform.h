@@ -42,10 +42,14 @@ public:
 	~TPZTransform();
     
 //    /** @brief Rows of transformation matrix */
-//    int Rows();
+    int64_t Rows() const {
+        return fMult.Rows();
+    }
 //    
 //    /** @brief Cols of transformation matrix */
-//    int Cols();
+    int64_t Cols() const {
+        return fMult.Cols();
+    }
 	
     friend class TPZTransform<REAL>;
     

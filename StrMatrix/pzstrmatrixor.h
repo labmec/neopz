@@ -47,10 +47,10 @@ public:
      */
     //@{
     
-    void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs) override;
 
     
-    void Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    void Assemble(TPZBaseMatrix & rhs) override;
     //@}
 
     
@@ -66,23 +66,23 @@ public:
 protected:
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void Serial_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Serial_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs);
     
     /** @brief Assemble the global right hand side */
-    virtual void Serial_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Serial_Assemble(TPZBaseMatrix & rhs);
     
     /** @brief Assemble the global right hand side */
-    virtual void MultiThread_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void MultiThread_Assemble(TPZBaseMatrix & rhs);
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs);
 
     struct ThreadData
     {
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrix *strmat,TPZBaseMatrix &mat, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface, bool computeRhs);
+        ThreadData(TPZStructMatrix *strmat,TPZBaseMatrix &mat, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, bool computeRhs);
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrix *strmat, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface,bool computeRhs);
+        ThreadData(TPZStructMatrix *strmat, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, bool computeRhs);
         /** @brief Destructor: Destroy the mutex semaphores and others */
         ~ThreadData();
         /** @brief Look for an element index which needs to be computed and put it on the stack */
@@ -97,8 +97,6 @@ protected:
         bool ShouldCompute(int matid) const;
         /** @brief Current structmatrix object */
         TPZStructMatrix *fStruct;
-        /** @brief Gui interface object */
-        TPZAutoPointer<TPZGuiInterface> fGuiInterface;
         /** @brief Global matrix */
         TPZBaseMatrix *fGlobMatrix;
         /** @brief Global rhs vector */

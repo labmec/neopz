@@ -74,6 +74,25 @@ protected:
     /// interpolation order of the skeleton elements
     int fpOrderSkeleton = 1;
     
+public:
+    int pOrderSkeleton() {
+        return fpOrderSkeleton;
+    }
+    
+    int pOrderInternal() {
+        return fpOrderInternal;
+    }
+
+    void SetpOrderSkeleton(int porder) {
+        fpOrderSkeleton = porder;
+    }
+    
+    void  SetpOrderInternal(int porder) {
+        fpOrderInternal = porder;
+    }
+
+protected:
+    
     //internal order for enrichement spaces
     
     int fHdivmaismais = 0;
@@ -308,7 +327,7 @@ public:
         return result;
     }
 
-    TPZManVector<int64_t> GetGeoToMHMDomain() {
+    TPZVec<int64_t> &GetGeoToMHMDomain() {
         return fGeoToMHMDomain;
     }
 

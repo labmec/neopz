@@ -201,12 +201,7 @@ void TPZTransfer<TVar>::ExpandDoubleValueEntries(int num){
 template<class TVar>
 void TPZTransfer<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
                                       TVar alpha, TVar beta, int opt) const{
-    // multiplies the transfer matrix and puts the result in z
-    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows()))
-        this->Error( "TPZTransfer<TVar>::MultAdd <matrices with incompatible dimensions>" );
-    if(x.Cols() != y.Cols() || x.Cols() != z.Cols()) {
-        this->Error ("TPZTransfer<TVar>::MultiplyAdd incompatible dimensions\n");
-    }
+    this->MultAddChecks(x,y,z,alpha,beta,opt);
     int rows = fRowBlock.MaxBlockSize();
     int xcols = x.Cols();
     int ic, c, r;

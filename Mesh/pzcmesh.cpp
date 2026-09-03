@@ -5,7 +5,7 @@
 
 #include "pzcmesh.h"
 #ifdef MACOSX
-#include <__functional_base>               // for less
+//#include <__functional_base>               // for less
 #include <__tree>                          // for __tree_const_iterator, ope...
 #endif
 #include <cmath>                           // for fabs, sqrt, abs
@@ -190,10 +190,10 @@ void TPZCompMesh::CleanUp() {
 	
 	// THIS ROUTINE NEEDS TO INCLUDE THE DELETION OF THE LIST POINTERS
 	TPZGeoMesh *ref = Reference();
-	if (ref){
-		ref->ResetReference();
-		this->LoadReferences();
-	}
+//	if (ref){
+//		ref->ResetReference();
+//		this->LoadReferences();
+//	}
 
 	int64_t i, nelem = this->NElements();
 
@@ -221,7 +221,7 @@ void TPZCompMesh::CleanUp() {
 		TPZCompEl *el = fElementVec[i];
 		TPZElementGroup * group = dynamic_cast<TPZElementGroup*>(el);
 		if(group){
-            group->Unwrap();
+            group->Unwrap(true);
 		}
 	}
 	
@@ -306,6 +306,8 @@ void TPZCompMesh::Print (std::ostream & out) const {
         if (!mat) {
           DebugStop();
         }
+        int matindex = mit->first;
+        out << "material index " << matindex << std::endl;
 		mat->Print(out);
         out << std::endl;
 	}
@@ -365,6 +367,7 @@ int TPZCompMesh::InsertMaterialObject(TPZMaterial * mat) {
 	if(!mat) return -1;
 	int matid = mat->Id();
     if (fMaterialVec.find(matid) != fMaterialVec.end()) {
+        std::cout << "inserting material with matid " << mat->Id() << " which already exists\n";
         DebugStop();
     }
 	fMaterialVec[matid] = mat;
@@ -520,6 +523,22 @@ void TPZCompMesh::ExpandSolutionInternal(TPZFMatrix<TVar> &sol) {
 	}
 	fSolutionBlock = fBlock;
 }
+
+/** @brief Expand the element solution to have the given number of columns */
+void TPZCompMesh::ExpandElementSolution(int ncols)
+{
+    int64_t nels = fElementVec.NElements();
+    fElementSolution.Resize(nels, ncols);
+    for (int64_t el = 0; el<nels; el++) {
+        TPZCompEl *cel = Element(el);
+        TPZSubCompMesh *sub = dynamic_cast<TPZSubCompMesh *>(cel);
+        if(sub)
+        {
+            sub->ExpandElementSolution(ncols);
+        }
+    }
+}
+
 
 void TPZCompMesh::LoadSolution(const TPZSolutionMatrix &mat){
     /*
@@ -1494,57 +1513,136 @@ void TPZCompMesh::ConnectSolution(std::ostream & out) {
             ConnectSolutionInternal<CSTATE>(out,fSolution);
     
 }
+
+
 void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
+    std::set<int> matset;
+    for(auto matpair : this->MaterialVec()){
+        TPZMaterial* mat = matpair.second;
+        if(!mat) DebugStop();
+        if(mat->Dimension() == this->Dimension()){
+            TPZBndCond* bnd = dynamic_cast<TPZBndCond*>(mat);
+            if(!bnd){
+                matset.insert(mat->Id());
+            }
+        }
+    }
+    this->EvaluateError(store_error, errorSum, matset);
+}
+
+void TPZCompMesh::AccountForElementError(TPZCompEl* cel, bool store_error, TPZVec<REAL>& true_error,
+                                         TPZVec<REAL>& errorSum, const std::set<int> &matset) {
+    
+    if(!cel) DebugStop();
+    TPZElementGroup* elgr = dynamic_cast<TPZElementGroup*>(cel);
+    if(elgr) {
+        auto& elvec = elgr->GetElGroup();
+        for(auto celgr : elvec){
+            if(!celgr) continue;
+            AccountForElementError(celgr,store_error,true_error,errorSum,matset);
+        }
+        return;
+    }
+    if(!cel->Reference()) DebugStop();
+    // Skipping cels that are not included in the set of materials to compute error
+    const int celmatid = cel->Reference()->MaterialId();
+    if(matset.find(celmatid) == matset.end()) return;
+    TPZMaterial *material = cel->Material();
+    if(!material) DebugStop();
+    TPZMatError<STATE> *matError = dynamic_cast<TPZMatError<STATE> *>(material);
+    if(!matError) DebugStop();
+    int64_t nerrors = matError->NEvalErrors();
+    if(nerrors != true_error.NElements()) {
+        std::cout << "TPZCompMesh::EvaluateError error vector incompatible with material\n";
+        std::cout << "nerrors " << nerrors << " true_error.NElements " << true_error.NElements() << std::endl;
+        DebugStop();
+    }
+
+    cel->EvaluateError(true_error, store_error);
+
+//    int64_t nerrors = true_error.NElements();
+    errorSum.Resize(nerrors, 0.);
+    for (int64_t ii = 0; ii < nerrors; ii++)
+        errorSum[ii] += true_error[ii] * true_error[ii];
+
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "true_errors: ";
+        for (int ierr = 0; ierr < nerrors; ierr++) {
+            sout << true_error[ierr] << " ";
+        }
+        sout << "\n";
+        sout << "acc_errors^2: ";
+        for (int ierr = 0; ierr < nerrors; ierr++) {
+            sout << errorSum[ierr] << " ";
+        }
+        sout << "\n";
+        sout << "GelID: ";
+        if (cel->Reference()) {
+            sout << cel->Reference()->Index();
+            TPZGeoElSide side(cel->Reference());
+            TPZManVector<REAL> coord(3);
+            side.CenterX(coord);
+            sout << " CenterCoord: " << coord;
+            sout << " MatID: " << cel->Material()->Id();
+        }
+        sout << "\n";
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+}
+
+void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum,const std::set<int> &matset) {
 	
-	errorSum.Resize(3);
+    if(!matset.size()) DebugStop();
+
 	errorSum.Fill(0.);
 	
-	TPZManVector<REAL,3> true_error(3);
+	TPZManVector<REAL,7> true_error(errorSum.size());
 	true_error.Fill(0.);
 	
-
 	TPZCompEl *cel;
 	int gridDim = Dimension();
 	
 	//soma de erros sobre os elementos
 	for(int64_t el=0;el< fElementVec.NElements();el++) {
         cel = fElementVec[el];
-
         if (!cel) continue;
         
-        cel->EvaluateError(true_error, store_error);
+        TPZCondensedCompEl* condcompel = dynamic_cast<TPZCondensedCompEl*>(cel);
+        if(condcompel) {
+            TPZElementGroup* elgr = dynamic_cast<TPZElementGroup*>(condcompel->ReferenceCompEl());
+            if(elgr){ // loop over elements in the condensed element and account for the error of each one
+                for(auto celgr : elgr->GetElGroup()){
+                    if(!celgr) continue;
+                    AccountForElementError(celgr,store_error,true_error,errorSum,matset);
+                }
+            }
+            else{ // condcompel->ReferenceCompEl() is a single element
+                AccountForElementError(condcompel->ReferenceCompEl(),store_error,true_error,errorSum,matset);
+            }
 
-        int64_t nerrors = true_error.NElements();
-        errorSum.Resize(nerrors, 0.);
-        for (int64_t ii = 0; ii < nerrors; ii++)
-            errorSum[ii] += true_error[ii] * true_error[ii];
-
-#ifdef PZ_LOG
-		if (logger.isDebugEnabled()) {
-			std::stringstream sout;
-			sout << "true_errors: ";
-			for (int ierr = 0; ierr < nerrors; ierr++) {
-				sout << true_error[ierr] << " ";
-			}
-			sout << "\n";
-			sout << "acc_errors^2: ";
-			for (int ierr = 0; ierr < nerrors; ierr++) {
-				sout << errorSum[ierr] << " ";
-			}
-			sout << "\n";
-			sout << "GelID: ";
-			if (cel->Reference()) {
-				sout << cel->Reference()->Index();
-				TPZGeoElSide side(cel->Reference());
-				TPZManVector<REAL> coord(3);
-				side.CenterX(coord);
-				sout << " CenterCoord: " << coord;
-				sout << " MatID: " << cel->Material()->Id();
-			}
-			sout << "\n";
-			LOGPZ_DEBUG(logger, sout.str())
-		}
-#endif
+        }
+        else{ // It is a normal compel. Just account for the element error
+          TPZElementGroup* elgr = dynamic_cast<TPZElementGroup*>(cel);
+          if(elgr){ // loop over elements in the condensed element and account for the error of each one
+            for(auto celgr : elgr->GetElGroup()){
+              if(!celgr) continue;
+              AccountForElementError(celgr,store_error,true_error,errorSum,matset);
+            }
+          }
+          else {
+              TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
+              if(subcmesh) {
+                  TPZCompMesh *cmesh = subcmesh;
+                  cmesh->EvaluateError(store_error, errorSum, matset);
+              }
+              else{
+                  AccountForElementError(cel,store_error,true_error,errorSum,matset);
+              }
+          }
+        }
 	}
 	
 	int64_t nerrors = errorSum.NElements();
@@ -1772,7 +1870,7 @@ fReference(copy.fReference),fConnectVec(copy.fConnectVec),
 fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
 fCreate(copy.fCreate), fBlock(copy.fBlock),
 fSolution(copy.fSolution),
-fElementSolution(copy.fElementSolution),
+fElementSolution(copy.fElementSolution),fDimModel(copy.fDimModel),
 fSolN(copy.fSolN),
 fSolType(copy.fSolType)
 {
@@ -1948,20 +2046,20 @@ TPZCompMesh* TPZCompMesh::Clone() const {
  }
  */
 
-void TPZCompMesh::CopyMaterials(TPZCompMesh &mesh) const {
+void TPZCompMesh::CopyMaterials(TPZCompMesh &meshto) const {
     // Clone volumetric mats
     for (auto it : fMaterialVec) {
         if (!dynamic_cast<TPZBndCond *> (it.second)) {
-            it.second->Clone(mesh.fMaterialVec);
+            it.second->Clone(meshto.fMaterialVec);
         }
     }
     // Clone BC mats
     for (auto it : fMaterialVec) {
         auto *bc = dynamic_cast<TPZBndCond *> (it.second);
         if (bc) {
-            it.second->Clone(mesh.fMaterialVec);
-            auto *cloned_mat = mesh.FindMaterial(bc->Material()->Id());
-            auto *new_bc = dynamic_cast<TPZBndCond*>(mesh.FindMaterial(bc->Id()));
+            it.second->Clone(meshto.fMaterialVec);
+            auto *cloned_mat = meshto.FindMaterial(bc->Material()->Id());
+            auto *new_bc = dynamic_cast<TPZBndCond*>(meshto.FindMaterial(bc->Id()));
             if (!new_bc) DebugStop();
             new_bc->SetMaterial(cloned_mat);
         }
@@ -2766,6 +2864,50 @@ void TPZCompMesh::SaddlePermute2()
 #endif
     Permute(permute );
 
+}
+
+void TPZCompMesh::GetEquationSetByMat(std::set<int64_t>& matidset, std::set<int64_t>& eqset) {
+    
+    if (!matidset.size()) {
+        std::cout << "\nNo materials provided to TPZCompMesh::GetEquationSetByMat(). Returning..." << std::endl;
+        return;
+    }
+    
+    for (TPZCompEl* cel : this->ElementVec()) {
+        if(!cel) continue;
+        
+        TPZGeoEl* gel = cel->Reference();
+        if(!gel) continue; // It skips SubCompMeshes, ElementGroups, and CondensedElements with this check
+                
+        const int64_t gelmatid = gel->MaterialId();
+        if(matidset.find(gelmatid) == matidset.end()) continue;
+        
+        const int ncon = cel->NConnects();
+        for(int ic = 0 ; ic < ncon ; ic++){
+            TPZConnect& con = cel->Connect(ic);
+//            if(con.HasDependency() || con.IsCondensed()) continue; //CHECAR COM PHIL
+            AddConnectEquationsToSet(con, eqset);
+        }
+    }
+    
+#ifdef PZDEBUG
+    if(!eqset.size()){
+        std::cout << "\n\n\t===> Warning! TPZCompMesh::GetEquationSetByMat() did not find any equations for the material set provided | ";
+        std::cout << "matidset = ";
+        for(auto const& id : matidset) std::cout << id << " ";
+        std::cout << std::endl;
+    }
+#endif
+}
+
+void TPZCompMesh::AddConnectEquationsToSet(TPZConnect& con, std::set<int64_t>& eqset){
+    const int64_t seqnum = con.SequenceNumber();
+    if(seqnum < 0) DebugStop();
+    const int64_t firsteq = this->Block().Position(seqnum);
+    const int64_t blocksize = this->Block().Size(seqnum);
+    for (int i = 0; i < blocksize; i++) {
+        eqset.insert(firsteq+i);
+    }
 }
 
 /// Modify the permute vector swapping the lagrangeq with maxeq and shifting the intermediate equations

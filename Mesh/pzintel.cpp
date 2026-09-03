@@ -669,8 +669,18 @@ int64_t TPZInterpolatedElement::CreateMidSideConnect(int side) {
     if (side < NCornerConnects()) {
         thisside.EqualLevelElementList(elvec, 1, 0);
         int64_t nel = elvec.NElements(); // (1)
-        if (nel && elvec[nel - 1].Reference().Dimension() == thisside.Reference().Dimension()) {
-            newnodeindex = elvec[nel - 1].ConnectIndex();
+        int iel = -1;
+        for (int el = 0; el < nel; el++) {
+            if (elvec[el].Reference().Dimension() == thisside.Reference().Dimension()) {
+                newnodeindex = elvec[el].ConnectIndex();
+                if(newnodeindex != -1) {
+                    iel = el;
+                    break;
+                }
+            }
+        }
+        if (iel >= 0) {
+            newnodeindex = elvec[iel].ConnectIndex();
             SetConnectIndex(nodloc, newnodeindex);
         } else {
             // corner nodes have order 1
@@ -795,6 +805,10 @@ int64_t TPZInterpolatedElement::CreateMidSideConnect(int side) {
         //    thisside.RemoveDuplicates(elvec);
         int64_t cap = elvec.NElements();
         int sideorder = PreferredSideOrder(side);
+        if(sideorder < 0) {
+            sideorder = PreferredSideOrder(side);
+            DebugStop();
+        }
         SetSideOrder(side, sideorder);
         sideorder = EffectiveSideOrder(side);
         // We check on all smaller elements connected to the current element
@@ -844,7 +858,18 @@ int64_t TPZInterpolatedElement::CreateMidSideConnect(int side) {
     return newnodeindex;
 }
 
-void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) {
+void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *large,
+                                          int neighbourside)
+{
+		if(this->Mesh()->GetSolType() == EReal){
+        RestrainSideT<STATE>(side,large,neighbourside);
+		}else{
+        RestrainSideT<CSTATE>(side,large,neighbourside);
+		}
+}
+
+template<class TVar>
+void TPZInterpolatedElement::RestrainSideT(int side, TPZInterpolatedElement *large, int neighbourside) {
     TPZCompElSide thisside(this, side);
     TPZGeoElSide thisgeoside = thisside.Reference();
     TPZCompElSide largecompside(large, neighbourside);
@@ -913,6 +938,13 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         SideShapeFunction(side, par, phis, dphis);
         t.Apply(par, pointl);
         large->SideShapeFunction(neighbourside, pointl, phil, dphil);
+#ifdef PZDEBUG
+        if(phil.Rows() != numshapel) {
+            numshapel = large->NSideShapeF(neighbourside);
+            large->SideShapeFunction(neighbourside, pointl, phil, dphil);
+            DebugStop();
+        }
+#endif
         for (in = 0; in < numshape; in++) {
             for (jn = 0; jn < numshape; jn++) {
                 (*M)(in, jn) += phis(in, 0) * phis(jn, 0) * weight;
@@ -992,13 +1024,30 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         DebugStop();
     }
 #endif
+
+    TPZFNMatrix<1000, TVar> MSLdep;
+    if constexpr (std::is_same_v<TVar,REAL>){
+        MSLdep = MSL;
+    }else{
+        const int nr = MSL.Rows();
+        const int nc = MSL.Cols();
+        MSLdep.Resize(nr,nc);
+        auto *my_ptr = MSLdep.Elem();
+        auto *their_ptr = MSL.Elem();
+        for(int i = 0; i < nr*nc;i++){
+            *my_ptr++ = *their_ptr++;
+        }
+    }
+    
     for (jn = 0; jn < numsidenodes_large; jn++) {
         if (MBlocksmall.Size(in) == 0 || MBlocklarge.Size(jn) == 0) {
             continue;
         }
         int64_t jnodindex = large->SideConnectIndex(jn, neighbourside);
-        TPZConnect::TPZDepend *depend = inod.AddDependency(inodindex, jnodindex, MSL, MBlocksmall.Position(in), MBlocklarge.Position(jn),
-                MBlocksmall.Size(in), MBlocklarge.Size(jn));
+        TPZConnect::TPZDepend<TVar> *depend =
+            inod.AddDependency(inodindex, jnodindex, MSLdep,
+                               MBlocksmall.Position(in), MBlocklarge.Position(jn),
+                               MBlocksmall.Size(in), MBlocklarge.Size(jn));
         if (blocknorm(in, jn) < 1.e-8) {
             depend->fDepMatrix.Zero();
         }
@@ -1010,7 +1059,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         for (jn = 0; jn < numsidenodes_large; jn++) {
             int64_t jnodindex = large->SideConnectIndex(jn, neighbourside);
             if (MBlocklarge.Size(jn)) {
-                inod.AddDependency(inodindex, jnodindex, MSL, MBlocksmall.Position(in), MBlocklarge.Position(jn),
+                inod.AddDependency(inodindex, jnodindex, MSLdep, MBlocksmall.Position(in), MBlocklarge.Position(jn),
                         MBlocksmall.Size(in), MBlocklarge.Size(jn));
             }
             ndepend++;
@@ -1221,7 +1270,7 @@ void TPZInterpolatedElement::CheckConstraintConsistency(int side) {
         int n_small_side_connect = NSideConnects(side)-1;
         TPZConnect &thiscon = SideConnect(n_small_side_connect, side);
         int jn;
-        TPZConnect::TPZDepend *dep = thiscon.FirstDepend();
+        TPZConnect::TPZDependBase *dep = thiscon.FirstDepend();
         while (dep) {
             for (jn = 0; jn < nlargesideconnects; jn++) {
                 int largeindex = largel->SideConnectIndex(jn, largeside);
@@ -1545,6 +1594,7 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
 #ifdef PZDEBUG
         int ncon_compute = NConnectShapeF(nod, c.Order());
         if (c.NShape() != ncon_compute) {
+            int ncon_compute = NConnectShapeF(nod, c.Order());
             DebugStop();
         }
 #endif
@@ -1885,10 +1935,10 @@ bool TPZInterpolatedElement::VerifyConstraintConsistency(int side, TPZCompElSide
         int64_t clargeindex = largel->SideConnectIndex(ic, large.Side());
         largenshapeconnect[clargeindex] = clarge.NShape();
     }
-    TPZConnect::TPZDepend *depend = c.FirstDepend();
+    TPZConnect::TPZDependBase *depend = c.FirstDepend();
     while (depend) {
-        int nrow = depend->fDepMatrix.Rows();
-        int ncol = depend->fDepMatrix.Cols();
+        int nrow = depend->DepRows();
+        int ncol = depend->DepCols();
         /// the number of rows of the dependency matrix is equal to the number of shape functions of the connect associated with the small side
         if (nrow != c.NShape()) {
             return false;

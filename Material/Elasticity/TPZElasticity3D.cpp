@@ -94,7 +94,7 @@ void TPZElasticity3D::Contribute(const TPZMaterialDataT<STATE> &data,
     }
     
 //    TPZFMatrix<REAL> &dphi = data.dphix;
-	const TPZFMatrix<REAL> &phi = data.fPhi;
+	const TPZFMatrix<REAL> &phi = data.fH1.fPhi;
 	const TPZManVector<REAL,3> &x = data.x;
     
     TPZFNMatrix<666,REAL> dphi(3,data.dphix.Cols());
@@ -406,7 +406,7 @@ void TPZElasticity3D::Contribute(const TPZMaterialDataT<STATE> &data,
     DebugStop();
 #endif
 #ifdef PZDEBUG
-	if ( !ek.VerifySymmetry( 1.e-8 ) ) PZError << __PRETTY_FUNCTION__ << "\nERROR - NON SYMMETRIC MATRIX" << std::endl;
+    if ( ek.VerifySymmetry( 1.e-8 )==SymProp::NonSym ) PZError << __PRETTY_FUNCTION__ << "\nERROR - NON SYMMETRIC MATRIX" << std::endl;
 #endif
 }//method
 
@@ -416,8 +416,8 @@ void TPZElasticity3D::ContributeVecShape(const TPZMaterialDataT<STATE> &data,
                                          TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     const TPZFMatrix<REAL> & dphi = data.dphix;
-	const TPZFMatrix<REAL> & phi = data.fPhi;
-	
+	const TPZFMatrix<REAL> & phi = data.phi;
+	// dphi.Print("dphi");
 	int phc = phi.Cols();
 	int efc = ef.Cols();
 	
@@ -511,8 +511,8 @@ void TPZElasticity3D::ContributeVecShapeBC(const TPZMaterialDataT<STATE> & data,
                                            TPZFMatrix<STATE> & ef,
                                            TPZBndCondT<STATE> &bc)
 {
-    const TPZFMatrix<REAL> & phi = data.fPhi;
-    
+    const TPZFMatrix<REAL> & phi = data.phi;
+    // phi.Print("phi");
 	const REAL BIGNUMBER  = TPZMaterial::fBigNumber;
     
 	int phc = phi.Cols();
@@ -540,11 +540,12 @@ void TPZElasticity3D::ContributeVecShapeBC(const TPZMaterialDataT<STATE> & data,
 		}
 		case 1:// Neumann condition
         {
-            for (in = 0; in < phc; in++)
+            for (int il = 0; il <fNumLoadCases; il++)
             {
-                for (int il = 0; il <fNumLoadCases; il++)
+                const auto v2 = bcLoadCases->GetBCRhsVal(il);
+                // std::cout << "v2 = " << v2 << "\n";
+                for (in = 0; in < phc; in++)
                 {
-                    const auto v2 = bcLoadCases->GetBCRhsVal(il);
                     ef(in,il) += weight * ( v2[0]*phi(0,in) + v2[1]*phi(1,in) + v2[2]*phi(2,in) );
                 }
             }
@@ -625,7 +626,7 @@ void TPZElasticity3D::ContributeBC(const TPZMaterialDataT<STATE> &data,
         return;
     }
     
-	const TPZFMatrix<REAL> &phi = data.fPhi;
+	const TPZFMatrix<REAL> &phi = data.fH1.fPhi;
 	
 	const STATE BIGNUMBER  = 1.e12;
 	
@@ -788,6 +789,7 @@ int TPZElasticity3D::VariableIndex(const std::string &name) const {
 	if(!strcmp("NormalStress",name.c_str()))  return TPZElasticity3D::ENormalStress;
 	if(!strcmp("NormalStrain",name.c_str()))  return TPZElasticity3D::ENormalStrain;
 	if(!strcmp("StressX",name.c_str()))  return TPZElasticity3D::EStressX;
+    if(!strcmp("SigmaX",name.c_str()))  return TPZElasticity3D::EStressX;
 	if(!strcmp("StressY",name.c_str()))  return TPZElasticity3D::EStressY;
 	if(!strcmp("StressZ",name.c_str()))  return TPZElasticity3D::EStressZ;
 	if(!strcmp("I1",name.c_str()))  return TPZElasticity3D::EI1;
@@ -835,8 +837,19 @@ int TPZElasticity3D::NSolutionVariables(int var) const {
 void TPZElasticity3D::Solution(const TPZMaterialDataT<STATE> &data,
                                int var,TPZVec<STATE> &Solout) {
 	const auto &Sol = data.sol[this->fPostProcIndex];
-    const auto &DSol = data.dsol[this->fPostProcIndex];
+    auto &DSol = data.dsol[this->fPostProcIndex];
     const auto &axes = data.axes;
+    if(DSol.Rows() !=3 || DSol.Cols() != 3) DebugStop();
+    // if(data.fShapeType == TPZMaterialData::EVecShape){
+    //     TPZFNMatrix<9,STATE> DSolXY(3,3);
+    //     for(int i = 0; i<3; i++) {
+    //         for(int j = 0; j<3; j++) {
+    //             DSolXY(i,j) = DSol(i*3+j,0);
+    //         }
+    //     }
+    //     DSol = DSolXY;
+    //     DSol.Print("DSol");
+    // }
     TPZFNMatrix<9,STATE> DSolXY(3,3);
     TPZAxesTools<STATE>::Axes2XYZ(DSol, DSolXY, axes);
 	if(var == TPZElasticity3D::EDisplacement) {
@@ -890,6 +903,7 @@ void TPZElasticity3D::Solution(const TPZMaterialDataT<STATE> &data,
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}
 #endif
+        return;
 	}//TPZElasticity3D::EPrincipalStress
 	
 	if(var == TPZElasticity3D::EStress1){
@@ -906,6 +920,7 @@ void TPZElasticity3D::Solution(const TPZMaterialDataT<STATE> &data,
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}
 #endif
+        return;
 	}//TPZElasticity3D::EStress1  
 	
 	
@@ -925,6 +940,7 @@ void TPZElasticity3D::Solution(const TPZMaterialDataT<STATE> &data,
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}
 #endif
+        return;
 	}//TPZElasticity3D::EPrincipalStrain
 	
 	if(var == TPZElasticity3D::EStrain1){
@@ -984,7 +1000,9 @@ void TPZElasticity3D::Solution(const TPZMaterialDataT<STATE> &data,
 		Solout[0] = ( PrincipalStress[0] - PrincipalStress[1] ) * ( PrincipalStress[0] - PrincipalStress[1] ) 
 		+ ( PrincipalStress[1] - PrincipalStress[2] ) * ( PrincipalStress[1] - PrincipalStress[2] )
 		+ ( PrincipalStress[2] - PrincipalStress[0] ) * ( PrincipalStress[2] - PrincipalStress[0] );
-		Solout[0] = Solout[0] / (2. * this->fFy * this->fFy);    
+        Solout[0] = sqrt(0.5 * Solout[0]);
+//		Solout[0] = Solout[0] / (2. * this->fFy * this->fFy);
+        return;
 	}//TPZElasticity3D::EVonMisesStress
 	
 	if(var == TPZElasticity3D::EStress){

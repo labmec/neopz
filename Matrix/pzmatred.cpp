@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
-using namespace std;
+
 
 
 #include "pzmatred.h"
@@ -32,7 +32,7 @@ static int logger;
 template<class TVar, class TSideMatrix>
 TPZMatRed<TVar,  TSideMatrix>::TPZMatRed () : 
 TPZRegisterClassId(&TPZMatRed::ClassId),
-TPZMatrix<TVar>( 0, 0 ), fK11(0,0),fK01(0,0),fK10(0,0),fF0(0,0),fF1(0,0), fMaxRigidBodyModes(0), fNumberRigidBodyModes(0)
+TPZMatrix<TVar>( 0, 0 ), fK11(0,0),fK01(0,0),fK10(0,0),fF0(0,1),fF1(0,1), fMaxRigidBodyModes(0), fNumberRigidBodyModes(0)
 {
 	fDim0=0;
 	fDim1=0;
@@ -60,20 +60,14 @@ TPZMatRed<TVar, TSideMatrix >::~TPZMatRed(){
 }
 
 template<class TVar, class TSideMatrix>
-int TPZMatRed<TVar, TSideMatrix>::IsSymmetric() const {
-	if(fK00) return this->fK00->IsSymmetric();
-	return 0;
-}
-
-template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix>::SimetrizeMatRed() {
 	// considering fK00 is simetric, only half of the object is assembled.
 	// this method simetrizes the matrix object
 	
-	if(!fK00 || !this->fK00->IsSymmetric()) return;
+	if(!fK00 || this->GetSymmetry() == SymProp::NonSym) return;
 	fK01.Transpose(&fK10);
 	
-	fK11.Simetrize();
+	fK11.Symetrize();
 	
 	/*
 	int64_t row,col;
@@ -89,11 +83,19 @@ template<class TVar, class TSideMatrix>
 int
 TPZMatRed<TVar, TSideMatrix>::PutVal(const int64_t r,const int64_t c,const TVar& value ){
 	int64_t row(r),col(c);
-	if (IsSymmetric() && row > col ) Swap( &row, &col );
-	if (row<fDim0 &&  col<fDim0)  fK00->PutVal(row,col,value);
-	if (row<fDim0 &&  col>=fDim0)  fK01.PutVal(row,col-fDim0,(TVar)value);
-	if (row>=fDim0 &&  col<fDim0)  fK10.PutVal(row-fDim0,col,(TVar)value);
-	if (row>=fDim0 &&  col>=fDim0)  fK11.PutVal(row-fDim0,col-fDim0,(TVar)value);
+  auto val = value;
+	if (this->GetSymmetry() != SymProp::NonSym && row > col ) {
+    Swap( &row, &col );
+    if constexpr (is_complex<TVar>::value){
+      if (this->GetSymmetry() == SymProp::Herm){
+        val = std::conj(val);
+      }
+    }
+  }
+	if (row<fDim0 &&  col<fDim0)  fK00->PutVal(row,col,val);
+	if (row<fDim0 &&  col>=fDim0)  fK01.PutVal(row,col-fDim0,(TVar)val);
+	if (row>=fDim0 &&  col<fDim0)  fK10.PutVal(row-fDim0,col,(TVar)val);
+	if (row>=fDim0 &&  col>=fDim0)  fK11.PutVal(row-fDim0,col-fDim0,(TVar)val);
 
 	return( 1 );
 }
@@ -102,20 +104,35 @@ template<class TVar, class TSideMatrix>
 const TVar
 TPZMatRed<TVar,TSideMatrix>::GetVal(const int64_t r,const int64_t c ) const {
 	int64_t row(r),col(c);
-	
-	if (IsSymmetric() && row > col ) Swap( &row, &col );
-	if (row<fDim0 &&  col<fDim0)  return ( fK00->GetVal(row,col) );
-	if (row<fDim0 &&  col>=fDim0)  return ( fK01.GetVal(row,col-fDim0) );
-	if (row>=fDim0 &&  col<fDim0)  return ( fK10.GetVal(row-fDim0,col) );
-	return (fK11.GetVal(row-fDim0,col-fDim0) );
-	
+	const auto sp = this->GetSymmetry();
+	if (sp != SymProp::NonSym && row > col ) Swap( &row, &col );
+
+  TVar val = -1;
+	if (row<fDim0 &&  col<fDim0)  val = fK00->GetVal(row,col);
+	else if (row<fDim0 &&  col>=fDim0)  val = fK01.GetVal(row,col-fDim0);
+	else if (row>=fDim0 &&  col<fDim0)  val = fK10.GetVal(row-fDim0,col);
+	else val = fK11.GetVal(row-fDim0,col-fDim0) ;
+
+  if constexpr(is_complex<TVar>::value){
+    if(sp == SymProp::Herm){val = std::conj(val);}
+  }
+  return val;
 }
 
 template<class TVar, class TSideMatrix>
 TVar& TPZMatRed<TVar,TSideMatrix>::s(const int64_t r,const int64_t c ) {
 	int64_t row(r),col(c);
-	
-	if (r < fDim0 && IsSymmetric() && row > col ) Swap( &row, &col );
+	const auto sp = this->GetSymmetry();
+  if constexpr (is_complex<TVar>::value) {
+    if(sp == SymProp::Herm && row > col){
+      PZError<<__PRETTY_FUNCTION__
+             <<"\nTrying to get reference to lower triang section"
+             <<"\nof symmetric-storage hermitian matrix.\nAborting..."
+             <<std::endl;
+      DebugStop();
+    }
+  }
+	if (r < fDim0 && sp != SymProp::NonSym && row > col ) Swap( &row, &col );
 	if (row<fDim0 &&  col<fDim0)  return ( fK00->s(row,col) );
 	if (row<fDim0 &&  col>=fDim0)  return ( (TVar &)fK01.s(row,col-fDim0) );
 	if (row>=fDim0 &&  col<fDim0)  return ( (TVar &)(fK10.s(row-fDim0,col)) );
@@ -153,7 +170,9 @@ template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar,TSideMatrix>::SetSolver(TPZAutoPointer<TPZMatrixSolver<TVar> > solver)
 {
 	fK00=solver->Matrix();
+    if(fK00->Rows() != fDim0) DebugStop();
 	fSolver = solver;
+    this->fSymProp = fK00->GetSymmetry();
 }
 
 
@@ -162,11 +181,15 @@ void
 TPZMatRed<TVar, TSideMatrix>::SetK00(TPZAutoPointer<TPZMatrix<TVar> > K00)
 {
 	fK00=K00;
+  this->fSymProp = fK00->GetSymmetry();
 }
 
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar,TSideMatrix>::SetF(const TPZFMatrix<TVar> & F)
 {
+    if(F.Rows() != fDim0+fDim1){
+        DebugStop();
+    }
 	
 	int64_t FCols=F.Cols(),c,r,r1;
 	
@@ -550,7 +573,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 		TPZMatrix<TVar>::MultAdd(x,y,z,alpha,beta,opt);
 		return;
 	}
-	
+	this->MultAddChecks(x,y,z,alpha,beta,opt);
 	this->PrepareZ(y,z,beta,opt);
 	
 	if(!opt)
@@ -591,7 +614,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 		}
 #endif
 	}
-	else
+	else // not implemented for the transpose case
 	{
 		DebugStop();
 	}

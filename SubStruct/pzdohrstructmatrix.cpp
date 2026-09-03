@@ -82,13 +82,13 @@ static void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<TVar> > su
 #define NOMETIS \
     PZError<<"TPZDohrStructMatrix requires Metis library\n";\
     PZError<<"Please reconfigure NeoPZ library with:\n";\
-    PZError<<"USING_METIS=ON"<<std::endl;\
+    PZError<<"PZ_USING_METIS=ON"<<std::endl;\
     DebugStop();
 template<class TVar, class TPar>
  TPZDohrStructMatrix<TVar,TPar>::TPZDohrStructMatrix() :
 TPZStructMatrixT<TVar>(), fDohrAssembly(0), fDohrPrecond(0), fAccessElement()
 {
-#ifndef USING_METIS
+#ifndef PZ_USING_METIS
     NOMETIS
 #endif
 }
@@ -98,7 +98,7 @@ template<class TVar, class TPar>
 TPZStructMatrixT<TVar>(cmesh), fDohrAssembly(0),
 fDohrPrecond(0), fAccessElement()
 {
-#ifndef USING_METIS
+#ifndef PZ_USING_METIS
     NOMETIS
 #endif
 }
@@ -107,7 +107,7 @@ template<class TVar, class TPar>
  TPZDohrStructMatrix<TVar,TPar>::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) :
 TPZStructMatrixT<TVar>(copy), fDohrAssembly(copy.fDohrAssembly), fDohrPrecond(copy.fDohrPrecond), fAccessElement()
 {
-#ifndef USING_METIS
+#ifndef PZ_USING_METIS
     NOMETIS
 #endif
 }
@@ -122,7 +122,7 @@ template<class TVar, class TPar>
 template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZDohrStructMatrix<TVar,TPar>::Create()
 {
-#ifndef USING_METIS
+#ifndef PZ_USING_METIS
     NOMETIS
 #endif    
 	TPZSimpleTimer timeforcopute; // init of timer for compute
@@ -378,8 +378,7 @@ public:
 };
 
 template<class TVar, class TPar>
-void  TPZDohrStructMatrix<TVar,TPar>::AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base,
-                                      TPZAutoPointer<TPZGuiInterface> guiInterface)
+void  TPZDohrStructMatrix<TVar,TPar>::AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base)
 {
     if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
@@ -460,7 +459,6 @@ RunStatsTable dohr_dec   ("-tpz_dohr_dec", "Raw data table statistics for TPZDoh
 
 template<class TVar, class TPar>
 void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base,
-                                   TPZAutoPointer<TPZGuiInterface> guiInterface,
                                    unsigned numthreads_assemble, unsigned numthreads_decompose)
 {
   if (!dynamic_cast<TPZFMatrix<TVar> *>(&rhs_base)) {
@@ -490,13 +488,7 @@ void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatri
         worklist.Append(work);
         it++;
     }
-    
-    if(guiInterface){
-        if(guiInterface->AmIKilled()){
-            return ;//0;
-        }
-    }
-    
+        
     // First pass : assembling the matrices
     ThreadDohrmanAssemblyList<TVar> worklistAssemble(worklist);
     auto itwork =
@@ -628,7 +620,7 @@ void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatri
  * @brief Assemble the global right hand side
  */
 template<class TVar, class TPar>
-void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & rhs_base)
 {
     if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
@@ -655,7 +647,7 @@ void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & rhs_base, TPZAuto
         }
         TPZFStructMatrix<TVar> fullstr(submesh);
         (*it)->fLocalLoad.Zero();
-        fullstr.Assemble((*it)->fLocalLoad,guiInterface);
+        fullstr.Assemble((*it)->fLocalLoad);
         it++;
     }
     for (it=sublist.begin(), isub=0; it != sublist.end(); it++,isub++) {
@@ -1515,9 +1507,9 @@ void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<TVar> > substruct, int
     }
     
 #ifdef USE_LDLT_DECOMPOSITION
-    Stiffness->Decompose_LDLt();
+    Stiffness->Decompose(ELDLt);
 #else
-    Stiffness->Decompose_Cholesky();
+    Stiffness->Decompose(ECholesky);
 #endif
     
     substruct->Initialize();
@@ -1534,9 +1526,9 @@ void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<TVar> > substruct
     }
     
 #ifdef USE_LDLT_DECOMPOSITION
-    InternalStiffness->Decompose_LDLt();
+    InternalStiffness->Decompose(ELDLt);
 #else
-    InternalStiffness->Decompose_Cholesky();
+    InternalStiffness->Decompose(ECholesky);
 #endif
 }
 

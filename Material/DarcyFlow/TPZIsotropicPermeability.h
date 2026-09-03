@@ -20,11 +20,16 @@ class TPZIsotropicPermeabilityBC;
  * @brief  This class implements the interface with the methods required to
  * handle the permeability field of an isotropic material.
  */
-class TPZIsotropicPermeability : public TPZSavable {
+class TPZIsotropicPermeability : public virtual TPZSavable {
 
 public:
     using TInterfaceBC = TPZIsotropicPermeabilityBC;
 
+    TPZIsotropicPermeability() : fConstantPermeability(1.), fPermeabilityFunction(NULL){
+    }
+    
+    TPZIsotropicPermeability(const TPZIsotropicPermeability &copy) = default;
+    TPZIsotropicPermeability &operator=(const TPZIsotropicPermeability &copy) = default;
     /**
      * @brief Set a constant permeability to the material
      * @param [in] constant permeability value
@@ -55,7 +60,7 @@ private:
     STATE fConstantPermeability = 1.;
 
     // Member variable to describe a varying permeability field
-    PermeabilityFunctionType fPermeabilityFunction{};
+    PermeabilityFunctionType fPermeabilityFunction = NULL;
 };
 
 // Dummy BC interface class

@@ -245,6 +245,10 @@ public:
 	/** @brief Access method for the element solution vectors */
 	TPZSolutionMatrix &ElementSolution() { return fElementSolution;}
 	
+    /** @brief Expand the element solution to have the given number of columns */
+    void ExpandElementSolution(int ncols);
+    
+
 	/** @} */
 	
 	/**
@@ -486,6 +490,16 @@ public:
 	
 private:
 	
+    
+    /// Accounts for a compel error to the errorSum variable
+    /// @param cel compel to compute error
+    /// @param store_error bool if should store error
+    /// @param true_error true_error of element
+    /// @param errorSum sum of all errors of all compels
+    /// @param matset set with matids to compute error
+    void AccountForElementError(TPZCompEl* cel, bool store_error, TPZVec<REAL>& true_error,
+                                TPZVec<REAL>& errorSum, const std::set<int> &matset);
+    
 	/** @brief Creates the computational elements, and the degree of freedom nodes */ 
 	/** If MaterialIDs is passed, only element of material id in the set<int> will be created */
 	virtual void AutoBuild(const std::set<int> *MaterialIDs);
@@ -587,10 +601,27 @@ public:
     {
         fCreate.SetAllCreateFunctionsContinuousWithMem();
     }
+
+    void SetAllCreateFunctionsHCurlWithMem()
+    {
+      fCreate.SetAllCreateFunctionsHCurlWithMem(Dimension());
+    }
 		
 	/** @brief Will build the list of element boundary conditions build the list of connect boundary conditions. */
 	/** Put material pointers into the elements. Check on the number of dof of the connects */
 	int Consolidate();
+    
+    
+    /// Returns all the equatios associated to the materials in matidset
+    /// @param mat set with matids to search for their equations
+    /// @param eqset set of equations associated with the materials in matidset (set holdss unique values)
+    void GetEquationSetByMat(std::set<int64_t>& matidset, std::set<int64_t>& eqset);
+    
+    
+    /// Adds the equations related to connect con to the set eqset
+    /// @param con connect with equations to be added
+    /// @param eqset set with equations
+    void AddConnectEquationsToSet(TPZConnect& con, std::set<int64_t>& eqset);
 	
 	/**
 	 * ??
@@ -656,10 +687,10 @@ public:
     TPZVec<STATE> Integrate(const std::string &varname, const std::set<int> &matids);
 
 
-    void EvaluateError(bool store_error,
-					   TPZVec<REAL> &errorSum);
+    void EvaluateError(bool store_error, TPZVec<REAL> &errorSum, const std::set<int>& matset);
 	/** @} */
 	
+    void EvaluateError(bool store_error, TPZVec<REAL> &errorSum);
 	
 	/** @brief Clone this mesh */
 	TPZCompMesh * Clone() const;

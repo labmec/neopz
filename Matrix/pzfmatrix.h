@@ -41,7 +41,7 @@ template <class TVar> class TPZVerySparseMatrix;
 
 /** @brief Returns a dot product to matrices */
 template<class TVar>
-TVar Dot(const TPZFMatrix<TVar> &A,const TPZFMatrix<TVar> &B);
+TVar Dot(const TPZFMatrix<TVar> &A,const TPZFMatrix<TVar> &B,bool conj=true);
 
 /** @brief Returns the norm of the matrix A */
 template<class TVar>
@@ -196,6 +196,9 @@ public:
      * @param destination Destine index on current matrix
      */
     void AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination);
+
+    ///Idem AddFel, but uses Non Atomic sum
+    void AddFelNonAtomic(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &source, TPZVec<int64_t> &destination);
     
     
     /**
@@ -211,9 +214,19 @@ public:
                          const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const  override;
     
     
-    static void MultAdd(const TVar *ptr, int64_t rows, int64_t cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-                        const TVar alpha=1.,const TVar beta = 0.,const int opt = 0);
-    
+    /**
+     * @brief It computes this += alpha*(A * B), where A or B can be transposed.
+     * @param i Is the row of (this) where the first element of the matrices product should be added 
+     * @param j Is the column of (this) where the first element of the matrices product should be added 
+     * @param A Is A on the above operation
+     * @param transpA 0: A not transpose, 1: A tranpose, everything else: A conj transpose
+     * @param B Is B on the above operation
+     * @param transpB 0: B not transpose, 1: B tranpose, everything else: B conj transpose
+     * @param alpha Is alpha on the above operation
+     */
+    virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, int transpA, const TPZFMatrix<TVar>& B, 
+						 		 int transpB, const TVar alpha) override;
+
     /**
      * @name Generic operator with TVar type
      * @{
@@ -295,6 +308,10 @@ public:
     /** @brief Makes Zero all the elements */
     int Zero() override;
     
+    /** @brief Simetrizes copies upper plan to the lower plan, making its data simetric */
+    void Symetrize();
+
+    
     /** @brief Initialize pivot with i = i  */
     void InitializePivot();
     
@@ -309,33 +326,141 @@ public:
     
     void DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &inverse);
     
-    void Transpose(TPZMatrix<TVar> *const T) const override;
+    void Transpose(TPZMatrix<TVar> *const T, bool conj=false) const override;
     
     /** @see TPZMatrix<TVar>::Transpose */
     
     void Transpose();
+    void ConjTranspose();
     
     /*** @name Solve linear system of equations ***/
     /** @{ */
     
+    /** @brief decompose the system of equations acording to the decomposition
+      * scheme */
+     virtual int Decompose(const DecomposeType dt) override {
+       switch (dt) {
+       case ELU:
+         return Decompose_LU();
+         break;
+       case ELDLt:
+         return Decompose_LDLt();
+         break;
+       case ECholesky:
+         return Decompose_Cholesky();
+         break;
+       default:
+         DebugStop();
+         break;
+       }
+       return -1;
+     }
+
+    int SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::list<int64_t> &singular) {
+        
+        switch ( dt ) {
+            case ELU:
+                return( Solve_LU( &B ,singular)  );
+            case ECholesky:
+                return( Solve_Cholesky( &B , singular)  );
+            default:
+                Error( "Solve  < Unknown decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+    
+    
+    int SolveDirect( TPZFMatrix<TVar> &B , const DecomposeType dt) override {
+        
+        switch ( dt ) {
+            case ELU:
+                return( Solve_LU( &B)  );
+            case ECholesky:
+                return( Solve_Cholesky( &B )  );
+            case ELDLt:
+                return( Solve_LDLt( &B )  );
+            default:
+                Error( "Solve  < Unknown decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+    int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override
+    {
+        if(this->fDecomposed != dt) DebugStop();
+        switch ( dt ) {
+            case ELU:
+                return( Substitution( &F)  );
+            case ECholesky:
+                return ( Subst_Forward(&F) && Subst_Backward(&F) );
+            case ELDLt:
+                return( Subst_LForward( &F ) && Subst_Diag( &F ) && Subst_LBackward( &F ) );
+            default:
+                Error( "Solve  < Unhandled decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+
+    //***Solve LU ***/
+
+    int Solve_LU( TPZFMatrix<TVar>*B, std::list<int64_t> &singular) {
+        return ( ( !Decompose_LU(singular) )?  0 : Substitution( B )  );
+    }
+
+    int Solve_LU( TPZFMatrix<TVar>*B ) {
+        return ( ( !Decompose_LU() )?  0 : Substitution( B )  );
+    }
+    /**********************/
+    /*** Solve Cholesky ***/
+    //
+    //  Se nao conseguir resolver por Cholesky retorna 0 e a matriz
+    //   sera' modificada (seu valor perdera' o sentido).
+    //
+    int Solve_Cholesky( TPZFMatrix<TVar>* B )
+    {
+        return(
+               ( !Decompose_Cholesky() )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
+               );
+    }
+
+    int Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<int64_t> &singular ) {
+        return(
+               ( !Decompose_Cholesky(singular) )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
+               );
+    }
+
+    /******************/
+    /*** Solve LDLt ***/
+
+    int Solve_LDLt( TPZFMatrix<TVar>* B ) {
+        
+        return(
+               ( !Decompose_LDLt() )? 0 :
+               ( Subst_LForward( B ) && Subst_Diag( B ) && Subst_LBackward( B ) )
+               );
+    }
+
+
     /** @brief Cholesky Decomposition Optmized. for walks in the direction of the vector that composes the matrix */
-    virtual int Decompose_Cholesky() override;
-    virtual int Decompose_Cholesky(std::list<int64_t> &singular) override;
+    virtual int Decompose_Cholesky();
+    virtual int Decompose_Cholesky(std::list<int64_t> &singular);
     
     /** @brief LU Decomposition. Stores L and U matrices at the storage of the same matrix */
-    virtual int Decompose_LU(std::list<int64_t> &singular) override;
-    virtual int Decompose_LU() override;
+    virtual int Decompose_LU(std::list<int64_t> &singular);
+    virtual int Decompose_LU();
     
     /**
      * @brief Decomposes the current matrix using LDLt. \n
      * The current matrix has to be symmetric.
      * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
      */
-    virtual int Decompose_LDLt() override;
+    virtual int Decompose_LDLt();
     
     static int Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVar> *B);
     
-    virtual int Substitution( TPZFMatrix<TVar> *B ) const override;
+    virtual int Substitution( TPZFMatrix<TVar> *B ) const;
     
     /** @brief LU Decomposition using pivot */
     virtual int Decompose_LU(TPZVec<int> &index);
@@ -351,31 +476,31 @@ public:
      * @brief Computes B = Y, where A*Y = B, A is lower triangular. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
-    virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const override;
+    virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const;
     
     /**
      * @brief Computes B = Y, where A*Y = B, A is upper triangular. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
-    virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const override;
+    virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const;
     
     /**
      * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
-    virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const override;
+    virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const;
     
     /**
      * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
-    virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const override;
+    virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const;
     
     /**
      * @brief Computes B = Y, where A*Y = B, A is diagonal matrix. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
-    virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const override;
+    virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const;
     
     /** @} */
     
@@ -446,6 +571,17 @@ int ClassId() const override;
     
     static void PrintStatic(const TVar *ptr, int64_t rows, int64_t cols, const char *name, std::ostream& out,const MatrixOutputFormat form);
 
+    //! Provides raw access to matrix memory. Use with caution.
+    inline TVar *&
+    Elem() override
+    {
+        return fElem;
+    }
+    //! Provides raw access to matrix memory.
+    inline const TVar *Elem() const override
+    {
+        return fElem;
+    }
 protected:
     /** @brief Checks compatibility of matrices before Add/Subtract operations*/
     inline void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
@@ -459,15 +595,6 @@ protected:
             DebugStop();
         }
     }
-    inline TVar *&
-    Elem() override
-    {
-        return fElem;
-    }
-    inline const TVar *Elem() const override
-    {
-        return fElem;
-    }
 
     inline int64_t Size() const override
     {
@@ -480,6 +607,7 @@ private:
     
     TVar *fElem;
     TVar *fGiven;
+    // the amount of memory allocated?? the amount of memory pointed to by fGiven?
     int64_t fSize;
     
     TPZManVector<int,5> fPivot;
@@ -616,6 +744,11 @@ inline const TVar TPZFMatrix<TVar>::GetVal( const int64_t row, const int64_t col
 template<class TVar>
 inline TVar &TPZFMatrix<TVar>::operator()( const int64_t row, const int64_t col) {
 #ifndef PZNODEBUG
+    if(this->fDecomposed != ENoDecompose)
+    {
+        PZError << "TPZFMatrix::operator() const - matrix is decomposed\n";
+        DebugStop();
+    }
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
         DebugStop();
@@ -700,9 +833,9 @@ inline int TPZFMatrix<TVar>::Redim(const int64_t newRows,const int64_t newCols) 
 
 template<class TVar>
 inline int TPZFMatrix<TVar>::Zero() {
-    int64_t size = this->fRow * this->fCol * sizeof(TVar);
-    memset(((void*)this->fElem),'\0',size);
-    this->fDecomposed = 0;
+    int64_t size = this->fRow * this->fCol;
+    std::fill(this->fElem, this->fElem+size, TVar());
+    this->fDecomposed = ENoDecompose;
     return( 1 );
 }
 
@@ -768,7 +901,6 @@ class TPZFNMatrix : public TPZFMatrix<TVar> {
     TVar fBuf[N+1];
     
 public:
-    friend class TPZHCurlAuxClass;
     /*
      * @brief Constructor which does not initialize the data. \n
      * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col

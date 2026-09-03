@@ -32,6 +32,13 @@ set(headers
     TPZMHMixedMeshControl.h
     pzdatafi.h
     pzreadmesh.h
+    TPZHDivApproxCreator.h
+    TPZApproxCreator.h
+    TPZH1ApproxCreator.h
+    pzcreateapproxspace.h
+    TPZMHMApproxCreator.h
+    TPZMHMHDivApproxCreator.h
+    TPZMHMH1ApproxCreator.h
     )
 
 set(sources
@@ -57,9 +64,16 @@ set(sources
     TPZMHMixedMeshControl.cpp
     pzidentifyrefpattern.cpp
     tpzhierarquicalgrid.cpp
+    TPZHDivApproxCreator.cpp
+    TPZApproxCreator.cpp
+    TPZH1ApproxCreator.cpp
+    pzcreateapproxspace.cpp
+    TPZMHMApproxCreator.cpp
+    TPZMHMHDivApproxCreator.cpp
+    TPZMHMH1ApproxCreator.cpp
     )
 
-if (USING_MKL)
+if (USING_LAPACK)
 	list(APPEND headers TPZBuildSBFem.h TPZBuildSBFemMultiphysics.h)
 	list(APPEND sources TPZBuildSBFem.cpp TPZBuildSBFemMultiphysics.cpp)
 endif()

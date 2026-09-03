@@ -38,7 +38,7 @@ template<class TVar>
 TPZSkylMatrix<TVar>::TPZSkylMatrix(const int64_t dim )
 : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 {
-	
+  this->fSymProp = SymProp::Herm;
 	// Inicializa a diagonal (vazia).
 	fElem.Fill(0);
 }
@@ -46,7 +46,7 @@ template<class TVar>
 TPZSkylMatrix<TVar>::TPZSkylMatrix(const int64_t dim, const TPZVec<int64_t> &skyline )
 : TPZRegisterClassId(&TPZSkylMatrix::ClassId),TPZMatrix<TVar>( dim, dim ), fElem(dim+1), fStorage(0)
 {
-	
+  this->fSymProp = SymProp::Herm;
 	// Inicializa a diagonal (vazia).
 	fElem.Fill(0);
 	InitializeElem(skyline,fStorage,fElem);
@@ -187,7 +187,18 @@ template<class TVar>
 TVar &
 TPZSkylMatrix<TVar>::operator()(const int64_t r, const int64_t c) {
 	int64_t row(r),col(c);
-	if ( row > col ) this->Swap( &row, &col );
+	if ( row > col ) {
+    this->Swap( &row, &col );
+    if constexpr (is_complex<TVar>::value){
+      if(this->fSymProp == SymProp::Herm){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nTrying to access lower triang hermitian mat by reference\n"
+               <<"Aborting..."
+               <<std::endl;
+        DebugStop();
+      }
+    }
+  }
 	
 	// Indice do vetor coluna.
 	int64_t index = col - row;
@@ -253,8 +264,15 @@ TPZSkylMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & value )
 {
 	// inicializando row e col para trabalhar com a triangular superior
 	int64_t row(r),col(c);
-	if ( row > col )
+  TVar val = value;
+	if ( row > col ){
 		this->Swap( &row, &col );
+    if constexpr (is_complex<TVar>::value){
+      if(this->fSymProp == SymProp::Herm){
+        val = std::conj(value);
+      }
+    }
+  }
 	
 	// Indice do vetor coluna.
 	int64_t index = col - row;
@@ -265,9 +283,8 @@ TPZSkylMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & value )
 		cout.flush();
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Index out of range");
 	} else if(index >= Size(col)) return 1;
-	fElem[col][index] = value;
+	fElem[col][index] = val;
 	//  delete[]newVet;
-	this->fDecomposed = 0;
 	return( 1 );
 }
 #endif
@@ -281,13 +298,7 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 	if (this->fDecomposed != ENoDecompose) {
         //		DebugStop();
 	}
-	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," <matrixs with incompatible dimensions>" );
-	if(z.Rows() != x.Rows() || z.Cols() != x.Cols()) z.Redim(x.Rows(),x.Cols());
-	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
-		cout << "x.Cols = " << x.Cols() << " y.Cols()"<< y.Cols() << " z.Cols() " << z.Cols() << " x.Rows() " << x.Rows() << " y.Rows() "<< y.Rows() << " z.Rows() "<< z.Rows() << endl;
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," incompatible dimensions\n");
-	}
+	this->MultAddChecks(x,y,z,alpha,beta,opt);
 	this->PrepareZ(y,z,beta,opt);
 
 	const int64_t rows = this->Rows();
@@ -301,8 +312,12 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 			const TVar *diaglast = fElem[r];
 			while( diag > diaglast ) {
                 if constexpr (is_complex<TVar>::value){
-                    if(opt) val += *diag-- * *p;
-                    else val += std::conj(*diag--) * *p;
+                    if(this->fSymProp == SymProp::Herm){
+                        if(opt) val += *diag-- * *p;
+                        else val += std::conj(*diag--) * *p;
+                    }else{
+                        val += *diag-- * *p;
+                    }
                 }else{
                     val += *diag-- * *p;
                 }
@@ -315,8 +330,12 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 			diag = fElem[r] + offset-1;
 			while( diag > diaglast ) {
                 if constexpr (is_complex<TVar>::value){
-                    if(opt) *zp += alpha * std::conj(*diag--) * val;
-                    else *zp += alpha * *diag-- * val;
+                    if(this->fSymProp == SymProp::Herm){
+                        if(opt) *zp += alpha * std::conj(*diag--) * val;
+                        else *zp += alpha * *diag-- * val;
+                    }else{
+                        *zp += alpha * *diag-- * val;
+                    }
                 }else{
                     *zp += alpha * *diag-- * val;
                 }
@@ -442,6 +461,7 @@ template<class TVar>
 const TVar &
 TPZSkylMatrix<TVar>::GetVal(const int64_t r,const int64_t c ) const
 {
+    xxx
     if (r > c) return GetVal(c,r);
     unsigned dim = this->Dim();
     //EBORIN: Do we really need to do this? May only when running debug version.
@@ -478,8 +498,12 @@ TPZSkylMatrix<TVar>::GetVal(const int64_t r,const int64_t c ) const
         const int64_t index   = col - row;
         if ( index < Size(col) ){
             if constexpr (is_complex<TVar>::value){
-                return( std::conj(fElem[col][index]) );
-            }else{
+                if(this->fSymProp == SymProp::Herm) {
+                    return( std::conj(fElem[col][index]) );
+                } else {
+                    return( fElem[col][index] );
+                }
+            } else {
                 return( fElem[col][index] );
             }
         }else{
@@ -542,94 +566,13 @@ TPZSkylMatrix<TVar>::operator-(const TPZSkylMatrix<TVar> &A ) const
 	return res;
 }
 
+
+
 template<class TVar>
-void TPZSkylMatrix<TVar>::AddKel(TPZFMatrix<TVar>&elmat,
-                                 TPZVec<int64_t> &source,
-                                 TPZVec<int64_t> &destination)
-{
-    int64_t nelem = source.NElements();
-    int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
-    for(icoef=0; icoef<nelem; icoef++) {
-        ieq = destination[icoef];
-        ieqs = source[icoef];
-        for(jcoef=icoef; jcoef<nelem; jcoef++) {
-            jeq = destination[jcoef];
-            jeqs = source[jcoef];
-            int64_t row(ieq), col(jeq);
-            // invertendo linha-coluna para triangular superior
-            if (row > col)
-                this->Swap(&row, &col);
-#ifdef PZDEBUG
-            // checando limites
-            if(row >= this->Dim() || col >= this->Dim()) {
-                cout << "TPZSkylMatrix::GetVal index out of range row = " <<
-                row << " col = " << col << endl;
-                DebugStop();
-            }
-#endif
-            // indice do vetor coluna
-            int64_t index = col - row;
-#ifdef PZDEBUG
-            // checando limite da coluna
-            if (index >= Size(col)) {
-                cerr << "Try TPZSkylMatrix gZero." << endl;
-                DebugStop();
-            }
-#endif
-            // executando contribuição
-            fElem[col][index] += elmat(ieqs,jeqs);
-
-        }
-    }
-}
-
-template<>
-void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
-                                 TPZVec<int64_t> &source,
-                                 TPZVec<int64_t> &destination)
-{
-    int64_t nelem = source.NElements();
-    int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
-    for(icoef=0; icoef<nelem; icoef++) {
-        ieq = destination[icoef];
-        ieqs = source[icoef];
-        for(jcoef=icoef; jcoef<nelem; jcoef++) {
-            jeq = destination[jcoef];
-            jeqs = source[jcoef];
-            int64_t row(ieq), col(jeq);
-            // invertendo linha-coluna para triangular superior
-            if (row > col)
-                this->Swap(&row, &col);
-#ifdef PZDEBUG
-            // checando limites
-            if(row >= this->Dim() || col >= this->Dim()) {
-                cout << "TPZSkylMatrix::GetVal index out of range row = " <<
-                row << " col = " << col << endl;
-                DebugStop();
-            }
-#endif
-            // indice do vetor coluna
-            int64_t index = col - row;
-#ifdef PZDEBUG
-            // checando limite da coluna
-            if (index >= Size(col)) {
-                std::cout << "Skyline wrongly configured " << " row " << row << " col " << col << " Size(col) " << Size(col) << std::endl;
-                cerr << "Try TPZSkylMatrix gZero." << endl;
-                std::cout << destination << std::endl;
-                DebugStop();
-            }
-#endif
-            // executando contribuição
-            pzutils::AtomicAdd(fElem[col][index],elmat(ieqs,jeqs));            
-        }
-    }
-}
-
-
-template<>
-void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
-                                   TPZVec<int64_t> &source,
-                                   TPZVec<int64_t> &destination)
+template<bool TAtomic>
+void TPZSkylMatrix<TVar>::AddKelImpl(TPZFMatrix<TVar>&elmat,
+                                     TPZVec<int64_t> &source,
+                                     TPZVec<int64_t> &destination)
 {
     int64_t nelem = source.NElements();
     int64_t icoef,jcoef,ieq,jeq,ieqs,jeqs;
@@ -661,7 +604,11 @@ void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
             }
 #endif
             // adding contribution
-            pzutils::AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
+            if constexpr (TAtomic){
+              pzutils::AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
+            }else{
+              fElem[col][index]+=elmat(ieqs,jeqs);
+            }
         }
     }
 }
@@ -753,7 +700,6 @@ TPZSkylMatrix<TVar>::operator*=(const TVar value )
 		while ( elem < end ) *elem++ *= value;
     }
 	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -765,50 +711,58 @@ TPZSkylMatrix<TVar>::operator*=(const TVar value )
 // Muda as dimensoes da matriz, mas matem seus valores antigos. Novas
 // posicoes sao criadas com ZEROS.
 //
-template<class TVar>
-int TPZSkylMatrix<TVar>::Resize( int64_t newDim ,int64_t ) {
-	if ( newDim == this->Dim() )
-		return( 1 );
-	
-	fElem.Resize(newDim+1);
-	// Cria nova matrix.
-	
-	// Copia os elementos para a nova matriz.
-	int64_t min = MIN( newDim, this->Dim() );
-	int64_t i;
-	for ( i = min+1; i <= newDim; i++ )
-		fElem[i] = fElem[i-1];
-	
-	// Zera as posicoes que sobrarem (se sobrarem)
-	fStorage.Resize(fElem[newDim]-fElem[0]);
-	this->fRow = this->fCol = newDim;
-	this->fDecomposed = 0;
-	return( 1 );
+template <class TVar>
+int TPZSkylMatrix<TVar>::Resize(int64_t newRows, int64_t newCols)
+{
+    // if ( newDim == this->Dim() )
+    // 	return( 1 );
+
+    // fElem.Resize(newDim+1);
+    // // Cria nova matrix.
+
+    // // Copia os elementos para a nova matriz.
+    // int64_t min = MIN( newDim, this->Dim() );
+    // int64_t i;
+    // for ( i = min+1; i <= newDim; i++ )
+    // 	fElem[i] = fElem[i-1];
+
+    // // Zera as posicoes que sobrarem (se sobrarem)
+    // fStorage.Resize(fElem[newDim]-fElem[0]);
+    // this->fRow = this->fCol = newDim;
+    // this->fDecomposed = ENoDecompose;
+
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Resize should not be called for Skyline matrices\n";
+    DebugStop();
+
+    return (1);
 }
-
-
 
 /*************/
 /*** Redim ***/
 //
 // Muda as dimensoes da matriz e ZERA seus elementos.
 //
-template<class TVar>
-int
-TPZSkylMatrix<TVar>::Redim( int64_t newDim , int64_t)
+template <class TVar>
+int TPZSkylMatrix<TVar>::Redim(int64_t newRows, int64_t newCols)
 {
-	if ( newDim == this->Dim() )
-    {
-		Zero();
-		return( 1 );
-    }
-	
-	Clear();
-	fElem.Resize(newDim);
-	fElem.Fill(0);
-	this->fRow = this->fCol = newDim;
-	this->fDecomposed = 0;
-	return( 1 );
+    // if ( newDim == this->Dim() )
+    // {
+    // 	Zero();
+    // 	return( 1 );
+    // }
+
+    // Clear();
+    // fElem.Resize(newDim);
+    // fElem.Fill(0);
+    // this->fRow = this->fCol = newDim;
+    // this->fDecomposed = ENoDecompose;
+
+    PZError << __PRETTY_FUNCTION__;
+    PZError << "\nERROR: Redim should not be called for Band matrices\n";
+    DebugStop();
+
+    return (1);
 }
 
 /**************************/
@@ -817,6 +771,14 @@ template<class TVar>
 int
 TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
 {
+#ifdef PZDEBUG
+    if constexpr (is_complex<TVar>::value){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nCalling Cholesky decomposition on non symmetric matrix! Aborting..."
+               <<std::endl;
+        DebugStop();
+    }
+#endif
 	if(this->fDecomposed == ECholesky) return 1;
 	if (  this->fDecomposed )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
     
@@ -920,6 +882,17 @@ template<class TVar>
 int
 TPZSkylMatrix<TVar>::Decompose_Cholesky()
 {
+#ifdef PZDEBUG
+    const bool cond =
+        (is_complex<TVar>::value && this->GetSymmetry() == SymProp::Sym) ||
+        this->GetSymmetry() == SymProp::NonSym;
+    if (cond){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nCalling Cholesky decomposition on non symmetric matrix! Aborting..."
+               <<std::endl;
+        DebugStop();
+    }
+#endif
     if(this->fDecomposed == ECholesky) return 1;
     if (this->fDecomposed )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
 	
@@ -1271,9 +1244,11 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
             if(ell != elj) *elj /= *ell;
             else if(IsZero(*elj)) {
 #ifdef PZ_LOG
-                std::stringstream sout;
-                sout << "col = " << j << " diagonal " << *elj;
-                LOGPZ_DEBUG(logger,sout.str())
+                if(logger.isErrorEnabled()){
+                    std::stringstream sout;
+                    sout << "col = " << j << " diagonal " << *elj;
+                    LOGPZ_ERROR(logger,sout.str())
+                }
 #endif
                 
                 *diagptr = *elj;
@@ -1334,7 +1309,7 @@ TPZSkylMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar> *B ) const
             //EBORIN:
             // Is this a hot-spot?
             // Is it vectorized?
-            if constexpr(is_complex<TVar>::value)
+            if constexpr(is_complex<TVar>::value)//at this point the matrix has been checked and it is hermitian
                 while(elem_ki < end_ki) sum += std::conj(*elem_ki++) * (*--BPtr);//(*BPtr--)
             else
                 while(elem_ki < end_ki) sum += (*elem_ki++) * (*--BPtr);//(*BPtr--)
@@ -1419,9 +1394,13 @@ TPZSkylMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const {
             TVar *elem_ki = fElem[k]+1;
             TVar *end_ki  = fElem[k+1];
             TVar *BPtr = &(*B)(k,j);
-            if constexpr(is_complex<TVar>::value)
-                while(elem_ki < end_ki) sum += std::conj(*elem_ki++) * (*--BPtr);//(*BPtr--)
-            else
+            if constexpr(is_complex<TVar>::value){
+                if(this->fSymProp == SymProp::Herm){
+                    while(elem_ki < end_ki) sum += std::conj(*elem_ki++) * (*--BPtr);//(*BPtr--)
+                }else{
+                    while(elem_ki < end_ki) sum += (*elem_ki++) * (*--BPtr);//(*BPtr--)
+                }
+            }else
                 while(elem_ki < end_ki) sum += (*elem_ki++) * (*--BPtr);//(*BPtr--)
             
             // Faz B[k,j] = (B[k,j] - sum) / A[k,k].
@@ -1498,7 +1477,7 @@ TPZSkylMatrix<TVar>::Zero()
 {
     
     fStorage.Fill(0.);
-    this->fDecomposed = 0;
+    this->fDecomposed = ENoDecompose;
     this->fDefPositive = 0;
     return( 1 );
 }
@@ -1514,7 +1493,7 @@ TPZSkylMatrix<TVar>::Clear()
     //	fStorage.Shrink();
     this->fElem.Resize(0);
     this->fRow = this->fCol = 0;
-    this->fDecomposed = 0;
+    this->fDecomposed = ENoDecompose;
     return( 1 );
 }
 
@@ -1536,7 +1515,7 @@ TPZSkylMatrix<TVar>::Copy(const TPZSkylMatrix<TVar> &A )
         fElem[i]=firstp+(A.fElem[i]-A.fElem[0]);
     this->fDecomposed  = A.fDecomposed;
     this->fDefPositive = A.fDefPositive;
-    
+    this->fSymProp = A.fSymProp;
 }
 
 template<class TVar>
@@ -1741,13 +1720,31 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(int64_t col, int64_t prevcol){
     }
 }
 
+template<class TVar>
+void TPZSkylMatrix<TVar>::SetSymmetry (SymProp sp){
+    if(sp == SymProp::NonSym){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nTrying to set matrix with symmetric storage as non symmetric\n"
+               <<"Aborting..."<<std::endl;
+        DebugStop();
+    }
+    TPZBaseMatrix::SetSymmetry(sp);
+}
+
 template <class TVar>
-void TPZSkylMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
-    if (nrow != ncol || !symmetric)
+void TPZSkylMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sp) {
+    if (nrow != ncol || sp == SymProp::NonSym)
     {
+        
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nIncompatible arguments:"
+               <<"\nnr: "<<nrow<<" nc: "<<ncol<<" sp "<<SymPropName(sp)
+               <<"\nAborting..."
+               <<std::endl;
         DebugStop();
     }
     TPZMatrix<TVar>::Redim(nrow,ncol);
+    SetSymmetry(sp);
     TPZVec<int64_t> skyline(nrow);
     fElem.resize(nrow+1);
     fElem.Fill(0);
@@ -1787,6 +1784,25 @@ template class TPZSkylMatrix<std::complex<float> >;
 template class TPZSkylMatrix<double>;
 template class TPZSkylMatrix<std::complex<double> >;
 
+template class TPZSkylMatrix<long double>;
+template class TPZSkylMatrix<std::complex<long double> >;
+
+#define IMPLEMENT_ADDKEL(TVar) \
+  template void TPZSkylMatrix<TVar>::AddKelImpl<true>(TPZFMatrix<TVar>&elmat, \
+                                                      TPZVec<int64_t> &source, \
+                                                      TPZVec<int64_t> &destination);\
+  template void TPZSkylMatrix<TVar>::AddKelImpl<false>(TPZFMatrix<TVar>&elmat, \
+                                                       TPZVec<int64_t> &source, \
+                                                       TPZVec<int64_t> &destination);
+IMPLEMENT_ADDKEL(float)
+IMPLEMENT_ADDKEL(double)
+IMPLEMENT_ADDKEL(long double)
+IMPLEMENT_ADDKEL(std::complex<float>)
+IMPLEMENT_ADDKEL(std::complex<double>)
+IMPLEMENT_ADDKEL(std::complex<long double>)
+
+#undef IMPLEMENT_ADDKEL
+
 #ifndef BORLAND
 template class TPZRestoreClass<TPZSkylMatrix<float>>;
 template class TPZRestoreClass<TPZSkylMatrix<double>>;
@@ -1796,9 +1812,6 @@ template class TPZRestoreClass<TPZSkylMatrix<std::complex<float>>>;
 template class TPZRestoreClass<TPZSkylMatrix<std::complex<double>>>;
 template class TPZRestoreClass<TPZSkylMatrix<std::complex<long double>>>;
 #endif
-
-template class TPZSkylMatrix<long double>;
-template class TPZSkylMatrix<std::complex<long double> >;
 
 
 #if (defined DUMP_BEFORE_DECOMPOSE) || (defined DUMP_BEFORE_SUBST)

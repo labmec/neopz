@@ -25,9 +25,9 @@ set(public_headers
   pzfunction.h
   TPZExactFunction.h
   pzvec_extras.h
+  TPZAssert.h
   )
 set(headers
-    TPZAssert.h
     TPZHWTools.h
     TPZPriorityQueue.h
     checkconv.h

@@ -1,23 +1,48 @@
 # @file neopz/Material/Poisson/CMakeLists.txt
 
 set(public_headers
-    TPZWaveguideModalAnalysis.h
-    TPZWaveguideModalAnalysisPML.h
-    TPZPlanarWGScattering.h
-    TPZPlanarWGScatteringPML.h
+    TPZWgma.h
+    TPZAnisoWgma.h
+    TPZPlanarWgScatt.h
+    TPZPlanarWgScattSrc.h
+    TPZPeriodicWgma.h
+    TPZMatPML.h
+    TPZCartesianPML.h
+    TPZCartesianPML_impl.h
+    TPZCylindricalPML.h
+    TPZCylindricalPML_impl.h
+    TPZScalarField.h
+    TPZPlanarWgma.h
+    TPZScattering.h
+    TPZScatteringSrc.h
     )
 
 set(headers
-    TPZWaveguideModalAnalysis.h
-    TPZWaveguideModalAnalysisPML.h
-    TPZPlanarWGScattering.h
-    TPZPlanarWGScatteringPML.h
+    TPZWgma.h
+    TPZAnisoWgma.h
+    TPZPlanarWgScatt.h
+    TPZPlanarWgScattSrc.h
+    TPZPeriodicWgma.h
+    TPZMatPML.h
+    TPZCartesianPML.h
+    TPZCartesianPML_impl.h
+    TPZCylindricalPML.h
+    TPZCylindricalPML_impl.h
+    TPZScalarField.h
+    TPZPlanarWgma.h
+    TPZScattering.h
+    TPZScatteringSrc.h
    )
 set(sources
-    TPZWaveguideModalAnalysis.cpp
-    TPZWaveguideModalAnalysisPML.cpp
-    TPZPlanarWGScattering.cpp
-    TPZPlanarWGScatteringPML.cpp
+    TPZWgma.cpp
+    TPZAnisoWgma.cpp
+    TPZPlanarWgScatt.cpp
+    TPZPlanarWgScattSrc.cpp
+    TPZPeriodicWgma.cpp
+    TPZScalarField.cpp
+    TPZPlanarWgma.cpp
+    TPZScattering.cpp
+    TPZScatteringSrc.cpp
    )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/Electromagnetics)

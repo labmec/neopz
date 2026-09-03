@@ -41,7 +41,7 @@ void TPZMaterialData::Print(std::ostream &out) const
     out << "Shape function type " << ShapeFunctionType() << std::endl;
     out << "Active Approximation Space " << fActiveApproxSpace << std::endl;
     phi.Print("phi",out);
-    fDPhi.Print("fDPhi",out);
+    fH1.fDPhi.Print("H1 fDPhi",out);
     dphix.Print("dphix",out);
     out << "Number dual functions " << numberdualfunctions << std::endl;
     divphi.Print("div phi",out);
@@ -56,7 +56,8 @@ void TPZMaterialData::Print(std::ostream &out) const
     out << "HSize " << HSize << std::endl;
     out << "detjac " << detjac << std::endl;
     out << "XCenter " << XCenter << std::endl;
-    out << "fMasterDirections" << fMasterDirections << std::endl;
+    out << "HDiv fMasterDirections" << fHDiv.fMasterDirections << std::endl;
+    out << "HCurl fMasterDirections" << fHCurl.fMasterDirections << std::endl;
     out << "fDeformedDirections" << fDeformedDirections << std::endl;
     if(fNeedsDeformedDirectionsFad){
         fDeformedDirectionsFad.Print(out);
@@ -88,7 +89,7 @@ void TPZMaterialData::Print(std::ostream &out) const
 void TPZMaterialData::PrintMathematica(std::ostream &out) const
 {
     phi.Print("phi = ",out,EMathematicaInput);
-    fDPhi.Print("fDPhi = ",out,EMathematicaInput);
+    fH1.fDPhi.Print("H1 fDPhi = ",out,EMathematicaInput);
     dphix.Print("dphix = ",out,EMathematicaInput);
     axes.Print("axes = ",out,EMathematicaInput);
     jacobian.Print("jacobian = ",out,EMathematicaInput);
@@ -99,7 +100,8 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
     out << "HSize = " << HSize << ";" << std::endl;
     out << "detjac = " << detjac << ";" << std::endl;
     out << "XCenter = {" << XCenter << "};" << std::endl;
-    out << "fMasterDirections" << fMasterDirections << std::endl;
+    out << "HDivfMasterDirections" << fHDiv.fMasterDirections << std::endl;
+    out << "HCurlfMasterDirections" << fHCurl.fMasterDirections << std::endl;
     out << "intLocPtIndex = " << intLocPtIndex << ";" <<std::endl;
     out << "intGlobPtIndex = " << intGlobPtIndex << ";" <<std::endl;
     out << "NintPts = " << NintPts << ";" <<std::endl;

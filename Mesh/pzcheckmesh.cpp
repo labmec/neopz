@@ -21,7 +21,7 @@ void TPZCheckMesh::BuildDependList(int connect, TPZStack<int> &dependlist) {
 	int nconnects = fMesh->ConnectVec().NElements();
 	int ic;
 	for(ic=0; ic<nconnects; ic++) {
-		TPZConnect::TPZDepend *dep = fMesh->ConnectVec()[ic].FirstDepend();
+		TPZConnect::TPZDependBase *dep = fMesh->ConnectVec()[ic].FirstDepend();
 		if(dep && dep->HasDepend(connect)) {
 			dependlist.Push(ic);
 			continue;
@@ -223,10 +223,10 @@ int TPZCheckMesh::CheckConstraintDimension()
         }
 		int iblsize = fMesh->Block().Size(iseqnum);
 		if(con.HasDependency()) {
-			TPZConnect::TPZDepend *dep = con.FirstDepend();
+			TPZConnect::TPZDependBase *dep = con.FirstDepend();
 			while(dep) {
-				int r = dep->fDepMatrix.Rows();
-				int c = dep->fDepMatrix.Cols();
+				int r = dep->DepRows();
+				int c = dep->DepCols();
 				int jcind = dep->fDepConnectIndex;
 				TPZConnect &jcon = fMesh->ConnectVec()[jcind];
 				int jseqnum = jcon.SequenceNumber();
@@ -295,7 +295,7 @@ int TPZCheckMesh::CheckConstraintDimension()
                     largecon.insert(large.Element()->ConnectIndex(icl));
                 }
                 TPZConnect &c = fMesh->ConnectVec()[*it];
-                TPZConnect::TPZDepend *dep = c.FirstDepend();
+                TPZConnect::TPZDependBase *dep = c.FirstDepend();
                 while(dep)
                 {
                     if (largecon.find(dep->fDepConnectIndex) == largecon.end()) {

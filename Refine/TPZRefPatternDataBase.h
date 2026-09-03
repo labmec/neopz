@@ -60,7 +60,7 @@ public:
     int ImportRefPatterns(std::string &Path, int maxdim = 3);
 
     /** @brief Initialize the uniform refinement pattern from hard coaded data for all linear geometric elements */
-	void InitializeAllUniformRefPatterns();
+	void InitializeAllUniformRefPatterns(int maxd = 3);
 	
 	/** @brief Insert the refinement pattern in the list of availabe refinement patterns assigns an Id to refPattern */
 	void InsertRefPattern(TPZAutoPointer<TPZRefPattern> & refpat);

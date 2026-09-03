@@ -6,6 +6,7 @@
 #include "tpzautopointer.h"
 #include "pzcmesh.h"
 #include "pzfunction.h"
+#include "Elasticity/TPZLinearElasticityConstitutive.h"
 
 #include <string>
 
@@ -148,6 +149,7 @@ struct TPZAnalyticSolution
     
     std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> ExactSolution() const
     {
+        if(!this) DebugStop();
         return [this](const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
         {
             this->Solution(loc,result,deriv);
@@ -182,7 +184,7 @@ struct TPZAnalyticSolution
 
 struct TElasticity2DAnalytic : public TPZAnalyticSolution
 {
-     enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1, Etest2, EThiago, EPoly,
+     enum EDefState  {ENone, EDispx, EDispy, EDispxy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EHomogeneous, EBend, ELoadedBeam, Etest1, Etest2, EThiago, EPoly,
          ESquareRootUpper, ESquareRootLower, ESquareRoot
      };
     
@@ -197,6 +199,107 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     static REAL gPoisson;
     
     static int gOscilatoryElasticity;
+    
+    std::string Name() {
+        switch (fProblemType)
+        {
+            case EDispx:
+                return "DisplacementX";
+            case EDispy:
+                return "DisplacementY";
+            case ERot:
+                return "Rotation";
+            case EStretchx:
+                return "StretchingX";
+            case EUniAxialx:
+                return "UniaxialStretchingX";
+            case EStretchy:
+                return "StretchingY";
+            case EShear:
+                return "Shear";
+            case EHomogeneous:
+                return "Homogeneous";
+            case EBend:
+                return "Bending";
+            case ELoadedBeam:
+                return "LoadedBeam";
+            case Etest1:
+                return "Test1";
+            case Etest2:
+                return "Test2";
+            case EThiago:
+                return "Thiago";
+            case EPoly:
+                return "Polynomial";
+            case ESquareRootUpper:
+                return "SquareRootUpper";
+            case ESquareRootLower:
+                return "SquareRootLower";
+            case ESquareRoot:
+                return "SquareRoot";
+            default:
+                break;
+                
+        }
+        return "none";
+    }
+    
+    static EDefState StringToExactSol(std::string name) {
+        if (!name.compare("DisplacementX")) {
+            return EDispx;
+        }
+        if (!name.compare("DisplacementY")) {
+            return EDispy;
+        }
+        if (!name.compare("Rotation")) {
+            return ERot;
+        }
+        if (!name.compare("StretchingX")) {
+            return EStretchx;
+        }
+        if (!name.compare("UniaxialStretchingX")) {
+            return EUniAxialx;
+        }
+        if (!name.compare("StretchingY")) {
+            return EStretchy;
+        }
+        if (!name.compare("Shear")) {
+            return EShear;
+        }
+        if (!name.compare("Homogeneous")) {
+            return EHomogeneous;
+        }
+        if (!name.compare("Bending")) {
+            return EBend;
+        }
+        if (!name.compare("LoadedBeam")) {
+            return ELoadedBeam;
+        }
+        if (!name.compare("Test1")) {
+            return Etest1;
+        }
+        if (!name.compare("Test2")) {
+            return Etest2;
+        }
+        if (!name.compare("Thiago")) {
+            return EThiago;
+        }
+        if (!name.compare("Polynomial")) {
+            return EPoly;
+        }
+        if (!name.compare("SquareRootUpper")) {
+            return ESquareRootUpper;
+        }
+        if (!name.compare("SquareRootLower")) {
+            return ESquareRootLower;
+        }
+        if (!name.compare("SquareRoot")) {
+            return ESquareRoot;
+        }
+        return ENone;
+    }
+
+
 
     virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const override
     {
@@ -207,6 +310,8 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
         force[1] = -locforce[1];
     }
     
+    std::function<void (const TPZVec<REAL> &x, const TPZLinearElasticityConstitutive &Law, TPZVec<STATE> &result)> ForceFuncAnisotropic() const;
+
     virtual void GradU(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
     
     
@@ -268,13 +373,21 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
 
     static void ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
+    std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> ElasticFunc() const {
+        return [this](const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
+        {
+            this->ElasticDummy(loc, result, deriv);
+        };
+
+    }
+
     virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const override;
     
 };
 
 struct TElasticity3DAnalytic : public TPZAnalyticSolution
 {
-    enum EDefState  {ENone, EDispx, EDispy, ERot, EStretchx, EUniAxialx, EStretchy, EShear, EBend, ELoadedBeam, Etest1,Etest2, ETestShearMoment, ESphere };
+    enum EDefState  {ENone, EDispx, EDispy, EDispxyz, ERot, ERotXYZ, EStretchx, EUniAxialx, EStretchy, EStretchz, EHomogeneous, EShear, EBend, ELoadedBeam, Etest1,Etest2, ETestShearMoment, ESphere, EYotov };
     
     EDefState fProblemType = ENone;
     
@@ -331,10 +444,236 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
 
 struct TLaplaceExample1 : public TPZAnalyticSolution
 {
+    enum EExactSol {ENone, EConst, EX, EY, EZ, EXpY, EX2, ESinSin, ECosCos,  EArcTan, EArcTanSingular, ESteepWave, ESteepWave2, ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark, ESinMark2, ECosMark,ESteklovNonConst, ESteklovNonConst2, EPerpendicularSteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble, EBubble2D,ESinCosCircle, EHarmonic, EHarmonic2,
+        ESquareRootUpper, ESquareRootLower, ESquareRoot, ELaplace2D, EHarmonic3, EHarmonicPoly,
+        ESharpGaussian2D};
     
-    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos,  EArcTan, EArcTanSingular,ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark,ESteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble, EBubble2D,ESinCosCircle, EHarmonic, EHarmonic2,
-    ESquareRootUpper, ESquareRootLower, ESquareRoot, ELaplace2D};
-    
+    std::string Name() {
+        switch (fExact)
+        {
+        case EConst/* constant-expression */:
+            return "Constant";
+            break;
+        case EX:
+            return "X";
+            break;
+        case EY:
+            return "Y";
+            break;
+        case EZ:
+            return "Z";
+            break;
+        case EXpY:
+            return "X+Y";
+            break;
+        case EX2:
+            return "X2";
+            break;
+        case ESinSin:
+            return "SinSin";
+            break;
+        case ECosCos:
+            return "CosCos";
+            break;
+        case EArcTan:
+            return "ArcTan";
+            break;
+        case EArcTanSingular:
+            return "ArcTanSingular";
+            break;
+        case ESteepWave:
+            return "SteepWave";
+            break;
+        case ESteepWave2:
+            return "SteepWave2";
+            break;
+        case ESinDist:
+            return "SinDist";
+            break;
+        case E10SinSin:
+            return "10SinSin";
+            break;
+        case E2SinSin:
+            return "2SinSin";
+            break;
+        case ESinSinDirNonHom:
+            return "SinSinDirNonHom";
+            break;
+        case ESinMark:
+            return "SinMark";
+            break;
+        case ESinMark2:
+            return "SinMark2";
+            break;
+        case ESteklovNonConst:
+            return "SteklovNonConst";
+            break;
+        case ESteklovNonConst2:
+            return "SteklovNonConst2";
+            break;
+        case EGalvisNonConst:
+            return "GalvisNonConst";
+            break;
+        case EBoundaryLayer:
+            return "BoundaryLayer";
+            break;
+        case EBubble:
+            return "Bubble";
+            break;
+        case EBubble2D:
+            return "Bubble2D";
+            break;
+        case ESinCosCircle:
+            return "SinCosCircle";
+            break;
+        case EHarmonic:
+            return "Harmonic";
+            break;
+        case EHarmonic2:
+            return "Harmonic2";
+            break;
+        case ESquareRootUpper:
+            return "SquareRootUpper";
+            break;
+        case ESquareRootLower:
+            return "SquareRootLower";
+            break;
+        case ESquareRoot:
+            return "SquareRoot";
+            break;
+        case ELaplace2D:
+            return "Laplace2D";
+            break;
+        case EHarmonic3:
+            return "Harmonic3";
+            break;
+        case EHarmonicPoly:
+            return "HarmonicPoly";
+            break;
+        case EPerpendicularSteklovNonConst:
+            return "PerpendicularSteklovNonConst";
+            break;
+
+        case ESharpGaussian2D:
+            return "SharpGaussian2D";
+            break;
+
+        default:
+            DebugStop();
+            return "None";
+            break;
+        }
+    }
+
+static EExactSol StringToExactSol(std::string name) {
+    if (!name.compare("Constant")) {
+        return EConst;
+    }
+    if (!name.compare("X")) {
+        return EX;
+    }
+    if (!name.compare("Y")) {
+        return EY;
+    }
+    if (!name.compare("Z")) {
+        return EZ;
+    }
+    if (!name.compare("X+Y")) {
+        return EXpY;
+    }
+    if (!name.compare("X2")) {
+        return EX2;
+    }
+    if (!name.compare("SinSin")) {
+        return ESinSin;
+    }
+    if (!name.compare("CosCos")) {
+        return ECosCos;
+    }
+    if (!name.compare("ArcTan")) {
+        return EArcTan;
+    }
+    if (!name.compare("ArcTanSingular")) {
+        return EArcTanSingular;
+    }
+    if (!name.compare("SteepWave")) {
+        return ESteepWave;
+    }
+    if (!name.compare("SteepWave2")) {
+        return ESteepWave2;
+    }
+    if (!name.compare("SinDist")) {
+        return ESinDist;
+    }
+    if (!name.compare("10SinSin")) {
+        return E10SinSin;
+    }
+    if (!name.compare("2SinSin")) {
+        return E2SinSin;
+    }
+    if (!name.compare("SinSinDirNonHom")) {
+        return ESinSinDirNonHom;
+    }
+    if (!name.compare("SinMark")) {
+        return ESinMark;
+    }
+    if (!name.compare("SinMark2")) {
+        return ESinMark2;
+    }
+    if (!name.compare("SteklovNonConst")) {
+        return ESteklovNonConst;
+    }
+    if (!name.compare("SteklovNonConst2")) {
+        return ESteklovNonConst2;
+    }
+    if (!name.compare("PerpendicularSteklovNonConst")) {
+        return EPerpendicularSteklovNonConst;
+    }
+    if (!name.compare("GalvisNonConst")) {
+        return EGalvisNonConst;
+    }
+    if (!name.compare("BoundaryLayer")) {
+        return EBoundaryLayer;
+    }
+    if (!name.compare("Bubble")) {
+        return EBubble;
+    }
+    if (!name.compare("Bubble2D")) {
+        return EBubble2D;
+    }
+    if (!name.compare("SinCosCircle")) {
+        return ESinCosCircle;
+    }
+    if (!name.compare("Harmonic")) {
+        return EHarmonic;
+    }
+    if (!name.compare("Harmonic2")) {
+        return EHarmonic2;
+    }
+    if (!name.compare("SquareRootUpper")) {
+        return ESquareRootUpper;
+    }
+    if (!name.compare("SquareRootLower")) {
+        return ESquareRootLower;
+    }
+    if (!name.compare("SquareRoot")) {
+        return ESquareRoot;
+    }
+    if (!name.compare("Laplace2D")) {
+        return ELaplace2D;
+    }
+    if (!name.compare("Harmonic3")) {
+        return EHarmonic3;
+    }
+    if (!name.compare("HarmonicPoly")) {
+        return EHarmonicPoly;
+    }
+    if (!name.compare("SharpGaussian2D")) {
+        return ESharpGaussian2D;
+    }
+    return ENone;
+}
+
     int fDimension = 2;
     
     EExactSol fExact = EArcTan;
@@ -464,7 +803,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     
     enum MProblemType {EStokes, ENavierStokes, EOseen, ENavierStokesCDG, EOseenCDG, EBrinkman};
     
-    enum EExactSol {ENone, ECavity,  EKovasznay, EKovasznayCDG, ESinCos, ENoFlow, ESinCos3D, EPconst, EObstacles, EOneCurve , ESinCosBDS, ESinCosBDS3D, EGatica3D, ECouplingSD, ECouplingNSD, EVugs2D, EVugs3D, EInfiltrationNS};
+    enum EExactSol {ENone, ECavity,  EKovasznay, EKovasznayCDG, ESinCos, ENoFlow, ESinCos3D, EPconst, EObstacles, EOneCurve , ESinCosBDS, ESinCosBDS3D, EGatica3D, ECouplingSD, ECouplingNSD, EVugs2D, EVugs3D, EInfiltrationNS, EConstantFlow, ECouetteFlow, EPoisFlow, ETaylorCouette, EElbow, EPaperComp, ESimpleF};
     
     int fDimension = 2;
     
@@ -479,6 +818,16 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     REAL Pi = M_PI;
         
     REAL fcBrinkman = 1.;
+    
+    REAL fvelocity = 1.;
+    
+    REAL fconstPressure = 1.;
+    
+    REAL fgradP = 1.;
+    
+    REAL fRe = 2.;
+    
+    REAL fRi = 1.;
         
     TPZManVector<REAL,3> fCenter;
     

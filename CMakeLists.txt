@@ -6,6 +6,10 @@ cmake_minimum_required (VERSION 3.14)
 #set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/cmake/CompilerOptionsMSVC.cmake")
 
 project(PZ LANGUAGES CXX)
+
+message("We strongly recommend usage of the following options
+(specially when testing changes in NeoPZ or in the develop branch):\nUSING_MKL=ON (APPLE: USING_MUMPS=ON instead)\nUSING_LOG4CXX=ON\n\nAlso, for multiple NeoPZ installs,
+changing CMAKE_INSTALL_PREFIX might be desirable\nfor setting up a local install.\n\n")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -34,13 +38,17 @@ ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}
 if(APPLE)
 set(basePoint @loader_path)
 else()
-set(basePoint $ORIGIN)
+set(basePoint ${ORIGIN})
 endif()
 set(CMAKE_MACOSX_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_INSTALL_RPATH ${basePoint} ${basePoint}/${relDir})
 ##RPATH SETTINGS - END
+if (WIN32)
+set(PZ_LIB_TYPE STATIC)
+else (WIN32)
 set(PZ_LIB_TYPE SHARED)
+endif()
 add_library(pz ${PZ_LIB_TYPE} "")
 target_compile_features(pz PUBLIC cxx_std_17)
 ##TODOWIN32: check whether these distinctions are really necessary
@@ -81,7 +89,7 @@ if(APPLE)
   set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
 endif()
 # Location to search files or libraries
-set(EXTRA_SEARCH_DIRS ${EXTRA_SEARCH_DIRS})
+set(EXTRA_SEARCH_DIRS ${EXTRA_SEARCH_DIRS} /opt/homebrew/lib /opt/homebrew/include)
 
 #ENABLING EXTERNAL LIBRARIES
 
@@ -93,12 +101,6 @@ mark_as_advanced(CMAKE_TBB_DEBUG)
 
 include(cmake/EnableThreads.cmake)
 enable_threads(pz)
-
-IF(APPLE)
-   # Mac OS X specific code
-   find_library(ACCELERATE_LIB Accelerate)
-   target_link_libraries(pz PRIVATE ${ACCELERATE_LIB})
-ENDIF(APPLE)
 
 #To enable unit test using Catch2 UnitTest framework
 option(BUILD_UNITTESTING "Whether the Catch2 UnitTest will be linked in" OFF)
@@ -128,13 +130,6 @@ else()
   set(PZ_LOG OFF)
 endif()
 
-#enabling METIS library
-option(USING_METIS "Whether the METIS library will be linked in" OFF)
-if(USING_METIS)
-    include(cmake/EnableMetis.cmake)
-    enable_metis(pz)
-endif()
-
 #enabling OPENSSL library (used for MD5 computation)
 option(USING_OPENSSL "Whether the OPENSSL library will be linked in" OFF)
 if(USING_OPENSSL)
@@ -147,6 +142,23 @@ option(USING_TBB "Whether the TBB library will be linked in" OFF)
 if(USING_TBB)
     include(cmake/EnableTBB.cmake)
 	enable_tbb(pz)
+endif()
+
+#enabling OMP library
+option(USING_OMP "Whether the OpenMP library will be linked in" OFF)
+if(USING_OMP)
+    if(CMAKE_GENERATOR MATCHES "Xcode")
+        message(STATUS "setting flags")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Xclang -fopenmp")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fopenmp")
+        find_library(XCODE_OMP_LIB NAMES libiomp5.dylib PATHS /opt/local/lib/libomp)
+        target_link_libraries(pz PRIVATE ${XCODE_OMP_LIB})
+        find_path(XCODE_OMP_INCLUDE omp.h PATHS /opt/local/include/libomp)
+        include_directories(${XCODE_OMP_INCLUDE})
+    else()
+        include(cmake/EnableOMP.cmake)
+        enable_omp(pz)
+    endif()
 endif()
 
 #enabling LIKWID library
@@ -168,7 +180,31 @@ option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
     include(cmake/EnableMKL.cmake)
     enable_mkl(pz)
+else()
+    IF(APPLE)
+        # Mac OS X specific code
+        find_library(ACCELERATE_LIB Accelerate)
+        target_link_libraries(pz PRIVATE ${ACCELERATE_LIB})
+    ENDIF(APPLE)
 endif(USING_MKL)
+
+#enabling MUMPS library
+option(USING_MUMPS "Whether the MUMPS library will be linked in" OFF)
+if(USING_MUMPS)
+    include(cmake/EnableMUMPS.cmake)
+    enable_mumps(pz)
+endif(USING_MUMPS)
+
+#enabling METIS library (deferred check after MUMPS)
+option(USING_METIS "Whether the METIS library will be linked in" OFF)
+if(USING_MUMPS AND NOT USING_METIS)
+    message(STATUS "[NeoPZ] USING_MUMPS=ON, automatically enabling USING_METIS")
+    set(USING_METIS ON CACHE BOOL "Whether the METIS library will be linked in" FORCE)
+endif()
+if(USING_METIS)
+    include(cmake/EnableMetis.cmake)
+    enable_metis(pz)
+endif()
 
 #enabling LAPACK library
 option(USING_LAPACK "Whether the LAPACK library will be linked in" OFF)
@@ -314,11 +350,8 @@ add_subdirectory(Exception)
 #############INSTALL#############
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  if(WIN32)
-    set(CMAKE_INSTALL_PREFIX "C:/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
-  else()
-    set(CMAKE_INSTALL_PREFIX "/opt/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
-  endif()
+  get_filename_component(PZ_DEFAULT_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/../neopz_install" ABSOLUTE)
+  set(CMAKE_INSTALL_PREFIX "${PZ_DEFAULT_INSTALL_PREFIX}" CACHE PATH "Directory where PZ will be installed" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 # End of pz_config.h part
@@ -352,6 +385,19 @@ install(FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/check_pz_opt.cmake"
         DESTINATION ${PZ_CMAKE_INSTALL_DIR}
         )
+
+option(USING_UMFPACK "Whether the UMFPACK library will be linked in" OFF)
+if(USING_UMFPACK)
+		  find_package(suitesparse CONFIG)
+		  target_link_libraries(pz PUBLIC SuiteSparse::umfpack)
+		  target_compile_definitions(pz PUBLIC USING_UMFPACK)
+endif(USING_UMFPACK)
+
+option(USING_EIGEN "Whether the EIGEN library will be linked in" OFF)
+if(USING_EIGEN)
+  include(cmake/EnableEigen.cmake)
+  enable_eigen(pz)
+endif(USING_EIGEN)
 
 include(cmake/InstallPZConfigFile.cmake)
 

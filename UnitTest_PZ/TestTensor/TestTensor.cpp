@@ -11,11 +11,11 @@
 #include "pzsfulmat.h"
 #include "pzskylnsymmat.h"
 #include "pzskylmat.h"
-#include "pzysmp.h"
-#include "pzsysmp.h"
+#include "TPZYSMPMatrix.h"
+#include "TPZSYSMPMatrix.h"
 #include "TPZTensor.h"
 #include "fstream"
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 /// Testing Eigenvalues of a tensor
 
@@ -84,7 +84,7 @@ void TestingEigenDecompositionThreeDistinct() {
 template <class TTensor, class TNumber>
 void TestingEigenDecompositionAutoFill() {
     TPZFMatrix<TNumber> ma;
-    ma.AutoFill(3, 3, true);
+    ma.AutoFill(3, 3, SymProp::Herm);
 
     TTensor tensor(ma);
 
@@ -507,7 +507,7 @@ TEST_CASE("eigenvalue_tests_hydro","[tensor_tests]") {
   TestingEigenDecompositionHydrostatic<TPZTensor<double>, double>();
   TestingEigenDecompositionHydrostatic<TPZTensor<float>, float>();
 }
-// //NOT WORKING
+// //NEEDS FIX
 // TEST_CASE("eigenvalue_tests_two","[tensor_tests]") {
 //   TestingEigenDecompositionTwoEigenValues<TPZTensor<double>, double>();
 //   TestingEigenDecompositionTwoEigenValues<TPZTensor<float>, float>();

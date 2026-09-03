@@ -7,6 +7,9 @@ target_include_directories(pz PUBLIC
 
 set(public_headers
     TPZRenumbering.h
+    TPZCutHillMcKee.h
+    TPZSloanRenumbering.h
+    tpznodesetcompute.h
     )
 set(headers
     TPZBoostGraph.h

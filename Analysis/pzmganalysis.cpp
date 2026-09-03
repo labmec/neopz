@@ -72,18 +72,17 @@ void TPZMGAnalysis::AppendMesh(TPZCompMesh * mesh){
 	TPZMatrixSolver<STATE> *prec;
 	prec = fPrecondition[nmeshes-1];
 	if(!prec) prec = fSolvers[nmeshes-1];
-	TPZAutoPointer<TPZGuiInterface> guiInterface = new TPZGuiInterface;
 	TPZAutoPointer<TPZMatrix<STATE> > skauto =
-		dynamic_cast<TPZMatrix<STATE>*>(skstr.CreateAssemble(fRhs, guiInterface));
+		dynamic_cast<TPZMatrix<STATE>*>(skstr.CreateAssemble(fRhs));
 	TPZMGSolver<STATE> s2(trauto,*prec,nvar,skauto);
 	TPZSequenceSolver<STATE> s3;
-	s3.ShareMatrix(s2);
+	s3.SetMatrix(s2.Matrix());
 	s3.AppendSolver(s1);
 	s3.AppendSolver(s2);
 	s3.AppendSolver(s1);
 	
 	TPZStepSolver<STATE> s4;
-	s4.ShareMatrix(s3);
+	s4.SetMatrix(s3.Matrix());
 	fPrecondition.Push((TPZMatrixSolver<STATE> *)s3.Clone());
 	s4.SetCG(200,s3,1.e-6,1);
 	SetSolver(s4);

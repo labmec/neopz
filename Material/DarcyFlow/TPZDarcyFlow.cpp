@@ -9,7 +9,19 @@ TPZDarcyFlow::TPZDarcyFlow() : TPZRegisterClassId(&TPZDarcyFlow::ClassId),
                                TBase(), fDim(-1) {}
 
 TPZDarcyFlow::TPZDarcyFlow(int id, int dim) : TPZRegisterClassId(&TPZDarcyFlow::ClassId),
-                                              TBase(id), fDim(dim) {}
+                                              TBase(id), fDim(dim) {
+                                              }
+
+TPZDarcyFlow::TPZDarcyFlow(const TPZDarcyFlow &copy) : TPZMatBase(copy), fDim(copy.fDim)
+{
+    *this = copy;
+}
+
+TPZDarcyFlow& TPZDarcyFlow::operator=(const TPZDarcyFlow &copy) {
+    TPZMatBase::operator=(copy);
+    fDim = copy.fDim;
+    return *this;
+}
 
 void TPZDarcyFlow::SetDimension(int dim) {
     if (dim > 3 || dim < 1) DebugStop();
@@ -19,7 +31,7 @@ void TPZDarcyFlow::SetDimension(int dim) {
 void TPZDarcyFlow::Contribute(const TPZMaterialDataT<STATE> &data, STATE weight, TPZFMatrix<STATE> &ek,
                               TPZFMatrix<STATE> &ef) {
 
-    const TPZFMatrix<REAL> &phi = data.fPhi;
+    const TPZFMatrix<REAL> &phi = data.fH1.fPhi;
     const TPZFMatrix<REAL> &dphi = data.dphix;
     const TPZVec<REAL> &x = data.x;
     const TPZFMatrix<REAL> &axes = data.axes;
@@ -58,9 +70,32 @@ void TPZDarcyFlow::ContributeBC(const TPZMaterialDataT<STATE> &data, STATE weigh
 
     if (bc.HasForcingFunctionBC()) {
         TPZManVector<STATE, 1> rhs_val(1);
-        TPZFNMatrix<1, STATE> mat_val(1, 1);
+        TPZFNMatrix<1, STATE> mat_val(fDim, 1);
         bc.ForcingFunctionBC()(data.x, rhs_val, mat_val);
-        v2 = rhs_val[0];
+        // MinusKGradU/Flux;
+        const STATE perm = GetPermeability(data.x);
+        TPZManVector<STATE, 3> Flux(fDim, 0.);
+        for (int id = 0; id < fDim; id++) {
+            Flux[id] = - perm * mat_val(id, 0);
+        }
+        TPZManVector<REAL,3> normal(3,0.);
+        for (int i = 0; i < fDim; i++) {
+            normal[i] = data.normal[i];
+        }
+        if(bc.Type() == 0) {
+            v2 = rhs_val[0];
+        } else if(bc.Type() == 1) {
+            v2 = 0.;
+            for (int i = 0; i < fDim; i++) {
+                v2 += -Flux[i] * normal[i];
+            }
+        } else if(bc.Type() == 2) {
+            v2 = 0.;
+            for (int i = 0; i < fDim; i++) {
+                v2 += -Flux[i] * normal[i];
+            }
+            v2 += bc.Val1()(0,0) * rhs_val[0];
+        }
     }
 
     switch (bc.Type()) {
@@ -116,6 +151,10 @@ int TPZDarcyFlow::VariableIndex(const std::string &name) const {
     if (!strcmp("ExactDiv", name.c_str())) return 12;
     if (!strcmp("ExactDivergence", name.c_str())) return 12;
     if (!strcmp("FluxL2", name.c_str())) return 13;
+    if (!strcmp("EstimatedError", name.c_str())) return 100;
+    if (!strcmp("TrueError", name.c_str())) return 101;
+    if (!strcmp("EffectivityIndex", name.c_str())) return 102;
+    if (!strcmp("ResidualError", name.c_str())) return 103;
 
     return TPZMatBase::VariableIndex(name);
 }
@@ -128,19 +167,29 @@ int TPZDarcyFlow::NSolutionVariables(int var) const {
     if (var == 4) return 1;      // KDuDy;
     if (var == 5) return 1;      // KDuDz;
     if (var == 6) return 1;      // NormKDu;
-    if (var == 7) return fDim;   // MinusKGradU/Flux;
+    if (var == 7) return 3;   // MinusKGradU/Flux;
     if (var == 8) return 1;      // POrder
     if (var == 9) return 1;      // ExactPressure/ExactSolution
     if (var == 10) return fDim;  // ExactFlux
     if (var == 11) return 1;     // Div/Divergence
     if (var == 12) return 1;     // ExactDiv/ExactDivergence
     if (var == 13) return fDim;  // FluxL2
+    if (var == 100) return 1;  // EstimatedError
+    if (var == 101) return 1;  // TrueError
+    if (var == 102) return 1;  // EffectivityIndex
+    if (var == 103) return 1;  // ResidualError
+
 
     return TPZMatBase::NSolutionVariables(var);
 }
 
 void TPZDarcyFlow::Solution(const TPZMaterialDataT<STATE> &data, int var, TPZVec<STATE> &solOut) {
 
+    if(data.fShapeType == TPZMaterialData::EEmpty) {
+        solOut.Resize(NSolutionVariables(var));
+        solOut.Fill(0.);
+        return;
+    }
     switch (var) {
         case 1: {
             // Solution/Pressure
@@ -198,7 +247,7 @@ void TPZDarcyFlow::Solution(const TPZMaterialDataT<STATE> &data, int var, TPZVec
             TPZFNMatrix<9, STATE> dsoldx;
             TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dsoldx, data.axes);
             const STATE perm = GetPermeability(data.x);
-            for (int id = 0; id < fDim; id++) {
+            for (int id = 0; id < 3; id++) {
                 solOut[id] = - perm * dsoldx(id, 0);
             }
             return;
@@ -265,6 +314,14 @@ void TPZDarcyFlow::GetSolDimensions(uint64_t &u_len, uint64_t &du_row, uint64_t 
     du_col=1;
 }
 
+void TPZDarcyFlow::ErrorNames(TPZVec<std::string> &names) const {
+    int nerr = NEvalErrors();
+    names.Resize(nerr);
+    names[0] = "H1_Norm";
+    names[1] = "L2_Norm";
+    names[2] = "H1_Semi_Norm";
+}
+
 void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
                           TPZVec<REAL> &errors) {
     const TPZVec<REAL> &x = data.x;
@@ -276,14 +333,14 @@ void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
     if(!this->HasExactSol()){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<"\nThe material has no associated exact solution. Aborting...\n";
-        DebugStop();
+        DebugStop(); 
     }
 #endif
-    
-    errors.Resize(NEvalErrors(), 0.);
+    if(errors.size() != NEvalErrors()) DebugStop();
+//    errors.Resize(NEvalErrors(), 0.);
 
-    TPZVec<STATE> exact_pressure(1, 0);
-    TPZFMatrix<STATE> exact_flux(fDim, 1, 0);
+    TPZManVector<STATE,1> exact_pressure(1, 0);
+    TPZFNMatrix<3,STATE> exact_flux(fDim, 1, 0);
     fExactSol(x, exact_pressure, exact_flux);
 
     TPZFNMatrix<3,STATE> gradu(3,1);
@@ -296,17 +353,18 @@ void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
     // errors[2] - H1 semi-norm: |H1| = K*(grad[u] - grad[u_exact])
     const STATE perm = GetPermeability(data.x);
 
-    TPZVec<REAL> graduDiff(fDim, 0);
+    TPZManVector<REAL,3> graduDiff(fDim, 0);
     for (int id = 0; id < fDim; id++) {
         graduDiff[id] += fabs(gradu(id) - exact_flux(id, 0));
     }
     diff = 0;
     for (int id = 0; id < fDim; id++) {
-        diff += perm * graduDiff[id];
+        REAL aux = graduDiff[id];
+        diff += perm * aux * aux;
     }
-    errors[2] += abs(diff * diff);
+    errors[2] = abs(diff);
 
-    // errors[0] - H1/Energy norm
+    // errors[0] - H1 norm
     errors[0] = errors[1] + errors[2];
 
     // TODO confirm with Phil is the following norms are correct
@@ -319,7 +377,7 @@ void TPZDarcyFlow::Errors(const TPZMaterialDataT<STATE> &data,
     for (int id = 0; id < fDim; id++) {
         flux_sol[id] = - perm * dsoldx(id, 0);
     }
-
+    return;
     for (int id = 0; id < fDim; id++) {
         diff = fabs(exact_flux[id] - flux_sol[id]);
         errors[3 + id] = diff * diff;
@@ -351,7 +409,10 @@ void TPZDarcyFlow::FillBoundaryConditionDataRequirements(int type, TPZMaterialDa
     if (type == 50) {
         data.fNeedsSol = true;
     }
-    if (type == 3) {
+    if (type == 3 || type == 1) {
+        data.fNeedsNormal = true;
+    }
+    if (HasForcingFunction()) {
         data.fNeedsNormal = true;
     }
 }

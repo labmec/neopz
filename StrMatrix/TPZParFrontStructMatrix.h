@@ -27,7 +27,6 @@ class TPZParFrontStructMatrix :
 	
 private:
 	
-	TPZAutoPointer<TPZGuiInterface> fGuiInterface;
 	
 public:     
 		
@@ -52,10 +51,10 @@ public:
 	 * @param rhs Load matrix
 	 * @param guiInterface pointer to user interface
 	 */
-	virtual TPZMatrix<TVar> * CreateAssemble( TPZFMatrix<TVar> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual TPZMatrix<TVar> * CreateAssemble( TPZFMatrix<TVar> &rhs);
 	
 	
-	virtual void Assemble(TPZMatrix<TVar> & mat, TPZFMatrix<TVar> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void Assemble(TPZMatrix<TVar> & mat, TPZFMatrix<TVar> & rhs);
 	
 	/** @brief It computes element matrices in an independent thread. */
 	/** 

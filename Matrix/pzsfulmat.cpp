@@ -33,6 +33,7 @@ TPZMatrix<TVar>( dim, dim )
 	
 	// Zera a Matriz.
 	Zero();
+	this->fSymProp = SymProp::Herm;
 }
 
 /*********************************/
@@ -40,7 +41,7 @@ TPZMatrix<TVar>( dim, dim )
 template<class TVar>
 TPZSFMatrix<TVar> ::TPZSFMatrix (const TPZSFMatrix<TVar>  & A)
 : TPZRegisterClassId(&TPZSFMatrix::ClassId),
-TPZMatrix<TVar> ( A.Dim(), A.Dim() )
+TPZMatrix<TVar> ( A )
 {
     int64_t size = Size();
 	fElem = new TVar[size] ;
@@ -53,6 +54,7 @@ TPZMatrix<TVar> ( A.Dim(), A.Dim() )
 	TVar *end = &fElem[Size()];
 	while ( dst < end )
 		*dst++ = *src++;
+	this->fSymProp = A.GetSymmetry();
 }
 
 /*** Constructor( TPZSFMatrix& ) ***/
@@ -98,6 +100,17 @@ TPZSFMatrix<TVar> ::~TPZSFMatrix ()
 		delete []fElem;
 }
 
+template<class TVar>
+void TPZSFMatrix<TVar>::SetSymmetry (SymProp sp){
+    if(sp == SymProp::NonSym){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nTrying to set matrix with symmetric storage as non symmetric\n"
+               <<"Aborting..."<<std::endl;
+        DebugStop();
+    }
+		TPZBaseMatrix::SetSymmetry(sp);
+}
+
 
 template<class TVar>
 TPZSFMatrix<TVar> &
@@ -114,7 +127,7 @@ TPZSFMatrix<TVar> ::operator=(const TPZSFMatrix<TVar>  &A )
 		if ( fElem == NULL )
 			TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Operator= <memory allocation error>." );
     }
-	
+	this->fSymProp = A.fSymProp;
 	this->fRow = this->fCol =  A.Dim();
 	
 	// Copia a matriz
@@ -133,6 +146,7 @@ template<class TVar>
 TPZSFMatrix<TVar> &
 TPZSFMatrix<TVar> ::operator=(TPZSFMatrix<TVar>  &&A )
 {
+	TPZMatrix<TVar>::operator=(A);
 	fElem=A.fElem;
 	A.fElem=nullptr;
 	return *this;
@@ -155,6 +169,7 @@ TPZSFMatrix<TVar> ::operator+(const TPZSFMatrix<TVar>  &A ) const
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Operator+ <matrixs with different dimensions>" );
 	
 	TPZSFMatrix<TVar>  res( this->Dim() );
+	res.SetSymmetry(this->GetSymmetry());
 	TVar *pm  = fElem;
 	TVar *pa  = A.fElem;
 	TVar *pr  = res.fElem;
@@ -207,7 +222,6 @@ TPZSFMatrix<TVar> ::operator+=(const TPZSFMatrix<TVar>  &A )
 	while ( dst < end )
 		*dst++ += *src++;
 	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -229,7 +243,6 @@ TPZSFMatrix<TVar> ::operator-=(const TPZSFMatrix<TVar>  &A )
 	while ( dst < end )
 		*dst++ -= *src++;
 	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -328,7 +341,6 @@ TPZSFMatrix<TVar> ::operator+=(const TPZMatrix<TVar>  &A )
 		for ( int64_t r = 0; r <= c; r++ )
 			*pm++ += A.Get( r, c );
 	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -349,7 +361,6 @@ TPZSFMatrix<TVar> ::operator-=(const TPZMatrix<TVar>  &A )
 		for ( int64_t r = 0; r <= c; r++ )
 			*pm++ -= A.Get( r, c );
 	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -368,7 +379,7 @@ TPZSFMatrix<TVar> ::operator=(const TVar value )
 	TVar *end = &fElem[ Size() ];
 	while ( dst < end )
 		*dst++ = value;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	this->fDefPositive = 0;
 	return( *this );
 }
@@ -425,7 +436,6 @@ TPZSFMatrix<TVar> ::operator+=( TVar value )
 	TVar *end = &fElem[ Size() ];
 	while ( dst < end )
 		*dst++ += value;
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -442,7 +452,6 @@ TPZSFMatrix<TVar> ::operator*=( TVar value )
 	TVar *end = &fElem[ Size() ];
 	while ( dst < end )
 		*dst++ *= value;
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -452,8 +461,15 @@ TPZSFMatrix<TVar> ::operator*=( TVar value )
 /*** Resize ***/
 template<class TVar>
 int
-TPZSFMatrix<TVar> ::Resize( int64_t newDim , int64_t )
+TPZSFMatrix<TVar> ::Resize(const int64_t newRows, const int64_t newCols)
 {
+	if (newRows != newCols)
+	{
+		PZError<<__PRETTY_FUNCTION__;
+    	PZError<<"\nERROR: TPZSFMatrix must be square.\n";
+    	DebugStop();
+	}
+	int64_t newDim = newRows;
 	if ( newDim == this->Dim() )
 		return( 1 );
 	
@@ -481,7 +497,7 @@ TPZSFMatrix<TVar> ::Resize( int64_t newDim , int64_t )
 		delete( fElem );
 	fElem = newElem;
 	this->fRow = this->fCol = newDim;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	return( 1 );
 }
 
@@ -492,8 +508,15 @@ TPZSFMatrix<TVar> ::Resize( int64_t newDim , int64_t )
 
 template<class TVar>
 int
-TPZSFMatrix<TVar> ::Redim( int64_t newDim , int64_t)
+TPZSFMatrix<TVar> ::Redim(int64_t newRows , int64_t newCols)
 {
+	if (newRows != newCols)
+	{
+		PZError<<__PRETTY_FUNCTION__;
+    	PZError<<"\nERROR: TPZSFMatrix must be square.\n";
+    	DebugStop();
+	}
+	int64_t newDim = newRows;
 	// Se for preciso, desaloca a matriz antiga e aloca uma
 	//  nova com o novo tamanho.
 	if ( newDim != this->Dim() )
@@ -509,7 +532,7 @@ TPZSFMatrix<TVar> ::Redim( int64_t newDim , int64_t)
 	TVar *end = &fElem[ Size() ];
 	while ( dst < end )
 		*dst++ = 0.;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	this->fDefPositive = 0;
 	
 	
@@ -525,20 +548,12 @@ TPZSFMatrix<TVar> ::Zero()
 	TVar *end = &fElem[ Size() ];
 	while ( dst < end )
 		*dst++ = 0.;
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	this->fDefPositive = 0;
 	return( 1 );
 }
 /******** Resolucao de Sistemas ********/
 
-/**************************/
-/*** Decompose Cholesky ***/
-template<class TVar>
-int
-TPZSFMatrix<TVar> ::Decompose_Cholesky(std::list<int64_t> &singular)
-{
-	return Decompose_Cholesky();
-}
 
 template<class TVar>
 int
@@ -600,12 +615,6 @@ TPZSFMatrix<TVar> ::Decompose_Cholesky()
 
 /**********************/
 /*** Decompose LDLt ***/
-template<class TVar>
-int
-TPZSFMatrix<TVar> ::Decompose_LDLt(std::list<int64_t> &singular)
-{
-	return Decompose_LDLt();
-}
 
 template<class TVar>
 int
@@ -663,7 +672,7 @@ TPZSFMatrix<TVar> ::Subst_Forward( TPZFMatrix<TVar>  *B ) const
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
 		return( 0 );
 	
-	if ( B->IsSymmetric() )
+	if ( B->GetSymmetry()!=SymProp::NonSym )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_Forward <the matrix result can not be simetric>" );
 	
 	TVar *ptr_k = fElem;
@@ -699,7 +708,7 @@ TPZSFMatrix<TVar> ::Subst_Backward( TPZFMatrix<TVar>  *B ) const
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
 		return( 0 );
 	
-	if ( B->IsSymmetric() )
+	if ( B->GetSymmetry()!= SymProp::NonSym )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_Backward <the matrix result can not be simetric>" );
 	
 	TVar *ptr_k = &fElem[ Size()-1 ];
@@ -739,7 +748,7 @@ TPZSFMatrix<TVar> ::Subst_LForward( TPZFMatrix<TVar>  *B ) const
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
 		return( 0 );
 	
-	if ( B->IsSymmetric() )
+	if ( B->GetSymmetry() != SymProp::NonSym )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_LForward <the matrix result can not be simetric>" );
 	
 	TVar *ptr_k = fElem;
@@ -773,7 +782,7 @@ TPZSFMatrix<TVar> ::Subst_LBackward( TPZFMatrix<TVar>  *B ) const
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
 		return( 0 );
 	
-	if ( B->IsSymmetric() )
+	if ( B->GetSymmetry()!=SymProp::NonSym )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_LBackward <the matrix result can not be simetric>" );
 	
 	TVar *ptr_k = &fElem[ Size()-1 ];

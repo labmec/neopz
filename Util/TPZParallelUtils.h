@@ -15,9 +15,11 @@
 #include <vector>
 #include <thread>
 #include <atomic>
-
+#include <complex>
 
 namespace pzutils{
+//!Sets number of mkl threads for current threads and return previous value
+int SetNumThreadsLocalMKL(const int nt); //does nothing if not using mkl
 /**based on: https://ideone.com/Z7zldb and netgen source code*/
 
 /** This function aims to enable parallel for loops from first <= i < last
@@ -26,24 +28,36 @@ as in
 It is the user responsability to use the necessary mutexes and locks.
 */
 template<typename TFunc>
-void ParallelFor( int ibeg, int iend, const TFunc & f )
+void ParallelFor( int ibeg, int iend, const TFunc & f ,const int nt=-1)
 {
-  const auto nthreads = std::thread::hardware_concurrency();
-  std::vector<std::thread> threadvec;
-  for (int i=0; i<nthreads; i++)
-  {
-    const int myibeg = ibeg + (iend-ibeg)*i/nthreads;
-    const int myiend = ibeg + (iend-ibeg)*(i+1)/nthreads;
-    threadvec.push_back(
-      std::thread( [myibeg,myiend,&f] ()
-      {
-        for(int it = myibeg; it < myiend; it++)
+  const auto nthreads = nt > -1 ? nt : std::thread::hardware_concurrency();
+  int sz{0};
+  if(nthreads){
+    std::vector<std::thread> threadvec;
+    sz = (iend-ibeg)/nthreads;
+    for (int i=0; i<nthreads; i++)
+    {
+      const int myibeg = ibeg + i*sz;
+      const int myiend = ibeg + (i+1)*sz;
+      threadvec.push_back(
+        std::thread( [myibeg,myiend,&f] ()
+        {
+          //we prevent mkl launching multiple threads inside this thread
+          auto mklthreads = SetNumThreadsLocalMKL(1);
+          for(int it = myibeg; it < myiend; it++)
           {f(it);}
-      }));
-  }
+          SetNumThreadsLocalMKL(mklthreads);
+        }));
+    }
 
-  for (int i=0; i<nthreads; i++)
+    for (int i=0; i<nthreads; i++)
     {threadvec[i].join();}
+  }
+  //possible remainder
+  const int lastbeg = ibeg + nthreads*sz;
+  for(int it = lastbeg; it < iend; it++){
+    f(it);
+  }
 }
 
 
@@ -62,14 +76,27 @@ as in
 #pragma omp atomic
 a += b
 */
+
 template<typename T>
-inline T AtomicAdd( T & sum, T val )
+inline void AtomicAdd( T & sum, T val )
 {
-  std::atomic<T> & asum = AtomicCast(sum);
-  T current = asum.load();
-  while (!asum.compare_exchange_weak(current, current + val))
-    ;
-  return current;
+  if constexpr (std::is_same_v<T,std::complex<float>> ||
+                std::is_same_v<T,std::complex<double>> ||
+                std::is_same_v<T,std::complex<long double>>){
+    const auto real = val.real();
+    AtomicAdd (reinterpret_cast<typename T::value_type(&)[2]>(sum)[0], real);
+    const auto imag = val.imag();
+    AtomicAdd (reinterpret_cast<typename T::value_type(&)[2]>(sum)[1], imag);
+  }else{
+    std::atomic<T> & asum = AtomicCast(sum);
+    T current = asum.load();
+    T desired{0};
+    do{
+      desired = current+val;
+    }
+    while (!asum.compare_exchange_weak(current, desired));
+  }
 }
+  
 }//namespace
 #endif

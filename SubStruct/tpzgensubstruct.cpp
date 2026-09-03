@@ -914,11 +914,10 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 {
 	// this should happen in the remote processor
     TPZSkylineStructMatrix<STATE> skylstr(submesh);
-	TPZAutoPointer<TPZGuiInterface> toto = new TPZGuiInterface;
 
 	skylstr.EquationFilter().Reset();
     substruct->fStiffness = TPZAutoPointer<TPZMatrix<STATE> > (
-		dynamic_cast<TPZMatrix<STATE>*>(skylstr.CreateAssemble(substruct->fLocalLoad,toto)));
+		dynamic_cast<TPZMatrix<STATE>*>(skylstr.CreateAssemble(substruct->fLocalLoad)));
 	
 	// This should happen in the remote processor
     substruct->fInvertedStiffness.SetMatrix(substruct->fStiffness->Clone());
@@ -934,7 +933,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
     skylstr.SetEquationRange(0,ninternal);
     TPZFMatrix<STATE> rhs;
     substruct->fInvertedInternalStiffness.SetMatrix(
-		dynamic_cast<TPZMatrix<STATE>*>(skylstr.CreateAssemble(rhs,toto)));
+		dynamic_cast<TPZMatrix<STATE>*>(skylstr.CreateAssemble(rhs)));
     substruct->fInvertedInternalStiffness.SetDirect(ECholesky);
 	
     // put back the original sequence numbers of the connects (otherwise we can't apply a load solution

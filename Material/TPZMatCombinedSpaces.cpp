@@ -57,8 +57,15 @@ int TPZMatCombinedSpacesT<TVar>::IntegrationRuleOrder(const TPZVec<int>& elPMaxO
     }();
     auto *tmp = dynamic_cast<const TPZMaterialT<TVar>*>(this);
     auto ffporder = tmp->ForcingFunctionPOrder();
+    //Check BC forcing function order
+    auto *tmpBC = dynamic_cast<const TPZBndCondT<TVar>*>(this);
+    if (tmpBC){
+        ffporder = tmpBC->ForcingFunctionBCPOrder();
+    }
+
     const int intOrder = maxOrder < ffporder ?
         maxOrder + ffporder : 2 * maxOrder;
+
     return  intOrder;
 }
 
@@ -127,9 +134,9 @@ template<class TVar>
 void TPZMatCombinedSpacesBC<TVar>::Solution(const TPZVec<TPZMaterialDataT<TVar>> &datavec, int var,
               TPZVec<TVar> &sol)
 {
-    PZError<<__PRETTY_FUNCTION__;
-    PZError<< "should not be called! Aborting...\n";
-    DebugStop();
+    auto *tmp = dynamic_cast<TPZBndCondT<TVar>*>(this);
+    fMatCombinedSpaces->Solution(datavec,var,sol);
+
 }
 
 template<class TVar>

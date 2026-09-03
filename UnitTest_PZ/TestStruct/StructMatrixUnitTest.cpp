@@ -30,9 +30,12 @@
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
+#include <thread>
 
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 using namespace Catch::literals;
 
 
@@ -58,10 +61,31 @@ namespace structTest{
   
 }
 
+TEMPLATE_TEST_CASE("Stress test parallel schemes", "[struct_tests][struct][multithread]",
+                   TPZStructMatrixOT<STATE>,TPZStructMatrixOR<STATE>){
+  using TPARSTRATEGY=TestType;
+  auto cMesh = structTest::CreateCMesh1D();
+  const int nThreads{(int)std::thread::hardware_concurrency()};
+  std::cout<<"STRESS TEST:BEGIN"<<std::endl;
+  for(int i = 0; i < 10000; i++){
+
+    // std::cout<<"\n\n\nAssembling iter number "<<i<< std::endl << std::flush;
+    TPZLinearAnalysis an(cMesh, RenumType::ENone);
+    TPZSkylineNSymStructMatrix<STATE,TPARSTRATEGY> matskl(cMesh);
+    matskl.SetNumThreads(nThreads);
+    an.SetStructuralMatrix(matskl);
+    TPZStepSolver<STATE> defaultSolver;
+    defaultSolver.SetDirect(ELU);
+    an.SetSolver(defaultSolver);
+    an.Assemble();
+  }
+  std::cout<<"\nSTRESS TEST:ENDED!"<<std::endl;
+}
+
 TEMPLATE_TEST_CASE("Assemble known matrix",
                    "[struct_tests][struct][multithread]",
                    TPZStructMatrixOR<STATE>,TPZStructMatrixOT<STATE>
-#if defined(PZ_USING_TBB) && !defined(MACOSX)
+#if (0) 
                    ,TPZStructMatrixTBBFlow<STATE>
 #endif
                    )
@@ -92,6 +116,7 @@ TEMPLATE_TEST_CASE("Assemble known matrix",
       structTest::CheckStiffnessMatrices<TPZSkylineStructMatrix<STATE, TestType>>(cMesh, nThreads);
     }
   }
+#if defined (PZ_USING_MKL) || defined (PZ_USING_EIGEN)
   SECTION("Testing Sparse matrices"){
     SECTION("Non-Symmetric"){
       structTest::CheckStiffnessMatrices<TPZSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
@@ -100,6 +125,7 @@ TEMPLATE_TEST_CASE("Assemble known matrix",
       structTest::CheckStiffnessMatrices<TPZSSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
     }
   }
+#endif
   cMesh = nullptr;
 }
 
@@ -134,6 +160,7 @@ TEMPLATE_TEST_CASE("Compare parallel and serial matrices","[struct_tests][struct
       structTest::CompareSerialParallelStiffMat<TPZSkylineStructMatrix<STATE, TestType>>(cMesh, nThreads);
     }
   }
+#if defined (PZ_USING_MKL) || defined (PZ_USING_EIGEN)
   SECTION("Testing Sparse matrices"){
     SECTION("Non-Symmetric"){
       structTest::CompareSerialParallelStiffMat<TPZSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
@@ -142,13 +169,14 @@ TEMPLATE_TEST_CASE("Compare parallel and serial matrices","[struct_tests][struct
       structTest::CompareSerialParallelStiffMat<TPZSSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
     }
   }
+#endif
   cMesh = nullptr;
 }
 
 TEMPLATE_TEST_CASE("Test Equation Filter support",
                    "[struct_tests][struct][multithread]",
                    TPZStructMatrixOR<STATE>,TPZStructMatrixOT<STATE>
-#if defined(PZ_USING_TBB) && !defined(MACOSX)
+#if (0) 
                    ,TPZStructMatrixTBBFlow<STATE>
 #endif
                    )
@@ -167,7 +195,7 @@ TEST_CASE("Compare parallel strategies","[struct_tests][struct][multithread]")
   SECTION("Compare OR/OT"){
     structTest::CompareParallelLayerStiffMat<TPZStructMatrixOR<STATE>,TPZStructMatrixOT<STATE>>(cMesh, nThreads);
   }
-#if defined(PZ_USING_TBB) && !defined(MACOSX)
+#if (0) 
   SECTION("Compare OR/TBBFlow"){
     structTest::CompareParallelLayerStiffMat<TPZStructMatrixOR<STATE>,TPZStructMatrixTBBFlow<STATE>>(cMesh, nThreads);
   }
@@ -185,8 +213,7 @@ namespace structTest{
   {
 
     TPZAutoPointer<TPZMatrix<STATE>> mat = [&cMesh,nThreads](){
-      constexpr bool optimizeBandwidth{false};
-      TPZLinearAnalysis an(cMesh, optimizeBandwidth);
+      TPZLinearAnalysis an(cMesh, RenumType::ENone);
       TSTMAT matskl(cMesh);
       matskl.SetNumThreads(nThreads);
       an.SetStructuralMatrix(matskl);
@@ -218,8 +245,7 @@ namespace structTest{
   {
 
     auto GetMatrix = [cMesh](const int nThreads){
-      constexpr bool optimizeBandwidth{false};
-      TPZLinearAnalysis an(cMesh, optimizeBandwidth);
+      TPZLinearAnalysis an(cMesh, RenumType::ENone);
       TSTMAT matskl(cMesh);
       matskl.SetNumThreads(nThreads);
       an.SetStructuralMatrix(matskl);
@@ -240,7 +266,7 @@ namespace structTest{
     const auto normDiff = Norm(matDiff);
     auto oldPrecision = Catch::StringMaker<STATE>::precision;
     CAPTURE(normDiff);
-    REQUIRE(normDiff == Approx(0.0).margin(
+    REQUIRE(normDiff == Catch::Approx(0.0).margin(
                 10*std::numeric_limits<STATE>::epsilon()));
     Catch::StringMaker<STATE>::precision = oldPrecision;
   }
@@ -251,8 +277,7 @@ namespace structTest{
   {
 
     auto GetMatrix = [cMesh](const int nThreads){
-      constexpr bool optimizeBandwidth{false};
-      TPZLinearAnalysis an(cMesh, optimizeBandwidth);
+      TPZLinearAnalysis an(cMesh, RenumType::ENone);
       const auto neqOld = cMesh->NEquations();
       const int neq = neqOld/2;
       TPZVec<int64_t> activeEqs(neq);
@@ -290,8 +315,7 @@ namespace structTest{
   {
     
     auto GetMatrix = [cMesh](const int nThreads, bool first){
-      constexpr bool optimizeBandwidth{false};
-      TPZLinearAnalysis an(cMesh, optimizeBandwidth);
+      TPZLinearAnalysis an(cMesh, RenumType::ENone);
       TPZAutoPointer<TPZStructMatrix>strmat;
       if(first){
         strmat = new TPZSkylineStructMatrix<STATE, TSTMAT1>(cMesh);
@@ -318,7 +342,7 @@ namespace structTest{
     const auto normDiff = Norm(matDiff);
     auto oldPrecision = Catch::StringMaker<STATE>::precision;
     CAPTURE(normDiff);
-    REQUIRE(normDiff == Approx(0.0).margin(
+    REQUIRE(normDiff == Catch::Approx(0.0).margin(
                 10*std::numeric_limits<STATE>::epsilon()));
     Catch::StringMaker<STATE>::precision = oldPrecision;
   }

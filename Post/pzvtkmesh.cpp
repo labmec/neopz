@@ -45,6 +45,8 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
     }
     set<int>::iterator it = matids.begin();
     TPZMaterial * matp = fCompMesh->FindMaterial(*it);
+    if (!matp) DebugStop();
+    
 	if(fOutFile.is_open())
 	{
 		fOutFile.close();

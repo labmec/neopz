@@ -36,8 +36,18 @@ public:
     }
 
     /** @brief Default constructor */
-    TPZNullMaterial() = default;
+    TPZNullMaterial() : TBase(), fDim(1), fNState(1) {
+    }
 
+    TPZNullMaterial(const TPZNullMaterial<TVar> &copy) : TBase(copy), fDim(copy.fDim), fNState(copy.fNState) {
+    }
+
+    TPZNullMaterial<TVar> &operator=(TPZNullMaterial &copy) {
+        TBase::operator=(*this);
+        fDim = copy.fDim;
+        fNState = copy.fNState;
+        return *this;
+    }
     /** @brief Returns the name of the material */
     [[nodiscard]] std::string Name() const override { return "TPZNullMaterial"; }
 

@@ -170,15 +170,14 @@ public:
      * Compute the stiffness matrix and load vector of the interface element
      */
     void CalcStiff(TPZElementMatrixT<STATE> &ek,
-                   TPZElementMatrixT<STATE> &ef) override
-    {
+                   TPZElementMatrixT<STATE> &ef) override {
         CalcStiffT(ek,ef);
     }
     
     /**
      * Compute the load vector of the interface element
      */
-    void CalcStiff(TPZElementMatrixT<STATE> &ef){
+    void CalcStiff(TPZElementMatrixT<STATE> &ef) {
         CalcStiffT(ef);
     }
 

@@ -5,7 +5,7 @@
 #ifndef TPZLAPACKEIGENSOLVER_H
 #define TPZLAPACKEIGENSOLVER_H
 
-#include "TPZEigenSolver.h"
+#include "TPZLinearEigenSolver.h"
 
 
 template<class T>
@@ -16,7 +16,7 @@ class TPZSBMatrix;
  * @note This class is only compatible with TPZFMatrix and TPZSBMatrix classes.
  */
 template <typename TVar>
-class TPZLapackEigenSolver : public TPZEigenSolver<TVar> {
+class TPZLapackEigenSolver : public TPZLinearEigenSolver<TVar> {
   friend class TPZFMatrix<TVar>;
   friend class TPZSBMatrix<TVar>;
 public:

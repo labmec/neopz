@@ -93,7 +93,7 @@ TPZSubCompMesh::~TPZSubCompMesh(){
 		TPZCompEl *el = fElementVec[i];
 		TPZElementGroup * group = dynamic_cast<TPZElementGroup*>(el);
 		if(group){
-            group->Unwrap();
+            group->Unwrap(true);
 		}
 	}
 	
@@ -295,20 +295,23 @@ void TPZSubCompMesh::MakeExternal(int64_t local){
 		//Allocate the selected local node in father mesh
         TPZConnect &c = fConnectVec[local];
 		extconnect = FatherMesh()->AllocateNewConnect(c);
+
+    FatherMesh()->ConnectVec()[extconnect] = c;
 		
 		fConnectIndex[lastext] = extconnect;
 		fExternalLocIndex[local] = lastext;
 		fFatherToLocal[extconnect] = local;
-		TPZConnect::TPZDepend *listdepend = fConnectVec[local].FirstDepend();
+		fLocalToFather[local] = extconnect;
+		TPZConnect::TPZDependBase *listdepend =
+      FatherMesh()->ConnectVec()[extconnect].FirstDepend();
 		while(listdepend) {
 			int64_t depindex = listdepend->fDepConnectIndex;
 			MakeExternal(listdepend->fDepConnectIndex);
+      
 			int64_t depextind = fConnectIndex[fExternalLocIndex[depindex]];
-			int64_t r = listdepend->fDepMatrix.Rows();
-			int64_t c = listdepend->fDepMatrix.Cols();
-			FatherMesh()->ConnectVec()[extconnect].AddDependency(extconnect,depextind,listdepend->fDepMatrix,0,0,r,c);
+      listdepend->fDepConnectIndex = depextind;
 			fConnectVec[local].RemoveDepend(local,depindex);
-			listdepend = fConnectVec[local].FirstDepend();
+			listdepend = listdepend->fNext;
 		}
 	} else {
 		if(fConnectVec[local].FirstDepend() ) {
@@ -342,6 +345,7 @@ int64_t TPZSubCompMesh::GetFromSuperMesh(int64_t superind, TPZCompMesh *super){
 		fConnectIndex[fConnectIndex.NElements()-1] = superind;
 		fExternalLocIndex[gl] = fConnectIndex.NElements()-1;
 		fFatherToLocal[superind] = gl;
+		fLocalToFather[gl] = superind;
 		return gl;
 	} else {
 		int64_t j;
@@ -400,7 +404,7 @@ void TPZSubCompMesh::TransferDependencies(int64_t local)
 	TPZCompMesh *father = FatherMesh();
 	int64_t superind = fConnectIndex[fExternalLocIndex[local]];
 #ifdef PZDEBUG 
-	if(father->ConnectVec()[superind].NElConnected() != 1)
+	if(0 && father->ConnectVec()[superind].NElConnected() != 1)
 	{
 		std::cout << __PRETTY_FUNCTION__ << " number of elements connected to connect " << superind <<
         " = " << father->ConnectVec()[superind].NElConnected() << std::endl;
@@ -409,15 +413,19 @@ void TPZSubCompMesh::TransferDependencies(int64_t local)
 		std::cout << "ERROR";
 	}
 #endif
-	TPZConnect::TPZDepend *listdepend = father->ConnectVec()[superind].FirstDepend();
+
+    // we need to adapt the sequence number
+    int64_t seqnum = ConnectVec()[local].SequenceNumber();
+  ConnectVec()[local] = father->ConnectVec()[superind];
+    ConnectVec()[local].SetSequenceNumber(seqnum);
+
+  //now we adjust the indices of the dependencies
+	TPZConnect::TPZDependBase *listdepend = ConnectVec()[local].FirstDepend();
 	while(listdepend) {
 		int64_t depfatherindex = listdepend->fDepConnectIndex;
 		int64_t depindexlocal = GetFromSuperMesh(depfatherindex,father);
-		int64_t r = listdepend->fDepMatrix.Rows();
-		int64_t c = listdepend->fDepMatrix.Cols();
-		ConnectVec()[local].AddDependency(local,depindexlocal,listdepend->fDepMatrix,0,0,r,c);
-		//father->ConnectVec()[superind].RemoveDepend(superind,depfatherindex);
-        listdepend = listdepend->fNext;
+    listdepend->fDepConnectIndex = depindexlocal;		
+    listdepend = listdepend->fNext;
 	}
 }
 
@@ -452,7 +460,7 @@ static void GatherDependency(TPZCompMesh &cmesh, TPZConnect &start, std::set<int
     if (!start.HasDependency()) {
         return;
     }
-    TPZConnect::TPZDepend *depend = start.FirstDepend();
+    TPZConnect::TPZDependBase *depend = start.FirstDepend();
     while (depend) {
         dependency.insert(depend->fDepConnectIndex);
         TPZConnect &c = cmesh.ConnectVec()[depend->fDepConnectIndex];
@@ -582,6 +590,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 				std::stringstream sout;
                 int64_t localindex = fExternalLocIndex[*itset];
                 int64_t fatherindex = fConnectIndex[localindex];
+                sout << "Connect in the father mesh - father index " << fatherindex << "local index : " << localindex << std::endl;
                 father->ConnectVec()[fatherindex].Print(*father,sout);
                 sout << "Making the connect index " << *itset << " internal " << " index in the father mesh " << fatherindex << std::endl;
                 sout << "Connect indexes " << fConnectIndex;
@@ -670,6 +679,16 @@ void TPZSubCompMesh::MakeAllInternal(){
 	if (count != (int64_t)fFatherToLocal.size()) {
 		DebugStop();
 	}
+#endif
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
+    {
+        std::stringstream sout;
+        int64_t nc = ConnectVec().NElements();
+        sout << "Number of connects of subcmesh " << nc << std::endl;
+        
+        LOGPZ_DEBUG(logger,sout.str())
+    }
 #endif
 	TPZCompMesh::ExpandSolution();
 	//TPZCompMesh::Print();
@@ -1158,19 +1177,11 @@ void TPZSubCompMesh::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMa
 	if (! fAnalysis){
 		TPZFStructMatrix<TVar> local(this);
 		TPZAutoPointer<TPZMatrix<TVar> > stiff =
-            dynamic_cast<TPZMatrix<TVar>*>(local.CreateAssemble(ef.fMat,nullptr));
+            dynamic_cast<TPZMatrix<TVar>*>(local.CreateAssemble(ef.fMat));
 		ek.fMat = *(stiff.operator->());
 		//		TPZStructMatrix::Assemble(ek.fMat,ef.fMat,*this,-1,-1);
 	}
-	else{
-		//if(!fAnalysis->Solver().Matrix())
-		{
-			fAnalysis->Run(std::cout);
-			if(fAnalysis->AmIKilled()){
-				return;
-			}
-		}
-		
+	else{		
 		TPZSubMeshFrontalAnalysis *sman = dynamic_cast<TPZSubMeshFrontalAnalysis *> (fAnalysis.operator->());
 		if(sman)
 		{
@@ -1179,7 +1190,10 @@ void TPZSubCompMesh::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMa
 			{
 				sman->SetFront(frontmat->GetFront());
 			}
-		}
+		} else {
+        fAnalysis->Assemble();
+      }
+
 		
 		//Trying to get a derived Analysis which is a SubMeshAnalysis.
 		//It could be better done with an abstract class SubMeshAnalysis which defines CondensedSolution method
@@ -1363,9 +1377,8 @@ void TPZSubCompMesh::SetAnalysisFStruct(int numThreads)
 }
 
 
-void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned){
 	fAnalysis = new TPZSubMeshAnalysis(this);
-	fAnalysis->SetGuiInterface(guiInterface);
 	TPZAutoPointer<TPZStructMatrix> str = NULL;
 	str = new TPZSkylineStructMatrix<STATE>(this);
 	if(numThreads > 0){
@@ -1430,7 +1443,7 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZRenumbering> renumber){
     fAnalysis = new TPZSubMeshAnalysis;
     fAnalysis->SetRenumber(renumber);
-    fAnalysis->SetCompMesh(this, true);
+    fAnalysis->SetCompMesh(this, RenumType::EDefault);
     TPZAutoPointer<TPZStructMatrix> str = NULL;
     
     str = new TPZSkylineStructMatrix<STATE>(this);
@@ -1493,10 +1506,9 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
     
 }
 
-void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZSubCompMesh::SetAnalysisFrontal(int numThreads){
 	
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
-	fAnalysis->SetGuiInterface(guiInterface);
 	
 #ifdef PZDEBUG2
 	{
@@ -1953,6 +1965,25 @@ void TPZSubCompMesh::CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimens
 	}
 }
 
+int TPZSubCompMesh::NumberOfCompElementsInsideThisCompEl()
+{
+  int nel = 0;
+  for(auto cel : fElementVec){
+    if(cel){
+      nel += cel->NumberOfCompElementsInsideThisCompEl();
+    }
+  }
+  return nel;
+}
+
+void TPZSubCompMesh::GetCompElList(TPZStack<TPZCompEl*> &stck){
+  for(auto cel : fElementVec){
+    if(cel){
+      cel->GetCompElList(stck);
+    }
+  }
+}
+
 /**
  * Verifies if any element needs to be computed corresponding to the material ids
  */
@@ -1996,6 +2027,7 @@ bool TPZSubCompMesh::NeedsComputing(const std::set<int> &matids)
 		}
 	}
 #ifdef PZ_LOG
+    if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Material ids contained in the mesh ";

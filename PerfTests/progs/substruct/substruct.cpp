@@ -522,13 +522,12 @@ int main(int argc, char *argv[])
         }
         
         PERF_START(assemble_rst);
-        TPZAutoPointer<TPZGuiInterface> gui;
         rhs = new TPZFMatrix<STATE>(cmeshauto->NEquations(),1,0.);
         VERBOSE(1,"dohrstruct->Assemble()" << endl);
         if (dohr_tbb.was_set())
-            dohrstruct->AssembleTBB(*matptr,*rhs, gui);
+            dohrstruct->AssembleTBB(*matptr,*rhs);
         else
-            dohrstruct->Assemble(*matptr,*rhs, gui, nt_sm.get_value(), nt_d.get_value());
+            dohrstruct->Assemble(*matptr,*rhs, nt_sm.get_value(), nt_d.get_value());
         PERF_STOP(assemble_rst);
         
         PERF_START(precond_rst);
