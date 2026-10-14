@@ -878,11 +878,28 @@ bool TPZPostProcElSafe<TVar>::IzZeroJacobian(TPZVec<REAL> &qsi) {
     auto mfcel = dynamic_cast<TPZMultiphysicsElement*>(this->fCel);
     TPZManVector<TPZTransform<> > trvec; //Why is it necessary to have this?
     mfcel->AffineTransform(trvec);
-    TPZInterpolationSpace *intel  = dynamic_cast <TPZInterpolationSpace *>(mfcel->Element(0));
-    if (!intel) DebugStop();
-    TPZGeoEl* gel = intel->Reference();
+    auto &elvec = mfcel->ElementVec();
+    int nel = elvec.size();
+    int elindex = 0;
+    for (elindex = 0; elindex < nel; elindex++) {
+      TPZInterpolationSpace *intel  = dynamic_cast <TPZInterpolationSpace *>(elvec[elindex].Element());
+      if(intel) break;
+    }
+    if(elindex == nel) {
+      std::cout << "Error: No interpolation space found in IzZeroJacobian." << std::endl;
+      mfcel->Print(std::cout);
+      DebugStop();
+    }
+    // TPZInterpolationSpace *intel  = dynamic_cast <TPZInterpolationSpace *>(mfcel->Element(0));
+    // if (!intel) DebugStop();
+    TPZGeoEl* gel = elvec[elindex].Element()->Reference();
+    if(!gel) {
+      std::cout << "Error: Reference element is null in IzZeroJacobian." << std::endl;
+      mfcel->Print(std::cout);
+      DebugStop();
+    }
     TPZManVector<REAL, 3> intpoint(gel->Dimension(), 0.);
-    trvec[0].Apply(qsi, intpoint);
+    trvec[elindex].Apply(qsi, intpoint);
     TPZFNMatrix<9,REAL> gradx;
     gel->GradX(intpoint, gradx);
     REAL detjac = 0.;
