@@ -19,7 +19,7 @@ enum class ProblemType {ENone, EElastic, EDarcy, EStokes};
 
 /// @struct TPZHybrid
 /// @brief stores the geometric elements involved in a hybridization
-struct TPZHybrid {
+struct TPZHybridGeometry {
     /// geometric element associated with the lagrange multiplier
     int64_t fLagrange;
     /// left geometric element
@@ -27,13 +27,28 @@ struct TPZHybrid {
     /// right geometric element
     int64_t fRight;
     
-    TPZHybrid() : fLagrange(-1), fLeft(-1), fRight(-1) {
+    TPZHybridGeometry() : fLagrange(-1), fLeft(-1), fRight(-1) {
         
     }
-    TPZHybrid(int64_t lagrange, int64_t left, int64_t right) : fLagrange(lagrange), fLeft(left), fRight(right)
+    TPZHybridGeometry(int64_t lagrange, int64_t left, int64_t right) : fLagrange(lagrange), fLeft(left), fRight(right)
     {
         
     }
+};
+/// @brief  structure that defines the lagrange multiplier material ids and and interface material ids for a hybridization
+struct TPZHybridLagrange {
+  int64_t fLagrangeMatId = -1;
+  int64_t fLeftInterfaceMatId = -1;
+  int64_t fRightInterfaceMatId = -1;
+  REAL fLeftMultiplier = 0.;
+  REAL fRightMultiplier = 0.;
+  TPZHybridLagrange() = default;
+  TPZHybridLagrange(int64_t lagrange, int64_t leftinterface, int64_t rightinterface, REAL leftmultiplier, REAL rightmultiplier) : fLagrangeMatId(lagrange), fLeftInterfaceMatId(leftinterface), fRightInterfaceMatId(rightinterface), fLeftMultiplier(leftmultiplier), fRightMultiplier(rightmultiplier)
+  {
+      
+  }
+  TPZHybridLagrange(const TPZHybridLagrange &copy) = default;
+  TPZHybridLagrange &operator=(const TPZHybridLagrange &copy) = default;
 };
 /// @class TPZApproxCreator
 /// @brief Manages the construction of approximation spaces
@@ -94,32 +109,15 @@ public:
         /// Matid of element at the border or higher domain element
         int fWrapMatId = -123456; // to check if it has been initialized
 
-        /// Matid of element at the interface between elements
-        int fLeftInterfaceMatId = -123456;
-        int fRightInterfaceMatId = -123456;
-
-        /// Matid of lagrange multiplier element
-        int fLagrangeMatId = -123456;
-
-        /// Material ids generated due second hybridization
-        int fSecondLeftInterfaceMatId = -123456;
-
-        /// Material ids generated due second hybridization
-        int fSecondRightInterfaceMatId = -123456;
-
-        /// Matid of second lagrange multiplier, useful in double hybridizations
-        int fSecondLagrangeMatId = -123456;
+        /// @brief Vector of lagrange multiplier material ids and interface material ids for a hybridization
+        // The length of the vector indicates how many times the hybridization should be performed. For example, if the vector has length 2, then the hybridization will be performed twice.
+        TPZStack<TPZHybridLagrange> fLagrangeData;
 
         /// indicates whether the boundary conditions should be hybridized and how many times it should be
         int fHybridizeBCLevel = 0;
         
-        /// Vector of multipliers associated with the interface elements.
-        /// The multipliers are influenced by the type of problem and whether the hybridization is simple or squared
-        /// The order is left, right, second left, second right
-        TPZManVector<REAL,4> fMultipliers = {0.,0.,0.,0.};
-        
         /// map linking the element index of an interface to left and right elements
-        std::map<int64_t,TPZHybrid> fInterfaces;
+        std::map<int64_t,TPZHybridGeometry> fInterfaces;
     };
 
 protected:
@@ -127,7 +125,7 @@ protected:
     HybridizationData fHybridizationData;
     
     /// Add a hybrid geometric configuration
-    virtual void AddHybridGeometry(int64_t interface_id, TPZHybrid &hybrid);
+    virtual void AddHybridGeometry(int64_t interface_id, TPZHybridGeometry &hybrid);
 
     /// Predominant GeoMesh dimension element
     MElementType fElementType = MElementType::ENoType;
@@ -235,7 +233,10 @@ protected:
     void CheckNeighborhoodHybridization() const;
 
     /// Compute Periferal Material ids for additional elements generated during hybridization
-    void ComputePeriferalMaterialIds(int base = 10);
+    int ComputePeriferalMaterialIds(int base = 10);
+
+    /// Configure the Lagrange multiplier and interface material ids for a hybridization type
+    void ConfigureLagrangeData(HybridizationType hybrid);
 
     /// Adds the geo els related to the hybridization
     virtual void AddHybridizationGeoElements();

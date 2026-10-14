@@ -34,12 +34,14 @@ public:
     /// Set Hybridization type
     virtual void SetHybridType(HybridizationType hybrid) override {
         fHybridType = hybrid;
+        ConfigureLagrangeData(hybrid);
         fHybridizationData.SetProblemHybridH1(fProbType, fHybridType);
     }
 
     /// Get/Set Problem type
     virtual void SetProbType(ProblemType prob) override {
         fProbType = prob;
+        ConfigureLagrangeData(fHybridType);
         fHybridizationData.SetProblemHybridH1(fProbType, fHybridType);
     }
 

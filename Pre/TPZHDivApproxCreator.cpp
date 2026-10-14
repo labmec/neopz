@@ -498,7 +498,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(int pOrder, const int lagLevel
         // std::ofstream out("pmesh1.txt");
         // cmesh->Print(out);
         // Then we insert the lagrange materials into this l2 space cmesh
-        const int lagmatid = fHybridizationData.fLagrangeMatId;
+        const int lagmatid = fHybridizationData.fLagrangeData[0].fLagrangeMatId;
         TPZNullMaterial<> *nullmat = new TPZNullMaterial<>(lagmatid,dim-1,nstate);
         cmesh->InsertMaterialObject(nullmat);
         
@@ -561,7 +561,7 @@ TPZMultiphysicsCompMesh * TPZHDivApproxCreator::CreateMultiphysicsSpace(const TP
         auto * nullmatWrap = new TPZNullMaterialCS<>(fHybridizationData.fWrapMatId,dim-1,nstate);
         cmesh->InsertMaterialObject(nullmatWrap);
 
-        auto * nullmatLag = new TPZNullMaterialCS<>(fHybridizationData.fLagrangeMatId,dim-1,nstate);
+        auto * nullmatLag = new TPZNullMaterialCS<>(fHybridizationData.fLagrangeData[0].fLagrangeMatId,dim-1,nstate);
         cmesh->InsertMaterialObject(nullmatLag);
     }
 
@@ -871,7 +871,7 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElementsBackup(TPZMultiphysi
         }
         TPZGeoElSide gelside(gel);
         TPZGeoElSide LargeNeigh = gelside.HasLowerLevelNeighbour(fHybridizationData.fWrapMatId);
-        TPZGeoElSide neighLag = gelside.HasNeighbour(fHybridizationData.fLagrangeMatId);
+        TPZGeoElSide neighLag = gelside.HasNeighbour(fHybridizationData.fLagrangeData[0].fLagrangeMatId);
         if(!neighLag){
             continue;
         }
@@ -879,8 +879,8 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElementsBackup(TPZMultiphysi
         TPZCompElSide cLagrange = neighLag.Reference();
 
         TPZGeoElSide ginterface = gelside.Neighbour();
-        if(ginterface.Element()->MaterialId() != fHybridizationData.fLeftInterfaceMatId &&
-           ginterface.Element()->MaterialId() != fHybridizationData.fRightInterfaceMatId){
+        if(ginterface.Element()->MaterialId() != fHybridizationData.fLagrangeData[0].fLeftInterfaceMatId &&
+           ginterface.Element()->MaterialId() != fHybridizationData.fLagrangeData[0].fRightInterfaceMatId){
             DebugStop();
         }
         
@@ -893,8 +893,8 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElementsBackup(TPZMultiphysi
             TPZGeoElSide ginterface = neighLag.Neighbour();
             TPZCompElSide cLarge = LargeNeigh.Reference();
 #ifdef PZDEBUG
-            if(ginterface.Element()->MaterialId() != fHybridizationData.fLeftInterfaceMatId &&
-               ginterface.Element()->MaterialId() != fHybridizationData.fRightInterfaceMatId) DebugStop();
+            if(ginterface.Element()->MaterialId() != fHybridizationData.fLagrangeData[0].fLeftInterfaceMatId &&
+               ginterface.Element()->MaterialId() != fHybridizationData.fLagrangeData[0].fRightInterfaceMatId) DebugStop();
 #endif
             if (fHybridType == HybridizationType::ESemi){
                 auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),celside,cLagrange,semiHybridInterface[cLagrange.Element()->Index()]);
@@ -944,7 +944,7 @@ void TPZHDivApproxCreator::ChangeLagLevel(TPZCompMesh* cmesh, const int newLagLe
     for(auto cel : cmesh->ElementVec()){
         if(!cel) continue;
         const int matid = cel->Reference()->MaterialId();
-        if(matid != fHybridizationData.fLagrangeMatId) continue;
+        if(matid != fHybridizationData.fLagrangeData[0].fLagrangeMatId) continue;
         // loop over connects changing their laglevels
         const int ncon = cel->NConnects();
         for(int ic = 0 ; ic < ncon ; ic++){

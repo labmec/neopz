@@ -86,6 +86,10 @@ void TPZH1ApproxCreator::CreateAtomicMeshes(TPZVec<TPZCompMesh *> &meshvec) {
     if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared) {
         ComputePeriferalMaterialIds();
         AddHybridizationGeoElements();
+        if(1) {
+          std::ofstream out("gmesh_hybrid.txt");
+          fGeoMesh->Print(out);
+        }
     }
 
 
@@ -201,9 +205,11 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateMultiphysicsSpace(TPZManVect
 
     if(isHybrid) {
         InsertInterfaceMaterialObjects(cmesh);
-        auto *rintf = cmesh->FindMaterial(fHybridizationData.fRightInterfaceMatId);
+        int rightinterfaceMatId = fHybridizationData.fLagrangeData[0].fRightInterfaceMatId;
+        int leftinterfaceMatId = fHybridizationData.fLagrangeData[0].fLeftInterfaceMatId;
+        auto *rintf = cmesh->FindMaterial(rightinterfaceMatId);
         TPZLagrangeMultiplierCS<STATE> *rintmat = dynamic_cast<TPZLagrangeMultiplierCS<STATE> *>(rintf);
-        auto *lintf = cmesh->FindMaterial(fHybridizationData.fLeftInterfaceMatId);
+        auto *lintf = cmesh->FindMaterial(leftinterfaceMatId);
         TPZLagrangeMultiplierCS<STATE> *lintmat = dynamic_cast<TPZLagrangeMultiplierCS<STATE> *>(lintf);
         if(fProbType == ProblemType::EDarcy) {
             lintmat->SetMultiplier(-1.);
@@ -315,7 +321,8 @@ TPZCompMesh *TPZH1ApproxCreator::CreateL2Space()
         if(fHybridizationData.fHybridizeBCLevel == 2){
             matids = bcMatIds;
         }
-        matids.insert(fHybridizationData.fSecondLagrangeMatId);
+        int secondlagrangematid = fHybridizationData.fLagrangeData[1].fLagrangeMatId;
+        matids.insert(secondlagrangematid);
         L2mesh->SetDefaultOrder(fDefaultPOrder);
         L2mesh->AutoBuild(matids);
     }
@@ -487,7 +494,9 @@ void TPZH1ApproxCreator::AddInterfaceComputationalElementsBackup(TPZMultiphysics
             TPZGeoElSide gelside(gel);
             TPZGeoElSide neighbour = gelside.Neighbour();
             int neighmat = neighbour.Element()->MaterialId();
-            if(neighmat != fHybridizationData.fLeftInterfaceMatId && neighmat != fHybridizationData.fRightInterfaceMatId)
+            int leftinterfacematid = fHybridizationData.fLagrangeData[0].fLeftInterfaceMatId;
+            int rightinterfacematid = fHybridizationData.fLagrangeData[0].fRightInterfaceMatId;
+            if(neighmat != leftinterfacematid && neighmat != rightinterfacematid)
             {
                 DebugStop();
             }
@@ -506,16 +515,19 @@ void TPZH1ApproxCreator::AddInterfaceComputationalElementsBackup(TPZMultiphysics
             numcreated[neighmat]++;
 #endif
         }
-        if(fHybridType == HybridizationType::EStandardSquared && matid == fHybridizationData.fLagrangeMatId)
+        int lagrangematid = fHybridizationData.fLagrangeData[0].fLagrangeMatId;
+        if(fHybridType == HybridizationType::EStandardSquared && matid == lagrangematid)
         {
             TPZGeoElSide gelsideflux(gel);
             TPZGeoElSide neighbour = gelsideflux.Neighbour();
+            int secondleftinterfacematid = fHybridizationData.fLagrangeData[1].fLeftInterfaceMatId;
             // we only handle the flux element neighbour to second lagrange multiplier
-            if(neighbour.Element()->MaterialId() != fHybridizationData.fSecondLeftInterfaceMatId) continue;
+            if(neighbour.Element()->MaterialId() != secondleftinterfacematid) continue;
             // @TODO handle the secondright material id
             TPZGeoElSide anteriorSecondInterface = neighbour; // Second interface before second Lagrange Multiplier
             TPZGeoElSide secondLagrange = anteriorSecondInterface.Neighbour();
-            if(secondLagrange.Element()->MaterialId() != fHybridizationData.fSecondLagrangeMatId)
+            int secondlagrangematid = fHybridizationData.fLagrangeData[1].fLagrangeMatId;
+            if(secondLagrange.Element()->MaterialId() != secondlagrangematid)
             {
                 // If there is no other interface neighour, this must be a boundary element
                 int pressmatid = secondLagrange.Element()->MaterialId();
@@ -523,21 +535,21 @@ void TPZH1ApproxCreator::AddInterfaceComputationalElementsBackup(TPZMultiphysics
             }
             else {
                 TPZGeoElSide posteriorSecondInterface = secondLagrange.Neighbour();
-                if(posteriorSecondInterface.Element()->MaterialId() !=  fHybridizationData.fSecondLeftInterfaceMatId) DebugStop();
+                if(posteriorSecondInterface.Element()->MaterialId() !=  secondleftinterfacematid) DebugStop();
                 // @TODO handle the right interface material id
                 // now we have to find the second flux element
-                TPZGeoElSide lagrangeCandidate = posteriorSecondInterface.HasNeighbour(fHybridizationData.fLagrangeMatId);
+                TPZGeoElSide lagrangeCandidate = posteriorSecondInterface.HasNeighbour(lagrangematid);
                 // if the fluxelement found is the first flux element
                 if(lagrangeCandidate == gelsideflux) {
                     // we did not find a distinct flux element
                     // we have to find a larger (lower level) flux element
-                    lagrangeCandidate = gelsideflux.HasLowerLevelNeighbour(fHybridizationData.fLagrangeMatId);
+                    lagrangeCandidate = gelsideflux.HasLowerLevelNeighbour(lagrangematid);
                     if(!lagrangeCandidate)
                     {
                         TPZManVector<REAL,3> x(3,0.);
                         gelsideflux.CenterX(x);
                         std::cout << "gelsideflux center " << x << std::endl;
-                        lagrangeCandidate = gelsideflux.HasLowerLevelNeighbour(fHybridizationData.fLagrangeMatId);
+                        lagrangeCandidate = gelsideflux.HasLowerLevelNeighbour(lagrangematid);
                         DebugStop();
                     }
 #ifdef PZDEBUG
@@ -594,12 +606,13 @@ TPZCompEl *TPZH1ApproxCreator::FindHDivNeighbouringElement(TPZCompEl *wrapcel)
     TPZStack<TPZCompElSide> celstack;
     gelside.EqualLevelCompElementList(celstack, 0, 0);
     int nelstack = celstack.size();
+    int lagrangematid = fHybridizationData.fLagrangeData[0].fLagrangeMatId;
     for (int st = 0; st<nelstack; st++) {
         TPZCompElSide celside = celstack[st];
         TPZCompEl *cel = celside.Element();
         TPZGeoEl *gelneigh = cel->Reference();
         int matid = gelneigh->MaterialId();
-        if (matid == fHybridizationData.fLagrangeMatId) {
+        if (matid == lagrangematid) {
             return cel;
         }
         if (fHybridizationData.fHybridizeBCLevel == 1 && bcMatIds.find(matid) != bcMatIds.end()) {
@@ -615,7 +628,7 @@ TPZCompEl *TPZH1ApproxCreator::FindHDivNeighbouringElement(TPZCompEl *wrapcel)
     {
         TPZStack<TPZCompElSide> celstack;
         TPZGeoElSide gellarge = cellarge.Reference();
-        if(gellarge.Element()->MaterialId() == fHybridizationData.fLagrangeMatId)
+        if(gellarge.Element()->MaterialId() == lagrangematid)
         {
             return cellarge.Element();
         }
@@ -625,7 +638,7 @@ TPZCompEl *TPZH1ApproxCreator::FindHDivNeighbouringElement(TPZCompEl *wrapcel)
             TPZCompElSide celside = celstack[ist];
             TPZGeoElSide gelside = celside.Reference();
             TPZGeoEl *candidate = gelside.Element();
-            if(candidate->MaterialId() == fHybridizationData.fLagrangeMatId)
+            if(candidate->MaterialId() == lagrangematid)
             {
                 return celside.Element();
             }
@@ -640,9 +653,9 @@ TPZCompMesh *TPZH1ApproxCreator::CreateBoundaryHDivSpace()
     int nstate = 1;
     if(fProbType == ProblemType::EElastic) nstate = fGeoMesh->Dimension();
     //Inserting HDiv material
+    int lagrangematid = fHybridizationData.fLagrangeData[0].fLagrangeMatId;
     if (fHybridType!= HybridizationType::EStandard || fHybridType!= HybridizationType::EStandardSquared) {
-        int matid = fHybridizationData.fLagrangeMatId;
-        auto nullmat = new TPZNullMaterial(matid);
+        auto nullmat = new TPZNullMaterial(lagrangematid);
         nullmat->SetDimension(fGeoMesh->Dimension()-1);
         nullmat->SetNStateVariables(nstate);
         hdivmesh->InsertMaterialObject(nullmat);
@@ -710,7 +723,8 @@ void TPZH1ApproxCreator::InsertL2MaterialObjects(TPZCompMesh * L2Mesh){
             insertMat(fHybridizationData.fWrapMatId, dim - 1, L2Mesh);
         }
         if (fHybridType == HybridizationType::EStandardSquared) {
-            insertMat(fHybridizationData.fSecondLagrangeMatId, dim - 1, L2Mesh);
+          int secondlagrangematid = fHybridizationData.fLagrangeData[1].fLagrangeMatId;
+            insertMat(secondlagrangematid, dim - 1, L2Mesh);
         }
     }
 }
@@ -870,7 +884,7 @@ void TPZH1ApproxCreator::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &
             }
             //Before this step, the connects that interface elements share with wrap elements, belong to an element group,
             //While connects shared with lagrange elements, belongs to no group.
-            if(fHybridType == HybridizationType::EStandardSquared && (matid == fHybridizationData.fLeftInterfaceMatId || matid == fHybridizationData.fRightInterfaceMatId))
+            if(fHybridType == HybridizationType::EStandardSquared && (matid == fHybridizationData.fLagrangeData[0].fLeftInterfaceMatId || matid == fHybridizationData.fLagrangeData[0].fRightInterfaceMatId))
             {
                 for(auto cindex : connectlist)
                 {
