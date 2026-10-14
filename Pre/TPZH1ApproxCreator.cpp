@@ -173,7 +173,7 @@ TPZCompMesh * TPZH1ApproxCreator::CreateClassicH1ApproximationSpace() {
 
 #include "TPZLagrangeMultiplierCS.h"
 
-TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateMultiphysicsSpace(TPZManVector<TPZCompMesh *> meshvec){
+TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateMultiphysicsSpace(TPZManVector<TPZCompMesh *> &meshvec){
 
     int dim = fGeoMesh->Dimension();
     auto cmesh = new TPZMultiphysicsCompMesh(fGeoMesh);
@@ -211,6 +211,13 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateMultiphysicsSpace(TPZManVect
             rintmat->SetMultiplier(1.);
         }
         AddInterfaceComputationalElements(cmesh);
+    }
+    cmesh->InitializeBlock();
+    cmesh->ComputeNodElCon();
+    cmesh->CleanUpUnconnectedNodes();
+    {
+      std::ofstream out("cmesh.txt");
+      cmesh->Print(out);
     }
     if(fShouldCondense)
         GroupAndCondenseElements(cmesh);
@@ -664,7 +671,7 @@ TPZCompMesh *TPZH1ApproxCreator::CreateBoundaryHDivSpace()
     int lagMult = 0;
     // This should be a data of Approx Creator
     hdivmesh->ApproxSpace().SetHDivFamily(HDivFamily::EHDivConstant);
-    hdivmesh->ApproxSpace().SetHDivFamily(HDivFamily::EHDivStandard);
+    // hdivmesh->ApproxSpace().SetHDivFamily(HDivFamily::EHDivStandard);
     hdivmesh->ApproxSpace().SetAllCreateFunctionsHDiv(fGeoMesh->Dimension());
     hdivmesh->ApproxSpace().CreateDisconnectedElements(true);
     hdivmesh->SetDefaultOrder(fDefaultPOrder);
@@ -760,7 +767,7 @@ void TPZH1ApproxCreator::CondenseElements(TPZMultiphysicsCompMesh *mcmesh) {
     mcmesh->ComputeNodElCon();
     if(fHybridType == HybridizationType::EStandard)
     {
-        bool rgb = IsRigidBodySpaces();
+        bool rgb = RigidBodySpaces();
         int lagCTEspace2 = EAvSol;
         int64_t nconnects = mcmesh->NConnects();
         for (int64_t ic = 0; ic<nconnects; ic++) {
