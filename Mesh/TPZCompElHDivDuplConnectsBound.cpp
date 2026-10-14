@@ -43,7 +43,7 @@ int TPZCompElHDivDuplConnectsBound<TSHAPE>::NSideConnects(int side) const{
 template<class TSHAPE>
 int TPZCompElHDivDuplConnectsBound<TSHAPE>::NConnectShapeF(int connect, int connectorder)const
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (connect < 0 || connect > TSHAPE::NFacets) {
         DebugStop();
     }

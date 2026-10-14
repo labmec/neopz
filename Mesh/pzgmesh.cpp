@@ -99,6 +99,9 @@ TPZGeoMesh::~TPZGeoMesh()
 #ifdef PZDEBUG2
     std::cout << "Deleting TPZGeoMesh " << (void *) this << std::endl;
 #endif
+    if (fReference && fReference->Reference() == this) {
+        fReference->SetReference(nullptr);
+    }
 	CleanUp();
 }
 
