@@ -1527,19 +1527,23 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
             }
         }
     }
+    int nerrors = errorSum.size();
     this->EvaluateError(store_error, errorSum, matset);
+    if(errorSum.size() != nerrors) DebugStop();
 }
 
 void TPZCompMesh::AccountForElementError(TPZCompEl* cel, bool store_error, TPZVec<REAL>& true_error,
                                          TPZVec<REAL>& errorSum, const std::set<int> &matset) {
     
     if(!cel) DebugStop();
+    int nerrors = errorSum.size();
     TPZElementGroup* elgr = dynamic_cast<TPZElementGroup*>(cel);
     if(elgr) {
         auto& elvec = elgr->GetElGroup();
         for(auto celgr : elvec){
             if(!celgr) continue;
             AccountForElementError(celgr,store_error,true_error,errorSum,matset);
+            if(errorSum.size() != nerrors) DebugStop();
         }
         return;
     }
@@ -1551,7 +1555,8 @@ void TPZCompMesh::AccountForElementError(TPZCompEl* cel, bool store_error, TPZVe
     if(!material) DebugStop();
     TPZMatError<STATE> *matError = dynamic_cast<TPZMatError<STATE> *>(material);
     if(!matError) DebugStop();
-    int64_t nerrors = matError->NEvalErrors();
+    int64_t nerrors2 = matError->NEvalErrors();
+    if(nerrors2 != nerrors) DebugStop();
     if(nerrors != true_error.NElements()) {
         std::cout << "TPZCompMesh::EvaluateError error vector incompatible with material\n";
         std::cout << "nerrors " << nerrors << " true_error.NElements " << true_error.NElements() << std::endl;
@@ -1561,7 +1566,7 @@ void TPZCompMesh::AccountForElementError(TPZCompEl* cel, bool store_error, TPZVe
     cel->EvaluateError(true_error, store_error);
 
 //    int64_t nerrors = true_error.NElements();
-    errorSum.Resize(nerrors, 0.);
+    if(errorSum.size() != nerrors) DebugStop();
     for (int64_t ii = 0; ii < nerrors; ii++)
         errorSum[ii] += true_error[ii] * true_error[ii];
 
@@ -1598,6 +1603,7 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum,const s
     if(!matset.size()) DebugStop();
 
 	errorSum.Fill(0.);
+  int nerrors = errorSum.size();
 	
 	TPZManVector<REAL,7> true_error(errorSum.size());
 	true_error.Fill(0.);
@@ -1617,10 +1623,12 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum,const s
                 for(auto celgr : elgr->GetElGroup()){
                     if(!celgr) continue;
                     AccountForElementError(celgr,store_error,true_error,errorSum,matset);
+                    if(errorSum.size() != nerrors) DebugStop();
                 }
             }
             else{ // condcompel->ReferenceCompEl() is a single element
                 AccountForElementError(condcompel->ReferenceCompEl(),store_error,true_error,errorSum,matset);
+                if(errorSum.size() != nerrors) DebugStop();
             }
 
         }
@@ -1630,6 +1638,7 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum,const s
             for(auto celgr : elgr->GetElGroup()){
               if(!celgr) continue;
               AccountForElementError(celgr,store_error,true_error,errorSum,matset);
+              if(errorSum.size() != nerrors) DebugStop();
             }
           }
           else {
@@ -1637,15 +1646,16 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum,const s
               if(subcmesh) {
                   TPZCompMesh *cmesh = subcmesh;
                   cmesh->EvaluateError(store_error, errorSum, matset);
+                  if(errorSum.size() != nerrors) DebugStop();
               }
               else{
                   AccountForElementError(cel,store_error,true_error,errorSum,matset);
-              }
+                  if(errorSum.size() != nerrors) DebugStop();
+}
           }
         }
 	}
 	
-	int64_t nerrors = errorSum.NElements();
 	for(int64_t ii = 0; ii < nerrors; ii++)
 		errorSum[ii] = sqrt(errorSum[ii]);
 }

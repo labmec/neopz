@@ -125,6 +125,10 @@ void TPZMHMixedMeshControl::InsertPeriferalMaterialObjects()
     nullmat->SetDimension(mat->Dimension()-1);
     nullmat->SetNStateVariables(nstate);
     fCMesh->InsertMaterialObject(nullmat);
+    auto *nullmatskelwrap = new TPZNullMaterialCS<STATE>(fSkeletonWrapMatId);
+    nullmatskelwrap->SetDimension(mat->Dimension()-1);
+    nullmatskelwrap->SetNStateVariables(nstate);
+    fCMesh->InsertMaterialObject(nullmatskelwrap);
 //    TPZBndCond * bcFlux = mat->CreateBC(mat, fSkeletonMatId, typePressure, val1, val2Flux);
     //    bcN->SetForcingFunction(0,force);
 //    fCMesh->InsertMaterialObject(bcFlux);
@@ -281,6 +285,11 @@ void TPZMHMixedMeshControl::InsertPeriferalHdivMaterialObjects()
         nullmat->SetDimension(meshdim-1);
         nullmat->SetNStateVariables(fNState);
         cmeshHDiv->InsertMaterialObject(nullmat);
+
+        auto *nullmat2 = new TPZNullMaterial<STATE>(fSkeletonWrapMatId);
+        nullmat2->SetDimension(meshdim-1);
+        nullmat2->SetNStateVariables(fNState);
+        cmeshHDiv->InsertMaterialObject(nullmat2);
         if(fSecondSkeletonMatId != 0)
         {
             auto *nullmat = new TPZNullMaterial<STATE>(fSecondSkeletonMatId);
@@ -998,6 +1007,7 @@ void TPZMHMixedMeshControl::CreateInternalFluxElements() {
         MHMOfEachGeoEl[i] = std::make_pair(fGeoToMHMDomain[i], i);
     }
 
+    // this will sort the elements in function of the subdomain they belong to. The elements of the same subdomain will be together in the vector
     std::sort(&MHMOfEachGeoEl[0], &MHMOfEachGeoEl[nel - 1] + 1);
 
     int64_t previousMHMDomain = -1;
@@ -1021,6 +1031,11 @@ void TPZMHMixedMeshControl::CreateInternalFluxElements() {
         // Create the flux element
         TPZGeoEl *gel = fGMesh->Element(elIndex);
         if (!gel || gel->HasSubElement()) continue;
+        int matid = gel->MaterialId();
+        TPZMaterial *mat = cmeshHDiv->FindMaterial(matid);
+        if (!mat) {
+            DebugStop();
+        }
         TPZCompEl* cel = cmeshHDiv->CreateCompEl(gel);
 //        TPZCompEl *cel = cmeshHDiv->Element(index);
         // Associate the connects with the subdomain for the flux mesh

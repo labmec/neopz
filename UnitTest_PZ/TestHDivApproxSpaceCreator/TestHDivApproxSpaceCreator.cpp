@@ -525,7 +525,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     }
     hdivCreator->HdivFamily() = hdivFam;
     hdivCreator->SetProbType(probType);
-    hdivCreator->IsRigidBodySpaces() = isRigidBodySpaces;
+    hdivCreator->SetRigidBodySpaces(isRigidBodySpaces);
     hdivCreator->SetDefaultOrder(pOrder);
     hdivCreator->SetExtraInternalOrder(extrapOrder);
     hdivCreator->SetShouldCondense(isCondensed);
@@ -657,7 +657,7 @@ void TestHdivApproxSpaceCreator2(HDivFamily hdivFam, ProblemType probType, int p
     }
     hdivCreator->HdivFamily() = hdivFam;
     hdivCreator->SetProbType(probType);
-    hdivCreator->IsRigidBodySpaces() = isRigidBodySpaces;
+    hdivCreator->SetRigidBodySpaces(isRigidBodySpaces);
     hdivCreator->SetDefaultOrder(pOrder);
     hdivCreator->SetExtraInternalOrder(extrapOrder);
     hdivCreator->SetShouldCondense(isCondensed);

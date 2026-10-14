@@ -472,7 +472,7 @@ void Test2DRigidBodyMotion(H1Family h1Fam, HybridizationType hybtype ,ProblemTyp
     h1Creator.SetShouldCondense(shouldCondense);
     h1Creator.SetHybridType(hybtype);
     h1Creator.SetProbType(probType);
-    h1Creator.IsRigidBodySpaces() = IsRigidBodySpaces;
+    h1Creator.SetRigidBodySpaces(IsRigidBodySpaces);
     h1Creator.SetDefaultOrder(pOrder);
     h1Creator.SetExtraInternalOrder(plusOrder);
     InsertMaterials(h1Creator);
@@ -907,7 +907,7 @@ void TestH1ApproxSpaceCreator(H1Family h1Fam, ProblemType probType, int pOrder, 
     TPZH1ApproxCreator* h1Creator = nullptr;
     h1Creator = new TPZH1ApproxCreator(gmesh);
     h1Creator->SetProbType(probType);
-    h1Creator->IsRigidBodySpaces() = isRigidBodySpaces;
+    h1Creator->SetRigidBodySpaces(isRigidBodySpaces);
     h1Creator->SetDefaultOrder(pOrder);
     int dim = gmesh->Dimension();
     h1Creator->SetHybridType(hType);

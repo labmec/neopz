@@ -19,6 +19,10 @@
 #include "TPZFrontStructMatrix.h"
 #include "TPZParFrontStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
+#ifdef USING_MUMPS
+#include <TPZSSpStructMatrixMumps.h>
+#endif
+
 #include "TPZSpStructMatrix.h"
 #include "pzsmfrontalanal.h"
 #include "pzsmanal.h"
@@ -46,9 +50,11 @@ static int logger;
 
 TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh) : TPZRegisterClassId(&TPZSubCompMesh::ClassId), TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0),
 fSingularConnect(-1) {
-    SetDimModel(mesh.Dimension());
+  SetDimModel(mesh.Dimension());
 	fAnalysis = NULL;
-	
+	fMaterialVec = mesh.MaterialVec();
+  fSolType = mesh.GetSolType();
+  fDefaultOrder = mesh.GetDefaultOrder();
 }
 
 TPZSubCompMesh::TPZSubCompMesh() : TPZRegisterClassId(&TPZSubCompMesh::ClassId),TPZCompMesh(), TPZCompEl(), fSingularConnect(-1)  {
@@ -764,7 +770,7 @@ int64_t TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int64_t elindex){
         right = multinterf->RightElement();
     }
     
-//    if(!interf && !multinterf)
+    if(!interf && !multinterf)
     {
         TPZStack<int64_t> allc;
         std::map<int64_t,int64_t> fathertolocal;
@@ -783,36 +789,39 @@ int64_t TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int64_t elindex){
             cel->SetConnectIndex(ic,subindex);
         }
     }
+    else
+    {
+      int nleftcon = left->NConnects();
+      {
+        TPZCompMesh *comm = CommonMesh(left->Mesh());
+        int ncon = nleftcon;
+        for (int ic = 0; ic < ncon; ic++)
+        {
+          int64_t superind = left->ConnectIndex(ic);
+          int64_t commind = left->Mesh()->PutinSuperMesh(superind, comm);
+          int64_t subindex = GetFromSuperMesh(commind, comm);
+          if (multinterf)
+          {
+            cel->SetConnectIndex(ic, subindex);
+          }
+        }
+      }
+      {
+        TPZCompMesh *comm = CommonMesh(right->Mesh());
+        int ncon = right->NConnects();
+        for (int ic = 0; ic < ncon; ic++)
+        {
+          int64_t superind = right->ConnectIndex(ic);
+          int64_t commind = right->Mesh()->PutinSuperMesh(superind, comm);
+          int64_t subindex = GetFromSuperMesh(commind, comm);
+          if (multinterf)
+          {
+            cel->SetConnectIndex(ic + nleftcon, subindex);
+          }
+        }
+      }
+    }
 
-//    else
-//    {
-//        int nleftcon = left->NConnects();
-//        {
-//            TPZCompMesh *comm = CommonMesh(left->Mesh());
-//            int ncon = nleftcon;
-//            for (int ic=0; ic<ncon ; ic++) {
-//                int64_t superind = left->ConnectIndex(ic);
-//                int64_t commind = left->Mesh()->PutinSuperMesh(superind, comm);
-//                int64_t subindex = GetFromSuperMesh(commind, comm);
-//                if (multinterf) {
-//                    cel->SetConnectIndex(ic, subindex);
-//                }
-//            }
-//        }
-//        {
-//            TPZCompMesh *comm = CommonMesh(right->Mesh());
-//            int ncon = right->NConnects();
-//            for (int ic=0; ic<ncon ; ic++) {
-//                int64_t superind = right->ConnectIndex(ic);
-//                int64_t commind = right->Mesh()->PutinSuperMesh(superind, comm);
-//                int64_t subindex = GetFromSuperMesh(commind, comm);
-//                if (multinterf) {
-//                    cel->SetConnectIndex(ic+nleftcon, subindex);
-//                }
-//            }
-//        }
-//    }
-    
     if(cel->Reference())
     {
         TPZMaterial * matfather;
@@ -1141,6 +1150,9 @@ void TPZSubCompMesh::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMa
 	//??
 	
 	TPZMaterial * mat = MaterialVec().begin()->second;
+  if(!mat) {
+    DebugStop();
+  }
 	int nstate = mat->NStateVariables();
     const int numloadcases = [mat](){
         if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
@@ -1263,7 +1275,15 @@ void TPZSubCompMesh::SetAnalysisSparse(int numThreads)
 {
     fAnalysis = new TPZSubMeshAnalysis(this);
     TPZAutoPointer<TPZStructMatrix> str = NULL;
+#ifdef USING_MKL
     str = new TPZSSpStructMatrix<STATE>(this);
+#else
+#ifdef USING_MUMPS
+    str = new TPZSSpStructMatrixMumps<STATE>(this);
+#else
+    DebugStop();
+#endif
+#endif
     if(numThreads > 0){
         str->SetNumThreads(numThreads);
     }

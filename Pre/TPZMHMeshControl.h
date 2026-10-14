@@ -381,6 +381,13 @@ protected:
     void SubStructure();
     void SubStructure2();
     
+    /// Create a wrap element on the sides of the elements between different subdomains
+    void CreateWrapElements();
+
+    /// @brief Set the MHM domain of a geometric element. Expand the vector fGeoToMHMDomain if necessary
+    /// @param gel referred element
+    /// @param mhmdomain : int64_t index of the MHM domain to which the element belongs
+    void SetMHMDomain(TPZGeoEl *gel, int64_t mhmdomain);
     /// Create the wrap elements
     void BuildWrapMesh(int dim);
     

@@ -1403,13 +1403,14 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
         out << "CompEl " << el;
         if (hasgeometry) {
             out << " Gel " << gel->Index() << " matid " << gel->MaterialId() << " Center " << xcenter << std::endl;
-        }
-        TPZManVector<REAL,3> xco(3);
-        for(int ic=0; ic<gel->NCornerNodes(); ic++) {
-            if(gel && ic < gel->NCornerNodes()) {
-                gel->NodePtr(ic)->GetCoordinates(xco);
-                out << "node " << ic << " co " << xco << std::endl;
-            }
+        
+          TPZManVector<REAL,3> xco(3);
+          for(int ic=0; ic<gel->NCornerNodes(); ic++) {
+              if(gel && ic < gel->NCornerNodes()) {
+                  gel->NodePtr(ic)->GetCoordinates(xco);
+                  out << "node " << ic << " co " << xco << std::endl;
+              }
+          }
         }
         for (ic = 0; ic<nc; ic++) {
             TPZManVector<STATE> connectsol;

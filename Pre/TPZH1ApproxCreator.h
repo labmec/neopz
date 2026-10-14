@@ -62,20 +62,22 @@ public:
     virtual void CondenseElements(TPZMultiphysicsCompMesh *mcmesh);
 
     /// Group and condense computational elements
-    void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) override;
+    virtual void GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcmesh) override;
 
 
-private:
+protected:
 
     /// Create boundary HDiv space/cmesh
-    TPZCompMesh *CreateBoundaryHDivSpace();
+    virtual TPZCompMesh *CreateBoundaryHDivSpace();
 
     /// Creates an L2 approximation space/cmesh
-    TPZCompMesh * CreateL2Space();
+    virtual TPZCompMesh *CreateL2Space();
+
+protected:
 
     /// Creates an constant approximation space/cmesh;
     /// The space has a different connect disposition from L2-spaces, easier to read for some users.
-    TPZCompMesh * CreateConstantSpace(const int &lagMult);
+    virtual TPZCompMesh * CreateConstantSpace(const int &lagMult);
 
     /// Insert material objects into L2-mesh
     void InsertL2MaterialObjects(TPZCompMesh * L2Mesh);
@@ -92,7 +94,7 @@ private:
 
     /// Creates the multiphysics compmesh based on the vector of atomic meshes
     /// @param meshvector vector of atomic meshes. For instance HDiv and L2 for Darcy problem
-    TPZMultiphysicsCompMesh * CreateMultiphysicsSpace(TPZManVector<TPZCompMesh*> meshvector);
+    TPZMultiphysicsCompMesh * CreateMultiphysicsSpace(TPZManVector<TPZCompMesh*> &meshvector);
 
     ///This method checks if the current configuration is valid
     void CheckSetupConsistency() override;
