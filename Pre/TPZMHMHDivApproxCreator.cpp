@@ -83,7 +83,7 @@ void TPZMHMHDivApproxCreator::PutinSubstructures(TPZCompMesh &cmesh)
 {
     // create subcompmeshes
     std::map<int64_t,TPZSubCompMesh *> submeshes;
-    for(auto part : fElementPartition) {
+    for(auto part : fGeoToMHMDomain) {
         if(part == -1) continue;
         if(submeshes.find(part) == submeshes.end())
         {
@@ -98,7 +98,7 @@ void TPZMHMHDivApproxCreator::PutinSubstructures(TPZCompMesh &cmesh)
         if(sub) continue;
         auto *gel = cel->Reference();
         auto index = gel->Index();
-        auto part = fElementPartition[index];
+        auto part = fGeoToMHMDomain[index];
         if(part >= 0) {
             auto *sub = submeshes[part];
             sub->TransferElement(&cmesh, el);
