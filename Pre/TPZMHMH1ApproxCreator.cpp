@@ -213,7 +213,7 @@ void TPZMHMH1ApproxCreator::CreateSkeletonElements()
     DebugStop();
   }
 
-  if (fHybridizationData.fLagrangeMatId < 0)
+  if (fHybridizationData.fLagrangeData[0].fLagrangeMatId < 0)
     DebugStop();
 
   std::set<int64_t> lagrangeElements;
@@ -240,7 +240,7 @@ void TPZMHMH1ApproxCreator::CreateSkeletonElements()
         DebugStop();
       }
       lagrangeElements.insert(iel);
-      gel->SetMaterialId(fHybridizationData.fLagrangeMatId);
+      gel->SetMaterialId(fHybridizationData.fLagrangeData[0].fLagrangeMatId);
       gel->DecrementNumInterfaces();
     }
   }
@@ -289,11 +289,11 @@ void TPZMHMH1ApproxCreator::CreateWrapElements()
         TPZGeoElBC gbc(gelside, fHybridizationData.fWrapMatId);
         TPZGeoEl *wrap = gbc.CreatedElement();
         SetMHMDomain(wrap, domain);
-        int interfaceMatId = fHybridizationData.fLeftInterfaceMatId;
+        int interfaceMatId = fHybridizationData.fLagrangeData[0].fLeftInterfaceMatId;
         TPZGeoElBC gbc2(gbc, interfaceMatId);
         SetMHMDomain(gbc2.CreatedElement(), domain);
         int64_t interfaceIndex = gbc2.CreatedElement()->Index();
-        fHybridizationData.fInterfaces[interfaceIndex] = TPZHybrid(interfaceIndex, wrap->Index(), boundary.Element()->Index());
+        fHybridizationData.fInterfaces[interfaceIndex] = TPZHybridGeometry(interfaceIndex, wrap->Index(), boundary.Element()->Index());
         continue;
       }
       // if there is no boundary, there must be a neighbour of the same dimension.
@@ -319,27 +319,27 @@ void TPZMHMH1ApproxCreator::CreateWrapElements()
         TPZGeoEl *wrap = gbc.CreatedElement();
         SetMHMDomain(wrap, domain);
 
-        TPZGeoElSide skelside = gelside.HasNeighbour(fHybridizationData.fLagrangeMatId);
+        TPZGeoElSide skelside = gelside.HasNeighbour(fHybridizationData.fLagrangeData[0].fLagrangeMatId);
         if (!skelside)
         {
-          skelside = gelside.HasLowerLevelNeighbour(fHybridizationData.fLagrangeMatId);
+          skelside = gelside.HasLowerLevelNeighbour(fHybridizationData.fLagrangeData[0].fLagrangeMatId);
         }
         if (!skelside)
         {
           DebugStop();
         }
         if(neighbourDomain < domain) {
-          int interfaceMatId = fHybridizationData.fLeftInterfaceMatId;
+          int interfaceMatId = fHybridizationData.fLagrangeData[0].fLeftInterfaceMatId;
           TPZGeoElBC gbc2(gelside, interfaceMatId);
           SetMHMDomain(gbc2.CreatedElement(), domain);
           int64_t interfaceIndex = gbc2.CreatedElement()->Index();
-          fHybridizationData.fInterfaces[interfaceIndex] = TPZHybrid(interfaceIndex, wrap->Index(), skelside.Element()->Index());
+          fHybridizationData.fInterfaces[interfaceIndex] = TPZHybridGeometry(interfaceIndex, wrap->Index(), skelside.Element()->Index());
         } else {
-          int interfaceMatId = fHybridizationData.fRightInterfaceMatId;
+          int interfaceMatId = fHybridizationData.fLagrangeData[0].fRightInterfaceMatId;
           TPZGeoElBC gbc2(gelside, interfaceMatId);
           SetMHMDomain(gbc2.CreatedElement(), domain);
           int64_t interfaceIndex = gbc2.CreatedElement()->Index();
-          fHybridizationData.fInterfaces[interfaceIndex] = TPZHybrid(interfaceIndex, skelside.Element()->Index(), wrap->Index());
+          fHybridizationData.fInterfaces[interfaceIndex] = TPZHybridGeometry(interfaceIndex, skelside.Element()->Index(), wrap->Index());
         }
       }
     }
