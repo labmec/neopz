@@ -168,9 +168,13 @@ public:
     virtual void SetHybridType(HybridizationType hybrid) = 0;
 
     /// Get/Set Enhanced spaces
-    bool &IsRigidBodySpaces(){return fIsRBSpaces;}
+    bool RigidBodySpaces(){
+      return fIsRBSpaces;
+    }
     /// Get Enhanced spaces
-    const bool &IsRigidBodySpaces() const {return fIsRBSpaces;}
+    void SetRigidBodySpaces(bool rgb)  {
+      fIsRBSpaces = rgb;
+    }
     
     HybridizationData HybridData() const {return fHybridizationData;}
     void SetHybridData(const HybridizationData &copy) {
