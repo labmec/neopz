@@ -634,7 +634,7 @@ void CheckNEqCondensedProb(TPZCompMesh* cmesh, TPZH1ApproxCreator& h1creator, MM
         return;
     }
     TPZCompMesh* pmesh = mpcmesh->MeshVector()[1];
-    const int lagmatid = h1creator.HybridData().fLagrangeMatId;
+    const int lagmatid = h1creator.HybridData().fLagrangeData[0].fLagrangeMatId;
     const int dim = mpcmesh->Dimension();
     
     int nlag = 0;

@@ -953,7 +953,7 @@ void CheckNEqCondensedProb(TPZMultiphysicsCompMesh* mpcmesh,
     
     std::cout << "\n--------------- Checking number of equations --------------" <<  std::endl;
     TPZCompMesh* pmesh = mpcmesh->MeshVector()[1];
-    const int lagmatid = hdivcreator.HybridData().fLagrangeMatId;
+    const int lagmatid = hdivcreator.HybridData().fLagrangeData[0].fLagrangeMatId;
     const int dim = mpcmesh->Dimension();
     
     int nlag = 0;
