@@ -1,0 +1,63 @@
+name: Test external project with NeoPZ
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: Public repository name under labmec
+        required: true
+        type: string
+      external_ref:
+        description: External project branch, tag, or commit
+        required: true
+        default: main
+        type: string
+      build_target:
+        description: CMake target; leave empty to build everything
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out NeoPZ develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      # Check the external repository and ref before the costly NeoPZ build.
+      - name: Check out external project
+        uses: actions/checkout@v4
+        with:
+          repository: labmec/${{ inputs.project }}
+          ref: ${{ inputs.external_ref }}
+          path: external
+
+      - name: Build and install NeoPZ
+        run: |
+          cmake -S . -B "$RUNNER_TEMP/pz-build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/pz-install"
+          cmake --build "$RUNNER_TEMP/pz-build" \
+            --target install --parallel 4
+
+      - name: Configure external project
+        run: |
+          cmake -S external -B "$RUNNER_TEMP/external-build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/pz-install"
+
+      - name: Build external project
+        env:
+          BUILD_TARGET: ${{ inputs.build_target }}
+        run: |
+          if [ -n "$BUILD_TARGET" ]; then
+            cmake --build "$RUNNER_TEMP/external-build" \
+              --target "$BUILD_TARGET" --parallel 4
+          else
+            cmake --build "$RUNNER_TEMP/external-build" --parallel 4
+          fi
