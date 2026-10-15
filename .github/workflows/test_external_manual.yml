@@ -3,6 +3,11 @@ name: Test external project with NeoPZ
 on:
   workflow_dispatch:
     inputs:
+      pz_ref:
+        description: NeoPZ branch, tag, or commit
+        required: true
+        default: develop
+        type: string
       project:
         description: Public repository name under labmec
         required: true
@@ -24,10 +29,10 @@ jobs:
   compatibility:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out NeoPZ develop
+      - name: Check out NeoPZ
         uses: actions/checkout@v4
         with:
-          ref: develop
+          ref: ${{ inputs.pz_ref }}
 
       # Check the external repository and ref before the costly NeoPZ build.
       - name: Check out external project
