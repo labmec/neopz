@@ -413,6 +413,9 @@ public:
 	
 	/** @brief Print all relevant data of the element to cout*/
 	virtual  void Print(std::ostream & out = std::cout);
+
+    /** @brief Prints the geoel to vtk format with the name geoel_index_#.vtk  */
+    void PrintVTK(const std::string prefix="");
     
 	/**
 	 * @brief Prints the coordinates of all nodes (geometric)
@@ -470,12 +473,15 @@ public:
     {
         fId = elId;
     }
+    
+    /// return the orientation of a face +1: counterclockwise -1:clockwise
+    virtual int GetFaceOrientation(int face) const = 0;
 	
 	/** @brief Get the transform id the face to face*/
-	int GetTransformId2dQ(TPZVec<int> &idfrom,TPZVec<int> &idto);
+	int GetTransformId2dQ(TPZVec<int64_t> &idfrom,TPZVec<int64_t> &idto);
 	
 	/** @brief Get the transform id the face to face*/
-	int GetTransformId2dT(TPZVec<int> &idfrom,TPZVec<int> &idto);
+	int GetTransformId2dT(TPZVec<int64_t> &idfrom,TPZVec<int64_t> &idto);
 	
 	virtual	TPZTransform<REAL> GetTransform(int side,int son) = 0;
 
@@ -555,6 +561,12 @@ public:
     
     /** @brief Return the gradient of the transformation at the given coordinate */
     virtual void GradX(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
+
+    void ComputeQsiGrad(TPZVec<REAL> &qsi, TPZVec<Fad<REAL>> &qsifad);
+    
+    static void ComputeDetjac(TPZFMatrix<Fad<REAL> > &gradx, Fad<REAL> &detjac);
+
+	static void ComputeDetjac(TPZFMatrix<REAL> &gradx, REAL &detjac);
 
 //	void ComputeNormals(TPZMatrix<REAL> &normal);
 	
@@ -693,6 +705,9 @@ public:
 	
 	/** @brief Determine the orientation of the normal vector comparing the ids of the neighbouring elements */
 	int NormalOrientation(int side);
+
+	/// @brief returns if the element is a refpattern element or not
+	virtual bool IsRefPatternEl() const = 0;
 	
 	/** @brief Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
 	virtual void SetRefPattern(TPZAutoPointer<TPZRefPattern> );
@@ -731,6 +746,9 @@ public:
     {
         return fIndex;
     }
+    
+    /** @brief Get type of the geometric element */
+    static int GetVTK_ElType(TPZGeoEl *gel);
 	
 private:
 	/** @brief To be used after the buid connectivity. If some neighbour isn't initialized */

@@ -203,7 +203,10 @@ public:
     {
         fRefPattern = refpat;
     }
-	
+    
+    /** @brief Rotate the geometric mesh around an axis */
+static void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int Axis);
+
 protected:
     /**
 	 * @brief Computes the coordinates of the ith geometric node generated

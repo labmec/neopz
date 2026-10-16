@@ -131,7 +131,7 @@ TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fIndex), fCenterPoint(copy.
     Reference()->SetReference(this);
     //TPZMaterial * mat = copy.Material();
     fConstC = copy.fConstC;
-    CreateMidSideConnect();
+    fConnectIndex = copy.fConnectIndex;
     this->SetDegree( copy.Degree() );
     //as interfaces foram clonadas
     if (copy.fIntRule){
@@ -247,7 +247,7 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 }
 
 void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint,TPZMaterialData &data){
-    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes,data.detjac, data.jacinv, data.phi, data.fDPhi, data.dphix);
+    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes,data.detjac, data.jacinv, data.phi, data.fH1.fDPhi, data.dphix);
 }
 
 
@@ -1012,7 +1012,7 @@ const TPZIntPoints &TPZCompElDisc::GetIntegrationRule() const {
 }
 
 TPZIntPoints &TPZCompElDisc::GetIntegrationRule() {
-	if(this->fIntRule == 0){
+	if(this->fIntRule == nullptr){
 		DebugStop();
 	}
   if (fIntegrationRule)

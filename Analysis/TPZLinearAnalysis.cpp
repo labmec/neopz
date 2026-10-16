@@ -3,6 +3,7 @@
 #include "Hash/TPZHash.h"
 #include "TPZMatrixSolver.h"
 #include "TPZSkylineNSymStructMatrix.h"    // for TPZSkylineNSymStructMatrix
+#include "TPZSpStructMatrix.h"             // for  TPZSpStructMatrix
 #include "pzstepsolver.h"
 #include "pzdxmesh.h"                      // for TPZDXGraphMesh
 #include "pzlog.h"
@@ -16,17 +17,17 @@ TPZLinearAnalysis::TPZLinearAnalysis() : TPZAnalysis()
 }
 
 TPZLinearAnalysis::TPZLinearAnalysis(TPZCompMesh *mesh,
-                                     bool mustOptimizeBandwidth,
+                                     const RenumType& renumtype,
                                      std::ostream &out) :
-  TPZAnalysis(mesh,mustOptimizeBandwidth,out),
+  TPZAnalysis(mesh,renumtype,out),
   fRhs(fSolType == EComplex ? true : false)
 {
 }
 
 TPZLinearAnalysis::TPZLinearAnalysis(TPZAutoPointer<TPZCompMesh> mesh,
-                                     bool mustOptimizeBandwidth,
+                                     const RenumType& renumtype,
                                      std::ostream &out) :
-  TPZAnalysis(mesh,mustOptimizeBandwidth,out),
+  TPZAnalysis(mesh,renumtype,out),
   fRhs(fSolType == EComplex ? true : false)
 {
 }
@@ -54,9 +55,16 @@ void TPZLinearAnalysis::AssembleT()
     return;
   }
   if(!this->fStructMatrix){
-    std::cout<<"Setting default struct matrix: skyline(non-symmetric)"<<std::endl;
-    TPZSkylineNSymStructMatrix<TVar> defaultMatrix(fCompMesh);
-    this->SetStructuralMatrix(defaultMatrix);
+    std::cout<<"Setting default struct matrix: ";
+    TPZAutoPointer<TPZStructMatrix> str{nullptr};
+#if defined USING_MKL
+    std::cout<<"sparse(non-symmetric)"<<std::endl;
+    str = new TPZSpStructMatrix<TVar>(fCompMesh);
+#else
+    std::cout<<"skyline(non-symmetric)"<<std::endl;
+    str = new TPZSkylineNSymStructMatrix<TVar>(fCompMesh);
+#endif
+    this->SetStructuralMatrix(str);
   }
   if(!fSolver){
     std::cout<<"Setting default solver: LU"<<std::endl;
@@ -73,11 +81,11 @@ void TPZLinearAnalysis::AssembleT()
 	if(mySolver->Matrix() && mySolver->Matrix()->Rows()==sz)
 	{
 		mySolver->Matrix()->Zero();
-		fStructMatrix->Assemble(*(mySolver->Matrix().operator ->()),fRhs,fGuiInterface);
+		fStructMatrix->Assemble(*(mySolver->Matrix().operator ->()),fRhs);
 	}
 	else
 	{
-		auto *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
+		auto *mat = fStructMatrix->CreateAssemble(fRhs);
 		mySolver->SetMatrix(mat);
 	}
 #ifdef PZ_LOG
@@ -89,8 +97,6 @@ void TPZLinearAnalysis::AssembleT()
         LOGPZ_DEBUG(logger,sout.str())
     }
 #endif
-    
-	mySolver->UpdateFrom(mySolver->Matrix());
 }
 
 void TPZLinearAnalysis::AssembleResidual()
@@ -116,7 +122,7 @@ void TPZLinearAnalysis::AssembleResidual()
     int64_t sz = this->Mesh()->NEquations();
 	this->Rhs().Redim(sz,numloadcases);
   //int64_t othersz = fStructMatrix->Mesh()->NEquations();
-	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
+	fStructMatrix->Assemble(this->Rhs());
 }//void
 
 void TPZLinearAnalysis::Solve()
@@ -148,6 +154,9 @@ void TPZLinearAnalysis::SolveT()
       if (logger.isDebugEnabled())
         {
           TPZFMatrix<TVar> res2(fRhs);
+          if(fSolution.Cols() != fRhs.Cols()) {
+            fSolution.Redim(fSolution.Rows(),fRhs.Cols());
+          }
           mySolver->Matrix()->Residual(fSolution,fRhs,res2);
           std::stringstream sout;
           sout << "Residual norm " << Norm(res2) << std::endl;
@@ -254,7 +263,7 @@ void TPZLinearAnalysis::AnimateRunT(
   auto mySolver = dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
 	for(auto i=1; i<=num_iter;i+=steps){
 		TPZStepSolver<TVar> sol;
-		sol.ShareMatrix(*mySolver);
+    sol.SetMatrix(mySolver->Matrix());
 		sol.SetJacobi(i,0.,0);
 		SetSolver(sol);
 		mySolver->Solve(fRhs, fSolution);
@@ -281,6 +290,11 @@ void TPZLinearAnalysis::SetSolver(const TPZSolver &solver){
     PZError<<" Incompatible types!\n";
     PZError<<" Aborting...\n";
     DebugStop();
+}
+
+void TPZLinearAnalysis::SetCompMesh(TPZCompMesh *cmesh, RenumType optimize){
+  TPZAnalysis::SetCompMesh(cmesh,optimize);
+  fRhs.SetSolType(this->fSolType);
 }
 
 

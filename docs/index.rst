@@ -18,6 +18,7 @@ Welcome to NeoPZ's documentation!
    :caption: Contents:
              
    analysis/index.rst
+   post/index.rst
    material/index.rst
    structmatrix/index.rst
    solver/index.rst
@@ -30,7 +31,8 @@ Introduction
 
 This documentation is an ongoing work. The following sections have been written:
 
-- :doc:`analysis/index` How a FEM analysis is performed in NeoPZ
+- :doc:`analysis/index` How a FEM analysis is performed in NeoPZ (ongoing)
+- :doc:`post/index` How to generate .VTK files of your simulation results in NeoPZ
 - :doc:`material/index` How weak formulations are implemented
 - :doc:`structmatrix/index` How different matrix storage formats can be used
 - :doc:`solver/index` Available solvers in NeoPZ

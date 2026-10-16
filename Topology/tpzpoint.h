@@ -118,6 +118,10 @@ namespace pztopology {
 			return 0;
 		}
 
+        static int GetFaceOrient(const int &face) {
+            return 1;
+        }
+
 		/** @} */
 
 		/** @name About points at the parametric spaces

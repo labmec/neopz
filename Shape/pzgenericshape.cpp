@@ -6,6 +6,7 @@
 #include "pzshapetetra.h"
 #include "pzshapecube.h"
 #include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "pzshapepiram.h"
 #include "pzshapepoint.h"
 

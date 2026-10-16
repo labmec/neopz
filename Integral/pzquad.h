@@ -431,7 +431,12 @@ public:
 	 * @param OrdK Order for one dimensional cubature rule
 	 * @param OrdL Order for cubature rule for triangle
 	 */
-	TPZIntPrism3D(int OrdK = 2,int OrdL = 2);
+	TPZIntPrism3D(int OrdK,int OrdL);
+	/**
+	 * @brief Constructor with orders for a one dimensional rule and a cubature rule for triangle.
+	 * @param OrdK Order for both segment and triangle cubature rules
+	 */
+	TPZIntPrism3D(int OrdK = 2);
 	/** @brief Copy constructor */
 	TPZIntPrism3D(const TPZIntPrism3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdKti(copy.fOrdKti), 
 			fIntRule1D(copy.fIntRule1D), fIntTriang(copy.fIntTriang) {

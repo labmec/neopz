@@ -245,9 +245,11 @@ namespace pztopology {
 
         /// Compute the directions of the HDiv vectors for constant divergent
         // template <class TVar>
-        static void ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div);
-        static void ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds);
-        static int GetSideOrient(const int &face);
+        static void ComputeConstantHDiv(const TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div);
+        static void ComputeConstantHDiv(const TPZVec<Fad<REAL>> &point, TPZFMatrix<Fad<REAL>> &vecDiv, TPZVec<Fad<REAL>> &div);
+        template<class TVar>
+        static void ComputeConstantHCurl(const TPZVec<TVar> &point, TPZFMatrix<TVar> &vecDiv, TPZFMatrix<TVar> &curl, const TPZVec<int> &transformationIds);
+        static int GetFaceOrient(const int &face);
 
         /** Compute the directions of the HCurl vectors.
          * These vectors are combined with H1 shape functions to create the HCurl shape functions.

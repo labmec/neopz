@@ -58,10 +58,10 @@ TPZShapeHDiv
 .. doxygenstruct:: TPZShapeHDiv
    :members:
 
-TPZShapeHDivKernel
-^^^^^^^^^^^^^^^^^^
+TPZShapeHDivKernel2D
+^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenstruct:: TPZShapeHDivKernel
+.. doxygenstruct:: TPZShapeHDivKernel2D
    :members:
 
 TPZShapeHDivConstant
@@ -76,7 +76,6 @@ TPZShapeHCurl
 .. doxygenstruct:: TPZShapeHCurl
    :members:
    
-.. _listofshapeclasses:
 
 TPZShapeData
 ^^^^^^^^^^^^^
@@ -85,10 +84,10 @@ TPZShapeData
    :members:
 
 
+.. _listofshapeclasses:
+
 The list of shape template classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. _ShapePoint:
 
 .. doxygenclass:: pzshape::TPZShapePoint
 .. doxygenclass:: pzshape::TPZShapeLinear

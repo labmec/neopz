@@ -72,7 +72,7 @@ void TPZCompElKernelHDiv3D<TSHAPE>::InitMaterialData(TPZMaterialData &data){
         ids[i] = ref->NodePtr(i)->Id();
     }
     
-    auto &conOrders = shapedata.fHDivConnectOrders;
+    auto &conOrders = shapedata.fHDiv.fConnectOrders;
     constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
     conOrders.Resize(nConnects,-1);
     // For Tetrahedra we increase the polynomial order by one. The internal connect is increased by two
@@ -89,12 +89,13 @@ void TPZCompElKernelHDiv3D<TSHAPE>::InitMaterialData(TPZMaterialData &data){
 
     //resizing of TPZMaterialData structures
     constexpr int dim = TSHAPE::Dimension;
-    constexpr int curldim = [dim](){
-        if constexpr (dim == 1) return 1;
-        else{
-            return 2*dim - 3;//1 for 2D 3 for 3D
-        }
-    }();
+    constexpr int curldim = dim == 3 ? 3 : 1;
+//    constexpr int curldim = [dim](){
+//        if constexpr (dim == 1) return 1;
+//        else{
+//            return 2*dim - 3;//1 for 2D 3 for 3D
+//        }
+//    }();
     const int nshape = this->NShapeF();
     
     auto &phi = data.phi;

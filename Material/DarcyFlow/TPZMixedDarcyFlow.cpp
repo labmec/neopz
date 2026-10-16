@@ -5,8 +5,11 @@
 #include "TPZMixedDarcyFlow.h"
 #include "TPZMaterialDataT.h"
 #include "pzaxestools.h"
-#ifdef USING_MKL
-#include "mkl.h"
+#include "TPZLapack.h"
+#include "pzlog.h"
+
+#ifdef PZ_LOG
+static TPZLogger logger("pz.material.darcy");
 #endif
 
 #define USEBLAS
@@ -24,7 +27,7 @@ TPZMixedDarcyFlow::TPZMixedDarcyFlow() : TPZRegisterClassId(&TPZMixedDarcyFlow::
  */
 TPZMixedDarcyFlow::TPZMixedDarcyFlow(const TPZMixedDarcyFlow &copy) : TBase(copy), fDim(copy.fDim)
 {
-    
+    *this = copy;
 }
 /**
          copy constructor
@@ -62,7 +65,7 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
 
     int phrq, phrp;
     phrp = phip.Rows();
-    phrq = datavec[0].fVecShapeIndex.NElements();
+    phrq = datavec[0].fDeformedDirections.Cols();
 
     int nactive = 0;
     for (const auto &i : datavec) {
@@ -71,10 +74,15 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         }
     }
 #ifdef PZDEBUG
-    if (nactive == 4) {
-        int phrgb = datavec[2].phi.Rows();
-        int phrub = datavec[3].phi.Rows();
-        if (phrp + phrq + phrgb + phrub != ek.Rows()) {
+    if (nactive >= 4) {
+        if(nactive%2 != 0) DebugStop();
+        int numavg = (nactive-2)/2;
+        for(int iavg = 0; iavg<numavg; iavg++)
+        {
+            if(datavec[2+2*iavg].phi.Rows() != 1) DebugStop();
+            if(datavec[2+2*iavg+1].phi.Rows() != 1) DebugStop();
+        }
+        if (phrp + phrq + 2*numavg != ek.Rows()) {
             DebugStop();
         }
     } else {
@@ -84,15 +92,17 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
     }
 #endif
 
-#if defined(USEBLAS) && defined(USING_MKL)
+#if defined(USEBLAS) && defined(USING_LAPACK)
     TPZFNMatrix<3, REAL> ivec(3, phrq, 0.);
-    for (int iq = 0; iq < phrq; iq++){
-        //ef(iq, 0) += 0.;
-        int ivecind = datavec[0].fVecShapeIndex[iq].first;
-        for (int id = 0; id < 3; id++) {
-            ivec(id, iq) = datavec[0].fDeformedDirections(id, ivecind);
-        }
-    }
+
+    // for (int iq = 0; iq < phrq; iq++){
+    //     //ef(iq, 0) += 0.;
+    //     int ivecind = datavec[0].fVecShapeIndex[iq].first;
+    //     for (int id = 0; id < 3; id++) {
+    //         ivec(id, iq) = datavec[0].fDeformedDirections(id, ivecind);
+    //     }
+    // }
+    ivec = datavec[0].fDeformedDirections;
 
 
     /**
@@ -230,13 +240,18 @@ void TPZMixedDarcyFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datave
         ef(phrq + ip, 0) += (-1.) * weight * force * phip(ip, 0);
     }
 
-    if (nactive == 4) {
-        for (int ip = 0; ip < phrp; ip++) {
-            ek(phrq + ip, phrq + phrp) += phip(ip, 0) * weight;
-            ek(phrq + phrp, phrq + ip) += phip(ip, 0) * weight;
+    if (nactive >= 4) {
+        if(nactive%2 != 0) DebugStop();
+        int numav = (nactive-2)/2;
+        for(int iav = 0; iav < numav; iav++)
+        {
+            for (int ip = 0; ip < phrp; ip++) {
+                ek(phrq + ip, phrq + phrp + 2*iav) += phip(ip, 0) * weight;
+                ek(phrq + phrp + 2*iav, phrq + ip) += phip(ip, 0) * weight;
+            }
+            ek(phrp + phrq + 2*iav + 1, phrq + phrp + 2*iav) += -weight;
+            ek(phrq + phrp + 2*iav, phrp + phrq + 2*iav + 1) += -weight;
         }
-        ek(phrp + phrq + 1, phrq + phrp) += -weight;
-        ek(phrq + phrp, phrp + phrq + 1) += -weight;
     }
 }
 
@@ -273,6 +288,8 @@ void TPZMixedDarcyFlow::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &data
             if (bc.Type() == 2) {
                 v2 = -res[0] + v2 / v1;
             }
+        } else if (bc.Type() == 5) {
+            v2 = res[0];
         } else {
             DebugStop();
         }
@@ -337,6 +354,17 @@ void TPZMixedDarcyFlow::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &data
 
             break;
 
+        case 5:
+            TPZFMatrix<REAL> &phi = datavec[0].fH1.fPhi;
+            for (int in = 0; in < phi.Rows(); in++) {
+                //<(InvKm g - u_D)*(v.n)
+                ef(in, 0) += TPZMaterial::fBigNumber * v2 * phi(in, 0) * weight;
+                for (int jn = 0; jn < phi.Rows(); jn++) {
+                    //InvKm(sigma.n)(v.n)
+                    ek(in, jn) += TPZMaterial::fBigNumber * phi(in, 0) * phi(jn, 0) * weight;
+                }
+            }
+
     }
 }
 
@@ -352,7 +380,7 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
     if(SolP.size() == 0) SolP.Resize(1,0.);
 
     if (var == 1) { //function (state variable Q)
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < fDim; i++) {
             solOut[i] = datavec[0].sol[0][i];
 
         }
@@ -379,7 +407,7 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
     }
 
     if (var == 5) {
-        solOut[0] = datavec[0].dsol[0](0, 0) + datavec[0].dsol[0](1, 1);
+        solOut[0] = datavec[0].divsol[0][0];
         return;
     }
 
@@ -397,13 +425,13 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
     if (var == 7) {
 
         TPZVec<STATE> exactSol(1);
-        TPZFNMatrix<3, STATE> gradu(3, 1);
+        TPZFNMatrix<3, STATE> gradu(fDim, 1);
 
         if (fExactSol) {
             fExactSol(datavec[0].x, exactSol, gradu);
         }
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < fDim; i++) {
             solOut[i] = -perm * gradu(i, 0);
         }
 
@@ -434,9 +462,10 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
     if (var == 10) {
         solOut[0] = 0.;
         // solOut[0]=datavec[0].dsol[0](0,0)+datavec[0].dsol[0](1,1);
-        for (int j = 0; j < fDim; j++) {
-            solOut[0] += datavec[0].dsol[0](j, j);
-        }
+        solOut[0] = datavec[0].divsol[0][0];
+        // for (int j = 0; j < fDim; j++) {
+        //     solOut[0] += datavec[0].dsol[0](j, j);
+        // }
         return;
     }
 
@@ -495,6 +524,15 @@ void TPZMixedDarcyFlow::Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
 
         return;
     }
+
+    if (var == 17) {
+        TPZVec<STATE> divsigma(1, 0.);
+        if (fForcingFunction) {
+            fForcingFunction(datavec[0].x, divsigma);
+        }
+        solOut[0] = divsigma[0];
+        return;
+    }
 }
 
 void TPZMixedDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZVec<REAL> &errors) {
@@ -519,9 +557,9 @@ void TPZMixedDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZV
 
     auto dsol = data[1].dsol;
 
-    TPZVec<STATE> divsigma(1);
+    TPZManVector<STATE,1> divsigma(1,0.);
 
-    TPZVec<STATE> u_exact(1, 0);
+    TPZManVector<STATE,1> u_exact(1, 0);
     TPZFMatrix<STATE> du_exact(3, 1, 0);
     if (this->fExactSol) {
         this->fExactSol(data[0].x, u_exact, du_exact);
@@ -540,16 +578,16 @@ void TPZMixedDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZV
     TPZManVector<STATE, 3> gradpressurefem(3, 0.);
     this->Solution(data, VariableIndex("GradPressure"), gradpressurefem);
 
-    TPZManVector<STATE, 3> fluxexactneg(3, 0);
+    TPZManVector<STATE, 3> fluxexact(3, 0);
     TPZManVector<STATE, 3> gradpressure(3, 0);
     for (int i = 0; i < 3; i++) {
         gradpressure[i] = du_exact[i];
-        fluxexactneg[i] = -perm * gradpressure[i];
+        fluxexact[i] = -perm * gradpressure[i];
     }
 
     REAL L2flux = 0., L2grad = 0.;
     for (int i = 0; i < 3; i++) {
-        L2flux += (fluxfem[i] + fluxexactneg[i]) * inv_perm * (fluxfem[i] + fluxexactneg[i]);
+        L2flux += (fluxfem[i] - fluxexact[i]) * inv_perm * (fluxfem[i] - fluxexact[i]);
         L2grad += (du_exact[i] - gradpressurefem[i]) * (du_exact[i] - gradpressurefem[i]);
     }
     errors[0] = (pressurefem[0] - u_exact[0]) * (pressurefem[0] - u_exact[0]);//L2 error for pressure
@@ -557,6 +595,13 @@ void TPZMixedDarcyFlow::Errors(const TPZVec<TPZMaterialDataT<STATE>> &data, TPZV
     errors[2] = residual;//L2 for div
     errors[3] = L2grad;
     errors[4] = L2flux + residual;
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "x " << data[0].x << " fluxfem " << fluxfem << " fluxexact " << fluxexact;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 }
 
 int TPZMixedDarcyFlow::VariableIndex(const std::string &name) const {
@@ -576,6 +621,10 @@ int TPZMixedDarcyFlow::VariableIndex(const std::string &name) const {
     if (!strcmp("g_average", name.c_str())) return 14;
     if (!strcmp("u_average", name.c_str())) return 15;
     if (!strcmp("ExactFluxShiftedOrigin", name.c_str())) return 16;
+    if (!strcmp("EstimatedError", name.c_str())) return 100;
+    if (!strcmp("TrueError", name.c_str())) return 101;
+    if (!strcmp("EffectivityIndex", name.c_str())) return 102;
+    if (!strcmp("ExactDivSigma", name.c_str())) return 17;
     DebugStop();
     return -1;
 }
@@ -590,12 +639,17 @@ int TPZMixedDarcyFlow::NSolutionVariables(int var) const {
     if (var == 7) return 3;
     if (var == 8) return 1;
     if (var == 9) return 3;
-    if (var == 10 || var == 41) return 1;
+    if (var == 10 || var == 11) return 1;
     if (var == 12) return 3;
     if (var == 13) return 1;
     if (var == 14) return 1;
     if (var == 15) return 1;
     if (var == 16) return 3;
+    if (var == 17) return 1;
+    if (var == 100) return 1;
+    if (var == 101) return 1;
+    if (var == 102) return 1;
+
     DebugStop();
     return -1;
 }

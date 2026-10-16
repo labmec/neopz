@@ -41,6 +41,17 @@ public:
 	TPZMatrix<TVar>(const TPZMatrix<TVar>&cp) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId), TPZBaseMatrix(cp)
 	{
 	}
+    
+    /**
+     * @brief Constructor
+     * @param row Number of rows
+     * @param col Number of cols
+     */
+    inline  TPZMatrix<TVar>(const int64_t row,const int64_t col ) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId),
+        TPZBaseMatrix(row,col)
+    {
+        
+    }
 
   /** @brief Move constructor */
   TPZMatrix<TVar>(TPZMatrix<TVar> &&cp) = default;
@@ -93,10 +104,10 @@ public:
   
 	/** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
-	void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+	void AutoFill(int64_t nrow, int64_t ncol, SymProp sym) override;
 	
 	/** @brief Checks if current matrix value is symmetric */
-	int VerifySymmetry(REAL tol = ZeroTolerance()) const override;
+	SymProp VerifySymmetry(REAL tol = ZeroTolerance()) const override;
 	
 	/**
      * @brief Put value with bounds checking
@@ -192,6 +203,9 @@ public:
   virtual TPZMatrix<TVar> &operator*=(const TVar val);
 
   TPZFMatrix<TVar> operator*(const TPZFMatrix<TVar> &B ) const;
+  //! Unifies input parameters checks of MultAdd
+  void MultAddChecks(const TPZFMatrix<TVar> & x,const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,
+                     const TVar alpha=1., const TVar beta = 0., const int opt = 0) const;
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
 	 * @param x Is x on the above operation
@@ -203,6 +217,21 @@ public:
 	 */
 	virtual void MultAdd(const TPZFMatrix<TVar> & x,const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,
 						 const TVar alpha=1., const TVar beta = 0., const int opt = 0) const;
+
+    virtual TVar RowTimesVector(const int row, const TPZFMatrix<TVar> &v) const;
+
+  /**
+   * @brief It computes this += alpha*(A * B), where A or B can be transposed.
+   * @param i Is the row of (this) where the first element of the matrices product should be added 
+   * @param j Is the column of (this) where the first element of the matrices product should be added 
+   * @param A Is A on the above operation
+   * @param transpA 0: A not transpose, 1: A tranpose, everything else: A conj transpose
+   * @param B Is B on the above operation
+   * @param transpB 0: B not transpose, 1: B tranpose, everything else: B conj transpose
+   * @param alpha Is alpha on the above operation
+   */
+	virtual void AddContribution(int64_t i, int64_t j, const TPZFMatrix<TVar> & A, int transpA, const TPZFMatrix<TVar>& B, 
+						 		 int transpB, const TVar alpha = 1.0);
 	
 	/** @brief Computes res = rhs - this * x */
 	virtual void Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res ) ;
@@ -212,7 +241,7 @@ public:
     /** @brief Converts the matrix in a diagonal matrix*/
     virtual void Diagonal(TVar val);
 	/** @brief It makes *T the transpose of current matrix. */
-	virtual void Transpose(TPZMatrix<TVar>*const T) const;
+	virtual void Transpose(TPZMatrix<TVar>*const T, bool conj = false) const;
 	
 	/**
 	 * @brief It makes Inv =[this].
@@ -378,6 +407,13 @@ public:
 	 */
 	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex);
 
+    /**
+     * @brief Similar to Addkel, but uses atomic add instead of regular sum
+     */
+    virtual  void AddKelAtomic(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex){
+        DebugStop();
+    };
+
 	/**
 	 * @name Inquire
 	 * @brief Returns information of the current object
@@ -390,9 +426,6 @@ public:
 		std::cout << "TPZMatrix<TVar>::UdateFrom is not implemented\n";
         DebugStop();
 	}
-	
-	/** @brief Simetrizes copies upper plan to the lower plan, making its data simetric */
-	void Simetrize() override;		
 	
 	/**
 	 * @name Solvers
@@ -543,132 +576,14 @@ public:
 	 * @brief Solves the linear system using Direct methods
 	 * @param F The right hand side of the system and where the solution is stored.
 	 * @param dt Indicates type of decomposition
-	 * @param singular
 	 */
-	virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt, std::list<int64_t> &singular);
-	/**
-	 * @brief Solves the linear system using Direct methods
-	 * @param F The right hand side of the system and where the solution is stored.
-	 * @param dt Indicates type of decomposition
-	 */
-	virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt);
-	
+	virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) = 0;
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const = 0;
+
+    
 /** @brief Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec */
 	static TVar ReturnNearestValue(TVar val, TPZVec<TVar> &Vec, TVar tol);
 	
-	/**
-	 * @brief Solves the linear system using LU method\n
-	 * @param B The right hand side of the system and where the solution is stored.
-	 * @param singular
-	 */
-	int Solve_LU ( TPZFMatrix<TVar>* B, std::list<int64_t> &singular );
-	/**
-	 * @brief Solves the linear system using LU method\n
-	 * @param B The right hand side of the system and where the solution is stored.
-	 */
-	int Solve_LU ( TPZFMatrix<TVar>* B );
-	
-	/**
-	 * @brief Solves the linear system using Cholesky method\n
-	 * @param B The right hand side of the system and where the solution is stored.
-	 */
-	virtual int Solve_Cholesky( TPZFMatrix<TVar>* B);
-	/**
-	 * @brief Solves the linear system using Cholesky method\n
-	 * @param B The right hand side of the system and where the solution is stored.
-	 * @param singular
-	 */
-	int Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<int64_t> &singular );
-	/**
-	 * @brief Solves the linear system using LDLt method\n
-	 * @param B The right hand side of the system and where the solution is stored.
-	 * @param singular
-	 */
-	int Solve_LDLt    ( TPZFMatrix<TVar>* B, std::list<int64_t> &singular );
-	/**
-	 * @brief Solves the linear system using LDLt method\n
-	 * @param B The right hand side of the system and where the solution is stored.
-	 */
-	int Solve_LDLt    ( TPZFMatrix<TVar>* B);
-	
-	/** @} */
-	
-	/**
-	 * @name Factorization
-	 * @brief Those member functions perform the matrix factorization
-	 * @{
-	 */
-	
-	/** @brief Decomposes the current matrix using LU decomposition. */
-    int Decompose_LU(std::list<int64_t> &singular) override;
-    /** @brief Decomposes the current matrix using LU decomposition. */
-    int Decompose_LU() override;
-
-  
-    /**
-     * @brief Decomposes the current matrix using Cholesky method.
-     *
-     * The curent matrix has to be hermitian.
-     */
-    int Decompose_Cholesky(std::list<int64_t> &singular) override;
-    /** @brief Decomposes the current matrix using Cholesky*/
-    int Decompose_Cholesky() override;
-    /**
-     * @brief Decomposes the current matrix using LDLt.
-     *
-     * The current matrix has to be symmetric.
-     * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal
-     * matrix.
-     */
-    int Decompose_LDLt(std::list<int64_t> &singular) override;
-    /** @brief Decomposes the current matrix using LDLt. */
-    int Decompose_LDLt() override;
-	
-	/** @} */
-	
-	/**
-	 * @name Substitutions
-	 * @brief Substitutions forward and backward
-	 * @{
-	 */
-	
-	/**
-	 * @brief Computes Forward and Backward substitution for a "LU" decomposed matrix.
-	 * @param B right hand side and result after all
-	 */
-	virtual int Substitution( TPZFMatrix<TVar>* B ) const;
-	
-	/**
-	 * @brief Computes B = Y, where A*Y = B, A is lower triangular.
-	 * @param b right hand side and result after all
-	 */
-	virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const;
-	
-	/**
-	 * @brief Computes B = Y, where A*Y = B, A is upper triangular.
-	 * @param b right hand side and result after all
-	 */
-	virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const;
-	
-	/**
-	 * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
-	 * @param b right hand side and result after all
-	 */
-	virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const;
-	
-	/**
-	 * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
-	 * @param b right hand side and result after all
-	 */
-	virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const;
-	
-	/**
-	 * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
-	 * @param b right hand side and result after all
-	 */
-	virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const;
-	
-	/** @} */
 	
 	/**
 	 * @name TPZSavable
@@ -704,11 +619,11 @@ protected:
   virtual void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
                                       const TPZMatrix<TVar>*B)const;
   /** @brief Number of entries storaged in the Matrix*/
-  virtual int64_t Size() const = 0;
+  virtual int64_t Size() const {DebugStop(); return -1;}
   /** @{ */
   /** @brief Pointer to the beginning of the storage of the matrix*/
-  virtual TVar* &Elem() = 0;
-  virtual const TVar* Elem() const = 0;
+  virtual TVar* &Elem() { DebugStop(); static TVar* t{nullptr}; return t; }
+  virtual const TVar* Elem() const { DebugStop(); return nullptr;}
   /** @} */
 	/**
 	 * @brief Is an auxiliar method used by MultiplyAdd
@@ -716,13 +631,6 @@ protected:
 	 */
 	void PrepareZ(const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,const TVar beta,const int opt) const;
 	
-	/**
-	 * @brief Constructor
-	 * @param row Number of rows
-	 * @param col Number of cols
-	 */
-	inline  TPZMatrix<TVar>(const int64_t row,const int64_t col ) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId)
-	{ fRow = row; fCol = col;fDefPositive=0; fDecomposed = 0;}
 	
 
     TVar GetRandomVal() const;
@@ -856,52 +764,6 @@ inline TVar &TPZMatrix<TVar>::operator()(const int64_t row) {
 	return operator()(row,0);
 }
 //***Solve LU ***/
-
-template<class TVar>
-inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B, std::list<int64_t> &singular) {
-	if ( IsSymmetric() )
-        Error( "LU decomposition is not a symmetric decomposition" );
-	return ( ( !Decompose_LU(singular) )?  0 : Substitution( B )  );
-}
-
-template<class TVar>
-inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B ) {
-	if ( IsSymmetric() )
-        Error( "LU decomposition is not a symmetric decomposition" );
-	return ( ( !Decompose_LU() )?  0 : Substitution( B )  );
-}
-/**********************/
-/*** Solve Cholesky ***/
-//
-//  Se nao conseguir resolver por Cholesky retorna 0 e a matriz
-//   sera' modificada (seu valor perdera' o sentido).
-//
-template<class TVar>
-inline int TPZMatrix<TVar>::Solve_Cholesky( TPZFMatrix<TVar>* B )
-{
-	return(
-		   ( !Decompose_Cholesky() )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
-		   );
-}
-
-template<class TVar>
-inline int TPZMatrix<TVar>::Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<int64_t> &singular ) {
-	return(
-		   ( !Decompose_Cholesky(singular) )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
-		   );
-}
-
-/******************/
-/*** Solve LDLt ***/
-
-template<class TVar>
-inline int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B ) {
-	
-	return(
-		   ( !Decompose_LDLt() )? 0 :
-		   ( Subst_LForward( B ) && Subst_Diag( B ) && Subst_LBackward( B ) )
-		   );
-}
 
 
 

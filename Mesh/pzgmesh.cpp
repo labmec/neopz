@@ -577,6 +577,9 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int64_t & InitialElInde
 }
 
 TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, int targetDim) const {
+    if (InitialElIndex < 0 || InitialElIndex >= NElements()) {
+        DebugStop();
+    }
     TPZGeoEl *res = FindApproxElement(x, qsi, InitialElIndex, targetDim);
     TPZManVector<REAL,3> xaprox(3);
     res->X(qsi, xaprox);
@@ -815,7 +818,8 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
     
     TPZGeoElSide mySide(gel,side);
     TPZManVector<REAL,3> xclose(3);
-    mySide.X(projection, xclose);
+    gel->X(projection, xclose);
+//    mySide.X(projection, xclose);
     REAL mindist = 0.;
     for (int i=0; i<3; i++) {
         mindist += (xclose[i]-x[i])*(xclose[i]-x[i]);
@@ -870,7 +874,7 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
         side = locgel->ProjectInParametricDomain(qsi, projection);
         TPZManVector<REAL,3> xclose(3);
         TPZGeoElSide locgelside(locgel,side);
-        locgelside.X(projection, xclose);
+        locgel->X(projection, xclose);
         REAL dist = 0.;
         for (int i=0; i<3; i++) {
             dist += (xclose[i]-x[i])*(xclose[i]-x[i]);
@@ -919,7 +923,8 @@ TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<RE
     else
     {
         TPZStack<TPZGeoEl*> subElements;
-        gel->GetAllSiblings(subElements);
+        gel->YoungestChildren(subElements);
+//        gel->GetAllSiblings(subElements);
         
         int nsons = subElements.NElements();
         TPZGeoEl * son = NULL;
@@ -1208,6 +1213,7 @@ int64_t TPZGeoMesh::NodeIndex(TPZGeoNode *nod)
 #include "pzreftriangle.h"
 #include "pzgeotriangle.h"
 #include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "pzrefprism.h"
 #include "pzgeoprism.h"
 #include "pzshapetetra.h"
@@ -1226,70 +1232,101 @@ using namespace pzgeom;
 using namespace pzrefine;
 using namespace pzshape;
 
-TPZGeoEl *TPZGeoMesh::CreateGeoElementMapped(MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index)
+TPZGeoEl *TPZGeoMesh::CreateGeoElementMapped(MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index, int reftype)
 {
-    switch( type ){
-        case 0://point
-        {
-            TPZGeoEl * gel =
-                    new TPZGeoElMapped<TPZGeoElRefPattern<TPZGeoPoint> > (nodeindexes, matid, *this, index);
-            return gel;
+    if(reftype == 1) {
+        switch( type ){
+            case 0://point
+            {
+                TPZGeoEl * gel =
+                        new TPZGeoElMapped<TPZGeoElRefPattern<TPZGeoPoint> > (nodeindexes, matid, *this, index);
+                return gel;
+            }
+            case 1://line
+            {
+                TPZGeoEl *gel =
+                        new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoLinear > >
+                                (nodeindexes, matid, *this, index);
+                return gel;
+            }
+            case 2://triangle
+            {
+                TPZGeoEl *gel =
+                        new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoTriangle > >
+                                (nodeindexes, matid, *this, index);
+                return gel;
+            }
+            case 3://quadrilatera
+            {
+                TPZGeoEl* gel =
+                        new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoQuad > >
+                                (nodeindexes, matid, *this, index);
+                return gel;
+            }
+            case 4://tetraedra
+            {
+                TPZGeoEl*gel =
+                        new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoTetrahedra > >
+                                (nodeindexes, matid, *this, index);
+                return gel;
+            }
+            case 5://pyramid
+            {
+                TPZGeoEl *gel =
+                        new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoPyramid > >
+                                (nodeindexes, matid, *this, index);
+                return gel;
+            }
+            case 6://prism
+            {
+                TPZGeoEl*gel =
+                        new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoPrism > >
+                                (nodeindexes, matid, *this, index);
+                return gel;
+            }
+            case 7://cube
+            {
+                TPZGeoEl*gel =
+                        new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoCube > >
+                                (nodeindexes, matid, *this, index);
+                return gel;
+            }
+            default:
+            {
+                PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
+                        << " type = " << type << std::endl;
+                return NULL;
+            }
         }
-        case 1://line
+    } else if(reftype == 0) {
+        switch( type )
         {
-            TPZGeoEl *gel =
-                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoLinear > >
-                            (nodeindexes, matid, *this, index);
-            return gel;
+            case 0://point
+                return new TPZGeoElMapped<TPZGeoElement< TPZGeoPoint, TPZRefPoint> >(nodeindexes, matid, *this, index );
+            case 1://line
+                return new TPZGeoElMapped<TPZGeoElement< TPZGeoLinear, TPZRefLinear> >(nodeindexes, matid, *this, index );
+            case 2://triangle
+                return new TPZGeoElMapped<TPZGeoElement< TPZGeoTriangle, TPZRefTriangle > >(nodeindexes, matid, *this, index );
+            case 3://quadrilatera
+                return  new TPZGeoElMapped<TPZGeoElement< TPZGeoQuad, TPZRefQuad > >(nodeindexes, matid, *this, index );
+            case 4://tetraedra
+                return new TPZGeoElMapped<TPZGeoElement< TPZGeoTetrahedra, TPZRefTetrahedra > >(nodeindexes, matid, *this, index );
+            case 5:
+                return new TPZGeoElMapped<TPZGeoElement< TPZGeoPyramid, TPZRefPyramid > >(nodeindexes, matid, *this, index );
+            case 6:
+                return new TPZGeoElMapped<TPZGeoElement< TPZGeoPrism, TPZRefPrism > >(nodeindexes, matid, *this, index );
+            case 7:
+                return new TPZGeoElMapped<TPZGeoElement< TPZGeoCube, TPZRefCube > >(nodeindexes, matid, *this, index );
+            default:
+                PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
+                << " type = " << type << std::endl;
+                return NULL;
         }
-        case 2://triangle
-        {
-            TPZGeoEl *gel =
-                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoTriangle > >
-                            (nodeindexes, matid, *this, index);
-            return gel;
-        }
-        case 3://quadrilatera
-        {
-            TPZGeoEl* gel =
-                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoQuad > >
-                            (nodeindexes, matid, *this, index);
-            return gel;
-        }
-        case 4://tetraedra
-        {
-            TPZGeoEl*gel =
-                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoTetrahedra > >
-                            (nodeindexes, matid, *this, index);
-            return gel;
-        }
-        case 5://pyramid
-        {
-            TPZGeoEl *gel =
-                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoPyramid > >
-                            (nodeindexes, matid, *this, index);
-            return gel;
-        }
-        case 6://prism
-        {
-            TPZGeoEl*gel =
-                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoPrism > >
-                            (nodeindexes, matid, *this, index);
-            return gel;
-        }
-        case 7://cube
-        {
-            TPZGeoEl*gel =
-                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoCube > >
-                            (nodeindexes, matid, *this, index);
-            return gel;
-        }
-        default:
-        {
-            PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
-                    << " type = " << type << std::endl;
-            return NULL;
-        }
+    } else {
+        PZError << "TPZGeoMesh::CreateGeoElementMapped reftype not exists:"
+        << " reftype = " << reftype << std::endl;
+        DebugStop();
+        return NULL;
     }
 }
 
@@ -1403,41 +1440,49 @@ TPZGeoEl *TPZGeoMesh::CreateGeoBlendElement(MElementType type, TPZVec<int64_t>& 
 		case 0://point
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPoint> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 1://line
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 2://triangle
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTriangle> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 3://quadrilateral
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 4://tetraedron
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTetrahedra> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 5://pyramid
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPyramid> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 6://prism
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		case 7://cube
 		{
 			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> > (nodeindexes,matid,*this);
+            index = gel->Index();
 			return gel;
 		}
 		default:

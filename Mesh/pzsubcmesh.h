@@ -20,7 +20,6 @@
 class TPZSubMeshFrontalAnalysis;
 class TPZSubMeshAnalysis;
 class TPZLinearAnalysis;
-class TPZGuiInterface;
 
 /**
  * @brief Implements a group of computational elements as a mesh and an element. \ref CompMesh "Computational Mesh"
@@ -51,6 +50,8 @@ protected:
 	TPZManVector<int64_t> fExternalLocIndex;
 	/** @brief Maps indicating the correspondence between the connect index of the father mesh and de local connect id */
 	std::map<int64_t,int64_t> fFatherToLocal;
+	/** @brief Maps indicating the correspondence between the local connect index and the father mesh connect index*/
+	std::map<int64_t,int64_t> fLocalToFather;
     
     /// Number of rigid body modes expected by the internal matrix inversion
     int64_t fSingularConnect;
@@ -108,7 +109,7 @@ public:
 	}
 	
 	/** @brief Sets the analysis type. */
-	void SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	void SetAnalysisFrontal(int numThreads);
     
     /** @brief Sets the analysis type. */
     void SetAnalysisSparse(int numThreads);
@@ -119,13 +120,29 @@ public:
     /** @brief Sets the analysis type. */
     void SetAnalysisFStruct(int numThreads);
 
+	/// Get and set for fLocalToFather
+	std::map<int64_t,int64_t>& LocalToFather() {return fLocalToFather;}
+	/// Get method for fLocalToFather
+	const std::map<int64_t,int64_t>& LocalToFather() const {return fLocalToFather;}
+
+	/// Get and set for fFatherToLocal
+	std::map<int64_t,int64_t>& FatherToLocal() {return fFatherToLocal;}
+	/// Get method for fFatherToLocal
+	const std::map<int64_t,int64_t>& FatherToLocal() const {return fFatherToLocal;}
+	
+    /// returns true if the connect index of the mesh is external (belongs to the father mesh)
+    bool IsExternal(int64_t local)
+    {
+        return fExternalLocIndex[local] != -1;
+    }
+
     /**
      * @brief Condense the internal equations using a skyline symetric matrix 
      * the preconditioned argument indicates whether the equations are condensed with a direct method (0) or 
      * with a GMRes solver preconditioned by the decomposed matrix
      */
-	void SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZGuiInterface> guiInterface);
-	
+    void SetAnalysisSkyline(int numThreads = 0, int preconditioned = 0);
+
     /**
      * @brief Condense the internal equations using a skyline symetric matrix
      * the preconditioned argument indicates whether the equations are condensed with a direct method (0) or
@@ -322,6 +339,11 @@ public:
 	 */
 	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension) override;
 
+
+  int NumberOfCompElementsInsideThisCompEl() override;
+
+  //! Gets the list of elements for post-processing
+  void GetCompElList(TPZStack<TPZCompEl*> &stack) override;
 	/** @brief Returns the connection index i. */
 	virtual int64_t ConnectIndex(int i) const override;
 	

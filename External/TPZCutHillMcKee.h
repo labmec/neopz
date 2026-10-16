@@ -77,7 +77,7 @@ class TPZCutHillMcKee : public TPZRenumbering {
 
     virtual void Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &iperm) override;
 
-    TPZCutHillMcKee();
+    TPZCutHillMcKee(bool reverse = true);
 
     TPZCutHillMcKee(int64_t NElements, int64_t NNodes, bool Reverse = true);
 

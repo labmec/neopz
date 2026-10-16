@@ -16,7 +16,7 @@ void TPZMatDeRhamHDivL2::Contribute(
 
   const TPZFMatrix<REAL> &phiHDiv = datavec[fHDivMeshIndex].divphi;
   
-  const auto &phiL2  = datavec[fL2MeshIndex].fPhi;
+  const auto &phiL2  = datavec[fL2MeshIndex].phi;
 
   const int64_t nHDiv  = phiHDiv.Rows();
   const int64_t nL2  = phiL2.Rows();

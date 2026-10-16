@@ -96,6 +96,9 @@ virtual int ClassId() const override;
 	
 	static int main_refless();
 	
+		/// @brief returns if the element is a refpattern element or not
+	virtual bool IsRefPatternEl() const override { return false; }
+
 	/** @brief Divides the element and puts the resulting elements in the vector */
 	virtual void Divide(TPZVec < TPZGeoEl * > & pv) override {
 		DebugStop();
@@ -248,6 +251,9 @@ virtual int ClassId() const override;
 	/** @brief Returns the number of subelements of the same dimension of the element at the side*/
 	virtual  int NSideSubElements(int side) const override;
 	
+    /// return the orientation of a face +1: counterclockwise -1:clockwise
+    virtual int GetFaceOrientation(int face) const override;
+    
 	/**
 	 * @brief Method which creates a computational boundary condition element based
 	 * on the current geometric element, a side and a boundary condition number

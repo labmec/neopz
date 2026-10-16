@@ -32,7 +32,8 @@
 
 
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 
 using namespace pztopology;
 using namespace pzshape;
@@ -45,8 +46,18 @@ namespace topologytests{
     void TestingConstantDivergent();
     template <class top,class TSHAPE>
     void TestingConstantCurl();
+    template <class top>
+    void TestSideOrient();
 }
 
+TEST_CASE("verify faceorientation data structure")
+{
+    topologytests::TestSideOrient<TPZCube>();
+    topologytests::TestSideOrient<TPZTetrahedron>();
+    topologytests::TestSideOrient<TPZPrism>();
+    topologytests::TestSideOrient<TPZQuadrilateral>();
+    topologytests::TestSideOrient<TPZTriangle>();
+}
 TEST_CASE("projection_tests_1","[topology_tests]")
 {
     topologytests::TestingSideProjections<TPZLine>();
@@ -197,7 +208,7 @@ namespace topologytests{
         TPZShapeData shapedata;
         TPZManVector<int64_t,nCorner> ids(nCorner,0);
         for(auto i=0; i<nCorner; i++) ids[i] = i;        
-        auto &conOrders = shapedata.fHDivConnectOrders;
+        auto &conOrders = shapedata.fHDiv.fConnectOrders;
         constexpr auto nConnects = nFaces + 1;
         conOrders.Resize(nConnects,-1);
         for(auto i = 0; i < nConnects; i++) conOrders[i] = 1;
@@ -206,15 +217,15 @@ namespace topologytests{
 
         TPZShapeHDiv<TSHAPE>::Initialize(ids, conOrders, sideorient, shapedata);
 
-        shapedata.fSideTransformationId.Resize(nSides-nCorner, 0);
+        shapedata.fH1.fSideTransformationId.Resize(nSides-nCorner, 0);
         for (int iside = nCorner; iside< nSides ; iside++) {
             int pos = iside - nCorner;
             int trans_id = TSHAPE::GetTransformId(iside, ids); // Foi criado
-            shapedata.fSideTransformationId[iside-nCorner] = trans_id;
+            shapedata.fH1.fSideTransformationId[iside-nCorner] = trans_id;
         }
 
         const int npts = intRule->NPoints();
-        auto nshape = shapedata.fSDVecShapeIndex.size();
+        auto nshape = shapedata.fHDiv.fSDVecShapeIndex.size();
 
         for (auto ipt = 0; ipt < npts; ipt++) {
             REAL w;
@@ -333,15 +344,15 @@ namespace topologytests{
         TPZShapeData shapedata;
         TPZManVector<int64_t,nCorner> ids(nCorner,0);
         for(auto i=0; i<nCorner; i++) ids[i] = i;        
-        auto &conOrders = shapedata.fHDivConnectOrders;
+        auto &conOrders = shapedata.fHDiv.fConnectOrders;
         constexpr auto nConnects = nSides - nCorner;
         conOrders.Resize(nConnects,-1);
-        for(auto i = 0; i < nConnects; i++) conOrders[i] = 1;
+        for(auto i = 0; i < nConnects; i++) conOrders[i] = 0;
 
         TPZShapeHCurl<TSHAPE>::Initialize(ids, conOrders, shapedata);
 
         const int npts = intRule->NPoints();
-        auto nshape = shapedata.fSDVecShapeIndex.size();
+        auto nshape = TPZShapeHCurl<TSHAPE>::NHCurlShapeF(shapedata);
 
         for (auto ipt = 0; ipt < npts; ipt++) {
             REAL w;
@@ -362,38 +373,89 @@ namespace topologytests{
             // std::cout << "curlHCurl =  " << curlHCurl << std::endl;
             
             //Compute the curl for each edge
-            top::ComputeConstantHCurl(node,N0Function,curlN0,shapedata.fSideTransformationId);
+            top::ComputeConstantHCurl(node,N0Function,curlN0,shapedata.fH1.fSideTransformationId);
 
             // std::cout << "Constant phi = " << N0Function << std::endl;
             // std::cout << "Constant Curl = " << curlN0 << std::endl;
 
-            // Checks if all edges have the same curl value.
-            bool condHcurl = true;
-            bool condHcurlN0 = true;
-            for (int i = 0; i < dim; i++){
-                for (int j = 0; j < nEdges; j++){
-                    REAL funVal = (phiHCurl(i,2*j  )+phiHCurl(i,2*j+1));
-                    if (fabs(funVal-N0Function(i,j)) > tol){
-                        condHcurl = false;
-                    } 
+            for (int j = 0; j < nEdges; j++){
+                TPZManVector<REAL,dim> phi_shape(dim,0.), phi_topol(dim,0.);
+                for (int i = 0; i < dim; i++){
+                    phi_shape[i] = phiHCurl(i,j);
+                    phi_topol[i] = N0Function(i,j);
+                }
+                CAPTURE(phi_shape);
+                CAPTURE(phi_topol);
+                for (int i = 0; i < dim; i++){
+                    REQUIRE(phiHCurl(i,j)-N0Function(i,j) == Catch::Approx(0).margin(tol));
                 }
             }
-            for (int i = 0; i < 3; i++){
-                for (int j = 0; j < nEdges; j++){
-                    REAL curlVal = (curlHCurl(i,2*j  )+curlHCurl(i,2*j+1));
-                    if (fabs(curlVal-curlN0(i,j)) > tol){
-                        condHcurlN0 = false;
-                    } 
+            for (int j = 0; j < nEdges; j++){
+                TPZManVector<REAL,3> curl_shape(dim,0.), curl_topol(dim,0.);
+                for (int i = 0; i < dim; i++){
+                    curl_shape[i] = curlHCurl(i,j);
+                    curl_topol[i] = curlN0(i,j);
+                }
+                CAPTURE(curl_shape);
+                CAPTURE(curl_topol);
+                for (int i = 0; i < 3; i++){
+                    REQUIRE(curlHCurl(i,j)-curlN0(i,j) == Catch::Approx(0).margin(tol));
                 }
             }
-            if(!condHcurl || !condHcurlN0){
-                std::cerr << "\n" + testName + " failed Hcurl" +
-                                "\ntopology: " + MElementType_Name(type);
-            }
-
-            REQUIRE(condHcurl);
-            REQUIRE(condHcurlN0);
         }
     }//Testing Constant Curl
+
+#include "pzvec_extras.h"
+
+static void Orthogonal(TPZFMatrix<REAL>&cornerco, TPZVec<REAL> &ortho){
+    int nnodes = cornerco.Cols();
+    if(nnodes == 2) {
+        ortho.resize(2);
+        ortho[1] = -cornerco(0,1)+cornerco(0,0);
+        ortho[0] = -cornerco(1,0)+cornerco(1,1);
+    } else if(nnodes == 3 || nnodes == 4) {
+        TPZManVector<REAL,3> vec1(3),vec2(3);
+        for (int i=0; i<3; i++) {
+            vec1[i] = cornerco(i,1)-cornerco(i,0);
+            vec2[i] = cornerco(i,nnodes-1)-cornerco(i,0);
+        }
+        ortho.resize(3);
+        Cross(vec1, vec2, ortho);
+    }
+}
+                                                                           
+    template <class top>
+    void TestSideOrient() {
+        const int dim = top::Dimension;
+        REAL cornerco[top::NCornerNodes][top::Dimension];
+        for (int i=0; i<top::NCornerNodes; i++) {
+            TPZManVector<REAL,3> co(dim,0.);
+            top::CenterPoint(i,co);
+            for(int c=0; c<top::Dimension; c++) cornerco[i][c] = co[c];
+        }
+        TPZManVector<REAL,3> centerelement(dim);
+        top::CenterPoint(top::NSides-1,centerelement);
+        int firstface = top::NSides-1-top::NumSides(dim-1);
+        for(int side = firstface; side < top::NSides-1; side++) {
+            TPZManVector<REAL,3> centerface(dim), dir(dim);
+            top::CenterPoint(side,centerface);
+            dir = centerface-centerelement;
+            int nnodes = top::NSideNodes(side);
+            TPZFNMatrix<12> faceco(dim,nnodes,0.);
+            for (int in=0; in<nnodes; in++) {
+                int locnod = top::SideNodeLocId(side,in);
+                for(int c = 0; c<dim; c++) {
+                    faceco(c,in) = cornerco[locnod][c];
+                }
+            }
+            TPZManVector<REAL,3> normal(dim,0.);
+            Orthogonal(faceco, normal);
+            REAL inner = sdot(normal,dir);
+            int faceorient = inner > 0 ? 1 : -1;
+            int faceorientStored = top::GetFaceOrient(side-firstface);
+            REQUIRE(faceorient == faceorientStored);
+        }
+    }
+
 
 }//namespace

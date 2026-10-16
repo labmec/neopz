@@ -73,7 +73,8 @@ using namespace pzshape;
 static TPZLogger logger("pz.mesh.testhdiv");
 #endif
 
-#include<catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 
 static int tetraedra_2[6][4]=
 {
@@ -340,7 +341,7 @@ TPZFMatrix<STATE> ComputeSolution(TLaplaceExample1 &config, TPZCompMesh *cmesh)
 {
     SetExactSolution(config, cmesh);
     // avoid renumbering the equations
-    TPZLinearAnalysis an(cmesh,false);
+    TPZLinearAnalysis an(cmesh,RenumType::ENone);
 #ifdef PZ_USING_MKL
     TPZSSpStructMatrix<STATE> strmat(cmesh);
     an.SetStructuralMatrix(strmat);
@@ -399,7 +400,7 @@ void SetExactSolution(TLaplaceExample1 &config, TPZCompMesh *cmesh)
                                TPZFMatrix<STATE>&du){
             config.Exact()->Execute(x, u, du);
         };
-        mat->SetForcingFunctionBC(exact);
+        mat->SetForcingFunctionBC(exact,3);
     }
 }
 

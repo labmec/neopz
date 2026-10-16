@@ -32,14 +32,14 @@ public:
 	 * @param cmeshVec [in]:  pointer to an vector of meshes
 	 * @param MFMesh [out]: my mesh multiphysics  
 	 */
-	static void AddElements(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
+	static void AddElements(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
 	
 	/*
 	 * @brief Method to add connects in the mesh multiphisics
 	 * @param cmeshVec [in]: pointer to an vector of meshes
 	 * @param MFMesh [out]: my mesh multiphysics  
 	 */
-	static void AddConnects(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
+	static void AddConnects(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
     
     /*
 	 * @brief Methodo to append connects from mesh to a multiphysics mesh
@@ -53,14 +53,14 @@ public:
 	 * @param cmeshVec [in] vector of meshes. Transfers the information
 	 * @param MFMesh [out] mesh pointer who will receive the information
 	 */	
-	static void TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
+	static void TransferFromMeshes(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
 	
     /**
      * @brief Transfer information from a specific set of meshes for the current mesh multiphysics
      * @param cmeshVec [in] vector of meshes. Transfers the information
      * @param MFMesh [out] mesh pointer who will receive the information
      */
-    static void TransferFromMeshes(TPZVec<TPZAutoPointer<TPZCompMesh> > &cmeshVec, TPZAutoPointer<TPZCompMesh> MFMesh)
+    static void TransferFromMeshes(const TPZVec<TPZAutoPointer<TPZCompMesh> > &cmeshVec, TPZAutoPointer<TPZCompMesh> MFMesh)
     {
         TPZManVector<TPZCompMesh *,4> meshVecPtr(cmeshVec.size());
         for (int i=0; i<cmeshVec.size(); i++) {
@@ -72,10 +72,10 @@ public:
 	/**
 	 * @brief Transfer information from a specific mesh multiphysics for the current specific set of meshes 
 	 * @param cmeshVec [out] vector of meshes that will receive the information.
-	 * @param MFMesh [in] mesh pointer that Transfers the information 
-	 */	
-	static void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
-		
+	 * @param MFMesh [in] mesh pointer that Transfers the information
+	 */
+	static void TransferFromMultiPhysics(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
+
     /**
      * @brief Transfer information from a specific mesh multiphysics for the current specific set of meshes
      * @param cmeshVec [out] vector of meshes that will receive the information.
@@ -83,7 +83,7 @@ public:
      */
     static void TransferFromMultiPhysics(TPZVec<TPZAutoPointer<TPZCompMesh> > &cmeshVec, TPZAutoPointer<TPZCompMesh> MFMesh)
     {
-        TPZManVector<TPZCompMesh *,4> meshVecPtr(cmeshVec.size());
+        TPZManVector<TPZCompMesh *,6> meshVecPtr(cmeshVec.size());
         for (int i=0; i<cmeshVec.size(); i++) {
             meshVecPtr[i] = cmeshVec[i].operator->();
         }
@@ -133,9 +133,9 @@ public:
     static void ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<atomic_index> &indexes);
 protected:
     template<class TVar>
-    static void TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
+    static void TransferFromMeshesT(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
     template<class TVar>
-    static void TransferFromMultiPhysicsT(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
+    static void TransferFromMultiPhysicsT(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
 };
 
 #endif

@@ -160,6 +160,23 @@ void TPZGeoElSide::GradX(TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx) const{
     
 }
 
+/** @brief GradX loc of the side */
+void TPZGeoElSide::GradX(TPZVec< Fad<REAL> > &loc, TPZFMatrix< Fad<REAL> > &gradx) const{
+    
+    TPZManVector< Fad<REAL> ,3 > locElement(fGeoEl->Dimension(), 0.);
+    gradx.Resize(3,Dimension());
+    int dim = fGeoEl->Dimension();
+    TPZFNMatrix<9,Fad<REAL>> gradx_vol(3,dim);
+
+    TPZTransform<> ElementDimR = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+    TPZTransform<Fad<REAL> > ElementDim;
+    ElementDim.CopyFrom(ElementDimR);
+    ElementDim.Apply(loc, locElement);
+    fGeoEl->GradX(locElement, gradx_vol);
+    gradx_vol.Multiply(ElementDim.Mult(), gradx);
+}
+
+
 /** @brief X coordinate of a point loc of the side */
 void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) const
 {
@@ -176,18 +193,6 @@ void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) cons
 
 }
 
-/** @brief GradX loc of the side */
-void TPZGeoElSide::GradX(TPZVec< Fad<REAL> > &loc, TPZFMatrix< Fad<REAL> > &gradx) const{
-    
-    TPZManVector< Fad<REAL> ,3 > locElement(fGeoEl->Dimension(), 0.);
-    gradx.Resize(3,fGeoEl->Dimension());
-    
-    TPZTransform<> ElementDimR = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
-    TPZTransform<Fad<REAL> > ElementDim;
-    ElementDim.CopyFrom(ElementDimR);
-    ElementDim.Apply(loc, locElement);
-    fGeoEl->GradX(locElement, gradx);
-}
 
 
 
@@ -583,6 +588,11 @@ TPZTransform<> TPZGeoElSide::NeighbourSideTransform(const TPZGeoElSide &neighbou
 		stringstream sout;
 		sout << __PRETTY_FUNCTION__ << "Neighbour does not exist : expect trouble";
 		LOGPZ_ERROR(logger,sout.str());
+		std::cout << "fSide " << fSide << " neighbour side" << neighbour.Side() << 
+		" neighbour index " << neighbour.Element()->Index() << std::endl;
+		std::cout << "fGeoEl\n";
+		this->Element()->Print(std::cout);
+		DebugStop();
 		TPZTransform<> toto;
 		return toto;
 	}
@@ -608,7 +618,7 @@ TPZTransform<> TPZGeoElSide::NeighbourSideTransform(const TPZGeoElSide &neighbou
 		case 2://transformacoes entre faces viz
 			int i;
 			//TPZCompEl *cel = Element()->Reference();
-			TPZVec<int> idto(0),idfrom(0);
+			TPZVec<int64_t> idto(0),idfrom(0);
 			if(Element()->NSideNodes(Side()) == 4) {//faces quadrilaterais
 				idto.Resize(4);
 				idfrom.Resize(4);
@@ -755,9 +765,9 @@ void TPZGeoElSide::EqualLevelCompElementList(TPZStack<TPZCompElSide> &elsidevec,
 	neighbour = Neighbour();
 	if(!neighbour.Exists()) return;
 	
-	while(neighbour.Element() != this->Element()) {
+	while(neighbour != *this) {
 		ref = neighbour.Reference();
-		if(ref.Element() && ref.Element() != Reference().Element() && (!onlyinterpolated || dynamic_cast<TPZInterpolatedElement*>(ref.Element()) )) {
+		if(ref.Element() && ref != Reference() && (!onlyinterpolated || dynamic_cast<TPZInterpolatedElement*>(ref.Element()) )) {
 			elsidevec.Push(ref);
 			if(removeduplicates) return;
 		}
@@ -1073,7 +1083,7 @@ void TPZGeoElSide::EqualorHigherCompElementList3(TPZStack<TPZCompElSide> &celsid
 		}
 	}
 	this->EqualLevelCompElementList3(celside,onlymultiphysicelement,removeduplicates);
-	if(ncelsides != celside.NElements()) return;
+//	if(ncelsides != celside.NElements()) return;
 	TPZStack<TPZGeoElSide> gelsides;
 	TPZGeoElSide neighbour(*this);
 	do {
@@ -1107,6 +1117,8 @@ void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZG
 	 os vetores trazem a partic� do lado comum a  
 	 dois vizinhos segundo os seus proprios padr�s de
 	 refinamento, a divis� �identica para este lado comum*/ //cout << "Sao iguais: acertar as vizinhancas!!!\n";
+	static int count = 0;
+
 	int64_t size = sidevec.NElements();
 	int64_t neighsize = neighvec.NElements();
 	if(size!=neighsize || !size){
@@ -1133,7 +1145,8 @@ void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZG
 				case 0://canto	    
 					if(elside->SideNodeIndex(side,0) == elneigh->SideNodeIndex(neighside,0)){
 						if(subside.NeighbourExists(neighsubside)) {
-							cout << "TPZGeoElSide::BuildConnectivities the neighbour already exists?";
+							if(count < 5) cout << "TPZGeoElSide::BuildConnectivities the neighbour already exists?\n";
+							count++;
 						} else {
 							subside.SetConnectivity(neighsubside);
 						}
@@ -1146,7 +1159,8 @@ void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZG
 					im[1] = elneigh->SideNodeIndex(neighside,1);
 					if( (in[0] == im[0] && in[1] == im[1]) || (in[0] == im[1] && in[1] == im[0]) ){
 						if(subside.NeighbourExists(neighsubside)) {
-							cout << "TPZGeoElSide::BuildConnectivities the neighbour already exists?";
+							if(count < 5) cout << "TPZGeoElSide::BuildConnectivities the neighbour already exists?\n";
+							count++;
 						} else {
 							subside.SetConnectivity(neighsubside);
 						}
@@ -1166,7 +1180,8 @@ void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZG
 					for(i=0;i<4;i++) for(j=0;j<4;j++) if(in[i]==im[j]) num++;
 					if(num==4){
 						if(subside.NeighbourExists(neighsubside)) {
-							cout << "TPZGeoElSide::BuildConnectivities the neighbour already exists?";
+							if(count < 5) cout << "TPZGeoElSide::BuildConnectivities the neighbour already exists?\n";
+							count++;
 						} else {
 							subside.SetConnectivity(neighsubside);
 						}
@@ -1189,7 +1204,7 @@ std::ostream &operator << (std::ostream & out,const TPZGeoElSide &geoside){
 bool TPZGeoElSide::IsLinearMapping() const
 {
 	if(!fGeoEl) return false;
-	return fGeoEl->IsLinearMapping();
+  return fGeoEl->IsLinearMapping(fSide);
 }
 
 
@@ -1291,6 +1306,27 @@ void TPZGeoElSide::Normal(TPZVec<REAL> &point, TPZGeoEl *LeftEl, TPZGeoEl *Right
 /** @brief compute the normal to the point */
 void  TPZGeoElSide::Normal(TPZVec<REAL> &qsi_side, TPZVec<REAL> &normal) const{
     
+    if(Dimension() == 2 && fGeoEl->Dimension() == 2) {
+        TPZFNMatrix<9,REAL> gradx(3,2);
+        fGeoEl->GradX(qsi_side, gradx);
+        TPZFNMatrix<6,REAL> jac(2,2),jacinv(2,2),axes(2,3);
+        REAL detjac;
+        fGeoEl->Jacobian(gradx, jac, axes, detjac, jacinv);
+        for(int i=0; i<3; i++) normal[i] = axes(0,(i+1)%3)*axes(1,(i+2)%3)-axes(0,(i+2)%3)*axes(1,(i+1)%3);
+        return;
+    }
+    if(Dimension() == 1 && fGeoEl->Dimension() == 1) {
+        TPZFNMatrix<9,REAL> gradx(3,1);
+        fGeoEl->GradX(qsi_side, gradx);
+        TPZFNMatrix<6,REAL> jac(1,1),jacinv(1,1),axes(1,3);
+        REAL detjac;
+        fGeoEl->Jacobian(gradx, jac, axes, detjac, jacinv);
+        if(fabs(axes(0,2)) > 1.e-9) DebugStop();
+        normal[0] = axes(0,1);
+        normal[1] = -axes(0,0);
+        normal[2] = 0.;
+        return;
+    }
     if (Dimension() != fGeoEl->Dimension()-1) {
         DebugStop();
     }
@@ -1429,13 +1465,14 @@ TPZGeoElSide TPZGeoElSide::HasNeighbour(int materialid) const
     TPZGeoElSide neighbour = Neighbour();
     while(neighbour != *this)
     {
-        if(neighbour.Element()->MaterialId() == materialid) return neighbour;
+		int matid = neighbour.Element()->MaterialId();
+        if(matid == materialid) return neighbour;
         neighbour = neighbour.Neighbour();
     }
     return TPZGeoElSide();
 }
 
-TPZGeoElSide TPZGeoElSide::HasNeighbour(std::set<int> matIDs) const
+TPZGeoElSide TPZGeoElSide::HasNeighbour(const std::set<int> &matIDs) const
 {
     for (const auto &it : matIDs) {
         TPZGeoElSide neigh = HasNeighbour(it);
@@ -1460,4 +1497,51 @@ TPZGeoElSide TPZGeoElSide::HasLowerLevelNeighbour(int materialid) const
         lower = lower.LowerLevelSide();
     }
     return lower;
+}
+
+/** verifiy if a larger (lower level) neighbour exists with the given material id
+ */
+TPZGeoElSide TPZGeoElSide::HasLowerLevelNeighbour(const std::set<int> &matids) const
+{
+    if(!fGeoEl) return TPZGeoElSide();
+    TPZGeoElSide lower = LowerLevelSide();
+    while(lower)
+    {
+        TPZGeoElSide neighbour = lower.HasNeighbour(matids);
+        if(neighbour) return neighbour;
+        lower = lower.LowerLevelSide();
+    }
+    return lower;
+}
+/// Compute if the neighbour along a face has normal pointing outward
+bool TPZGeoElSide::IsNeighbourCounterClockWise(TPZGeoElSide &neighbour)
+{
+#ifdef PZDEBUG
+    // the side must have dimension dim-1
+    if(!fGeoEl) DebugStop();
+    if(Dimension() != fGeoEl->Dimension()-1) DebugStop();
+    if(!IsNeighbour(neighbour)) DebugStop();
+    if(neighbour.Side() != neighbour.Element()->NSides()-1) DebugStop();
+#endif
+    int nnodes = fGeoEl->NSideNodes(fSide);
+    TPZManVector<int64_t> thisids(nnodes),neighids(nnodes);
+    for(int in = 0; in<nnodes; in++) {
+        thisids[in] = fGeoEl->SideNodeIndex(fSide, in);
+        neighids[in] = neighbour.Element()->SideNodeIndex(neighbour.Side(), in);
+    }
+    int trid = 0;
+    if(nnodes == 2)
+    {
+        trid = thisids[0] == neighids[0] ? 0 : 1;
+    } else if (nnodes == 3) {
+        trid = Element()->GetTransformId2dT(thisids,neighids) %2;
+    } else if (nnodes == 4) {
+        trid = Element()->GetTransformId2dQ(thisids,neighids) %2;
+    } else {
+        DebugStop();
+    }
+    int face = fSide-fGeoEl->FirstSide(2);
+    int faceorient = fGeoEl->GetFaceOrientation(face);
+    if(faceorient == -1) trid = (trid+1)%2;
+    return trid == 0;
 }

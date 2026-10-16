@@ -220,7 +220,13 @@ TPZGeoElRefLess<TGeo>::NSideSubElements(int side) const {
 	return 0;
 }
 
+/// return the orientation of a face +1: counterclockwise -1:clockwise
 
+template<class TGeo>
+int TPZGeoElRefLess<TGeo>::GetFaceOrientation(int face) const
+{
+    return TGeo::GetFaceOrient(face);
+}
 
 template<class TGeo>
 TPZGeoEl *
@@ -238,38 +244,39 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
     
     // the side orientation will be +1 if the side is oriented counterclockwise
     // -1 if the side is clockwise
-    
-    
-    int faceSide = 0;
-    if (fGeo.Dimension == 2){
-        faceSide = side - TGeo::NCornerNodes;
-    } else if (fGeo.Dimension == 3){
-        faceSide = side - TGeo::NCornerNodes - TGeo::NumSides(1);
-    }
-
+    int sidedim = fGeo.SideDimension(side);
     int sideorient = 1;
-    switch (TGeo::Type())
-    {
-    case ETriangle:
-        sideorient = pztopology::TPZTriangle::GetSideOrient(faceSide);
-        break;
-    case EQuadrilateral:
-        sideorient = pztopology::TPZQuadrilateral::GetSideOrient(faceSide);
-        break;
-    case ETetraedro:
-        sideorient = pztopology::TPZTetrahedron::GetSideOrient(faceSide);
-        break;
-    case ECube:
-        sideorient = pztopology::TPZCube::GetSideOrient(faceSide);
-        break;
-    case EPrisma:
-        sideorient = pztopology::TPZPrism::GetSideOrient(faceSide);
-        break;
-    
-    default:
-        break;
+
+    if(sidedim == fGeo.Dimension-1) {
+        int faceSide = 0;
+        if (fGeo.Dimension == 2){
+            faceSide = side - TGeo::NCornerNodes;
+        } else if (fGeo.Dimension == 3){
+            faceSide = side - TGeo::NCornerNodes - TGeo::NumSides(1);
+        }
+
+        switch (TGeo::Type())
+        {
+        case ETriangle:
+            sideorient = pztopology::TPZTriangle::GetFaceOrient(faceSide);
+            break;
+        case EQuadrilateral:
+            sideorient = pztopology::TPZQuadrilateral::GetFaceOrient(faceSide);
+            break;
+        case ETetraedro:
+            sideorient = pztopology::TPZTetrahedron::GetFaceOrient(faceSide);
+            break;
+        case ECube:
+            sideorient = pztopology::TPZCube::GetFaceOrient(faceSide);
+            break;
+        case EPrisma:
+            sideorient = pztopology::TPZPrism::GetFaceOrient(faceSide);
+            break;
+        
+        default:
+            break;
+        }
     }
-    
     
     // Build vector with node indices of element to be created
     MElementType sidetype = TGeo::Type(side);
@@ -342,7 +349,7 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
 	// Create GeoElement
 	int64_t index;
 	MElementType BCtype = TGeo::Type(side);
-	TPZGeoEl *BCGeoEl = this->Mesh()->CreateGeoElement(BCtype, nodeindices, bc, index);
+	TPZGeoEl *BCGeoEl = this->Mesh()->CreateGeoElement(BCtype, nodeindices, bc, index, IsRefPatternEl());
 
     TPZGeoElSide BCGelside(BCGeoEl);
     TPZGeoElSide thisside(this,side);
@@ -519,6 +526,7 @@ void
 TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
 #ifdef PZDEBUG
     if(result.size() != 3) DebugStop();
+    if(coordinate.size() != fGeo.Dimension) DebugStop();
 #endif
     TPZFNMatrix<54,REAL> cornerco(3,fGeo.NNodes);
     CornerCoordinates(cornerco);

@@ -110,6 +110,10 @@ namespace pztopology {
 		/** @brief Returns the local connect number of the connect "c" along side "side" */
 		static int ContainedSideLocId(int side, int c);
 		
+        static int GetFaceOrient(const int &face) {
+            return 1;
+        }
+
 		/** @} */
 		
 		/** @name About points at the parametric spaces
@@ -188,6 +192,7 @@ namespace pztopology {
 		 */
 		static int GetTransformId(const TPZVec<int64_t> &id);
         
+        static TPZTransform<REAL> ParametricTransform(int transid);
 
         
 		/**
@@ -258,12 +263,15 @@ namespace pztopology {
         
         /// Compute the directions of the HDiv vectors for constant divergent
         // template <class TVar>
-        static void ComputeConstantHDiv(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div){
+        static void ComputeConstantHDiv(const TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZVec<REAL> &div){
             DebugStop();
         };
-        static void ComputeConstantHCurl(TPZVec<REAL> &point, TPZFMatrix<REAL> &vecDiv, TPZFMatrix<REAL> &curl, const TPZVec<int> &transformationIds){
+        static void ComputeConstantHDiv(const TPZVec<Fad<REAL>> &point, TPZFMatrix<Fad<REAL>> &vecDiv, TPZVec<Fad<REAL>> &div){
             DebugStop();
         };
+
+        template<class T>
+        static void ComputeConstantHCurl(const TPZVec<T> &point, TPZFMatrix<T> &vecDiv, TPZFMatrix<T> &curl, const TPZVec<int> &transformationIds);
         
         /**
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )

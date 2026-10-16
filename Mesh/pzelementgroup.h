@@ -23,7 +23,6 @@ class TPZElementGroup : public TPZCompEl
 protected:
     TPZStack<TPZCompEl *,10> fElGroup;
     TPZManVector<int64_t,27> fConnectIndexes;
-    std::map<int64_t,TPZOneShapeRestraint> fRestraints;
 
 public:
     
@@ -67,7 +66,8 @@ public:
     }
 
     /** @brief put the elements in the element group back in the mesh and delete the element group */
-    void Unwrap();
+    /// recursive means that, if the group contains group elements, these will be unwrapped too
+    void Unwrap(bool recursive = false);
     
     /** @brief Dimension of the element */
 	virtual int Dimension() const override
@@ -88,7 +88,7 @@ public:
     /// Reorder the connects in increasing number of elements connected
     void ReorderConnects();
 
-    void ReorderConnects(TPZManVector<int64_t> &connects);
+    void ReorderConnects(TPZVec<int64_t> &connects);
     
     const TPZVec<TPZCompEl *> &GetElGroup(){
         return fElGroup;
@@ -100,6 +100,9 @@ public:
         return fConnectIndexes.size();
     }
     
+    /// @brief Expand the connect to include the connects which will receive contributions through the constraints
+    void ExpandConnects();
+
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override
     {
@@ -234,7 +237,23 @@ public:
 									std::map<int64_t,int64_t> & gl2lcElMap) const override;
 
 public:
-    
+
+    void GetCompElList(TPZStack<TPZCompEl*> &stck) override
+    {
+        for(auto cel : fElGroup){
+            if(cel){
+                cel->GetCompElList(stck);
+            }
+        }
+    }
+
+    int NumberOfCompElementsInsideThisCompEl() override{
+        int nel  = 0;
+        for (auto fg : fElGroup){
+            nel += fg->NumberOfCompElementsInsideThisCompEl();
+        }
+        return nel;
+    }
     /**
 	 * @brief Creates corresponding graphical element(s) if the dimension matches
 	 * graphical elements are used to generate output files
@@ -258,6 +277,14 @@ public:
 	}
     
 
+    /**
+	 * @brief Computes the element stifness matrix and right hand side
+	 * @param ek element stiffness matrix
+	 * @param ef element load vector
+	 */
+	virtual void CalcStiff(TPZElementMatrixT<CSTATE> &ek,TPZElementMatrixT<CSTATE> &ef) override{
+        CalcStiffInternal<CSTATE>(ek,ef);
+    }
 	/**
 	 * @brief Computes the element stifness matrix and right hand side
 	 * @param ek element stiffness matrix

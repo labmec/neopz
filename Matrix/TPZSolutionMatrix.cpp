@@ -120,6 +120,21 @@ TPZSolutionMatrix &TPZSolutionMatrix::operator+=(const TPZFMatrix<TVar> &mat){
   return *this;
 }
 
+void TPZSolutionMatrix::SetSolType(ESolType st){
+  if (fSolType == EUndefined){
+    fSolType = st;
+    if(st == EReal){
+      fBaseMatrix = &fRealMatrix;
+    }else if (st == EComplex){
+      fBaseMatrix = &fComplexMatrix;
+    }
+  }else{
+    PZError << __PRETTY_FUNCTION__;
+    PZError << " called but a type was already set\n";
+    DebugStop();
+  }
+}
+
 TPZSolutionMatrix &TPZSolutionMatrix::operator+=(const TPZSolutionMatrix &sol){
   if(fSolType == EReal && sol.fSolType == EReal){
     fRealMatrix += sol.fRealMatrix;
@@ -186,13 +201,13 @@ void TPZSolutionMatrix::ExpandAndSetSol(const TPZSolutionMatrix & sol, const int
   const auto origRows = this->Rows();
   const auto solRows = sol.Rows();
   const auto solCols = sol.Cols();
-#ifdef PZ_DEBUG
+#ifdef PZDEBUG
   if(origRows < solRows){
     PZError<<__PRETTY_FUNCTION__;
     PZError<<" called with original solution smaller than it should be.\n";
     PZError<<"   original #rows: "<<origRows<<'\n';
     PZError<<"   new      #rows: "<<solRows<<'\n';
-    PZerror<<"Aborting...\n";
+    PZError<<"Aborting...\n";
     DebugStop();
   }
 #endif

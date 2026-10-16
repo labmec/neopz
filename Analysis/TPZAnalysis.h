@@ -9,7 +9,6 @@
 #include <mutex>              // for mutex
 #include <set>                // for set
 #include <functional>         // for function
-#include "TPZGuiInterface.h"  // for TPZGuiInterface
 #include "pzerror.h"          // for DebugStop
 #include "pzmatrix.h"         // for TPZFMatrix, TPZMatrix
 #include "TPZSolutionMatrix.h"// for TPZSolutionMatrix
@@ -19,6 +18,7 @@
 #include "pzvec.h"            // for TPZVec
 #include "tpzautopointer.h"   // for TPZAutoPointer
 #include "pzadmchunk.h"       // for TPZAdmChunkVector
+#include "TPZMatrixSolver.h"
 class TPZCompEl;
 class TPZCompMesh;
 class TPZConnect;
@@ -27,17 +27,37 @@ class TPZGraphMesh;
 template <class TVar>
 class TPZMatrixSolver;
 
+/** @brief  Preconditioners which can be created by TPZAnalysis instances*/
+namespace Precond{
+  //! Preconditioner type
+  enum Type { Jacobi, BlockJacobi, Element, NodeCentered };
+  //! Preconditioner name
+  constexpr auto Name(Type p){
+    switch(p){
+    case Jacobi: return "Jacobi";
+    case BlockJacobi: return "BlockJacobi";
+    case Element: return "Element";
+    case NodeCentered: return "NodeCentered";
+    }
+    unreachable();
+    return "ERROR";
+  }
+}
+
+//! Available options for renumbering equations
+enum class RenumType {ENone, ///< No renumbering scheme
+                      EDefault, ///< Default value (depends on NeoPZ settings. Metis or Sloan)
+                      ESloan,///< Sloan renumbering
+                      ECutHillMcKee,///< Traditional CutHill McKee
+                      ECutHillMcKeeFast,///< CutHill McKee iterating on neighbours just once (instead of twice)
+                      EMetis///< Metis (depnds on external package)
+};
+
 /**
  * @ingroup analysis
  * @brief Abstract class defining the interface for performing a Finite Element Analysis.*/
 class TPZAnalysis : public TPZSavable {
-	
-public:
-	
-	/** @brief  Preconditioners which can be created by objects of this class */
-	enum EPrecond { EJacobi, EBlockJacobi, EElement, ENodeCentered };
-	
-	
+
 protected:
 	/** @brief Geometric Mesh */
 	TPZGeoMesh *fGeoMesh{nullptr};
@@ -65,8 +85,6 @@ protected:
 	TPZAutoPointer<TPZStructMatrix>  fStructMatrix{nullptr};	
 	/** @brief Renumbering scheme */
 	TPZAutoPointer<TPZRenumbering> fRenumber{nullptr};	
-	/** @brief Pointer for gui interface object */
-	TPZAutoPointer<TPZGuiInterface> fGuiInterface{nullptr};	
 	/** @brief Datastructure which defines postprocessing for one dimensional meshes */
 	class TTablePostProcess : public TPZSavable {
   public :
@@ -92,39 +110,18 @@ protected:
 	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();
 
-	/** @brief Create an TPZAnalysis object from one mesh pointer */
-	TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
+	
+  /** @brief Create an TPZAnalysis object from one mesh pointer */
+	TPZAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::EDefault, std::ostream &out = std::cout);
+  /** @brief Create an TPZAnalysis object from one mesh auto pointer object */
+  TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::EDefault, std::ostream &out = std::cout);
     	
-	/** @brief Create an TPZAnalysis object from one mesh auto pointer object */
-	TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
-
+  void CreateRenumberObject(const RenumType& renumtype);
+    
   /** @} */
   /** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
 
-  /** @name GUI
-   Methods useful when running in a GUI*/
-  /** @{ */
-	/** @brief Defines gui interface object */
-	void SetGuiInterface(TPZAutoPointer<TPZGuiInterface> gui){
-		fGuiInterface = gui;
-	}
-	
-	/** @brief Gets gui interface object */
-	TPZAutoPointer<TPZGuiInterface> GetGuiInterface() const{
-		return fGuiInterface;
-	}
-  
-	/** @brief Returns if the process was canceled through gui interface */
-	bool AmIKilled(){
-		if(fGuiInterface){
-			return fGuiInterface->AmIKilled();
-		}
-		else return false;
-	}
-
-  /** @} */
-    
 	/** @name MainFEM
    Main methods of the TPZAnalysis for controlling a FEM simulation.*/
   /** @{ */
@@ -155,12 +152,15 @@ protected:
   
   /** @} */
 
-  /** @name Utils */
-  /** @{ */
-  /** @brief Define the type of preconditioner used */
-	/** This method will create the stiffness matrix but without assembling */
+  /** @name Utils 
+      @{ */
+  /** @brief Define the type of preconditioner used 
+      @param preconditioner [input] precond type
+      @param overlap [input] if false, matrix will be colored and Gauss Seidel-like iteration will happen
+  */
   template<class TVar>
-	TPZMatrixSolver<TVar> *BuildPreconditioner(EPrecond preconditioner, bool overlap);
+	TPZMatrixSolver<TVar> *BuildPreconditioner(Precond::Type preconditioner,
+                                             bool overlap);
   /// deletes all data structures
   void CleanUp();
     
@@ -186,7 +186,7 @@ protected:
 	/** @brief Returns the pointer to the computational mesh */
 	TPZCompMesh *Mesh()const { return fCompMesh;}
   /** @brief Set the computational mesh of the analysis. */
-	virtual void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
+	virtual void SetCompMesh(TPZCompMesh * mesh, RenumType mustOptimizeBandwidth);
   /// Change the renumbering scheme
   void SetRenumber(TPZAutoPointer<TPZRenumbering> renumber)
   {
@@ -222,6 +222,8 @@ protected:
     
 	//! Sets an exact solution in all the materials of the associated mesh
   void SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f, int pOrder = 1);
+  //! Sets an exact solution in all the materials of the associated mesh
+  void SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<CSTATE> &result, TPZFMatrix<CSTATE> &deriv)> f, int pOrder = 1);
 	/** @brief Compute the local error over all elements and global errors in several norms and print out */
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
   /**
@@ -317,6 +319,9 @@ protected:
     int ftid;
       
     bool fStoreError = false;
+      
+    // Assuming no more than 100 threads
+    TPZManVector<bool,100> fIsUsed;
     
     // Vector with errors. Assuming no more than a 100 threads
     TPZManVector<TPZManVector<REAL,10>,100> fvalues;
@@ -336,13 +341,13 @@ protected:
   virtual void PostProcessErrorParallel(TPZVec<REAL> &, bool store_error = true, std::ostream &out = std::cout);
 
   /** @brief Common steps in setting a computational mesh. */
-	void SetCompMeshInit(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
-private:
+	void SetCompMeshInit(TPZCompMesh * mesh, RenumType mustOptimizeBandwidth);
   /** @brief Build a sequence solver based on the block graph and its colors */
   template <class TVar>
   TPZMatrixSolver<TVar> *
-  BuildSequenceSolver(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex,
-                      int64_t neq, int numcolors, TPZVec<int> &colors);
+  BuildSequenceSolver(const TPZVec<int64_t> &graph, const TPZVec<int64_t> &graphindex,
+                      const int64_t neq, const int numcolors, const TPZVec<int> &colors);
+private:
 
   template <class TVar>
   void
@@ -358,8 +363,8 @@ private:
 };
 extern template
 TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner<STATE>(
-    EPrecond preconditioner,bool overlap);
+    Precond::Type preconditioner,bool overlap);
 extern template
 TPZMatrixSolver<CSTATE> *TPZAnalysis::BuildPreconditioner<CSTATE>(
-    EPrecond preconditioner,bool overlap);
+    Precond::Type preconditioner,bool overlap);
 #endif

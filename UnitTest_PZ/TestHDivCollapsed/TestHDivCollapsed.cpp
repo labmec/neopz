@@ -5,6 +5,9 @@
 #include <TPZVTKGeoMesh.h>
 #include <pzgeoquad.h>
 #include <tpzgeoelrefpattern.h>
+#include "TPZSSpStructMatrix.h"
+#include "TPZSpStructMatrix.h"
+#include "TPZSkylineNSymStructMatrix.h"
 
 #include <pzcmesh.h>
 #include <TPZMultiphysicsCompMesh.h>
@@ -26,8 +29,8 @@
 #include <pzlog.h>
 
 // ----- Unit test includes -----
-#include <catch2/catch.hpp>
-
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 // ----- Run tests with or without main -----
 //#define RUNWITHMAIN
 
@@ -233,9 +236,6 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     if(isLinPVar) header << "  LinP";
     std::cout << "\n ============ Running Problem " << header.str() << " ============\n" << std::endl;
     
-#ifdef PZ_LOG
-    TPZLogger::InitializePZLOG();
-#endif
     TPZGeoMesh* gmesh = nullptr;
     if (is3D){
         if (isFracIntersect) {
@@ -297,7 +297,7 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     std::cout << "Number of equations = " << cmesh->NEquations() << std::endl;
 
     // ----- Solve system -----
-    TPZLinearAnalysis an(cmesh,false);
+    TPZLinearAnalysis an(cmesh,RenumType::ENone);
     SolveProblemDirect(an,cmesh);
 
     // ----- Print results -----
@@ -321,7 +321,7 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     
     const std::string qvarname = "Flux";
     STATE integratedflux = ComputeIntegralOverDomain(cmesh,qvarname);
-    if (fabs(integratedflux) < 1.e-14 ) integratedflux = 0.; // to make Approx(0.) work
+    if (fabs(integratedflux) < 1.e-14 ) integratedflux = 0.; // to make Catch::Approx(0.) work
     std::cout << "\nintegral of flux  = " << integratedflux << std::endl;
     
     // ----- Comparing with analytical solution -----
@@ -331,18 +331,18 @@ void TestHdivCollapsed(const bool& is3D, const bool& isRefMesh, const bool& isLi
     // Domain volume is 2*2=4. If p cte: 1*4 = 4. If p varies linearly from 2 to 0: ((2-0)/2) * 4 = 8
 #ifndef RUNWITHMAIN
     if (is3D) {
-        REQUIRE( integratedpressure == Approx( 8.0 ) ); // Approx is from catch2 lib
+        REQUIRE( integratedpressure == Catch::Approx( 8.0 ) ); // Approx is from catch2 lib
         if (isLinPVar)
-            REQUIRE( integratedflux == Approx( 8./3. ) ); // Approx is from catch2 lib
+            REQUIRE( integratedflux == Catch::Approx( 8./3. ) ); // Approx is from catch2 lib
         else
-            REQUIRE( integratedflux == Approx( 0.) ); // Approx is from catch2 lib
+            REQUIRE( integratedflux == Catch::Approx( 0.) ); // Approx is from catch2 lib
     }
     else{
-        REQUIRE( integratedpressure == Approx( 4.0 ) ); // Approx is from catch2 lib
+        REQUIRE( integratedpressure == Catch::Approx( 4.0 ) ); // Approx is from catch2 lib
         if (isLinPVar)
-            REQUIRE( integratedflux == Approx( 4./3. ) ); // Approx is from catch2 lib
+            REQUIRE( integratedflux == Catch::Approx( 4./3. ) ); // Approx is from catch2 lib
         else
-            REQUIRE( integratedflux == Approx( 0.) ); // Approx is from catch2 lib
+            REQUIRE( integratedflux == Catch::Approx( 0.) ); // Approx is from catch2 lib
     }
 #endif
     
@@ -723,7 +723,7 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     // domain bcs
     auto * BCond0 = mat->CreateBC(mat, EFaceBCPressure, 0, val1, val2);
     if (isLinPVar)
-        BCond0->SetForcingFunctionBC(exactSolLinP);
+        BCond0->SetForcingFunctionBC(exactSolLinP,2);
     cmesh->InsertMaterialObject(BCond0);
     
     TPZManVector<STATE> val2n(1,0.);
@@ -742,7 +742,7 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
     auto * BCond1 = mat->CreateBC(mat, EPressureFracBnd, 0, val1, val2);
 //    auto * BCond1 = mat->CreateBC(mat, EPressureFracBnd, 1, val1, val2n);
     if (isLinPVar)
-        BCond1->SetForcingFunctionBC(exactSolFrac);
+        BCond1->SetForcingFunctionBC(exactSolFrac,2);
     cmesh->InsertMaterialObject(BCond1);
     
     // ===> Materials for hybridizing intersection between fractures
@@ -772,14 +772,20 @@ TPZMultiphysicsCompMesh *MultiphysicCMesh(int dim, int pOrder, TPZVec<TPZCompMes
 void SolveProblemDirect(TPZLinearAnalysis &an, TPZCompMesh *cmesh)
 {
     constexpr int nThreads{0};
+//    TPZFStructMatrix<STATE> matskl(cmesh);
 //    TPZSkylineStructMatrix<STATE> matskl(cmesh);
-    TPZFStructMatrix<STATE> matskl(cmesh);
+#if defined (USING_MKL) || (USING_EIGEN)
+    TPZSpStructMatrix<STATE> matskl(cmesh);
+#else
+    TPZSkylineNSymStructMatrix<STATE> matskl(cmesh);
+#endif
+//    TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>> matskl(cmesh);
     matskl.SetNumThreads(nThreads);
     an.SetStructuralMatrix(matskl);
     
     ///Setting a direct solver
     TPZStepSolver<STATE> step;
-    step.SetDirect(ELDLt);//ELU //ECholesky // ELDLt
+    step.SetDirect(ELU);//ELU //ECholesky // ELDLt
     an.SetSolver(step);
     
     //assembles the system
@@ -1028,6 +1034,10 @@ const STATE ComputeIntegralOverDomain(TPZCompMesh* cmesh, const std::string& var
         return vecint[0];
     else if (varname == "Flux")
         return vecint[1];
+    else
+        DebugStop();
+    
+    return -100000; // default value so compiler does not complain
 }
 
 // ---------------------------------------------------------------------
@@ -1040,7 +1050,8 @@ void HybridizeIntersections(TPZVec<TPZCompMesh *>& meshvec_Hybrid, TPZHybridizeH
     }
     
     hybridizer->fHDivWrapMatid = EKd2;
-    hybridizer->fIdToHybridize = EFracture;
+//  hybridizer->fIdToHybridize = EFracture;
+    hybridizer->fIdsToHybridize.insert(EFracture);
     
     // ===> Initializing variables
     TPZCompMesh* fluxmesh = meshvec_Hybrid[0];

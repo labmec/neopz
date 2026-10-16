@@ -2,6 +2,8 @@
 
 
 /** @brief TPZFMatrix wrapper for acessing storage of a given matrix*/
+// it assumes that the storage of a matrix is a vector of data
+// it takes the form of a full matrix with a single column and size of the data
 template<class TVar>
 class TPZFMatrixRef : public TPZFMatrix<TVar>{
 public:
@@ -22,6 +24,8 @@ public:
     fOrigRef = this->Elem();
     this->Elem() = nullptr;
   }
+
 private:
   TVar * &fOrigRef;
 };
+

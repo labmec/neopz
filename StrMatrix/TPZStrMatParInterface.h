@@ -12,7 +12,6 @@
 #include "TPZEquationFilter.h"
 
 class TPZBaseMatrix;
-class TPZGuiInterface;
 template<class T>
 class TPZAutoPointer;
 template<class T>
@@ -40,12 +39,11 @@ public:
      */
     
     //@{
+
     //! Assemble the global system of equations into a matrix that has already been created.
-    virtual void Assemble(TPZBaseMatrix &stiffness, TPZBaseMatrix &rhs,
-                          TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;
+    virtual void Assemble(TPZBaseMatrix &stiffness, TPZBaseMatrix &rhs) = 0;
     //! Assemble the global right hand side vector.
-    virtual void Assemble(TPZBaseMatrix &rhs,
-                          TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;    
+    virtual void Assemble(TPZBaseMatrix &rhs) = 0;    
 
     //! Operations to be performed at the beginning of CreateAssemble
     virtual void InitCreateAssemble(){}
@@ -55,8 +53,7 @@ public:
     /*! Creates solver matrix and assembles it alongside global rhs.
      Avoid overriding it unless there are no other options*/
     virtual TPZBaseMatrix *
-    CreateAssemble(TPZBaseMatrix &rhs,
-                   TPZAutoPointer<TPZGuiInterface> guiInterface);
+    CreateAssemble(TPZBaseMatrix &rhs);
     //@}
 
     //! Set number of threads to be used in the assembly.

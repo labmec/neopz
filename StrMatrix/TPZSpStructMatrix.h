@@ -7,6 +7,7 @@
 #define TPZSPSTRUCTMATRIX_H
 
 #include "TPZStructMatrixT.h"
+#include "TPZYSMPMatrix.h"
 #include "pzstrmatrixor.h"
 #include "pzstack.h"
 /**
@@ -33,6 +34,7 @@ public:
     //@}
 protected:
     virtual TPZMatrix<TVar> * SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex);
+    virtual TPZFYsmpMatrix<TVar> * NewSparseMatrix(int64_t neq) const;
     friend TPZPersistenceManager;
 };
 

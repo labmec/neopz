@@ -87,6 +87,9 @@ public:
 	
 	virtual int FatherSide(int side, int son) override;
 	
+		/// @brief returns if the element is a refpattern element or not
+	virtual bool IsRefPatternEl() const override { return true; }
+
 	/** @brief Divides the element and puts the resulting elements in the vector*/
 	virtual void Divide(TPZVec<TPZGeoEl *> &pv) override;
 	
@@ -361,22 +364,47 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 			gRefDBase.InitializeUniformRefPattern(typeel);
 		}
 		TPZAutoPointer<TPZRefPattern> uniform = gRefDBase.GetUniformRefPattern(typeel);
-		std::list<TPZAutoPointer<TPZRefPattern> > compat;
-		TPZRefPatternTools::GetCompatibleRefPatterns(this,compat);
-		std::list<TPZAutoPointer<TPZRefPattern> >::iterator it = compat.begin();
-		while(it != compat.end()){
-			if(*it == uniform) break;
-			it++;
-		}
-		if(it != compat.end())
+		int nsides = this->NSides();
+		int lowestside = this->NCornerNodes();
+		bool neighiscompatible = true;
+		for(int is = lowestside; is < nsides; is++)
 		{
-			this->SetRefPattern(uniform);
+			TPZGeoElSide gelside(this,is);
+			TPZGeoElSide neigh = gelside.Neighbour();
+			while(neigh != gelside)
+			{
+				TPZGeoEl *neighgel = neigh.Element();
+				if(neighgel->HasSubElement() && neighgel->IsRefPatternEl() && neighgel->NSideSubElements(neigh.Side()) > 1)
+				{
+					TPZAutoPointer<TPZRefPattern> neighrefpat = neighgel->GetRefPattern();
+					// the neighrefpattern cannot be null, because it has subelements
+					if(!neighrefpat)
+					{
+						DebugStop();
+					}
+					TPZAutoPointer<TPZRefPattern> neighsiderefpattern = neighrefpat->SideRefPattern(neigh.Side());
+
+					if(neighsiderefpattern == uniform->SideRefPattern(is))
+					{
+						// the neighbor is refined using a compatible refinement pattern
+						break;
+					} else {
+						// the neighbor is refined using an incompatible refinement pattern
+						neighiscompatible = false;
+						break;
+					}
+				}
+				neigh = neigh.Neighbour();
+			}
+			if(!neighiscompatible) break;
 		}
-		else
+		if(!neighiscompatible)
 		{
 			PZError << "TPZGeoElRefPattern<TGeo>::Divide ERROR : Undefined Refinement Pattern!" << std::endl;
 			SubElVec.Resize(0);
 			return;
+		} else {
+			this->SetRefPattern(uniform);
 		}
 	}
 	int i;

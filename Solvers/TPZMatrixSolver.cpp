@@ -17,10 +17,10 @@ static TPZLogger logger("pz.matrix.tpzmatred");
 using namespace std;
 
 template <class TVar>
-TPZMatrixSolver<TVar>::TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> > Refmat) :
+TPZMatrixSolver<TVar>::TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> > mat) :
 fScratch()
 {
-	fContainer = Refmat;
+	fContainer = mat;
 }
 
 template<class TVar>
@@ -47,14 +47,6 @@ void TPZMatrixSolver<TVar>::ResetMatrix()
 {
 	TPZAutoPointer<TPZMatrix<TVar> > reset;
 	fContainer = reset;
-}
-
-template <class TVar>
-void TPZMatrixSolver<TVar>::ShareMatrix(TPZMatrixSolver<TVar> &other)
-{
-	if (this == &other)
-		return;
-	fContainer = other.fContainer;
 }
 
 template <class TVar>
@@ -111,6 +103,31 @@ int TPZMatrixSolver<TVar>::ClassId() const{
     return Hash("TPZMatrixSolver") ^ ClassIdOrHash<TVar>() ^ TPZSolver::ClassId() << 2;
 }
 
+#ifdef USING_MKL
+#include "TPZSYSMPPardiso.h"
+#include "TPZYSMPPardiso.h"
+
+template<class TVar>
+TPZPardisoSolver<TVar> *TPZMatrixSolver<TVar>::GetPardisoControl(){
+  auto sym = TPZAutoPointerDynamicCast<TPZSYsmpMatrixPardiso<TVar>>(fContainer);
+  if(sym){
+    return  &(sym->GetPardisoControl());
+  }
+  auto nsym = TPZAutoPointerDynamicCast<TPZFYsmpMatrixPardiso<TVar>>(fContainer);
+  if(nsym){
+    return  &(nsym->GetPardisoControl());
+  }
+  return nullptr;
+}
+#else
+template<class TVar>
+TPZPardisoSolver<TVar> *TPZMatrixSolver<TVar>::GetPardisoControl(){
+  std::cout<<__PRETTY_FUNCTION__
+           <<"\nNeoPZ was not configured with MKL!"
+           <<std::endl;
+  return nullptr;
+}
+#endif
 
 template class TPZMatrixSolver<float>;
 template class TPZMatrixSolver<std::complex<float> >;
@@ -120,7 +137,3 @@ template class TPZMatrixSolver<std::complex<double> >;
 
 template class TPZMatrixSolver<long double>;
 template class TPZMatrixSolver<std::complex<long double> >;
-
-template class TPZMatrixSolver<Fad<float> >;
-template class TPZMatrixSolver<Fad<double> >;
-template class TPZMatrixSolver<Fad<long double> >;

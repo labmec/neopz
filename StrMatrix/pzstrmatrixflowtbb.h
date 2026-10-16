@@ -46,9 +46,9 @@ public:
      */
     //@{
 
-    void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs) override;
     
-    void Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    void Assemble(TPZBaseMatrix & rhs) override;
     
     void InitCreateAssemble() override;
     //@}
@@ -66,10 +66,10 @@ protected:
 
     
     /** @brief Assemble the global right hand side */
-    virtual void MultiThread_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void MultiThread_Assemble(TPZBaseMatrix & rhs);
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs);
 
     TPZAutoPointer<TPZFlowGraph<TVar> > fFlowGraph;
 };

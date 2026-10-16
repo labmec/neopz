@@ -415,6 +415,7 @@ namespace pzrefine {
 //		subel.Resize(0);
 		if(side<0 || side>TPZShapeCube::NSides || !father->HasSubElement()){
 			PZError << "TPZRefCube::GetSubelements2 called with error arguments\n";
+			DebugStop();
 			return;
 		}
 		int nsub = NSideSubElements(side);//nsubeldata[side];

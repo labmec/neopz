@@ -22,7 +22,7 @@
 #include "TPZMatErrorCombinedSpaces.h"
 
 
-class TPZHybridDarcyFlow : public TPZMatCombinedSpacesT<STATE>, TPZMatErrorCombinedSpaces<STATE>, public TPZDarcyFlow {
+class TPZHybridDarcyFlow : public TPZDarcyFlow, public TPZMatCombinedSpacesT<STATE>,public TPZMatErrorCombinedSpaces<STATE> {
 
 
 public:
@@ -38,6 +38,21 @@ public:
 	 */
     TPZHybridDarcyFlow(int id, int dim);
 
+    TPZHybridDarcyFlow(const TPZHybridDarcyFlow &copy) : TPZDarcyFlow(copy), TPZMatCombinedSpacesT<STATE>(copy),
+    TPZMatErrorCombinedSpaces<STATE>(copy){
+
+    }
+
+        TPZHybridDarcyFlow(const TPZDarcyFlow &copy) : TPZDarcyFlow(copy), TPZMatCombinedSpacesT<STATE>(),
+        TPZMatErrorCombinedSpaces<STATE>(){
+    }
+
+    TPZHybridDarcyFlow &operator=(const TPZHybridDarcyFlow &copy){
+        TPZDarcyFlow::operator=(copy);
+        TPZMatCombinedSpacesT<STATE>::operator=(copy);
+        TPZMatErrorCombinedSpaces<STATE>::operator=(copy);
+        return *this;
+    }
     /**
      * @brief Returns the problem dimension
      */
@@ -55,6 +70,8 @@ public:
 	 * @brief Returns a 'std::string' with the name of the material
 	 */
     [[nodiscard]] std::string Name() const override { return "TPZHybridDarcyFlow"; }
+
+    virtual int NEvalErrors()  const override {return TPZDarcyFlow::NEvalErrors();}
 
     /** @name Contribute */
     /** @{ */
@@ -86,7 +103,22 @@ public:
     virtual void ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
                               REAL weight, TPZFMatrix<STATE> &ek,
                               TPZFMatrix<STATE> &ef,
-                              TPZBndCondT<STATE> &bc) override {}
+                              TPZBndCondT<STATE> &bc) override;
+    /**
+     * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point
+     * @param[in] data stores all input data
+     * @param[in] weight is the weight of the integration rule
+     * @param[out] ek is the element matrix
+     * @param[out] ef is the rhs vector
+     * @param[in] bc is the boundary condition material
+     */
+    void ContributeBC(const TPZMaterialDataT<STATE> &data, STATE weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
+                      TPZBndCondT<STATE> &bc) override;
+    /*
+     * @brief fill requirements for boundary contribute
+     */
+    void FillBoundaryConditionDataRequirements(int type, TPZMaterialData &data) const override;
+
 
     /**@}*/
     /** @brief Returns the solution associated with a given index
@@ -96,18 +128,24 @@ public:
         @param[out] sol FEM Solution at the integration point
     */
     virtual void Solution(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
-                          int var, TPZVec<STATE> &sol) override {}
+                          int var, TPZVec<STATE> &sol) override {
+        TPZDarcyFlow::Solution(datavec[1],var,sol);
+    }
     /**
      * @brief Returns an integer associated with a post-processing variable name
      * @param [in] name string containing the name of the post-processing variable. Ex: "Pressure".
      */
-    [[nodiscard]] int VariableIndex(const std::string &name) const override;
+    [[nodiscard]] int VariableIndex(const std::string &name) const override {
+        return TPZDarcyFlow::VariableIndex(name);
+    }
 
     /**
      * @brief Returns an integer with the dimension of a post-processing variable
      * @param [in] var index of the post-processing variable, according to TPZDarcyFlow::VariableIndex method.
      */
-    [[nodiscard]] int NSolutionVariables(int var) const override;
+    [[nodiscard]] int NSolutionVariables(int var) const override {
+        return TPZDarcyFlow::NSolutionVariables(var);
+    }
 
     //! @name Error
     /** @{*/
@@ -117,7 +155,7 @@ public:
       \param[out] errors The calculated errors.
      */
     virtual void Errors(const TPZVec<TPZMaterialDataT<STATE>> &data,
-                        TPZVec<REAL> &errors) override {}
+                        TPZVec<REAL> &errors) override;
 
     /**
      * @brief Returns an unique class identifier
@@ -159,7 +197,7 @@ public:
                                         const TPZFMatrix<STATE> &val1,
                                         const TPZVec<STATE> &val2) override
     {
-        return new  TPZBndCondBase<STATE,TPZMatCombinedSpacesBC<STATE> >
+        return new  TPZBndCondBase<STATE,TPZMatCombinedSpacesBC<STATE>, TPZMatErrorCombinedSpacesBC<STATE> >
         (reference,id, type,val1,val2);
     }
 

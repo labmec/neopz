@@ -364,7 +364,10 @@ public:
 	virtual void ComputeError(int errorid, TPZVec<REAL> &error){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented.\n";
 	}
-	
+
+  //! Gets the list of elements for post-processing
+  virtual void GetCompElList(TPZStack<TPZCompEl*>& stck)
+  {stck.Push(this);}
 	/**
 	 * @brief Creates corresponding graphical element(s) if the dimension matches
 	 * graphical elements are used to generate output files

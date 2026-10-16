@@ -13,10 +13,22 @@
 #include <iomanip>//std::setw
 
 /// Overloading the operator <<
-inline std::ostream &operator<<(std::ostream &out, const std::pair<int,int> &element)
+inline std::ostream &operator<<(std::ostream &out, std::pair<int,int> &element)
 {
 	out << element.first << "|" << element.second;
 	return out;
+}
+
+inline std::ostream &operator<<(std::ostream &out, std::pair<int64_t,int64_t> &element)
+{
+    out << element.first << "|" << element.second;
+    return out;
+}
+
+inline std::ostream &operator<<(std::ostream &out, std::pair<int,int64_t> &element)
+{
+    out << element.first << "|" << element.second;
+    return out;
 }
 
 /**
@@ -30,6 +42,9 @@ inline std::ostream &operator<<(std::ostream &out, const std::pair<int,int> &ele
 template< class T >
 class TPZVec {
 public:
+    using iterator=T*;
+    using const_iterator=T const*;
+    using value_type=T;
 	/** @brief Creates a vector with size 0. */
 	TPZVec();
 	
@@ -38,7 +53,7 @@ public:
 	 * @param size Size of the new vector.
 	 */
 	/** It will call the empty constructor on all objects of type T created. */
-	TPZVec(const int64_t size);
+	explicit TPZVec(const int64_t size);
 	
 	/**
 	 * @brief Creates a vector of a given size.
@@ -229,7 +244,11 @@ public:
     
     /** @brief Empty the vector, make its size zero */
     virtual void clear();
-	
+
+    void push_back(const T& v);
+    void push_back(T&& v);
+
+    iterator insert(iterator pos, const T&v);
 protected:
 	/** @brief Allocated storage for the vector object */
 	T* fStore;
@@ -377,19 +396,43 @@ TPZVec<T> &TPZVec<T>::operator=(const TPZVec<T> &copy){
 template< class T >
 TPZVec<T> &TPZVec<T>::operator=(TPZVec<T> &&rval){
 	if(this != &rval){
-        fNElements = rval.fNElements;
-        if(fStore) delete [] fStore;
-        if(rval.fNAlloc){
-            fStore = rval.fStore;
-        }else{
-            fStore = new T[fNElements];
-            for (int64_t i = 0; i < fNElements; i++)
-                fStore[i] = rval.fStore[i];
-        }
-        fNAlloc = fNElements;//perhaps rval.fNalloc was 0
-        rval.fStore = nullptr;
-        rval.fNElements = 0;
-        rval.fNAlloc = 0;
+
+    if(fNAlloc && rval.fNAlloc){
+      //scenario 1: both vectors have allocated dynamic memory
+      delete [] fStore;
+      fNAlloc = rval.fNAlloc;
+      fNElements = rval.fNElements;
+      fStore = rval.fStore;
+      rval.fStore = nullptr;
+      rval.fNAlloc = 0;
+      rval.fNElements = 0;
+      return *this;
+    }
+    if(!fNAlloc && fNElements >= rval.fNElements){
+      //scenario 2: our static memory can fit their elements
+      for (int64_t i = 0; i < fNElements; i++){
+        fStore[i] = rval.fStore[i];
+      }
+      fNElements = rval.fNElements;
+      //no need to modify rval, it was just a copy
+      return *this;
+    }
+    if(fNAlloc) delete [] fStore;
+    
+    
+    fNElements = rval.fNElements;
+    if(rval.fNAlloc){
+      fStore = rval.fStore;
+      rval.fStore = nullptr;
+      rval.fNElements = 0;
+      rval.fNAlloc = 0;
+    }else{
+      fStore = new T[fNElements];
+      for (int64_t i = 0; i < fNElements; i++){
+        fStore[i] = rval.fStore[i];
+      }
+    }
+    fNAlloc = fNElements;
 	}
 	return *this;
 }
@@ -476,27 +519,67 @@ void TPZVec<T>::Resize(const int64_t newsize) {
 	if(newsize == fNElements) return;
 	if (newsize == 0) {
 		fNElements = 0;
-        fNAlloc = 0;
+    fNAlloc = 0;
 		delete[] fStore;
 		fStore = nullptr;
 		return;
 	}
-	T *newstore = new T[newsize];
-	int64_t large = (fNElements < newsize) ? fNElements : newsize;
-	int64_t i;
-	for(i=0L; i<large; i++) {
-		newstore[i] = fStore[i];
-	}
-	if(fStore) delete[] fStore;
-	fStore = newstore;
-	fNElements = newsize;
-    fNAlloc = newsize;
+
+  /*
+    if needed to allocate, unless previous size was zero,
+    we allocate twice as much as requested. 
+    this aims to prevent repeated calls to new/delete
+    in operations such as appending to vector
+   */
+  if(newsize > this->fNAlloc){
+    const auto sz = fNAlloc == 0 ? newsize : 2*newsize;
+    T *newstore = new T[sz];
+    int64_t large = (fNElements < sz) ? fNElements : newsize;
+    int64_t i;
+    for(i=0L; i<large; i++) {
+      newstore[i] = fStore[i];
+    }
+    if(fStore) delete[] fStore;
+    fStore = newstore;
+    fNAlloc = sz;
+  }
+
+  fNElements = newsize;
 }
 
 template<class T>
 void TPZVec<T>::clear()
 {
     this->Resize(0);
+}
+
+template<class T>
+void TPZVec<T>::push_back(const T& v)
+{
+    const auto sz = this->size();
+    
+    this->Resize(sz+1);
+    fStore[sz] = v;
+}
+
+template<class T>
+void TPZVec<T>::push_back(T&& v)
+{
+    const auto sz = this->size();
+    
+    this->Resize(sz+1);
+    fStore[sz] = std::move(v);
+}
+
+template<class T>
+typename TPZVec<T>::iterator TPZVec<T>::insert(TPZVec<T>::iterator pos, const T&v){
+    const auto p = pos-this->begin();
+    if(pos == this->end()){
+        const auto sz = this->size();
+        this->Resize(sz+1);
+    }
+    fStore[p] = v;
+    return this->end();
 }
 
 template<class T>
@@ -541,6 +624,26 @@ inline void TPZVec<T>::Print(std::ostream &out)
 	out << std::endl << "Number of elements = " << fNElements;
 }
 
+template <class T1, class T2>
+std::ostream& operator<<( std::ostream& Out, const TPZVec< std::pair<T1,T2> >& v )
+{
+    std::streamsize width = Out.width();
+    
+    const char* sep = ( width == 0 ? ", " : "" );
+    
+    int64_t size = v.NElements();
+    
+    if(size) Out << std::setw(width) << v[0].first << '|' << v[0].second;
+    
+    for( int64_t ii = 1; ii < size; ii++ )
+    {
+        Out << std::setw( width ) << sep << v[ii].first << '|' << v[ii].second;
+    }
+    
+    return Out;
+}
+
+
 template <class T>
 std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
 {
@@ -560,25 +663,6 @@ std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
 	return Out;
 }
 
-inline std::ostream& operator<<( std::ostream& Out, const TPZVec< std::pair<double,double> >& v )
-{
-    
-	Out << "{";
-    
-	int64_t size = v.NElements();
-	
-    if(size > 0)
-    {
-        for( int64_t ii = 0; ii < size; ii++ )
-        {
-            Out << "{" << v[ii].first << ',' << v[ii].second << "}";
-            if( ii < size-1) Out << ",";
-        }
-    }
-	
-    Out << "}";
-	return Out;
-}
 
 extern template class TPZVec<float>;
 extern template class TPZVec<float * >;

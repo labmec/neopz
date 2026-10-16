@@ -46,8 +46,14 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
     TPZMaterial * material = TBASE::Material();
     auto * matWithMem =
         dynamic_cast<TPZMatWithMemBase *>(material);
-    if(!material || !matWithMem){
-        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+    if(!material)
+    {
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " material == NULL\n";
+        DebugStop();
+        return;
+    }
+    if(!matWithMem){
+        PZError << "Matid = " << material->Id() << " at " << __FUNCTION__ << " has no memory\n";
         return;
     }
     
@@ -169,6 +175,16 @@ template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapeCub
 template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapeTetra> >>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapePrism> >>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZCompElH1<pzshape::TPZShapePiram> >>;
+
+
+#include "TPZCompElHCurl.h"
+
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeLinear> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeTriang> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeQuad> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeCube> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapeTetra> >>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZCompElHCurl<pzshape::TPZShapePrism> >>;
 
 #include "pzgeopoint.h"
 #include "pzgeoquad.h"

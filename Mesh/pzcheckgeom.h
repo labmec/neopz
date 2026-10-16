@@ -40,6 +40,10 @@ public:
     /// verify if the mapping between neighbouring elements is conforming
     int CheckNeighbourMap(TPZGeoEl *gel);
     
+    /// Verifies if the neighbouring information is consistent, i.e., checks if the recursive neighbor list is closed.
+    /// If the neighbors is larger than a maximum value (500), throws an error
+    bool CheckNeighboursConsistency() const;
+    
 	int CheckSideTransform(TPZGeoEl *gel, int sidefrom, int sideto);
     
     /// verify if the transformation between sons and father are conforming

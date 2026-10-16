@@ -7,7 +7,9 @@
 #include "Elasticity/TPZElasticity3D.h"
 #include "iostream"
 #include "fstream"
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
+
 
 /**
  * @brief Create the stiffness matrix of a cube from -1 and 1 in cartesian coordinates, with elastic material
@@ -28,7 +30,7 @@ TPZFMatrix<STATE> computeStressStrain()
 	dphi(0,0) = 1;
 	dphi(1,1) = 1;
 	dphi(2,2) = 1;
-	cubodata.fPhi = phi;
+	cubodata.fH1.fPhi = phi;
 	cubodata.dphix = dphi;
 	cubodata.x = pt;
 	cubodata.axes.Redim(3, 3);
@@ -70,16 +72,24 @@ TEST_CASE("test_matriz_rigidez_cubo","[material_tests]")
 	std::string name = "CubeStiffMatrix.txt";
 	TPZFMatrix<STATE> RightStiff(readStressStrain(name)), stiff(computeStressStrain());
 	REAL tol = 1.e-8;
-	bool sym = stiff.VerifySymmetry(tol);
-	std::cout << sym << std::endl;
-	REQUIRE(sym==1);		// Verify the symmetry of the stiffness matrix
+	const auto sp = stiff.VerifySymmetry(tol);
+	const auto str_sp = [sp](){
+		switch(sp){
+		case SymProp::NonSym: return "NonSym";
+		case SymProp::Sym: return "Sym";
+		case SymProp::Herm: return "Herm";
+		}
+		unreachable();//silences compiler warning on gcc
+	}();
+	std::cout << str_sp << std::endl;
+	REQUIRE(sp!=SymProp::NonSym);		// Verify the symmetry of the stiffness matrix
 	REAL dif;
 	for (int i = 0 ; i < 9 ; i++) 
 	{
 		for (int j = 0 ; j < 9 ; j++) 
 		{
 			dif = fabs(stiff(i,j) - RightStiff(i,j));
-			REQUIRE(dif == Approx(0.0).margin(0.01));
+			REQUIRE(dif == Catch::Approx(0.0).margin(0.01));
 		}
 	}
 

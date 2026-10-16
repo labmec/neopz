@@ -136,8 +136,9 @@ namespace pzgeom {
                 gradphi(i,0) = - (1. / (norm*norm*norm) ) * xqsiLxc[i];
             }
             
-            TPZFNMatrix <9,T> DphivDx(3,3,0.); // will store d(phi*v)/dx
-            DphivDx = TensorProd(v,gradphi) + phi*gradv;
+            TPZFNMatrix <9,T> DphivDx(3,3,0.),vgradphi(3,3,0.); // will store d(phi*v)/dx
+            vgradphi = TensorProd(v,gradphi);
+            DphivDx = vgradphi + phi*gradv;
             
             DphivDx.Multiply(dxdqsi, gradx);
         }
@@ -237,7 +238,7 @@ namespace pzgeom {
         template<class T>
         static TPZFMatrix<T> TensorProd(TPZFMatrix<T> &vec1, TPZFMatrix<T> &vec2)
         {
-            TPZFNMatrix<9,T> res(3,3,0.);
+            TPZFMatrix<T> res(3,3,0.);
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     res(i,j) = vec1(i,0) * vec2(j,0);

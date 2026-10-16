@@ -231,8 +231,9 @@ int ClassId() const override;
      * @param nodeindexes indexes of the corner nodes of the element
      * @param matid material id
      * @param index index of the element in the vector of element pointers
+	 * @param reftype defines the type of refinement : 0 -> uniform 1-> refinement pattern
      */
-	virtual TPZGeoEl *CreateGeoElementMapped(MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index);
+	virtual TPZGeoEl *CreateGeoElementMapped(MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index, int reftype = 1);
 
 	/**
 	 * @brief Generic method for creating a geometric element. Putting this method centrally facilitates

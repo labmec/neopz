@@ -34,4 +34,4 @@ set(docs_sources
 add_subdirectory(material)
 add_subdirectory(structmatrix)
 add_subdirectory(solver)
-    
+add_subdirectory(post)

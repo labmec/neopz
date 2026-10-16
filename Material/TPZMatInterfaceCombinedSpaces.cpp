@@ -6,10 +6,10 @@
 #include "TPZMaterial.h"
 #include "TPZMatInterfaceCombinedSpaces.h"
 
-template<class TVar>
-int TPZMatInterfaceCombinedSpaces<TVar>::ClassId() const {
-    return Hash("TPZMatInterfaceCombinedSpaces") ^ ClassIdOrHash<TVar>() << 1;
-}
+//template<class TVar>
+//int TPZMatInterfaceCombinedSpaces<TVar>::ClassId() const {
+//    return Hash("TPZMatInterfaceCombinedSpaces") ^ ClassIdOrHash<TVar>() << 1;
+//}
 
 
 template<class TVar>

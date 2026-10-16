@@ -48,8 +48,7 @@ public:
     
     int NConnectShapeF(int connect, int order) const override;
 
-    /// Return the maximum order
-    virtual int MaxOrder() override;
+    void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 
 protected:
 	 //@{

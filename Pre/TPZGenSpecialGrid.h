@@ -46,6 +46,15 @@ public:
 	 */
 	static void UniformRefinement(const int nUniformRefs, TPZGeoMesh *gmesh, const int dimelfordivision,bool allmaterial=true, const int matidtodivided=0);
 	
+    /// create da 2D mesh corresponding to a circle divided in quads and triangles
+    static TPZGeoMesh *CreateGeoMesh2D_Circle(int nDiv);
+
+    /// create a 2D circle segment mesh made of a single quadrilateral
+    static TPZGeoMesh *CreateArcMesh(REAL inner, REAL outer, REAL alpha0 = 0, REAL alpha1 = M_PI_2);
+
+    /// create mesh of a sphere composed of all 3D topologies and mapped to a sphere
+    static TPZGeoMesh *CreateGeoMesh3D_DividedSphere(int nDiv);
+
 };
 
 #endif

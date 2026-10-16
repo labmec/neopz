@@ -8,4 +8,5 @@ add_unit_test(TestIntegNum
 
 configure_file(Line.txt ${CMAKE_CURRENT_BINARY_DIR}/Line.txt COPYONLY)
 configure_file(Triangle.txt ${CMAKE_CURRENT_BINARY_DIR}/Triangle.txt COPYONLY)
+configure_file(Prism.txt ${CMAKE_CURRENT_BINARY_DIR}/Prism.txt COPYONLY)
 configure_file(NumInteBeingChecked.nb ${CMAKE_CURRENT_BINARY_DIR}/NumInteBeingChecked COPYONLY)

@@ -47,7 +47,8 @@ protected:
 	 */
 	static int ComputeSideOrder(TPZVec<TPZCompElSide> &elementset);
 	
-	
+	template<class TVar>
+	void RestrainSideT(int side, TPZInterpolatedElement *large, int neighbourside);
 public:
 	/**
 	 * @brief Constructor with a mesh and geometric element as arguments

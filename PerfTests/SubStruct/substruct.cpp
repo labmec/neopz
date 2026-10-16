@@ -167,12 +167,11 @@ int main(int argc, char *argv[])
     dohrstruct->SetNumThreads(nThreads);
         
     PERF_START(assemble_rst);
-    TPZAutoPointer<TPZGuiInterface> gui;
     rhs = new TPZFMatrix<STATE>(cmeshauto->NEquations(),1,0.);
     if(useTBB)
-      dohrstruct->AssembleTBB(*matptr,*rhs, gui);
+      dohrstruct->AssembleTBB(*matptr,*rhs);
     else
-      dohrstruct->Assemble(*matptr,*rhs, gui, nThreads, nThreads);
+      dohrstruct->Assemble(*matptr,*rhs, nThreads, nThreads);
     PERF_STOP(assemble_rst);    
     PERF_PRINT(assemble_rst);
     PERF_START(precond_rst);

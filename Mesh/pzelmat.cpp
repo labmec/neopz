@@ -74,7 +74,7 @@ void TPZElementMatrix::ComputeDestinationIndices(){
         int64_t fullmatindex = 0L;
         this->fDestinationIndex.Resize(constrMat.Rows());
         this->fSourceIndex.Resize(constrMat.Rows());
-        int numnod = this->fConstrConnect.NElements();
+        int64_t numnod = this->fConstrConnect.NElements();
         for(int in = 0; in < numnod; in++){
             const int64_t npindex = this->fConstrConnect[in];
             TPZConnect &np = this->fMesh->ConnectVec()[npindex];
@@ -97,9 +97,6 @@ void TPZElementMatrix::ComputeDestinationIndices(){
 
 bool TPZElementMatrix::HasDependency()
 {
-    if (fOneRestraints.size()) {
-        return true;
-    }
 	int in, nconnects = this->NConnects();
 	int64_t index;
 	for(in=0; in<nconnects; in++)
@@ -126,15 +123,6 @@ void TPZElementMatrix::BuildDependencyOrder(TPZVec<int64_t> &connectlist, TPZVec
     // order which is currently processed
     int64_t numnodes_processed = totalnodes;
 
-    for (std::list<TPZOneShapeRestraint>::iterator it = fOneRestraints.begin(); it != fOneRestraints.end(); it++) {
-        for (int i=1; i<4; i++)
-        {
-            int64_t index = it->fFaces[1].first;
-            TPZConnect &dfn = mesh.ConnectVec()[index];
-            dfn.SetDependenceOrder(index,mesh,1,connectlist,DependenceOrder);
-        }
-    }
-
     
     // number of nodes processed during the current cycle
     while(numnodes_processed) {
@@ -151,10 +139,7 @@ void TPZElementMatrix::BuildDependencyOrder(TPZVec<int64_t> &connectlist, TPZVec
                 numnodes_processed++;
             }
         }
-        // force the loop to process the order one connects
-        if (fOneRestraints.size() && CurrentOrder == 0) {
-            numnodes_processed++;
-        }
         CurrentOrder++;
     }
 }
+

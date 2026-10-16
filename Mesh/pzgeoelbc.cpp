@@ -34,3 +34,19 @@ TPZGeoElBC::TPZGeoElBC(const TPZGeoElSide &elside,int matid):fCreatedElement(NUL
 	}
 	this->fCreatedElement = el->CreateBCGeoEl( side, matid );
 }
+
+TPZGeoElBC::TPZGeoElBC(const TPZGeoElBC &gbc, int matid) {
+    TPZGeoEl * gel = gbc.fCreatedElement;
+    const int side = gel->NSides()-1;
+    if(gel->SideIsUndefined(side)) //Verify if the connectivity was made before the creation of the bc
+    {
+        DebugStop();
+    }
+    if (!gel || side == -1){
+        if (!gel) PZError << "Error at " << __PRETTY_FUNCTION__ << " - TPZGeoEl *elside.Element() is NULL\n";
+        if (side == -1) PZError << "Error at " << __PRETTY_FUNCTION__ << " - int elside.Side() is -1\n";
+        return;
+    }
+    this->fCreatedElement = gel->CreateBCGeoEl( side, matid );
+
+}

@@ -30,18 +30,18 @@
 
 using namespace std;
 
-TPZHybridizeHDiv::TPZHybridizeHDiv(TPZVec<TPZCompMesh*>& meshvec_Hybrid) {
+TPZHybridizeHDiv::TPZHybridizeHDiv(const TPZVec<TPZCompMesh*>& meshvec_Hybrid) {
     ComputePeriferalMaterialIds(meshvec_Hybrid);
     ComputeNState(meshvec_Hybrid);
 }
 
-void TPZHybridizeHDiv::ComputeNState(TPZVec<TPZCompMesh*>& meshvec_Hybrid) {
+void TPZHybridizeHDiv::ComputeNState(const TPZVec<TPZCompMesh*>& meshvec_Hybrid) {
     if (meshvec_Hybrid.size() > 1 && meshvec_Hybrid[1]->NMaterials() > 0) {
         fNState = meshvec_Hybrid[1]->MaterialVec().begin()->second->NStateVariables();
     }
 }
 
-void TPZHybridizeHDiv::ComputePeriferalMaterialIds(TPZVec<TPZCompMesh*>& meshvec_Hybrid) {
+void TPZHybridizeHDiv::ComputePeriferalMaterialIds(const TPZVec<TPZCompMesh*>& meshvec_Hybrid) {
     int maxMatId = std::numeric_limits<int>::min();
     for (auto &mesh : meshvec_Hybrid) {
         
@@ -75,7 +75,7 @@ void TPZHybridizeHDiv::ComputePeriferalMaterialIds(TPZVec<TPZCompMesh*>& meshvec
 
 /// split the connect between two neighbouring elements
 
-std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &left, const TPZCompElSide &right, TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
+std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &left, const TPZCompElSide &right,const TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
     if (fHDivWrapMatid == 0 || fLagrangeInterface == 0) {
         std::cerr << "Using uninitialized TPZHybridizeHDiv object. You need to call ComputePeriferalMaterialIds function first!" << std::endl;
         DebugStop();
@@ -219,7 +219,7 @@ TPZCompElSide TPZHybridizeHDiv::RightElement(TPZInterpolatedElement *intel, int 
     return TPZCompElSide();
 }
 
-std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &left, const TPZStack<TPZCompElSide> &cellsidestack, TPZVec<TPZCompMesh *> &meshvec_Hybrid, const bool isIntersectEnd) {
+std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &left, const TPZStack<TPZCompElSide> &cellsidestack,const TPZVec<TPZCompMesh *> &meshvec_Hybrid, const bool isIntersectEnd) {
     if (fHDivWrapMatid == 0 || fLagrangeInterface == 0) {
         std::cerr << "Using uninitialized TPZHybridizeHDiv object. You need to call ComputePeriferalMaterialIds function first!" << std::endl;
         DebugStop();
@@ -320,7 +320,7 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     return std::make_tuple(pressureindex,pressureorder);
 }
 
-bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side, TPZVec<TPZCompMesh*>& meshvec_Hybrid,
+bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpolatedElement *intelleft, int side,const TPZVec<TPZCompMesh*>& meshvec_Hybrid,
                                           const bool isIntersectEnd) {
     
     // ==> Getting meshes
@@ -330,16 +330,17 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
     
     
     // ==> Splitting flux mesh connect
+    // this is extremely expensive
     gmesh->ResetReference();
-    if (fIdToHybridize != -1000){
-        for (auto cel : fluxmesh->ElementVec()) {
-            if(!cel) continue;
-            const int celmatid = cel->Reference()->MaterialId();
-            if (celmatid == fIdToHybridize) {
-                cel->LoadElementReference();
-            }
-        }
-    }
+	if (fIdsToHybridize.size()){
+		for (auto cel : fluxmesh->ElementVec()) {
+			if(!cel) continue;
+			const int celmatid = cel->Reference()->MaterialId();
+			if (fIdsToHybridize.find(celmatid) != fIdsToHybridize.end()) {
+				cel->LoadElementReference();
+			}
+		}
+	}
     else {
         fluxmesh->LoadReferences();
     }    
@@ -407,7 +408,7 @@ bool TPZHybridizeHDiv::HybridizeInterface(TPZCompElSide& celsideleft, TPZInterpo
 
 /// split the connects between flux elements and create a dim-1 pressure element
 
-void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
+void TPZHybridizeHDiv::HybridizeInternalSides(const TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
     InsertPeriferalMaterialObjects(meshvec_Hybrid);
     
         TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
@@ -470,7 +471,7 @@ void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hyb
     pressuremesh->SetDimModel(gmesh->Dimension());
 }
 
-void TPZHybridizeHDiv::CreateInterfaceElementsForGeoEl(TPZCompMesh *cmesh_Hybrid, TPZVec<TPZCompMesh *> &meshvec_Hybrid, TPZGeoEl *gel) {
+void TPZHybridizeHDiv::CreateInterfaceElementsForGeoEl(TPZCompMesh *cmesh_Hybrid, const TPZVec<TPZCompMesh *> &meshvec_Hybrid, TPZGeoEl *gel) {
     
     TPZCompMesh *pressuremesh = meshvec_Hybrid[1];
     int dim = gel->Dimension()+1;
@@ -528,7 +529,7 @@ void TPZHybridizeHDiv::CreateInterfaceElementsForGeoEl(TPZCompMesh *cmesh_Hybrid
     pressuremesh->InitializeBlock();
 }
 
-void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
+void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, const TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
     if (fInterfaceMatid.first == 0 || fInterfaceMatid.second == 0) {
         std::cerr << "Using uninitialized TPZHybridizeHDiv object. You need to call ComputePeriferalMaterialIds function first!" << std::endl;
         DebugStop();
@@ -604,7 +605,7 @@ void TPZHybridizeHDiv::CreateInterfaceElements(TPZMultiphysicsCompMesh *cmesh_Hy
     CreateInterfaceElements(cmesh_Hybrid, cmesh_Hybrid->MeshVector());
 }
 
-TPZCompMesh * TPZHybridizeHDiv::CreateMultiphysicsMesh(TPZCompMesh *cmesh_HDiv, TPZVec<TPZCompMesh *> &meshvector_Hybrid, double Lagrange_term_multiplier /* = 1. */) {
+TPZCompMesh * TPZHybridizeHDiv::CreateMultiphysicsMesh(TPZCompMesh *cmesh_HDiv,const TPZVec<TPZCompMesh *> &meshvector_Hybrid, double Lagrange_term_multiplier /* = 1. */) {
     TPZGeoMesh *gmesh = cmesh_HDiv->Reference();
     TPZCompMesh *cmesh_Hybrid = new TPZCompMesh(gmesh);
     cmesh_HDiv->CopyMaterials(*cmesh_Hybrid);
@@ -711,6 +712,11 @@ void TPZHybridizeHDiv::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &el
 
 void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh) {
 
+    const bool real_sol = cmesh->GetSolType()!=ESolType::EComplex;
+    if(!real_sol){
+        //we are not creating cplx condensed els yet
+        DebugStop();
+    }
     int64_t nel = cmesh->NElements();
     TPZVec<int64_t> groupnumber(nel,-1);
     /// compute a groupnumber associated with each element
@@ -738,7 +744,7 @@ void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh) {
         TPZCompEl *cel = cmesh->Element(el);
         TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *> (cel);
         if (elgr) {
-            TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+            TPZCondensedCompEl *cond = new TPZCondensedCompElT<STATE>(elgr);
             cond->SetKeepMatrix(false);
         }
     }
@@ -782,7 +788,7 @@ void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh, int lagrange
                     break;
                 }
             }
-            TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+            TPZCondensedCompEl *cond = new TPZCondensedCompElT<STATE>(elgr);
             cond->SetKeepMatrix(false);
         }
     }
@@ -791,7 +797,7 @@ void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh, int lagrange
 
 /// insert the material objects for HDivWrap and LagrangeInterface in the atomic meshes
 
-void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
+void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(const TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
     if (fLagrangeInterface == 0 || fHDivWrapMatid == 0) {
         std::cerr << "Using uninitialized TPZHybridizeHDiv object. You need to call ComputePeriferalMaterialIds function first!" << std::endl;
         DebugStop();
@@ -874,7 +880,7 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
     }
 }
 
-std::tuple<TPZCompMesh*, TPZVec<TPZCompMesh*> > TPZHybridizeHDiv::Hybridize(TPZCompMesh* cmesh_HDiv, TPZVec<TPZCompMesh*>& meshvec_HDiv, bool group_elements, double Lagrange_term_multiplier /* = 1. */) {
+std::tuple<TPZCompMesh*, TPZVec<TPZCompMesh*> > TPZHybridizeHDiv::Hybridize(TPZCompMesh* cmesh_HDiv,const TPZVec<TPZCompMesh*>& meshvec_HDiv, bool group_elements, double Lagrange_term_multiplier /* = 1. */) {
     TPZManVector<TPZCompMesh *, 3> meshvec_Hybrid(meshvec_HDiv.size(), 0);
     for (int i = 0; i < meshvec_HDiv.size(); i++) {
         meshvec_Hybrid[i] = meshvec_HDiv[i]->Clone();
@@ -1056,8 +1062,8 @@ void TPZHybridizeHDiv::GetAllConnectedCompElSides(TPZInterpolatedElement *intel,
             TPZGeoEl *neigh = cel.Element()->Reference();
             if (neigh->Dimension() == gel->Dimension()) {
                 const int celmatid = cel.Element()->Reference()->MaterialId();
-                if (fIdToHybridize != -1000) {
-                    if (celmatid == fIdToHybridize) {
+                if (fIdsToHybridize.size()) {
+                    if (fIdsToHybridize.find(celmatid) != fIdsToHybridize.end()) {
                         celsidestack.push_back(cel);
                     }
                 }

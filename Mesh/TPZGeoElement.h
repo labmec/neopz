@@ -23,7 +23,7 @@ class TPZGeoElement : public TPZGeoElRefLess<TGeo> {
 	
 	int64_t fSubEl[TRef::NSubEl];
 public:
-	typedef TGeo TGeoLoc;
+	typedef TGeo Geo;
 	
 public:
 	/** @brief Default constructor */

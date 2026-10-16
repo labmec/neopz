@@ -46,7 +46,7 @@ void TPZGeoElement<TGeo,TRef>::SetSubElement(int id, TPZGeoEl *el) {
 	
 	if (id<0 || id >(TRef::NSubEl - 1)){
 		PZError << "TPZGeoElement::Trying do define subelement :"
-	    << id << "Max Allowed = " << TRef::NSubEl - 1 << std::endl;
+	    << id << " Max Allowed = " << TRef::NSubEl - 1 << std::endl;
 		return;
 	}
     if (el)

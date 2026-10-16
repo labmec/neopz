@@ -40,7 +40,7 @@ static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 template<class TVar>
 void 
-TPZStructMatrixOR<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+TPZStructMatrixOR<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs) {
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     ass_stiff.start();
@@ -54,17 +54,17 @@ TPZStructMatrixOR<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs
         TPZFMatrix<TVar> rhsloc;
         if(ComputeRhs()) rhsloc.Redim(neqcondense, rhs.Cols());
         if (this->fNumThreads) {
-            this->MultiThread_Assemble(stiffness, rhsloc, guiInterface);
+            this->MultiThread_Assemble(stiffness, rhsloc);
         } else {
-            this->Serial_Assemble(stiffness, rhsloc, guiInterface);
+            this->Serial_Assemble(stiffness, rhsloc);
         }
 
         if(ComputeRhs()) equationFilter.Scatter(rhsloc, rhs);
     } else {
         if (this->fNumThreads) {
-            this->MultiThread_Assemble(stiffness, rhs, guiInterface);
+            this->MultiThread_Assemble(stiffness, rhs);
         } else {
-            this->Serial_Assemble(stiffness, rhs, guiInterface);
+            this->Serial_Assemble(stiffness, rhs);
         }
     }
     ass_stiff.stop();
@@ -72,7 +72,7 @@ TPZStructMatrixOR<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs
 
 template<class TVar>
 void
-TPZStructMatrixOR<TVar>::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+TPZStructMatrixOR<TVar>::Assemble(TPZBaseMatrix & rhs) {
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     ass_rhs.start();
@@ -86,16 +86,16 @@ TPZStructMatrixOR<TVar>::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInte
         }
         TPZFMatrix<TVar> rhsloc(neqcondense, 1, 0.);
         if (this->fNumThreads) {
-            this->MultiThread_Assemble(rhsloc, guiInterface);
+            this->MultiThread_Assemble(rhsloc);
         } else {
-            this->Serial_Assemble(rhsloc, guiInterface);
+            this->Serial_Assemble(rhsloc);
         }
         equationFilter.Scatter(rhsloc, rhs);
     } else {
         if (this->fNumThreads) {
-            this->MultiThread_Assemble(rhs, guiInterface);
+            this->MultiThread_Assemble(rhs);
         } else {
-            this->Serial_Assemble(rhs, guiInterface);
+            this->Serial_Assemble(rhs);
         }
     }
     ass_rhs.stop();
@@ -103,7 +103,7 @@ TPZStructMatrixOR<TVar>::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInte
 
 template<class TVar>
 void 
-TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base) {
     if(
         !dynamic_cast<TPZMatrix<TVar>*>(&stiff_base)||
         !dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)
@@ -117,7 +117,13 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
     auto &materialIds = myself->MaterialIds();
     TPZMatrix<TVar> &stiffness = dynamic_cast<TPZMatrix<TVar>&>(stiff_base);
     TPZFMatrix<TVar> &rhs = dynamic_cast<TPZFMatrix<TVar>&>(rhs_base);
-    
+#ifdef PZ_LOG
+    if (loggerel.isDebugEnabled()) {
+        std::stringstream sout2;
+        sout2 << "\n\n\n************* ENTERING ASSEMBLY PROCESS ***************\n\n\n\n";
+        LOGPZ_DEBUG(loggerel,sout2.str())
+    }
+#endif
 #ifdef PZDEBUG
     TExceptionManager activateExceptions;
 #endif
@@ -136,7 +142,7 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
 #endif
 
 #ifdef PZDEBUG
-    if (ComputeRhs() &&
+    if (ComputeRhs() && myself->EquationFilter().IsActive() &&
         rhs.Rows() != myself->EquationFilter().NActiveEquations()) {
         DebugStop();
     }
@@ -179,9 +185,6 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
         ek.Reset();
         ef.Reset();
         el->CalcStiff(ek, ef);
-        if (guiInterface) if (guiInterface->AmIKilled()) {
-                return;
-            }
 
 #ifdef PZ_LOG
         if (loggerelmat.isDebugEnabled()) {
@@ -252,58 +255,67 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
             //			test -= stiffness;
             //			test.Print("matriz de rigidez diference",std::cout);
             //			test2.Print("matriz de rigidez interface",std::cout);
-#ifdef PZ_LOG
-            if (loggerel.isDebugEnabled()) {
-                std::stringstream sout;
-                TPZGeoEl *gel = el->Reference();
-                if (gel) {
-                    TPZManVector<REAL> center(gel->Dimension()), xcenter(3, 0.);
-                    gel->CenterPoint(gel->NSides() - 1, center);
-                    gel->X(center, xcenter);
-                    sout << "Stiffness for computational element index " << el->Index() << " material id " << gel->MaterialId() << std::endl;
-                    sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
-                } else {
-                    sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
-                }
-                ek.Print(sout);
-                ef.Print(sout);
-                LOGPZ_DEBUG(loggerel, sout.str())
-            }
-#endif
+
         } else {
+            bool applyconstraint = myself->ApplyConstraintInternal();
             // the element has dependent nodes
             ek.ApplyConstraints();
             ef.ApplyConstraints();
+            if(applyconstraint == true) {
+                ek.MakeUnconstrained();
+                ef.MakeUnconstrained();
+            }
             ek.ComputeDestinationIndices();
             equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
-            stiffness.AddKel(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
-            if(ComputeRhs())rhs.AddFel(ef.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+            if(!applyconstraint) {
+                stiffness.AddKel(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+                if(ComputeRhs())rhs.AddFel(ef.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+            } else {
+                stiffness.AddKel(ek.fMat, ek.fSourceIndex, ek.fDestinationIndex);
+                if(ComputeRhs())rhs.AddFel(ef.fMat, ek.fSourceIndex, ek.fDestinationIndex);
+            }
+        }
 
 #ifdef PZ_LOG
-            if (loggerel.isDebugEnabled()) {
-                std::stringstream sout;
-                TPZGeoEl *gel = el->Reference();
-                //                el->Print();
-                //                int nc = el->NConnects();
-                //                for (int ic=0; ic<nc; ic++) {
-                //                    std::cout << "Index " << el->ConnectIndex(ic) << " ";
-                //                    el->Connect(ic).Print(*cmesh);
-                //                    cmesh->ConnectVec()[ic].Print(*cmesh);
-                //                }
-                if (gel) {
-                    TPZManVector<REAL> center(gel->Dimension()), xcenter(3, 0.);
-                    gel->CenterPoint(gel->NSides() - 1, center);
-                    gel->X(center, xcenter);
-                    sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
-                } else {
-                    sout << "Stiffness for computational element index " << iel << std::endl;
-                }
-                ek.Print(sout);
-                ef.Print(sout);
-                LOGPZ_DEBUG(loggerel, sout.str())
+        if (loggerel.isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "\n";
+            int64_t nc = el->NConnects();
+            for(int ic = 0; ic<nc; ic++) {
+                sout << "index " << el->ConnectIndex(ic) << " ";
+                el->Connect(ic).Print(*el->Mesh(),sout);
             }
-#endif
+            TPZGeoEl *gel = el->Reference();
+            if (gel) {
+                TPZManVector<REAL> center(gel->Dimension()), xcenter(3, 0.);
+                gel->CenterPoint(gel->NSides() - 1, center);
+                gel->X(center, xcenter);
+                sout << "Stiffness for computational element index " << el->Index() << " material id " << gel->MaterialId() << std::endl;
+                sout << "Geometric element index " << gel->Index() << " center " << xcenter << std::endl;
+                int ncorner = gel->NCornerNodes();
+                for(int ic=0; ic<ncorner; ic++) {
+                    TPZManVector<REAL,3> xco(3,0.);
+                    gel->NodePtr(ic)->GetCoordinates(xco);
+                    sout << xco << std::endl;
+                }
+            } else {
+                sout << "Stiffness for computational element without associated geometric element\ncel index " << el->Index() << "\n";
+//                DebugStop();
+            }
+            if(ek.HasDependency()){
+                sout << "source index " << ek.fSourceIndex << " destination index " << ek.fDestinationIndex << std::endl;
+                ek.fMat.Print("ekOrig = ", sout, EMathematicaInput);
+                ef.fMat.Print("efOrig = ", sout, EMathematicaInput);
+                ek.fConstrMat.Print("ek = ", sout, EMathematicaInput);
+                ef.fConstrMat.Print("ef = ", sout, EMathematicaInput);
+            }else{
+                sout << "elmat indices " << ek.fConnect << std::endl;
+                ek.fMat.Print("ek = ", sout, EMathematicaInput);
+                ef.fMat.Print("ef = ", sout, EMathematicaInput);
+            }
+            LOGPZ_DEBUG(loggerel, sout.str())
         }
+#endif
         // tototototo
         //        GK.Multiply(Sol, GKSol);
         //        GKSol -= GF;
@@ -366,7 +378,7 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
 
 template<class TVar>
 void 
-TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base) {
     if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<": incompatible types. Aborting...\n";
@@ -452,7 +464,11 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointe
         if(loggerel.isDebugEnabled())
         {
             std::stringstream sout;
-            ef.Print(sout);
+            if(ef.HasDependency()){
+                ef.fConstrMat.Print(sout);
+            }else{
+                ef.fMat.Print(sout);
+            }
             LOGPZ_DEBUG(loggerel, sout.str())
         }
 #endif
@@ -475,22 +491,17 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointe
 
 template<class TVar>
 void
-TPZStructMatrixOR<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+TPZStructMatrixOR<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs) {
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     if(!myself){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<"Run-time error.Aborting...\n";
         DebugStop();
     }
-    ThreadData threaddata(myself,mat,rhs,myself->MaterialIds(),guiInterface,ComputeRhs());
+    ThreadData threaddata(myself,mat,rhs,myself->MaterialIds(),ComputeRhs());
     const int numthreads = this->fNumThreads;
     std::vector<std::thread> allthreads;
     int itr;
-    if (guiInterface) {
-        if (guiInterface->AmIKilled()) {
-            return;
-        }
-    }
     for (itr = 0; itr < numthreads; itr++) {
       allthreads.push_back(std::thread(ThreadData::ThreadWork, &threaddata));
     }
@@ -514,17 +525,12 @@ TPZStructMatrixOR<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix
 
 template<class TVar>
 void
-TPZStructMatrixOR<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+TPZStructMatrixOR<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs) {
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
-    ThreadData threaddata(myself, rhs, myself->MaterialIds(), guiInterface,ComputeRhs());
+    ThreadData threaddata(myself, rhs, myself->MaterialIds(),ComputeRhs());
     const int numthreads = this->fNumThreads;
     std::vector<std::thread> allthreads;
     int itr;
-    if (guiInterface) {
-        if (guiInterface->AmIKilled()) {
-            return;
-        }
-    }
 
     for (itr = 0; itr < numthreads; itr++) {
       allthreads.push_back(std::thread(ThreadData::ThreadWork, &threaddata));
@@ -563,9 +569,8 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadData(
   TPZStructMatrix *strmat,
   TPZBaseMatrix &mat, TPZBaseMatrix &rhs,
   const std::set<int> &MaterialIds,
-  TPZAutoPointer<TPZGuiInterface> guiInterface,
   bool computeRhs)
-: fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat),
+: fStruct(strmat), fGlobMatrix(&mat),
   fGlobRhs(&rhs), fNextElement(0), fComputeRhs(computeRhs) {
 
 }
@@ -575,12 +580,14 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadData(
   TPZStructMatrix *strmat,
   TPZBaseMatrix &rhs,
   const std::set<int> &MaterialIds,
-  TPZAutoPointer<TPZGuiInterface> guiInterface,
   bool computeRhs)
-: fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(0),
+: fStruct(strmat), fGlobMatrix(0),
   fGlobRhs(&rhs), fNextElement(0), fComputeRhs(computeRhs) {
 }
 
+#ifdef USING_MKL
+#include <mkl.h>
+#endif
 //#define DRY_RUN
 template<class TVar>
 void *
@@ -588,13 +595,16 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
 #ifdef PZDEBUG
     TExceptionManager activateExceptions;
 #endif
+#ifdef USING_MKL
+    //we keep the previous value
+    auto mkl_threads = mkl_set_num_threads_local(1);
+#endif
     ThreadData *data = (ThreadData *) datavoid;
     const bool computeRhs = data->fComputeRhs;
     // compute the next element (this method is threadsafe)
     int64_t iel = data->NextElement();
 
     TPZCompMesh *cmesh = data->fStruct->Mesh();
-    TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
     int64_t nel = cmesh->NElements();
     while (iel < nel) {
 
@@ -629,25 +639,13 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
         }
 #endif
 
-        if (guiInterface) if (guiInterface->AmIKilled()) {
-                break;
-            }
 
-        if (!el->HasDependency()) {
+        if (!ek->HasDependency()) {
             ek->ComputeDestinationIndices();
 
             if (data->fStruct->HasRange()) {
                 data->fStruct->FilterEquations(ek->fSourceIndex, ek->fDestinationIndex);
             }
-#ifdef PZ_LOG
-            if (loggerel.isDebugEnabled()) {
-                std::stringstream sout;
-                sout << "Element index " << iel << std::endl;
-                ek->fMat.Print("Element stiffness matrix", sout);
-                if(computeRhs) ef->fMat.Print("Element right hand side", sout);
-                LOGPZ_DEBUG(loggerel, sout.str())
-            }
-#endif
         } else {
             // the element has dependent nodes
             if (data->fGlobMatrix) {
@@ -658,28 +656,41 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
             if (data->fStruct->HasRange()) {
                 data->fStruct->FilterEquations(ek->fSourceIndex, ek->fDestinationIndex);
             }
-#ifdef PZ_LOG
-            if (loggerel2.isDebugEnabled() && el->Reference() && el->Reference()->MaterialId() == 1 && el->IsInterface()) {
-                std::stringstream sout;
-                el->Reference()->Print(sout);
-                el->Print(sout);
-                ek->Print(sout);
-                //			ef->Print(sout);
-                LOGPZ_DEBUG(loggerel2, sout.str())
-            }
-#endif
-#ifdef PZ_LOG
-            if (loggerel.isDebugEnabled()) {
-                std::stringstream sout;
-                sout << "Element index " << iel << std::endl;
-                ek->fConstrMat.Print("Element stiffness matrix", sout);
-                if(computeRhs) ef->fConstrMat.Print("Element right hand side", sout);
-                LOGPZ_DEBUG(loggerel, sout.str())
-            }
-#endif
         }
 
-
+#ifdef PZ_LOG
+        if (loggerel2.isDebugEnabled() && el->Reference() && el->Reference()->MaterialId() == 1 && el->IsInterface()) {
+            std::stringstream sout;
+            el->Reference()->Print(sout);
+            el->Print(sout);
+            ek->Print(sout);
+            //			ef->Print(sout);
+            LOGPZ_DEBUG(loggerel2, sout.str())
+        }
+        if (loggerel.isDebugEnabled()) {
+            std::stringstream sout;
+            TPZGeoEl *gel = el->Reference();
+            if (gel) {
+                TPZManVector<REAL> center(gel->Dimension()), xcenter(3, 0.);
+                gel->CenterPoint(gel->NSides() - 1, center);
+                gel->X(center, xcenter);
+                sout << "Stiffness for computational element index " << el->Index() << " material id " << gel->MaterialId() << std::endl;
+                sout << "Geometric element index " << gel->Index() << " center " << xcenter << std::endl;
+            } else {
+                sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
+            }
+            if(ek->HasDependency()){
+                ek->fMat.Print(sout);
+                ek->fConstrMat.Print(sout);
+                if(computeRhs){ef->fConstrMat.Print(sout);}
+            }else{
+                ek->fMat.Print(sout);
+                if(computeRhs){ef->fMat.Print(sout);}
+            }
+            
+            LOGPZ_DEBUG(loggerel, sout.str())
+        }
+#endif
         // put the elementmatrices on the stack to be assembled (threadsafe)
         data->ComputedElementMatrix(iel, ek, ef);
         // compute the next element (this method is threadsafe)
@@ -690,7 +701,10 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
       std::scoped_lock lock(data->fMutexAccessElement);
       data->fAssembly.Post();
     }
-
+#ifdef USING_MKL
+    //we restore the previous value
+    mkl_set_num_threads_local(mkl_threads);
+#endif
     return 0;
 }
 
@@ -701,15 +715,11 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadAssembly(void *threaddata) {
     ThreadData *data = (ThreadData *) threaddata;
     const bool computeRhs = data->fComputeRhs;
     TPZCompMesh *cmesh = data->fStruct->Mesh();
-    TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
     int64_t nel = cmesh->NElements();
     data->fMutexAccessElement.lock();
     int64_t nextel = data->fNextElement;
     int numprocessed = data->fProcessed.size();
     while (nextel < nel || numprocessed) {
-        if (guiInterface) if (guiInterface->AmIKilled()) {
-            break;//mutex will still be unlocked at the end of the function
-            }
         bool keeplooking = false;
         if (data->fSubmitted.size() && data->fProcessed.size()) {
             auto itavail = data->fSubmitted.begin();

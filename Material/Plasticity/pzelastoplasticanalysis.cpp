@@ -618,8 +618,7 @@ void TPZElastoPlasticAnalysis::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<
 	tangent.Redim(neq,neq);
 	TPZFMatrix<REAL> rhs(neq,1);
 	TPZFStructMatrix<STATE> substitute(Mesh());
-	TPZAutoPointer<TPZGuiInterface> guiInterface(0);
-	substitute.Assemble(tangent,rhs,guiInterface);
+	substitute.Assemble(tangent,rhs);
 //	TPZStructMatrix::Assemble(tangent, rhs, *Mesh());
 }
 
@@ -632,8 +631,7 @@ void TPZElastoPlasticAnalysis::Residual(TPZFMatrix<REAL> &residual, int icase){
 //	TPZFMatrix<REAL> tangent(neq,neq);
 	residual.Redim(neq,1);
 	TPZFStructMatrix<STATE> substitute(Mesh());
-	TPZAutoPointer<TPZGuiInterface> guiInterface(0);
-	substitute.Assemble(residual,guiInterface);
+	substitute.Assemble(residual);
 //	TPZStructMatrix::Assemble(/*tangent,*/ residual, *Mesh());
 	residual *= -1;
 }
@@ -986,45 +984,46 @@ void TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(TPZCompMesh *cmesh)
 
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreateCubeElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+#include "TPZCompElH1.h"
+TPZCompEl * TPZElastoPlasticAnalysis::CreateCubeElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeCube > >(mesh,gel,index);
+	return new TPZCompElWithMem< TPZCompElH1< pzshape::TPZShapeCube > >(mesh,gel);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreateLinearElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreateLinearElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeLinear > >(mesh,gel,index);
+	return new TPZCompElWithMem< TPZCompElH1< pzshape::TPZShapeLinear > >(mesh,gel);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreatePointElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreatePointElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapePoint > >(mesh,gel,index);
+	return new TPZCompElWithMem< TPZCompElH1< pzshape::TPZShapePoint > >(mesh,gel);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreatePrismElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreatePrismElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapePrism > >(mesh,gel,index);
+	return new TPZCompElWithMem< TPZCompElH1< pzshape::TPZShapePrism > >(mesh,gel);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreatePyramElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreatePyramElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapePiram > >(mesh,gel,index);
+	return new TPZCompElWithMem< TPZCompElH1< pzshape::TPZShapePiram > >(mesh,gel);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreateQuadElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreateQuadElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
 //	return new TPZCompElWithMem< TPZIntelGenPlus<TPZIntelGen< pzshape::TPZShapeQuad > > >(mesh,gel,index);
-	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeQuad > > (mesh,gel,index);
+	return new TPZCompElWithMem< TPZCompElH1< pzshape::TPZShapeQuad > > (mesh,gel);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreateTetraElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreateTetraElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeTetra > >(mesh,gel,index);
+	return new TPZCompElWithMem< TPZCompElH1< pzshape::TPZShapeTetra > >(mesh,gel);
 }
 
-TPZCompEl * TPZElastoPlasticAnalysis::CreateTriangElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index)
+TPZCompEl * TPZElastoPlasticAnalysis::CreateTriangElWithMem(TPZGeoEl *gel, TPZCompMesh &mesh)
 {
-	return new TPZCompElWithMem< TPZIntelGen< pzshape::TPZShapeTriang > >(mesh,gel,index);
+	return new TPZCompElWithMem< TPZCompElH1< pzshape::TPZShapeTriang > >(mesh,gel);
 }
 
 void TPZElastoPlasticAnalysis::IdentifyEquationsToZero()

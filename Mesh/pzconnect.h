@@ -62,35 +62,73 @@ public:
 	
 public:
 	/** @brief Structure to reference dependency */
-	class TPZDepend : public TPZSavable {
+	class TPZDependBase : public TPZSavable {
         public :
 		int64_t			fDepConnectIndex;
-		TPZFNMatrix<50,REAL> fDepMatrix;
-		TPZDepend		*fNext;
+		TPZDependBase		*fNext;
 		
-		TPZDepend();
-		TPZDepend(int64_t DepConnectIndex,TPZFMatrix<REAL> &depmat,int64_t ipos,int64_t jpos, int isize, int jsize);
+		TPZDependBase();
 		
-		TPZDepend(const TPZDepend &copy);
-		TPZDepend(int64_t connectindex);
+		TPZDependBase(const TPZDependBase &copy);
+		TPZDependBase(int64_t connectindex);
 		
-		~TPZDepend();
-		TPZDepend *HasDepend(int64_t DepConnectIndex);
-		TPZDepend *RemoveDepend(TPZDepend *Ptr);
-                                int ClassId() const override;
-                void Read(TPZStream &buf, void *context) override;
-                void Write(TPZStream &buf, int withclassid) const override;
+		virtual ~TPZDependBase();
+		TPZDependBase *HasDepend(int64_t DepConnectIndex);
+		TPZDependBase *RemoveDepend(TPZDependBase *Ptr);
+    int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
+
+    virtual int DepRows() = 0;
+    virtual int DepCols() = 0;
+    virtual TPZDependBase* Clone() = 0;
+    virtual TPZDependBase* CreateEmptyInstance() = 0;
+    virtual void PrintMat(std::ostream &out) = 0;
 		/**
 		 * @brief Copy a depend data structure to a clone depend in a clone mesh
 		 * @param orig original depend to be copied
 		 * @param gl2lcIdx global to local indexes map
 		 */
-		void CopyFrom(TPZDepend *orig , std::map<int64_t,int64_t>& gl2lcIdx);
+		virtual void CopyFrom(TPZDependBase *orig , std::map<int64_t,int64_t>& gl2lcIdx);
 	};
-	
+
+  template<class TVar>
+  class TPZDepend : public TPZDependBase{
+  public:
+    TPZFNMatrix<50,TVar> fDepMatrix;
+    TPZDepend(int64_t DepConnectIndex,TPZFMatrix<TVar> &depmat,int64_t ipos,int64_t jpos, int isize, int jsize);
+    TPZDepend() = default;
+    TPZDepend(const TPZDepend &copy) = default;
+    ~TPZDepend() = default;
+    
+    int DepRows() override {return fDepMatrix.Rows();}
+    int DepCols() override {return fDepMatrix.Cols();}
+
+    TPZFMatrix<TVar> const &GetDepMatrix(){
+      return fDepMatrix;
+    }
+    
+
+    TPZDepend<TVar>* CreateEmptyInstance() override{
+      return new TPZDepend<TVar>;
+    }
+    
+    TPZDepend<TVar>* Clone() override{
+      auto *newdep = new TPZDepend<TVar>(*this);
+      return newdep;
+    }
+
+    void PrintMat(std::ostream &out) override{
+      fDepMatrix.Print(" ",out);
+    }
+    int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
+    void CopyFrom(TPZDependBase *orig , std::map<int64_t,int64_t>& gl2lcIdx) override;
+  };
 private:
     /// Dependency list of the connect (NULL if the connect is not constrained)
-	TPZDepend *fDependList;
+	TPZDependBase *fDependList;
 	
 public:
 	/** @brief Default constructor */
@@ -163,7 +201,7 @@ public:
 	void SetSequenceNumber(int64_t i) {fSequenceNumber = i;}
 	
 	/** @brief Set the order of the shapefunction associated with the connect */
-	void SetOrder(int order, int64_t index) {
+	void SetOrder(int order, int64_t index = -1) {
 #ifdef PZDEBUG
         if(order < 0 || order > 255)
         {
@@ -268,7 +306,8 @@ public:
 	 * @param depmat [in] dependency matrix which defines the relation between the connects
 	 * @param ipos, jpos, isize, jsize are parameters which define the submatrix within depmat which is to be used
 	 */
-	TPZDepend *AddDependency(int64_t myindex, int64_t dependindex,TPZFMatrix<REAL> &depmat,int64_t ipos,int64_t jpos, int isize, int jsize);
+  template<class TVar>
+	TPZDepend<TVar> *AddDependency(int64_t myindex, int64_t dependindex,TPZFMatrix<TVar> &depmat,int64_t ipos,int64_t jpos, int isize, int jsize);
 	
 	/**
 	 * @brief Remove dependency between connects if exist
@@ -291,7 +330,7 @@ public:
 	
 	int CheckDependency(int nshape, TPZCompMesh *mesh, int nstate);
 	
-	TPZDepend *FirstDepend() { return fDependList; }
+	TPZDependBase *FirstDepend() { return fDependList; }
 	
 	/** @brief Adds itself and the connects from which it depends to the list*/
 	void AddToList(int64_t myindex, TPZCompMesh &mesh, TPZStack<int64_t> &connectlist);

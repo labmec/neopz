@@ -183,9 +183,6 @@ void *TPZParFrontStructMatrix<TFront,TVar,TPar>::ElementAssemble(void *t){
 		// o thread de assemblagem utiliza mutexassemble
 		// e feito em outro thread     AssembleElement(el, ek, ef, stiffness, rhs);
 		
-		if(parfront->fGuiInterface) if(parfront->fGuiInterface->AmIKilled()){
-			break;
-		}
 	}//fim for iel
 	
 #ifdef PZ_LOG
@@ -342,8 +339,7 @@ void *TPZParFrontStructMatrix<TFront,TVar,TPar>::GlobalAssemble(void *t){
 		
 		delete ekaux;
 		delete efaux;
-		
-		if(parfront->fGuiInterface) if(parfront->fGuiInterface->AmIKilled()){
+		{
 #ifdef STACKSTORAGE
 			TPZParFrontMatrix<TVar, TPZStackEqnStorage<TVar>, front> *mat = dynamic_cast<TPZParFrontMatrix<TVar, TPZStackEqnStorage<TVar>, front>* > (parfront->fStiffness);
 #else
@@ -371,9 +367,8 @@ void *TPZParFrontStructMatrix<TFront,TVar,TPar>::GlobalAssemble(void *t){
 }
 
 template<class TFront, class TVar, class TPar>
-void TPZParFrontStructMatrix<TFront,TVar,TPar>::Assemble(TPZMatrix<TVar> & matref, TPZFMatrix<TVar> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZParFrontStructMatrix<TFront,TVar,TPar>::Assemble(TPZMatrix<TVar> & matref, TPZFMatrix<TVar> & rhs)
 {
-	this->fGuiInterface = guiInterface;
 	
 #ifdef STACKSTORAGE
 	TPZParFrontMatrix<TVar, TPZStackEqnStorage<TVar>, TFront> *mat = dynamic_cast<TPZParFrontMatrix<TVar, TPZStackEqnStorage<TVar>, TFront> *>(&matref);
@@ -510,7 +505,7 @@ void TPZParFrontStructMatrix<TFront,TVar,TPar>::Assemble(TPZMatrix<TVar> & matre
 }
 
 template<class TFront, class TVar, class TPar>
-TPZMatrix<TVar> * TPZParFrontStructMatrix<TFront,TVar,TPar>::CreateAssemble(TPZFMatrix<TVar> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+TPZMatrix<TVar> * TPZParFrontStructMatrix<TFront,TVar,TPar>::CreateAssemble(TPZFMatrix<TVar> &rhs)
 {
     TPar::InitCreateAssemble();
 	
@@ -531,7 +526,7 @@ TPZMatrix<TVar> * TPZParFrontStructMatrix<TFront,TVar,TPar>::CreateAssemble(TPZF
     }
 	rhs.Redim(neq,1);
 	
-	Assemble(*mat,rhs,guiInterface);
+	Assemble(*mat,rhs);
 	return mat;
 	
 }

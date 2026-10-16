@@ -8,6 +8,7 @@
 #define TPZREFCUBEH
 
 #include "pzstack.h"
+#include "pztrnsform.h"
 class TPZGeoEl;
 class TPZGeoElSide;
 template<class T>

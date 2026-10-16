@@ -40,6 +40,10 @@ public:
 	 */
     TPZDarcyFlow(int id, int dim);
 
+            TPZDarcyFlow(const TPZDarcyFlow &copy);
+
+            TPZDarcyFlow& operator=(const TPZDarcyFlow &copy);
+
     /**
 	 * @brief Returns a 'std::string' with the name of the material
 	 */
@@ -61,7 +65,7 @@ public:
      * Returns the number of errors to be evaluated, that is, the number of error norms associated
      * with the problem.
      */
-    int NEvalErrors() const override { return 6; }
+    int NEvalErrors() const override { return 3; }
 
     /**
      * @brief Sets problem dimension
@@ -126,6 +130,9 @@ public:
      * @param [out] errors calculated errors
      */
     void Errors(const TPZMaterialDataT<STATE> &data, TPZVec<REAL> &errors) override;
+
+    /** @brief Fills in the name of the errors that are computed */
+    virtual void ErrorNames(TPZVec<std::string> &names) const override;
 
     /*
      * @brief fill requirements for volumetric contribute

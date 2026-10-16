@@ -3,6 +3,13 @@
 #include "TPZBndCondT.h"
 #include "pzaxestools.h"
 
+
+/*
+  @fran: TODO: these materials are inconsistent.
+  They must be rewritten taken into account that
+  HCurl basis functions are always 3d and their curl
+  is a scalar in 1d/2d
+**/
 template<class TVar>
 TPZHCurlProjection<TVar>::TPZHCurlProjection(int id, int dim) :
     TPZRegisterClassId(&TPZHCurlProjection::ClassId),
