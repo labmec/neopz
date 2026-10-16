@@ -9,9 +9,25 @@ on:
         default: develop
         type: string
       project:
-        description: Public repository name under labmec
+        description: LabMeC external project
         required: true
-        type: string
+        type: choice
+        options:
+          - NeoPZExamples
+          - Biot
+          - CompositionalFlow
+          - DiffusionAdvection
+          - divfreebubbles
+          - ErrorEstimation
+          - HDivRefactor
+          - iMRS
+          - Iterative-Saddle_Point
+          - mixed-hybrid-stokes
+          - reservoir-mesh-vtk
+          - subFlow
+          - Vugs
+          - wann
+          - wgma
       external_ref:
         description: External project branch, tag, or commit
         required: true
