@@ -327,6 +327,10 @@ void TPZElementMatrixT<TVar>::ApplyConstraints(){
                     bool isShapeRestraint = (full_row == insize && full_col == depsize);
                     bool isAlgebraicRestraint = (orig_row == insize && orig_col == depsize);
                     if(!isShapeRestraint && ! isAlgebraicRestraint) DebugStop();
+                    if(full_row*full_col == 0) {
+                      dep = dep->fNext;
+                      continue;
+                    }
                     fulldepmat->Redim(full_row,full_col);
                     if(isShapeRestraint) {
                         for(int ic = 0; ic < orig_col; ic++){
