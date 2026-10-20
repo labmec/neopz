@@ -615,7 +615,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 		else if(!no.HasDependency() && no.NElConnected() && !no.IsCondensed()) nvalidblocks++;
         else if(!no.HasDependency() && no.IsCondensed()) ncondensed++;
 		else if(no.HasDependency() && no.NElConnected()) ndepblocks++;
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
         if(no.HasDependency() && no.IsCondensed())
         {
             std::cout << __PRETTY_FUNCTION__ << " I dont understand\n";
