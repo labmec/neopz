@@ -155,7 +155,7 @@ TPZConnect::TPZDepend<TVar> *TPZConnect::AddDependency(int64_t myindex, int64_t 
 		cout << "dependindex = -1 in " << __PRETTY_FUNCTION__ << "DebugStop() called!" << endl;
 	    DebugStop();
 	}
-    if (isize == 0 || jsize == 0) {
+    if (ipos+isize > depmat.Rows() || jpos+jsize > depmat.Cols()) {
         DebugStop();
     }
     if(fDependList){
