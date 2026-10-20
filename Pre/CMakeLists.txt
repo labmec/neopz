@@ -32,6 +32,7 @@ set(headers
     TPZMHMixedMeshControl.h
     pzdatafi.h
     pzreadmesh.h
+    TPZSymTensorApproxCreator.h
     TPZHDivApproxCreator.h
     TPZApproxCreator.h
     TPZH1ApproxCreator.h
@@ -64,6 +65,7 @@ set(sources
     TPZMHMixedMeshControl.cpp
     pzidentifyrefpattern.cpp
     tpzhierarquicalgrid.cpp
+    TPZSymTensorApproxCreator.cpp
     TPZHDivApproxCreator.cpp
     TPZApproxCreator.cpp
     TPZH1ApproxCreator.cpp

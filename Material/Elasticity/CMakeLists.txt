@@ -3,6 +3,8 @@
 set(public_headers
     TPZElasticity3D.h
     TPZElasticity2D.h
+    TPZMixedSymElasticityND.h
+    TPZInterfaceSymTensor.h
     TPZMixedElasticityND.h
     TPZHybridMixedElasticityUP.h
     TPZLinearElasticityConstitutive.h
@@ -13,6 +15,8 @@ set(public_headers
 set(headers
     TPZElasticity3D.h
     TPZElasticity2D.h
+    TPZMixedSymElasticityND.h
+    TPZInterfaceSymTensor.h
     TPZMixedElasticityND.h
     TPZHybridMixedElasticityUP.h
     TPZLinearElasticityConstitutive.h
@@ -22,6 +26,8 @@ set(headers
 set(sources
     TPZElasticity3D.cpp
     TPZElasticity2D.cpp
+    TPZMixedSymElasticityND.cpp
+    TPZInterfaceSymTensor.cpp
     TPZMixedElasticityND.cpp
     TPZHybridMixedElasticityUP.cpp
     TPZLinearElasticityConstitutive.cpp
