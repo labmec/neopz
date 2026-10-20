@@ -125,7 +125,13 @@ protected:
     HybridizationData fHybridizationData;
     
     /// Add a hybrid geometric configuration
-    virtual void AddHybridGeometry(int64_t interface_id, TPZHybridGeometry &hybrid);
+    virtual void AddHybridGeometry(int64_t interface_id, TPZHybridGeometry &hybrid, bool check_duplicate = true);
+
+    /// @brief add a hybrid geometric configuration, deduce the interface id from the hybrid object
+    virtual void AddHybridGeometry(TPZHybridGeometry &hybrid, bool check_duplicate = true)
+    {
+      AddHybridGeometry(hybrid.fLagrange, hybrid, check_duplicate);
+    }
 
     /// Predominant GeoMesh dimension element
     MElementType fElementType = MElementType::ENoType;

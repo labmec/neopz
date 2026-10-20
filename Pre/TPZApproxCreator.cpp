@@ -651,11 +651,11 @@ void TPZApproxCreator::SetMeshElementType()
 }
 
 /// Add a hybrid geometric configuration
-void TPZApproxCreator::AddHybridGeometry(int64_t interface_id, TPZHybridGeometry &hybrid)
+void TPZApproxCreator::AddHybridGeometry(int64_t interface_id, TPZHybridGeometry &hybrid, bool check_duplicate)
 {
 //    std::cout << "AddHybridG adding interface " << interface_id << " left " << hybrid.fLeft << " right " << hybrid.fRight << std::endl;
 #ifdef PZDEBUG
-  if (fHybridizationData.fInterfaces.find(interface_id) != fHybridizationData.fInterfaces.end())
+  if (check_duplicate && fHybridizationData.fInterfaces.find(interface_id) != fHybridizationData.fInterfaces.end())
   {
     DebugStop();
   }
