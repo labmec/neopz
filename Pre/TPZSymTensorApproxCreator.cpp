@@ -22,6 +22,12 @@ TPZSymTensorApproxCreator::TPZSymTensorApproxCreator(TPZGeoMesh *gmesh)
     SetMaterialIds(fIds);
 }
 
+void TPZSymTensorApproxCreator::SetLowOrder(int order) {
+    if(order == 0)
+        throw std::invalid_argument("Low order cannot be zero; use -1 or 1..p");
+    fLowOrder = order;
+}
+
 void TPZSymTensorApproxCreator::SetProbType(ProblemType prob) {
     if(prob != ProblemType::EElastic)
         throw std::invalid_argument("Symmetric tensor approximation requires elasticity");
@@ -38,8 +44,8 @@ void TPZSymTensorApproxCreator::CheckSetupConsistency() {
     if(fCreated) throw std::logic_error("Symmetric tensor mesh has already been created");
     if(!fGeoMesh || fGeoMesh->Dimension() != 2)
         throw std::invalid_argument("Symmetric tensor approximation requires a 2D geometry");
-    if(fDefaultPOrder < 1 || fLowOrder < -1 || fLowOrder > fDefaultPOrder)
-        throw std::invalid_argument("Require p >= 1 and -1 <= low order <= p");
+    if(fDefaultPOrder < 1 || fLowOrder < -1 || fLowOrder == 0 || fLowOrder > fDefaultPOrder)
+        throw std::invalid_argument("Require p >= 1 and low order equal to -1 or in 1..p");
     if(fExtraInternalPOrder != 0 || fIsRBSpaces)
         throw std::invalid_argument("Extra internal order and rigid body spaces are not supported");
     auto it = fMaterialVec.find(fIds.fDomain);

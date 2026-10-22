@@ -80,12 +80,12 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
         std::cout << "Hybridization of boundary conditions is only available for Darcy problems." << std::endl;
         DebugStop();
     }
-    if(fHybridType == HybridizationType::ESemi && (fHDivFam != HDivFamily::EHDivConstant && fHDivFam != HDivFamily::EHDivOptimized)){
+    if(fHybridType == HybridizationType::ESemiHybrid && (fHDivFam != HDivFamily::EHDivConstant && fHDivFam != HDivFamily::EHDivOptimized)){
         std::cout << "The only HDiv spaces with available Semi hybridization is HDivConstant and HDivOptimized" << std::endl;
         DebugStop();
     }
   
-    if (fProbType==ProblemType::EElastic && fHDivFam == HDivFamily::EHDivConstant && fShouldCondense && fHybridType != HybridizationType::ESemi) {
+    if (fProbType==ProblemType::EElastic && fHDivFam == HDivFamily::EHDivConstant && fShouldCondense && fHybridType != HybridizationType::ESemiHybrid) {
         std::cout << "CODE STOPPED! Condensing hdivconst spaces leads to singular K00. This happens because of the rotation space that has linear and constant functions."
         " One option is to separate the linear and constant functions is two different spaces. Please implement before using." << std::endl;
         DebugStop();
@@ -272,7 +272,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
     if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared) {
         CreateHybridHDivMesh(cmesh);
     }
-    else if (fHybridType == HybridizationType::ESemi){
+    else if (fHybridType == HybridizationType::ESemiHybrid){
         cmesh->ApproxSpace().SetAllCreateFunctionsHDivDuplConnects(dim);
         cmesh->AutoBuild();
         ActivateDuplicatedConnects(cmesh);
@@ -494,7 +494,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(int pOrder, const int lagLevel
         
     cmesh->AutoBuild();
     
-    if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::ESemi){
+    if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::ESemiHybrid){
         // std::ofstream out("pmesh1.txt");
         // cmesh->Print(out);
         // Then we insert the lagrange materials into this l2 space cmesh
@@ -504,7 +504,7 @@ TPZCompMesh * TPZHDivApproxCreator::CreateL2Space(int pOrder, const int lagLevel
         
         int lagpord = pOrder;
 //        if (fProbType == ProblemType::EElastic) lagpord -= fExtraInternalPOrder;
-        if (fHybridType == HybridizationType::ESemi) lagpord = 0;
+        if (fHybridType == HybridizationType::ESemiHybrid) lagpord = 0;
         if (lagpord > 0){
             cmesh->SetDefaultOrder(lagpord);
             cmesh->SetAllCreateFunctionsContinuous();
@@ -669,7 +669,7 @@ void TPZHDivApproxCreator::GroupAndCondenseElements(TPZMultiphysicsCompMesh *mcm
     const int dim = mcmesh->Dimension();
     
     TPZVec<int64_t> elementgroup; // it is resized inside AssociateElements()
-    if (fHybridType == HybridizationType::ESemi){
+    if (fHybridType == HybridizationType::ESemiHybrid){
         AssociateElementsDuplConnects(mcmesh,elementgroup);
     } else {
         AssociateElements(mcmesh, elementgroup);
@@ -896,7 +896,7 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElementsBackup(TPZMultiphysi
             if(ginterface.Element()->MaterialId() != fHybridizationData.fLagrangeData[0].fLeftInterfaceMatId &&
                ginterface.Element()->MaterialId() != fHybridizationData.fLagrangeData[0].fRightInterfaceMatId) DebugStop();
 #endif
-            if (fHybridType == HybridizationType::ESemi){
+            if (fHybridType == HybridizationType::ESemiHybrid){
                 auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),celside,cLagrange,semiHybridInterface[cLagrange.Element()->Index()]);
                 semiHybridInterface[cLagrange.Element()->Index()] = true;
                 
@@ -914,7 +914,7 @@ void TPZHDivApproxCreator::AddInterfaceComputationalElementsBackup(TPZMultiphysi
             }
         }
 
-        if (fHybridType == HybridizationType::ESemi){
+        if (fHybridType == HybridizationType::ESemiHybrid){
             auto celint = new TPZCompElUnitaryLagrange(*mphys,ginterface.Element(),celside,cLagrange,semiHybridInterface[cLagrange.Element()->Index()]);
             semiHybridInterface[cLagrange.Element()->Index()] = true;
 

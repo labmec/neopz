@@ -81,7 +81,7 @@ constexpr const char* HybridizationTypeToChar(HybridizationType hType) {
         case HybridizationType::ENone: return "ENone";
         case HybridizationType::EStandard: return "EStandard";
         case HybridizationType::EStandardSquared: return "EStandardSquared";
-        case HybridizationType::ESemi: return "ESemi";
+        case HybridizationType::ESemiHybrid: return "ESemiHybrid";
         default: std::invalid_argument("Unimplemented item");
     }
     return "Unimplemented item";//silences compiler warning on gcc

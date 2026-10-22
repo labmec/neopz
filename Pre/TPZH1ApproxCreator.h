@@ -34,14 +34,15 @@ public:
     /// Set Hybridization type
     virtual void SetHybridType(HybridizationType hybrid) override {
         fHybridType = hybrid;
-        ConfigureLagrangeData(hybrid);
+        // Semi-hybrid H1 needs two sets of material ids for its split flux geometry.
+        ConfigureLagrangeData(hybrid == HybridizationType::ESemiHybrid ? HybridizationType::EStandardSquared : hybrid);
         fHybridizationData.SetProblemHybridH1(fProbType, fHybridType);
     }
 
     /// Get/Set Problem type
     virtual void SetProbType(ProblemType prob) override {
         fProbType = prob;
-        ConfigureLagrangeData(fHybridType);
+        ConfigureLagrangeData(fHybridType == HybridizationType::ESemiHybrid ? HybridizationType::EStandardSquared : fHybridType);
         fHybridizationData.SetProblemHybridH1(fProbType, fHybridType);
     }
 

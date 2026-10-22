@@ -88,7 +88,7 @@ constexpr const char* HybridizationTypeToChar(HybridizationType hType) {
         case HybridizationType::ENone: return "ENone";
         case HybridizationType::EStandard: return "EStandard";
         case HybridizationType::EStandardSquared: return "EStandardSquared";
-        case HybridizationType::ESemi: return "ESemi";
+        case HybridizationType::ESemiHybrid: return "ESemiHybrid";
         default: std::invalid_argument("Unimplemented item");
     }
     return "Unimplemented item";//silences compiler warning on gcc
@@ -182,7 +182,7 @@ TEST_CASE("HDiv Approx Space Creator", "[hdiv_linear_solution_representation]")
 #endif
                     SECTION("extraporder=" + std::to_string(extraporder)) {
 #ifdef TESTALL
-                        HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::ESemi);
+                        HybridizationType hType = GENERATE(HybridizationType::ENone, HybridizationType::EStandard, HybridizationType::ESemiHybrid);
 #else
                         HybridizationType hType = GENERATE(HybridizationType::ENone);
 #endif
@@ -208,8 +208,8 @@ TEST_CASE("HDiv Approx Space Creator", "[hdiv_linear_solution_representation]")
                                         bool skipadapt = isRef && (sType == HDivFamily::EHDivConstant || sType == HDivFamily::EHDivOptimized) && (mType == MMeshType::EPrismatic || mType == MMeshType::EHexahedral || mType == MMeshType::ETetrahedral) && hType == HybridizationType::ENone;
                                         skipadapt = false;
                                         bool isMHM = false;
-                                        bool skipsemi1 = (isRef && hType == HybridizationType::ESemi);
-                                        bool skipsemi2 = sType != HDivFamily::EHDivConstant && sType != HDivFamily::EHDivOptimized && hType == HybridizationType::ESemi;
+                                        bool skipsemi1 = (isRef && hType == HybridizationType::ESemiHybrid);
+                                        bool skipsemi2 = sType != HDivFamily::EHDivConstant && sType != HDivFamily::EHDivOptimized && hType == HybridizationType::ESemiHybrid;
                                         bool skipcondensed = (isCondensed && sType == HDivFamily::EHDivConstant);
                                         bool shouldnotskip = !skipPorder && !skipadapt && !skipsemi1 && !skipcondensed && !skipsemi2;
                                         if (shouldnotskip) {
@@ -257,7 +257,7 @@ int main(){
     bool isCondensed = true;
     // bool isCondensed = false;
     //    HybridizationType hType = HybridizationType::EStandard;
-    // HybridizationType hType = HybridizationType::ESemi;
+    // HybridizationType hType = HybridizationType::ESemiHybrid;
     HybridizationType hType = HybridizationType::ENone;
     
     // this will create a mesh with hanging nodes
@@ -481,7 +481,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
         DebugStop();
         return;
     }
-    if(isRef && hType == HybridizationType::ESemi){
+    if(isRef && hType == HybridizationType::ESemiHybrid){
         cout << "\n\t======> This test is not working because the global matrix has wrong size!!\n" << endl;
         cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
         DebugStop();
@@ -492,7 +492,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
         DebugStop();
         return;
     }
-    if (hdivFam != HDivFamily::EHDivConstant && hdivFam != HDivFamily::EHDivOptimized && hType == HybridizationType::ESemi) {
+    if (hdivFam != HDivFamily::EHDivConstant && hdivFam != HDivFamily::EHDivOptimized && hType == HybridizationType::ESemiHybrid) {
         std::cout << "ERROR! The only HDiv space with available Semi hybridization is HDivConstant \n";
         DebugStop();
         return;
@@ -602,7 +602,7 @@ void TestHdivApproxSpaceCreator2(HDivFamily hdivFam, ProblemType probType, int p
         DebugStop();
         return;
     }
-    if(isRef && hType == HybridizationType::ESemi){
+    if(isRef && hType == HybridizationType::ESemiHybrid){
         cout << "\n\t======> This test is not working because the global matrix has wrong size!!\n" << endl;
         cout << "\n\t======> WARNING! SKIPPING TEST!!\n" << endl;
         DebugStop();
@@ -624,7 +624,7 @@ void TestHdivApproxSpaceCreator2(HDivFamily hdivFam, ProblemType probType, int p
         DebugStop();
         return;
     }
-    if (hdivFam != HDivFamily::EHDivConstant && hdivFam != HDivFamily::EHDivOptimized && hType == HybridizationType::ESemi) {
+    if (hdivFam != HDivFamily::EHDivConstant && hdivFam != HDivFamily::EHDivOptimized && hType == HybridizationType::ESemiHybrid) {
         std::cout << "ERROR! The only HDiv space with available Semi hybridization is HDivConstant \n";
         DebugStop();
         return;

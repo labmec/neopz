@@ -26,10 +26,7 @@ void TPZH1ApproxCreator::CheckSetupConsistency(){
         std::cout << "You have to set a proper problem type!\n";
         DebugStop();
     }
-    else if (fHybridType == HybridizationType::ESemi){
-        std::cout <<"Case not yet implemented.\n";
-        DebugStop();
-    } else if(fProbType == ProblemType::EStokes) {
+    else if(fProbType == ProblemType::EStokes) {
         std::cout << "hybrid stokes is not implemented or needs to be checked\n";
         DebugStop();
     }
@@ -83,7 +80,7 @@ void TPZH1ApproxCreator::CreateAtomicMeshes(TPZVec<TPZCompMesh *> &meshvec) {
         DebugStop();
     }
 
-    if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared) {
+    if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared || fHybridType == HybridizationType::ESemiHybrid) {
         ComputePeriferalMaterialIds();
         AddHybridizationGeoElements();
         if(1) {
@@ -195,7 +192,7 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateMultiphysicsSpace(TPZManVect
         }
     }
 
-    bool isHybrid = fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared;
+    bool isHybrid = fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared || fHybridType == HybridizationType::ESemiHybrid;
     if(isHybrid)
         InsertWrapAndLagrangeMaterialObjects(cmesh);
 
@@ -320,7 +317,7 @@ TPZCompMesh *TPZH1ApproxCreator::CreateL2Space()
         }
     #endif
     // se nao condensar tem que mudar o nivel de lagrange multiplier de um connect
-    if(fHybridType == HybridizationType::EStandardSquared)
+    if(fHybridType == HybridizationType::EStandardSquared || fHybridType == HybridizationType::ESemiHybrid)
     {
         std::set<int> matids;
         std::set<int> bcMatIds = GetBCMatIds();
@@ -356,7 +353,7 @@ TPZCompMesh *TPZH1ApproxCreator::CreateL2Space()
 
     //Wrap creation. Its connects are contained in the volumetric element, and since the H1 space is broken,
     //it requires special attention.
-    if (fHybridType == HybridizationType::EStandard ||  fHybridType == HybridizationType::EStandardSquared) {
+    if (fHybridType == HybridizationType::EStandard ||  (fHybridType == HybridizationType::EStandardSquared || fHybridType == HybridizationType::ESemiHybrid)) {
 
 #ifdef LOG4CXX
         std::map<int,int> numcreated;
@@ -523,7 +520,7 @@ void TPZH1ApproxCreator::AddInterfaceComputationalElementsBackup(TPZMultiphysics
 #endif
         }
         int lagrangematid = fHybridizationData.fLagrangeData[0].fLagrangeMatId;
-        if(fHybridType == HybridizationType::EStandardSquared && matid == lagrangematid)
+        if((fHybridType == HybridizationType::EStandardSquared || fHybridType == HybridizationType::ESemiHybrid) && matid == lagrangematid)
         {
             TPZGeoElSide gelsideflux(gel);
             TPZGeoElSide neighbour = gelsideflux.Neighbour();
@@ -729,7 +726,7 @@ void TPZH1ApproxCreator::InsertL2MaterialObjects(TPZCompMesh * L2Mesh){
         if (fHybridType != HybridizationType::ENone) {
             insertMat(fHybridizationData.fWrapMatId, dim - 1, L2Mesh);
         }
-        if (fHybridType == HybridizationType::EStandardSquared) {
+        if (fHybridType == HybridizationType::EStandardSquared || fHybridType == HybridizationType::ESemiHybrid) {
           int secondlagrangematid = fHybridizationData.fLagrangeData[1].fLagrangeMatId;
             insertMat(secondlagrangematid, dim - 1, L2Mesh);
         }
@@ -751,7 +748,7 @@ void TPZH1ApproxCreator::GroupElements(TPZMultiphysicsCompMesh *mcmesh) {
     int64_t nel = mcmesh->NElements();
     TPZVec<int64_t> groupnumber(nel,-1);
     /// compute a groupnumber associated with each element
-    if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared)
+    if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared || fHybridType == HybridizationType::ESemiHybrid)
         AssociateElements(mcmesh, groupnumber);
 
     std::map<int64_t, TPZElementGroup *> groupmap;
@@ -833,7 +830,7 @@ void TPZH1ApproxCreator::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &
 
 //    std::cout << "group index 8 " << groupindex[8] << std::endl;
     int numloops = 1;
-    if( fHybridType == HybridizationType::EStandardSquared) numloops = 2;
+    if( (fHybridType == HybridizationType::EStandardSquared || fHybridType == HybridizationType::ESemiHybrid)) numloops = 2;
     // this loop will associate a first layer of interface elements to the group
     // this loop will associate the wrap elements with the group
     // if HybridSquared the connects of interface elements with matid fLagrangeMatId will be added to the group
@@ -891,7 +888,7 @@ void TPZH1ApproxCreator::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &
             }
             //Before this step, the connects that interface elements share with wrap elements, belong to an element group,
             //While connects shared with lagrange elements, belongs to no group.
-            if(fHybridType == HybridizationType::EStandardSquared && (matid == fHybridizationData.fLagrangeData[0].fLeftInterfaceMatId || matid == fHybridizationData.fLagrangeData[0].fRightInterfaceMatId))
+            if((fHybridType == HybridizationType::EStandardSquared || fHybridType == HybridizationType::ESemiHybrid) && (matid == fHybridizationData.fLagrangeData[0].fLeftInterfaceMatId || matid == fHybridizationData.fLagrangeData[0].fRightInterfaceMatId))
             {
                 for(auto cindex : connectlist)
                 {

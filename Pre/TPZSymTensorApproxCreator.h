@@ -57,8 +57,8 @@ public:
     }
     const MaterialIds &GetMaterialIds() const { return fIds; }
 
-    /// -1: single hybridization; 0..p: triple hybridization on macro boundaries.
-    void SetLowOrder(int order) { fLowOrder = order; }
+    /// -1: single hybridization; 1..p: triple hybridization on macro boundaries.
+    void SetLowOrder(int order);
     int GetLowOrder() const { return fLowOrder; }
 
     /// Use an existing triangle fan with exactly one unmarked center per triangle.

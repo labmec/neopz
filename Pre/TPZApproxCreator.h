@@ -14,7 +14,7 @@ class TPZMultiphysicsCompMesh;
 class TPZInterpolationSpace;
 class TPZMultiphysicsElement;
 
-enum class HybridizationType {ENone, EStandard, EStandardSquared, ESemi};
+enum class HybridizationType {ENone, EStandard, EStandardSquared, ESemiHybrid};
 enum class ProblemType {ENone, EElastic, EDarcy, EStokes};
 
 /// @struct TPZHybrid
@@ -95,6 +95,15 @@ public:
         }
         
         HybridizationData &operator=(const HybridizationData &copy) = default;
+
+        /// Add a hybrid geometric configuration to fInterfaces.
+        void AddHybrid(int64_t interface_id, TPZHybridGeometry &hybrid, bool check_duplicate = true);
+
+        /// Add a configuration using its Lagrange element as the interface id.
+        void AddHybrid(TPZHybridGeometry &hybrid, bool check_duplicate = true)
+        {
+            AddHybrid(hybrid.fLagrange, hybrid, check_duplicate);
+        }
         
         /// compute the lagrange multiplier coeficients as a function of the problem type and hybridization
         void SetProblemHybridH1(ProblemType prob, HybridizationType hybrid);
@@ -229,8 +238,8 @@ public:
     
     /// Sets if should hybridize boundary
     void SetHybridizeBoundary() {
-        if(fHybridType == HybridizationType::EStandardSquared) fHybridizationData.fHybridizeBCLevel = 1;
-        else if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::ESemi) fHybridizationData.fHybridizeBCLevel = 1;
+        if(fHybridType == HybridizationType::EStandardSquared || fHybridType == HybridizationType::ESemiHybrid) fHybridizationData.fHybridizeBCLevel = 1;
+        else if(fHybridType == HybridizationType::EStandard) fHybridizationData.fHybridizeBCLevel = 1;
         else{
             std::cout << "ERROR! Please set a hybridization type before calling SetToHybridizeBoundary()" << std::endl;
             DebugStop();
@@ -279,7 +288,8 @@ public:
     typedef std::map<int64_t, int64_t> CtoMFCel;
     /// @brief Compute the constraints to orthogonalize the restraints
     // this function will compute restraints for all boundary flux connects
-    static void ComputeOrthogonalizingRestraints(TPZMultiphysicsCompMesh &mfmesh, CtoMFCel &geltogel, const TPZApproxCreator::HybridizationData &hybridData);
+    /// @param lagrangeMatId Material id of the boundary flux elements to restrain.
+    static void ComputeOrthogonalizingRestraints(TPZMultiphysicsCompMesh &mfmesh, CtoMFCel &geltogel, int64_t lagrangeMatId);
 
         /// Compute projection directions for a geometric element
         //// Method related to the Semi hybridization.

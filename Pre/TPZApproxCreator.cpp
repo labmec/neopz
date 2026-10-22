@@ -65,7 +65,7 @@ void TPZApproxCreator::ConfigureLagrangeData(HybridizationType hybrid)
   switch (hybrid)
   {
   case HybridizationType::EStandard:
-  case HybridizationType::ESemi:
+  case HybridizationType::ESemiHybrid:
     numHybridizations = 1;
     break;
   case HybridizationType::EStandardSquared:
@@ -93,10 +93,10 @@ void TPZApproxCreator::AddHybridizationGeoElements()
 {
   /// For fHybridType == HybridizationType::EStandard, wrap, interface and lagrange geometric elements are created;
   ///     if fHybridizeBCLevel == 0, the boundary is not hybridized, if fHybridizeBCLevel == 1, it is.
-  /// For fHybridType == HybridizationType::EStandardSquared, wrap, interface, lagrange, second interface and second lagrange
+  /// For EStandardSquared, wrap, interface, lagrange, second interface and second lagrange
   /// geometric elements are created;
   ///     BC can be hybridized 0, 1 or 2 times in this set up;
-  /// fHybridType == HybridizationType::Semi has yet to be implemented.
+  /// ESemiHybrid uses the derived creator to split the boundary flux space.
 
   if (fHybridType == HybridizationType::ENone)
   {
@@ -506,8 +506,8 @@ void TPZApproxCreator::Print(std::ostream &ofs)
       return "EStandard";
     case HybridizationType::EStandardSquared:
       return "EStandardSquared";
-    case HybridizationType::ESemi:
-      return "ESemi";
+    case HybridizationType::ESemiHybrid:
+      return "ESemiHybrid";
     default:
       DebugStop();
       return "garbage"; // avoids compiler warning on gcc
@@ -553,7 +553,7 @@ void TPZApproxCreator::Print(std::ostream &ofs)
   ss.seekp(-2, ss.cur); // return stringstream head by two positions, as consequence, this data will be erased.
   ss << "}\n";
 
-  if (this->fHybridType == HybridizationType::EStandard || this->fHybridType == HybridizationType::EStandardSquared)
+  if (this->fHybridType == HybridizationType::EStandard || (this->fHybridType == HybridizationType::EStandardSquared || this->fHybridType == HybridizationType::ESemiHybrid))
   {
     fHybridizationData.Print(ss);
   }
@@ -653,27 +653,20 @@ void TPZApproxCreator::SetMeshElementType()
 /// Add a hybrid geometric configuration
 void TPZApproxCreator::AddHybridGeometry(int64_t interface_id, TPZHybridGeometry &hybrid, bool check_duplicate)
 {
-//    std::cout << "AddHybridG adding interface " << interface_id << " left " << hybrid.fLeft << " right " << hybrid.fRight << std::endl;
-#ifdef PZDEBUG
-  if (check_duplicate && fHybridizationData.fInterfaces.find(interface_id) != fHybridizationData.fInterfaces.end())
-  {
-    DebugStop();
-  }
-#endif
-  fHybridizationData.fInterfaces[interface_id] = hybrid;
+  fHybridizationData.AddHybrid(interface_id, hybrid, check_duplicate);
 }
 
 /// Add a hybrid geometric configuration
-static void AddHybrid(std::map<int64_t, TPZHybridGeometry> &tree, int64_t interface_id, TPZHybridGeometry &hybrid)
+void TPZApproxCreator::HybridizationData::AddHybrid(int64_t interface_id, TPZHybridGeometry &hybrid,
+                                                  bool check_duplicate)
 {
-//    std::cout << "Hybrid adding interface " << interface_id << " left " << hybrid.fLeft << " right " << hybrid.fRight << std::endl;
 #ifdef PZDEBUG
-  if (tree.find(interface_id) != tree.end())
+  if (check_duplicate && fInterfaces.find(interface_id) != fInterfaces.end())
   {
     DebugStop();
   }
 #endif
-  tree[interface_id] = hybrid;
+  fInterfaces[interface_id] = hybrid;
 }
 
 /// compute the lagrange multiplier coeficients as a function of the problem type and hybridization
@@ -736,7 +729,7 @@ void TPZApproxCreator::AddHybridSquareGeoElements()
   std::set<int64_t> largeflux;
 #endif
 
-  std::map<int64_t, TPZHybridGeometry> hybridsq;
+  HybridizationData hybridsq;
   int bchybridlevel = fHybridizationData.fHybridizeBCLevel;
   for (auto &it : fHybridizationData.fInterfaces)
   {
@@ -765,7 +758,7 @@ void TPZApproxCreator::AddHybridSquareGeoElements()
     {
       // copy the TPZHybrid object
       TPZHybridGeometry hybridlarge = (it.second);
-      AddHybrid(hybridsq, it.first, hybridlarge);
+      hybridsq.AddHybrid(it.first, hybridlarge);
 #ifdef PZDEBUG
       largeflux.insert(it.second.fRight);
 #endif
@@ -776,7 +769,7 @@ void TPZApproxCreator::AddHybridSquareGeoElements()
       // we do not doubly hybridize boundary conditions
       // copy the TPZHybrid object
       TPZHybridGeometry bchybrid(it.second);
-      AddHybrid(hybridsq, it.first, bchybrid);
+      hybridsq.AddHybrid(it.first, bchybrid);
       continue;
     }
     if (haswrapNeighbour)
@@ -837,8 +830,8 @@ void TPZApproxCreator::AddHybridSquareGeoElements()
       }
       TPZHybridGeometry hybr1(geoelem[1], geoelem[0], geoelem[2]);
       TPZHybridGeometry hybr2(geoelem[3], geoelem[2], geoelem[4]);
-      AddHybrid(hybridsq, geoelem[1], hybr1);
-      AddHybrid(hybridsq, geoelem[3], hybr2);
+      hybridsq.AddHybrid(geoelem[1], hybr1);
+      hybridsq.AddHybrid(geoelem[3], hybr2);
       // create a new lagrange element if a left interface
       // make a copy of the iterator
       // create a second TPZHybrid object
@@ -871,9 +864,9 @@ void TPZApproxCreator::AddHybridSquareGeoElements()
       TPZHybridGeometry h1(geoelem[1], geoelem[0], geoelem[2]);
       TPZHybridGeometry h2(geoelem[3], geoelem[2], geoelem[4]);
       TPZHybridGeometry h3(geoelem[5], geoelem[6], geoelem[4]);
-      AddHybrid(hybridsq, geoelem[1], h1);
-      AddHybrid(hybridsq, geoelem[3], h2);
-      AddHybrid(hybridsq, geoelem[5], h3);
+      hybridsq.AddHybrid(geoelem[1], h1);
+      hybridsq.AddHybrid(geoelem[3], h2);
+      hybridsq.AddHybrid(geoelem[5], h3);
       continue;
     }
   }
@@ -884,7 +877,7 @@ void TPZApproxCreator::AddHybridSquareGeoElements()
     // number of times an element is referenced (max 2)
     std::map<int64_t, int> numref;
     int error = 0;
-    for (auto &it : hybridsq)
+    for (auto &it : hybridsq.fInterfaces)
     {
       int64_t lag = it.first;
       int64_t left = it.second.fLeft;
@@ -929,7 +922,7 @@ void TPZApproxCreator::AddHybridSquareGeoElements()
     }
     if (error > 0)
     {
-      for (auto &it : hybridsq)
+      for (auto &it : hybridsq.fInterfaces)
       {
         TPZHybridGeometry &hybridlarge = it.second;
         std::cout << "lag " << it.first << " left " << hybridlarge.fLeft << " right " << hybridlarge.fRight << std::endl;
@@ -942,7 +935,7 @@ void TPZApproxCreator::AddHybridSquareGeoElements()
   if (logger.isDebugEnabled())
   {
     std::stringstream out;
-    for (auto &it : hybridsq)
+    for (auto &it : hybridsq.fInterfaces)
     {
       TPZHybridGeometry &hybridlarge = it.second;
       out << "lag " << it.first << " left " << hybridlarge.fLeft << " right " << hybridlarge.fRight << std::endl;
@@ -950,7 +943,7 @@ void TPZApproxCreator::AddHybridSquareGeoElements()
     LOGPZ_DEBUG(logger, out.str())
   }
 #endif
-  fHybridizationData.fInterfaces = hybridsq;
+  fHybridizationData.fInterfaces = hybridsq.fInterfaces;
 }
 
 /// compute the lagrange multiplier coeficients as a function of the problem type and hybridization
@@ -965,7 +958,7 @@ void TPZApproxCreator::HybridizationData::SetProblemHybridHDiv(ProblemType prob,
       fLagrangeData[0].fLeftMultiplier = 1;
       fLagrangeData[0].fRightMultiplier = 1;
     }
-    else if (hybrid == HybridizationType::ESemi)
+    else if (hybrid == HybridizationType::ESemiHybrid)
     {
       fLagrangeData[0].fLeftMultiplier = 1.;
       fLagrangeData[0].fRightMultiplier = -1.;
@@ -982,7 +975,7 @@ void TPZApproxCreator::HybridizationData::SetProblemHybridHDiv(ProblemType prob,
       fLagrangeData[0].fLeftMultiplier = -1.;
       fLagrangeData[0].fRightMultiplier = -1.;
     }
-    else if (hybrid == HybridizationType::ESemi)
+    else if (hybrid == HybridizationType::ESemiHybrid)
     {
       fLagrangeData[0].fLeftMultiplier = -1.;
       fLagrangeData[0].fRightMultiplier = 1.;
@@ -1230,12 +1223,10 @@ void TPZApproxCreator::ComputeOrthogonalizingR(TPZFMatrix<REAL> &B, TPZFMatrix<R
 
 /// @brief Compute the constraints to orthogonalize the restraints
 // this function will compute restraints for all boundary flux connects
-void TPZApproxCreator::ComputeOrthogonalizingRestraints(TPZMultiphysicsCompMesh &mfmesh, CtoMFCel &geltogel, const TPZApproxCreator::HybridizationData &hybridData)
+void TPZApproxCreator::ComputeOrthogonalizingRestraints(TPZMultiphysicsCompMesh &mfmesh, CtoMFCel &geltogel, int64_t lagrangeMatId)
 {
   int64_t nel = mfmesh.NElements();
   int meshdim = mfmesh.Dimension();
-  int matidleft = hybridData.fLagrangeData[0].fLagrangeMatId;
-  int matidright = hybridData.fLagrangeData[0].fLagrangeMatId;
   for (int64_t el = 0; el < nel; el++)
   {
     TPZCompEl *celleft = mfmesh.Element(el);
@@ -1245,7 +1236,7 @@ void TPZApproxCreator::ComputeOrthogonalizingRestraints(TPZMultiphysicsCompMesh 
     if (!gelleft)
       continue;
     int matid = gelleft->MaterialId();
-    if (matid != matidleft)
+    if (matid != lagrangeMatId)
       continue;
     if (gelleft->Dimension() != meshdim - 1)
       DebugStop();
@@ -1260,7 +1251,7 @@ void TPZApproxCreator::ComputeOrthogonalizingRestraints(TPZMultiphysicsCompMesh 
     TPZGeoEl *gelright = 0;
     {
       TPZGeoElSide gelside(gelleft);
-      TPZGeoElSide neighbour = gelside.Neighbour().HasNeighbour(matidright);
+      TPZGeoElSide neighbour = gelside.Neighbour().HasNeighbour(lagrangeMatId);
       if (!neighbour || neighbour == gelside)
       {
         DebugStop();
