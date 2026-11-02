@@ -80,7 +80,7 @@ void TPZHDivApproxCreator::CheckSetupConsistency() {
         std::cout << "Hybridization of boundary conditions is only available for Darcy problems." << std::endl;
         DebugStop();
     }
-    if(fHybridType == HybridizationType::ESemiHybrid && (fHDivFam != HDivFamily::EHDivConstant && fHDivFam != HDivFamily::EHDivOptimized)){
+    if(fHybridType == HybridizationType::ESemiHybrid && (fHDivFam != HDivFamily::EHDivConstant && fHDivFam != HDivFamily::EHDivOptimized) && fProbType == ProblemType::EDarcy){
         std::cout << "The only HDiv spaces with available Semi hybridization is HDivConstant and HDivOptimized" << std::endl;
         DebugStop();
     }
@@ -97,8 +97,6 @@ void TPZHDivApproxCreator::CreateAtomicMeshes(TPZManVector<TPZCompMesh*,7>& mesh
     if (fHybridType != HybridizationType::ENone){
         ComputePeriferalMaterialIds();
         AddHybridizationGeoElements();
-        std::ofstream out("GeoMeshHybrid.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh, out);
     }
 
     bool isElastic = fProbType == ProblemType::EElastic;
@@ -121,37 +119,17 @@ void TPZHDivApproxCreator::CreateAtomicMeshes(TPZManVector<TPZCompMesh*,7>& mesh
     meshvec[countMesh-1]->SetName("Pressure");
 
 #ifdef PZDEBUG
-    {
-        std::ofstream out1("hdivmesh.txt");
-        meshvec[0]->ComputeNodElCon();
-        meshvec[0]->Print(out1);
-        std::ofstream out("pressuremesh.txt");
-        meshvec[1]->Print(out);
-    }
+    meshvec[0]->ComputeNodElCon();
 #endif
     if (isElastic){
         meshvec[countMesh++] = CreateRotationSpace(fDefaultPOrder+fExtraInternalPOrder,lagLevelCounter++);
         meshvec[countMesh-1]->SetName("Rotation");
-#ifdef PZDEBUG
-        {
-             std::ofstream out("rotation.txt");
-             meshvec[countMesh-1]->Print(out);
-        }
-#endif
     }
     if (fIsRBSpaces){
         meshvec[countMesh++] = CreateConstantSpace(lagLevelCounter++);
         meshvec[countMesh-1]->SetName("DistFlux");
         meshvec[countMesh++] = CreateConstantSpace(lagLevelCounter++);
         meshvec[countMesh-1]->SetName("AvPressure");
-#ifdef PZDEBUG
-        {
-             std::ofstream out("avpressure.txt");
-             meshvec[countMesh-2]->Print(out);
-            std::ofstream out2("distflux.txt");
-            meshvec[countMesh-3]->Print(out2);
-        }
-#endif
 
     }
     
@@ -289,12 +267,6 @@ TPZCompMesh * TPZHDivApproxCreator::CreateHDivSpace(){
         ChangeInternalOrder(cmesh,fDefaultPOrder+fExtraInternalPOrder);
     }
     
-#ifdef PZDEBUG
-    std::ofstream out("fluxmesh_at_CreateHDivSpace.txt");
-    cmesh->Print(out);
-//    PrintMeshElementsConnectInfo(cmesh);
-#endif
-
     return cmesh;
 }
 

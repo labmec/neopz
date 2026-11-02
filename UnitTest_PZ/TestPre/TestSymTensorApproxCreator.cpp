@@ -10,18 +10,20 @@
 #include <catch2/catch_test_macros.hpp>
 #include <memory>
 #include <cmath>
+#include <exception>
 
 namespace {
-std::unique_ptr<TPZGeoMesh> Geometry(bool triangles, int domain = 1) {
+std::unique_ptr<TPZGeoMesh> Geometry(bool triangles, int domain = 1, bool neumannRight = false) {
     auto mesh = std::make_unique<TPZGeoMesh>();
     TPZGenGrid2D grid({2,1},{0.,0.,0.},{2.,1.,0.});
     grid.SetElementType(triangles ? MMeshType::ETriangular : MMeshType::EQuadrilateral);
     grid.SetRefpatternElements(true);
     grid.Read(mesh.get(),domain);
-    for(int side = 4; side < 8; side++) grid.SetBC(mesh.get(),side,-1);
+    for(int side = 4; side < 8; side++)
+        grid.SetBC(mesh.get(),side,neumannRight && side == 5 ? -2 : -1);
     return mesh;
 }
-void AddMaterial(TPZSymTensorApproxCreator &creator) {
+void AddMaterial(TPZSymTensorApproxCreator &creator, bool neumannRight = false) {
     auto mat = new TPZMixedSymElasticityND(creator.GetMaterialIds().fDomain,2);
     mat->SetElasticity(1.,0.3);
     mat->SetPlaneStress();
@@ -34,6 +36,10 @@ void AddMaterial(TPZSymTensorApproxCreator &creator) {
         du.Redim(2,2); du(0,0) = 1.; du(1,1) = 1.;
     },1);
     creator.InsertMaterialObject(bc);
+    if(neumannRight) {
+        auto neumann = mat->CreateBC(mat,-2,1,val1,val2);
+        creator.InsertMaterialObject(neumann);
+    }
 }
 void DeleteMeshes(TPZMultiphysicsCompMesh *mesh) {
     auto atomic = mesh->MeshVector();
@@ -42,12 +48,37 @@ void DeleteMeshes(TPZMultiphysicsCompMesh *mesh) {
 }
 }
 
+TEST_CASE("Symmetric tensor default order updates hybridization through the base class", "[symtensor][pre][order]") {
+    TPZSymTensorApproxCreator creator(nullptr);
+    REQUIRE(creator.GetLowOrder() == 1);
+    REQUIRE(creator.GetDefaultOrder() == 2);
+    REQUIRE(creator.HybridType() == HybridizationType::EStandardSquared);
+    TPZApproxCreator &base = creator;
+    base.SetDefaultOrder(2);
+    REQUIRE(creator.GetDefaultOrder() == 2);
+    REQUIRE(creator.HybridType() == HybridizationType::EStandardSquared);
+
+    creator.SetLowOrder(1);
+    REQUIRE(creator.HybridType() == HybridizationType::EStandardSquared);
+    base.SetDefaultOrder(1);
+    REQUIRE(creator.GetDefaultOrder() == 1);
+    REQUIRE(creator.HybridType() == HybridizationType::EStandardSquared);
+    base.SetDefaultOrder(3);
+    REQUIRE(creator.HybridType() == HybridizationType::EStandardSquared);
+
+    creator.SetHybridType(HybridizationType::ESemiHybrid);
+    base.SetDefaultOrder(1);
+    REQUIRE(creator.HybridType() == HybridizationType::ESemiHybrid);
+    base.SetDefaultOrder(2);
+    REQUIRE(creator.HybridType() == HybridizationType::ESemiHybrid);
+}
+
 TEST_CASE("Symmetric tensor creator builds and solves macroelements", "[symtensor][pre]") {
     for(bool triangles : {false,true}) {
         TPZManVector<int> orders = {1,2};
         if(triangles == false) orders = {2,3};
         for(int order : orders) {
-            for(int low : {-1,1,2}) {
+            for(int low : {1,2}) {
                 if(low > order) continue;
                 for(bool condense : {true,false}) {
                     CAPTURE(triangles,order,low,condense);
@@ -72,7 +103,9 @@ TEST_CASE("Symmetric tensor creator builds and solves macroelements", "[symtenso
                     }
                     REQUIRE(nvol == (triangles ? 12 : 8));
                     REQUIRE(nwrap == 3*nvol);
-                    REQUIRE(nlow == (low < 0 ? 0 : (triangles ? 9 : 7)));
+                    // Dirichlet boundaries end at the low-order traction;
+                    // only internal macro boundaries need low-order displacement.
+                    REQUIRE(nlow == (triangles ? 3 : 1));
                     for(auto cel : mesh->ElementVec()) {
                         if(dynamic_cast<TPZCondensedCompElT<STATE> *>(cel)) ngroups++;
                     }
@@ -109,6 +142,38 @@ TEST_CASE("Symmetric tensor creator builds and solves macroelements", "[symtenso
     }
 }
 
+TEST_CASE("Symmetric tensor creator distinguishes Dirichlet and Neumann hybridization", "[symtensor][pre]") {
+    for(bool triangles : {false,true}) {
+        CAPTURE(triangles);
+        auto geo = Geometry(triangles,1,true);
+        TPZSymTensorApproxCreator creator(geo.get());
+        creator.SetShouldCondense(false);
+        AddMaterial(creator,true);
+        auto mesh = creator.CreateApproximationSpace();
+        const auto &ids = creator.GetMaterialIds();
+        int nlow = 0, ndirichlet = 0, nneumann = 0;
+        for(auto gel : geo->ElementVec()) {
+            if(!gel || gel->HasSubElement()) continue;
+            nlow += gel->MaterialId() == ids.fDisplacementLow;
+            if(gel->MaterialId() != -1 && gel->MaterialId() != -2) continue;
+            TPZGeoElSide side(gel);
+            REQUIRE(side.HasNeighbour(ids.fTractionLow));
+            const bool hasLowDisplacement = bool(side.HasNeighbour(ids.fDisplacementLow));
+            if(gel->MaterialId() == -1) {
+                ndirichlet++;
+                REQUIRE_FALSE(hasLowDisplacement);
+            } else {
+                nneumann++;
+                REQUIRE(hasLowDisplacement);
+            }
+        }
+        REQUIRE(ndirichlet == 5);
+        REQUIRE(nneumann == 1);
+        REQUIRE(nlow == (triangles ? 3 : 1) + nneumann);
+        DeleteMeshes(mesh);
+    }
+}
+
 TEST_CASE("Symmetric tensor creator validates parameters and material ids", "[symtensor][pre]") {
     auto geo = Geometry(false,21);
     TPZSymTensorApproxCreator creator(geo.get());
@@ -125,9 +190,10 @@ TEST_CASE("Symmetric tensor creator validates parameters and material ids", "[sy
     REQUIRE_THROWS_AS(creator.CheckSetupConsistency(),std::invalid_argument);
     creator.SetDefaultOrder(2); creator.SetLowOrder(3);
     REQUIRE_THROWS_AS(creator.CheckSetupConsistency(),std::invalid_argument);
-    creator.SetLowOrder(-1);
+    REQUIRE_THROWS_AS(creator.SetLowOrder(-1),std::bad_exception);
+    creator.SetLowOrder(1);
     REQUIRE_THROWS_AS(creator.SetLowOrder(0),std::invalid_argument);
-    REQUIRE(creator.GetLowOrder() == -1);
+    REQUIRE(creator.GetLowOrder() == 1);
     REQUIRE_NOTHROW(creator.CheckSetupConsistency());
     REQUIRE_THROWS_AS(creator.SetProbType(ProblemType::EDarcy),std::invalid_argument);
     REQUIRE_THROWS_AS(creator.SetHybridType(HybridizationType::EStandard),std::invalid_argument);
@@ -157,7 +223,7 @@ TEST_CASE("Symmetric tensor creator validates parameters and material ids", "[sy
 }
 
 TEST_CASE("Symmetric tensor creator accepts a prepared polygon fan", "[symtensor][pre]") {
-    for(int low : {-1,1,2}) {
+    for(int low : {1,2}) {
         TPZGeoMesh geo;
         geo.SetDimension(2);
         constexpr int faces = 6;
@@ -189,7 +255,13 @@ TEST_CASE("Symmetric tensor creator accepts a prepared polygon fan", "[symtensor
         for(auto cel : mesh->ElementVec())
             if(dynamic_cast<TPZCondensedCompElT<STATE> *>(cel)) ngroups++;
         REQUIRE(ngroups == 1);
-        REQUIRE(mesh->NEquations() > 0);
+        // A single condensed macroelement with Dirichlet data on every
+        // boundary has no global displacement unknowns.
+        REQUIRE(mesh->NEquations() == 0);
+        for(auto gel : geo.ElementVec()) {
+            if(!gel || gel->HasSubElement()) continue;
+            REQUIRE(gel->MaterialId() != creator.GetMaterialIds().fDisplacementLow);
+        }
         DeleteMeshes(mesh);
     }
 }

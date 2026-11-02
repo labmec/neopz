@@ -32,12 +32,15 @@ public:
     virtual ~TPZHDivApproxCreator();
 
     /// Get/Set HDiv family
-    HDivFamily &HdivFamily(){return fHDivFam;}
+    void SetHdivFamily(HDivFamily family){
+        fHDivFam = family;
+    }
     /// Get HDiv family
-    const HDivFamily &HdivFamily() const {return fHDivFam;}
+    HDivFamily HdivFamily() const {return fHDivFam;}
     
     /// Set Hybridization type
     virtual void SetHybridType(HybridizationType hybrid) override {
+        ConfigureLagrangeData(hybrid);
         fHybridType = hybrid;
         fHybridizationData.SetProblemHybridHDiv(fProbType, fHybridType);
     }

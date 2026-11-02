@@ -523,7 +523,7 @@ void TestHdivApproxSpaceCreator(HDivFamily hdivFam, ProblemType probType, int pO
     else{
         hdivCreator = new TPZHDivApproxCreator(gmesh);
     }
-    hdivCreator->HdivFamily() = hdivFam;
+    hdivCreator->SetHdivFamily(hdivFam);
     hdivCreator->SetProbType(probType);
     hdivCreator->SetRigidBodySpaces(isRigidBodySpaces);
     hdivCreator->SetDefaultOrder(pOrder);
@@ -655,7 +655,7 @@ void TestHdivApproxSpaceCreator2(HDivFamily hdivFam, ProblemType probType, int p
     else{
         hdivCreator = new TPZHDivApproxCreator(gmesh);
     }
-    hdivCreator->HdivFamily() = hdivFam;
+    hdivCreator->SetHdivFamily(hdivFam);
     hdivCreator->SetProbType(probType);
     hdivCreator->SetRigidBodySpaces(isRigidBodySpaces);
     hdivCreator->SetDefaultOrder(pOrder);

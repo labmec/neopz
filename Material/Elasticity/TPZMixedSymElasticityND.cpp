@@ -254,7 +254,7 @@ void TPZMixedSymElasticityND::Contribute_2spaces(const TPZVec<TPZMaterialDataT<S
     nshapeS = datavec[0].phi.Rows();
     nshapeU = datavec[1].phi.Rows();
     const int firstequation_S = 0;
-    const int firstequation_U = firstequation_S + nshapeS*(fDimension*(fDimension+1))/2;
+    const int firstequation_U = firstequation_S + nshapeS*nstresses;
     //const int firstequation_P = firstequation_U + nshapeU*fDimension;
 
     int voigtdim = fDimension*fDimension;
@@ -334,36 +334,94 @@ void TPZMixedSymElasticityND::Contribute_2spaces(const TPZVec<TPZMaterialDataT<S
 
 
 
+void TPZMixedSymElasticityND::ContributeRGB2D(const TPZVec<TPZMaterialDataT<STATE>> &datavec,
+                                           REAL weight, TPZFMatrix<STATE> &ek) {
+    if (datavec.size() < 4) {
+        return;
+    }
+    int64_t nshapeS, nshapeU;
+    int nstresses = (fDimension*(fDimension+1))/2;
+    nshapeS = datavec[0].phi.Rows();
+    nshapeU = datavec[1].phi.Rows();
+    const int64_t phr = nshapeS*nstresses+nshapeU*fDimension;
+    if(ek.Rows() != phr+6) {
+        std::cout << "phr " << phr << " nShapeS " << nshapeS << " nshapeU " << nshapeU << " nstresses " << nstresses
+        << " ek.Rows() " << ek.Rows();
+        ek.Print(std::cout);
+        DebugStop();
+    }
+    const int64_t firstU = nshapeS*nstresses;
+    const TPZFMatrix<REAL> &phi = datavec[1].phi;
+    const TPZVec<REAL> &xcenter = datavec[2].XCenter;
+    const TPZVec<REAL> &x = datavec[0].x;
+    
+    for (int64_t in = 0; in < nshapeU; in++) {
+        ek(phr,firstU+2*in) += weight*phi(in,0);//lambda*phi
+        ek(phr+1,firstU+2*in+1) += weight*phi(in,0);
+        ek(phr+2,firstU+2*in) += -weight*(x[1]-xcenter[1])*phi(in,0);
+        ek(phr+2,firstU+2*in+1) += weight*(x[0]-xcenter[0])*phi(in,0);
+        ek(firstU+2*in,phr) += weight*phi(in,0);//lambda*phi
+        ek(firstU+2*in+1,phr+1) += weight*phi(in,0);
+        ek(firstU+2*in,phr+2) += -weight*(x[1]-xcenter[1])*phi(in,0);
+        ek(firstU+2*in+1,phr+2) += weight*(x[0]-xcenter[0])*phi(in,0);
+    }
+    TPZFNMatrix<9,REAL> rigcouple(3, 3,0.);
+    rigcouple(0,0) = weight;
+    rigcouple(1,1) = weight;
+    rigcouple(0,2) = -(x[1]-xcenter[1])*weight;
+    rigcouple(1,2) = (x[0]-xcenter[0])*weight;
+    rigcouple(2,0) = rigcouple(0,2);
+    rigcouple(2,1) = rigcouple(1,2);
+    rigcouple(2,2) = ((x[0]-xcenter[0])*(x[0]-xcenter[0])+(x[1]-xcenter[1])*(x[1]-xcenter[1]))*weight;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            ek(phr+i,phr+3+j) += -rigcouple(i,j);
+            ek(phr+3+i,phr+j) += -rigcouple(j,i);
+        }
+    }
+}
+
 void TPZMixedSymElasticityND::Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
     if (datavec[0].fVecShapeIndex.size() == 0) {
         FillVecShapeIndex(datavec[0]);
     }
     int64_t nspaces = datavec.size();
-    if(nspaces != 2) DebugStop();
+    if(nspaces != 2 && nspaces != 4) DebugStop();
+
     Contribute_2spaces(datavec, weight, ek, ef);
+    if(nspaces == 4) {
+        ContributeRGB2D(datavec, weight, ek);
+    }
 }
+
 
 
 void TPZMixedSymElasticityND::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCondT<STATE> &bc) {
     if (datavec[0].phi.Rows() != 0 && datavec[0].fShapeType != TPZMaterialData::EScalarShape) {
         DebugStop();
     }
-    int ndisp = datavec[1].phi.Rows();
-
+    
     auto &v_2 = bc.Val2();
     auto &v_1 = bc.Val1();
+    TPZManVector<REAL,3> displacement(fDimension,0.);
+    TPZManVector<REAL,3> sigmanormal(fDimension,0.);
+    int ndisp = (int) datavec[1].phi.Rows();
+    int ntens = (int) datavec[0].phi.Rows();
+    if(ndisp != 0 && ntens != 0) DebugStop();
 
+    TPZManVector<REAL,3> x(3);
+    if(ntens != 0) x = datavec[0].x;
+    if(ndisp != 0) x = datavec[1].x;
     // Setting forcing function
     if (bc.HasForcingFunctionBC()) {
-        TPZManVector<STATE, 3> res(fDimension);
-        TPZFNMatrix<9, STATE> tens(fDimension, fDimension);
-        bc.ForcingFunctionBC()(datavec[1].x, res, tens);
-        STATE shear = (tens(0,1)+tens(1,0))/2.;
-        tens(0,1) = shear;
-        tens(1,0) = shear;
-        v_2[0] = res[0];
-        v_2[1] = res[1];
-        if(fDimension == 3) v_2[2] = res[2];
+        TPZFNMatrix<9, STATE> graddisp(fDimension, fDimension), tens(fDimension,fDimension,0);
+        bc.ForcingFunctionBC()(x, displacement, graddisp);
+        STATE shear = (graddisp(0,1)+graddisp(1,0))/2.;
+        graddisp(0,1) = shear;
+        graddisp(1,0) = shear;
+        v_2[0] = displacement[0];
+        v_2[1] = displacement[1];
+        if(fDimension == 3) v_2[2] = displacement[2];
         if(bc.Type() == 1) { // Neuman condition
             TElasticityAtPoint elast(fE_const, fnu_const);
             if (fElasticity) {
@@ -376,23 +434,22 @@ void TPZMixedSymElasticityND::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>>
             }
 
             TPZManVector<STATE,9> deform(4,0.),stressvec(4,0.);
-            ToVoigt(tens, deform);
+            ToVoigt(graddisp, deform);
             ComputeStressVector(deform, stressvec, elast);
             TPZManVector<REAL,3> normal(2,0.);
             normal[0] = datavec[1].axes(0,1);
             normal[1] = -datavec[1].axes(0,0);
             v_2[0] = stressvec[Exx]*normal[0] + stressvec[Exy]*normal[1];
             v_2[1] = stressvec[Exy]*normal[0] + stressvec[Eyy]*normal[1];
+            sigmanormal[0] = v_2[0];
+            sigmanormal[1] = v_2[1];
         }
     }
 
-    // Setting the phis
-    // E
+    
     TPZFMatrix<REAL> &phiS = datavec[0].phi;
     TPZFMatrix<REAL> &phiD = datavec[1].phi;
 
-    int nshapeS;
-    nshapeS = datavec[0].phi.Rows();
 
 
     //    TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
@@ -401,50 +458,63 @@ void TPZMixedSymElasticityND::ContributeBC(const TPZVec<TPZMaterialDataT<STATE>>
     //        return;
     //    }
 
-    REAL R = datavec[0].x[0];
-    if (R < 1.e-6) R = 1.e-6;
 
     int nstate = 2;
     if(fDimension == 3) nstate = 3;
+    
 
-    switch (bc.Type()) {
-        case 0: // Dirichlet condition
-        {
-            for (int iq = 0; iq < nshapeS; iq++) {
-                for (int idf = 0; idf < nstate; idf++) {
-                    ef(nstate * iq + idf, 0) += v_2[idf] * phiS(iq, 0) * weight; // forced v2 displacement
-                }
-            }
-            for (int iq = 0; iq < ndisp; iq++) {
-                for (int jq = 0; jq < ndisp; jq++) {
-                    for(int idf = 0; idf < nstate; idf++)
-                    {
-                        ek(nstate * iq + idf, nstate * jq + idf) += TPZMaterial::fBigNumber * phiD(iq, 0) * phiD(jq, 0) * weight;
+    if(ndisp != 0) {
+        switch (bc.Type()) {
+            case 0: // Dirichlet condition
+            {
+                for (int iq = 0; iq < ndisp; iq++) {
+                    for (int idf = 0; idf < nstate; idf++) {
+                        ef(nstate * iq + idf, 0) += v_2[idf] * phiD(iq, 0) * weight; // forced v2 displacement
                     }
                 }
-                for(int idf = 0; idf < nstate; idf++)
-                {
-                    ef(nstate * iq + idf, 0) += TPZMaterial::fBigNumber * v_2[idf] * phiD(iq, 0) * weight; // normal stress in x direction
+                for (int iq = 0; iq < ndisp; iq++) {
+                    for (int jq = 0; jq < ndisp; jq++) {
+                        for(int idf = 0; idf < nstate; idf++)
+                        {
+                            ek(nstate * iq + idf, nstate * jq + idf) += TPZMaterial::fBigNumber * phiD(iq, 0) * phiD(jq, 0) * weight;
+                        }
+                    }
+                    for(int idf = 0; idf < nstate; idf++)
+                    {
+                        ef(nstate * iq + idf, 0) += TPZMaterial::fBigNumber * v_2[idf] * phiD(iq, 0) * weight; // normal stress in x direction
+                    }
                 }
             }
-        }
-            break;
-
-        case 1: // Neumann condition
-        {
-            for (int iq = 0; iq < ndisp; iq++) {
-                for (int idf = 0; idf < nstate; idf++) {
-                    ef(nstate * iq + idf, 0) += v_2[idf] * phiD(iq, 0) * weight; // forced v2 displacement
+                break;
+                
+            case 1: // Neumann condition
+            {
+                for (int iq = 0; iq < ndisp; iq++) {
+                    for (int idf = 0; idf < nstate; idf++) {
+                        ef(nstate * iq + idf, 0) += v_2[idf] * phiD(iq, 0) * weight; // forced v2 displacement
+                    }
                 }
             }
+                break;
+                
+            default:
+                DebugStop();
+                // nulo introduzindo o BIGNUMBER pelos valores da condição
+        } // 1 Val1 : a leitura é 00 01 10 11
+    } // ndisp is not zero
+    if(ntens != 0) {
+        switch (bc.Type()) {
+            case 0:
+                for (int iq = 0; iq < ntens; iq++) {
+                    for (int idf = 0; idf < nstate; idf++) {
+                        ef(nstate * iq + idf, 0) += -displacement[idf] * phiS(iq, 0) * weight; // forced v2 displacement
+                    }
+                }
+                break;
+            default:
+                DebugStop();
         }
-            break;
-
-       default:
-            DebugStop();
-            // nulo introduzindo o BIGNUMBER pelos valores da condição
-    } // 1 Val1 : a leitura é 00 01 10 11
-
+    }
 }
 
 

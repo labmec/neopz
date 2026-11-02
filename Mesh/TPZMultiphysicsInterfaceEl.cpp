@@ -62,6 +62,7 @@ TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, re
 #ifdef PZDEBUG
     TPZMaterial *mat = mesh.FindMaterial(ref->MaterialId());
     if (!mat) {
+        std::cout << "Multiphysics Interface Element constructor matid " << ref->MaterialId() << " not found\n";
         DebugStop();
     }
 #endif

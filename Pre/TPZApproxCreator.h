@@ -206,7 +206,7 @@ public:
     const int NumMeshes() const {return fNumMeshes;}
 
     /// Set cmeshes default polynomial order
-    void SetDefaultOrder(const int ord){
+    virtual void SetDefaultOrder(const int ord){
         fDefaultPOrder = ord;
     }
     /// Get cmeshes default polynomial order
@@ -268,7 +268,10 @@ protected:
 
     ///Get BC material ids
     std::set<int> GetBCMatIds();
-
+    
+    /// Get Dirichlet BC material ids
+    std::set<int> GetBCMatIds(int bctype);
+    
     ///Get material ids from which has the same dimension as the mesh
     std::set<int> GetVolumetricMatIds();
 
@@ -290,6 +293,12 @@ public:
     // this function will compute restraints for all boundary flux connects
     /// @param lagrangeMatId Material id of the boundary flux elements to restrain.
     static void ComputeOrthogonalizingRestraints(TPZMultiphysicsCompMesh &mfmesh, CtoMFCel &geltogel, int64_t lagrangeMatId);
+
+    /// Hybridize the low-order fluxes paired by ComputeOrthogonalizingRestraints.
+    /// @param eltoel : on input represents the pairs of fluxes that will be (partially) hybridized
+    /// @param geltogel : upon return will map the flux computational element index to the algebraic interface index
+    /// the returned value can be used for element grouping
+    static void HybridizeLowOrderFluxes(TPZMultiphysicsCompMesh &mfmesh, CtoMFCel &eltoel);
 
         /// Compute projection directions for a geometric element
         //// Method related to the Semi hybridization.

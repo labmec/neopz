@@ -214,6 +214,10 @@ public:
     void Contribute(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight, TPZFMatrix<STATE> &ek,
                     TPZFMatrix<STATE> &ef) override;
 
+    /** @brief Adds the 2D rigid-body coupling to ek, with displacement DOFs starting at zero. */
+    void ContributeRGB2D(const TPZVec<TPZMaterialDataT<STATE>> &datavec, REAL weight,
+                         TPZFMatrix<STATE> &ek);
+
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point
      * @param[in] datavec stores all input data

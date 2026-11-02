@@ -61,6 +61,10 @@ public:
     void SetLowOrder(int order);
     int GetLowOrder() const { return fLowOrder; }
 
+    /// Update the polynomial order and select single/triple hybridization.
+    /// Existing EStandardSquared and ESemiHybrid formulations are preserved.
+    void SetDefaultOrder(const int order) override;
+
     /// Use an existing triangle fan with exactly one unmarked center per triangle.
     /// Macro boundary markers must already exist; wraps/interfaces must not exist.
     void SetGeometryIsPrepared(bool prepared) { fGeometryIsPrepared = prepared; }
@@ -82,6 +86,10 @@ private:
     int fLowOrder = -1;
     bool fGeometryIsPrepared = false;
     bool fCreated = false;
+    
+    const int fLagranceAverageDisplacement = 2;
+    
+    const int fDistributedForce = 0;
 
     void PrepareGeometry();
     /// @brief Divide the geometric elements into triangles oriented towards the macroelement center. The macroelement center must be marked with fIds.fWrap.
@@ -89,11 +97,13 @@ private:
     
     void AddWrapElements(TPZGeoMesh *gmesh);
     void AddWrapElementsTripleHybrid(TPZGeoMesh *gmesh);
+    void AddWrapElementsDoubleHybrid(TPZGeoMesh *gmesh);
     TPZCompMesh *CreateTensorSpace(TPZGeoMesh *gmesh, int porder, int porderlow);
     TPZCompMesh *CreateDisplacementSpace(TPZGeoMesh *gmesh, int porder, int porderlow);
+    TPZCompMesh *CreateConstantSpace(const int lagLevel);
     TPZMultiphysicsCompMesh *GenerateMultiphysicsMesh(TPZGeoMesh *gmesh, int porder, int porderlow);
     void AddInterfaceElements(TPZMultiphysicsCompMesh *mesh, int porderlow);
     std::set<int64_t> InactiveInterfaceConnects(TPZMultiphysicsCompMesh *mesh);
-    void GroupElements(TPZMultiphysicsCompMesh *mesh, int porderlow);
+    void GroupElements(TPZMultiphysicsCompMesh *mesh, std::map<int64_t,int64_t> &celtocel);
 };
 #endif

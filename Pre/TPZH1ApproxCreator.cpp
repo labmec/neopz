@@ -83,10 +83,10 @@ void TPZH1ApproxCreator::CreateAtomicMeshes(TPZVec<TPZCompMesh *> &meshvec) {
     if(fHybridType == HybridizationType::EStandard || fHybridType == HybridizationType::EStandardSquared || fHybridType == HybridizationType::ESemiHybrid) {
         ComputePeriferalMaterialIds();
         AddHybridizationGeoElements();
-        if(1) {
-          std::ofstream out("gmesh_hybrid.txt");
-          fGeoMesh->Print(out);
-        }
+        // {
+        //   std::ofstream out("gmesh_hybrid.txt");
+        //   fGeoMesh->Print(out);
+        // }
     }
 
 
@@ -219,10 +219,10 @@ TPZMultiphysicsCompMesh * TPZH1ApproxCreator::CreateMultiphysicsSpace(TPZManVect
     cmesh->InitializeBlock();
     cmesh->ComputeNodElCon();
     cmesh->CleanUpUnconnectedNodes();
-    {
-      std::ofstream out("cmesh.txt");
-      cmesh->Print(out);
-    }
+    // {
+    //   std::ofstream out("cmesh.txt");
+    //   cmesh->Print(out);
+    // }
     if(fShouldCondense)
         GroupAndCondenseElements(cmesh);
 

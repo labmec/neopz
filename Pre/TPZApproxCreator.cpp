@@ -3,6 +3,7 @@
 //
 
 #include "TPZApproxCreator.h"
+#include "TPZAlgebraicInterface.h"
 #include "TPZBndCond.h"
 #include "pzgeoelbc.h"
 #include "TPZGeoElSidePartition.h"
@@ -448,6 +449,21 @@ std::set<int> TPZApproxCreator::GetBCMatIds()
   }
   return bcMatIdsVec;
 }
+
+std::set<int> TPZApproxCreator::GetBCMatIds(int bctype)
+{
+  std::set<int> bcMatIdsVec;
+  for (std::pair<int, TPZMaterial *> mat : fMaterialVec)
+  {
+    TPZBndCond *bcmat = dynamic_cast<TPZBndCond *>(mat.second);
+    if (bcmat && bcmat->Type() == bctype)
+    {
+      bcMatIdsVec.insert(mat.first);
+    }
+  }
+  return bcMatIdsVec;
+}
+
 
 std::set<int> TPZApproxCreator::GetVolumetricMatIds()
 {
@@ -1252,9 +1268,10 @@ void TPZApproxCreator::ComputeOrthogonalizingRestraints(TPZMultiphysicsCompMesh 
     {
       TPZGeoElSide gelside(gelleft);
       TPZGeoElSide neighbour = gelside.Neighbour().HasNeighbour(lagrangeMatId);
+        // in the symmetric tensor space, traction elements are also created for the boundary
       if (!neighbour || neighbour == gelside)
       {
-        DebugStop();
+          continue;
       }
       gelright = neighbour.Element();
     }
@@ -1342,4 +1359,53 @@ void TPZApproxCreator::CopyRestraintConnect(TPZConnect &cfrom, TPZConnect &cto)
     int64_t nc = dep->fDepMatrix.Cols();
     cto.AddDependency(cto.SequenceNumber(), dep->fDepConnectIndex, dep->fDepMatrix, 0, 0, nr, nc);
   }
+}
+
+/// @brief hybridize the low order fluxes
+void TPZApproxCreator::HybridizeLowOrderFluxes(TPZMultiphysicsCompMesh &mfmesh, CtoMFCel &eltoel)
+{
+  std::map<int64_t,int64_t> geltogel(eltoel);
+  eltoel.clear();
+  for(auto iter : geltogel) {
+    int64_t locindex1(-1),locindex2(-1);
+    int64_t gel1 = iter.first;
+    int64_t gel2 = iter.second;
+    if(gel2 < 0) DebugStop();
+    TPZGeoMesh *gmesh = mfmesh.Reference();
+    TPZCompEl *cel1 = gmesh->Element(gel1)->Reference();
+    TPZCompEl *cel2 = gmesh->Element(gel2)->Reference();
+    if(!cel1 || !cel2) DebugStop();
+    if(cel1->NConnects() != 1 || cel2->NConnects() != 1) DebugStop();
+    locindex1 = cel1->ConnectIndex(0);
+    locindex2 = cel2->ConnectIndex(0);
+    if(locindex1 < 0 || locindex2 < 0) DebugStop();
+    TPZConnect &c1 = cel1->Connect(0);
+    TPZConnect &c2 = cel2->Connect(0);
+    if(!c1.HasDependency() || !c2.HasDependency()) DebugStop();
+    TPZConnect::TPZDependBase *dep1 = c1.FirstDepend();
+    TPZConnect::TPZDependBase *dep2 = c2.FirstDepend();
+    if(!dep1 || !dep2) DebugStop();
+    int64_t depindex1 = dep1->fDepConnectIndex;
+    int64_t depindex2 = dep2->fDepConnectIndex;
+    if(depindex1 != depindex2) DebugStop();
+    TPZConnect &c = mfmesh.ConnectVec()[depindex1];
+    int64_t newindex = mfmesh.AllocateNewConnect(c);
+    dep2->fDepConnectIndex = newindex;
+    depindex2 = newindex;
+    int64_t disp_connectIndex = mfmesh.AllocateNewConnect(c);
+    TPZConnect &cdisp = mfmesh.ConnectVec()[disp_connectIndex];
+    // create two lagrange multiplier elements to link the hybridized flux to the two low order fluxes
+    TPZAlgebraicInterface *lag1 = new TPZAlgebraicInterface(mfmesh, NULL);
+    lag1->SetConnectIndex(0, depindex1);
+    lag1->SetConnectIndex(1, disp_connectIndex);
+      eltoel[cel1->Index()] = lag1->Index();
+    TPZAlgebraicInterface *lag2 = new TPZAlgebraicInterface(mfmesh, NULL);
+      eltoel[cel2->Index()] = lag2->Index();
+    lag2->SetConnectIndex(0, depindex2);
+    lag2->SetConnectIndex(1, disp_connectIndex);
+    lag2->SetMultiplier(-1.);
+  }
+  mfmesh.ExpandSolution();
+  mfmesh.ComputeNodElCon();
+  mfmesh.CleanUpUnconnectedNodes();
 }
