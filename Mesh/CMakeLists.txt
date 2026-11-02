@@ -7,6 +7,7 @@ target_include_directories(pz PUBLIC
 
 
 set(headers
+  TPZAlgebraicInterface.h
   doxmesh.h
   pzconnect.h
   pzgeoelbc.h  
@@ -66,6 +67,7 @@ set(headers
 )
 
 set(sources
+  TPZAlgebraicInterface.cpp
   pzcheckgeom.cpp
   pzelchdivbound2.cpp
   pzgeoelside.cpp

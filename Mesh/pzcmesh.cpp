@@ -1547,7 +1547,7 @@ void TPZCompMesh::AccountForElementError(TPZCompEl* cel, bool store_error, TPZVe
         }
         return;
     }
-    if(!cel->Reference()) DebugStop();
+    if(!cel->Reference()) return;
     // Skipping cels that are not included in the set of materials to compute error
     const int celmatid = cel->Reference()->MaterialId();
     if(matset.find(celmatid) == matset.end()) return;
