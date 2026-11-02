@@ -83,7 +83,49 @@ function(enable_mumps target)
         message(STATUS "[EnableMUMPS] Using cached MUMPS_DIR: ${MUMPS_DIR}")
     endif()
 
-    enable_language(C Fortran)
+    enable_language(C)
+    if(CMAKE_GENERATOR STREQUAL "Xcode")
+        # Avoid install_name_tool invalidating this library's code signature
+        # during installation. Keep normal build-tree paths for test binaries.
+        set_property(TARGET ${target} PROPERTY BUILD_WITH_INSTALL_RPATH TRUE)
+        # NeoPZ consumes prebuilt MUMPS libraries; it does not compile Fortran.
+        # Xcode cannot run CMake's Fortran compiler tests. Discover the GNU
+        # runtimes directly instead, including the OpenMP Fortran dependency
+        # requested by MUMPSConfig.cmake.
+        if(CMAKE_Fortran_COMPILER)
+            set(_mumps_fortran_driver "${CMAKE_Fortran_COMPILER}")
+        else()
+            find_program(_mumps_fortran_driver NAMES gfortran gfortran-15 gfortran-14
+                HINTS /opt/homebrew/bin /usr/local/bin /opt/local/bin)
+        endif()
+        if(NOT _mumps_fortran_driver)
+            message(FATAL_ERROR "MUMPS with Xcode requires gfortran to locate its prebuilt runtime libraries. Set CMAKE_Fortran_COMPILER to its full path.")
+        endif()
+        foreach(_runtime IN ITEMS gfortran gomp)
+            execute_process(
+                COMMAND "${_mumps_fortran_driver}" "-print-file-name=lib${_runtime}.dylib"
+                OUTPUT_VARIABLE _mumps_${_runtime}_runtime
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                RESULT_VARIABLE _runtime_result)
+            if(NOT _runtime_result EQUAL 0 OR NOT IS_ABSOLUTE "${_mumps_${_runtime}_runtime}"
+                OR NOT EXISTS "${_mumps_${_runtime}_runtime}")
+                message(FATAL_ERROR "Cannot locate the ${_runtime} runtime using ${_mumps_fortran_driver}.")
+            endif()
+        endforeach()
+        # This is a link-only dependency for an already compiled library,
+        # not a claim that Xcode supports compiling OpenMP Fortran sources.
+        if(NOT TARGET OpenMP::OpenMP_Fortran)
+            add_library(OpenMP::OpenMP_Fortran INTERFACE IMPORTED)
+            set_property(TARGET OpenMP::OpenMP_Fortran PROPERTY
+                INTERFACE_LINK_LIBRARIES "${_mumps_gomp_runtime}")
+        endif()
+        set(OpenMP_Fortran_FOUND TRUE)
+        set(OpenMP_Fortran_LIBRARIES "${_mumps_gomp_runtime}")
+        target_link_libraries(${target} PRIVATE "${_mumps_gfortran_runtime}" OpenMP::OpenMP_Fortran)
+        message(STATUS "[EnableMUMPS] Xcode: using prebuilt MUMPS with GNU Fortran runtime ${_mumps_gfortran_runtime}")
+    else()
+        enable_language(Fortran)
+    endif()
 
     # Handle OpenMP for native Apple Clang with MacPorts libomp (non-standard structure)
     # MacPorts Clang doesn't need this - it has native OpenMP support
