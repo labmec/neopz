@@ -24,7 +24,7 @@ The standard modern frame for *what hybridization is* (break continuity, introdu
 - One frame covers mixed/DG/CG hybrid variants → variations (which continuity is broken, which multiplier space) are legitimate design choices, not errors.
 
 ## Applicability to NeoPZ
-Baseline for [[hybridization]]: `EStandard` ≈ classic single-level hybridization; `EStandardSquared`/`ESemi` are Devloo-group extensions ([[avancini-2025-double-hybrid-elasticity]], [[carvalho-2024-semi-hybrid-stokes]]); SPD-ness expectation justifies LDLt/CG on condensed systems in the benchmark slices.
+Baseline for [[hybridization]]: `EStandard` ≈ classic single-level hybridization; `EStandardSquared`/`ESemiHybrid` are Devloo-group extensions ([[avancini-2025-double-hybrid-elasticity]], [[carvalho-2024-semi-hybrid-stokes]]); SPD-ness expectation justifies LDLt/CG on condensed systems in the benchmark slices.
 
 ## Limits of applicability
 Scalar elliptic focus; elasticity/Stokes variants need the specific papers. Static-condensation implementation details (grouping, connect levels) are NeoPZ-specific.

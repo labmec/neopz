@@ -21,7 +21,7 @@ Two layers that decide *which computational element type* is instantiated on eac
 **OQ1:** copy ctor/`operator=` appear not to copy the family flags / style (lines 58-75, tail unread) — verify in Phase 5.
 
 ## Layer 2 — problem-level creators (verified [repo])
-`Pre/TPZApproxCreator.h` — abstract base `TPZApproxCreator`: holds `HybridizationType {ENone, EStandard, EStandardSquared, ESemi}`, `ProblemType {ENone, EElastic, EDarcy, EStokes}`, material map, default p-order, `fExtraInternalPOrder` (hdiv+/hdiv++), `fShouldCondense`, `fIsRBSpaces` (rigid-body/constant enrichment enabling full internal condensation), and a nested `HybridizationData` struct managing wrap/interface/Lagrange material ids (TPZApproxCreator.h:15-16,38-100).
+`Pre/TPZApproxCreator.h` — abstract base `TPZApproxCreator`: holds `HybridizationType {ENone, EStandard, EStandardSquared, ESemiHybrid}`, `ProblemType {ENone, EElastic, EDarcy, EStokes}`, material map, default p-order, `fExtraInternalPOrder` (hdiv+/hdiv++), `fShouldCondense`, `fIsRBSpaces` (rigid-body/constant enrichment enabling full internal condensation), and a nested `HybridizationData` struct managing wrap/interface/Lagrange material ids (TPZApproxCreator.h:15-16,38-100).
 Concrete: `Pre/TPZHDivApproxCreator.{h,cpp}` (mixed H(div)×L² spaces), `Pre/TPZH1ApproxCreator.{h,cpp}` (**in the 5-file develop delta** — hybrid H1 spaces; cite only after `git show develop:` cross-check), MHM variants `Pre/TPZMHMHDivApproxCreator.h` / `TPZMHMH1ApproxCreator.h` [agent].
 Older/parallel machinery: `Pre/TPZHybridizeHDiv.h` (procedural H(div) hybridization used by e.g. divfreebubbles `2frac`), MHM mesh controllers `Pre/TPZMHMeshControl.h`, `TPZMHMixedMeshControl.h`, `TPZMHMixedHybridMeshControl.h` [agent] → [[mhm]].
 
@@ -33,4 +33,4 @@ divfreebubbles derives `TPZH1HybridApproxCreator` (app-side) adding `ComputeOrth
 
 ## Open questions
 - Division of labor between `TPZHybridizeHDiv` (older) and `TPZApproxCreator` hybridization (newer): duplication or complementary? → Phase 4/5.
-- Meaning and math of `EStandardSquared` ("squared" hybridization — Lagrange multiplier hybridized twice?) and `ESemi` (semi-hybridization) → [[hybridization]] research, Phase 3, vs Devloo-group papers.
+- Meaning and math of `EStandardSquared` ("squared" hybridization — Lagrange multiplier hybridized twice?) and `ESemiHybrid` (semi-hybridization) → [[hybridization]] research, Phase 3, vs Devloo-group papers.

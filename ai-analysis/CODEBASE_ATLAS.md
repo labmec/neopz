@@ -94,7 +94,7 @@ Typical downstream flow (confirmed in divfreebubbles targets [repo]):
    `TPZGeoMeshTools::CreateGeoMeshOnGrid`.
 2. **Spaces**: either manual per-space `TPZCompMesh` construction + `TPZMultiphysicsCompMesh`, or the modern
    `TPZHDivApproxCreator`/`TPZH1ApproxCreator` layer (Pre/) with `ProblemType{EDarcy,EElastic,EStokes}`,
-   `HybridizationType{ENone,EStandard,EStandardSquared,ESemi}`, optional rigid-body spaces + condensation
+   `HybridizationType{ENone,EStandard,EStandardSquared,ESemiHybrid}`, optional rigid-body spaces + condensation
    (Pre/TPZApproxCreator.h:15-16,42-68 [repo]).
 3. **Physics**: a `TPZMatBase<STATE, Interfaces...>` material per material-id + `CreateBC` boundary conditions ([[material-system]]).
 4. **Solve**: `TPZLinearAnalysis` + a `TPZStructMatrix` flavor + `TPZStepSolver` (direct ELDLt/ELU/Cholesky or CG/GMRES) — or external

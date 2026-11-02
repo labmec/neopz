@@ -16,15 +16,15 @@ TPZGeoMesh  ──────►  TPZCompMesh / TPZMultiphysicsCompMesh  ──
 
 Two space-construction idioms coexist:
 - **Manual** (older, `flow-dfreebubbles-1el`): per-field cmeshes with `TPZNullMaterial` placeholders + `ApproxSpace().SetAllCreateFunctions*` + `AutoBuild`, combined via `TPZMultiphysicsCompMesh`; even fully manual per-element `new TPZCompElKernelHDiv<...>` with neighbor-walking for wrap elements.
-- **Creator-driven** (current, all other slices): `TPZHDivApproxCreator`/`TPZH1ApproxCreator` (+MHM/app-side derivatives) encapsulating multi-mesh construction, hybridization (`ENone/EStandard/EStandardSquared/ESemi`), rigid-body enrichment and condensation.
+- **Creator-driven** (current, all other slices): `TPZHDivApproxCreator`/`TPZH1ApproxCreator` (+MHM/app-side derivatives) encapsulating multi-mesh construction, hybridization (`ENone/EStandard/EStandardSquared/ESemiHybrid`), rigid-body enrichment and condensation.
 
 ## Slice summaries
 
 | Slice | Problem | Space idiom | Solve | Output legs | Page |
 |---|---|---|---|---|---|
 | iter_elast (mandated) | 2D hybrid-squared H1 elasticity, analytic homogeneous | app-side `TPZH1HybridApproxCreator` + orthogonalizing restraints + low-order-flux hybridization + group/condense | `TPZMatRedSolver(EDarcyH1Hybrid)` Schur vs direct MKL/MUMPS LDLt, 32 thr | timing+memory tables only (error/VTK commented) | [[flow-iter-elast]] |
-| dupl_connects2 | 2D/3D mixed Darcy, `EHDivConstant` | lib `TPZHDivApproxCreator`, `ESemi`, condense=on | `TPZMatRedSolver(EDarcyHDiv)` vs direct | timing tables (error/VTK commented) | [[flow-dupl-connects]] |
-| MHM_HDivConstant | Darcy on polygonal partition (quadtree import) | app-side MHM geo+approx creators, rigid-body on, substructures + condense | direct LDLt (ESemi/`EMHMSparse` branch = dead & **drifted**) | cmesh-as-VTK + txt dumps (always-on debug) | [[flow-mhm-hdivconstant]] |
+| dupl_connects2 | 2D/3D mixed Darcy, `EHDivConstant` | lib `TPZHDivApproxCreator`, `ESemiHybrid`, condense=on | `TPZMatRedSolver(EDarcyHDiv)` vs direct | timing tables (error/VTK commented) | [[flow-dupl-connects]] |
+| MHM_HDivConstant | Darcy on polygonal partition (quadtree import) | app-side MHM geo+approx creators, rigid-body on, substructures + condense | direct LDLt (ESemiHybrid/`EMHMSparse` branch = dead & **drifted**) | cmesh-as-VTK + txt dumps (always-on debug) | [[flow-mhm-hdivconstant]] |
 | dFreeBubbles1el | Darcy on 1-element gmsh mesh | manual flux+pressure meshes, factory `SetAllCreateFunctionsHDiv` | direct LDLt | **error computation + multiphysics VTK active** | [[flow-dfreebubbles-1el]] |
 | Unit tests | linear/constant representation grid; De Rham rank/kernel | lib creators incl. lib MHM creator; basis-level Gram matrices | direct / SVD (LAPACK) | Catch2 assertions (+VTK smoke) | [[flow-unit-test-hdiv-creator]] |
 

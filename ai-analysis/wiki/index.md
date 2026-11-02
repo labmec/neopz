@@ -19,7 +19,7 @@ Top-level deliverables live one directory up (`ai-analysis/*.md`); this wiki is 
 - [[hcurl-space]] — tangential-trace-conforming spaces; "NoGrads" variant. → de-rham-complex
 - [[de-rham-complex]] — exact-sequence property; NeoPZ's own SVD-based exactness tests. → TestDeRham
 - [[mixed-methods]] — saddle-point two-field formulations; multiphysics machinery. → approx-space-creators
-- [[hybridization]] — Lagrange-multiplier continuity; ENone/EStandard/EStandardSquared/ESemi taxonomy. → flow-iter-elast
+- [[hybridization]] — Lagrange-multiplier continuity; ENone/EStandard/EStandardSquared/ESemiHybrid taxonomy. → flow-iter-elast
 - [[static-condensation]] — interior-DOF elimination; condensed elements/groups/submeshes; rigid-body spaces.
 - [[mhm]] — multiscale hybrid-mixed method; controllers + creators; substructures. → flow-mhm-hdivconstant
 - [[sbfem]] — scaled-boundary FEM sub-framework (breadth item).
@@ -67,7 +67,7 @@ Session-2 deep-dive pages:
 
 ## Flows (`flows/`)
 - [[flow-iter-elast]] — mandated slice: 2D hybrid-squared H1 elasticity benchmark; MatRedSolver vs direct; exercises the develop-delta files.
-- [[flow-dupl-connects]] — semi-hybrid mixed H(div) Darcy benchmark (`ESemi`, `EHDivConstant`), lib-side creator.
+- [[flow-dupl-connects]] — semi-hybrid mixed H(div) Darcy benchmark (`ESemiHybrid`, `EHDivConstant`), lib-side creator.
 - [[flow-mhm-hdivconstant]] — MHM on polygonal partition; substructures + condensation; app-source drift finding (OQ6).
 - [[flow-dfreebubbles-1el]] — minimal manual mixed H(div); the active error + VTK legs.
 - [[flow-unit-test-hdiv-creator]] — in-library validation: creator grid test + De Rham rank/kernel tests.
@@ -97,7 +97,7 @@ divfreebubbles (application):
 - [[devloo-1997-pz-environment]] — founding architecture paper (design intent baseline).
 - [[devloo-group-shape-construction]] — 2009/2013 shape-construction papers = published spec of Shape/ H(div)/H(curl) bases.
 - [[avancini-2025-double-hybrid-elasticity]] — CMAME 2025 primal double-hybrid elasticity (↔ `EStandardSquared`, iter_elast) + Taraschi–Correa 2026 analysis.
-- [[carvalho-2024-semi-hybrid-stokes]] — IJNME 2024 semi-hybrid-mixed (↔ `ESemi`, duplicated connects).
+- [[carvalho-2024-semi-hybrid-stokes]] — IJNME 2024 semi-hybrid-mixed (↔ `ESemiHybrid`, duplicated connects).
 - [[araya-2013-mhm]] — MHM origin (SINUM 2013) + scalable-implementation companion.
 - [[devloo-mhm-elasticity-polygonal]] — MHM elasticity on polygonal meshes (Devloo group).
 - [[boffi-brezzi-fortin-2013]] — canonical mixed-FEM text (traces, inf-sup, Piola, exactness).

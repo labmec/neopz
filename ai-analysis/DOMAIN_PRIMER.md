@@ -24,10 +24,10 @@ Repo: one `TPZCompMesh` per field (flux, pressure, …) combined into `TPZMultip
 ## 4. Hybridization: the repo's central research axis
 
 Reference: hybridization breaks a continuity and re-imposes it with skeleton Lagrange multipliers; local problems condense to an SPD skeleton system ([[cockburn-2009-unified-hybridization]]).
-Repo taxonomy [Pre/TPZApproxCreator.h:15]: `ENone | EStandard | EStandardSquared | ESemi`, orchestrated with wrap/interface/Lagrange material ids (`HybridizationData`).
+Repo taxonomy [Pre/TPZApproxCreator.h:15]: `ENone | EStandard | EStandardSquared | ESemiHybrid`, orchestrated with wrap/interface/Lagrange material ids (`HybridizationData`).
 - **EStandard** ≈ classic single-level hybridization.
 - **EStandardSquared** ("double hybrid"): second hybridization level — traced in Phase 4 as a literal hybridization² of the **broken-H1 primal space** (second interface/multiplier layer; only the 2nd-level skeleton stays global). The published double-hybrid elasticity paper ([[avancini-2025-double-hybrid-elasticity]], CMAME 2025) uses H(div)–L² displacements/pressure — the in-code H1 path is a *structurally matching primal variant*, not a verbatim implementation of that paper (classification: intentional variant; exact correspondence = expert question). Exercised by the mandated slice [[flow-iter-elast]] (`TPZH1HybridApproxCreator`, elasticity).
-- **ESemi** (semi-hybridization): only *part* of the interface coupling moves to multipliers — H(div) normal continuity stays strong, tangential (or a designated subset) goes weak; realized via duplicated connects ([[carvalho-2024-semi-hybrid-stokes]], IJNME 2024; `TPZCompElHDivDuplConnects*`). Exercised by [[flow-dupl-connects]].
+- **ESemiHybrid** (semi-hybridization): only *part* of the interface coupling moves to multipliers — H(div) normal continuity stays strong, tangential (or a designated subset) goes weak; realized via duplicated connects ([[carvalho-2024-semi-hybrid-stokes]], IJNME 2024; `TPZCompElHDivDuplConnects*`). Exercised by [[flow-dupl-connects]].
 Mapping code↔paper is **hypothesis-level until Phase 4** (recorded on both source pages).
 
 ## 5. Static condensation, rigid-body spaces, and Schur solvers

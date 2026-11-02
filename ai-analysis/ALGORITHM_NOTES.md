@@ -22,8 +22,8 @@ Frame: [[cockburn-2009-unified-hybridization]]. NeoPZ realization ([[hybridizati
 - **Geometry protocol**: wrap geoels on interior facets + interface pairs + Lagrange skeleton geoels, ids strided above max matid; interfaces registered in `HybridizationData::fInterfaces`; glue = `TPZMultiphysicsInterfaceElement` + `TPZLagrangeMultiplierCS` with problem-dependent sign tables (verified `TPZApproxCreator.cpp:780-830`).
 - **EStandard (H1)**: broken H1 volume; wrap comp-els *share* volume connects; skeleton flux mesh (HDivStandard, dim−1). Single multiplier level.
 - **EStandardSquared (H1; mandated slice)**: literal hybridization² — `AddHybridSquareGeoElements` adds a second interface+multiplier layer; condensation groups absorb first-level flux/Lagrange DOFs (`AssociateElements`, numloops=2), leaving **only the second-level skeleton global**. Structurally matches the primal double-hybrid method of [[avancini-2025-double-hybrid-elasticity]].
-- **ESemi (HDiv)**: requires EHDivConstant/EHDivOptimized; per interior facet the flux connect splits into even=constant (1 shape) + odd=higher-order (nshape−1) via `TPZCompElHDivDuplConnects`; only the even connect on the sideOrient=−1 side is rebound to the wrap ⇒ *constant normal flux* becomes multiplier-mediated, higher-order trace stays strongly continuous; order-0 multiplier mesh. Structurally the semi-hybridization of [[carvalho-2024-semi-hybrid-stokes]] (which trace is weakened differs — intentional variant).
-- **Elasticity extras**: mixed-elasticity in HDiv adds a rotation space (weak symmetry; scalar 2D / 3-vector 3D); in-code guard documents that condensed HDivConstant elasticity is singular without ESemi or rigid-body spaces (`TPZHDivApproxCreator.cpp:85-89`).
+- **ESemiHybrid (HDiv)**: requires EHDivConstant/EHDivOptimized; per interior facet the flux connect splits into even=constant (1 shape) + odd=higher-order (nshape−1) via `TPZCompElHDivDuplConnects`; only the even connect on the sideOrient=−1 side is rebound to the wrap ⇒ *constant normal flux* becomes multiplier-mediated, higher-order trace stays strongly continuous; order-0 multiplier mesh. Structurally the semi-hybridization of [[carvalho-2024-semi-hybrid-stokes]] (which trace is weakened differs — intentional variant).
+- **Elasticity extras**: mixed-elasticity in HDiv adds a rotation space (weak symmetry; scalar 2D / 3-vector 3D); in-code guard documents that condensed HDivConstant elasticity is singular without ESemiHybrid or rigid-body spaces (`TPZHDivApproxCreator.cpp:85-89`).
 **Assumptions/invariants**: multiplier sign tables per problem (Elastic asymmetry — only right interface reset to +1 — flagged as expert question); Lagrange-level ordering drives what is condensable; `EAvSol` global-coupling mechanism under EStandardSquared unclear from code (works per tests) — expert question.
 **Hygiene**: cluster of small verified defects in exactly this layer ([[finding-approx-creator-hygiene]]).
 
@@ -53,7 +53,7 @@ Flow (verified by trace + run): equations split purely by Lagrange level (`lag={
 - |detJ| ⊕ fSideOrient composition on reflected/refined configurations ([[piola-transformations]]).
 - Elastic interface-multiplier sign asymmetry (H1 path).
 - `EAvSol` coupling mechanism under EStandardSquared.
-- ESemi-for-Darcy vs the Stokes-oriented published semi-hybridization (which trace should be weak for Darcy).
+- ESemiHybrid-for-Darcy vs the Stokes-oriented published semi-hybridization (which trace should be weak for Darcy).
 - Preconditioner block-size validity (`bsize | nEqHigh`) if the elasticity mode is corrected.
 - Quadrature-order sufficiency for `fExtraInternalPOrder`-enriched spaces on curved maps (untested combination).
 

@@ -11,7 +11,7 @@
   - `TestDeRham` — discrete exact-sequence checks at basis level: rank(op(left)) = ker(right) + range-inclusion via SVD, dims 2/3, k=1..3, H1→HCurl→HDiv→L2 incl. HDivConst (read first-hand, TestDeRham.cpp:49-120).
   - `TestMesh/TestHDiv` — De Rham on real meshes **including under face/node permutations** (`drham_permute_check`), side-shape continuity, shape order, bilinear reproduction.
   - `TestTopology` — constant divergence/curl reproduction per topology + face-orientation data structures.
-  - `TestHDivApproxSpaceCreator` — the creator pipeline grid: 3 HDiv families × Darcy/Elastic × 4 mesh types × p{1,2} × extra-p × hybridization {ENone,EStandard,ESemi} × RB × condensation × refinement (+MHM creator), asserting exact linear/constant representation, domain integrals, condensed equation counts (read first-hand, :152-216).
+  - `TestHDivApproxSpaceCreator` — the creator pipeline grid: 3 HDiv families × Darcy/Elastic × 4 mesh types × p{1,2} × extra-p × hybridization {ENone,EStandard,ESemiHybrid} × RB × condensation × refinement (+MHM creator), asserting exact linear/constant representation, domain integrals, condensed equation counts (read first-hand, :152-216).
   - `TestHCurl` (traces, permutations, curls), `TestH1ApproxSpaceCreator`, `TestHDivCollapsed` (fracture elements), `TestSBFem` (actual **convergence-rate** tests), `TestSolverComparison` (MUMPS vs Pardiso cross-backend equality), `TestMultithreading`/`TestStruct` (parallel == serial assembly), `TestBlend`/`TestGeometry` (curved maps vs exact geometry), `TestHangingNode`/`TestCondensedSpace` (constraints), `TestIntegNum` (quadrature exactness), plus matrix/FAD/plumbing suites.
 - **CI**: 5 GitHub Actions workflows. macOS job = always-on gate (build + ctest); Linux + MKL jobs conditional on a prebuilt `neopz-deps` image; consumer smoke-test workflow builds NeoPZExamples against an install; docs workflow. **CI is green at the analysis pin** (`6ffd38b` success; also `852a511`) [web].
 
@@ -43,7 +43,7 @@
 
 ## 4. Recommended validation strategy (prioritized)
 
-1. **Manufactured-solution rate matrix** (the single highest-value addition): one parametrized suite driving {H1, mixed HDiv (Standard/Constant), hybrid (EStandard/Squared/ESemi)} × {Darcy, elasticity **with nonzero body force**} × {affine, curved} meshes for 3 refinement levels, asserting L2/energy **rates** within tolerance. Directly nets: the RHS-class bug, Piola-on-curved risks, order regressions from family edits. Cost: builds entirely on `TPZAnalyticSolution` + creators already in-tree.
+1. **Manufactured-solution rate matrix** (the single highest-value addition): one parametrized suite driving {H1, mixed HDiv (Standard/Constant), hybrid (EStandard/Squared/ESemiHybrid)} × {Darcy, elasticity **with nonzero body force**} × {affine, curved} meshes for 3 refinement levels, asserting L2/energy **rates** within tolerance. Directly nets: the RHS-class bug, Piola-on-curved risks, order regressions from family edits. Cost: builds entirely on `TPZAnalyticSolution` + creators already in-tree.
 2. **Un-crash the working tree** and add the 5 crashing suites to a required pre-merge gate for the research branches (they run in seconds).
 3. **Enable `catch_discover_tests`** (fix the log4cxx detection issue or gate logging in tests) so CI failures name the TEST_CASE; add LABELS for `ctest -L math|plumbing|solver`.
 4. **App-repo CI**: build all registered targets + run the fast Catch2 tests on push — would have caught all three drift findings. Mirror NeoPZ's consumer-smoke workflow.

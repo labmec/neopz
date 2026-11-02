@@ -25,7 +25,7 @@ tags:
 **Confirmed bug — application repo build drift** (a registered target that cannot build at HEAD). Severity minor per target, but it is the third independent instance of the same systemic theme (with [[finding-voronoi-null-ganalytic]] and the stale README): **no CI/compile gate on the app repo**, so drivers rot silently as the shared `divfree/` library evolves. Feeds the Phase 7 recommendation: a build-all-targets CI job (mirroring NeoPZ's own `compile_externalprojects.yml` pattern) would catch all three classes of drift.
 
 ## What would resolve
-`cmake --build` of the target (out of authorized scope) or user confirmation; fix = port the call to the 2-arg ctor with an appropriate mode or gate the ESemi branch out.
+`cmake --build` of the target (out of authorized scope) or user confirmation; fix = port the call to the 2-arg ctor with an appropriate mode or gate the ESemiHybrid branch out.
 
 ## Related
 [[flow-mhm-hdivconstant]] · [[divfree-support-lib]] · [[finding-voronoi-null-ganalytic]]
