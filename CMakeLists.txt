@@ -414,6 +414,8 @@ if(BUILD_PROJECTS)
 endif()
 
 if(BUILD_UNITTESTING)
+    # Build all targets before test/RUN_TESTS to avoid stale test executables.
+    set(CMAKE_SKIP_TEST_ALL_DEPENDENCY FALSE)
     add_subdirectory(UnitTest_PZ)
     #Enabling tests
     ENABLE_TESTING()
