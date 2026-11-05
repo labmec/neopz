@@ -78,6 +78,11 @@ if (USING_LAPACK)
 	list(APPEND sources TPZBuildSBFem.cpp TPZBuildSBFemMultiphysics.cpp)
 endif()
 
+if(USING_SBFEM_ENRICHMENT)
+    list(APPEND headers TPZGFemEnrichment.h)
+    list(APPEND sources TPZGFemEnrichment.cpp)
+endif()
+
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Pre)
 
 target_sources(pz PRIVATE ${headers} ${sources})

@@ -55,6 +55,7 @@ where some CMake options were given as an illustration. The following CMake opti
 - `USING_BLAZE`: Enable blaze library support
 - `USING_BOOST`: Enable Boost libraries (`Boost::date_time`, `Boost::graph` and `Boost::unit_test_framework`) support
 - `USING_LAPACK`: Enable LAPACK library support
+- `USING_SBFEM_ENRICHMENT`: Build `TPZGFemEnrichment`, the local SBFEM crack-tip function generator (OFF by default). Requires `USING_LAPACK=ON` and nlohmann JSON >= 3.2.0. Its header and JSON dependency are exported through `NeoPZ::pz`; no separate GFEM repository is needed. See [generator tests and usage](UnitTest_PZ/TestGFemEnrichment/README.md).
 - `USING_MKL`: Enable MKL library support. It will also enable usage of LAPACK functions.
 - `USING_LOG4CXX`: Enable logging information through log4cxx support.
 - `USING_METIS`: Enable Metis library support.

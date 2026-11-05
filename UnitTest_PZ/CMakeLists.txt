@@ -53,4 +53,8 @@ if(USING_LAPACK)
   add_subdirectory(TestSBFem)
 endif()
 
+if(USING_SBFEM_ENRICHMENT)
+  add_subdirectory(TestGFemEnrichment)
+endif()
+
 add_subdirectory(TestSolverComparison)
