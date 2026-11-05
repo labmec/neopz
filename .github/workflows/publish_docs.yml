@@ -16,12 +16,13 @@ jobs:
 
     steps:
     - name: Requirements
-      run: brew install doxygen
-        && pip3 install sphinx==4.2.0
-        && pip3 install sphinx-rtd-theme
-        && pip3 install sphinxcontrib-bibtex
-        && pip3 install breathe==4.31.0
-        && pip3 install sphinx-sitemap
+      run: |
+        brew install doxygen
+        python3 -m venv "$RUNNER_TEMP/docs-venv"
+        "$RUNNER_TEMP/docs-venv/bin/python" -m pip install \
+          sphinx==4.2.0 sphinx-rtd-theme sphinxcontrib-bibtex \
+          breathe==4.31.0 sphinx-sitemap
+        echo "$RUNNER_TEMP/docs-venv/bin" >> "$GITHUB_PATH"
     - name: Checkout repo
       uses: actions/checkout@1.0.0
     - name: Create Build Environment
