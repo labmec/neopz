@@ -15,12 +15,16 @@ jobs:
     runs-on: macos-latest
 
     steps:
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.10'
     - name: Requirements
       run: |
         brew install doxygen
-        python3 -m venv "$RUNNER_TEMP/docs-venv"
+        python -m venv "$RUNNER_TEMP/docs-venv"
         "$RUNNER_TEMP/docs-venv/bin/python" -m pip install \
-          sphinx==4.2.0 sphinx-rtd-theme sphinxcontrib-bibtex \
+          'setuptools<81' sphinx==4.2.0 sphinx-rtd-theme sphinxcontrib-bibtex \
           breathe==4.31.0 sphinx-sitemap
         echo "$RUNNER_TEMP/docs-venv/bin" >> "$GITHUB_PATH"
     - name: Checkout repo
