@@ -28,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> NeoPZ
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            NeoPZ
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -41,6 +45,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../analysis/index.html">The Analysis hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../post/index.html">Post-processing results</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">The Material hierarchy</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="singlespace.html">The Single Space Material Group</a></li>
 <li class="toctree-l2"><a class="reference internal" href="combinedspaces.html">The Combined Spaces Material Group</a></li>
@@ -77,9 +82,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="index.html">The Material hierarchy</a> &raquo;</li>
-      <li>Common Interfaces</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">The Material hierarchy</a></li>
+      <li class="breadcrumb-item active">Common Interfaces</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/material/commoninterfaces.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -146,6 +151,12 @@
 <span id="_CPPv3NK11TPZMatError11NEvalErrorsEv"></span><span id="_CPPv2NK11TPZMatError11NEvalErrorsEv"></span><span id="TPZMatError::NEvalErrorsC"></span><span class="target" id="classTPZMatError_1a73d1500fa497a57bddf4d6db3a6a0745"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEvalErrors</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK11TPZMatError11NEvalErrorsEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Returns the number of error norms. </p>
 <p>Default is 3: norm, L2 and seminorm. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK11TPZMatError10ErrorNamesER6TPZVecINSt6stringEE">
+<span id="_CPPv3NK11TPZMatError10ErrorNamesER6TPZVecINSt6stringEE"></span><span id="_CPPv2NK11TPZMatError10ErrorNamesER6TPZVecINSt6stringEE"></span><span id="TPZMatError::ErrorNames__TPZVec:ss:RC"></span><span class="target" id="classTPZMatError_1ab8c91991f7a97685340c4a13400fd0ce"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ErrorNames</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">names</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK11TPZMatError10ErrorNamesER6TPZVecINSt6stringEE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Fills in the name of the errors that are computed. </p>
 </dd></dl>
 
 </div>
@@ -291,8 +302,8 @@
 <dt class="sig sig-object cpp" id="_CPPv425TPZMatGeneralisedEigenVal">
 <span id="_CPPv325TPZMatGeneralisedEigenVal"></span><span id="_CPPv225TPZMatGeneralisedEigenVal"></span><span id="TPZMatGeneralisedEigenVal"></span><span class="target" id="classTPZMatGeneralisedEigenVal"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatGeneralisedEigenVal</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><a class="headerlink" href="#_CPPv425TPZMatGeneralisedEigenVal" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Defines an interface for solving Generalised Eigenvalue problems. </p>
-<p>This interface simply adds a method to switch between the left (A) and the right (B) matrices. It is suggested that the materials using this interface use a function pointer for switching between the correct contribute method. See <a class="reference internal" href="availablemats.html#classTPZWaveguideModalAnalysis"><span class="std std-ref">TPZWaveguideModalAnalysis</span></a> for an example of usage. </p>
-<p>Subclassed by TPZMatGeneralisedEigenValBC</p>
+<p>This interface simply adds a method to switch between the left (A) and the right (B) matrices. It is suggested that the materials using this interface use a function pointer for switching between the correct contribute method. See TPZWaveguideModalAnalysis for an example of usage. </p>
+<p>Subclassed by TPZMatGeneralisedEigenValBC, <a class="reference internal" href="availablemats.html#classTPZPeriodicWgma"><span class="std std-ref">TPZPeriodicWgma</span></a>, TPZPlanarWgma</p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-generalised">Generalised</p>
 <dl class="cpp function">

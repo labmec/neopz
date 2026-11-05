@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post-processing results &mdash; NeoPZ  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="The Material hierarchy" href="../material/index.html" />
+    <link rel="prev" title="FEM Analysis of Eigenvalue Problems" href="../analysis/eigenanalysis.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            NeoPZ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../analysis/index.html">The Analysis hierarchy</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Post-processing results</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#tpzvtkgenerator-usage">TPZVTKGenerator (usage)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#post-processing-all-materials-of-a-given-dimension">Post-processing all materials of a given dimension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#post-processing-a-given-set-of-materials">Post-processing a given set of materials</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tpzvtkgenerator-full-docs">TPZVTKGenerator (full docs)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../material/index.html">The Material hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structmatrix/index.html">The StructMatrix hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../solver/index.html">The Solver hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../shape/index.html">The Shape hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../util/index.html">Utilities</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">NeoPZ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Post-processing results</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/post/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="post-processing-results">
+<h1>Post-processing results<a class="headerlink" href="#post-processing-results" title="Permalink to this headline"></a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="contents local topic" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#tpzvtkgenerator-usage" id="id1">TPZVTKGenerator (usage)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#post-processing-all-materials-of-a-given-dimension" id="id2">Post-processing all materials of a given dimension</a></p></li>
+<li><p><a class="reference internal" href="#post-processing-a-given-set-of-materials" id="id3">Post-processing a given set of materials</a></p></li>
+<li><p><a class="reference internal" href="#tpzvtkgenerator-full-docs" id="id4">TPZVTKGenerator (full docs)</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="tpzvtkgenerator-usage">
+<h2><a class="toc-backref" href="#id1">TPZVTKGenerator (usage)</a><a class="headerlink" href="#tpzvtkgenerator-usage" title="Permalink to this headline"></a></h2>
+<p>The <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv415TPZVTKGenerator" title="TPZVTKGenerator"><span class="n">TPZVTKGenerator</span></a></span> is a utility class for post-processing quantities
+obtained by a FEM simulation in a straightforward way.
+It efficiently generates files in the <a class="reference external" href="http://www.princeton.edu/~efeibush/viscourse/vtk.pdf">VTK Legacy format</a> .</p>
+<p>In the following examples, it is assumed that a solution was computed for a given
+computatinal mesh <code class="docutils literal notranslate"><span class="pre">cmesh</span></code> and that the header
+<code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;TPZVTKGenerator.h&gt;</span></code> was included.</p>
+<p>For further information on how to setup the post-processing quantities, see documentation
+for the <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../material/index.html#_CPPv411TPZMaterial" title="TPZMaterial"><span class="n">TPZMaterial</span></a></span> class, specially <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../material/index.html#_CPPv411TPZMaterial" title="TPZMaterial"><span class="n">TPZMaterial</span></a><span class="p">::</span><a class="reference internal" href="../material/index.html#_CPPv4NK11TPZMaterial13VariableIndexERKNSt6stringE" title="TPZMaterial::VariableIndex"><span class="n">VariableIndex</span></a></span> and <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="../material/index.html#_CPPv411TPZMaterial" title="TPZMaterial"><span class="n">TPZMaterial</span></a><span class="p">::</span><a class="reference internal" href="../material/index.html#_CPPv4NK11TPZMaterial18NSolutionVariablesEi" title="TPZMaterial::NSolutionVariables"><span class="n">NSolutionVariables</span></a></span>.</p>
+<section id="post-processing-all-materials-of-a-given-dimension">
+<h3><a class="toc-backref" href="#id2">Post-processing all materials of a given dimension</a><a class="headerlink" href="#post-processing-all-materials-of-a-given-dimension" title="Permalink to this headline"></a></h3>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">plotfile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"myfile"</span><span class="p">;</span><span class="c1">//no .vtk at the end</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">vtkRes</span><span class="p">{</span><span class="mi">2</span><span class="p">};</span><span class="c1">//vtk post-processing resolution</span>
+
+<span class="c1">//list of variables to be post-processed. It can be scalar, vectors, tensors, etc.</span>
+<span class="n">TPZVec</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">fields</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="s">"scalar_var"</span><span class="p">,</span>
+<span class="s">"vec_var"</span><span class="p">,</span>
+<span class="s">"another_scalar_var"</span><span class="p">,</span>
+<span class="s">"yet_another_scalar_var"</span><span class="p">};</span>
+
+<span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">postprocdim</span><span class="p">{</span><span class="mi">2</span><span class="p">};</span>
+<span class="c1">//if postprocdim is not set, it will be set as cmesh-&gt;Dimension()</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">vtk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TPZVTKGenerator</span><span class="p">(</span><span class="n">cmesh</span><span class="p">,</span><span class="w"> </span><span class="n">fields</span><span class="p">,</span><span class="w"> </span><span class="n">plotfile</span><span class="p">,</span><span class="w"> </span><span class="n">vtkRes</span><span class="p">,</span><span class="n">postprocdim</span><span class="p">);</span>
+
+
+<span class="c1">//generates the .vtk file</span>
+<span class="n">vtk</span><span class="p">.</span><span class="n">Do</span><span class="p">();</span>
+<span class="c1">//compute another solution, etc, etc</span>
+<span class="n">vtk</span><span class="p">.</span><span class="n">Do</span><span class="p">();</span>
+<span class="c1">//if the elements are refined after a call to TPZVTKGenerator::Do,</span>
+<span class="c1">//one must then call</span>
+
+<span class="n">vtk</span><span class="p">.</span><span class="n">ResetArrays</span><span class="p">();</span>
+<span class="n">vtk</span><span class="p">.</span><span class="n">Do</span><span class="p">();</span>
+</pre></div>
+</div>
+</section>
+<section id="post-processing-a-given-set-of-materials">
+<h3><a class="toc-backref" href="#id3">Post-processing a given set of materials</a><a class="headerlink" href="#post-processing-a-given-set-of-materials" title="Permalink to this headline"></a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All materials must have the same dimension</p>
+</div>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">plotfile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"myfile"</span><span class="p">;</span><span class="c1">//no .vtk at the end</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">vtkRes</span><span class="p">{</span><span class="mi">2</span><span class="p">};</span><span class="c1">//vtk post-processing resolution</span>
+
+<span class="c1">//list of variables to be post-processed. It can be scalar, vectors, tensors, etc.</span>
+<span class="n">TPZVec</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">fields</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="s">"scalar_var"</span><span class="p">,</span>
+<span class="s">"vec_var"</span><span class="p">,</span>
+<span class="s">"another_scalar_var"</span><span class="p">,</span>
+<span class="s">"yet_another_scalar_var"</span><span class="p">};</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">set</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">postprocmats</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">};</span>
+
+<span class="k">auto</span><span class="w"> </span><span class="n">vtk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TPZVTKGenerator</span><span class="p">(</span><span class="n">cmesh</span><span class="p">,</span><span class="n">postprocmats</span><span class="p">,</span><span class="n">fields</span><span class="p">,</span><span class="w"> </span><span class="n">plotfile</span><span class="p">,</span><span class="w"> </span><span class="n">vtkRes</span><span class="p">);</span>
+<span class="c1">//proceed as in the above example</span>
+</pre></div>
+</div>
+<p>Full documentation is available below</p>
+</section>
+<section id="tpzvtkgenerator-full-docs">
+<h3><a class="toc-backref" href="#id4">TPZVTKGenerator (full docs)</a><a class="headerlink" href="#tpzvtkgenerator-full-docs" title="Permalink to this headline"></a></h3>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv415TPZVTKGenerator">
+<span id="_CPPv315TPZVTKGenerator"></span><span id="_CPPv215TPZVTKGenerator"></span><span id="TPZVTKGenerator"></span><span class="target" id="classTPZVTKGenerator"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZVTKGenerator</span></span></span><a class="headerlink" href="#_CPPv415TPZVTKGenerator" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Manages exporting of post-processed quantities to .VTK files. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZVTKGenerator15TPZVTKGeneratorEP11TPZCompMeshRK6TPZVecINSt6stringEENSt6stringEiib">
+<span id="_CPPv3N15TPZVTKGenerator15TPZVTKGeneratorEP11TPZCompMeshRK6TPZVecINSt6stringEENSt6stringEiib"></span><span id="_CPPv2N15TPZVTKGenerator15TPZVTKGeneratorEP11TPZCompMeshRK6TPZVecINSt6stringEENSt6stringEiib"></span><span id="TPZVTKGenerator::TPZVTKGenerator__TPZCompMeshP.TPZVec:ss:CR.ss.i.i.b"></span><span class="target" id="classTPZVTKGenerator_1a4d5066bc5598acc0ff2660da6de2b9ab"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZVTKGenerator</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">cmesh</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fields</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">filename</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">vtkres</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dim</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">safe_check</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15TPZVTKGenerator15TPZVTKGeneratorEP11TPZCompMeshRK6TPZVecINSt6stringEENSt6stringEiib" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Creates instance for generating .vtk results for a given mesh. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmesh</strong> – <strong>[in]</strong> Computational mesh </p></li>
+<li><p><strong>fields</strong> – <strong>[in]</strong> names of fields to be post-processed </p></li>
+<li><p><strong>filename</strong> – <strong>[in]</strong> filename (without extension) </p></li>
+<li><p><strong>vtkres</strong> – <strong>[in]</strong> resolution of vtk post-processing (number of el subdivision) </p></li>
+<li><p><strong>dim</strong> – <strong>[in]</strong> Post-processing dimension (defaults to dimension of mesh) </p></li>
+<li><p><strong>safe_check</strong> – <strong>[in]</strong> whether to perform safety checks on jacobian determinant </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZVTKGenerator15TPZVTKGeneratorE14TPZAutoPointerI11TPZCompMeshERK6TPZVecINSt6stringEENSt6stringEiib">
+<span id="_CPPv3N15TPZVTKGenerator15TPZVTKGeneratorE14TPZAutoPointerI11TPZCompMeshERK6TPZVecINSt6stringEENSt6stringEiib"></span><span id="_CPPv2N15TPZVTKGenerator15TPZVTKGeneratorE14TPZAutoPointerI11TPZCompMeshERK6TPZVecINSt6stringEENSt6stringEiib"></span><span id="TPZVTKGenerator::TPZVTKGenerator__TPZAutoPointer:TPZCompMesh:.TPZVec:ss:CR.ss.i.i.b"></span><span class="target" id="classTPZVTKGenerator_1a76d64a146c6edfb168dc264187863532"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZVTKGenerator</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">cmesh</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fields</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">filename</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">vtkres</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dim</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">safe_check</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15TPZVTKGenerator15TPZVTKGeneratorE14TPZAutoPointerI11TPZCompMeshERK6TPZVecINSt6stringEENSt6stringEiib" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Creates instance for generating .vtk results for a given mesh. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmesh</strong> – <strong>[in]</strong> Computational mesh </p></li>
+<li><p><strong>fields</strong> – <strong>[in]</strong> names of fields to be post-processed </p></li>
+<li><p><strong>filename</strong> – <strong>[in]</strong> filename without extension </p></li>
+<li><p><strong>vtkres</strong> – <strong>[in]</strong> resolution of vtk post-processing (number of el subdivision) </p></li>
+<li><p><strong>dim</strong> – <strong>[in]</strong> Post-processing dimension (defaults to dimension of mesh) </p></li>
+<li><p><strong>safe_check</strong> – <strong>[in]</strong> whether to perform safety checks on jacobian determinant </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZVTKGenerator15TPZVTKGeneratorEP11TPZCompMeshNSt3setIiEERK6TPZVecINSt6stringEENSt6stringEib">
+<span id="_CPPv3N15TPZVTKGenerator15TPZVTKGeneratorEP11TPZCompMeshNSt3setIiEERK6TPZVecINSt6stringEENSt6stringEib"></span><span id="_CPPv2N15TPZVTKGenerator15TPZVTKGeneratorEP11TPZCompMeshNSt3setIiEERK6TPZVecINSt6stringEENSt6stringEib"></span><span id="TPZVTKGenerator::TPZVTKGenerator__TPZCompMeshP.std::set:i:.TPZVec:ss:CR.ss.i.b"></span><span class="target" id="classTPZVTKGenerator_1a7b6e14ba2197d8480d68f5f0d2c93b80"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZVTKGenerator</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">cmesh</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">set</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mats</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fields</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">filename</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">vtkres</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">safe_check</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15TPZVTKGenerator15TPZVTKGeneratorEP11TPZCompMeshNSt3setIiEERK6TPZVecINSt6stringEENSt6stringEib" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Creates instance for generating .vtk results for given materials in a given mesh. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All materials should have the same dimension </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmesh</strong> – <strong>[in]</strong> Computational mesh </p></li>
+<li><p><strong>mats</strong> – <strong>[in]</strong> identifiers of materials to be post-processed </p></li>
+<li><p><strong>fields</strong> – <strong>[in]</strong> names of fields to be post-processed </p></li>
+<li><p><strong>filename</strong> – <strong>[in]</strong> filename (without extension) </p></li>
+<li><p><strong>vtkres</strong> – <strong>[in]</strong> resolution of vtk post-processing (number of el subdivision) </p></li>
+<li><p><strong>safe_check</strong> – <strong>[in]</strong> whether to perform safety checks on jacobian determinant </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZVTKGenerator15TPZVTKGeneratorE14TPZAutoPointerI11TPZCompMeshENSt3setIiEERK6TPZVecINSt6stringEENSt6stringEib">
+<span id="_CPPv3N15TPZVTKGenerator15TPZVTKGeneratorE14TPZAutoPointerI11TPZCompMeshENSt3setIiEERK6TPZVecINSt6stringEENSt6stringEib"></span><span id="_CPPv2N15TPZVTKGenerator15TPZVTKGeneratorE14TPZAutoPointerI11TPZCompMeshENSt3setIiEERK6TPZVecINSt6stringEENSt6stringEib"></span><span id="TPZVTKGenerator::TPZVTKGenerator__TPZAutoPointer:TPZCompMesh:.std::set:i:.TPZVec:ss:CR.ss.i.b"></span><span class="target" id="classTPZVTKGenerator_1a452cd079bd596dfed21505f39d051231"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZVTKGenerator</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">cmesh</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">set</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mats</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fields</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">filename</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">vtkres</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">safe_check</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15TPZVTKGenerator15TPZVTKGeneratorE14TPZAutoPointerI11TPZCompMeshENSt3setIiEERK6TPZVecINSt6stringEENSt6stringEib" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Creates instance for generating .vtk results for given materials in a given mesh. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All materials should have the same dimension </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmesh</strong> – <strong>[in]</strong> Computational mesh </p></li>
+<li><p><strong>mats</strong> – <strong>[in]</strong> identifiers of materials to be post-processed </p></li>
+<li><p><strong>fields</strong> – <strong>[in]</strong> names of fields to be post-processed </p></li>
+<li><p><strong>filename</strong> – <strong>[in]</strong> filename without extension </p></li>
+<li><p><strong>vtkres</strong> – <strong>[in]</strong> resolution of vtk post-processing (number of el subdivision) </p></li>
+<li><p><strong>safe_check</strong> – <strong>[in]</strong> whether to perform safety checks on jacobian determinant </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZVTKGenerator2DoEv">
+<span id="_CPPv3N15TPZVTKGenerator2DoEv"></span><span id="_CPPv2N15TPZVTKGenerator2DoEv"></span><span id="TPZVTKGenerator::Do"></span><span class="target" id="classTPZVTKGenerator_1a428caa5cedd4cface9e740e13ee0450c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Do</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15TPZVTKGenerator2DoEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Generates .vtk file for a given current solution of the mesh. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZVTKGenerator11ResetArraysEv">
+<span id="_CPPv3N15TPZVTKGenerator11ResetArraysEv"></span><span id="_CPPv2N15TPZVTKGenerator11ResetArraysEv"></span><span id="TPZVTKGenerator::ResetArrays"></span><span class="target" id="classTPZVTKGenerator_1ac8216a8709392bca5c56cc88314f772d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetArrays</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15TPZVTKGenerator11ResetArraysEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Resets post-processing data structure. </p>
+<p>Call this function if the mesh has had changes between <a class="reference internal" href="#classTPZVTKGenerator_1a428caa5cedd4cface9e740e13ee0450c"><span class="std std-ref">Do()</span></a> calls (refinement, etc) </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZVTKGenerator11SetNThreadsEi">
+<span id="_CPPv3N15TPZVTKGenerator11SetNThreadsEi"></span><span id="_CPPv2N15TPZVTKGenerator11SetNThreadsEi"></span><span id="TPZVTKGenerator::SetNThreads__i"></span><span class="target" id="classTPZVTKGenerator_1a3b133847d1b148185fd02a54bd3451d8"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetNThreads</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nt</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15TPZVTKGenerator11SetNThreadsEi" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Set number of threads to compute fields (0 for serial). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZVTKGenerator8NThreadsEv">
+<span id="_CPPv3NK15TPZVTKGenerator8NThreadsEv"></span><span id="_CPPv2NK15TPZVTKGenerator8NThreadsEv"></span><span id="TPZVTKGenerator::NThreadsC"></span><span class="target" id="classTPZVTKGenerator_1a4118059ab419141087a9731a67126d1c"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NThreads</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15TPZVTKGenerator8NThreadsEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Get number of threads to compute fields (0 for serial). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZVTKGenerator7SetStepEi">
+<span id="_CPPv3N15TPZVTKGenerator7SetStepEi"></span><span id="_CPPv2N15TPZVTKGenerator7SetStepEi"></span><span id="TPZVTKGenerator::SetStep__i"></span><span class="target" id="classTPZVTKGenerator_1a8232647f39da116efef997c68dc4e044"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetStep</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">st</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15TPZVTKGenerator7SetStepEi" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Sets manually the step of next post-processing round (must be &gt;0). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZVTKGenerator4StepEv">
+<span id="_CPPv3NK15TPZVTKGenerator4StepEv"></span><span id="_CPPv2NK15TPZVTKGenerator4StepEv"></span><span id="TPZVTKGenerator::StepC"></span><span class="target" id="classTPZVTKGenerator_1a26483b10450f31c7bf53062e89a3cb09"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Step</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15TPZVTKGenerator4StepEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Gets the current step of next post-rpocessing round (if &lt;0, fOutputCount is used). </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../analysis/eigenanalysis.html" class="btn btn-neutral float-left" title="FEM Analysis of Eigenvalue Problems" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../material/index.html" class="btn btn-neutral float-right" title="The Material hierarchy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Philippe Devloo et al.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

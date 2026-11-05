@@ -28,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> NeoPZ
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            NeoPZ
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -49,6 +53,7 @@
 <li class="toctree-l2"><a class="reference internal" href="index.html#the-analysis-group">The Analysis Group</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../post/index.html">Post-processing results</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../material/index.html">The Material hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../structmatrix/index.html">The StructMatrix hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../solver/index.html">The Solver hierarchy</a></li>
@@ -69,9 +74,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="index.html">The Analysis hierarchy</a> &raquo;</li>
-      <li>FEM Analysis of Equation Systems</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">The Analysis hierarchy</a></li>
+      <li class="breadcrumb-item active">FEM Analysis of Equation Systems</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/analysis/linearanalysis.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -107,14 +112,14 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshbRNSt7ostreamE">
-<span id="_CPPv3N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshbRNSt7ostreamE"></span><span id="_CPPv2N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshbRNSt7ostreamE"></span><span id="TPZLinearAnalysis::TPZLinearAnalysis__TPZCompMeshP.b.osR"></span><span class="target" id="classTPZLinearAnalysis_1a026d2f0bf337b92e62ffb3347c4c8a59"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZLinearAnalysis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">mesh</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mustOptimizeBandwidth</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshbRNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshRK9RenumTypeRNSt7ostreamE">
+<span id="_CPPv3N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshRK9RenumTypeRNSt7ostreamE"></span><span id="_CPPv2N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshRK9RenumTypeRNSt7ostreamE"></span><span id="TPZLinearAnalysis::TPZLinearAnalysis__TPZCompMeshP.RenumTypeCR.osR"></span><span class="target" id="classTPZLinearAnalysis_1a1ebc1b622cd4ec35cc5a6bdfe080e986"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZLinearAnalysis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">mesh</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">RenumType</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">renumtype</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">RenumType</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">EDefault</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisEP11TPZCompMeshRK9RenumTypeRNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Create an <a class="reference internal" href="#classTPZLinearAnalysis"><span class="std std-ref">TPZLinearAnalysis</span></a> object from one mesh pointer. </p>
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE">
-<span id="_CPPv3N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE"></span><span id="_CPPv2N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE"></span><span id="TPZLinearAnalysis::TPZLinearAnalysis__TPZAutoPointer:TPZCompMesh:.b.osR"></span><span class="target" id="classTPZLinearAnalysis_1a0f56ec1c4f12028ac93ae072302f5346"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZLinearAnalysis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mesh</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mustOptimizeBandwidth</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshEbRNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshERK9RenumTypeRNSt7ostreamE">
+<span id="_CPPv3N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshERK9RenumTypeRNSt7ostreamE"></span><span id="_CPPv2N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshERK9RenumTypeRNSt7ostreamE"></span><span id="TPZLinearAnalysis::TPZLinearAnalysis__TPZAutoPointer:TPZCompMesh:.RenumTypeCR.osR"></span><span class="target" id="classTPZLinearAnalysis_1a1535d02723aab27ad3bcbf57dce23d63"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZLinearAnalysis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZAutoPointer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">TPZCompMesh</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mesh</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">RenumType</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">renumtype</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">RenumType</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">EDefault</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis17TPZLinearAnalysisE14TPZAutoPointerI11TPZCompMeshERK9RenumTypeRNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Create an <a class="reference internal" href="#classTPZLinearAnalysis"><span class="std std-ref">TPZLinearAnalysis</span></a> object from one mesh auto pointer object. </p>
 </dd></dl>
 
@@ -185,7 +190,7 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N17TPZLinearAnalysis11PostProcessEii">
 <span id="_CPPv3N17TPZLinearAnalysis11PostProcessEii"></span><span id="_CPPv2N17TPZLinearAnalysis11PostProcessEii"></span><span id="TPZLinearAnalysis::PostProcess__i.i"></span><span class="target" id="classTPZLinearAnalysis_1a79ceb338f5bcce3b0292289e8bc56cdb"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostProcess</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">resolution</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dimension</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N17TPZLinearAnalysis11PostProcessEii" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Draw solution over mesh by dimension </p>
+<dd><p>Draw solution over mesh by dimension. </p>
 </dd></dl>
 
 <dl class="cpp function">
