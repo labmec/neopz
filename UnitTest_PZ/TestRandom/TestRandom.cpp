@@ -10,7 +10,7 @@
 #include "TPZUniformRandom.h"
 #include "TPZNormalRandom.h"
 #include "TPZConstrainedNormalRandom.h"
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 void PrintDistribution(REAL& begin, unsigned int& steps, TPZVec<int>& slots, REAL& increment){
     REAL max = 0;

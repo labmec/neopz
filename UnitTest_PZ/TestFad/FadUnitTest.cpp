@@ -7,8 +7,7 @@
 
 #include "fad.h"
 #include <math.h>
-
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 //#define NOISY //outputs operations' results
 
 const long double tol = 1e-7;

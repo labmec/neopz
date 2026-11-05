@@ -32,6 +32,7 @@
 #include <iostream>
 #include <complex>
 #include "fpo_exceptions.h"
+#include <cstdint>
 
 template <int Num, class T> class TFad;
 template <class T> class Fad;

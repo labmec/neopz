@@ -40,12 +40,14 @@ namespace pzshape{
 		 * These values depend on the point, the order of interpolation and ids of the corner points
 		 * The shapefunction computation uses the shape functions of the linear element for its implementation
 		 */
-		static void Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
-						  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+        template<class T>
+		static void Shape(TPZVec<T> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
+						  TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
 			phi(0,0) = 1.;
 		}
 		
-        static void ShapeCorner(const TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
+        template<class T>
+        static void ShapeCorner(const TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
         {
             phi(0,0) = 1.;
         }
@@ -57,14 +59,22 @@ namespace pzshape{
          */
         static void ShapeGenerating(const TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){}
 
-        static void ShapeGenerating(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){}
+        template<class T>
+        static void ShapeGenerating(const TPZVec<T> &pt, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi){}
 
-        static void ShapeInternal(int side, TPZVec<REAL> &x, int order, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+        template<class T>
+        static void ShapeInternal(int side, TPZVec<T> &xi, int order, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi)
         {
-            
+            if(side != 0) DebugStop();
+            ShapeInternal(xi,order,phi,dphi);
         }
 
-        
+        template<class T>
+        static void ShapeInternal(TPZVec<T> &xi, int order, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi)
+        {
+            phi(0,0) = 1.;
+        }
+
 		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 			if(side == 0) Shape(pt,id,order,phi,dphi);
 		}
@@ -77,6 +87,15 @@ namespace pzshape{
             shapeorders(0,0) = 0;
         }
         
+        /**
+         * @brief returns the polynomial order in the natural ksi, eta of the side associated with each shapefunction
+         */
+        static void InternalShapeOrder(const TPZVec<int64_t> &id, const int order, TPZGenMatrix<int> &shapeorders)
+        {
+            shapeorders(0,0) = 0;
+        }
+        
+
 
 		/**
 		 * @brief Number of shapefunctions of the connect associated with the side, considering the order

@@ -89,9 +89,6 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
    */
   //void AddSameStruct(TPZSkylNSymMatrix &B, double k = 1.);
 
-  /**declare the object as non-symmetric matrix*/
-  virtual int IsSymmetric() const  override {return 0;}
-
   int PutVal(const int64_t row,const int64_t col,const TVar &element ) override;
 
   const TVar GetVal(const int64_t row,const int64_t col ) const override;
@@ -131,22 +128,52 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
   //TPZSkylNSymMatrix operator-() const;// { return operator*(-1.0); }
 
-  // Redimensiona a matriz, mas mantem seus elementos.
-  // o segundo parametro � o tamanho das colunas
-  //int Resize(const int newDim ,const int );
-
-  // Redimensiona a matriz e ZERA seus elementos.
-  // o segundo parametro � o tamanho das colunas
-  //int Redim(const int newDim ,const int );
-  //int Redim(const int newDim) {return Redim(newDim,newDim);}
+  int Resize(const int64_t newRows, const int64_t newCols) override;
+	int Redim(const int64_t newRows, const int64_t newCols) override;
+	int Redim(const int64_t newDim) {return this->Redim(newDim,newDim);}
 
   // Zera os Elementos da matriz
   //int Zero();
 
+    /** @brief decompose the system of equations acording to the decomposition
+     * scheme */
+    virtual int Decompose(const DecomposeType dt) override {
+        if(dt == ELU) {
+            return Decompose_LU();
+        }
+        else {
+            DebugStop();
+            return 0;
+        }
+    }
+    /**
+     * @brief Solves the linear system using Direct methods
+     * @param F The right hand side of the system and where the solution is stored.
+     * @param dt Indicates type of decomposition
+     */
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override
+    {
+        if(dt == ELU) {
+            Decompose_LU();
+            Subst_LForward ( &F );
+            return Subst_Backward ( &F );
+        } else {
+            DebugStop();
+            return 0;
+        }
+    }
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
+        if(this->fDecomposed != ELU) DebugStop();
+        Subst_LForward ( &F );
+        return Subst_Backward ( &F );
+    }
+
+
+
 
   /*** Resolucao de sistemas ***/
 
-  int Decompose_LU() override;  // Faz A = LU.
+  int Decompose_LU();  // Faz A = LU.
 
   //virtual void SolveSOR(int &numiterations,const TPZFMatrix &F, TPZFMatrix &result,
 	//		TPZFMatrix *residual,TPZFMatrix &scratch,const REAL overrelax, REAL &tol,
@@ -154,12 +181,8 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
 
   //int Subst_Forward  ( TPZFMatrix *b ) const override;
-  int Subst_Backward ( TPZFMatrix<TVar> *b ) const override;
-  int Subst_LForward ( TPZFMatrix<TVar> *b ) const override;
-  //int Subst_LBackward( TPZFMatrix *b ) const override;
-  //int Subst_Diag     ( TPZFMatrix *b ) const override;
-
-  //void TestSpeed(int col, int prevcol);
+  int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
+  int Subst_LForward ( TPZFMatrix<TVar> *b ) const;
 	
 	/**
 	 *@brief Return the id of the matrix defined pzmatrixid.h
@@ -182,10 +205,12 @@ int ClassId() const override;
     
     /** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
-	void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
+	void AutoFill(int64_t nrow, int64_t ncol, SymProp sym) override;
 
 
  protected:
+  void CheckTypeCompatibility(const TPZMatrix<TVar>*A,
+                              const TPZMatrix<TVar>*B) const override;
 
   /**
      This method returns a pointer to the diagonal element of the matrix of the col column
@@ -203,7 +228,7 @@ int ClassId() const override;
 //static int  Error(const char *msg1,const char* msg2="" );
   int  Clear() override;
   void Copy (const TPZSkylNSymMatrix & );
-  int Size(const int64_t column) const {return fElem[column+1]-fElem[column];}
+  int64_t Size(const int64_t column) const {return fElem[column+1]-fElem[column];}
   static int64_t NumElements(const TPZVec<int64_t> &skyline);
   static void InitializeElem(const TPZVec<int64_t> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &elem);
   /**

@@ -226,7 +226,6 @@ void TPZFlowNode<TVar>::operator()(tbb::flow::continue_msg) const
 {
     auto *mystruct = dynamic_cast<TPZStructMatrix*>(myGraph->fStruct);
     TPZCompMesh *cmesh = mystruct->Mesh();
-    TPZAutoPointer<TPZGuiInterface> guiInterface = myGraph->fGuiInterface;
     TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
     TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
 #ifdef PZ_LOG

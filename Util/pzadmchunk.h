@@ -205,6 +205,13 @@ void TPZAdmChunkVector<T, EXP>::SetFree(int index) {
     }
 #endif
 
+#ifdef PZDEBUG
+    if(fFree.NElements() > 0 && index == fFree[fFree.NElements()-1]){
+        std::cout << "ERROR in TPZAdmChunkVector! Trying to free element " << index << " that is already in the fFree vector" << std::endl;;
+        DebugStop();
+    }    
+#endif
+
     int chunk = index >> EXP;
 
     fNFree[chunk]++;

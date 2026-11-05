@@ -262,8 +262,7 @@ void TPZGeoEl::Print(std::ostream & out) {
 	int i;
 	for (i = 0;i < NNodes();i++) out << NodeIndex(i) << " ";
 	out << "\nNumber of sides    " << NSides() << endl;
-	if (fMatId < 0) out << "boundary condition " << fMatId << endl;
-	else out << "Material id        " << fMatId << endl;
+	out << "Material id        " << fMatId << endl;
 	if (!Father()) out << "no father\n";
 	else out << "Father index          " << Father()->Index() << endl;
 	if (!SubElement(0)) out << "no subelements";
@@ -326,7 +325,7 @@ int TPZGeoEl::Level() {
 }
 
 
-int TPZGeoEl::GetTransformId2dQ(TPZVec<int> &idfrom,TPZVec<int> &idto) {
+int TPZGeoEl::GetTransformId2dQ(TPZVec<int64_t> &idfrom,TPZVec<int64_t> &idto) {
 	
 	if(idfrom[0]==idto[0] && idfrom[1]==idto[1]) return 0;//sentido horario     : 0123
 	if(idfrom[0]==idto[0] && idfrom[1]==idto[3]) return 1;//sentido antihorario : 0321
@@ -343,7 +342,7 @@ int TPZGeoEl::GetTransformId2dQ(TPZVec<int> &idfrom,TPZVec<int> &idto) {
 	return 0;
 }
 
-int TPZGeoEl::GetTransformId2dT(TPZVec<int> &idfrom,TPZVec<int> &idto) {
+int TPZGeoEl::GetTransformId2dT(TPZVec<int64_t> &idfrom,TPZVec<int64_t> &idto) {
 	//REVISAR
 	if(idto[0]==idfrom[0] && idto[1]==idfrom[1]) return 0;//sentido horario
 	if(idto[0]==idfrom[0] && idto[1]==idfrom[2]) return 1;//sentido antihorario
@@ -395,6 +394,7 @@ void TPZGeoEl::GetSubElements2(int /*side*/, TPZStack<TPZGeoElSide> &/*subel*/) 
 
 void TPZGeoEl::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dimension) const
 {
+	if(!HasSubElement()) return;
 	TPZStack<TPZGeoElSide> subel2;
 	GetSubElements2(side,subel2);
 	int64_t cap = subel2.NElements();
@@ -1101,17 +1101,32 @@ void TPZGeoEl::RemoveConnectivities(){
 	for(side=0;side<nsides;side++){
 		TPZGeoElSide thisside(this,side);
 		TPZGeoElSide neighbour (thisside.Neighbour());
-        if(!neighbour) DebugStop();
+    if(!neighbour) DebugStop();
 		thisside.RemoveConnectivity();
+    /*
+      this TPZGeoElSide is no longer in the connectivity loop
+      however, we may need to update any blend connectivity
+    */
 		if(neighbour != thisside){
-		    TPZGeoElSide neighneigh = neighbour;
-		    do{
-                if(neighneigh.ResetBlendConnectivity(fIndex)){
-                    neighneigh.Element()->SetNeighbourForBlending(neighneigh.Side());
-                }
-		        neighneigh = neighneigh.Neighbour();
-            }   while (neighbour != neighneigh);
+      TPZGeoElSide neighneigh = neighbour;
+      do{
+        const auto neighside = neighneigh.Side();
+        const auto neighnodes = neighneigh.Element()->NCornerNodes();
+        /*if the following if condition is met, it means that
+          neighneigh refers to a blend element whose side used to depend on *this*
+          for its mapping.
+          However, we must ensure that there are no sides of dim 0 (nodes)
+          involved, since blend elements dont store information regarding nodes*/
+        if(neighside >= neighnodes && neighneigh.ResetBlendConnectivity(fIndex)){
+          /*
+            The element will now look for other non linear neighbours
+            so it can blend with it
+           */
+          neighneigh.Element()->SetNeighbourForBlending(neighneigh.Side());
         }
+        neighneigh = neighneigh.Neighbour();
+      }   while (neighbour != neighneigh);
+    }
 	}
 }
 
@@ -2588,3 +2603,167 @@ TPZGeoEl* TPZGeoEl::Father() const {
 TPZGeoNode* TPZGeoEl::SideNodePtr(int side, int nodenum) const {
     return &(fMesh->NodeVec()[SideNodeIndex(side, nodenum)]);
 }
+
+void TPZGeoEl::ComputeQsiGrad(TPZVec<REAL> &qsi, TPZVec<Fad<REAL>> &qsifad)
+{
+    const int dim = Dimension();
+    TPZFNMatrix<9,REAL> gradx(3,dim);
+    GradX(qsi, gradx);
+#ifdef PZDEBUG
+    for(int d1 = 0; d1<dim; d1++)
+    {
+        for(int d=dim; d<3; d++)
+        {
+            if(!IsZero(gradx(d,d1))) DebugStop();
+        }
+    }
+#endif
+    TPZFNMatrix<9,REAL> jac(dim,dim,0),jacinv(dim,dim,0),
+        axes(dim,3);
+    for(int d1=0; d1<dim; d1++) for(int d2=0; d2<dim; d2++) jac(d1,d2) = gradx(d1,d2);
+    jac.Inverse(jacinv, ELU);
+    for(int d1=0; d1<dim; d1++)
+    {
+        qsifad[d1] = Fad<REAL>(dim,qsi[d1]);
+        for(int d2=0; d2<dim; d2++)
+        {
+            qsifad[d1].fastAccessDx(d2) = jacinv(d1,d2);
+        }
+    }
+}
+
+
+void
+TPZGeoEl::ComputeDetjac(TPZFMatrix<Fad<REAL> > &gradx, Fad<REAL> &detjac)
+{
+    const int dim = gradx.Cols();
+    switch(dim) {
+        case 0:
+            break;
+        case 1:
+            detjac = gradx(0,0);
+            break;
+        case 2:
+            detjac = gradx(0,0)*gradx(1,1)-gradx(1,0)*gradx(0,1);
+            break;
+        case 3:
+            detjac = (gradx(0,0)*gradx(1,1)*gradx(2,2)+
+            gradx(1,0)*gradx(2,1)*gradx(0,2)+gradx(0,1)*gradx(1,2)*gradx(2,0))-
+            (gradx(2,0)*gradx(1,1)*gradx(0,2) + gradx(0,1)*gradx(2,2)*gradx(1,0) + gradx(1,2)*gradx(0,0)*gradx(2,1));
+    }
+}
+
+void TPZGeoEl::ComputeDetjac(TPZFMatrix<REAL> &gradx, REAL &detjac)
+{
+    const int dim = gradx.Cols();
+    switch(dim) {
+        case 0:
+            break;
+        case 1:
+            detjac = gradx(0,0);
+            break;
+        case 2:
+            detjac = gradx(0,0)*gradx(1,1)-gradx(1,0)*gradx(0,1);
+            break;
+        case 3:
+            detjac = (gradx(0,0)*gradx(1,1)*gradx(2,2)+
+            gradx(1,0)*gradx(2,1)*gradx(0,2)+gradx(0,1)*gradx(1,2)*gradx(2,0))-
+            (gradx(2,0)*gradx(1,1)*gradx(0,2) + gradx(0,1)*gradx(2,2)*gradx(1,0) + gradx(1,2)*gradx(0,0)*gradx(2,1));
+    }
+}
+
+void TPZGeoEl::PrintVTK(const std::string prefix) {
+    std::string filename = prefix + "geoel_index_" + to_string(this->Index()) + ".vtk";
+    std::ofstream out(filename);
+    out << "# vtk DataFile Version 3.0" << std::endl;
+    out << "GeoEl VTK Visualization" << std::endl;
+    out << "ASCII" << std::endl;
+    out << "DATASET UNSTRUCTURED_GRID\n" << std::endl;
+    
+    int nnodes = this->NNodes();
+    out << "POINTS " << nnodes << " float" << std::endl;
+        
+    TPZFNMatrix<24,REAL> nodecoord(3,nnodes);
+    this->NodesCoordinates(nodecoord);
+    for(int in = 0 ; in < nnodes ; in++) {
+        for(int idim = 0 ; idim < 3 ; idim++) {
+            out << nodecoord(idim,in) << "\t";
+        }
+        out << std::endl;
+    }
+    
+    out << "\nCELLS 1 " << nnodes+1 << std::endl;
+    out << nnodes << " ";
+    for(int in = 0 ; in < nnodes ; in++) out << in << " ";
+    out << std::endl;
+    
+    out << "\nCELL_TYPES 1" << std::endl;
+    out << GetVTK_ElType(this) << std::endl;
+    
+    out << "\nCELL_DATA 1" << std::endl;
+    out << "FIELD FieldData 1" << std::endl;
+    out << "elIndex 1 1 int" << std::endl;
+    out << this->Index() << std::endl;
+}
+
+int TPZGeoEl::GetVTK_ElType(TPZGeoEl * gel) {
+    MElementType pzElType = gel->Type();
+
+    int elType = -1;
+    switch (pzElType) {
+        case(EPoint):
+        {
+            elType = 1;
+            break;
+        }
+        case(EOned):
+        {
+            elType = 3;
+            break;
+        }
+        case (ETriangle):
+        {
+            elType = 5;
+            break;
+        }
+        case (EQuadrilateral):
+        {
+            elType = 9;
+            break;
+        }
+        case (ETetraedro):
+        {
+            elType = 10;
+            break;
+        }
+        case (EPiramide):
+        {
+            elType = 14;
+            break;
+        }
+        case (EPrisma):
+        {
+            elType = 13;
+            break;
+        }
+        case (ECube):
+        {
+            elType = 12;
+            break;
+        }
+        default:
+        {
+            std::cout << "Element type not found on " << __PRETTY_FUNCTION__ << std::endl;
+            DebugStop();
+            break;
+        }
+    }
+    if (elType == -1) {
+        std::cout << "Element type not found on " << __PRETTY_FUNCTION__ << std::endl;
+        std::cout << "MIGHT BE CURVED ELEMENT (quadratic or quarter point)" << std::endl;
+        DebugStop();
+    }
+
+    return elType;
+}
+

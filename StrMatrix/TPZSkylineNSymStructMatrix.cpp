@@ -37,10 +37,12 @@ int TPZSkylineNSymStructMatrix<TVar,TPar>::ClassId() const{
 
 #include "pzstrmatrixot.h"
 #include "pzstrmatrixflowtbb.h"
-
+#include "TPZStructMatrixOMPorTBB.h"
 template class TPZSkylineNSymStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
 template class TPZSkylineNSymStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
 template class TPZSkylineNSymStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
+template class TPZSkylineNSymStructMatrix<STATE,TPZStructMatrixOMPorTBB<STATE>>;
 template class TPZSkylineNSymStructMatrix<CSTATE,TPZStructMatrixOR<CSTATE>>;
 template class TPZSkylineNSymStructMatrix<CSTATE,TPZStructMatrixOT<CSTATE>>;
 template class TPZSkylineNSymStructMatrix<CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
+template class TPZSkylineNSymStructMatrix<CSTATE,TPZStructMatrixOMPorTBB<CSTATE>>;

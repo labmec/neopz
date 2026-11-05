@@ -16,8 +16,8 @@ struct TPZShapeHDivConstant : public TPZShapeHCurlNoGrads<TSHAPE>
 {
     
     //! Should be called once per element. Initializes the data structure
-    static void Initialize(TPZVec<int64_t> &ids,
-                    TPZVec<int> &connectorders,
+    static void Initialize(const TPZVec<int64_t> &ids,
+                    const TPZVec<int> &connectorders,
                     const TPZVec<int>& sideorient, 
                     TPZShapeData &data);
 
@@ -25,7 +25,9 @@ struct TPZShapeHDivConstant : public TPZShapeHCurlNoGrads<TSHAPE>
     
     static int NHDivShapeF(TPZShapeData &data);
 
-    static void Shape(TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
+    static void Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi);
+
+    static void Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data, TPZFMatrix<Fad<REAL>> &phi, TPZFMatrix<Fad<REAL>> &divphi);
     
     static int ComputeNConnectShapeF(int connect, int order);
     

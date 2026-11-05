@@ -120,8 +120,31 @@ public:
 	/** @brief Compute the contribution of the sub domains */
 	void ComputeV2(const TPZFMatrix<TVar> &x, TPZFMatrix<TVar> &v2) const;
     
-	/** @brief Routines to send and receive messages */
-	public:
+/// this is a class that doesn't implement direct decompostion
+    /** @brief decompose the system of equations acording to the decomposition
+     * scheme */
+    virtual int Decompose(const DecomposeType dt) override {
+        DebugStop();
+        return 0;
+    }
+    /**
+     * @brief Solves the linear system using Direct methods
+     * @param F The right hand side of the system and where the solution is stored.
+     * @param dt Indicates type of decomposition
+     */
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) override
+    {
+        DebugStop();
+        return 0;
+    }
+    virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override{
+        DebugStop();
+        return 0;
+    }
+
+
+
+public:
 int ClassId() const override;
 	
     /**

@@ -15,6 +15,26 @@
  * @{
  */
 
+
+//! Append to TPZVec
+template<class T, class R>//utility function
+void AppendToVec(TPZVec<T> &vec, R t){
+  static_assert(std::is_convertible_v<R, T>);
+  const auto sz = vec.size();
+  vec.Resize(sz+1);
+  vec[sz] = (T)t;
+}
+
+//! Removes duplicates AND sort vector contents
+template<class T>
+void RemoveDuplicates(TPZVec<T> &v)
+{
+    std::sort( v.begin(), v.end() );
+    auto newend = std::unique( v.begin(), v.end() );
+    const auto p = newend - v.begin();
+    v.Resize(p);
+}
+
 /**
  * @since Jan 9, 2002
  * @author Cantao!
@@ -249,12 +269,21 @@ void Intersect(const TPZVec< T > &one, const TPZVec< T > &two, const TPZVec< T >
 
 /** @brief Gets commom elements into the one and two vectors */
 template< class T>
-T Norm(const TPZVec< T > &one) {
-    T res = 0.;
+RType(T) Norm(const TPZVec< T > &one) {
+    RType(T) res = 0.;
     int size = one.NElements();
-    for (int i = 0; i < size; i++) {
-        res += one[i] * one[i];
+    if constexpr (is_complex<T>::value){
+        T cres{0};
+        for (int i = 0; i < size; i++) {
+            cres += one[i] * std::conj(one[i]);
+        }
+        res = cres.real();
+    }else{
+        for (int i = 0; i < size; i++) {
+            res += one[i]*one[i];
+        }
     }
+    
     return sqrt(res);
 }
 

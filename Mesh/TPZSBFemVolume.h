@@ -15,6 +15,8 @@
 #include "pzinterpolationspace.h"
 #include "TPZMaterialDataT.h"
 
+class TPZSBFemElementGroup;
+
 class TPZSBFemVolume : public TPZInterpolationSpace
 {
 protected:
@@ -22,11 +24,11 @@ protected:
     int64_t fElementGroupIndex = -1;
     
     /// pointer to the element group computational element
-    TPZCompEl *fElementGroup = 0;
+    TPZSBFemElementGroup *fElementGroup = 0;
     
-    /// index of the skeleton element
-    int64_t fSkeleton = -1;
-    
+    /// the skeleton element
+    TPZCompEl *fSkeleton = 0;
+
     /// pointer to the integration rule
     TPZIntPoints *fIntRule = 0;
     
@@ -63,6 +65,12 @@ protected:
     /// adjust the axes and jacobian of the 3D element
     void AdjustAxes3D(const TPZFMatrix<REAL> &axes2D, TPZFMatrix<REAL> &axes3D, TPZFMatrix<REAL> &jac3D, TPZFMatrix<REAL> &jacinv3D, REAL detjac);
 public:
+    /// @brief Compute the shape function of the eigenvalue basis at the given point in parameter space
+    void ComputeEigenShape(TPZVec<REAL> &qsi, TPZFMatrix<CSTATE> &phi, TPZFMatrix<CSTATE> &dphidx);
+
+    /// @brief Compute the complex shape function values at the given point in parameter space associated with the bubbles
+    void ComputeBubbleShape(TPZVec<REAL> &qsi, TPZFMatrix<CSTATE> &phi, TPZFMatrix<CSTATE> &dphidx);
+
     
     TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel);
     
@@ -75,11 +83,20 @@ public:
     void ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMatrixT<STATE> &E1, TPZElementMatrixT<STATE> &E2, TPZElementMatrixT<STATE> &M0);
     
     /// Data structure initialization
+    void SetSkeleton(TPZCompEl *skeleton);
     void SetSkeleton(int64_t skeleton);
+    
+    TPZCompEl *Skeleton()
+    {
+        return fSkeleton;
+    }
     
     int64_t SkeletonIndex()
     {
-        return fSkeleton;
+#ifdef PZDEBUG
+        if(!fSkeleton) DebugStop();
+#endif
+        return fSkeleton->Index();
     }
     
     /**
@@ -87,6 +104,16 @@ public:
      * of state variables and material definitions
      */
     virtual void InitMaterialData(TPZMaterialData &data) override;
+
+        //@{
+	/** @brief Compute and fill data with requested attributes */
+	virtual void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
+									 TPZVec<REAL> &qsi) override;
+    virtual void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
+									 TPZVec<REAL> &qsi) override {
+        DebugStop();
+    }
+        //@}
 
     /// Initialize the data structure indicating the group index
     void SetElementGroupIndex(int64_t index);
@@ -102,6 +129,15 @@ public:
     int64_t ElementGroupIndex() const
     {
         return fElementGroupIndex;
+    }
+
+    TPZSBFemElementGroup *ElementGroup() const
+    {
+        if(fElementGroup == 0)
+        {
+            DebugStop();
+        }
+        return fElementGroup;
     }
     /**
      * @brief Method for creating a copy of the element in a patch mesh
@@ -129,7 +165,8 @@ public:
         if (fElementGroup == 0) {
             return 0;
         }
-        return fElementGroup->NConnects();
+        TPZCompEl *cel = (TPZCompEl *) fElementGroup;
+        return cel->NConnects();
     }
     
     /**
@@ -141,7 +178,8 @@ public:
         if (fElementGroup == 0) {
             DebugStop();
         }
-        return fElementGroup->ConnectIndex(i);
+        TPZCompEl *cel = (TPZCompEl *) fElementGroup;
+        return cel->ConnectIndex(i);
     }
     /** @brief Dimension of the element */
     virtual int Dimension() const override
@@ -251,6 +289,8 @@ public:
     virtual void SetPreferredOrder ( int order ) override;
     
 
+    /// maximum order of the connects
+    int MaxOrder() override;
 
     /// initialize the data structures of the eigenvectors and eigenvalues associated with this volume element
     void SetPhiEigVal(TPZFMatrix<std::complex<double> > &phi, TPZManVector<std::complex<double> > &eigval);
@@ -258,6 +298,11 @@ public:
     TPZFMatrix<std::complex<double> > Phi()
     {
         return fPhi;
+    }
+    
+    TPZFMatrix<std::complex<double> > PhiBubble()
+    {
+        return fPhiBubble;
     }
     
     TPZManVector<std::complex<double> > Eigenvalues()
@@ -269,7 +314,15 @@ public:
     {
         return fCoeficients;
     }
+
+    /// @brief access method for the Phi matrix
+    TPZFMatrix<std::complex<double> > &GetPhi()
+    {
+        return fPhi;
+    }
     
+    /// @brief access method for real part of phi matrix
+    /// @return real part of phi matrix
     TPZFMatrix<double> PhiReal()
     {
         int64_t rows = fPhi.Rows(),cols = fPhi.Cols();
@@ -318,6 +371,9 @@ public:
 protected:
     //! Compute solution based on a filled TPZMaterialData
     void ReallyComputeSolution(TPZMaterialDataT<STATE>&) override;
+
+    /// Return the Computational Skeleton element
+    TPZInterpolatedElement *SkeletonElement();
 public:
     
     void EvaluateError(TPZVec<REAL> &errors,bool store_error) override;
@@ -383,7 +439,15 @@ public:
     
     void CreateGraphicalElement(TPZGraphMesh &, int) override;
 
-    void LocalBodyForces(TPZFNMatrix<100,std::complex<REAL>> &f, TPZFNMatrix<100,std::complex<REAL>> &fbubble, TPZManVector<std::complex<REAL>> &eigval, TPZManVector<std::complex<REAL>> &eigvalbubble, int icon);
+    /// @brief Compute the contribution of the element to the body forces, separating eigenvalue functions from bubble functions contribution
+    void LocalBodyForces(TPZFNMatrix<100,std::complex<REAL>> &feigen, TPZFNMatrix<100,std::complex<REAL>> &fbubble, TPZManVector<std::complex<REAL>> &eigval, TPZManVector<std::complex<REAL>> &eigvalbubble, int icon);
+    /// @brief Compute the contribution of the element of the body forces using the computation of the shape functions as basis
+    void LocalBodyForces2(TPZFNMatrix<100,std::complex<REAL>> &feigen, TPZFNMatrix<100,std::complex<REAL>> &fbubble);
+    /// @brief Compute the contribution of the element of the body forces for the eigenmodes
+    void LocalBodyForcesEigen(TPZFNMatrix<100,std::complex<REAL>> &feigen);
+    /// @brief Compute the contribution of the element of the body forces for the bubble functions
+    void LocalBodyForcesBubble(TPZFNMatrix<100,std::complex<REAL>> &fbubble);
+
 
     void ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
                                     TPZSolVec<STATE> &sol, TPZGradSolVec<STATE> &dsol, TPZFMatrix<REAL> &axes);
@@ -391,6 +455,8 @@ public:
     void SetCoefNonHomogeneous(TPZFNMatrix<100,std::complex<double>> &phi, TPZManVector<std::complex<double> > &eigval, TPZFNMatrix<100,std::complex<double> > &phiinv, TPZFNMatrix<100,std::complex<double> > &rot);
 
 
+    /// @brief Compute the stiffness contribution using numerical integration for Laplace equation
+    void StiffnessMatrix(TPZFMatrix<CSTATE> &stiffeig, TPZFMatrix<CSTATE> &stiffbubble);
 };
 
 

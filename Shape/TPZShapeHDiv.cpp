@@ -11,6 +11,13 @@
 #include "pzgeoel.h"
 #include "pzgnode.h"
 #include "TPZShapeData.h"
+#include "pzlog.h"
+
+#ifdef PZ_LOG
+static TPZLogger logger("pz.shapehdiv");
+#endif
+
+
 
 template<class TSHAPE>
 TPZShapeHDiv<TSHAPE>::TPZShapeHDiv()
@@ -27,9 +34,9 @@ void TPZShapeHDiv<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
     
         
     data.fCornerNodeIds = ids;
-    data.fSideOrient = sideorient;
+    data.fHDiv.fSideOrient = sideorient;
     const int ncon = TSHAPE::NFacets+1;
-    //data.fHDivConnectOrders = connectorders;TODOPHIL
+    //data.fHDiv.fConnectOrders = connectorders;TODOPHIL
     int scalarorder = connectorders[TSHAPE::NFacets]+1;
     TPZManVector<int,27> scalarOrders(TSHAPE::NSides-TSHAPE::NCornerNodes,scalarorder);
     
@@ -37,31 +44,39 @@ void TPZShapeHDiv<TSHAPE>::Initialize(const TPZVec<int64_t> &ids,
     TPZShapeH1<TSHAPE>::Initialize(data.fCornerNodeIds, scalarOrders, data);
     if(connectorders.size() != TSHAPE::NFacets+1) DebugStop();
     
-    data.fHDivConnectOrders = connectorders;
+    data.fHDiv.fConnectOrders = connectorders;
 
-    data.fHDivNumConnectShape.Resize(TSHAPE::NFacets+1);
+    data.fHDiv.fNumConnectShape.Resize(TSHAPE::NFacets+1);
     int nShape = 0;
     for (int i = 0; i < TSHAPE::NFacets+1; i++)
     {
-        int order = data.fHDivConnectOrders[i];
-        data.fHDivNumConnectShape[i] = ComputeNConnectShapeF(i,order);
-        nShape += data.fHDivNumConnectShape[i];
+        int order = data.fHDiv.fConnectOrders[i];
+        data.fHDiv.fNumConnectShape[i] = ComputeNConnectShapeF(i,order);
+        nShape += data.fHDiv.fNumConnectShape[i];
     }
     
-    data.fSDVecShapeIndex.Resize(nShape);
+    data.fHDiv.fSDVecShapeIndex.Resize(nShape);
 
     ComputeMasterDirections(data);
     ComputeVecandShape(data);
     
     //Checks if the last connect order is >= then the other connects
-    int size = data.fHDivConnectOrders.size();
-    int maxOrder = data.fHDivConnectOrders[size-1];
+    int size = data.fHDiv.fConnectOrders.size();
+    int maxOrder = data.fHDiv.fConnectOrders[size-1];
     for (int i = 0; i < size-1; i++)
     {
-        if (data.fHDivConnectOrders[i] > maxOrder){
+        if (data.fHDiv.fConnectOrders[i] > maxOrder){
             DebugStop();
         }
-    }    
+    }
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
+    {
+        std::stringstream sout;
+        data.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 }
 
 template<class TSHAPE>
@@ -69,12 +84,12 @@ void TPZShapeHDiv<TSHAPE>::ComputeMasterDirections(TPZShapeData &data)
 {
     int64_t numvec = TSHAPE::Dimension*TSHAPE::NSides;
     const int dim = TSHAPE::Dimension;
-    data.fMasterDirections.Resize(3,numvec);
+    data.fHDiv.fMasterDirections.Resize(3,numvec);
     TPZFNMatrix<9,REAL> gradx(3,TSHAPE::Dimension,0.);
     for (int i = 0; i < TSHAPE::Dimension; i++) {
         gradx(i,i) = 1.;
     }
-    TSHAPE::ComputeHDivDirections(gradx, data.fMasterDirections);
+    TSHAPE::ComputeHDivDirections(gradx, data.fHDiv.fMasterDirections);
     
     int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
     int lastface = TSHAPE::NSides - 1;
@@ -86,7 +101,7 @@ void TPZShapeHDiv<TSHAPE>::ComputeMasterDirections(TPZShapeData &data)
         {
             for (int il = 0; il<dim; il++)
             {
-              data.fMasterDirections(il,ivet+cont) *= data.fSideOrient[side-firstface];
+              data.fHDiv.fMasterDirections(il,ivet+cont) *= data.fHDiv.fSideOrient[side-firstface];
             }
         }
         cont += nvec;
@@ -104,14 +119,14 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
 
     TSHAPE::GetSideHDivDirections(VectorSides,directions,bilinear,normalsides);
 
-    if (data.fSDVecShapeIndex.size() == 0) {
+    if (data.fHDiv.fSDVecShapeIndex.size() == 0) {
         DebugStop();
     }
     
-    // const int pressureorder = data.fHDivConnectOrders[TSHAPE::NFacets];//TODOPHIL
-    const int pressureorder = data.fHDivConnectOrders[TSHAPE::NFacets];
+    // const int pressureorder = data.fHDiv.fConnectOrders[TSHAPE::NFacets];//TODOPHIL
+    const int pressureorder = data.fHDiv.fConnectOrders[TSHAPE::NFacets];
 
-    int nshape = TSHAPE::NShapeF(data.fH1ConnectOrders);
+    int nshape = TSHAPE::NShapeF(data.fH1.fConnectOrders);
 
     int nexternalvectors = 0;
     TPZManVector<int> facevector(VectorSides.size(),TSHAPE::NSides-1);
@@ -145,16 +160,25 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
         vecpermute[count] = count;
     }
     TPZGenMatrix<int> shapeorders(nshape,3);
-    TSHAPE::ShapeOrder(data.fCornerNodeIds, data.fH1ConnectOrders, shapeorders);
+    TPZShapeH1<TSHAPE>::ShapeOrders(shapeorders,data);
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
+    {
+        std::stringstream sout;
+        shapeorders.Print("shapeorders",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+//    TSHAPE::ShapeOrder(data.fCornerNodeIds, data.fH1.fConnectOrders, shapeorders);
 
 //    int nshapeflux = NFluxShapeF();
 //    IndexVecShape.Resize(nshapeflux);
 
-    int scalarorder = data.fHDivConnectOrders[TSHAPE::NFacets]+1;
+    int scalarorder = data.fHDiv.fConnectOrders[TSHAPE::NFacets]+1;
     // VectorSide indicates the side associated with each vector entry
     TPZManVector<int64_t,27> FirstIndex(TSHAPE::NSides+1);
     // the first index of the shape functions
-    FirstShapeIndex(FirstIndex,scalarorder);
+    FirstShapeIndex(FirstIndex,data.fH1.fConnectOrders);
 
     int64_t nvec = VectorSides.NElements();
     count = 0;
@@ -167,8 +191,8 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
 //        int connectindex = SideConnectLocId(0, face);
         int connectindex = face-firstface;
 //        int order = this->Connect(connectindex).Order();
-        //int order = data.fHDivConnectOrders[connectindex];
-        int order = data.fHDivConnectOrders[connectindex];//TODOPHIL
+        //int order = data.fHDiv.fConnectOrders[connectindex];
+        int order = data.fHDiv.fConnectOrders[connectindex];//TODOPHIL
 
         int firstshape = FirstIndex[side];
         int lastshape = FirstIndex[side+1];
@@ -184,7 +208,7 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
             }
             if (include)
             {
-                data.fSDVecShapeIndex[count] = std::make_pair(ivec, ish);
+                data.fHDiv.fSDVecShapeIndex[count] = std::make_pair(ivec, ish);
                 count++;
             }
         }
@@ -201,12 +225,22 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
         int firstshape = FirstIndex[side];
         int lastshape = FirstIndex[side+1];
 
+        // Check if the vector is horizontal (z=0)
+        bool isHorizontal = std::abs(data.fHDiv.fMasterDirections(2,ivec)) <= 1e-10;
+
         for (int ish = firstshape; ish<lastshape; ish++) {
             int sidedimension = TSHAPE::SideDimension(side);
             int maxorder[3] = {pressureorder,pressureorder,pressureorder};
             if (bil) {
                 maxorder[dir]++;
             }
+
+            // Increase maxorder for horizontal directions in prisms
+            if (tipo == EPrisma && isHorizontal) {
+                maxorder[0]++;
+                maxorder[1]++;
+            }
+
             int shord[3] = {0};
             int include=true;
             for (int d=0; d<sidedimension; d++)
@@ -262,13 +296,13 @@ void TPZShapeHDiv<TSHAPE>::ComputeVecandShape(TPZShapeData &data) {
             }
             if (include)
             {
-                data.fSDVecShapeIndex[count] = std::make_pair(ivec, ish);
+                data.fHDiv.fSDVecShapeIndex[count] = std::make_pair(ivec, ish);
                 count++;
             }
         }
     }
 
-    int ivs =  data.fSDVecShapeIndex.size();
+    int ivs =  data.fHDiv.fSDVecShapeIndex.size();
     if (count != ivs) {
         std::cout<<"count "<<count
                  <<"\nivs "<<ivs<<std::endl;
@@ -295,41 +329,73 @@ void TPZShapeHDiv<TSHAPE>::FillOrderScalarShapeFunctions(const TPZVec<int> &conn
     
 
 template<class TSHAPE>
-void TPZShapeHDiv<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &divphi)
+void TPZShapeHDiv<TSHAPE>::Shape(const TPZVec<REAL> &pt, TPZShapeData &data, TPZFMatrix<REAL> &phiHDiv, TPZFMatrix<REAL> &divphi)
 {
     
-    divphi.Resize(data.fSDVecShapeIndex.size(),1);
+    divphi.Resize(data.fHDiv.fSDVecShapeIndex.size(),1);
     divphi.Zero();
-    phi.Resize(TSHAPE::Dimension,data.fSDVecShapeIndex.size());
-    phi.Zero();
+    phiHDiv.Resize(TSHAPE::Dimension,data.fHDiv.fSDVecShapeIndex.size());
+    phiHDiv.Zero();
 
     const int ncorner = TSHAPE::NCornerNodes;
     const int nsides = TSHAPE::NSides;
     const int dim = TSHAPE::Dimension;
-    TPZShapeH1<TSHAPE>::Shape(pt,data);
-    for(int i = 0; i< data.fSDVecShapeIndex.size(); i++)
+    TPZFNMatrix<9,REAL> phi,dphi;
+    TPZShapeH1<TSHAPE>::Shape(pt,data,data.fH1.fPhi,data.fH1.fDPhi);
+    for(int i = 0; i< data.fHDiv.fSDVecShapeIndex.size(); i++)
     {
-        auto it = data.fSDVecShapeIndex[i];
+        auto it = data.fHDiv.fSDVecShapeIndex[i];
         int vecindex = it.first;
         int scalindex = it.second;
         divphi(i,0) = 0.;
         for(int d = 0; d<TSHAPE::Dimension; d++)
         {
-            phi(d,i) = data.fPhi(scalindex,0)*data.fMasterDirections(d,vecindex);
-            divphi(i,0) += data.fDPhi(d,scalindex)*data.fMasterDirections(d,vecindex);
+            phiHDiv(d,i) = data.fH1.fPhi(scalindex,0)*data.fHDiv.fMasterDirections(d,vecindex);
+            divphi(i,0) += data.fH1.fDPhi(d,scalindex)*data.fHDiv.fMasterDirections(d,vecindex);
         }
     }
 }
 
 template<class TSHAPE>
-void TPZShapeHDiv<TSHAPE>::FirstShapeIndex(TPZVec<int64_t> &Index, int &scalarorders) {
+void TPZShapeHDiv<TSHAPE>::Shape(const TPZVec<Fad<REAL>> &pt, TPZShapeData &data, TPZFMatrix<Fad<REAL>> &phi, TPZFMatrix<Fad<REAL>> &divphi)
+{
+    divphi.Resize(data.fHDiv.fSDVecShapeIndex.size(),1);
+    divphi.Zero();
+    phi.Resize(TSHAPE::Dimension,data.fHDiv.fSDVecShapeIndex.size());
+    phi.Zero();
+    int fadsize = pt[0].size();
+
+    const int ncorner = TSHAPE::NCornerNodes;
+    const int nsides = TSHAPE::NSides;
+    const int dim = TSHAPE::Dimension;
+    TPZFNMatrix<9,Fad<REAL>> locphi(data.fH1.fPhi.Rows(),1),dphi(TSHAPE::Dimension,data.fH1.fPhi.Rows());
+    TPZShapeH1<TSHAPE>::Shape(pt,data, locphi, dphi);
+    for(int i = 0; i< data.fHDiv.fSDVecShapeIndex.size(); i++)
+    {
+        auto it = data.fHDiv.fSDVecShapeIndex[i];
+        int vecindex = it.first;
+        int scalindex = it.second;
+        divphi(i,0) = Fad<REAL>(fadsize,0.);
+        for(int d = 0; d<TSHAPE::Dimension; d++)
+        {
+            phi(d,i) = locphi(scalindex,0)*data.fHDiv.fMasterDirections(d,vecindex);
+            divphi(i,0) += dphi(d,scalindex)*data.fHDiv.fMasterDirections(d,vecindex);
+        }
+    }
+
+}
+
+
+
+template<class TSHAPE>
+void TPZShapeHDiv<TSHAPE>::FirstShapeIndex(TPZVec<int64_t> &Index, const TPZVec<int> &scalarorders) {
     Index[0] = 0;
 
     for(int iside=0;iside<TSHAPE::NSides;iside++)
     {
         int sideorder = 1;
         if (iside >= TSHAPE::NCornerNodes) {
-            sideorder = scalarorders;
+            sideorder = scalarorders[iside-TSHAPE::NCornerNodes];
         }
         int temp = Index[iside] + TSHAPE::NConnectShapeF(iside,sideorder);
         Index[iside+1] = temp;
@@ -395,15 +461,15 @@ void TPZShapeHDiv<TSHAPE>::HDivPermutation(MElementType eltype, const TPZVec<int
 template<class TSHAPE>
 int TPZShapeHDiv<TSHAPE>::NConnectShapeF(int connect,const TPZShapeData &shapedata)
 {
-    return shapedata.fHDivNumConnectShape[connect];
+    return shapedata.fHDiv.fNumConnectShape[connect];
 }
 
 template<class TSHAPE>
 int TPZShapeHDiv<TSHAPE>::NShapeF(const TPZShapeData &shapedata)
 {
-    int nconnect = shapedata.fHDivNumConnectShape.size();
+    int nconnect = shapedata.fHDiv.fNumConnectShape.size();
     int nshape = 0;
-    for(int ic = 0; ic<nconnect; ic++) nshape += shapedata.fHDivNumConnectShape[ic];
+    for(int ic = 0; ic<nconnect; ic++) nshape += shapedata.fHDiv.fNumConnectShape[ic];
     return nshape;
 }
 
@@ -416,7 +482,7 @@ int TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
         DebugStop();
     }
 #endif
-    // int order = data.fHDivConnectOrders[connect];
+    // int order = data.fHDiv.fConnectOrders[connect];
     MElementType thistype = TSHAPE::Type();
 
     if(thistype == EOned)
@@ -441,9 +507,20 @@ int TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
     }
     else if(thistype == EPrisma)
     {
-        if(connect == 0 || connect == 4) return (order+1)*(order+2)/2;
-        else if(connect < TSHAPE::NFacets) return (order+1)*(order+1);
-        else return order*order*(3*order+5)/2+7*order-2;
+        if(connect == 0 || connect == 4) 
+        {
+            return (order+1)*(order+2)/2;
+        } else if(connect < TSHAPE::NFacets) {
+             return (order+1)*(order+1);
+        } else {
+            int edge = order;
+            int faceTrig = (order)*(order-1)/2 * 2;
+            int faceQuad = (order)*(order-1) * 2;
+            int internalXY = order*(order-1)*(order-1);
+            int internalZ = order*(order-1)*(order-2)/2;
+            int total = 9*edge + 2*faceTrig + 3*faceQuad + internalXY + internalZ;
+            return total;
+        }
     }
     else if(thistype == ECube)
     {

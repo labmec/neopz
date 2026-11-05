@@ -43,9 +43,9 @@ TPZIntelGen<TSHAPE>(mesh,gel,1), fhcurlfam(hcurlfam)
 template<class TSHAPE>
 TPZCompElHCurl<TSHAPE>::TPZCompElHCurl(TPZCompMesh &mesh, const TPZCompElHCurl<TSHAPE> &copy) :
 TPZRegisterClassId(&TPZCompElHCurl::ClassId),
-TPZIntelGen<TSHAPE>(mesh,copy), fhcurlfam(copy.fhcurlfam)
-{
-
+TPZIntelGen<TSHAPE>(mesh,copy), fhcurlfam(copy.fhcurlfam),
+fConnectIndexes(copy.fConnectIndexes)
+{    
 }
 
 template<class TSHAPE>
@@ -56,6 +56,7 @@ TPZCompElHCurl<TSHAPE>::TPZCompElHCurl(TPZCompMesh &mesh,
 TPZRegisterClassId(&TPZCompElHCurl::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fhcurlfam(copy.fhcurlfam)
 {
+  DebugStop();//never tested, better safe than sorry
 	int i;
 	for(i=0;i<NConnects();i++)
 	{
@@ -151,29 +152,11 @@ int TPZCompElHCurl<TSHAPE>::SideConnectLocId(int con,int side) const {
         return -1;
     }
 #endif
-    int conSide = -1;
-    TPZStack<int> sideClosure;
-    TSHAPE::LowerDimensionSides(side,sideClosure);
-    sideClosure.Push(side);
-    int iCon = -1;
-    for(auto &subSide :sideClosure){
-        if(TSHAPE::SideDimension(subSide)) iCon++;
-        if(iCon == con) {
-            conSide = subSide;
-            break;
-        }
-    }
-    if(conSide<0){
-        std::stringstream sout;
-        sout << __PRETTY_FUNCTION__ << " ERROR: could not find subside associated with connect "<<con<<" on side "<<side << std::endl;
-        PZError<<sout.str();
-#ifdef PZ_LOG
-        LOGPZ_ERROR(logger,sout.str())
-#endif
-        DebugStop();
-        return -1;
-    }
-    return conSide-TSHAPE::NCornerNodes;
+
+    const auto nnodes = TSHAPE::NCornerNodes;
+    const auto nsidenodes = TSHAPE::NSideNodes(side);
+    const auto locside = TSHAPE::ContainedSideLocId(side,nsidenodes+con);
+    return locside - nnodes;
 }
 
 template<class TSHAPE>
@@ -188,14 +171,9 @@ int TPZCompElHCurl<TSHAPE>::NSideConnects(int side) const{
 #endif
     }
 #endif
-    int nCons = 0;
-    TPZStack<int> sideClosure;
-    TSHAPE::LowerDimensionSides(side,sideClosure);
-    sideClosure.Push(side);
-    for(auto &subSide :sideClosure){
-        if(TSHAPE::SideDimension(subSide)) nCons++;
-    }
-    return nCons;
+    const auto nsidenodes = TSHAPE::NSideNodes(side);
+    const auto nsidesides = TSHAPE::NContainedSides(side);
+    return nsidesides - nsidenodes;
 }
 
 template<class TSHAPE>
@@ -269,21 +247,7 @@ int TPZCompElHCurl<TSHAPE>::ConnectOrder(int connect) const {
 template<class TSHAPE>
 int TPZCompElHCurl<TSHAPE>::EffectiveSideOrder(int side) const{
 	if(!NSideConnects(side)) return -1;
-	const auto connect = this->MidSideConnectLocId( side);
-	if(connect >= 0 || connect < NConnects()){
-        return ConnectOrder(connect);
-	}
-    else{
-        std::stringstream sout;
-        sout << __PRETTY_FUNCTION__<<std::endl;
-        sout << "Connect index out of range connect " << connect << " nconnects " << NConnects();
-        PZError<<sout.str()<<std::endl;
-#ifdef PZ_LOG
-        LOGPZ_ERROR(logger, sout.str())
-#endif
-        DebugStop();
-    }
-	return -1;
+  return ConnectOrder(side-TSHAPE::NCornerNodes);
 }
 
 template<class TSHAPE>
@@ -310,25 +274,12 @@ void TPZCompElHCurl<TSHAPE>::SetSideOrder(int side, int order){
     TPZConnect &c = this->Connect(connect);
     c.SetOrder(order,this->fConnectIndexes[connect]);
     int64_t seqnum = c.SequenceNumber();
-    const int nStateVars = [&](){
-        TPZMaterial * mat =this-> Material();
-        if(mat) return mat->NStateVariables();
-        else {
-#ifdef PZ_LOG
-            std::stringstream sout;
-            sout << __PRETTY_FUNCTION__<<"\tAssuming only one state variable since no material has been set";
-            LOGPZ_DEBUG(logger,sout.str())
-#endif
-            return 1;
-        }
-    }();
-    c.SetNState(nStateVars);
+    TPZMaterial * mat =this-> Material();
+    const int nvars = mat ? mat->NStateVariables() : 1;
+    c.SetNState(nvars);
     const int nshape =this->NConnectShapeF(connect,order);
     c.SetNShape(nshape);
-    this-> Mesh()->Block().Set(seqnum,nshape*nStateVars);
-    this->AdjustIntegrationRule();
-    //for the hcurl and hdiv spaces to be compatible, the approximation order of a face must be max(k,ke), where
-    //k is the (attempted) order of the face, and ke the maximum order of the edges contained in it.
+    this->Mesh()->Block().Set(seqnum,nshape*nvars);
 }
 
 template<class TSHAPE>
@@ -348,7 +299,7 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
         ids[i] = ref->NodePtr(i)->Id();
     }
     
-    auto &conOrders = shapedata.fHDivConnectOrders;
+    auto &conOrders = shapedata.fHCurl.fConnectOrders;
     constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
     conOrders.Resize(nConnects,-1);
     for(auto i = 0; i < nConnects; i++){
@@ -370,12 +321,13 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
     //resizing of TPZMaterialData structures
 
     constexpr int dim = TSHAPE::Dimension;
-    constexpr int curldim = [dim](){
-        if constexpr (dim == 1) return 1;
-        else{
-            return 2*dim - 3;//1 for 2D 3 for 3D
-        }
-    }();
+    constexpr int curldim = dim == 1 ? 1 : 2 * dim - 3;
+//        [dim](){
+//        if constexpr (dim == 1) return 1;
+//        else{
+//            return 2*dim - 3;//1 for 2D 3 for 3D
+//        }
+//    }();
     const int nshape = this->NShapeF();
     
     auto &phi = data.phi;
@@ -406,16 +358,17 @@ template<class TSHAPE>
 void TPZCompElHCurl<TSHAPE>::ComputeShape(TPZVec<REAL> &qsi, TPZMaterialData &data) {
 
     constexpr int dim = TSHAPE::Dimension;
-    constexpr int curldim = [dim](){
-        if constexpr (dim == 1) return 1;
-        else{
-            return 2*dim - 3;//1 for 2D 3 for 3D
-        }
-    }();
+    constexpr int curldim = dim == 1 ? 1 : 2 * dim - 3;
+//        [dim](){
+//        if constexpr (dim == 1) return 1;
+//        else{
+//            return 2*dim - 3;//1 for 2D 3 for 3D
+//        }
+//          }();
 
     const int nshape = this->NShapeF();
-    TPZFNMatrix<dim*80,REAL> phiref(dim,nshape);
-    TPZFNMatrix<curldim*80,REAL> curlphiref(curldim,nshape);
+    TPZFNMatrix<dim*80,REAL> phiref(dim,nshape,0.);
+    TPZFNMatrix<curldim*80,REAL> curlphiref(curldim,nshape,0.);
 
     TPZShapeData &shapedata = data;
     switch (fhcurlfam)
@@ -471,12 +424,13 @@ void TPZCompElHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZF
 
     constexpr int dim = TSHAPE::Dimension;
 
-    constexpr int curldim = [dim](){
-        if constexpr (dim == 1) return 1;
-        else{
-            return 2*dim - 3;//1 for 2D 3 for 3D
-        }
-    }();
+    constexpr int curldim = dim == 1 ? 1 : 2 * dim - 3;
+//        [dim](){
+//        if constexpr (dim == 1) return 1;
+//        else{
+//            return 2*dim - 3;//1 for 2D 3 for 3D
+//        }
+//    }();
     
     phi.Redim(dim,nShape);
     dphi.Redim(curldim, nShape);
@@ -556,8 +510,8 @@ void TPZCompElHCurl<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZF
         }
     }();
     
-    TPZFMatrix<REAL> phiref(sidedim,nshape);
-    TPZFMatrix<REAL> curlphiref(curldim,nshape);
+    TPZFNMatrix<1000, REAL> phiref(sidedim,nshape,0.);
+    TPZFNMatrix<1000, REAL> curlphiref(curldim,nshape,0.);
     
     switch(sidetype){
     case EOned:
@@ -577,7 +531,7 @@ void TPZCompElHCurl<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZF
 
     //get the jacobian of the side transformation
     TPZGeoElSide gelside = TPZGeoElSide(this->Reference(),side);
-    TPZFNMatrix<9,REAL> jac(sideDim,sideDim),jacinv(sideDim,sideDim),axes(sideDim,3);
+    TPZFNMatrix<9,REAL> jac(sideDim,sideDim,0.),jacinv(sideDim,sideDim,0.),axes(sideDim,3,0.);
     REAL detjac = 0;
     gelside.Jacobian(point, jac, axes, detjac, jacinv);
 
@@ -610,11 +564,17 @@ void TPZCompElHCurl<TSHAPE>::TransformShape(const TPZFMatrix<REAL> &phiref,
 {
 
     //applies covariant piola transform and compute the deformed vectors
-    TPZFMatrix<REAL> axest, jacinvt;
+    TPZFNMatrix<9,REAL> axest, jacinvt;
     jacinv.Transpose(&jacinvt);
     axes.Transpose(&axest);
 
-    (axest * (jacinvt * phiref)).Transpose(&phi);
+    //2000 should take care of up to a 6th order tetrahedral el
+    TPZFNMatrix<2000,REAL> tmp1,tmp2;
+    //we want to do (axest * (jacinvt * phiref)).Transpose(&phi);
+    //with no mem alloc
+    jacinvt.Multiply(phiref, tmp1);
+    axest.Multiply(tmp1,tmp2);
+    tmp2.Transpose(&phi);
 }
 
 template<class TSHAPE>
@@ -625,7 +585,7 @@ void TPZCompElHCurl<TSHAPE>::TransformCurl(const TPZFMatrix<REAL> &curlphiref,
                                            TPZFMatrix<REAL> &curlphi)
 {
     if constexpr(TDIM==3){
-        curlphi = jacobian * curlphiref;
+        jacobian.Multiply(curlphiref, curlphi);
         curlphi *= 1./detjac;
     }else {
         curlphi = curlphiref;
@@ -638,7 +598,7 @@ template<class TSHAPE>
 void TPZCompElHCurl<TSHAPE>::CreateHCurlConnects(TPZCompMesh &mesh){
     constexpr int nNodes = TSHAPE::NCornerNodes;
     constexpr int nConnects = TSHAPE::NSides - nNodes;
-    this->fConnectIndexes.Resize(nConnects);
+    
     for(auto i = 0; i < nConnects; i++){
         const int sideId = nNodes + i;
         this->fConnectIndexes[i] = this->CreateMidSideConnect(sideId);
@@ -658,7 +618,8 @@ void TPZCompElHCurl<TSHAPE>::CreateHCurlConnects(TPZCompMesh &mesh){
 }
 
 template<class TSHAPE>
-void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) {
+template<class TVar>
+void TPZCompElHCurl<TSHAPE>::RestrainSideT(int side, TPZInterpolatedElement *large, int neighbourside) {
     const TPZCompElSide thisCompSide(this, side);
     const TPZCompElSide largeCompSide(large, neighbourside);
     TPZGeoElSide thisGeoSide(this->Reference(), side);
@@ -710,7 +671,7 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
     if (sideOrder < largeOrder && thisSideDimension && largeSideDimension) {
         DebugStop();
     }
-    TPZIntPoints *intrule = this->Reference()->CreateSideIntegrationRule(side, maxord * 2);
+    TPZIntPoints *intrule = this->Reference()->CreateSideIntegrationRule(side, (maxord+1) * 2);
     if (!intrule) {
         LOGPZ_ERROR(logger, "Exiting RestrainSide - cannot create side integration rule");
         return;
@@ -767,6 +728,7 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
 
     MSolve.Solve(MSL, MSL);
 
+    
     const auto thisNumSideNodes = NSideConnects(side);
     const auto largeNumSideNodes = large->NSideConnects(neighbourside);
     TPZBlock MBlocksmall(0, thisNumSideNodes), MBlocklarge(0, largeNumSideNodes);
@@ -822,13 +784,29 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
         DebugStop();
     }
 #endif
+    TPZFNMatrix<1000, TVar> MSLdep;
+    if constexpr (std::is_same_v<TVar,REAL>){
+        MSLdep = MSL;
+    }else{
+        const int nr = MSL.Rows();
+        const int nc = MSL.Cols();
+        MSLdep.Resize(nr,nc);
+        auto *my_ptr = MSLdep.Elem();
+        auto *their_ptr = MSL.Elem();
+        for(int i = 0; i < nr*nc;i++){
+            *my_ptr++ = *their_ptr++;
+        }
+    }
+    
     for (auto jn = 0; jn < largeNumSideNodes; jn++) {
         if (MBlocksmall.Size(in) == 0 || MBlocklarge.Size(jn) == 0) {
             continue;
         }
         int64_t jnodindex = large->SideConnectIndex(jn, neighbourside);
-        TPZConnect::TPZDepend *depend = inod.AddDependency(inodindex, jnodindex, MSL, MBlocksmall.Position(in), MBlocklarge.Position(jn),
-                                                           MBlocksmall.Size(in), MBlocklarge.Size(jn));
+        TPZConnect::TPZDepend<TVar> *depend =
+            inod.AddDependency(inodindex, jnodindex, MSLdep,
+                               MBlocksmall.Position(in), MBlocklarge.Position(jn),
+                               MBlocksmall.Size(in), MBlocklarge.Size(jn));
         if (blocknorm(in, jn) < 1.e-8) {
             depend->fDepMatrix.Zero();
         }
@@ -839,7 +817,7 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
         for (auto jn = 0; jn < largeNumSideNodes; jn++) {
             int64_t jnodindex = large->SideConnectIndex(jn, neighbourside);
             if (MBlocklarge.Size(jn)) {
-                inod.AddDependency(inodindex, jnodindex, MSL, MBlocksmall.Position(in), MBlocklarge.Position(jn),
+                inod.AddDependency(inodindex, jnodindex, MSLdep, MBlocksmall.Position(in), MBlocklarge.Position(jn),
                                    MBlocksmall.Size(in), MBlocklarge.Size(jn));
             }
             ndepend++;
@@ -906,21 +884,23 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
   const TPZFMatrix<REAL> &phiHCurl, const TPZFMatrix<REAL> &curlPhi,
     TPZSolVec<TVar> &sol, TPZSolVec<TVar> &curlSol)
 {
-    constexpr int dim = TSHAPE::Dimension;
-    constexpr int curlDim = [dim](){
-        if constexpr (dim == 1) return 1;
-        else{
-            return 2*dim - 3;//1 for 2D 3 for 3D
-        }
-    }();
+    constexpr int eldim = TSHAPE::Dimension;
+    constexpr int dim{3};
+    constexpr int curlDim = eldim == 1 ? 1 : 2 * eldim - 3;
+//        [dim](){
+//        if constexpr (dim == 1) return 1;
+//        else{
+//            return 2*dim - 3;//1 for 2D 3 for 3D
+//        }
+//    }();
     const int nVar = this->Material()->NStateVariables();
     const int nConnects = this->NConnects();
 
     TPZFMatrix<TVar> &meshSol = this->Mesh()->Solution();
 
-    long numberSol = meshSol.Cols();
+    const long numberSol = meshSol.Cols();
 #ifdef PZDEBUG
-    if (numberSol != 1 || nVar != 1) {
+    if (nVar != 1) {
         DebugStop();
     }
 #endif
@@ -929,7 +909,7 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
     curlSol.Resize(numberSol);
 
     for (long iSol = 0; iSol < numberSol; iSol++) {
-        sol[iSol].Resize(dim);
+        sol[iSol].Resize(3);
         sol[iSol].Fill(0);
         curlSol[iSol].Resize(curlDim);
         curlSol[iSol].Fill(0);
@@ -946,7 +926,7 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
         for (int jShape = 0; jShape < nShapeCon; jShape++) {
 
             for (long iSol = 0; iSol < numberSol; iSol++) {
-                for (int coord = 0; coord < dim; coord++) {
+                for (int coord = 0; coord < 3; coord++) {
                     sol[iSol][coord] +=
                             (TVar)meshSol(pos + jShape, iSol) * phiHCurl(ishape, coord);
                 }
@@ -985,59 +965,3 @@ IMPLEMENTHCURL(pzshape::TPZShapeTetra)
 IMPLEMENTHCURL(pzshape::TPZShapePrism)
 
 #undef IMPLEMENTHCURL
-
-
-#define HCURL_EL_NOT_AVAILABLE \
-    PZError<<__PRETTY_FUNCTION__;\
-    PZError<<"Element not available.\n";\
-    PZError<<"Aborting...\n";\
-    DebugStop();\
-    return nullptr;
-
-TPZCompEl *CreateHCurlBoundPointEl(TPZGeoEl *gel, TPZCompMesh &mesh){HCURL_EL_NOT_AVAILABLE}
-
-TPZCompEl *CreateHCurlBoundLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh, const HCurlFamily hcurlfam)
-{
-    return new TPZCompElHCurl<pzshape::TPZShapeLinear>(mesh, gel, hcurlfam);
-}
-
-TPZCompEl *CreateHCurlBoundQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh, const HCurlFamily hcurlfam)
-{
-    return new TPZCompElHCurl<pzshape::TPZShapeQuad>(mesh, gel, hcurlfam);
-}
-
-TPZCompEl *CreateHCurlLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh, const HCurlFamily hcurlfam)
-{
-    return new TPZCompElHCurl<pzshape::TPZShapeLinear>(mesh, gel, hcurlfam);
-}
-
-TPZCompEl *CreateHCurlTriangleEl(TPZGeoEl *gel, TPZCompMesh &mesh, const HCurlFamily hcurlfam)
-{
-    return new TPZCompElHCurl<pzshape::TPZShapeTriang>(mesh, gel, hcurlfam);
-}
-
-TPZCompEl *CreateHCurlQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh, const HCurlFamily hcurlfam)
-{
-    return new TPZCompElHCurl<pzshape::TPZShapeQuad>(mesh, gel, hcurlfam);
-}
-
-TPZCompEl *CreateHCurlTetraEl(TPZGeoEl *gel, TPZCompMesh &mesh, const HCurlFamily hcurlfam)
-{
-    return new TPZCompElHCurl<pzshape::TPZShapeTetra>(mesh, gel, hcurlfam);
-}
-
-TPZCompEl *CreateHCurlCubeEl(TPZGeoEl *gel, TPZCompMesh &mesh, const HCurlFamily hcurlfam)
-{
-    return new TPZCompElHCurl<pzshape::TPZShapeCube>(mesh, gel, hcurlfam);
-}
-
-TPZCompEl *CreateHCurlPrismEl(TPZGeoEl *gel, TPZCompMesh &mesh, const HCurlFamily hcurlfam)
-{
-    return new TPZCompElHCurl<pzshape::TPZShapePrism>(mesh, gel, hcurlfam);
-}
-
-TPZCompEl *CreateHCurlPyramEl(TPZGeoEl *gel, TPZCompMesh &mesh) {
-  HCURL_EL_NOT_AVAILABLE
-}
-
-#undef HCURL_EL_NOT_AVAILABLE

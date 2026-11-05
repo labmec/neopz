@@ -173,7 +173,8 @@ public:
     void ContributeBC(const TPZVec<TPZMaterialDataT<TVar>> &datavec, REAL weight,
                       TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef,
                       TPZBndCondT<TVar> &bc) override;
-    /** @brief This method should never be called. Throws.*/
+    
+    /** @brief This method passes the call to the associated material.*/
     virtual void Solution(const TPZVec<TPZMaterialDataT<TVar>> &datavec, int var,
                           TPZVec<TVar> &sol) override;
     /**

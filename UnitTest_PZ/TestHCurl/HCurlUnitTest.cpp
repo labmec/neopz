@@ -36,13 +36,17 @@ static TPZLogger logger("pz.mesh.testhcurl");
 #include "TPZLinearAnalysis.h"
 #include "pzintel.h"
 #include "TPZCompElHCurl.h"
+#include "TPZShapeHCurl.h"
 #include "pzgeotetrahedra.h"
 #include "pzgeoprism.h"
 #include "TPZGeoCube.h"
 #include "TPZVTKGeoMesh.h"
 
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
 
 #define REQUIRE_MESSAGE(cond, msg) do { INFO(msg); REQUIRE(cond); } while((void)0, 0)
 
@@ -59,6 +63,10 @@ namespace hcurltest{
      */
     template<class TSHAPE>
     void TestPermute(const int k);
+
+    template <class TSHAPE>
+    void TestEdgeCurl(const int pOrder);
+    
     /**
      * This unit test aims to verify the trace compatibility of the HCurl approximation space in a UNIFORM mesh.
      * @param type element type (triangle, quadrilateral, etc.
@@ -76,6 +84,26 @@ namespace hcurltest{
                          const TPZVec<REAL> &vec, const int sideDim, TPZVec<REAL> &elTrace, TPZVec<REAL> &neighTrace);
     
     void VectorProduct(const TPZVec<REAL> &, const TPZVec<REAL> &, TPZVec<REAL> &);
+
+    template<class TSHAPE>
+    void TestEnrichedHCurl(const int p_edge, const int p_face, const int p_vol);
+}
+
+
+TEMPLATE_TEST_CASE("test enriched shape hcurl","[hcurl_tests][shape]",
+                   pzshape::TPZShapeTriang,
+                   pzshape::TPZShapeQuad,
+                   pzshape::TPZShapeCube,
+                   pzshape::TPZShapeTetra,
+                   pzshape::TPZShapePrism){
+
+    for(int p_edge = 1; p_edge < 3; p_edge++){
+        for(int p_face = p_edge; p_face < 5; p_face++){
+            for(int p_vol = p_face; p_vol < 7; p_vol++){
+                hcurltest::TestEnrichedHCurl<TestType>(p_edge,p_face,p_vol);
+            }
+        }
+    }
 }
 
 TEMPLATE_TEST_CASE("test hcurl internal funcs under node permutation",
@@ -84,7 +112,7 @@ TEMPLATE_TEST_CASE("test hcurl internal funcs under node permutation",
                    pzshape::TPZShapeQuad
                    ){
 
-    auto k = GENERATE(1,2,3,4,5);
+    auto k = GENERATE(0,1,2,3,4);
     hcurltest::TestPermute<TestType>(k);
 }
 
@@ -96,8 +124,8 @@ TEST_CASE("Testing trace of HCurl functions",
     //     hcurltest::PrintShapeFunctions<pztopology::TPZQuadrilateral>(pOrder);
     // }
     
-    constexpr int pOrder{1};
-    constexpr int maxK{5};
+    constexpr int pOrder{0};
+    constexpr int maxK{4};
     auto meshType = GENERATE(MMeshType::ETriangular,
                              MMeshType::EQuadrilateral,
                              MMeshType::ETetrahedral,
@@ -109,11 +137,24 @@ TEST_CASE("Testing trace of HCurl functions",
     // SECTION("Vector traces"+MMeshType_Name(meshType)){
     //     hcurltest::TestVectorTracesUniformMesh(cmesh,meshType);
     // }
-    for(int k = 1; k < maxK; k++){
+    for(int k = 0; k < maxK; k++){
         SECTION("Funcion traces "+MMeshType_Name(meshType)+" p"+std::to_string(k)){
             hcurltest::TestFunctionTracesUniformMesh(cmesh,meshType,k);
         }
     }
+}
+
+TEMPLATE_TEST_CASE("Testing curl of high order HCurl functions",
+                   "[hcurl_tests][shape][topology][!mayfail]",
+                   pzshape::TPZShapeLinear,
+                   pzshape::TPZShapeTriang,
+                   pzshape::TPZShapeQuad,
+                   pzshape::TPZShapeTetra,
+                   pzshape::TPZShapeCube,
+                   pzshape::TPZShapePrism
+                   ){
+    constexpr int pOrder = 4;
+    hcurltest::TestEdgeCurl<TestType>(pOrder);
 }
 
 #include "TPZShapeHCurl.h"
@@ -307,7 +348,7 @@ namespace hcurltest{
             }
         }();
 
-        if(pOrder > 1 ){
+        if(pOrder > 0 ){
             cmesh->SetDefaultOrder(pOrder);
             for(auto cel : cmesh->ElementVec()){
                 TPZInterpolatedElement *intel =
@@ -535,7 +576,7 @@ namespace hcurltest{
          *              the following lines might be useful for analysing the basis functions
          ***********************************************************************************************************/
 
-        // TPZLinearAnalysis an(cmesh, false);
+        // TPZLinearAnalysis an(cmesh, RenumType::ENone);
         // const int postProcessResolution = 3;
         // const std::string executionInfo = [&]() {
         //   std::string name("");
@@ -577,7 +618,7 @@ namespace hcurltest{
         cmesh->AutoBuild();
         cmesh->CleanUpUnconnectedNodes();
 
-        TPZLinearAnalysis an(cmesh,false);
+        TPZLinearAnalysis an(cmesh,RenumType::ENone);
         const int postProcessResolution = 3;
         const std::string executionInfo = [&](){
             std::string name("");
@@ -603,6 +644,80 @@ namespace hcurltest{
         delete gmesh;
     }
 
+    template <class TSHAPE>
+    void TestEdgeCurl(const int pOrder){
+        using TTOPOL=typename TSHAPE::TTOPOL;
+        constexpr auto dim = TTOPOL::Dimension;
+        constexpr auto curldim = dim == 1 ? 1 : 2*dim - 3;
+        constexpr auto nsides = TTOPOL::NSides;
+        constexpr auto nnodes = TTOPOL::NCornerNodes;
+        constexpr auto ncon = TTOPOL::NSides-TTOPOL::NCornerNodes;
+
+        const auto ne = TTOPOL::NumSides(1);
+        const auto nefuncs = pOrder+1;
+        
+        TPZAutoPointer<TPZGeoMesh>gmesh =
+            TPZGeoMeshTools::CreateGeoMeshSingleElT<TTOPOL>(1,false);
+        TPZAutoPointer<TPZCompMesh>cmesh = new TPZCompMesh (gmesh);
+
+        cmesh->SetDefaultOrder(pOrder);
+        cmesh->SetDimModel(dim);
+
+        auto mat = new TPZHCurlProjection(1,dim);
+        cmesh->InsertMaterialObject(mat);
+        cmesh->SetAllCreateFunctionsHCurl();
+        cmesh->AutoBuild();
+        cmesh->CleanUpUnconnectedNodes();
+
+        auto cel = dynamic_cast<TPZInterpolationSpace*>(cmesh->Element(0));
+        TPZMaterialDataT<STATE> data;
+        cel->InitMaterialData(data);
+
+        const int nfuncs = TPZShapeHCurl<TSHAPE>::NHCurlShapeF(data);
+
+        TPZFNMatrix<1000,STATE> phi(dim,nfuncs,0.), curlphi(curldim,nfuncs,0.);
+        
+        auto gel = gmesh->Element(0);
+        TPZAutoPointer<TPZIntPoints> intrule =
+            gel->CreateSideIntegrationRule(nsides-1, pOrder);
+
+        auto oldPrecision = Catch::StringMaker<STATE>::precision;
+        Catch::StringMaker<STATE>::precision = std::numeric_limits<STATE>::max_digits10;
+        const int npts = intrule->NPoints();
+        TPZManVector<REAL,dim> pt(dim,0.);
+        REAL weight{0};
+        for(int i = 0; i < npts; i++){
+            intrule->Point(i, pt, weight);
+            TPZShapeHCurl<TSHAPE>::Shape(pt, data, phi, curlphi);
+            for(int ie = 0; ie < ne; ie++){
+                SECTION("LO"){
+                    const auto index = ie*nefuncs;
+                    STATE sum = 0;
+                    CAPTURE(ie);
+                    CAPTURE(index);
+                    for(auto x = 0; x < curldim; x++){
+                        sum+=abs(curlphi.GetVal(x,index));
+                    }
+                    REQUIRE(sum > tol);
+                }
+                SECTION("HO"){
+                    for(int f = 1; f < nefuncs; f++){
+                        const auto index = ie*nefuncs + f;
+                        STATE sum = 0;
+                        for(auto x = 0; x < curldim; x++){
+                            sum+=curlphi.GetVal(x,index);
+                        }
+                        CAPTURE(ie);
+                        CAPTURE(f);
+                        CAPTURE(index);
+                        REQUIRE(sum == Catch::Approx(0.));
+                    }
+                }
+            }
+        }
+        Catch::StringMaker<STATE>::precision = oldPrecision;
+    }
+    
 
     TPZAutoPointer<TPZCompMesh> CreateCMesh(MMeshType type, int pOrder){
         constexpr int ndiv{1};
@@ -758,6 +873,48 @@ namespace hcurltest{
         result[1]=z1*x2-x1*z2;
         result[2]=x1*y2-y1*x2;
     };//VectorProduct
+
+
+    template<class TSHAPE>
+    void TestEnrichedHCurl(const int p_edge, const int p_face, const int p_vol)
+    {
+        constexpr int64_t dim = TSHAPE::Dimension;
+        constexpr int64_t n_nodes = TSHAPE::NCornerNodes;
+        constexpr int64_t n_sides = TSHAPE::NSides;
+        constexpr int64_t n_faces = dim == 3 ? TSHAPE::NFacets : 1;
+        constexpr int64_t n_edges = dim == 3 ? n_sides - 1 - n_faces - n_nodes : TSHAPE::NFacets;
+        //number of hcurl connects = edge + face + internal (or edge + face)
+        constexpr int64_t n_con = TSHAPE::NSides-TSHAPE::NCornerNodes;
+        TPZManVector<int64_t,n_nodes> ids(n_nodes,0);
+        for(int in = 0; in < n_nodes; in++){ids[in]=in;}
+        TPZManVector<int,n_con> orders(n_con,p_edge);
+        //increase order of faces
+        for(int ic = 0; ic < n_faces; ic++){
+            orders[n_edges+ic] = p_face;
+        }
+        if(dim == 3){
+            orders[n_edges+n_faces] = p_vol;
+        }
+        //let us gather some useful debug info
+        TPZManVector<int,n_con> orders_h1(n_con,0), nshape_con(n_con,0);
+        TPZShapeHCurl<TSHAPE>::CalcH1ShapeOrders(orders,orders_h1);
+        for(int ic = 0; ic < n_con; ic++){
+            const int ord = orders[ic];
+            nshape_con[ic] = TPZShapeHCurl<TSHAPE>::ComputeNConnectShapeF(ic,ord);
+        }
+        TPZShapeData data;
+        CAPTURE(p_edge);
+        CAPTURE(p_face);
+        CAPTURE(p_vol);
+        CAPTURE(orders_h1);
+        CAPTURE(nshape_con);
+        REQUIRE_NOTHROW(TPZShapeHCurl<TSHAPE>::Initialize(ids, orders, data));
+        const int nshape = TPZShapeHCurl<TSHAPE>::NHCurlShapeF(data);
+        TPZFMatrix<STATE> phi(dim,nshape,0), curlphi(dim,nshape,0);
+        TPZManVector<REAL,3> pt(dim,0);
+        REQUIRE_NOTHROW(TPZShapeHCurl<TSHAPE>::Shape(pt,data,phi,curlphi));
+    }
+    
 }//namespace
 
 #ifdef VERBOSE_HCURL

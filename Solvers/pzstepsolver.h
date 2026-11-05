@@ -21,7 +21,7 @@ template<class TVar>
 class TPZStepSolver: public TPZMatrixSolver<TVar>
 {
 public:
-	TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat = 0);
+	TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > mat = nullptr);
 	
 	TPZStepSolver(const TPZStepSolver<TVar> & copy);
 	
@@ -128,7 +128,7 @@ private:
 	REAL fOverRelax;
 	
 	/** @brief Solver using preconditioner matrix */
-	TPZMatrixSolver<TVar> *fPrecond;
+	TPZMatrixSolver<TVar> *fPrecond{nullptr};
 	int64_t fFromCurrent;
 	
 	std::list<int64_t> fSingular;

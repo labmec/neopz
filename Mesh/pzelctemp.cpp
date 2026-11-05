@@ -25,26 +25,14 @@ TPZInterpolatedElement(mesh,gel){
   int matid = gel->MaterialId();
 #ifdef PZDEBUG
   if (mesh.FindMaterial(matid) == 0) {
+      std::cout << "Creating element " << __PRETTY_FUNCTION__ << " matid " << matid << std::endl;
+      std::cout << "Material not found, bailing out \n";
     DebugStop();
   }
 #endif
-  //TODO: NATHANFRAN ASKPHIL
-
-
   
-  // AdjustIntegrationRule();
-	int order = fPreferredOrder;
-  int integrationruleorder = 0;
-  auto *mat =
-    dynamic_cast<TPZMatSingleSpace*>(this->Material());
-
-  if (mat) {
-    integrationruleorder = mat->IntegrationRuleOrder(order);
-  }else
-    {
-      integrationruleorder = order + order;
-    }
-  SetIntegrationRule(integrationruleorder);
+   bool isMeshBuilt = false;
+   AdjustIntegrationRule(isMeshBuilt,fPreferredOrder);
 }
 
 template<class TSHAPE>
@@ -214,6 +202,7 @@ using namespace pzshape;
 #include "pzshapecube.h"
 #include "pzshapetetra.h"
 #include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "pzshapepiram.h"
 #include "pzshapepiramHdiv.h"
 template<>
@@ -274,7 +263,7 @@ template class TPZIntelGen<TPZShapeLinear>;
 template class TPZIntelGen<TPZShapeQuad>;
 template class TPZIntelGen<TPZShapeTetra>;
 template class TPZIntelGen<TPZShapePrism>;
+template class TPZIntelGen<TPZShapeWidePrism>;
 template class TPZIntelGen<TPZShapePiram>;
-template class TPZIntelGen<TPZShapePiramHdiv>;
 template class TPZIntelGen<TPZShapeCube>;
 

@@ -16,6 +16,7 @@
 #include "tpzautopointer.h"
 #include <map>
 
+class TPZSBFemElementGroup;
 class TPZBuildSBFem
 {
 protected:
@@ -24,7 +25,10 @@ protected:
     
     /// The volumetric elements with Mat Id will spawn SBFemVolume elements with MatId
     std::map<int,int> fMatIdTranslation;
-    
+
+    /// @brief boundary condition material ids
+    std::set<int> fBoundaryMatIds;
+
     /// Material Id associated with the skeleton elements
     int fSkeletonMatId;
     
@@ -33,8 +37,21 @@ protected:
     
     /// center node id for each partition
     TPZManVector<int64_t> fPartitionCenterNode;
-    
+
+
+    /// polynomial order of the bubble functions
+    int fPOrderBubbleFunctions = 0;
+
+    /// polynomial order of the skeleton elements
+    int fSkeletonPOrder = 1;
+
+    /// number of refinements of the skeleton elements
+    int fNRefSkeleton = 0;
+
 public:
+    
+    /// @brief  The default constructor
+    TPZBuildSBFem() = default;
     
     /// simple constructor
     TPZBuildSBFem(TPZAutoPointer<TPZGeoMesh> & gmesh, int skeletonmatid, std::map<int,int> &matidtranslation) : fGMesh(gmesh), fMatIdTranslation(matidtranslation), fSkeletonMatId(skeletonmatid)
@@ -42,13 +59,89 @@ public:
         fElementPartition.resize(fGMesh->NElements());
         fElementPartition.Fill(-1);
     }
+
     
+        TPZBuildSBFem(TPZAutoPointer<TPZGeoMesh> & gmesh, int skeleton = 0) : fGMesh(gmesh), fMatIdTranslation(), fSkeletonMatId(skeleton)
+    {
+        fElementPartition.resize(fGMesh->NElements());
+        fElementPartition.Fill(-1);
+    }
+
+    TPZBuildSBFem(const TPZBuildSBFem &copy);
+
+    /// destructor
+    virtual ~TPZBuildSBFem() {
+        // Cleanup if necessary
+    }
+
     /// set the matid translation
     void SetMatIdTranslation(const std::map<int,int> &matidtranslation)
     {
         fMatIdTranslation = matidtranslation;
     }
+
+    std::map<int,int> GetMatIdTranslation() const
+    {
+        return fMatIdTranslation;
+    }
     
+    std::set<int> GetMaterialIds() const {
+        std::set<int> result;
+        for(auto it : fMatIdTranslation) result.insert(it.second);
+        return result;
+    }
+
+    void SetSkeletonMatid(int skeleton) {
+        fSkeletonMatId = skeleton;
+    }
+
+    int GetSkeletonMatid() const {
+        return fSkeletonMatId;
+    }
+
+    void SetBoundaryMatIds(const std::set<int> &boundmatids)
+    {
+        fBoundaryMatIds = boundmatids;
+    }
+
+    std::set<int> GetBoundaryMatIds() const
+    {
+        return fBoundaryMatIds;
+    }
+
+    TPZAutoPointer<TPZGeoMesh> GetGMesh()
+    {
+        return fGMesh;
+    }
+
+    int GetPOrderBubbleFunctions() const
+    {
+        return fPOrderBubbleFunctions;
+    }
+
+    void SetPOrderBubbleFunctions(int porder)
+    {
+        fPOrderBubbleFunctions = porder;
+    }
+
+    int GetSkeletonPOrder() const
+    {
+        return fSkeletonPOrder;
+    }
+    void SetSkeletonPOrder(int porder)
+    {
+        fSkeletonPOrder = porder;
+    }
+
+    int GetNRefSkeleton() const
+    {
+        return fNRefSkeleton;
+    }
+    void SetNRefSkeleton(int nref)
+    {
+        fNRefSkeleton = nref;
+    }
+
     /// standard configuration means each element is a partition and a center node is created
     void StandardConfiguration();
 
@@ -59,7 +152,17 @@ public:
     void Configure(TPZVec<int64_t> &scalingcenters);
     
     /// add a partition manually
-    void AddPartition(TPZVec<int64_t> &elids, int64_t centernodeindex);
+    int64_t AddPartition(TPZVec<int64_t> &elids, int64_t centernodeindex);
+    
+    /// add a partition manually
+    int64_t AddPartition(const std::set<int64_t> &elids, int64_t centernodeindex) {
+        TPZManVector<int64_t> elvecids(elids.size());
+        int count = 0;
+        for(auto &it : elids) {
+            elvecids[count++] = it;
+        }
+        return AddPartition(elvecids, centernodeindex);
+    }
     
     /// define the partition index of each element and the ids of the scaling centers
     void SetPartitions(TPZVec<int64_t> &gelpartitionids, TPZVec<int64_t> &partition_nodeindices)
@@ -73,9 +176,17 @@ public:
         fElementPartition = gelpartitionids;
         fPartitionCenterNode = partition_nodeindices;
     }
+
+    /// @brief Identify the partition corresponding to the element group
+    /// @param elgr SBFemElementGroup that contains the elements of a given partition
+    /// @return index of the partition
+    int64_t GetPartition(TPZSBFemElementGroup *elgr);
     
     /// add the sbfem elements to the computational mesh, the material should exist in cmesh
     void BuildComputationMesh(TPZCompMesh &cmesh);
+
+    /// @brief Divide the geometric volume elements creating elements based on matid translation
+    void GenerateCollapsedGeometricElements(const std::set<int> &matids);
     
     /// add the sbfem elements to the computational mesh, the material should exist in cmesh
     void BuildComputationMesh(TPZCompMesh &cmesh, const std::set<int> &volmatids, const std::set<int> &boundmatids);
@@ -89,16 +200,21 @@ public:
     /// Divide the skeleton elements - elements of dimension dim-1 which are not in volmatids
     void DivideSkeleton(int nref, const std::set<int> &volmatids);
 
-private:
+    /// @brief print the SBFem configuration
+    /// @param out output stream
+    void Print(std::ostream &out = std::cout) const;
+
+    /// create geometric volumetric elements
+    virtual void CreateVolumetricElements(TPZCompMesh &cmesh);
+    
+public:
     /// create the geometric skeleton elements
     void AddSkeletonElements();
-    
+
     /// create a geometric node at the center of each partition
     void CreateElementCenterNodes(TPZVec<int64_t> &elindices);
     
-    /// create geometric volumetric elements
-    void CreateVolumetricElements(TPZCompMesh &cmesh);
-    
+protected:
     /// create geometric volumetric elements
     void CreateVolumetricElementsFromSkeleton(TPZCompMesh &cmesh);
     

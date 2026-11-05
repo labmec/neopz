@@ -701,9 +701,8 @@ void TPZMHMixedHybridMeshControl::GroupandCondenseElements()
         subcmesh->CleanUpUnconnectedNodes();
         int numthreads = 0;
         int preconditioned = 0;
-        TPZAutoPointer<TPZGuiInterface> guiInterface;
 
-        subcmesh->SetAnalysisSkyline(numthreads, preconditioned, guiInterface);
+        subcmesh->SetAnalysisSkyline(numthreads, preconditioned);
     }
     fCMesh->ComputeNodElCon();
     fCMesh->CleanUpUnconnectedNodes();

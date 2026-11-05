@@ -66,6 +66,7 @@ public:
     virtual void SetDimension(int dim) { this->fDim = dim; }
 	
     int NStateVariables() const override { return this->fNStateVars; }
+    void SetNStateVariables(int nstate) { this->fNStateVars = nstate; }
     void Contribute(const TPZMaterialDataT<TVar> &data,
                     REAL weight,
                     TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef) override;

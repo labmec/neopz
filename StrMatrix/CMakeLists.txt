@@ -13,6 +13,7 @@ set(public_headers
     pzstrmatrixor.h
     pzstrmatrixot.h
     pzstrmatrixflowtbb.h
+    TPZStructMatrixOMPorTBB.h
     #matrix storage format
     #full
     pzfstrmatrix.h
@@ -27,16 +28,6 @@ set(public_headers
     TPZSpStructMatrix.h
     TPZSSpStructMatrix.h
     #front
-    TPZFrontStructMatrix.h
-    TPZParFrontStructMatrix.h
-    #block
-    pzbdstrmatrix.h
-    TPZBSpStructMatrix.h
-    # tpzsparseblockdiagonalstructmatrix.h # needsreview
-    #other
-    TPZEquationFilter.h
-   )
-set(headers
     TPZStrMatParInterface.h
     TPZStructMatrix.h
     TPZStructMatrixT.h
@@ -44,6 +35,7 @@ set(headers
     pzstrmatrixor.h
     pzstrmatrixot.h
     pzstrmatrixflowtbb.h
+    TPZStructMatrixOMPorTBB.h
     #matrix storage format
     #full
     pzfstrmatrix.h
@@ -77,6 +69,7 @@ set(sources
     pzstrmatrixor.cpp
     pzstrmatrixot.cpp
     pzstrmatrixflowtbb.cpp
+    TPZStructMatrixOMPorTBB.cpp
     #matrix storage format
     #full
     pzfstrmatrix.cpp
@@ -102,12 +95,27 @@ set(sources
     TPZStructMatrixTBBFlowUtils.cpp
    )
 
+if(USING_MUMPS)
+  list(APPEND public_headers
+    TPZSpStructMatrixMumps.h
+    TPZSSpStructMatrixMumps.h
+  )
+  list(APPEND headers
+    TPZSpStructMatrixMumps.h
+    TPZSSpStructMatrixMumps.h
+  )
+  list(APPEND sources
+    TPZSpStructMatrixMumps.cpp
+    TPZSSpStructMatrixMumps.cpp
+  )
+endif()
+
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/StrMatrix)
 
-target_sources(pz PRIVATE ${headers} ${sources})
+target_sources(pz PRIVATE ${public_headers} ${sources})
 
 #for doxygen
 foreach(header ${public_headers})
-    list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
+    list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${public_headers}")
 endforeach()
 set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)

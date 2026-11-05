@@ -35,6 +35,9 @@ public:
 	
 	/**
 	 * @brief Search for refpatterns that could be used by a given element with respect to their neighbours.
+	 * The refpatterns are said to be compatible if, for every neighbour with a refined side, the element's
+	 * side is refined in exactly the same way. That means that if no neighbours are refined, every
+	 * refpattern is said to be compatible.
 	 * @param gel - input data: geometric element for which the list of compatible refpatterns will be filled
 	 * @param refs - output data: list of compatible refpatterns with respect to their neighbours
 	 */
@@ -53,7 +56,7 @@ public:
                                                          std::map<int, std::pair<TPZGeoEl *, std::map<int,int> > > &neighCorresp);
 	
 	/**
-	 * @note This methos is used by RefineDirectional method!!!
+	 * @note This method is used by RefineDirectional method!!!
 	 * @brief Returns the refpattern that matches the sides refinement intensity and midnodes coordinates with respect to sidestorefine vector
 	 * @param gel - input data: geometric element for which the perfect match refpattern will be returned
 	 * @param sidestorefine - input data: vector filled with sides refinement intensity
@@ -155,12 +158,18 @@ public:
 	static bool SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestoref);
 	
 	/** @brief Refines the element if it touches an element with a material id included in matids */
-	static void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids);
-	static void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids, int gelMat);
+	static void RefineDirectional(TPZGeoEl *gel, const std::set<int> &matids);
+	static void RefineDirectional(TPZGeoEl *gel, const std::set<int> &matids, int gelMat);
     
-    static void RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &matids);
-    static void RefineDirectional(TPZGeoMesh *gmesh, std::set<int> &matids, int gelmat);
+    static void RefineDirectional(TPZGeoMesh *gmesh, const std::set<int> &matids);
+    static void RefineDirectional(TPZGeoMesh *gmesh, const std::set<int> &matids, int gelmat);
     
+	/** @brief Refines the element uniformly if it touches an element with a material id included in matids */
+	static void RefineTowards(TPZGeoEl *gel, std::set<int> &matids, int maxlevel);
+	static void RefineTowards(TPZGeoEl *gel, std::set<int> &matids, int gelMat, int maxlevel);
+
+	static void RefineTowards(TPZGeoMesh *gmesh, std::set<int> &matids,int maxlevel);
+	static void RefineTowards(TPZGeoMesh *gmesh, std::set<int> &matids, int gelmat, int maxlevel);
 	
 	static void RefineUniformIfNeighMat(TPZGeoEl *gel, std::set<int> &matids);
 	

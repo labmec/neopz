@@ -10,6 +10,7 @@
 #include "TPZGeoCube.h"
 #include "tpzgeoelrefpattern.h"
 #include "TPZGenGrid2D.h"//MMeshType
+#include "pzgeoelbc.h"
 
 
 TPZGenGrid3D::TPZGenGrid3D(const TPZVec<REAL> &minX, const TPZVec<REAL> &maxX, const TPZVec<int> &nelDiv, const MMeshType meshType)
@@ -394,5 +395,16 @@ TPZGeoMesh *TPZGenGrid3D::BuildBoundaryElements(const int matIdZmin, const int m
     }
 
     fGmesh->BuildConnectivity();
+    int64_t nel = fGmesh->NElements();
+    for(int64_t el = 0; el < nel; el++){
+        TPZGeoEl *gel = fGmesh->Element(el);
+        if(!gel || gel->Dimension() != fDim-1) continue;
+        TPZGeoElSide gelside(gel);
+        TPZGeoElSide neigh = gelside.Neighbour();
+        gel->RemoveConnectivities();
+        int matid = gel->MaterialId();
+        delete gel;
+        TPZGeoElBC gbc(neigh, matid);
+    }
     return fGmesh;
 }

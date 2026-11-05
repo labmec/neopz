@@ -46,6 +46,10 @@ TPZCompEl(mesh, copy)
  */
 void TPZElementGroup::AddElement(TPZCompEl *cel)
 {
+#ifdef PZDEBUG
+    if (!cel) DebugStop();
+#endif
+    
     fElGroup.Push(cel);
     std::set<int64_t> connects;
     int nc = fConnectIndexes.size();
@@ -66,11 +70,6 @@ void TPZElementGroup::AddElement(TPZCompEl *cel)
     }
     int64_t elindex = cel->Index();
     Mesh()->ElementVec()[elindex] = 0;
-    std::list<TPZOneShapeRestraint> ellist = cel->GetShapeRestraints();
-    for (std::list<TPZOneShapeRestraint>::iterator it=ellist.begin(); it != ellist.end(); it++) {
-        int64_t cindex = it->fFaces[0].first;
-        fRestraints[cindex] = *it;
-    }
 #ifdef PZ_LOG2
     if (logger.isDebugEnabled())
     {
@@ -83,12 +82,18 @@ void TPZElementGroup::AddElement(TPZCompEl *cel)
 }
 
 /** @brief unwrap the condensed element from the computational element and delete the condensed element */
-void TPZElementGroup::Unwrap()
+void TPZElementGroup::Unwrap(bool recursive)
 {
     int nel = fElGroup.size();
     for (int el=0; el<nel; el++) {
         int64_t elindex = fElGroup[el]->Index();
         Mesh()->ElementVec()[elindex] = fElGroup[el];
+    }
+    if(recursive) {
+        for(auto el : fElGroup) {
+            TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(el);
+            if(elgr) elgr->Unwrap(recursive);
+        }
     }
     fElGroup.Resize(0);
     fConnectIndexes.Resize(0);
@@ -117,7 +122,7 @@ void TPZElementGroup::ReorderConnects()
     // this will be tracked by depreceive
     for (int ic=0; ic<nc; ic++) {
         TPZConnect &c = Connect(ic);
-        TPZConnect::TPZDepend * dep = c.FirstDepend();
+        TPZConnect::TPZDependBase * dep = c.FirstDepend();
         while (dep) {
             depreceive.insert(dep->fDepConnectIndex);
             dep = dep->fNext;
@@ -139,10 +144,11 @@ void TPZElementGroup::ReorderConnects()
     for(int ic=0; ic<nc; ic++) fConnectIndexes[ic] = orderedindexes[ic].second;
 }
 
-void TPZElementGroup::ReorderConnects(TPZManVector<int64_t> &connects)
+void TPZElementGroup::ReorderConnects(TPZVec<int64_t> &connects)
 {
     int64_t nc = connects.size();
 
+    if(nc > fConnectIndexes.size()) fConnectIndexes.Resize(nc, -1);
     // TPZManVector<std::pair<int,int64_t>, 100 > orderedindexes(connects.size());
     for (int ic=0; ic<nc; ic++)
     {
@@ -181,11 +187,6 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
     ek.Matrix().Redim(rows, rows);
     ek.fType = TPZElementMatrix::EK;
     InitializeElementMatrix(ef);
-    std::map<int64_t,TPZOneShapeRestraint>::const_iterator it;
-    for (it = fRestraints.begin(); it != fRestraints.end(); it++) {
-        ek.fOneRestraints.push_back(it->second);
-        ef.fOneRestraints.push_back(it->second);
-    }
 }//void
 
 void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
@@ -206,10 +207,6 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
 	for(int i=0; i<ncon; i++){
 		(ef.fConnect)[i] = ConnectIndex(i);
 	}
-    std::map<int64_t,TPZOneShapeRestraint>::const_iterator it;
-    for (it = fRestraints.begin(); it != fRestraints.end(); it++) {
-        ef.fOneRestraints.push_back(it->second);
-    }
 }//void
 
 
@@ -287,20 +284,27 @@ void TPZElementGroup::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZElementMa
         
 #endif
         int nelcon = ekloc.NConnects();
+        int64_t ncol = ef.fMat.Cols();
         for (int ic=0; ic<nelcon; ic++) {
             int iblsize = ekloc.fBlock.Size(ic);
-            int icindex = ekloc.fConnect[ic];
-            int ibldest = locindex[icindex];
+            int64_t icindex = ekloc.fConnect[ic];
+            int64_t ibldest = locindex[icindex];
             for (int idf = 0; idf<iblsize; idf++) {
-                ef.fMat.at(ef.fBlock.at(ibldest,0,idf,0)) += efloc.fMat.at(efloc.fBlock.at(ic,0,idf,0));
+                int64_t my_r = ef.fBlock.Index(ibldest,idf);
+                int64_t loc_r = efloc.fBlock.Index(ic, idf);
+                for(int c = 0; c<ncol; c++) {
+                    ef.fMat.g(my_r,c) += efloc.fMat.g(loc_r,c);
+                }
             }
             for (int jc = 0; jc<nelcon; jc++) {
                 int jblsize = ekloc.fBlock.Size(jc);
-                int jcindex = ekloc.fConnect[jc];
-                int jbldest = locindex[jcindex];
+                int64_t jcindex = ekloc.fConnect[jc];
+                int64_t jbldest = locindex[jcindex];
                 for (int idf = 0; idf<iblsize; idf++) {
                     for (int jdf=0; jdf<jblsize; jdf++) {
-                        ek.fMat.at(ek.fBlock.at(ibldest,jbldest,idf,jdf)) += ekloc.fMat.at(ekloc.fBlock.at(ic,jc,idf,jdf));
+                        const auto [my_r,my_c] = ek.fBlock.at(ibldest,jbldest,idf,jdf);
+                        const auto [loc_r,loc_c] = ekloc.fBlock.at(ic,jc,idf,jdf);
+                        ek.fMat.g(my_r,my_c) += ekloc.fMat.g(loc_r,loc_c);
                     }
                 }
             }
@@ -423,3 +427,28 @@ bool TPZElementGroup::NeedsComputing(const std::set<int> &matids)
     return result;
 }
 
+/// @brief Expand the connect to include the connects which will receive contributions through the constraints
+void TPZElementGroup::ExpandConnects() {
+  std::set<int64_t> expanded;
+  for (int64_t ic=0; ic<fConnectIndexes.size(); ic++) {
+      int64_t cindex = fConnectIndexes[ic];
+      expanded.insert(cindex);
+      TPZConnect &c = Mesh()->ConnectVec()[cindex];
+      TPZConnect::TPZDependBase *dep = c.FirstDepend();
+      while (dep) {
+          expanded.insert(dep->fDepConnectIndex);
+          dep = dep->fNext;
+      }
+  }
+  fConnectIndexes.Resize(expanded.size());
+  int i=0;
+  for (auto it : expanded) {
+      fConnectIndexes[i++] = it;
+  }
+}
+
+template void TPZElementGroup::CalcStiffInternal<STATE>(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef);
+template void TPZElementGroup::CalcStiffInternal<CSTATE>(TPZElementMatrixT<CSTATE> &ek, TPZElementMatrixT<CSTATE> &ef);
+
+template void TPZElementGroup::CalcResidualInternal<STATE>(TPZElementMatrixT<STATE> &ef);
+template void TPZElementGroup::CalcResidualInternal<CSTATE>(TPZElementMatrixT<CSTATE> &ef);

@@ -16,11 +16,10 @@ public:
   /** @brief Create an empty TPZLinearAnalysis object */
 	TPZLinearAnalysis();
 
-	/** @brief Create an TPZLinearAnalysis object from one mesh pointer */
-	TPZLinearAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
-    	
-	/** @brief Create an TPZLinearAnalysis object from one mesh auto pointer object */
-	TPZLinearAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
+  /** @brief Create an TPZLinearAnalysis object from one mesh pointer */
+  TPZLinearAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::EDefault, std::ostream &out = std::cout);
+  /** @brief Create an TPZLinearAnalysis object from one mesh auto pointer object */
+  TPZLinearAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::EDefault, std::ostream &out = std::cout);
   /** @} */
   
   /** @name FEM */
@@ -44,6 +43,8 @@ public:
       @note In this function it will be checked if the solver is a TPZMatrixSolver*/
   void SetSolver(const TPZSolver &solver) override;
   /** @} */
+
+  void SetCompMesh(TPZCompMesh * mesh, RenumType mustOptimizeBandwidth) override;
 
   /** @name Graphical */
   /** @{ */

@@ -17,7 +17,7 @@
  * @param tol  --  the residual after the final iteration
  * @param residual  -- residual vector (return)
  * @param FromCurrent  -- for type of operation (MultAdd)
-*/
+ */
 /**
  * Iterative template routine -- CG \n
  * CG follows the algorithm described on p. 15 in the SIAM Templates book.
@@ -26,33 +26,33 @@
 #include <list> 
 #endif
 
-template < class Matrix, class Vector, class Preconditioner, class Real >
+template<class TVar>
 int
-CG( Matrix &A, Vector &x, const Vector &b,
-   Preconditioner &M, Vector *residual, int64_t &max_iter, Real &tol,const int FromCurrent)
+CG( TPZMatrix<TVar> &A, TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> &b,
+		TPZMatrixSolver<TVar> &M, TPZFMatrix<TVar> *residual, int64_t &max_iter, RTVar &tol,const int FromCurrent)
 {
-	Real resid;
-	Vector p, z, q;
-	REAL alpha, beta, rho, rho_1 = 0;
+	RTVar resid;
+	TPZFMatrix<TVar> p, z, q;
+	TVar alpha, beta, rho, rho_1 = 0;
 	
-    REAL normb = TPZExtractVal::val(Norm(b));
-	Vector resbackup;
-	Vector *res = residual;
+	RTVar normb = Norm(b);
+	TPZFMatrix<TVar> resbackup;
+	TPZFMatrix<TVar> *res = residual;
 	
 #ifdef TEST
-	std::list< TPZFMatrix<REAL> > plist,qlist;
-	std::list< TPZFMatrix<REAL> >::iterator jt;
-	std::list< TPZFMatrix<REAL> >::iterator kt;
-	Vector Au;
+	std::list< TPZFMatrix<TVar> > plist,qlist;
+	std::list< TPZFMatrix<TVar> >::iterator jt;
+	std::list< TPZFMatrix<TVar> >::iterator kt;
+	TPZFMatrix<TVar> Au;
 #endif
 	
 	if(!res) res = &resbackup;
-	Vector &r = *res;
-	//  Vector r = b - A*x;
+	TPZFMatrix<TVar> &r = *res;
+	//  TPZFMatrix<TVar> r = b - A*x;
 	if(FromCurrent) 
-    {
-        A.MultAdd(x,b,r,-1.,1.);
-    }
+	{
+		A.MultAdd(x,b,r,-1.,1.);
+	}
 	else {
 		x.Zero();
 		r = b;
@@ -61,29 +61,28 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	if (normb == 0.0)
 		normb = 1.0;
 	
-    if ((resid = (TPZExtractVal::val( Norm(r) ) ) / normb) <= tol) {
+	if ((resid = Norm(r) / normb) <= tol) {
 		tol = resid;
 		max_iter = 0;
 		return 0;
 	}
-	int64_t i;
-	for (i = 1; i <= max_iter; i++) {
+	int64_t iter;
+	for (iter = 1; iter <= max_iter; iter++) {
 		M.Solve(r,z);
-        rho = TPZExtractVal::val(Dot(r, z));
+		rho = Dot(r, z);
 		
-		if (i == 1)
+		if (iter == 1)
 			p = z;
 		else {
 			beta = rho / rho_1;
 			p.TimesBetaPlusZ(beta,z);
 		}
 #ifdef TEST
-		
 		plist.push_back(p);
 #endif	 
 		
 		A.Multiply(p,q);
-		alpha = rho / (TPZExtractVal::val(Dot(p, q)));
+		alpha = rho / (Dot(p, q));
 		
 #ifdef TEST
 		qlist.push_back(q);
@@ -94,23 +93,19 @@ CG( Matrix &A, Vector &x, const Vector &b,
 		
 #ifdef TEST
 		A.Multiply(x,Au);
-		REAL energy = Dot(x,Au)/2.-Dot(x,b);
+		TVar energy = Dot(x,Au)/2.-Dot(x,b);
 #endif
 		
-		if ((resid = (TPZExtractVal::val(Norm(r))) / normb) <= tol) {
+		if ((resid = (Norm(r)) / normb) <= tol) {
 			tol = resid;
-			max_iter = i;
-#ifdef PZDEBUG
-			std::cout << "cg iter = " << i <<  " res = " << resid << std::endl;
-#endif
+			max_iter = iter;
+			std::cout << iter << "\t" << resid << std::endl;
 			return 0;
 		}
-#ifdef PZDEBUG
-		std::cout << "cg iter = " << i <<  " res = " << resid /*<< " energy " << energy */ << std::endl;
-#endif
+		std::cout << iter << "\t" << resid << std::endl;
 #ifdef TEST
 		std::cout << " energy " << energy << std::endl;
-		TPZFMatrix<REAL> inner(plist.size(),plist.size(),0.);
+		TPZFMatrix<TVar> inner(plist.size(),plist.size(),0.);
 		{
 			int64_t j,k;
 			for(j=0, jt = plist.begin(); jt != plist.end(); jt++,j++)
@@ -127,6 +122,5 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	}
 	
 	tol = resid;
-	std::cout << "cg iter = " << i <<  " res = " << resid << std::endl;
 	return 1;
 }

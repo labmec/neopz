@@ -27,7 +27,7 @@ public:
     // from now on we can use TPZMatCombinedSpacesT<TVar>::TInterfaceBC as a type
     // this will be used in CreateBC
     using TInterfaceBC = TPZMatInterfaceCombinedSpacesBC<TVar>;
-    [[nodiscard]] int ClassId() const override;
+//    [[nodiscard]] int ClassId() const override;
     //!@name Interface
     /** @{*/
     /**

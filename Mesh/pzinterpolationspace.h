@@ -98,8 +98,11 @@ virtual int ClassId() const override;
 	/** @brief Returns the max order of interpolation. */
 	virtual int MaxOrder();
     
-    /** @brief Adjust the integration rule according to the polynomial order of shape functions. */
-    virtual void AdjustIntegrationRule();
+    /** @brief Adjust the integration rule according to the polynomial order of shape functions. 
+	 *  @param isMeshBuilt wheather the mesh containing the connect is built
+	 *  @param meshPreferredOrder mesh preferred order (only if isMeshBuilt == false)
+	*/
+    virtual void AdjustIntegrationRule(bool isMeshBuilt = true, int meshPreferredOrder=-1);
     
     /** @brief Compute integration order according to ... . */
     virtual int ComputeIntegrationOrder() const override;
@@ -372,6 +375,8 @@ protected:
     template<class TVar>
     void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
 									 TPZVec<REAL> &qsi);
+    template<class TVar>
+     void EvaluateErrorT(TPZVec<REAL> &errors, bool store_error );
     template<class TVar>
     void SolutionInternal(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
     /// Preferred polynomial order

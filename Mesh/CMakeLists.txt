@@ -13,7 +13,6 @@ set(headers
   TPZCompMeshTools.h
   TPZGeoMeshTools.h
   pzcheckgeom.h
-  pzcreateapproxspace.h
   pzgeoel.h
   pzintel.h  
   TPZGeoElement.h
@@ -60,6 +59,10 @@ set(headers
   TPZCompElKernelHDiv.h
   TPZCompElKernelHDiv3D.h
   TPZHCurlEquationFilter.h
+  TPZCompElDiscScaled.h
+  TPZCompElHDivDuplConnects.h
+  TPZCompElHDivDuplConnectsBound.h
+  TPZCompElUnitaryLagrange.h
 )
 
 set(sources
@@ -101,7 +104,6 @@ set(sources
   pzmultiphysicscompel.cpp
   TPZCompElDisc.cpp
   tpzgeoelrefpattern.cpp
-  pzcreateapproxspace.cpp
   pzgeoelrefless.cpp
   pzmultiphysicselement.cpp
   TPZCompElHCurl.cpp
@@ -112,9 +114,13 @@ set(sources
   TPZCompElKernelHDiv.cpp
   TPZCompElKernelHDiv3D.cpp
   TPZHCurlEquationFilter.cpp
+  TPZCompElDiscScaled.cpp
+  TPZCompElHDivDuplConnects.cpp
+  TPZCompElHDivDuplConnectsBound.cpp
+  TPZCompElUnitaryLagrange.cpp
 )
 
-if(USING_MKL)
+if(USING_LAPACK)
   list(APPEND headers
     TPZSBFemElementGroup.h
     TPZSBFemMultiphysicsElGroup.h

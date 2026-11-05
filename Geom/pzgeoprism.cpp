@@ -8,6 +8,7 @@
 #include "pzgeoel.h"
 #include "pzquad.h"
 #include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "tpzgeoelrefpattern.h"
 
 #include "pzlog.h"

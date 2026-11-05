@@ -5,9 +5,7 @@
 #include "TPZMixedDarcyFractureFlow.h"
 #include "TPZMaterialDataT.h"
 #include "pzaxestools.h"
-#ifdef USING_MKL
-#include "mkl.h"
-#endif
+#include "TPZLapack.h"
 #define USEBLAS
 
 TPZMixedDarcyFractureFlow::TPZMixedDarcyFractureFlow() : TBase() {
@@ -125,9 +123,9 @@ void TPZMixedDarcyFractureFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>>
     int first_transverse_q = 0;
     // first index in fVecShapeIndex corresponding to the second transverse flux
     int second_transverse_q = 0;
-    int nconnects = datavec[qb].fHDivNumConnectShape.size();
-    second_transverse_q = nvecs-datavec[qb].fHDivNumConnectShape[nconnects-1];
-    first_transverse_q = second_transverse_q-datavec[qb].fHDivNumConnectShape[nconnects-2];
+    int nconnects = datavec[qb].fHDiv.fNumConnectShape.size();
+    second_transverse_q = nvecs-datavec[qb].fHDiv.fNumConnectShape[nconnects-1];
+    first_transverse_q = second_transverse_q-datavec[qb].fHDiv.fNumConnectShape[nconnects-2];
     /*
     for(int i=0; i< nphi_q; i++)
     {
@@ -163,7 +161,7 @@ void TPZMixedDarcyFractureFlow::Contribute(const TPZVec<TPZMaterialDataT<STATE>>
         }
     }
    
-#if defined(USEBLAS) && defined(USING_MKL)
+#if defined(USEBLAS) && defined(USING_LAPACK)
     TPZFNMatrix<3, REAL> ivec(3, first_transverse_q, 0.);
     for (int iq = 0; iq < first_transverse_q; iq++){
         int ivecind = datavec[0].fVecShapeIndex[iq].first;

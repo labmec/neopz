@@ -40,6 +40,8 @@ class TPZLagrangeMultiplierCS :
         
     }
     
+    virtual ~TPZLagrangeMultiplierCS();
+
     TPZMaterial *NewMaterial() const override
     {
         return new TPZLagrangeMultiplierCS(*this);
@@ -56,8 +58,17 @@ class TPZLagrangeMultiplierCS :
     {fMultiplier = mult;}
     //! Gets the multiplier.
     TVar Multiplier()
-    {return fMultiplier;}
+    {
+        return fMultiplier;
+    }
 	/** @}*/
+    
+    void SetLinear(bool linear) {
+        fLinear = linear;
+    }
+    bool GetLinear() const {
+        return fLinear;
+    }
 	std::string Name() const override
     {return "TPZLagrangeMultiplierCS";}
     
@@ -67,7 +78,6 @@ class TPZLagrangeMultiplierCS :
                              REAL weight,
                              TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef) override;
 
-    
     
     void FillDataRequirementsInterface(TPZMaterialDataT<TVar> &data,
                                        std::map<int, TPZMaterialDataT<TVar>> &datavec_left,
@@ -130,9 +140,9 @@ protected:
     int fDimension;
     
     TVar fMultiplier{1.};
+    
+    bool fLinear = true;
+    
 };
 
-
-extern template class TPZLagrangeMultiplierCS<STATE>;
-extern template class TPZLagrangeMultiplierCS<CSTATE>;
 #endif /* defined(__PZ__TPZLagrangeMultiplier__) */

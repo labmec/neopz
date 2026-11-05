@@ -313,6 +313,8 @@ public:
 	virtual void CenterPoint(TPZVec<REAL> &center);
 	
 	void SetCenterPoint(int i,REAL x){fCenterPoint[i] = x;}
+
+	void SetCenterPoint(const TPZVec<REAL>& center){fCenterPoint = center;}
 	
 	REAL SizeOfElement();
 	

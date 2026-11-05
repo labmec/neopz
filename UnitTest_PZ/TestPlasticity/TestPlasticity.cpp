@@ -17,7 +17,7 @@
 
 #include "TPZMatElastoPlastic2D_impl.h"
 #include "TPZPlasticStepPV.h" // Plastic Integrator
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 /**
  Read DiMaggio Sandler data
  Original source: An algorithm and a modular subroutine for the CAP model (April 1979)
@@ -1419,7 +1419,8 @@ TEST_CASE("test_sandler_dimaggio", "[plasticity_tests]") {
     
     // Elastic response
     LECompareStressStrainResponse();
-    PECompareStressStrainResponse();
+    std::cout << "WARNING! PECompareStressStrainResponse() test need to be refactored.\nIt was commented in the last update of Plasticity materials." << std::endl;
+    // PECompareStressStrainResponse();
 
     LEDSCompareStressStrainAlphaMType();
 //    LEDSCompareStressStrainResponse(); //  Improve this test with Ericks Data

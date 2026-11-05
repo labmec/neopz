@@ -33,9 +33,25 @@ public:
      * @param[in] f Forcing function
      * @param[in] pOrder Suggested integration rule order.
      */
-    void SetForcingFunctionBC(ForcingFunctionBCType<TVar> f){
+    void SetForcingFunctionBC(ForcingFunctionBCType<TVar> f, int pOrder){
         fForcingFunctionBC = f;
+        fForcingFunctionBCPOrder = pOrder;
     }
+
+    /**
+     * @brief Returns the polynomial order of the BC forcing function 
+     */
+    int ForcingFunctionBCPOrder() const {return fForcingFunctionBCPOrder;}
+
+    int IntegrationRuleOrder(int order) const override {
+        if(HasForcingFunctionBC()){
+            if(order < fForcingFunctionBCPOrder ){
+                return(order + fForcingFunctionBCPOrder);
+            }
+        }
+        return(order + order);
+     }
+
     //! Whether a forcing function has been set.
     [[nodiscard]] bool HasForcingFunctionBC() const final{
         return (bool)fForcingFunctionBC;}
@@ -49,7 +65,11 @@ public:
     {
         return fForcingFunctionBC;
     }
+    
     //@}
+
+    //! Prints data associated with the material.
+    void Print(std::ostream &out = std::cout) const override;
 
     /** @name ReadWrite */
 	/** @{ */
@@ -78,6 +98,8 @@ protected:
 	TPZManVector<TVar,3> fBCVal2;
     /** @brief Boundary condition forcing function */
     ForcingFunctionBCType<TVar> fForcingFunctionBC;
+    /** @brief Polynomial order for the boundary condition forcing function */
+    int fForcingFunctionBCPOrder{0};
 };
 
 extern template class TPZBndCondT<STATE>;

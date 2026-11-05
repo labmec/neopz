@@ -37,25 +37,37 @@ TPZSBMatrix<TVar>::TPZSBMatrix( int64_t dim, int64_t band )
 : TPZRegisterClassId(&TPZSBMatrix::ClassId),
 TPZMatrix<TVar>( dim, dim )
 {
+    this->fSymProp = SymProp::Herm;
     fBand = ( band > (dim - 1) ? (dim - 1) : band );
-    fDiag.resize(Size());
+    fStorage.resize(Size());
     
     Zero();
 }
 
 
+template<class TVar>
+void TPZSBMatrix<TVar>::SetSymmetry (SymProp sp){
+    if(sp == SymProp::NonSym){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nTrying to set matrix with symmetric storage as non symmetric\n"
+               <<"Aborting..."<<std::endl;
+        DebugStop();
+    }
+    TPZBaseMatrix::SetSymmetry(sp);
+}
 
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
-void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
-    if (nrow != ncol || symmetric == 0) {
+void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sym) {
+    if (nrow != ncol || sym == SymProp::NonSym) {
         DebugStop();
     }
     fBand = nrow/10;
     if (fBand == 0) {
         fBand = nrow-1;
     }
-    Resize(nrow, ncol);
+    TPZSBMatrix A(nrow, fBand);
+    *this = A;
     
     int64_t i, j;
     TVar val = 0, sum;
@@ -90,6 +102,7 @@ void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
                 PutVal(i,i,1.);
         }
     }
+    SetSymmetry(sym);
     
 }
 /**************/
@@ -105,7 +118,7 @@ TPZSBMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar& value )
     if ( row > col ){
         //hermitian matrix
         if constexpr (is_complex<TVar>::value){
-            val = std::conj(value);
+            if(this->fSymProp == SymProp::Herm) {val = std::conj(value);}
         }
         this->Swap( &row, &col );
     }
@@ -120,8 +133,7 @@ TPZSBMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar& value )
 #endif
         return( 0 );        // O elemento esta fora da banda.
     }
-    fDiag[ Index(row,col) ] = val;
-    this->fDecomposed = 0;
+    fStorage[ Index(row,col) ] = val;
     return( 1 );
 }
 
@@ -133,67 +145,21 @@ TPZSBMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) const
         if (auto index = row-col; index > fBand ){
             return (TVar) 0;//out of band
         }else if constexpr(is_complex<TVar>::value){
-            return( std::conj(fDiag[Index(col,row)]) );
+            if(this->fSymProp == SymProp::Herm) {
+                return( std::conj(fStorage[Index(col,row)]) );
+            } else {
+                return fStorage[Index(col,row)];
+            }
         }else{
-            return( fDiag[ Index(col,row) ] );
+            return( fStorage[ Index(col,row) ] );
         }
     }
     
     if (auto index = col-row; index > fBand ){
         return (TVar) 0;//out of band
     }else{
-        return( fDiag[ Index(row,col) ] );
+        return( fStorage[ Index(row,col) ] );
     }
-}
-
-template<>
-std::complex<float>
-&TPZSBMatrix< std::complex< float> >::operator()(const int64_t r,const int64_t c )
-{
-    
-    // inicializando row e col para trabalhar com a triangular superior
-    int64_t row(r),col(c);
-    bool mustConj = false;
-    if ( row > col ){
-        this->Swap( &row, &col );
-        mustConj = true;
-    }
-    
-    int64_t index;
-    if ( (index = col-row) > fBand )
-        return( this->gZero );        // O elemento esta fora da banda.
-    if( mustConj ){
-        static std::complex<float> cpVal;
-        cpVal = std::conj( fDiag[ Index(row,col) ] );
-        return cpVal;
-    }
-    else
-        return( fDiag[ Index(row,col) ] );
-}
-
-template<>
-std::complex<double>
-&TPZSBMatrix< std::complex<double> >::operator()(const int64_t r,const int64_t c )
-{
-    
-    // inicializando row e col para trabalhar com a triangular superior
-    int64_t row(r),col(c);
-    bool mustConj = false;
-    if ( row > col ){
-        this->Swap( &row, &col );
-        mustConj = true;
-    }
-    
-    int64_t index;
-    if ( (index = col-row) > fBand )
-        return( this->gZero );        // O elemento esta fora da banda.
-    if( mustConj ){
-        static std::complex<double> cpVal;
-        cpVal = std::conj( fDiag[ Index(row,col) ] );
-        return cpVal;
-    }
-    else
-        return( fDiag[ Index(row,col) ] );
 }
 
 
@@ -201,14 +167,24 @@ template<class TVar>
 TVar &TPZSBMatrix<TVar>::operator()(int64_t row, int64_t col)
 {
     // row and col are set to work with upper triang mat
-    if ( row > col )
+    if ( row > col ){
         this->Swap( &row, &col );
+        if constexpr (is_complex<TVar>::value){
+            if(this->fSymProp == SymProp::Herm){
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\nTrying to access lower triang hermitian mat by reference\n"
+                       <<"Aborting..."
+                       <<std::endl;
+                DebugStop();
+            }
+        }
+    }
     
     int64_t index;
     if ( (index = col-row) > fBand )
         return this->gZero;        // element out of band
     
-    return( fDiag[ Index(row,col) ] );
+    return( fStorage[ Index(row,col) ] );
 
 }
 
@@ -272,8 +248,8 @@ TPZSBMatrix<TVar>::operator+(const TPZSBMatrix<TVar> &A ) const
     if ( this->Dim() != A.Dim() || fBand != A.fBand)
        this->Error(__PRETTY_FUNCTION__,"operator+( TPZSBMatrix ) <incompatible dimensions>" );
     auto res(*this);
-    const auto size = res.fDiag.size();
-    for(auto i = 0; i < size; i++) res.fDiag[i] += A.fDiag[i];
+    const auto size = res.fStorage.size();
+    for(auto i = 0; i < size; i++) res.fStorage[i] += A.fStorage[i];
     return res;
 }
 
@@ -287,8 +263,8 @@ TPZSBMatrix<TVar>::operator-(const TPZSBMatrix<TVar> &A ) const
     if ( this->Dim() != A.Dim() || fBand != A.fBand)
        this->Error(__PRETTY_FUNCTION__,"operator+( TPZSBMatrix ) <incompatible dimensions>" );
     auto res(*this);
-    const auto size = res.fDiag.size();
-    for(auto i = 0; i < size; i++) res.fDiag[i] -= A.fDiag[i];
+    const auto size = res.fStorage.size();
+    for(auto i = 0; i < size; i++) res.fStorage[i] -= A.fStorage[i];
     return res;
 }
 
@@ -321,13 +297,7 @@ TPZSBMatrix<TVar>::operator-=(const TPZSBMatrix<TVar> &A )
 template<class TVar>
 void TPZSBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
                                 const TVar alpha,const TVar beta ,const int opt) const {
-    // Computes z = beta * y + alpha * opt(this)*x
-    //          z and x cannot overlap in memory
-    if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
-       this->Error(__PRETTY_FUNCTION__, "TPZSBMatrix::MultAdd <matrixs with incompatible dimensions>" );
-    if(x.Cols() != y.Cols() ||x.Rows() != y.Rows()) {
-       this->Error(__PRETTY_FUNCTION__,"TPZSBMatrix::MultAdd incompatible dimensions\n");
-    }
+    this->MultAddChecks(x,y,z,alpha,beta,opt);
     this->PrepareZ(y,z,beta,opt);
     const int64_t rows = this->Rows();
     const int64_t xcols = x.Cols();
@@ -379,7 +349,7 @@ TPZSBMatrix<TVar>
 TPZSBMatrix<TVar>::operator*(const TVar value ) const
 {
     auto res(*this);
-    for(auto &el : res.fDiag) el*=value;
+    for(auto &el : res.fStorage) el*=value;
     return res;
 }
 
@@ -393,28 +363,22 @@ template<class TVar>
 TPZSBMatrix<TVar> &
 TPZSBMatrix<TVar>::operator*=(const TVar value )
 {
-    int64_t siz= fDiag.size();
+    int64_t siz= fStorage.size();
     for (int64_t i=0; i<siz; i++) {
-        fDiag[i] *= value;
+        fStorage[i] *= value;
     }
     
     return( *this );
 }
 
-/**************/
-/*** Resize ***/
-//
-// Muda as dimensoes da matriz, mas matem seus valores antigos. Novas
-// posicoes sao criadas com ZEROS.
-//
 template<class TVar>
 int
 TPZSBMatrix<TVar>::Resize(const int64_t newDim ,const int64_t)
 {
-    if ( newDim == this->Dim() )
-        return( 1 );
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Resize should not be called for Band matrices\n";
+    DebugStop();
     
-    Redim(newDim,newDim);
     return( 1 );
 }
 
@@ -427,22 +391,26 @@ template<class TVar>
 int
 TPZSBMatrix<TVar>::Redim(const int64_t newDim ,const int64_t otherDim)
 {
-    if (newDim != otherDim) {
-        DebugStop();
-    }
+    // if (newDim != otherDim) {
+    //     DebugStop();
+    // }
     
-    if ( newDim != this->Dim() )
-    {
-        TPZMatrix<TVar>::Redim(newDim,newDim);
-        if (fBand > newDim-1) {
-            fBand = newDim-1;
-        }
-        fDiag.resize(Size());
-    }
+    // if ( newDim != this->Dim() )
+    // {
+    //     TPZMatrix<TVar>::Redim(newDim,newDim);
+    //     if (fBand > newDim-1) {
+    //         fBand = newDim-1;
+    //     }
+    //     fStorage.resize(Size());
+    // }
     
-    Zero();
-    this->fDecomposed = 0;
-    this->fDefPositive = 0;
+    // Zero();
+    // this->fDecomposed = ENoDecompose;
+    // this->fDefPositive = 0;
+
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Redim should not be called for Band matrices\n";
+    DebugStop();
     return( 1 );
 }
 
@@ -450,13 +418,13 @@ template<class TVar>
 int
 TPZSBMatrix<TVar>::Zero()
 {
-    int64_t siz= fDiag.size();
+    int64_t siz= fStorage.size();
     for (int64_t i=0; i<siz; i++) {
-        fDiag[i] = (TVar)0.;
+        fStorage[i] = (TVar)0.;
     }
     
     
-    this->fDecomposed = 0;
+    this->fDecomposed = ENoDecompose;
     this->fDefPositive = 0;
     return( 1 );
 }
@@ -479,7 +447,7 @@ TPZSBMatrix<TVar>::SetBand(int64_t newBand )
     }
     //fBand = newBand;
     fBand = nB;
-    fDiag.resize(Size());
+    fStorage.resize(Size());
     Zero();
     
     return( 1 );
@@ -489,20 +457,64 @@ TPZSBMatrix<TVar>::SetBand(int64_t newBand )
 
 
 
-/**************************/
-/*** Decompose Cholesky ***/
-template<class TVar>
-int
-TPZSBMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
-{
-    return Decompose_Cholesky();
-}
-
 template<class TVar>
 int
 TPZSBMatrix<TVar>::Decompose_Cholesky()
 {
-    return TPZMatrix<TVar>::Decompose_Cholesky();
+    if (  this->fDecomposed && this->fDecomposed != ECholesky) this->Error( "Decompose_Cholesky <Matrix already Decomposed>" );
+    if (  this->fDecomposed ) return ECholesky;
+    if ( this->Rows()!=this->Cols() ) this->Error( "Decompose_Cholesky <Matrix must be square>" );
+    //return 0;
+
+#ifdef PZDEBUG
+    const bool cond =
+        (is_complex<TVar>::value && this->GetSymmetry() == SymProp::Sym) ||
+        this->GetSymmetry() == SymProp::NonSym;
+    if (cond){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nCalling Cholesky decomposition on non symmetric matrix! Aborting..."
+               <<std::endl;
+        DebugStop();
+    }
+#endif
+    int64_t dim=this->Rows();
+    for (int64_t i=0 ; i<dim; i++) {
+        for(int64_t k=0; k<i; k++) {//diagonal elements
+            TVar sum = 0;
+            if constexpr (is_complex<TVar>::value){
+                sum += GetVal(i,k)*std::conj(GetVal(i,k));
+            }else{
+                sum += GetVal(i,k)*GetVal(i,k);
+            }
+            PutVal( i,i,GetVal(i,i)-sum );
+        }
+        TVar tmp = sqrt(GetVal(i,i));
+        PutVal( i,i,tmp );
+        for (int64_t j=i+1;j<dim; j++) {//off-diagonal elements
+            for(int64_t k=0; k<i; k++) {
+                TVar sum = 0.;
+                if constexpr (is_complex<TVar>::value){
+                    sum += GetVal(i,k)*std::conj(GetVal(j,k));
+                }else{
+                    sum += GetVal(i,k)*GetVal(j,k);
+                }
+                PutVal( i,j,GetVal(i,j)-sum);
+            }
+            TVar tmp2 = GetVal(i,i);
+            if ( IsZero(tmp2) ) {
+                this->Error( "Decompose_Cholesky <Zero on diagonal>" );
+            }
+            PutVal(i,j,GetVal(i,j)/GetVal(i,i) );
+            if constexpr (is_complex<TVar>::value){
+                PutVal(j,i,std::conj(GetVal(i,j)));
+            }else{
+                PutVal(j,i,GetVal(i,j));
+            }
+        }
+    }
+    this->fDecomposed = ECholesky;
+    return ECholesky;
+    
 }
 
 #ifdef USING_LAPACK
@@ -518,12 +530,12 @@ TPZSBMatrix<std::complex< float > >::Decompose_Cholesky()
     }
     
     char uplo[] = "Upper";
-    int n = this->Dim();
-    int lda = this->fBand + 1;
-    int kd = this->fBand;
-    int info = -666;
+    lapack_int n = this->Dim();
+    lapack_int lda = this->fBand + 1;
+    lapack_int kd = this->fBand;
+    lapack_int info = -666;
     
-    cpbtrf_(uplo, &n, &kd , (varfloatcomplex*) fDiag.begin(), &lda, &info);
+    cpbtrf_(uplo, &n, &kd , (varfloatcomplex*) fStorage.begin(), &lda, &info);
     if( info > 0){
        this->Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
     }
@@ -549,11 +561,11 @@ TPZSBMatrix<std::complex< double > >::Decompose_Cholesky()
     }
     
     char uplo[] = "Upper";
-    int n = this->Dim();
-    int lda = this->fBand + 1;
-    int kd = this->fBand;
-    int info = -666;
-    zpbtrf_(uplo, &n, &kd, (vardoublecomplex *) fDiag.begin(), &lda, &info);
+    lapack_int n = this->Dim();
+    lapack_int lda = this->fBand + 1;
+    lapack_int kd = this->fBand;
+    lapack_int info = -666;
+    zpbtrf_(uplo, &n, &kd, (vardoublecomplex *) fStorage.begin(), &lda, &info);
     if( info > 0){
        this->Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
     }
@@ -576,13 +588,13 @@ int TPZSBMatrix<float>::Decompose_Cholesky()
         DebugStop();
     }
     char uplo[]="Upper";
-    int n = Dim();
-    int kd = fBand;
-    int nrhs = 0;
-    float *ab = &fDiag[0];
-    int ldab = fBand+1;
+    lapack_int n = Dim();
+    lapack_int kd = fBand;
+    lapack_int nrhs = 0;
+    float *ab = &fStorage[0];
+    lapack_int ldab = fBand+1;
     float b = 0;
-    int info;
+    lapack_int info;
     
     //    spbsv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__kd#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     spbsv_(uplo, &n, &kd, &nrhs, ab, &ldab, &b, &n, &info);
@@ -604,13 +616,13 @@ int TPZSBMatrix<double>::Decompose_Cholesky()
         DebugStop();
     }
     char uplo[]="Upper";
-    int n = Dim();
-    int kd = fBand;
-    int nrhs = 0;
-    double *ab = &fDiag[0];
-    int ldab = fBand+1;
+    lapack_int n = Dim();
+    lapack_int kd = fBand;
+    lapack_int nrhs = 0;
+    double *ab = &fStorage[0];
+    lapack_int ldab = fBand+1;
     double b = 0;
-    int info;
+    lapack_int info;
     
     //    spbsv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__kd#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     dpbsv_(uplo, &n, &kd, &nrhs, ab, &ldab, &b, &n, &info);
@@ -627,22 +639,19 @@ int TPZSBMatrix<double>::Decompose_Cholesky()
 /*** Decompose LDLt ***/
 template<class TVar>
 int
-TPZSBMatrix<TVar>::Decompose_LDLt(std::list<int64_t> &singular)
-{
-    return Decompose_LDLt();
-}
-
-template<class TVar>
-int
 TPZSBMatrix<TVar>::Decompose_LDLt()
 {
     
     if (  this->fDecomposed ) this->Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed>" );
     
+    if constexpr(is_complex<TVar>::value) {
+        std::cout << "LDLt decomposition for complex numbers not implemented\n";
+        DebugStop();
+    }
     int64_t j,k,l, begin,end;
     TVar sum;
     
-    for ( j = 0; j < this->Dim(); j++ )
+    for ( j = 0; j < this->Rows(); j++ )
     {
         //Print("curernt");
         sum=0.;
@@ -682,7 +691,10 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
             }
         }
         
-        if ( IsZero(GetVal(j,j)) )this->Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Zero on diagonal>" );
+        if ( IsZero(GetVal(j,j)) )
+        {
+            this->Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Zero on diagonal>" );
+        }
         end  = MIN( int64_t(j + fBand )+1, this->Dim() );
         //cout<<"end="<<end<<"\n";
         for( l=j+1; l<end;l++)
@@ -691,7 +703,7 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
             PutVal( l,j,GetVal(l,j)/GetVal(j,j) ) ;
         }
     }
-    this->fDecomposed  = 1;
+    this->fDecomposed  = ELDLt;
     this->fDefPositive = 0;
     
     return( 1 );
@@ -720,7 +732,7 @@ TPZSBMatrix<float>::Subst_Forward( TPZFMatrix<float>*B ) const
     {
         //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
         float *bptr = &(*B)(0,ic);
-        cblas_stbsv(CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_stbsv(CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -741,7 +753,7 @@ TPZSBMatrix<double>::Subst_Forward( TPZFMatrix<double>*B ) const
     {
         //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
         double *bptr = &(*B)(0,ic);
-        cblas_dtbsv(CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_dtbsv(CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -761,7 +773,7 @@ TPZSBMatrix<std::complex<float> >::Subst_Forward( TPZFMatrix<std::complex<float>
     for(int64_t ic=0; ic<bcols; ic++)
     {
         std::complex<float> *bptr = &(*B)(0,ic);
-        cblas_ctbsv(CblasColMajor, CblasUpper, CblasConjTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_ctbsv(CblasColMajor, CblasUpper, CblasConjTrans, CblasNonUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -781,7 +793,7 @@ TPZSBMatrix<std::complex<double> >::Subst_Forward( TPZFMatrix<std::complex<doubl
     for(int64_t ic=0; ic<bcols; ic++)
     {
         std::complex<double> *bptr = &(*B)(0,ic);
-        cblas_ztbsv(CblasColMajor, CblasUpper, CblasConjTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_ztbsv(CblasColMajor, CblasUpper, CblasConjTrans, CblasNonUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -801,7 +813,7 @@ TPZSBMatrix<float>::Subst_Backward( TPZFMatrix<float>*B ) const
     for(int64_t ic=0; ic<bcols; ic++)
     {
         float *bptr = &(*B)(0,ic);
-        cblas_stbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_stbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -822,7 +834,7 @@ TPZSBMatrix<double>::Subst_Backward( TPZFMatrix<double>*B ) const
     for(int64_t ic=0; ic<bcols; ic++)
     {
         double *bptr = &(*B)(0,ic);
-        cblas_dtbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_dtbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -842,7 +854,7 @@ TPZSBMatrix<std::complex<float> >::Subst_Backward( TPZFMatrix<std::complex<float
     for(int64_t ic=0; ic<bcols; ic++)
     {
         std::complex<float> *bptr = &(*B)(0,ic);
-        cblas_ctbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_ctbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -863,7 +875,7 @@ TPZSBMatrix<std::complex<double> >::Subst_Backward( TPZFMatrix<std::complex<doub
     for(int64_t ic=0; ic<bcols; ic++)
     {
         std::complex<double>  *bptr = &(*B)(0,ic);
-        cblas_ztbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_ztbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -883,7 +895,7 @@ TPZSBMatrix<float>::Subst_LForward( TPZFMatrix<float>*B ) const
     for(int64_t ic=0; ic<bcols; ic++)
     {
         float *bptr = &(*B)(0,ic);
-        cblas_stbsv(CblasColMajor, CblasUpper, CblasTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_stbsv(CblasColMajor, CblasUpper, CblasTrans, CblasUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -903,7 +915,7 @@ TPZSBMatrix<double>::Subst_LForward( TPZFMatrix<double>*B ) const
     for(int64_t ic=0; ic<bcols; ic++)
     {
         double *bptr = &(*B)(0,ic);
-        cblas_dtbsv(CblasColMajor, CblasUpper, CblasTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_dtbsv(CblasColMajor, CblasUpper, CblasTrans, CblasUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -923,7 +935,7 @@ TPZSBMatrix<std::complex<float> >::Subst_LForward( TPZFMatrix<std::complex<float
     for(int64_t ic=0; ic<bcols; ic++)
     {
         std::complex<float> *bptr = &(*B)(0,ic);
-        cblas_ctbsv(CblasColMajor, CblasUpper, CblasConjTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_ctbsv(CblasColMajor, CblasUpper, CblasConjTrans, CblasUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -943,7 +955,7 @@ TPZSBMatrix<std::complex<double> >::Subst_LForward( TPZFMatrix<std::complex<doub
     for(int64_t ic=0; ic<bcols; ic++)
     {
         std::complex<double> *bptr = &(*B)(0,ic);
-        cblas_ztbsv(CblasColMajor, CblasUpper, CblasConjTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_ztbsv(CblasColMajor, CblasUpper, CblasConjTrans, CblasUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -963,7 +975,7 @@ TPZSBMatrix<float>::Subst_LBackward( TPZFMatrix<float>*B ) const
     for(int64_t ic=0; ic<bcols; ic++)
     {
         float *bptr = &(*B)(0,ic);
-        cblas_stbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_stbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -984,7 +996,7 @@ TPZSBMatrix<double>::Subst_LBackward( TPZFMatrix<double>*B ) const
     for(int64_t ic=0; ic<bcols; ic++)
     {
         double *bptr = &(*B)(0,ic);
-        cblas_dtbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_dtbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -1004,7 +1016,7 @@ TPZSBMatrix<std::complex<float> >::Subst_LBackward( TPZFMatrix<std::complex<floa
     for(int64_t ic=0; ic<bcols; ic++)
     {
         std::complex<float> *bptr = &(*B)(0,ic);
-        cblas_ctbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_ctbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -1025,7 +1037,7 @@ TPZSBMatrix<std::complex<double> >::Subst_LBackward( TPZFMatrix<std::complex<dou
     for(int64_t ic=0; ic<bcols; ic++)
     {
         std::complex<double>  *bptr = &(*B)(0,ic);
-        cblas_ztbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_ztbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasUnit, n, kd, &fStorage[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -1040,7 +1052,20 @@ TPZSBMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
     {
        this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
-    return TPZMatrix<TVar>::Subst_Forward(B);
+    for ( int64_t r = 0; r < this->Dim(); r++ ) {
+        TVar pivot = GetVal( r, r );
+        for ( int64_t c = 0; c < B->Cols();  c++ ) {
+            // Faz sum = SOMA( A[r,i] * B[i,c] ); i = 0, ..., r-1.
+            //
+            TVar sum = 0.0;
+            for ( int64_t i = 0; i < r; i++ ) sum += GetVal(r, i) * B->GetVal(i, c);
+            
+            // Faz B[r,c] = (B[r,c] - sum) / A[r,r].
+            //
+            B->PutVal( r, c, (B->GetVal(r, c) - sum) / pivot );
+        }
+    }
+    return( 1 );
 }
 /***********************/
 /*** Subst L Forward ***/
@@ -1104,12 +1129,25 @@ int TPZSBMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
 template<class TVar>
 int TPZSBMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 {
-    if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
-       this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     
-    return TPZMatrix<TVar>::Subst_Backward(B);
-    return ( 1 ) ;
-    
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed != ECholesky) {
+        this->Error(__PRETTY_FUNCTION__,"Subst_Backward-> wrong parameters") ;
+        return( -1 );
+    }
+    for ( int64_t r = this->Dim()-1;  r >= 0;  r-- ) {
+        TVar pivot = GetVal( r, r );
+        for ( int64_t c = 0; c < B->Cols(); c++ ) {
+            // Faz sum = SOMA( A[r,i] * B[i,c] ); i = N, ..., r+1.
+            //
+            TVar sum = 0.0;
+            for ( int64_t i = this->Dim()-1; i > r; i-- ) sum += GetVal(r, i) * B->GetVal(i, c);
+            // Faz B[r,c] = (B[r,c] - sum) / A[r,r].
+            //
+            B->PutVal( r, c, (B->GetVal(r, c) - sum) / pivot );
+        }
+    }
+    return( 1 );
+
 }
 
 template<class TVar>
@@ -1149,8 +1187,8 @@ int
 TPZSBMatrix<TVar>::Clear()
 {
     this->fRow = this->fCol = 0;
-    fDiag.resize(0);
-    this->fDecomposed = 0;
+    fStorage.resize(0);
+    this->fDecomposed = ENoDecompose;
     return( 1 );
 }
 
@@ -1162,8 +1200,10 @@ void
 TPZSBMatrix<TVar>::Copy(const TPZSBMatrix<TVar> &A )
 {
     TPZMatrix<TVar>::operator=(A);
+    std::cout << __PRETTY_FUNCTION__ << " Please implement me!\n";
+    DebugStop();
     this->fBand = A.fBand;
-    this->fDiag = A.fDiag;
+    this->fStorage = A.fStorage;
 }
 
 #ifdef USING_LAPACK

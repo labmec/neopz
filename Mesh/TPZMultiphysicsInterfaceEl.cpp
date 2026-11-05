@@ -91,8 +91,6 @@ TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, re
     }
     
 	this->SetLeftRightElement(leftside, rightside);
-	this->IncrementElConnected();
-    this->CreateIntegrationRule();
 }
 
 void TPZMultiphysicsInterfaceElement::IncrementElConnected(){
@@ -291,6 +289,8 @@ void TPZMultiphysicsInterfaceElement::SetLeftRightElementIndices(const TPZVec<in
     if (count != fConnectIndexes.size() ) {
         DebugStop();
     }
+    this->IncrementElConnected();
+    this->CreateIntegrationRule();
 }
 
 
@@ -511,6 +511,16 @@ void TPZMultiphysicsInterfaceElement::CalcStiffT(TPZElementMatrixT<TVar> &ef)
     }	
     
 }//CalcStiff
+
+template
+void TPZMultiphysicsInterfaceElement::CalcStiffT<STATE>(TPZElementMatrixT<STATE> &ek,
+                                                 TPZElementMatrixT<STATE> &ef);
+
+template
+void TPZMultiphysicsInterfaceElement::CalcStiffT<STATE>(TPZElementMatrixT<STATE> &ef);
+
+
+
 
 const TPZIntPoints & TPZMultiphysicsInterfaceElement::GetIntegrationRule() const
 {
@@ -830,6 +840,12 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredDataT(TPZMaterialDataT<TVar
 
 }
 
+template
+void TPZMultiphysicsInterfaceElement::ComputeRequiredDataT<STATE>(TPZMaterialDataT<STATE> &data, TPZVec<STATE> &point);
+
+template
+void TPZMultiphysicsInterfaceElement::ComputeRequiredDataT<CSTATE>(TPZMaterialDataT<CSTATE> &data, TPZVec<REAL> &point);
+
 void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
 {
 	TPZGeoEl *ref = Reference();
@@ -943,6 +959,12 @@ void TPZMultiphysicsInterfaceElement::SolutionT(TPZVec<REAL> &qsi, int var,TPZVe
 		
 	matInterface->SolutionInterface(data,datavecleft,datavecright,var, sol,LeftSide.Element(),RightSide.Element());
 }
+
+template
+void TPZMultiphysicsInterfaceElement::SolutionT<STATE>(TPZVec<REAL> &qsi, int var,TPZVec<STATE> &sol);
+template
+void TPZMultiphysicsInterfaceElement::SolutionT<CSTATE>(TPZVec<REAL> &qsi, int var,TPZVec<CSTATE> &sol);
+
 
 void TPZMultiphysicsInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform<> &transf){
 	TPZGeoEl * neighel = Neighbor.Element()->Reference();

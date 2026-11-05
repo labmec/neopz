@@ -86,21 +86,66 @@ public:
 	 */
 	int GetSizeofBlock(int64_t blockid) {return fBlockSize[blockid];}
 	
-	void Transpose(TPZMatrix<TVar> *const T) const override;
-	virtual int Decompose_LU() override;
-	virtual int Decompose_LU(std::list<int64_t> &singular) override;
+	void Transpose(TPZMatrix<TVar> *const T, bool conj=false) const override;
+    
+    int SolveDirect( TPZFMatrix<TVar> &B , const DecomposeType dt) override {
+        
+        switch ( dt ) {
+            case ELU:
+                return( Solve_LU( &B)  );
+            default:
+                this->Error( "Solve  < Unknown decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+    int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override
+    {
+        if(this->fDecomposed != dt) DebugStop();
+        switch ( dt ) {
+            case ELU:
+                return( Substitution( &F)  );
+            default:
+                this->Error( "SolveDirect  < Unhandled decomposition type >" );
+                break;
+        }
+        return ( 0 );
+
+    }
+    
+    int Solve_LU( TPZFMatrix<TVar>*B ) {
+        return ( ( !Decompose_LU() )?  0 : Substitution( B )  );
+    }
+
+    /** @brief decompose the system of equations acording to the decomposition
+      * scheme */
+     virtual int Decompose(const DecomposeType dt) override {
+       switch (dt) {
+       case ELU:
+         return Decompose_LU();
+         break;
+       default:
+               this->Error("Decomposition type not supported");
+         break;
+       }
+       return -1;
+     }
+
+	virtual int Decompose_LU();
 	
 	/** @brief Makes the backward and forward substitutions whether the matrix was LU decomposed */
-	virtual int Substitution( TPZFMatrix<TVar> * B ) const override;
+	virtual int Substitution( TPZFMatrix<TVar> * B ) const;
 	
 	/** @brief Updates the values of the matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
+  
+  void UpdateFrom(TPZMatrix<TVar>& mat);
 	
 	/** @brief This method checks the working of the class */
 	static int main();
     
     /** Fill the matrix with random values (non singular matrix) */
-    void AutoFill(int64_t dim, int64_t dimj, int symmetric) override;
+    void AutoFill(int64_t dim, int64_t dimj, SymProp symmetric) override;
 	
 private:
 	
@@ -132,6 +177,12 @@ public:
      * @param block Contains returned block
 	 */
 	void GetBlock(int64_t i, TPZFMatrix<TVar> &block);
+
+    /**
+     * @brief Gets a pointer to the actual block from current matrix
+     * @param i Returns teh ith block
+	 */
+	TPZAutoPointer<TPZFMatrix<TVar>> GetBlockPtr(int64_t i);
 	
 	/**
      @brief Builds a block from matrix
@@ -165,10 +216,12 @@ protected:
   }
 	/** @brief Stores matrix data */
 	TPZVec<TVar> fStorage;
-	/** @brief Stores blocks data */
+	/** @brief Stores position of first entry of each block in fStorage */
 	TPZVec<int64_t> fBlockPos;
-	/** @brief Stores block sizes data */
+	/** @brief Stores size of each block(nrows and ncols, blocks are square) */
 	TPZVec<int> fBlockSize;
+  /** @brief Block matrices as full mats (using fStorage as memory)*/
+  TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> fBlockMats;
 };
 
 template<class TVar>

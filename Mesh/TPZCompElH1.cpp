@@ -27,7 +27,7 @@ template<class TSHAPE>
 TPZCompElH1<TSHAPE>::TPZCompElH1(TPZCompMesh &mesh, TPZGeoEl *gel,
                                  int nocreate, const H1Family h1fam) :
 TPZRegisterClassId(&TPZCompElH1::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel), fh1fam(h1fam)
+TPZIntelGen<TSHAPE>(mesh,gel,nocreate), fh1fam(h1fam)
 {
 	
 }
@@ -107,13 +107,13 @@ void TPZCompElH1<TSHAPE>::InitMaterialData(TPZMaterialData &data){
     TPZManVector<int,TSHAPE::NSides> orders(TSHAPE::NSides-TSHAPE::NCornerNodes);
     TPZManVector<int,TSHAPE::NFacets> sideorient(TSHAPE::NFacets,0);
     TPZGeoEl *gel = this->Reference();
-    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->NodeIndex(i);
+    for(int i=0; i<TSHAPE::NCornerNodes; i++) ids[i] = gel->Node(i).Id();
     for(int i=TSHAPE::NCornerNodes; i<TSHAPE::NSides; i++) orders[i-TSHAPE::NCornerNodes] = this->Connect(i).Order();
     TPZShapeData &shapedata = data;
     TPZShapeH1<TSHAPE>::Initialize(ids, orders, shapedata);
     mat->FillDataRequirements(data);
     const int dim = this->Dimension();
-    const int nshape = data.fPhi.Rows();
+    const int nshape = data.fH1.fPhi.Rows();
     const int nstate = this->Material()->NStateVariables();
     data.fShapeType = TPZMaterialData::EScalarShape;
     data.phi.Redim(nshape,1);
@@ -140,12 +140,12 @@ template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
     
     TPZShapeData &shapedata = data;
-    TPZShapeH1<TSHAPE>::Shape(intpoint,shapedata);
+    TPZShapeH1<TSHAPE>::Shape(intpoint,shapedata,shapedata.fH1.fPhi,shapedata.fH1.fDPhi);
     int tranpose = 1;
     REAL alpha = 1.;
     REAL beta = 0.;
-    data.jacinv.MultAdd(shapedata.fDPhi, data.dphix, data.dphix,alpha,beta,tranpose);
-    data.phi = shapedata.fPhi;
+    data.jacinv.MultAdd(shapedata.fH1.fDPhi, data.dphix, data.dphix,alpha,beta,tranpose);
+    data.phi = shapedata.fH1.fPhi;
 }
 
 template<class TSHAPE>
@@ -163,7 +163,7 @@ void TPZCompElH1<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
 /**sets the interpolation order of side to order*/
 template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::SetSideOrder(int side, int order) {
-	if(side<0 || side >= TSHAPE::NSides || (side >= TSHAPE::NCornerNodes && order <1)) {
+	if(side<0 || side >= TSHAPE::NSides || (side >= TSHAPE::NCornerNodes && order <0)) {
 		PZError << "TPZIntelGen::SetSideOrder. Bad paramenter side " << side << " order " << order << std::endl;
 		DebugStop();
 #ifdef PZ_LOG
@@ -188,7 +188,7 @@ void TPZCompElH1<TSHAPE>::SetSideOrder(int side, int order) {
             int nvar = 1;
             TPZMaterial * mat = this->Material();
             if(mat) nvar = mat->NStateVariables();
-            int nshape = TSHAPE::NConnectShapeF(side, order);
+            int nshape = NConnectShapeF(side, order);
             c.SetNShape(nshape);
             c.SetNState(nvar);
             this->Mesh()->Block().Set(seqnum,nshape*nvar);
@@ -235,6 +235,7 @@ int TPZCompElH1<TSHAPE>::EffectiveSideOrder(int side) const {
 	TPZConnect &c = this->Connect(side);
 	int order = c.Order();
     for (int is=0; is<lowdim.size(); is++) {
+        if(lowdim[is] < TSHAPE::NCornerNodes) continue;
         TPZConnect &c = this->MidSideConnect(lowdim[is]);
         if(c.Order() > order) order = c.Order();
     }
@@ -244,7 +245,7 @@ int TPZCompElH1<TSHAPE>::EffectiveSideOrder(int side) const {
 template<class TSHAPE>
 int TPZCompElH1<TSHAPE>::NConnectShapeF(int connect, int order) const{
     
-    if(connect < TSHAPE::NCornerNodes) return TSHAPE::NConnectShapeF(connect,0);
+    if(connect < TSHAPE::NCornerNodes) return TSHAPE::NConnectShapeF(connect,1);
 	if(order < 0) return 0;
     int nshape = TSHAPE::NConnectShapeF(connect, order);
 #ifdef PZDEBUG
@@ -277,11 +278,36 @@ void TPZCompElH1<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
 	}
 }
 
+#include "pzshapepoint.h"
+#include "pzshapelinear.h"
+#include "pzshapetriang.h"
+#include "pzshapequad.h"
+#include "pzshapetetra.h"
+#include "pzshapeprism.h"
+#include "pzshapewideprism.h"
+#include "pzshapecube.h"
+#include "pzshapepiram.h"
+#include "pzshapepiramHdiv.h"
+
+
+using namespace pzshape;
+
+template<class TSIDESHAPE>
+static void SideShape(const TPZVec<REAL> &point, TPZVec<int64_t> &ids, TPZVec<int> &ord, TPZShapeData &data)
+{
+    TPZShapeH1<TSIDESHAPE>::Initialize(ids, ord, data);
+    TPZShapeH1<TSIDESHAPE>::Shape(point, data);
+}
+
 
 /**compute the values of the shape function of the side*/
 template<class TSHAPE>
 void TPZCompElH1<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
+    if(side == TSHAPE::NSides -1 ) {
+        Shape(point,phi,dphi);
+        return;
+    }
 	int nc = TSHAPE::NContainedSides(side);
 	int nn = TSHAPE::NSideNodes(side);
 	TPZManVector<int64_t,27> id(nn);
@@ -296,7 +322,33 @@ void TPZCompElH1<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
 		int conloc = TSHAPE::ContainedSideLocId(side,c);
         order[c-nn] = this->Connect(conloc).Order();
 	}
-	TSHAPE::SideShape(side, point, id, order, phi, dphi);
+    
+    TPZShapeData data;
+    if(side == TSHAPE::NSides-1)
+    {
+        TPZShapeH1<TSHAPE>::Initialize(id, order, data);
+    }
+    else {
+        switch (TSHAPE::Type(side)) {
+            case EPoint:
+                SideShape<TPZShapePoint>(point, id, order, data);
+                break;
+            case EOned:
+                SideShape<TPZShapeLinear>(point, id, order, data);
+                break;
+            case ETriangle:
+                SideShape<TPZShapeTriang>(point, id, order, data);
+                break;
+            case EQuadrilateral:
+                SideShape<TPZShapeQuad>(point, id, order, data);
+                break;
+            default:
+                DebugStop();
+                break;
+        }
+    }
+    phi = data.fH1.fPhi;
+    dphi = data.fH1.fDPhi;
 }
 
 template<class TSHAPE>
@@ -311,19 +363,13 @@ void TPZCompElH1<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMat
 	for(i=0; i<TSHAPE::NSides-TSHAPE::NCornerNodes; i++) {
 		ord[i] = this->Connect(i+TSHAPE::NCornerNodes).Order();
 	}
-	TSHAPE::Shape(pt,id,ord,phi,dphi);
+    TPZShapeH1<TSHAPE> locshape;
+    TPZShapeData data;
+    locshape.Initialize(id, ord, data);
+	locshape.Shape(pt,data);
+    phi = data.fH1.fPhi;
+    dphi = data.fH1.fDPhi;
 }
-
-#include "pzshapepoint.h"
-#include "pzshapelinear.h"
-#include "pzshapetriang.h"
-#include "pzshapequad.h"
-#include "pzshapetetra.h"
-#include "pzshapeprism.h"
-#include "pzshapecube.h"
-#include "pzshapepiram.h"
-#include "pzshapepiramHdiv.h"
-
 
 
 using namespace pzshape;
@@ -334,6 +380,7 @@ template class TPZCompElH1<TPZShapeLinear>;
 template class TPZCompElH1<TPZShapeQuad>;
 template class TPZCompElH1<TPZShapeTetra>;
 template class TPZCompElH1<TPZShapePrism>;
+template class TPZCompElH1<TPZShapeWidePrism>;
 template class TPZCompElH1<TPZShapePiram>;
 template class TPZCompElH1<TPZShapeCube>;
 
@@ -344,4 +391,5 @@ template class TPZRestoreClass< TPZCompElH1<TPZShapeQuad>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapeCube>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapeTetra>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapePrism>>;
+template class TPZRestoreClass< TPZCompElH1<TPZShapeWidePrism>>;
 template class TPZRestoreClass< TPZCompElH1<TPZShapePiram>>;

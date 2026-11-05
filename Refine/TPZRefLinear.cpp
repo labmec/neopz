@@ -63,6 +63,7 @@ namespace pzrefine {
 			for(i=0;i<NSubEl;i++) SubElVec[i] = geo->SubElement(i);
 			return;//If exist fSubEl return this sons
 		}
+		bool islinear = geo->IsLinearMapping();
 		int j,sub,matid=geo->MaterialId();
 		int64_t index;
 		int np[TPZShapeLinear::NSides];//guarda conectividades dos 8 subelementos
@@ -77,7 +78,9 @@ namespace pzrefine {
 			TPZManVector<int64_t> cornerindexes(TPZShapeLinear::NCornerNodes);
 			for(int j=0;j<TPZShapeLinear::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
 			int64_t index;
-			TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(EOned,cornerindexes,matid,index);
+			TPZGeoEl *subel;
+			if(islinear) subel = geo->Mesh()->CreateGeoElement(EOned,cornerindexes,matid,index,0);
+			else subel = geo->Mesh()->CreateGeoElementMapped(EOned,cornerindexes,matid,index,0);
 			geo->SetSubElement(i , subel);
 		}
 		
@@ -127,7 +130,7 @@ namespace pzrefine {
 					gelside = gelside.Neighbour();
 				}
 			}
-			TPZVec<REAL> par(3,0.);
+			TPZVec<REAL> par(pztopology::TPZLine::Dimension,0.);
 			TPZVec<REAL> coord(3,0.);
 			if(side < TPZShapeLinear::NCornerNodes) {
 				index = gel->NodeIndex(side); 
@@ -146,7 +149,7 @@ namespace pzrefine {
 	void TPZRefLinear::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel) {
 //		subel.Resize(0);
 		if(side<0 || side>TPZShapeLinear::NSides || !father->HasSubElement()){
-			PZError << "TPZRefCube::GetSubelements2 called with error arguments\n";
+			PZError << "TPZRefLinear::GetSubelements2 called with error arguments\n";
 			return;
 		}
 		int nsub = NSideSubElements(side);//nsubeldata[side];

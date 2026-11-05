@@ -38,7 +38,7 @@ TPZBuildMultiphysicsMesh::~TPZBuildMultiphysicsMesh(){
 }
 
 
-void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
+void TPZBuildMultiphysicsMesh::AddElements(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
 	TPZGeoMesh *gmesh = MFMesh->Reference();
 	gmesh->ResetReference();
@@ -106,7 +106,7 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> &cmeshVec, TPZC
     }
 }
 
-void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
+void TPZBuildMultiphysicsMesh::AddConnects(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
 	int64_t nmeshes = cmeshVec.size();
     MFMesh->SetNMeshes(nmeshes);
@@ -148,7 +148,7 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> &cmeshVec, TPZC
 			TPZConnect &cn = MFMesh->ConnectVec()[FirstConnect[imesh]+ic];
 			if (cn.HasDependency()) 
 			{
-				TPZConnect::TPZDepend *dep = cn.FirstDepend();
+				TPZConnect::TPZDependBase *dep = cn.FirstDepend();
 				while (dep) {
 					dep->fDepConnectIndex = dep->fDepConnectIndex+FirstConnect[imesh];
 					dep = dep->fNext;
@@ -229,7 +229,7 @@ void TPZBuildMultiphysicsMesh::AppendConnects(TPZCompMesh *cmesh, TPZCompMesh *M
         TPZConnect &cn = MFMesh->ConnectVec()[nconnects_old + ic];
         if (cn.HasDependency())
         {
-            TPZConnect::TPZDepend *dep = cn.FirstDepend();
+            TPZConnect::TPZDependBase *dep = cn.FirstDepend();
             while (dep)
             {
                 dep->fDepConnectIndex = dep->fDepConnectIndex + nconnects_old;
@@ -302,7 +302,7 @@ void TPZBuildMultiphysicsMesh::AppendConnects(TPZCompMesh *cmesh, TPZCompMesh *M
 	}
 }
 
-void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec,
+void TPZBuildMultiphysicsMesh::TransferFromMeshes(const TPZVec<TPZCompMesh *> &cmeshVec,
                                                   TPZCompMesh *MFMesh)
 {
     TPZBaseMatrix &solMF = MFMesh->Solution();
@@ -314,7 +314,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
 }
 
 template<class TVar>
-void TPZBuildMultiphysicsMesh::TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshVec,
+void TPZBuildMultiphysicsMesh::TransferFromMeshesT(const TPZVec<TPZCompMesh *> &cmeshVec,
                                                    TPZCompMesh *MFMesh)
 {
     
@@ -329,6 +329,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshV
         if(!atomic_mesh) continue;
 		TPZBlock &block = atomic_mesh->Block();
         TPZFMatrix<TVar> &sol = atomic_mesh->Solution();
+        const int nc = sol.Cols();
         TPZConnect &con = atomic_mesh->ConnectVec()[indexes[connect].second];
         int64_t seqnum = con.SequenceNumber();
         if(seqnum<0) DebugStop();       /// Whether connect was deleted by previous refined process
@@ -336,10 +337,13 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshV
         TPZConnect &conMF = MFMesh->ConnectVec()[connect];
         int64_t seqnumMF = conMF.SequenceNumber();
         if(seqnumMF < 0) DebugStop();
-        for (int idf=0; idf<blsize; idf++) {
-            auto getval = sol(block.Index(seqnum, idf));
-            solMF(blockMF.Index(seqnumMF, idf)) = getval;
+        for(int ic = 0; ic < nc; ic++){
+            for (int idf=0; idf<blsize; idf++) {
+                const auto getval = sol(block.Index(seqnum, idf),ic);
+                solMF(blockMF.Index(seqnumMF, idf),ic) = getval;
+            }
         }
+        
 	}
     
     
@@ -369,15 +373,19 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshV
                 //acessing the block on submesh
                 TPZBlock &blocksub = msub->Block();
                 TPZFMatrix<TVar> &solsub = ((TPZCompMesh *)(msub))->Solution();
+                const int nc = solsub.Cols();
                 const TPZConnect &consub = msub->ConnectVec()[submeshIndex];
                 const int64_t seqnumsub = consub.SequenceNumber();
                 
                 if(seqnumfather < 0) DebugStop();
-                for(int idf=0 ; idf<nblock; idf++){
-                    const int posfather = blockfather.Position(seqnumfather);
-                    auto valsub = solsub(blocksub.Index(seqnumsub, idf));
-                    fathermeshSol(posfather + idf) = valsub;
+                for(int ic = 0; ic < nc; ic++){
+                    for(int idf=0 ; idf<nblock; idf++){
+                        const int posfather = blockfather.Position(seqnumfather);
+                        const auto valsub = solsub(blocksub.Index(seqnumsub, idf),ic);
+                        fathermeshSol(posfather + idf,ic) = valsub;
+                    }
                 }
+
             }
             
         }
@@ -394,7 +402,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshesT(TPZVec<TPZCompMesh *> &cmeshV
     }
 }
 
-void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
+void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
     TPZBaseMatrix &solMF = MFMesh->Solution();
     
@@ -405,7 +413,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
 }
 
 template<class TVar>
-void TPZBuildMultiphysicsMesh::TransferFromMultiPhysicsT(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
+void TPZBuildMultiphysicsMesh::TransferFromMultiPhysicsT(const TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
     
     TPZVec<atomic_index> indexes;
@@ -413,6 +421,14 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysicsT(TPZVec<TPZCompMesh *> &
     int64_t nconnect = indexes.size();
     TPZBlock &blockMF = MFMesh->Block();
     TPZFMatrix<TVar> &solMF = MFMesh->Solution();
+
+    const int nsols = solMF.Cols();
+    //resize every sol vector accordingly
+    for(auto mesh : cmeshVec){
+        const int neqs = mesh->Solution().Rows();
+        mesh->Solution().Resize(neqs, nsols);
+    }
+    
     for(int64_t connect = 0; connect < nconnect; connect++)
     {
         TPZCompMesh *atomic_mesh = indexes[connect].first;
@@ -429,9 +445,11 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysicsT(TPZVec<TPZCompMesh *> &
         int64_t seqnumMF = conMF.SequenceNumber();
         if(seqnumMF < 0) DebugStop();
         for (int idf=0; idf<blsize; idf++) {
-            TVar val = solMF(blockMF.Index(seqnumMF, idf));
-            int64_t pos = block.Position(seqnum);
-            atomic_mesh_sol(pos+idf) = val;
+            const int64_t pos = block.Position(seqnum);
+            for(int is = 0; is < nsols; is++){
+                const TVar val = solMF(blockMF.Index(seqnumMF, idf),is);
+                atomic_mesh_sol(pos+idf,is) = val;
+            }
         }
     }
     
@@ -953,10 +971,10 @@ static void FillAtomic(TPZMultiphysicsInterfaceElement *intface, TPZVec<atomic_i
         TPZCompEl *cel = mphysleft->Element(imesh);
         if(!cel) continue;
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-        int nside_connects = intel->NSideConnects(leftside.Side());
-        for(int ic=0; ic<nside_connects; ic++)
+        int nconnects = intel->NConnects();
+        for(int ic=0; ic<nconnects; ic++)
         {
-            int64_t atomic_conindex = intel->SideConnectIndex(ic, leftside.Side());
+            int64_t atomic_conindex = intel->ConnectIndex(ic);
             int64_t mphys_index = intface->ConnectIndex(count);
             indexes[mphys_index] = atomic_index(cel->Mesh(),atomic_conindex);
             count++;
@@ -968,10 +986,10 @@ static void FillAtomic(TPZMultiphysicsInterfaceElement *intface, TPZVec<atomic_i
         TPZCompEl *cel = mphysright->Element(imesh);
         if(!cel) continue;
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-        int nside_connects = intel->NSideConnects(rightside.Side());
-        for(int ic=0; ic<nside_connects; ic++)
+        int nconnects = intel->NConnects();
+        for(int ic=0; ic<nconnects; ic++)
         {
-            int64_t atomic_conindex = intel->SideConnectIndex(ic, rightside.Side());
+            int64_t atomic_conindex = intel->ConnectIndex(ic);
             int64_t mphys_index = intface->ConnectIndex(count);
             indexes[mphys_index] = atomic_index(cel->Mesh(),atomic_conindex);
             count++;
@@ -1003,6 +1021,11 @@ static void FillAtomic(TPZCompEl *cel, TPZVec<atomic_index> &indexes)
     TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
     TPZCondensedCompEl *condense = dynamic_cast<TPZCondensedCompEl *>(cel);
     TPZMultiphysicsInterfaceElement *intface = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
+    if(!mphys && !elgr && !condense && !intface)
+    {
+        std::cout << "Element not handled \n";
+        cel->Print();
+    }
     if(mphys)
     {
         FillAtomic(mphys, indexes);
@@ -1031,8 +1054,21 @@ void TPZBuildMultiphysicsMesh::ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<at
     int64_t nel = mesh->NElements();
     atomic_index def(0,-1);
     indexes.Resize(ncon, def);
+    // the values of the connects of submeshes will be transferred by the elements of the submeshes
+    std::set<int64_t> noworries;
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = mesh->Element(el);
+        TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *>(cel);
+        if(submesh)
+        {
+            int ncon = submesh->NConnects();
+            for(int ic=0; ic<ncon; ic++)
+            {
+                int64_t cindex = submesh->ConnectIndex(ic);
+                noworries.insert(cindex);
+            }
+            continue;
+        }
         if(cel)
         {
             FillAtomic(cel, indexes);
@@ -1041,13 +1077,24 @@ void TPZBuildMultiphysicsMesh::ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<at
 #ifdef PZDEBUG
     {
         int notfound = 0;
+        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(mesh);
         for (int64_t i=0; i<indexes.size(); i++) {
             if(mesh->ConnectVec()[i].SequenceNumber() < 0) continue;
-            if(indexes[i].first == 0) notfound++;
+            if(subcmesh && subcmesh->IsExternal(i)) continue;
+            if(noworries.find(i) != noworries.end()) continue;
+            if(indexes[i].first == 0){
+                notfound++;
+                std::cout << "index " << i << std::endl;
+                TPZConnect &c = mesh->ConnectVec()[i];
+                c.Print(*mesh);
+            }
         }
         if(notfound)
         {
             std::cout << __PRETTY_FUNCTION__ << " number of missing connects " << notfound << std::endl;
+            std::ofstream out("CMeshmissingconnects.txt");
+            mesh->Print(out);
+            DebugStop();
         }
     }
 #endif

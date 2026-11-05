@@ -50,8 +50,15 @@ public:
         int ClassId() const override;
 	void Write(TPZStream &buf, int withclassid) const override;
 	void Read(TPZStream &buf, void *context) override;
-	
-	
+
+	//! Gets number of solvers
+	int NumSolvers() const {return fSolvers.size();}
+
+	//! Gets a given solver
+	TPZMatrixSolver<TVar>* GetSolver(const int i){
+		if(i >= 0 && i < NumSolvers()){return fSolvers[i];}
+		else{return nullptr;}
+	}
 private:    
 	TPZStack < TPZMatrixSolver<TVar> * > fSolvers;
 };

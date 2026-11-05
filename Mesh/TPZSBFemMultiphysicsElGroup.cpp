@@ -10,6 +10,7 @@
 #include "TPZSBFemVolumeMultiphysics.h"
 #include "TPZMaterialDataT.h"
 #include "TPZGeoLinear.h"
+#include "TPZLapack.h"
 
 #ifdef USING_MKL
 #include <mkl.h>
@@ -107,6 +108,11 @@ void TPZSBFemMultiphysicsElGroup::Print(std::ostream &out) const
 
 void TPZSBFemMultiphysicsElGroup::GroupandCondense(set<int> & condensedmatid)
 {
+    const bool real_sol = this->Mesh()->GetSolType() != ESolType::EComplex;
+    if(!real_sol){
+        //we are not creating cplx condensed els yet
+        DebugStop();
+    }
 #ifdef PZDEBUG
     if (fElGroup.size() == 0 || condensedmatid.size() == 0) DebugStop();
 #endif
@@ -169,7 +175,7 @@ void TPZSBFemMultiphysicsElGroup::GroupandCondense(set<int> & condensedmatid)
     }
 
     bool keepmatrix = true;
-    fCondEl = new TPZCondensedCompEl(fCondensedEls, keepmatrix);
+    fCondEl = new TPZCondensedCompElT<STATE>(fCondensedEls, keepmatrix);
 
     AdjustConnectivities();
 
@@ -183,15 +189,15 @@ void TPZSBFemMultiphysicsElGroup::CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElem
     
     InitializeElementMatrix(ek, ef);
 
-    int n = E0.fMat.Rows();
+    lapack_int n = E0.fMat.Rows();
     auto dim = Mesh()->Dimension();
     
     TPZFMatrix<STATE> E0Inv(E0.fMat);
 
-    TPZVec<int> pivot(E0Inv.Rows(),0);
-    int nwork = 4*n*n + 2*n;
+    TPZVec<lapack_int> pivot(E0Inv.Rows(),0);
+    lapack_int nwork = 4*n*n + 2*n;
     TPZVec<STATE> work(2*nwork,0.);
-    int info=0;
+    lapack_int info=0;
 #ifdef STATEdouble
     dgetrf_(&n, &n, &E0Inv(0,0), &n, &pivot[0], &info);
 #endif
@@ -348,7 +354,7 @@ void TPZSBFemMultiphysicsElGroup::CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElem
     TPZFMatrix<std::complex<double>> ekloc;
     QVectors.Multiply(fPhiInverse, ekloc);
 #ifdef PZDEBUG
-    cout << eigenvalues << "\n";
+    if(0) cout << eigenvalues << "\n";
 #endif
 
     ek.fMat.Resize(ekloc.Rows(),ekloc.Cols());
@@ -389,7 +395,10 @@ void TPZSBFemMultiphysicsElGroup::CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElem
     }
 
     // FLUX
-    TPZFMatrix<double> k01 = fCondEl->Matrix().K01();
+    auto *condel =
+        dynamic_cast<TPZCondensedCompElT<STATE>*>(fCondEl);
+    
+    TPZFMatrix<double> k01 = condel->Matrix().K01();
     n = fPhi.Rows();
 
     TPZFMatrix<std::complex<double>> fPhiD(2*n, 2*n,0.);
@@ -514,12 +523,6 @@ void TPZSBFemMultiphysicsElGroup::InitializeElementMatrix(TPZElementMatrixT<STAT
 		(ef.fConnect)[i] = ConnectIndex(i);
 		(ek.fConnect)[i] = ConnectIndex(i);
 	}
-    std::map<int64_t,TPZOneShapeRestraint>::const_iterator it;
-    for (it = fRestraints.begin(); it != fRestraints.end(); it++) 
-    {
-        ef.fOneRestraints.push_back(it->second);
-        ek.fOneRestraints.push_back(it->second);
-    }
 }//void
 
 void TPZSBFemMultiphysicsElGroup::LoadSolution()

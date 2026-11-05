@@ -7,14 +7,14 @@ target_include_directories(pz PUBLIC
 set(public_headers
     TPZSolver.h
     TPZMatrixSolver.h
+    TPZEigenSort.h
     TPZEigenSolver.h
     TPZPardisoSolver.h
+    TPZMumpsSolver.h
+    TPZIdentitySolver.h
+    TPZJacobiPrecond.h
     pzstepsolver.h
     pzseqsolver.h
-    )
-set(headers
-    ${public_headers}
-    TPZCopySolve.h
     )
 
 set(sources
@@ -22,13 +22,32 @@ set(sources
     TPZMatrixSolver.cpp
     TPZEigenSolver.cpp
     TPZPardisoSolver.cpp
+    TPZJacobiPrecond.cpp
     pzstepsolver.cpp
     pzseqsolver.cpp
     )
 
+if(USING_MKL)
+    list(APPEND headers
+      TPZPardisoSolver.h
+    )
+    list(APPEND sources
+      TPZPardisoSolver.cpp
+      )
+endif()
+
+if(USING_MUMPS)
+    list(APPEND headers
+      TPZMumpsSolver.h
+    )
+    list(APPEND sources
+      TPZMumpsSolver.cpp
+      )
+endif()
+    
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Solvers)
 
-target_sources(pz PRIVATE ${headers} ${sources})
+target_sources(pz PRIVATE ${public_headers} ${sources})
 
 #for doxygen
 foreach(header ${public_headers})

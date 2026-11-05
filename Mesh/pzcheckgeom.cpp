@@ -259,6 +259,7 @@ int TPZCheckGeom::CheckSubFatherTransform(TPZGeoEl *subel, int sidesub) {
 #include "pzshapecube.h"
 #include "pzshapepiram.h"
 #include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "pzshapequad.h"
 #include "pzshapetetra.h"
 #include "pzshapetriang.h"
@@ -443,7 +444,31 @@ void TPZCheckGeom::UniformRefine(int nDiv)
             TPZManVector< TPZGeoEl *,20 > filhos;
             TPZGeoEl * gel = gelvec[elem];
             if(!gel) continue;
-            if(!gel->HasSubElement()) gel->Divide(filhos);
+            if(gel->Dimension() > 0 && !gel->HasSubElement()) gel->Divide(filhos);
         }
     }
+}
+
+bool TPZCheckGeom::CheckNeighboursConsistency() const {
+    const int maxcount = 1000;
+    bool res = false;
+    for (auto gel: fMesh->ElementVec()) {
+        if(!gel) continue;
+        const int nsides = gel->NSides();
+        for (int iside = 0 ; iside < nsides ; iside++){
+            TPZGeoElSide gelside(gel,iside);
+            TPZGeoElSide neig = gelside.Neighbour();
+            int count = 0;
+            while (neig != gelside && count < maxcount) {
+                count++;
+                neig++;
+            }
+            if (count == maxcount){
+                cout << "\n\n======> ERROR! Element index " << gel->Index() << " on side " << iside
+                << " has inconsistent neighbouring information" << endl;
+                res = true;
+            }
+        }
+    }
+    return res;
 }

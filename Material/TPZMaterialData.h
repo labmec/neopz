@@ -99,7 +99,7 @@ public:
     /// Values of the divergence of the shape functions in the mapped element (only applicable to H(div) spaces)    
     TPZFNMatrix<MatDataNumPhi, REAL> divphi;
     /// Values of the curl of the shape functions in the mapped element (only applicable to H(curl) spaces)
-    TPZFNMatrix<MatDataNumPhi, REAL> curlphi;
+    TPZFNMatrix<MatDataNumDPhi, REAL> curlphi;
     /// Axes between the R3 space and the element's coordinates. Used for the derivatives of the shape functions
     TPZFNMatrix<9,REAL> axes;
     /// Value of the jacobian at the integration point
@@ -115,9 +115,9 @@ public:
     /// Maximum polinomial order of the shape functions
     int p{-1};
     /// Measure of the size of the element
-    REAL HSize;
+    REAL HSize = 0.;
     /// Determinant of the jacobian
-    REAL detjac;
+    REAL detjac = 0.;
     /// Value of the coordinate at the center of the element
     TPZManVector<REAL,3> XCenter;
     // Id of associated geometric element
@@ -135,13 +135,13 @@ public:
 
     /** @brief Index of the current integration point being evaluated **/
     /** Needed for materials with memory **/
-    int intLocPtIndex;
+    int intLocPtIndex = -1;
     
     /** @brief global point index */
-    int intGlobPtIndex;
+    int intGlobPtIndex = -1;
     
     /** @brief Number of points in the integration rule */
-    int NintPts;
+    int NintPts = 0;
     
 protected:
     //! Dummy function to force this class to be abstract.

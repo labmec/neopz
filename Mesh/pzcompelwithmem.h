@@ -78,7 +78,9 @@ public:
         return new TPZCompElWithMem<TBASE> (mesh, *this, gl2lcConMap, gl2lcElMap);
     }
     
-    virtual void ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi) override;
+    void ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi) override;
+    
+    void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data, TPZVec<REAL> &qsi) override;
     
     int64_t GetGlobalIntegrationPointIndex(TPZMaterialData &data);
     
@@ -205,9 +207,14 @@ inline void TPZCompElWithMem<TBASE>::SetFreeIntPtIndices() {
         dynamic_cast<TPZMatWithMemBase *>(material);
     if (matWithMem) {
         int64_t n = fIntPtIndices.NElements();
-        
-        for (int64_t i = 0; i < n; i++) {
-            matWithMem->FreeMemItem(fIntPtIndices[i]);
+
+        if(gSinglePointMemory){
+            matWithMem->FreeMemItem(fIntPtIndices[0]);
+        }
+        else{
+            for (int64_t i = 0; i < n; i++) {
+                matWithMem->FreeMemItem(fIntPtIndices[i]);
+            }
         }
     }
     fIntPtIndices.Resize(0);
@@ -271,13 +278,25 @@ inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialDataT<STATE>
     //material index for the n-th CompEl integration point
 }
 
+/** Save the element data to a stream */
+template <class TBASE>
+inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
+                                                         TPZVec<REAL> &qsi){
+    TBASE::ComputeRequiredData(data, qsi);
+    if(fIntPtIndices.size())
+    {
+        data.intGlobPtIndex = GetGlobalIntegrationPointIndex(data);
+    }
+    //material index for the n-th CompEl integration point
+}
+
 template <class TBASE>
 inline int64_t TPZCompElWithMem<TBASE>::GetGlobalIntegrationPointIndex(TPZMaterialData &data)
 {
     int64_t glIntegralPt = -1;
     auto np = fIntPtIndices.size();
 #ifdef PZDEBUG
-    if(fIntPtIndices.size()==0 && data.intLocPtIndex)
+    if(fIntPtIndices.size()==0 && data.intLocPtIndex >= 0)
     {
         std::cout << __PRETTY_FUNCTION__ << "\nInconsistent data structure intLocPtIndex "
         << data.intLocPtIndex << " no point indices ";

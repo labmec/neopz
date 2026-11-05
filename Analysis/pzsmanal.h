@@ -42,7 +42,7 @@ public:
 	}
     
     /** @brief Set the computational mesh of the analysis. */
-    virtual void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) override;
+    virtual void SetCompMesh(TPZCompMesh * mesh, RenumType mustOptimizeBandwidth) override;
     
 	
 	/** @brief Run: assemble the stiffness matrix */

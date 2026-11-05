@@ -20,14 +20,34 @@
  */
 template<class TVar, class... Interfaces>
 class TPZMatBase : public TPZMaterialT<TVar>,
-                   public Interfaces... {
+                   public virtual Interfaces... {
  public:
     //! Default constructor
-    TPZMatBase() = default;
+//    TPZMatBase() : TPZMaterialT<TVar>(),Interfaces()... {
+//        std::cout << __PRETTY_FUNCTION__ << std::endl;
+//    }
+       //! Constructor taking material identifier
+       explicit TPZMatBase() : TPZMaterialT<TVar>(),Interfaces()... {
+//           std::cout << __PRETTY_FUNCTION__ << std::endl;
+       }
+//    TPZMatBase() = default;
+
     //! Constructor taking material identifier
-    explicit TPZMatBase(int id) : TPZMaterialT<TVar>(id){
+    explicit TPZMatBase(int id) : TPZMaterialT<TVar>(id),Interfaces()... {
+//        std::cout << __PRETTY_FUNCTION__ << std::endl;
     }
 
+    TPZMatBase(const TPZMatBase &copy) : TPZMaterialT<TVar>(copy),
+                       Interfaces(copy)...
+   {
+//       std::cout << __PRETTY_FUNCTION__ << std::endl;
+   }
+   
+   TPZMatBase &operator=(const TPZMatBase &copy) {
+       TPZMaterialT<TVar>::operator=(copy);
+       (Interfaces::operator=(copy),...);
+       return *this;
+   }
     /** @brief Creates an object TPZBndCond derived of TPZMaterial.
      * The TPZBndCond is a material for calculating boundary conditions.
      @param[in] reference The volumetric material associated with the BC.

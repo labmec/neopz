@@ -37,8 +37,30 @@ The :cpp:expr:`TPZPardisoSolver` class acts as an wrapper for controlling the In
    The PARDISO solver is a solver for both symmetric and non-symmetric sparse matrices,
    so it should be used with either :cpp:expr:`TPZSSpStructMatrix` or :cpp:expr:`TPZSpStructMatrix`.
 
-.. note::
-   There is still plenty of tuning options to be implemented in this class. Please contact us or submit a Pull Request if you think this class could be improved.
+.. _section-pardiso-advanced:
+   
+Advanced settings
++++++++++++++++++
+
+PARDISO calls are set up primarily through the :code:`iparm` array (more info `here <https://www.intel.com/content/www/us/en/develop/documentation/onemkl-developer-reference-c/top/sparse-solver-routines/onemkl-pardiso-parallel-direct-sparse-solver-iface/pardiso-iparm-parameter.html>`_).
+We now provide means to access this array and configure PARDISO to match your needs.
+
+Ater the assembly of the FEM matrices, one can call
+:cpp:expr:`TPZMatrixSolver::GetPardisoControl` (or :cpp:expr:`TPZEigenSolver::GetPardisoControlA`, when solving EVPs with the :ref:`section-kryloveigensolver`)
+to have access to the corresponding instance of the :cpp:expr:`TPZPardisoSolver` class.
+
+Then, the methods :cpp:expr:`TPZPardisoSolver::GetParam`  and :cpp:expr:`TPZPardisoSolver::SetParam` can be used to customise the :code:`iparm` array.
+
+Upon usage, the parameters that were found to be of most importance are, as follows:
+
+- :code:`iparm[7]`: Maximum number of iterative refinement steps that the solver performs when perturbed pivots are obtained during the numerical factorization.
+- :code:`iparm[8]`: Tolerance level for the relative residual in the iterative refinement process. (:math:`10^{-param[8]}`)
+- :code:`iparm[9]`: Perturb the pivot elements with :math:`10^{-param[9]}`.
+- :code:`iparm[10]`: Use nonsymmetric permutation and scaling MPS
+- :code:`iparam[12]`: Maximum weighted matching algorithm is switched-off (default for symmetric).
+
+Further documentation on TPZPardisoSolver
++++++++++++++++++++++++++++++++++++++++++
 
 .. doxygenclass:: TPZPardisoSolver
    :members:

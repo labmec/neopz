@@ -169,13 +169,7 @@ TPZFBMatrix<TVar>::operator-=(const TPZFBMatrix<TVar> &A )
 template<class TVar>
 void TPZFBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						  const TVar alpha,const TVar beta ,const int opt) const {
-	// Computes z = beta * y + alpha * opt(this)*x
-	//          z and x cannot overlap in memory
-	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
-		this->Error(__PRETTY_FUNCTION__, "TPZFBMatrix::MultAdd <matrixs with incompatible dimensions>" );
-	if(x.Cols() != y.Cols() || x.Rows() != y.Rows()) {
-		this->Error(__PRETTY_FUNCTION__,"TPZFBMatrix::MultAdd incompatible dimensions\n");
-	}
+	this->MultAddChecks(x,y,z,alpha,beta,opt);
 	this->PrepareZ(y,z,beta,opt);
 	int64_t rows = this->Rows();
 	int64_t xcols = x.Cols();
@@ -254,7 +248,7 @@ TPZFBMatrix<TVar>::operator*=(const TVar value )
 }
 
 template <class TVar>
-void TPZFBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
+void TPZFBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, SymProp sp) {
     if (nrow != ncol) {
         DebugStop();
     }
@@ -276,11 +270,11 @@ void TPZFBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
         }
         TVar sum = 0.;
         int64_t j = jmin;
-        if (symmetric) {
+        if (sp != SymProp::NonSym) {
             for (; j<i; j++) {
                 if constexpr (is_complex<TVar>::value){
-                    //hermitian matrices
-                    PutVal(i, j, std::conj(GetVal(j,i)));
+                    if(sp == SymProp::Herm){PutVal(i, j, std::conj(GetVal(j,i)));}
+                    else {PutVal(i, j, GetVal(j,i));}
                 }else{
                     PutVal(i, j, GetVal(j,i));
                 }
@@ -308,11 +302,10 @@ template<class TVar>
 int
 TPZFBMatrix<TVar>::Resize(const int64_t newRows,const int64_t newCols)
 {
-	if ( newRows != newCols )
-		this->Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Resize should not be called for Band matrices\n";
+    DebugStop();
 	
-	
-    Redim(newRows,newRows);
 	return( 1 );
 }
 
@@ -324,23 +317,28 @@ template<class TVar>
 int
 TPZFBMatrix<TVar>::Redim(const int64_t newRows,const int64_t newCols )
 {
-	if ( newRows != newCols )
-		this->Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
+	// if ( newRows != newCols )
+	// 	this->Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
 	
-	//  if ( !fBand ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Bandwith = NULL" );
+	// //  if ( !fBand ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Bandwith = NULL" );
 	
 
-    if (fBandLower > newRows-1) {
-        fBandLower = newRows-1;
-    }
-    if (fBandUpper > newRows-1) {
-        fBandUpper = newRows-1;
-    }
-    TPZMatrix<TVar>::Redim(newRows,newRows);
-	uint64_t size = newRows*(2*fBandLower+fBandUpper + 1);
-    fElem.Resize(size);
-	Zero();
+    // if (fBandLower > newRows-1) {
+    //     fBandLower = newRows-1;
+    // }
+    // if (fBandUpper > newRows-1) {
+    //     fBandUpper = newRows-1;
+    // }
+    // TPZMatrix<TVar>::Redim(newRows,newRows);
+	// uint64_t size = newRows*(2*fBandLower+fBandUpper + 1);
+    // fElem.Resize(size);
+	// Zero();
 	
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<"\nERROR: Redim should not be called for Band matrices\n";
+    DebugStop();
+	
+	return( 1 );
 	return( 1 );
 }
 
@@ -357,7 +355,7 @@ TPZFBMatrix<TVar>::Zero()
         fElem[i] = (TVar)0.;
     }
 	
-	this->fDecomposed = 0;
+	this->fDecomposed = ENoDecompose;
 	
 	return( 1 );
 }
@@ -387,14 +385,31 @@ TPZFBMatrix<TVar>::SetBand( int64_t newBand )
 /*** Transpose () ***/
 template<class TVar>
 void
-TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T) const
+TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T, bool conj) const
 {
 	T->Resize( Dim(), Dim() );
 	
 	int64_t end, begin;
 	//REAL *p = fElem;
+  if constexpr (is_complex<TVar>::value){
+    if(conj){
+      
+      for ( int64_t r = 0; r < Dim(); r++ )
+      {
+        begin = MAX( r - fBandLower, 0 );
+        end   = MIN( r + fBandUpper + 1, Dim() );
+        for ( int64_t c = begin; c < end; c++ )
+        {
+          T->PutVal( c, r, std::conj(GetVal( r, c )) );
+          //			cout<<"(r,c)= "<<r<<"  "<<c<<"\n";
+        }
+      }
+      return;
+    }
+  }
+  
 	for ( int64_t r = 0; r < Dim(); r++ )
-    {
+  {
 		begin = MAX( r - fBandLower, 0 );
 		end   = MIN( r + fBandUpper + 1, Dim() );
 		for ( int64_t c = begin; c < end; c++ )
@@ -402,16 +417,10 @@ TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T) const
 			T->PutVal( c, r, GetVal( r, c ) );
 			//			cout<<"(r,c)= "<<r<<"  "<<c<<"\n";
 		}
-    }
+  }
 }
 
 
-template<class TVar>
-int TPZFBMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular)
-{
-    Decompose_LU();
-	return ELU;
-}
 
 template<class TVar>
 int TPZFBMatrix<TVar>::Decompose_LU()
@@ -421,7 +430,20 @@ int TPZFBMatrix<TVar>::Decompose_LU()
     } else if(this->fDecomposed) {
         this->Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
     }
-    return TPZMatrix<TVar>::Decompose_LU();
+    
+    TVar nn, pivot;
+    int64_t  min = ( this->Cols() < (this->Rows()) ) ? this->Cols() : this->Rows();
+    
+    for ( int64_t k = 0; k < min ; k++ ) {
+        if (IsZero( pivot = GetVal(k, k))) this->Error( "Decompose_LU <matrix is singular>" );
+        for ( int64_t i = k+1; i < this->Rows(); i++ ) {
+            nn = GetVal( i, k ) / pivot;
+            PutVal( i, k, nn );
+            for ( int64_t j = k+1; j < this->Cols(); j++ ) PutVal(i,j,GetVal(i,j)-nn*GetVal(k,j));
+        }
+    }
+    this->fDecomposed=ELU;
+    return 1;
 }
 
 #ifdef USING_LAPACK
@@ -434,14 +456,14 @@ TPZFBMatrix<float>::Decompose_LU()
 	} else if(this->fDecomposed) {
 		this->Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
 	}
-    int rows = Rows();
-    int bandlower = fBandLower;
-    int bandupper = fBandUpper;
-    int nrhs = 0;
-    int ldab = 1+2*fBandLower+fBandUpper;
+    lapack_int rows = Rows();
+    lapack_int bandlower = fBandLower;
+    lapack_int bandupper = fBandUpper;
+    lapack_int nrhs = 0;
+    lapack_int ldab = 1+2*fBandLower+fBandUpper;
     fPivot.Resize(rows, 0);
     float B;
-    int info;
+    lapack_int info;
     
 //    sgbsv_(<#__CLPK_integer *__n#>, <#__CLPK_integer *__kl#>, <#__CLPK_integer *__ku#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
 //    lapack_int LAPACKE_sgbsv( int matrix_layout, lapack_int n, lapack_int kl,
@@ -449,7 +471,12 @@ TPZFBMatrix<float>::Decompose_LU()
 //                             lapack_int ldab, lapack_int* ipiv, float* b,
 //                             lapack_int ldb );
 
-    sgbsv_(&rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab,&fPivot[0], &B,&rows, &info);
+    TPZManVector<lapack_int,2000> pivot(rows);
+    for(int i = 0; i < rows; i++){pivot[i]=fPivot[i];}
+    sgbsv_(&rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab,&pivot[0], &B,&rows, &info);
+    for(int i = 0; i < rows; i++){
+        fPivot[i] = pivot[i];
+    }
     //int matrix_layout = 0;
 //    LAPACKE_sgbsv(matrix_layout,rows, bandlower, bandupper, nrhs, &fElem[0], ldab,&fPivot[0], &B,rows);
     
@@ -468,18 +495,23 @@ TPZFBMatrix<double>::Decompose_LU()
     } else if(this->fDecomposed) {
         this->Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
     }
-    int rows = Rows();
-    int bandlower = fBandLower;
-    int bandupper = fBandUpper;
-    int nrhs = 0;
-    int ldab = 1+2*fBandLower+fBandUpper;
+    lapack_int rows = Rows();
+    lapack_int bandlower = fBandLower;
+    lapack_int bandupper = fBandUpper;
+    lapack_int nrhs = 0;
+    lapack_int ldab = 1+2*fBandLower+fBandUpper;
     fPivot.Resize(rows, 0);
     double B;
-    int info;
+    lapack_int info;
     
     //    sgbsv_(<#__CLPK_integer *__n#>, <#__CLPK_integer *__kl#>, <#__CLPK_integer *__ku#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
-    dgbsv_(&rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab,&fPivot[0], &B,&rows, &info);
-    
+    TPZManVector<lapack_int,2000> pivot(rows);
+    for(int i = 0; i < rows; i++){pivot[i]=fPivot[i];}
+    dgbsv_(&rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab,&pivot[0], &B,&rows, &info);
+
+    for(int i = 0; i < rows; i++){
+        fPivot[i] = pivot[i];
+    }
     if (info != 0) {
         DebugStop();
     }
@@ -494,17 +526,20 @@ int TPZFBMatrix<float>::Substitution( TPZFMatrix<float> *B ) const{
     if (this->fDecomposed != ELU) {
         DebugStop();
     }
-    int rows = Rows();
-    int bandlower = fBandLower;
-    int bandupper = fBandUpper;
-    int nrhs = B->Cols();
-    int ldab = 1+2*fBandLower+fBandUpper;
-    int info;
+    lapack_int rows = Rows();
+    lapack_int bandlower = fBandLower;
+    lapack_int bandupper = fBandUpper;
+    lapack_int nrhs = B->Cols();
+    lapack_int ldab = 1+2*fBandLower+fBandUpper;
+    lapack_int info;
     char notrans[]="No Transpose";
 
     
 //    sgbtrs_(<#char *__trans#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__kl#>, <#__CLPK_integer *__ku#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
-    sgbtrs_(notrans, &rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab, &fPivot[0], &B->s(0,0), &rows, &info);
+    TPZManVector<lapack_int,2000> pivot(rows);
+    for(int i = 0; i < rows; i++){pivot[i]=fPivot[i];}
+    sgbtrs_(notrans, &rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab, &pivot[0], &B->s(0,0), &rows, &info);
+    for(int i = 0; i < rows; i++){fPivot[i] = pivot[i];}
     return( 1 );
 }
 
@@ -514,17 +549,22 @@ int TPZFBMatrix<double>::Substitution( TPZFMatrix<double> *B ) const{
     if (this->fDecomposed != ELU) {
         DebugStop();
     }
-    int rows = Rows();
-    int bandlower = fBandLower;
-    int bandupper = fBandUpper;
-    int nrhs = B->Cols();
-    int ldab = 1+2*fBandLower+fBandUpper;
-    int info;
+    lapack_int rows = Rows();
+    lapack_int bandlower = fBandLower;
+    lapack_int bandupper = fBandUpper;
+    lapack_int nrhs = B->Cols();
+    lapack_int ldab = 1+2*fBandLower+fBandUpper;
+    lapack_int info;
     char notrans[]="No Transpose";
     
     
     //    sgbtrs_(<#char *__trans#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__kl#>, <#__CLPK_integer *__ku#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
-    dgbtrs_(notrans, &rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab, &fPivot[0], &B->s(0,0), &rows, &info);
+    TPZManVector<lapack_int,2000> pivot(rows);
+    for(int i = 0; i < rows; i++){pivot[i]=fPivot[i];}
+    dgbtrs_(notrans, &rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab, &pivot[0], &B->s(0,0), &rows, &info);
+    for(int i = 0; i < rows; i++){
+        fPivot[i] = pivot[i];
+    }
     return( 1 );
 }
 
@@ -536,7 +576,30 @@ int TPZFBMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const{
     if (this->fDecomposed != ELU) {
         DebugStop();
     }
-    TPZMatrix<TVar>::Substitution(B);
+    int64_t rowb = B->Rows();
+    int64_t colb = B->Cols();
+    if ( rowb != this->Rows() )
+        this->Error( "SubstitutionLU <incompatible dimensions>" );
+    int64_t i;
+    for ( i = 0; i < rowb; i++ ) {
+        for ( int64_t col = 0; col < colb; col++ ) {
+            for ( int64_t j = 0; j < i; j++ ) {
+                B->PutVal( i, col, B->GetVal(i, col)-GetVal(i, j) * B->GetVal(j, col) );
+            }
+        }
+    }
+    for (int64_t col=0; col<colb; col++) {
+        for ( i = rowb-1; i >= 0; i-- ) {
+            for ( int64_t j = i+1; j < rowb ; j++ ) {
+                B->PutVal( i, col, B->GetVal(i, col) -
+                          GetVal(i, j) * B->GetVal(j, col) );
+            }
+            if ( IsZero( GetVal(i, i) ) ) {
+                this->Error( "BackSub( SubstitutionLU ) <Matrix is singular" );
+            }
+            B->PutVal( i, col, B->GetVal( i, col) / GetVal(i, i) );
+        }
+    }
     return( 1 );
 }
 

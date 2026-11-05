@@ -52,6 +52,9 @@ namespace TPZGeoMeshTools{
     template<class TGEO>
     TPZGeoMesh *
     CreateGeoMeshSingleElT(const int matid, const bool createBoundEls, const int matidbc = -1);
+        
+    TPZGeoEl* FindElementByMatId(TPZGeoMesh* gmesh, TPZVec<REAL> &x, TPZVec<REAL> & qsi, int64_t & InitialElIndex, const std::set<int>& matids);
+    TPZGeoEl* FindCloseElement(TPZGeoMesh* gmesh, TPZVec<REAL> &x, int64_t & InitialElIndex, const std::set<int>& matids);
 }
 
 #endif

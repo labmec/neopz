@@ -5,8 +5,9 @@
 #include <string>
 
 int TPZMaterial::VariableIndex(const std::string &name) const{
+#ifdef PZDEBUG
 	std::cout << __PRETTY_FUNCTION__ << " Variable " << name << " not found\n";
-	
+#endif
 #ifdef PZ_LOG2
 	{
 		std::stringstream sout;

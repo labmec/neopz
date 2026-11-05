@@ -18,10 +18,14 @@
 #include "DarcyFlow/TPZDarcyFlow.h"
 #include "TPZGeoMeshTools.h"
 #include "TPZBndCond.h"
+#ifdef PZ_USING_MKL
 #include "TPZSSpStructMatrix.h"
+#else
+#include "pzskylstrmatrix.h"
+#endif
 #include "TPZAnalyticSolution.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 
 namespace SBFemTest {
@@ -50,9 +54,9 @@ namespace SBFemTest {
 TEST_CASE("SBFEM convergence test","[sbfem][analysis]")
 {
   std::cout << "#######################\nTesting SBFEM-Elasticity 3D approximation\n";
-// SBFemTest::SBFemElasticity3D(4);
+  SBFemTest::SBFemElasticity3D(4);
   std::cout << "\n\n#######################\nTesting SBFEM-Bubbles approximation\n";
-  SBFemTest::SBFemBubblesDarcy(32);
+  SBFemTest::SBFemBubblesDarcy(4);
 }
 
 TPZAutoPointer<TPZGeoMesh> SBFemTest::CreateGMesh(const int nDiv, const int dim)
@@ -112,7 +116,7 @@ void SBFemTest::InsertMaterialDarcy(TPZCompMesh * cmesh)
 
   auto bc = mat->CreateBC(mat, SBFemTest::EBc1, 0, val1, val2);
   cmesh->InsertMaterialObject(bc);
-  bc->SetForcingFunctionBC(LaplaceExact.ExactSolution());
+  bc->SetForcingFunctionBC(LaplaceExact.ExactSolution(),3);
 
   auto bcs = mat->CreateBC(mat, SBFemTest::ESkeleton, 1, val1, val2);
   cmesh->InsertMaterialObject(bcs);
@@ -128,7 +132,7 @@ void SBFemTest::InsertMaterialElasticity3D(TPZCompMesh * cmesh)
   cmesh->InsertMaterialObject(mat);
 
   auto bc = mat->CreateBC(mat, SBFemTest::EBc1, 0, val1, val2);
-  bc->SetForcingFunctionBC(ElastExact.ExactSolution());
+  bc->SetForcingFunctionBC(ElastExact.ExactSolution(),3);
   cmesh->InsertMaterialObject(bc);
 
   auto bcs = mat->CreateBC(mat, SBFemTest::ESkeleton, 1, val1, val2);
@@ -137,9 +141,15 @@ void SBFemTest::InsertMaterialElasticity3D(TPZCompMesh * cmesh)
 
 void SBFemTest::Analysis(TPZLinearAnalysis & an, const int nThreads, TPZManVector<REAL> &errorVec)
 {
+    
+#ifdef PZ_USING_MKL
   TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>> matssp(an.Mesh());
   matssp.SetNumThreads(nThreads);
   an.SetStructuralMatrix(matssp);
+#else
+    TPZSkylineStructMatrix<> sklstr(an.Mesh());
+    an.SetStructuralMatrix(sklstr);
+#endif
 
   TPZStepSolver <STATE> *direct = new TPZStepSolver<STATE>;
   direct->SetDirect(ELDLt);
@@ -155,7 +165,7 @@ void SBFemTest::Analysis(TPZLinearAnalysis & an, const int nThreads, TPZManVecto
 };
 
 void SBFemTest::SBFemElasticity3D(const int nThreads){
-  TPZSBFemElementGroup::gDefaultPolynomialOrder = 0;
+  TPZSBFemElementGroup::SetDefaultPolynomialOrder(0);
   ElastExact.fProblemType = TElasticity3DAnalytic::ELoadedBeam;
   ElastExact.fE = 1.; ElastExact.fPoisson = 0.3;
 
@@ -165,7 +175,7 @@ void SBFemTest::SBFemElasticity3D(const int nThreads){
   TPZAutoPointer<TPZGeoMesh> gMesh = CreateGMesh(nDiv, dim);
   auto *cmesh = CreateCMesh(gMesh, false);
 
-  TPZLinearAnalysis an(cmesh, true);
+  TPZLinearAnalysis an(cmesh);
   an.SetExact(ElastExact.ExactSolution());
 
   TPZManVector<REAL> errorVecPar;
@@ -188,7 +198,7 @@ void SBFemTest::SBFemElasticity3D(const int nThreads){
 }
 
 void SBFemTest::SBFemBubblesDarcy(const int nThreads) {
-  TPZSBFemElementGroup::gDefaultPolynomialOrder = 3;
+  TPZSBFemElementGroup::SetDefaultPolynomialOrder(3);
   constexpr int nDiv{4};
   constexpr int pOrder{3};
   constexpr int dim{2};
@@ -197,11 +207,11 @@ void SBFemTest::SBFemBubblesDarcy(const int nThreads) {
   TPZAutoPointer<TPZGeoMesh> gMesh = CreateGMesh(nDiv, dim);
   auto *cmesh = CreateCMesh(gMesh, true);
 
-  TPZLinearAnalysis an(cmesh, true);
+  TPZLinearAnalysis an(cmesh);
   an.SetExact(SBFemTest::LaplaceExact.ExactSolution());
 
   auto start = std::chrono::system_clock::now();
-  TPZManVector<REAL> errorVecSer;
+  TPZManVector<REAL> errorVecSer(3,0.);
   Analysis(an, 0, errorVecSer);
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsedSerial = end - start;

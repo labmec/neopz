@@ -11,11 +11,13 @@
 #include "pzsfulmat.h"
 #include "pzskylnsymmat.h"
 #include "pzskylmat.h"
-#include "pzysmp.h"
-#include "pzsysmp.h"
+#include "TPZYSMPMatrix.h"
+#include "TPZSYSMPMatrix.h"
 #include "TPZKrylovEigenSolver.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_all.hpp>
 
 template<>
 struct Catch::StringMaker<long double> {
@@ -35,7 +37,7 @@ std::string Catch::StringMaker<long double>::convert(long double value) {
 /**tests if the H matrix is Hessenberg, 
 and if the vectors are an orthonormal basis*/
 template<class matx, class TVar>
-void TestArnoldiIteration(bool sym);
+void TestArnoldiIteration(SymProp sp);
 
 
 /**solves an EVP and ensures that
@@ -46,30 +48,43 @@ void TestArnoldiSolver(TPZAutoPointer<matx> A, const TPZFMatrix<CTVar> &sol);
 TEMPLATE_TEST_CASE("Arnoldi Iteration", "[eigen_tests]",
                    double)
 {
-  bool isSym{true};
   SECTION("Sym")
     {
       SECTION("TPZFMatrix")
-        {TestArnoldiIteration<TPZFMatrix<TestType>,TestType>(isSym);}
+        {
+          TestArnoldiIteration<TPZFMatrix<TestType>,TestType>(SymProp::Sym);
+          TestArnoldiIteration<TPZFMatrix<TestType>,TestType>(SymProp::Herm);
+        }
       SECTION("TPZSkylNSymMatrix")
-        {TestArnoldiIteration<TPZSkylNSymMatrix<TestType>,TestType>(isSym);}
+        {
+          TestArnoldiIteration<TPZSkylNSymMatrix<TestType>,TestType>(SymProp::Sym);
+          TestArnoldiIteration<TPZSkylNSymMatrix<TestType>,TestType>(SymProp::Herm);
+        }
       SECTION("TPZSkylMatrix")
-        {TestArnoldiIteration<TPZSkylMatrix<TestType>,TestType>(isSym);}
+      {
+        TestArnoldiIteration<TPZSkylMatrix<TestType>,TestType>(SymProp::Sym);
+        TestArnoldiIteration<TPZSkylMatrix<TestType>,TestType>(SymProp::Herm);
+      }
       SECTION("TPZFYsmpMatrix")
-        {TestArnoldiIteration<TPZFYsmpMatrix<TestType>,TestType>(isSym);}
+      {
+        TestArnoldiIteration<TPZFYsmpMatrix<TestType>,TestType>(SymProp::Sym);
+        TestArnoldiIteration<TPZFYsmpMatrix<TestType>,TestType>(SymProp::Herm);
+      }
       SECTION("TPZSYsmpMatrix")
-        {TestArnoldiIteration<TPZSYsmpMatrix<TestType>,TestType>(isSym);}
+      {
+        TestArnoldiIteration<TPZSYsmpMatrix<TestType>,TestType>(SymProp::Sym);
+        TestArnoldiIteration<TPZSYsmpMatrix<TestType>,TestType>(SymProp::Herm);
+      }
     }
-  isSym = false;
   
   SECTION("NSym")
     {
       SECTION("TPZFMatrix")
-        {TestArnoldiIteration<TPZFMatrix<TestType>,TestType>(isSym);}
+        {TestArnoldiIteration<TPZFMatrix<TestType>,TestType>(SymProp::NonSym);}
       SECTION("TPZSkylNSymMatrix")
-        {TestArnoldiIteration<TPZSkylNSymMatrix<TestType>,TestType>(isSym);}
+        {TestArnoldiIteration<TPZSkylNSymMatrix<TestType>,TestType>(SymProp::NonSym);}
       SECTION("TPZFYsmpMatrix")
-        {TestArnoldiIteration<TPZFYsmpMatrix<TestType>,TestType>(isSym);}
+        {TestArnoldiIteration<TPZFYsmpMatrix<TestType>,TestType>(SymProp::NonSym);}
     }
 }
 
@@ -192,8 +207,8 @@ TEMPLATE_TEST_CASE("Arnoldi Solver 2", "[eigen_tests]",
   TPZAutoPointer<TestType> A = new TestType;
   constexpr int64_t dim{20};
   constexpr int dimKrylov{20};
-  constexpr bool isSym{true};
-  A->AutoFill(dim,dim,isSym);//generates adequate storage
+  constexpr SymProp sp{SymProp::Herm};
+  A->AutoFill(dim,dim,sp);//generates adequate storage
   
   for(int i = 0; i < dim; i++){
     for(int j = 0; j < dim; j++){
@@ -212,21 +227,22 @@ TEMPLATE_TEST_CASE("Arnoldi Solver 2", "[eigen_tests]",
 #endif
 
 template<class matx, class TVar>
-void TestArnoldiIteration(bool sym)
+void TestArnoldiIteration(SymProp sp)
 {
 
   const auto oldPrecision = Catch::StringMaker<RTVar>::precision;
   Catch::StringMaker<RTVar>::precision = std::numeric_limits<RTVar>::max_digits10;
   
-  matx A;
+  TPZAutoPointer<matx> A = new matx;
   constexpr int dim{100};
-  int dimKrylov{100};
-  A.AutoFill(dim,dim,sym);
+  int dimKrylov{10};
+  A->AutoFill(dim,dim,sp);
   TPZKrylovEigenSolver<TVar> arnoldi;
+  arnoldi.SetMatrixA(A);
   arnoldi.SetKrylovDim(dimKrylov);
   TPZVec<TPZAutoPointer<TPZFMatrix<TVar>>> qVecs;
   TPZFMatrix<TVar> hMat;
-  bool success = arnoldi.ArnoldiIteration(A,qVecs,hMat);
+  bool success = arnoldi.ArnoldiIteration(qVecs,hMat);
   
   REQUIRE(success);
   
@@ -235,25 +251,28 @@ void TestArnoldiIteration(bool sym)
     const auto & qi = *qVecs[i];
     const auto norm = Norm(qi);
     CAPTURE(i,norm);
-    REQUIRE(norm == Approx(1.0));
+    REQUIRE(norm == Catch::Approx(1.0));
     for(auto j = 0; j < i; j++){
       const auto &qj = *qVecs[j];
       const auto qiqj = Dot(qi,qj);
       CAPTURE(j,qiqj);
-      REQUIRE(qiqj == Approx(0.0).margin(tol));
+      REQUIRE(qiqj == Catch::Approx(0.0).margin(tol));
     }
   }
   for(auto i = 0; i < dimKrylov; i++){
     for(auto j = 0; j < i-1; j++){
       const auto val = hMat.GetVal(i,j);
       CAPTURE(i,j,val);
-      REQUIRE(val == Approx(0.0));
+      REQUIRE(val == Catch::Approx(0.0));
     }
   }
 
+  //now we test if using dimKrylov==dim we can recover the original matrix
   dimKrylov = dim;
   arnoldi.SetKrylovDim(dimKrylov);
-  success = arnoldi.ArnoldiIteration(A,qVecs,hMat);
+  //now we reset the qvecs
+  for (auto &q : qVecs){q = nullptr;}
+  success = arnoldi.ArnoldiIteration(qVecs,hMat);
   REQUIRE(success);
   TPZFMatrix<TVar> qMat(dim,dimKrylov);
   for(int i = 0; i < dimKrylov; i++){
@@ -262,12 +281,12 @@ void TestArnoldiIteration(bool sym)
   TPZFMatrix<TVar> aMat = qMat * hMat;
   qMat.Transpose();
   aMat = aMat * qMat;
-  std::cout<< "A = ("<<A.Rows()<<","<<A.Cols()<<")\n";
+  std::cout<< "A = ("<<A->Rows()<<","<<A->Cols()<<")\n";
   std::cout<< "a = ("<<aMat.Rows()<<","<<aMat.Cols()<<")\n";
   for(auto i = 0; i < dim; i++)
     for(auto j = 0; j < dim; j++){
-      CAPTURE(i,j,aMat(i,j),A.GetVal(i,j));
-      REQUIRE(aMat(i,j)-A.GetVal(i,j)== Approx(0.0).margin(tol));
+      CAPTURE(i,j,aMat(i,j),A->GetVal(i,j));
+      REQUIRE(aMat(i,j)-A->GetVal(i,j)== Catch::Approx(0.0).margin(tol));
     }
   Catch::StringMaker<RTVar>::precision = oldPrecision;
 }

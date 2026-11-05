@@ -22,19 +22,20 @@ static int logger;
 TPZStructMatrix::~TPZStructMatrix(){}
 
 TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh)
-    : TPZStrMatParInterface(), fEquationFilter(0){
+    : TPZStrMatParInterface(), fEquationFilter(0), fApplyConstraintsinElmat(false){
     SetMesh(mesh);
 }
 
 TPZStructMatrix::TPZStructMatrix(TPZAutoPointer<TPZCompMesh> mesh)
-    : TPZStrMatParInterface(), fEquationFilter(0) {
+    : TPZStrMatParInterface(), fEquationFilter(0), fApplyConstraintsinElmat(false) {
     SetMesh(mesh);
 }
 
 TPZStructMatrix::TPZStructMatrix(const TPZStructMatrix &copy)
     : TPZStrMatParInterface(copy),fMesh(copy.fMesh),
       fCompMesh(copy.fCompMesh),
-      fMaterialIds(copy.fMaterialIds), fEquationFilter(copy.fEquationFilter) {
+      fMaterialIds(copy.fMaterialIds), fEquationFilter(copy.fEquationFilter),
+        fApplyConstraintsinElmat(copy.fApplyConstraintsinElmat){
 }
 
 void TPZStructMatrix::SetMesh(TPZCompMesh *mesh) {

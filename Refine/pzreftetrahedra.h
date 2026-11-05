@@ -6,6 +6,9 @@
 #ifndef TPZREFTETRAHEDRAH
 #define TPZREFTETRAHEDRAH
 
+#include "pzstack.h"
+#include "pzvec.h"
+
 class TPZGeoEl;
 class TPZGeoElSide;
 template<class T>

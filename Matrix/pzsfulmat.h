@@ -39,10 +39,8 @@ public:
 	
 	~TPZSFMatrix();
 	
-    /** @brief Checks if the current matrix is symmetric */
-    virtual int IsSymmetric() const  override {
-        return 1;
-    }
+    /** @brief Sets symmetry property of current matrix (only hermitian/symmetric allowed)*/
+    void SetSymmetry (SymProp sp) override;
 
     friend class TPZSFMatrix<float>;
     friend class TPZSFMatrix<double>;
@@ -108,17 +106,17 @@ public:
 	TPZSFMatrix operator-  (const TVar val ) const { return operator+( -val ); }
 	TPZSFMatrix operator*  (const TVar val ) const;
 	TPZSFMatrix &operator+=(const TVar val );
-	TPZSFMatrix &operator-=(const TVar val )  { return operator+=( -val ); }
+	TPZSFMatrix &operator-=(const TVar val )  { return this->operator+=( -val ); }
 	TPZSFMatrix &operator*=(const TVar val ) override;
 	/** @} */
 	
 	TPZSFMatrix operator-() const  { return operator*( -1.0 ); }
 	
 	/** @brief Resize the array but keeps its entirety. */
-	int Resize(const int64_t newDim, const int64_t ) override;
+	int Resize(const int64_t newRows, const int64_t newCols) override;
 	
 	/** @brief Resize the array and resets ist entirety. */
-	int Redim(const int64_t newRows ,const int64_t) override;
+	int Redim(const int64_t newRows, const int64_t newCols) override;
 	
 	int Redim(const int64_t newDim) {return Redim(newDim,newDim);}
 	
@@ -130,16 +128,85 @@ public:
 	 * @name To solve linear systems
 	 * @{
 	 */
-	virtual int Decompose_Cholesky() override;
-	virtual int Decompose_LDLt() override;
-	virtual int Decompose_Cholesky(std::list<int64_t> &singular) override;
-	virtual int Decompose_LDLt(std::list<int64_t> &singular) override;
+    /** @brief decompose the system of equations acording to the decomposition
+      * scheme */
+     virtual int Decompose(const DecomposeType dt) override {
+       switch (dt) {
+       case ELDLt:
+         return Decompose_LDLt();
+         break;
+       case ECholesky:
+         return Decompose_Cholesky();
+         break;
+       default:
+         DebugStop();
+         break;
+       }
+       return -1;
+     }
+    int SolveDirect( TPZFMatrix<TVar> &B , const DecomposeType dt) override {
+        
+        switch ( dt ) {
+            case ECholesky:
+                return( Solve_Cholesky( &B )  );
+            case ELDLt:
+                return( Solve_LDLt( &B )  );
+            default:
+                this->Error( "Solve  < Unknown decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+    
+
+    int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt) const override
+    {
+        if(this->fDecomposed != dt) DebugStop();
+        switch ( dt ) {
+            case ECholesky:
+                return ( Subst_Forward(&F) && Subst_Backward(&F) );
+            case ELDLt:
+                return( Subst_LForward( &F ) && Subst_Diag( &F ) && Subst_LBackward( &F ) );
+            default:
+                this->Error( "Solve  < Unhandled decomposition type >" );
+                break;
+        }
+        return ( 0 );
+    }
+
+    /**********************/
+    /*** Solve Cholesky ***/
+    //
+    //  Se nao conseguir resolver por Cholesky retorna 0 e a matriz
+    //   sera' modificada (seu valor perdera' o sentido).
+    //
+    int Solve_Cholesky( TPZFMatrix<TVar>* B )
+    {
+        return(
+               ( !Decompose_Cholesky() )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
+               );
+    }
+
+    /******************/
+    /*** Solve LDLt ***/
+
+    int Solve_LDLt( TPZFMatrix<TVar>* B ) {
+        
+        return(
+               ( !Decompose_LDLt() )? 0 :
+               ( Subst_LForward( B ) && Subst_Diag( B ) && Subst_LBackward( B ) )
+               );
+    }
+
+
+	virtual int Decompose_Cholesky();
+	virtual int Decompose_LDLt();
 	
-	virtual int Subst_Forward  ( TPZFMatrix<TVar>  *B ) const override;
-	virtual int Subst_Backward ( TPZFMatrix<TVar>  *B ) const override;
-	virtual int Subst_LForward ( TPZFMatrix<TVar>  *B ) const override;
-	virtual int Subst_LBackward( TPZFMatrix<TVar>  *B ) const override;
-	virtual int Subst_Diag     ( TPZFMatrix<TVar>  *B ) const override;
+	virtual int Subst_Forward  ( TPZFMatrix<TVar>  *B ) const;
+	virtual int Subst_Backward ( TPZFMatrix<TVar>  *B ) const;
+	virtual int Subst_LForward ( TPZFMatrix<TVar>  *B ) const;
+	virtual int Subst_LBackward( TPZFMatrix<TVar>  *B ) const;
+	virtual int Subst_Diag     ( TPZFMatrix<TVar>  *B ) const;
 	/** @} */
 	
 #ifdef OOPARLIB
@@ -188,13 +255,17 @@ template<class TVar>
 inline int
 TPZSFMatrix<TVar> ::PutVal(const int64_t row,const int64_t col,const TVar &value )
 {
-	int64_t locrow = row, loccol = col;
-	if ( locrow < loccol )
-		this->Swap( &locrow, &loccol );
+  int64_t locrow = row, loccol = col;
+  TVar val = value;
+  if ( locrow < loccol ){
+    this->Swap( &locrow, &loccol );
+    if constexpr (is_complex<TVar>::value){
+      if(this->GetSymmetry() == SymProp::Herm){ val = std::conj(value);}
+    }
+  }
 	
-	this->fDecomposed = 0;
-	this->fElem[ ((locrow*(locrow+1)) >> 1) + loccol ] = value;
-	return( 1 );
+  this->fElem[ ((locrow*(locrow+1)) >> 1) + loccol ] = val;
+  return( 1 );
 }
 
 /**************/
@@ -203,15 +274,19 @@ template<class TVar>
 inline const TVar 
 TPZSFMatrix<TVar> ::GetVal(const int64_t row,const int64_t col ) const
 {
-	if ( row < col ){
-        if constexpr (is_complex<TVar>::value){
-            return( std::conj(fElem[ ((col*(col+1)) >> 1) + row ]) );
-        }else{
-            return( fElem[ ((col*(col+1)) >> 1) + row ] );
-        }
+  if ( row < col ){
+    if constexpr (is_complex<TVar>::value){
+      if(this->GetSymmetry() == SymProp::Herm){
+        return( std::conj(fElem[ ((col*(col+1)) >> 1) + row ]) );
+      }else{
+        return(fElem[ ((col*(col+1)) >> 1) + row ]);
+      }
+    }else{
+      return( fElem[ ((col*(col+1)) >> 1) + row ] );
     }
+  }
 	
-	return( fElem[ ((row*(row+1)) >> 1) + col ] );
+  return( fElem[ ((row*(row+1)) >> 1) + col ] );
 }
 
 /**************************/

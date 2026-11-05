@@ -2,24 +2,15 @@
 #include "TPZKrylovEigenSolver.h"
 #include "TPZSpectralTransform.h"
 #include "Hash/TPZHash.h"
+#include "TPZYSMPMatrix.h"
+#include "TPZSYSMPMatrix.h"
+#include "TPZYSMPPardiso.h"
+#include "TPZSYSMPPardiso.h"
 #include <numeric>
-
-template <class TVar>
-void TPZEigenSolver<TVar>::SetAsGeneralised(bool isGeneralised) {
-  fIsGeneralised = isGeneralised;
-}
 
 template <class TVar> int TPZEigenSolver<TVar>::ClassId() const {
   return Hash("TPZEigenSolver") ^ ClassIdOrHash<TVar>() << 1 ^
          TPZSolver::ClassId() << 2;
-}
-
-template<class TVar>
-void TPZEigenSolver<TVar>::ResetMatrix()
-{
-  TPZAutoPointer<TPZMatrix<TVar>> newA, newB;
-  fMatrixA = newA;
-  fMatrixB = newB;
 }
 
 template<class TVar>
@@ -28,8 +19,17 @@ void TPZEigenSolver<TVar>::SortEigenvalues(TPZVec<CTVar> &w, TPZVec<int> &indice
   const CTVar target = Target();
   
   const auto eigOrder = EigenSorting();
-  auto sortFunc = [eigOrder,target](const CTVar a, const CTVar b) {
+  if(eigOrder == TPZEigenSort::UserDefined && fUserSort==nullptr){
+    PZError<<__PRETTY_FUNCTION__
+           <<"\nPlease provide a sorting function for eigenvalues!"
+           <<std::endl;
+    DebugStop();
+  }
+  auto userFunc = UserSortingFunc();
+  auto sortFunc = [eigOrder,target,userFunc](const CTVar a, const CTVar b) {
     switch (eigOrder) {
+    case TPZEigenSort::Invalid:
+      DebugStop();
     case TPZEigenSort::AbsAscending:
       return fabs(a) < fabs(b);
     case TPZEigenSort::AbsDescending:
@@ -47,7 +47,9 @@ void TPZEigenSolver<TVar>::SortEigenvalues(TPZVec<CTVar> &w, TPZVec<int> &indice
     case TPZEigenSort::TargetImagPart:
       return fabs(a.imag() - target.imag()) < fabs(b.imag() - target.imag());
     case TPZEigenSort::TargetMagnitude:
-      return fabs(fabs(a) - fabs(target)) < fabs(fabs(b) - fabs(target));
+      return fabs(a-target) < fabs(b-target);
+    case TPZEigenSort::UserDefined:
+      return userFunc(a,b);
     }
     unreachable();
   };

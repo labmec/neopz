@@ -34,7 +34,8 @@ set(headers
     #post proc
     pzpostprocanalysis.h
     pzcompelpostproc.h
-    pzpostprocmat.h    
+    pzpostprocmat.h
+    TPZVTKGenerator.h
     )
 
 set(sources
@@ -63,6 +64,7 @@ set(sources
     pzgradientreconstruction.cpp
     pzpostprocanalysis.cpp
     pzpostprocmat.cpp
+    TPZVTKGenerator.cpp
     )
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Post)

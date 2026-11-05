@@ -10,6 +10,8 @@
 
 using namespace std;
 
+bool Print = false;
+
 TPZCounter TPZFlopCounter::gCount;
 
 static string names[] = {

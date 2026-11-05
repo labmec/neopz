@@ -128,10 +128,10 @@ class TPZGradientReconstruction
         }
         int HasExactSol() {
             if(fUseForcinfFuncion){
-                return (fExactSol != 0);
+                return (fExactSol != nullptr);
             }
             else{
-                fExactSol = 0;
+                fExactSol = nullptr;
                 return 0;
             }
         }

@@ -6,6 +6,7 @@
 #include "pzrefprism.h"
 #include "pzgeoprism.h"
 #include "pzshapeprism.h"
+#include "pzshapewideprism.h"
 #include "TPZGeoElement.h"
 #include "pzgeoel.h"
 #include "pzgmesh.h"

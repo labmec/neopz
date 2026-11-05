@@ -38,6 +38,7 @@ The usage of NeoPZ can be improved by linking against the following libraries:
 - [LAPACK](http://www.netlib.org/lapack/), for eigenvalues computations in full or banded matrices. If enabled, it is also internally used replacing in-house linear algebra algorithms with BLAS functions.
 - [Boost](https://www.boost.org/), for experimental techniques.
 - [Catch2](https://www.github.com/catchorg/Catch2), for Unit Testing.
+- [Eigen](https://gitlab.com/libeigen/eigen), for integrating with Apple Accelerate on ARM-based CPUs and providing an alternative sparse solver (limited functionality, still in testing)
 
 ## Configuration and Install
 The NeoPZ library uses CMake for configuring and installing the library. As a simple example, on UNIX systems, this could be done as:
@@ -54,6 +55,7 @@ where some CMake options were given as an illustration. The following CMake opti
 - `USING_BLAZE`: Enable blaze library support
 - `USING_BOOST`: Enable Boost libraries (`Boost::date_time`, `Boost::graph` and `Boost::unit_test_framework`) support
 - `USING_LAPACK`: Enable LAPACK library support
+- `USING_SBFEM_ENRICHMENT`: Build `TPZGFemEnrichment`, the local SBFEM crack-tip function generator (OFF by default). Requires `USING_LAPACK=ON` and nlohmann JSON >= 3.2.0. Its header and JSON dependency are exported through `NeoPZ::pz`; no separate GFEM repository is needed. See [generator tests and usage](UnitTest_PZ/TestGFemEnrichment/README.md).
 - `USING_MKL`: Enable MKL library support. It will also enable usage of LAPACK functions.
 - `USING_LOG4CXX`: Enable logging information through log4cxx support.
 - `USING_METIS`: Enable Metis library support.
@@ -144,6 +146,10 @@ can be added to a startup file of your shell. In both examples, `pz_install_dir`
 
 A Doxygen documentation can be found 
 [here](http://www.labmec.org.br/pz/arquivos-html/html/index.html).
+
+Additionally, the [`ai-analysis`](ai-analysis) folder contains an AI-generated
+codebase analysis (architecture overview, algorithm notes, and a findings/roadmap
+report).
 
 ## How to cite NeoPZ
 

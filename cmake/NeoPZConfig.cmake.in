@@ -5,6 +5,13 @@
 
 @PACKAGE_INIT@
 
+set(NeoPZ_SBFEM_ENRICHMENT @USING_SBFEM_ENRICHMENT@)
+if(NeoPZ_SBFEM_ENRICHMENT)
+  include(CMakeFindDependencyMacro)
+  # JSON occurs in the compiled public API; match its versioned ABI namespace.
+  find_dependency(nlohmann_json @nlohmann_json_VERSION@ EXACT CONFIG)
+endif()
+
 include(@PZ_CMAKE_INSTALL_DIR@/NeoPZTargets.cmake)
 include(@PZ_CMAKE_INSTALL_DIR@/add_pz_target.cmake)
 include(@PZ_CMAKE_INSTALL_DIR@/check_pz_opt.cmake)
@@ -23,12 +30,15 @@ set(PZ_LIBRARIES NeoPZ::pz)
 message(STATUS "PZ_INCLUDE_DIRS: ${PZ_INCLUDE_DIRS}")
 message(STATUS "Link to: ${PZ_LIBRARIES}")
 
+
 set_property(GLOBAL PROPERTY PZ_REAL_TYPE @REAL_TYPE@)
 set_property(GLOBAL PROPERTY PZ_STATE_TYPE @STATE_TYPE@)
 set_property(GLOBAL PROPERTY PZ_BUILD_PLASTICITY_MATERIALS @BUILD_PLASTICITY_MATERIALS@)
 set_property(GLOBAL PROPERTY PZ_USING_BOOST @USING_BOOST@)
 set_property(GLOBAL PROPERTY PZ_USING_TBB @USING_TBB@)
 set_property(GLOBAL PROPERTY PZ_USING_LAPACK @USING_LAPACK@)
+set_property(GLOBAL PROPERTY PZ_USING_SBFEM_ENRICHMENT @USING_SBFEM_ENRICHMENT@)
 set_property(GLOBAL PROPERTY PZ_USING_PAPI @USING_PAPI@)
 set_property(GLOBAL PROPERTY PZ_USING_MKL @USING_MKL@)
+set_property(GLOBAL PROPERTY PZ_USING_MUMPS @USING_MUMPS@)
 set_property(GLOBAL PROPERTY PZ_LOG @PZ_LOG@)

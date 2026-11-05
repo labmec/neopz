@@ -134,11 +134,11 @@ FAD_FUNC_MACRO(FadFuncLog10,
 	       std::log10,
 	       expr_.dx(i)/(std::log(value_type(10))*expr_.val()),
 	       expr_.fastAccessDx(i)/(std::log(value_type(10))*expr_.val()))
-FAD_FUNC_MACRO(FadFuncAbs,
-	       abs,
-	       std::abs,
-	       std::abs(expr_.dx(i)),
-	       std::abs(expr_.fastAccessDx(i)))
+// FAD_FUNC_MACRO(FadFuncAbs,
+// 	       abs,
+// 	       std::abs,
+// 	       std::abs(expr_.dx(i)),
+// 	       std::abs(expr_.fastAccessDx(i)))
 	       
 
 #undef FAD_FUNC_MACRO

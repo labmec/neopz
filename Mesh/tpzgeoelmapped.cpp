@@ -108,12 +108,19 @@ TPZRegisterClassId(&TPZGeoElMapped::ClassId),TBase(destmesh,copy,gl2lcNdIdx,gl2l
 
 
 using namespace pzgeom;
+using namespace pzrefine;
 
 /// Macro to define templates to TPZGeoElMapped for all the geometric element types
 #define INSERTCLASS2(TCL) \
 template class \
 TPZRestoreClass< TPZGeoElMapped<TPZGeoElRefPattern<TCL > >>; \
-template class TPZGeoElMapped< TPZGeoElRefPattern<TCL> >;
+template class TPZGeoElMapped< TPZGeoElRefPattern<TCL> >; \
+
+#define INSERTCLASS3(TCL,TRF) \
+template class \
+TPZRestoreClass< TPZGeoElMapped<TPZGeoElement<TCL, TRF > >>; \
+template class TPZGeoElMapped< TPZGeoElement<TCL, TRF> >; \
+
 
 INSERTCLASS2(TPZGeoPoint)
 INSERTCLASS2(TPZGeoLinear)
@@ -123,3 +130,12 @@ INSERTCLASS2(TPZGeoCube)
 INSERTCLASS2(TPZGeoPrism)
 INSERTCLASS2(TPZGeoTetrahedra)
 INSERTCLASS2(TPZGeoPyramid)
+
+INSERTCLASS3(TPZGeoPoint,TPZRefPoint)
+INSERTCLASS3(TPZGeoLinear,TPZRefLinear)
+INSERTCLASS3(TPZGeoTriangle,TPZRefTriangle)
+INSERTCLASS3(TPZGeoQuad,TPZRefQuad)
+INSERTCLASS3(TPZGeoCube,TPZRefCube)
+INSERTCLASS3(TPZGeoPrism,TPZRefPrism)
+INSERTCLASS3(TPZGeoTetrahedra,TPZRefTetrahedra)
+INSERTCLASS3(TPZGeoPyramid,TPZRefPyramid)

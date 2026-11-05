@@ -15,6 +15,18 @@
 #include "tpzcube.h"
 #include "pzgeopyramid.h"
 
+#include "pzgeoprism.h"
+#include "pzgeoquad.h"
+#include "pzgeotriangle.h"
+#include "pzgeoel.h"
+#include "TPZRefLinear.h"
+#include "pzrefquad.h"
+#include "pzreftetrahedra.h"
+#include "pzrefpyram.h"
+#include "pzrefprism.h"
+#include "pzreftriangle.h"
+#include "TPZRefCube.h"
+
 
 #include "tpzquadraticline.h"
 #include "tpzquadratictrig.h"
@@ -40,12 +52,11 @@ TPZGmshReader::TPZGmshReader() {
     m_dim_physical_tag_and_name.Resize(4);
     m_dim_name_and_physical_tag.Resize(4);
     m_dim_physical_tag_and_physical_tag.Resize(4);
-
     m_entity_index.Resize(0);
     
 }//method
 
-void TPZGmshReader::ReadVersion(std::string file_name){
+void TPZGmshReader::ReadVersion(const std::string &file_name){
     // reading a general mesh information by filter
     std::ifstream read (file_name.c_str());
     if(!read){
@@ -54,100 +65,42 @@ void TPZGmshReader::ReadVersion(std::string file_name){
         DebugStop();
     }
 
-    bool read_version = false;
-    while(read && !read_version){
-        char buf[1024];
-        read.getline(buf, 1024);
-        std::string str(buf);
-            
-        if(str == "$MeshFormat" || str == "$MeshFormat\r"){
-            read >> m_format_version;
-            std::cout << "Reading mesh format = " << m_format_version << std::endl;
-            read_version = true;
-        }
-    }
+    ReadVersion(read);
     read.close();
 }
 
-TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh *gmesh_input, bool addNonAssignedEls){
-
-    ReadVersion(file_name);
-    
-    if (m_format_version[0] == '3'){
-        return GeometricGmshMesh3(file_name,gmesh_input);
-    }else if(m_format_version[0] == '4'){
-        return GeometricGmshMesh4(file_name,gmesh_input,addNonAssignedEls);
+// read the version line at the top of the gmsh file
+void TPZGmshReader::ReadVersion(std::istream &readfile)
+{
+    bool read_version = false;
+    while(readfile && !read_version){
+        char buf[1024];
+        readfile.getline(buf, 1024);
+        std::string str(buf);
+            
+        if(str == "$MeshFormat" || str == "$MeshFormat\r"){
+            readfile >> m_format_version;
+            if(m_verbose) {
+                std::cout << "Reading mesh format = " << m_format_version << std::endl;
+            }
+        }
+        if(str == "$EndMeshFormat" || str == "$EndMeshFormat\r"){
+            if(m_verbose) {
+                std::cout << "Finished Reading mesh format = " << str << std::endl;
+            }
+            read_version = true;
+        }
     }
-    std::cout << "TPZGmshReader:: Latest version supported 4.1 " << std::endl;
-    std::cout << "TPZGmshReader:: Reader no available for the msh file version = " << m_format_version << std::endl;
-    DebugStop();
-    return NULL;
-}
-
-void TPZGmshReader::PrintPartitionSummary(std::ostream & out){
-    
-    out << std::endl;
-    out << "TPZGmshReader geometrical partition summary " << std::endl;
-    out << "File format         = " << m_format_version << std::endl;
-    out << "Geometry dimension  = " << m_dimension << std::endl;
-    out << "Number of volumes   = " << m_n_volumes << std::endl;
-    out << "Number of surfaces  = " << m_n_surfaces << std::endl;
-    out << "Number of curves    = " << m_n_curves << std::endl;
-    out << "Number of points    = " << m_n_points << std::endl;
-    out << "Number of volumes with physical tag     = " << m_n_physical_volumes << std::endl;
-    out << "Number of surfaces with physical tag    = " << m_n_physical_surfaces << std::endl;
-    out << "Number of curves with physical tag      = " << m_n_physical_curves << std::endl;
-    out << "Number of points with physical tag      = " << m_n_physical_points << std::endl;
-    out << "Number of elements by type : " << std::endl;
-    out << "Points          : " << m_n_point_els << std::endl;
-    out << "Lines           : " << m_n_line_els << std::endl;
-    out << "Triangles       : " << m_n_triangle_els << std::endl;
-    out << "Quadrilaterals  : " << m_n_quadrilateral_els << std::endl;
-    out << "Tetrahera       : " << m_n_tetrahedron_els << std::endl;
-    out << "Hexahedra       : " << m_n_hexahedron_els << std::endl;
-    out << "Prism           : " << m_n_prism_els << std::endl;
-    out << "Pyramids        : " << m_n_pyramid_els << std::endl;
-    int n_vols_els = m_n_pyramid_els + m_n_prism_els + m_n_hexahedron_els + m_n_tetrahedron_els;
-    int n_surf_els = m_n_triangle_els + m_n_quadrilateral_els;
-    out << "Number of elements by dimension : " << std::endl;
-    out << "3D elements : " << n_vols_els << std::endl;
-    out << "2D elements : " << n_surf_els << std::endl;
-    out << "1D elements : " << m_n_line_els << std::endl;
-    out << "0D elements : " << m_n_point_els << std::endl;
-    out << "Characteristic length = " << m_characteristic_lentgh <<std::endl;
-    out << std::endl;
 
 }
 
-TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh *gmesh_input, bool addNonAssignedEls){
-    
-    //  Mesh Creation
-    TPZGeoMesh * gmesh = gmesh_input;
-    if(!gmesh) gmesh = new TPZGeoMesh;
+/// read the physical property section of the gmsh file
+void TPZGmshReader::ReadPhysicalProperties4(std::istream &read)
+{
     int max_dimension = 0;
-
-    // periodic nodes indexed by dimension of containing entity
-    TPZVec<std::map<int64_t, std::map<int64_t, int64_t>>> entity_periodic_nodes(
-        4);
-    // periodic entities indexed by dimension
-    TPZVec<std::map<int64_t, int64_t>> periodic_entities(4);
-
-    // reading a general mesh information by filter
-    std::ifstream read(file_name.c_str());
-    if (!read) {
-      std::cout << "Couldn't open the file " << file_name << std::endl;
-      DebugStop();
-    }
-
     while (read) {
       std::string str;
       read >> str;
-
-      if (str == "$MeshFormat" || str == "$MeshFormat\r") {
-        // skips line
-        // does nothing
-        ;
-      }
 
       if (str == "$PhysicalNames" || str == "$PhysicalNames\r") {
 
@@ -167,15 +120,19 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
 
           if (m_dim_name_and_physical_tag[dimension].find(name) ==
               m_dim_name_and_physical_tag[dimension].end()) {
-            if (!addNonAssignedEls)
+            if (!m_read_undefined_physical_tag_elements)
               continue;
-            std::cout << "Automatically associating " << name
+              if(m_verbose) {
+                  std::cout << "Automatically associating " << name
                       << " with material id " << id << std::endl;
+              }
             m_dim_name_and_physical_tag[dimension][name] = id;
           } else {
             int pzmatid = m_dim_name_and_physical_tag[dimension][name];
-            std::cout << "Associating " << name << " with material id " << id
+              if(m_verbose) {
+                  std::cout << "Associating " << name << " with material id " << id
                       << " with pz material id " << pzmatid << std::endl;
+              }
           }
           m_dim_physical_tag_and_name[dimension][id] = name;
           m_dim_physical_tag_and_physical_tag[dimension][id] =
@@ -186,17 +143,28 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
           }
         }
         m_dimension = max_dimension; //  for coherence
-        gmesh->SetDimension(max_dimension);
+        if(m_gmesh) m_gmesh->SetDimension(max_dimension);
 
         std::string str_end;
         read >> str_end;
-        if (str_end == "$EndPhysicalNames" ||
-            str_end == "$EndPhysicalNames\r") {
-          std::cout << "Read mesh physical entities = " << n_physical_names
+        if (m_verbose && (str_end == "$EndPhysicalNames" ||
+            str_end == "$EndPhysicalNames\r")) {
+            std::cout << "Finished reading mesh physical entities = " << n_physical_names
                     << std::endl;
         }
-        continue;
+        break;
       }
+    }
+}
+
+/// read the elements and nodes
+void TPZGmshReader::ReadElements4(std::istream &read)
+{
+    int max_dimension = m_dimension;
+    while (read) {
+      std::string str;
+      read >> str;
+
 
       if (str == "$Entities" || str == "$Entities\r") {
         read >> m_n_points;
@@ -204,7 +172,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
         read >> m_n_surfaces;
         read >> m_n_volumes;
 
-        if (addNonAssignedEls) {
+        if (m_read_undefined_physical_tag_elements) {
           // Dont want to change dimension of mesh if not adding non assigned
           // elements
           if (max_dimension < 3 && m_n_volumes > 0)
@@ -260,11 +228,11 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
 
         std::string str_end;
         read >> str_end;
-        if (str_end == "$EndEntities" || str_end == "$EndEntities\r") {
-          std::cout << "Read mesh entities = "
+        if (m_verbose && (str_end == "$EndEntities" || str_end == "$EndEntities\r")) {
+          std::cout << "total number of mesh entities = "
                     << m_n_points + m_n_curves + m_n_surfaces + m_n_volumes
                     << std::endl;
-          std::cout << "Read mesh entities with physical tags = "
+          std::cout << "Finished reading mesh entities with physical tags = "
                     << m_n_physical_points + m_n_physical_curves +
                            m_n_physical_surfaces + m_n_physical_volumes
                     << std::endl;
@@ -282,8 +250,8 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
 
         int64_t node_id;
         double nodecoordX, nodecoordY, nodecoordZ;
-        gmesh->NodeVec().Resize(max_node_tag);
-        gmesh->SetMaxNodeId(max_node_tag);
+        m_gmesh->NodeVec().Resize(max_node_tag);
+        m_gmesh->SetMaxNodeId(max_node_tag);
         // needed for node insertion
         const int64_t Tnodes = max_node_tag;
         TPZVec<TPZGeoNode> Node(Tnodes);
@@ -317,13 +285,13 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                                                      m_characteristic_lentgh);
             Node[nodeids[inode] - 1].SetCoord(2, nodecoordZ /
                                                      m_characteristic_lentgh);
-            gmesh->NodeVec()[nodeids[inode] - 1] = Node[nodeids[inode] - 1];
+            m_gmesh->NodeVec()[nodeids[inode] - 1] = Node[nodeids[inode] - 1];
           }
         }
         std::string str_end;
         read >> str_end;
-        if (str_end == "$EndNodes" || str_end == "$EndNodes\r") {
-          std::cout << "Read mesh nodes = " << gmesh->NNodes() << std::endl;
+        if (m_verbose && (str_end == "$EndNodes" || str_end == "$EndNodes\r")) {
+            std::cout << "Finished reading mesh nodes, nnodes = " << m_gmesh->NNodes() << std::endl;
         }
         continue;
       }
@@ -335,7 +303,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
         read >> n_elements;
         read >> min_element_tag;
         read >> max_element_tag;
-        gmesh->SetMaxElementId(n_elements - 1);
+        m_gmesh->SetMaxElementId(n_elements - 1);
 
         int entity_tag, entity_dim, entity_el_type, entity_elements;
         for (int64_t i_block = 0; i_block < n_entity_blocks; i_block++) {
@@ -384,19 +352,29 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                 if (i_data > 0) {
                   el_identifier = max_element_tag + i_data;
                   max_element_tag = el_identifier;
-                  gmesh->SetMaxElementId(el_identifier - 1);
+                  m_gmesh->SetMaxElementId(el_identifier - 1);
                 }
 
-                const int64_t physical_identifier =
+                int64_t physical_identifier =
                     m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag]
                                                      [i_data];
+                  
+              
+                if(m_dim_physical_tag_and_physical_tag[entity_dim].find(physical_identifier) != m_dim_physical_tag_and_physical_tag[entity_dim].end()){
+                    physical_identifier = m_dim_physical_tag_and_physical_tag[entity_dim][physical_identifier];
+                } else {
+                    if (!m_read_undefined_physical_tag_elements) {
+                        continue; // not adding elements without physical identifier
+                    }
+                    std::cout << "Physical identifier " << physical_identifier << " with dim " << entity_dim << " not found in the physical tag list" << std::endl;
+                }
 
                 // std::cout << "Creating el for tag " << gmshPhysicalTagTemp <<
                 // " with physical id = " << physical_identifier << std::endl;
 
                 /// Internally the nodes index and element index is converted to
                 /// zero based indexation
-                InsertElement(gmesh, physical_identifier, entity_el_type,
+                InsertElement(m_gmesh, physical_identifier, entity_el_type,
                               el_identifier, node_identifiers);
               }
 
@@ -415,53 +393,176 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
         }
         std::string str_end;
         read >> str_end;
-        if (str_end == "$EndElements" || str_end == "$EndElements\r") {
-          std::cout << "Read mesh elements = " << gmesh->NElements()
+        if (m_verbose && (str_end == "$EndElements" || str_end == "$EndElements\r")) {
+          std::cout << "Finished reading elements nelements = " << m_gmesh->NElements()
                     << std::endl;
         }
-        continue;
-      }
-      if (str == "$Periodic" || str == "$Periodic\r") {
-        int64_t n_periodic_entities;
-        read >> n_periodic_entities;
-        int entity_dim, indep_tag, dep_tag;
-        for (int64_t i_block = 0; i_block < n_periodic_entities; i_block++) {
-          read >> entity_dim;
-          read >> dep_tag;
-          read >> indep_tag;
-
-          periodic_entities[entity_dim][dep_tag] = indep_tag;
-          int naffinecoords;
-          read >> naffinecoords;
-          // currently we discard info regarding the affine transformation
-          for (int i = 0; i < naffinecoords; i++) {
-            double tmp;
-            read >> tmp;
-          }
-          int64_t nnodes;
-          read >> nnodes;
-          std::map<int64_t, int64_t> entitymap;
-          for (int64_t inode = 0; inode < nnodes; inode++) {
-            int64_t depnode, indepnode;
-            read >> depnode;
-            read >> indepnode;
-            // NODES IN GMSH ARE 1-INDEXED
-            entitymap[depnode - 1] = indepnode - 1;
-          }
-          entity_periodic_nodes[entity_dim][dep_tag] = entitymap;
-        }
-        std::string str_end;
-        read >> str_end;
-        assert(str_end == "$EndPeriodic" || str_end == "$EndPeriodic\r");
-        continue;
+        break;
       }
     }
+    // set the element id equal to the element index
+    {
+        int64_t nel = m_gmesh->NElements();
+        for(int64_t el = 0; el<nel; el++)
+        {
+            TPZGeoEl *gel = m_gmesh->Element(el);
+#ifdef PZDEBUG
+            if(!gel) DebugStop();
+#endif
+            gel->SetId(el);
+        }
+    }
+}
 
-    gmesh->SetDimension(max_dimension);
-    std::cout << "Read General Mesh Data -> done!" << std::endl;
-    std::cout << "Number of elements " << gmesh->NElements() << std::endl;
+/// read the data with respect to periodic nodes
+void TPZGmshReader::ReadPeriodic4(std::istream &read)
+{
+    // periodic nodes indexed by dimension of containing entity
+    TPZVec<std::map<int64_t, std::map<int64_t, int64_t>>> entity_periodic_nodes(
+        4);
+    // periodic entities indexed by dimension
+    TPZVec<std::map<int64_t, int64_t>> periodic_entities(4);
+
+
+    int64_t n_periodic_entities;
+    read >> n_periodic_entities;
+    int entity_dim, indep_tag, dep_tag;
+    for (int64_t i_block = 0; i_block < n_periodic_entities; i_block++) {
+      read >> entity_dim;
+      read >> dep_tag;
+      read >> indep_tag;
+
+      periodic_entities[entity_dim][dep_tag] = indep_tag;
+      int naffinecoords;
+      read >> naffinecoords;
+      // currently we discard info regarding the affine transformation
+      for (int i = 0; i < naffinecoords; i++) {
+        double tmp;
+        read >> tmp;
+      }
+      int64_t nnodes;
+      read >> nnodes;
+      std::map<int64_t, int64_t> entitymap;
+      for (int64_t inode = 0; inode < nnodes; inode++) {
+        int64_t depnode, indepnode;
+        read >> depnode;
+        read >> indepnode;
+        // NODES IN GMSH ARE 1-INDEXED
+        entitymap[depnode - 1] = indepnode - 1;
+      }
+      entity_periodic_nodes[entity_dim][dep_tag] = entitymap;
+    }
+    std::string str_end;
+    read >> str_end;
+    assert(str_end == "$EndPeriodic" || str_end == "$EndPeriodic\r");
+    /*now we need to find the correspondence between periodic elements
+     we will both:
+    - create the periodic_els map that relates the ids of dependent/independent
+    element
+    - change the node ids of the dependent el so as to match the ones
+    in the independent el.
+    this ensures that they will have the same orientation
+    */
+    SetPeriodicElements(m_gmesh, entity_periodic_nodes, periodic_entities);
+
+}
+
+
+
+TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(const std::string &file_name, TPZGeoMesh *gmesh_input, bool addNonAssignedEls)  {
+
+    m_read_undefined_physical_tag_elements = addNonAssignedEls;
+    m_gmesh = gmesh_input;
+    
+    ReadVersion(file_name);
+    
+    if (m_format_version[0] == '3'){
+        return GeometricGmshMesh3(file_name,gmesh_input);
+    }else if(m_format_version[0] == '4'){
+        return GeometricGmshMesh4(file_name,gmesh_input,addNonAssignedEls);
+    }
+    std::cout << "TPZGmshReader:: Latest version supported 4.x " << std::endl;
+    std::cout << "TPZGmshReader:: Reader no available for the msh file version = " << m_format_version << std::endl;
+    DebugStop();
+    return NULL;
+}
+
+void TPZGmshReader::PrintPartitionSummary(std::ostream & out){
+    
+    out << std::endl;
+    out << "TPZGmshReader geometrical partition summary " << std::endl;
+    out << "File format         = " << m_format_version << std::endl;
+    out << "Geometry dimension  = " << m_dimension << std::endl;
+    out << "Number of volumes   = " << m_n_volumes << std::endl;
+    out << "Number of surfaces  = " << m_n_surfaces << std::endl;
+    out << "Number of curves    = " << m_n_curves << std::endl;
+    out << "Number of points    = " << m_n_points << std::endl;
+    out << "Number of volumes with physical tag     = " << m_n_physical_volumes << std::endl;
+    out << "Number of surfaces with physical tag    = " << m_n_physical_surfaces << std::endl;
+    out << "Number of curves with physical tag      = " << m_n_physical_curves << std::endl;
+    out << "Number of points with physical tag      = " << m_n_physical_points << std::endl;
+    out << "Number of elements by type : " << std::endl;
+    out << "Points          : " << m_n_point_els << std::endl;
+    out << "Lines           : " << m_n_line_els << std::endl;
+    out << "Triangles       : " << m_n_triangle_els << std::endl;
+    out << "Quadrilaterals  : " << m_n_quadrilateral_els << std::endl;
+    out << "Tetrahera       : " << m_n_tetrahedron_els << std::endl;
+    out << "Hexahedra       : " << m_n_hexahedron_els << std::endl;
+    out << "Prism           : " << m_n_prism_els << std::endl;
+    out << "Pyramids        : " << m_n_pyramid_els << std::endl;
+    int n_vols_els = m_n_pyramid_els + m_n_prism_els + m_n_hexahedron_els + m_n_tetrahedron_els;
+    int n_surf_els = m_n_triangle_els + m_n_quadrilateral_els;
+    out << "Number of elements by dimension : " << std::endl;
+    out << "3D elements : " << n_vols_els << std::endl;
+    out << "2D elements : " << n_surf_els << std::endl;
+    out << "1D elements : " << m_n_line_els << std::endl;
+    out << "0D elements : " << m_n_point_els << std::endl;
+    out << "Characteristic length = " << m_characteristic_lentgh <<std::endl;
+    out << std::endl;
+
+}
+
+TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(const std::string &file_name, TPZGeoMesh *gmesh_input, bool addNonAssignedEls){
+    
+    //  Mesh Creation
+    TPZGeoMesh * gmesh = gmesh_input;
+    m_read_undefined_physical_tag_elements = addNonAssignedEls;
+    if(!gmesh) gmesh = new TPZGeoMesh;
+    m_gmesh = gmesh;
+    int max_dimension = 0;
+
+    // periodic nodes indexed by dimension of containing entity
+    TPZVec<std::map<int64_t, std::map<int64_t, int64_t>>> entity_periodic_nodes(
+        4);
+    // periodic entities indexed by dimension
+    TPZVec<std::map<int64_t, int64_t>> periodic_entities(4);
+
+    // reading a general mesh information by filter
+    std::ifstream read(file_name.c_str());
+    if (!read) {
+      std::cout << "Couldn't open the file " << file_name << std::endl;
+      DebugStop();
+    }
+
+    ReadVersion(read);
+    ReadPhysicalProperties4(read);
+    ReadElements4(read);
+    while (read) {
+      std::string str;
+      read >> str;
+      if (str == "$Periodic" || str == "$Periodic\r") {
+          ReadPeriodic4(read);
+      }
+    }
+    
+    if(m_verbose) {
+        std::cout << "Read General Mesh Data -> done!" << std::endl;
+        std::cout << "Number of elements " << gmesh->NElements() << std::endl;
+    }
     gmesh->BuildConnectivity();
-    std::cout << "Geometric Mesh Connectivity -> done!" << std::endl;
+    if(m_verbose) {
+        std::cout << "Geometric Mesh Connectivity -> done!" << std::endl;
+    }
 
     /*now we need to find the correspondence between periodic elements
      we will both:
@@ -491,47 +592,84 @@ void TPZGmshReader::InsertElement(TPZGeoMesh *gmesh,
   const int el_identifier = el_id - 1;
   switch (el_type) {
   case 1: { // Line
-    new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(el_identifier, nodes,
-                                                 physical_identifier, *gmesh);
+    if(m_create_refpatterns)
+        // Line with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoLinear>(el_identifier, nodes,
+                                                     physical_identifier, *gmesh);
+    else
+        new TPZGeoElement<pzgeom::TPZGeoLinear, pzrefine::TPZRefLinear>(el_identifier, nodes,
+                                                                 physical_identifier, *gmesh);
     m_n_line_els++;
   } break;
   case 2: {
     // Triangle
-    new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(el_identifier, nodes,
-                                                   physical_identifier, *gmesh);
+    if(m_create_refpatterns)
+        // Triangle with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoTriangle>(el_identifier, nodes,
+                                                       physical_identifier, *gmesh);
+    else
+        new TPZGeoElement<pzgeom::TPZGeoTriangle, pzrefine::TPZRefTriangle>(el_identifier, nodes,
+                                                                     physical_identifier, *gmesh);
     m_n_triangle_els++;
 
   } break;
   case 3: {
-    // Quadrilateral
-    new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(el_identifier, nodes,
-                                               physical_identifier, *gmesh);
+    if(m_create_refpatterns){
+        // Quadrilateral with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoQuad>(el_identifier, nodes,
+                                                   physical_identifier, *gmesh);
+    } else {
+        new TPZGeoElement<pzgeom::TPZGeoQuad, pzrefine::TPZRefQuad>(
+                el_identifier, nodes, physical_identifier, *gmesh);
+    }
     m_n_quadrilateral_els++;
-
-  } break;
+    } break;
   case 4: {
     // Tetrahedron
-    new TPZGeoElRefPattern<pzgeom::TPZGeoTetrahedra>(
-        el_identifier, nodes, physical_identifier, *gmesh);
+    if(m_create_refpatterns){
+        // Tetrahedron with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoTetrahedra>(
+            el_identifier, nodes, physical_identifier, *gmesh);
+    } else {
+        new TPZGeoElement<pzgeom::TPZGeoTetrahedra, pzrefine::TPZRefTetrahedra>(
+            el_identifier, nodes, physical_identifier, *gmesh);
+    }
     m_n_tetrahedron_els++;
 
   } break;
   case 5: {
     // Hexahedra
-    new TPZGeoElRefPattern<pzgeom::TPZGeoCube>(el_identifier, nodes,
-                                               physical_identifier, *gmesh);
+    if(m_create_refpatterns){
+        // Hexahedra with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoCube>(el_identifier, nodes,
+                                                   physical_identifier, *gmesh);
+    } else {
+        new TPZGeoElement<pzgeom::TPZGeoCube, pzrefine::TPZRefCube>(
+            el_identifier, nodes, physical_identifier, *gmesh);
+    }
     m_n_hexahedron_els++;
   } break;
   case 6: {
     // Prism
-    new TPZGeoElRefPattern<pzgeom::TPZGeoPrism>(el_identifier, nodes,
-                                                physical_identifier, *gmesh);
+    if(m_create_refpatterns){
+        // Prism with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoPrism>(el_identifier, nodes,
+                                                   physical_identifier, *gmesh);
+    } else {
+        new TPZGeoElement<pzgeom::TPZGeoPrism, pzrefine::TPZRefPrism>(
+            el_identifier, nodes, physical_identifier, *gmesh);
+    }
     m_n_prism_els++;
   } break;
   case 7: {
     // Pyramid
-    new TPZGeoElRefPattern<pzgeom::TPZGeoPyramid>(el_identifier, nodes,
-                                                  physical_identifier, *gmesh);
+    if(m_create_refpatterns)
+        // Pyramid with refinement pattern
+        new TPZGeoElRefPattern<pzgeom::TPZGeoPyramid>(el_identifier, nodes,
+                                                      physical_identifier, *gmesh);
+    else
+        new TPZGeoElement<pzgeom::TPZGeoPyramid, pzrefine::TPZRefPyramid>(el_identifier, nodes,
+                                                                        physical_identifier, *gmesh);
     m_n_pyramid_els++;
   } break;
   case 8: {
@@ -689,7 +827,7 @@ int TPZGmshReader::GetNumberofNodes(int & el_type){
     return n_nodes;
 }
 
-TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(std::string file_name, TPZGeoMesh *gmesh_input)
+TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(const std::string &file_name, TPZGeoMesh *gmesh_input)
 {
     
     //  Mesh Creation
@@ -769,7 +907,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(std::string file_name, TPZGeoMesh
                 read.getline(buf_end, 1024);
                 read.getline(buf_end, 1024);
                 std::string str_end(buf_end);
-                if(str_end == "$EndPhysicalNames" || str_end == "$EndPhysicalNames\r")
+                if(m_verbose && (str_end == "$EndPhysicalNames" || str_end == "$EndPhysicalNames\r"))
                 {
                     std::cout << "Read mesh physical entities = " << n_entities << std::endl;
                 }
@@ -812,7 +950,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(std::string file_name, TPZGeoMesh
                 read.getline(buf_end, 1024);
                 read.getline(buf_end, 1024);
                 std::string str_end(buf_end);
-                if(str_end == "$EndNodes" || str_end == "$EndNodes\r")
+                if(m_verbose && (str_end == "$EndNodes" || str_end == "$EndNodes\r"))
                 {
                     std::cout << "Read mesh nodes = " <<  gmesh->NNodes() << std::endl;
                 }
@@ -834,7 +972,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(std::string file_name, TPZGeoMesh
                 read.getline(buf_end, 1024);
                 read.getline(buf_end, 1024);
                 std::string str_end(buf_end);
-                if(str_end == "$EndElements" || str_end == "$EndElements\r")
+                if(m_verbose && (str_end == "$EndElements" || str_end == "$EndElements\r"))
                 {
                     std::cout << "Read mesh elements = " << gmesh->NElements() << std::endl;
                 }
@@ -845,10 +983,12 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(std::string file_name, TPZGeoMesh
         
     }
     
-    std::cout << "Read General Mesh Data -> done!" << std::endl;
-    std::cout << "Number of elements " << gmesh->NElements() << std::endl;
+    if(m_verbose) {
+        std::cout << "Read General Mesh Data -> done!" << std::endl;
+        std::cout << "Number of elements " << gmesh->NElements() << std::endl;
+    }
     gmesh->BuildConnectivity();
-    std::cout << "Geometric Mesh Connectivity -> done!" << std::endl;
+    if(m_verbose) std::cout << "Geometric Mesh Connectivity -> done!" << std::endl;
     return gmesh;
     
 }// End Method
@@ -1275,6 +1415,7 @@ bool TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
     return true;
 }
 
+
 void TPZGmshReader::SetPeriodicElements(
     TPZGeoMesh *gmesh,
     const TPZVec<std::map<int64_t, std::map<int64_t, int64_t>>>
@@ -1293,10 +1434,17 @@ void TPZGmshReader::SetPeriodicElements(
     for (auto [deptag, indeptag] : periodic_entities[idim]) {
       const int ndepid = physical_entity_map[deptag].size();
       const int nindepid = physical_entity_map[indeptag].size();
-      assert(ndepid == nindepid);
-      if (ndepid > 0) { // we only care if there is an associated physical id
-        const int64_t depid = physical_entity_map[deptag][0];
-        const int64_t indepid = physical_entity_map[indeptag][0];
+      if(ndepid != nindepid){
+          PZError<<__PRETTY_FUNCTION__
+                 <<"number of ids is different for periodic entities:\n"
+                 <<"entity "<<deptag<<" n ids "<<ndepid<<'\n'
+                 <<"entity "<<indeptag<<" n ids "<<nindepid<<std::endl;
+          DebugStop();
+      }
+      // we only care if there is an associated physical id
+      for(int id_count=0;id_count < ndepid;id_count++){
+        const int64_t depid = physical_entity_map[deptag][id_count];
+        const int64_t indepid = physical_entity_map[indeptag][id_count];
         periodic_physical_ids[depid] = indepid;
         const auto periodic_nodes = entity_periodic_nodes[idim][deptag];
         for (auto [dep, indep] : periodic_nodes) {
@@ -1306,29 +1454,98 @@ void TPZGmshReader::SetPeriodicElements(
     }
   }
 
+  /*
+    now we just want to change the ids of the dependent nodes
+    so as to match the ordering of the independent nodes
+  */
+
+  //contain all periodic nodes
+  std::vector<std::pair<int64_t,int64_t>> all_per_nodes;
+
+  for(auto all_periodic_ids : periodic_nodes_by_physical_ids){
+      for(auto &[_,periodic_ids] : all_periodic_ids){
+          for(auto &[dep_node,indep_node] : periodic_ids){
+              all_per_nodes.push_back({dep_node,indep_node});
+          }
+      }
+  }
+
+  std::set<int64_t> dep_ids, indep_ids;
+  for(auto [dep,indep] : all_per_nodes){
+      dep_ids.insert(dep);
+      indep_ids.insert(indep);
+  }
+
+  std::set<int64_t> common_ids;
+  std::set_intersection(dep_ids.begin(),dep_ids.end(),
+                        indep_ids.begin(),indep_ids.end(),
+                        std::inserter(common_ids,common_ids.begin()));
+  if(common_ids.size()){
+    PZError<<__PRETTY_FUNCTION__
+           <<"\nwe still not support nodes that are both dependent and independent"
+           <<"\nAborting..."<<std::endl;
+    DebugStop();
+  }
+  const int n_nodes = dep_ids.size();
+  auto d_i = dep_ids.begin();
+  auto i_i = indep_ids.begin();
+  for(auto i = 0; i < n_nodes; i++){
+      auto dep_node = all_per_nodes[i].first;
+      auto indep_node = all_per_nodes[i].second;
+      m_gmesh->NodeVec()[dep_node].SetNodeId(*d_i);
+      m_gmesh->NodeVec()[indep_node].SetNodeId(*i_i);
+      d_i++;
+      i_i++;
+  }
+  
+  /**
+     now we want to map periodic ELEMENTS
+     IMPORTANT: since we have changed the node ids,
+     now we no longer have index == id
+     */
   for (int idim = 0; idim < max_dimension; idim++) {
-    for (auto [depid, periodic_nodes] : periodic_nodes_by_physical_ids[idim]) {
-      assert(periodic_physical_ids.find(depid) != periodic_physical_ids.end());
-      const auto indepid = periodic_physical_ids[depid];
+    for (auto [depmatid, periodic_nodes] : periodic_nodes_by_physical_ids[idim]) {
+      if(periodic_physical_ids.find(depmatid) == periodic_physical_ids.end()){
+        PZError<<__PRETTY_FUNCTION__
+               <<"\nCould not find "<<depmatid<<" in periodic physical ids:\n";
+        for(auto id : periodic_physical_ids){
+          std::cout<<' '<< id.first << '|' << id.second;
+        }
+        std::cout<<std::endl;
+        DebugStop();
+      }
+      
+      //material id of independent region
+      const auto indepmatid = periodic_physical_ids[depmatid];
       int count = 0;
       for (auto depel : gmesh->ElementVec()) {
-        if (depel->MaterialId() == depid) {
+        if (depel->MaterialId() == depmatid) {
           const auto nnodes = depel->NNodes();
           const auto dep_type = depel->Type();
+          //mapped node INDICES, not IDENTIFIERS
           std::vector<int64_t> mapped_nodes(nnodes);
           count++;
           for (auto in = 0; in < nnodes; in++) {
-            const auto depnode = depel->Node(in).Id();
-            assert(periodic_nodes.find(depnode) != periodic_nodes.end());
+            const auto depnode = depel->NodeIndex(in);
+            if(periodic_nodes.find(depnode) == periodic_nodes.end()){
+                PZError<<__PRETTY_FUNCTION__
+                       <<"\nnode "<<depnode<<" was not found in periodic nodes"
+                       <<" of mat id "<<depmatid<<":\n";
+                for(auto node : periodic_nodes){
+                  std::cout<<' '<< node.first << '|' << node.second;
+                }
+                std::cout<<std::endl;
+                DebugStop();
+            }
             mapped_nodes[in] = periodic_nodes.at(depnode);
           }
           for (auto indepel : gmesh->ElementVec()) {
             const int indep_type = indepel->Type();
             const bool sametype = indep_type == dep_type;
-            if (indepel->MaterialId() == indepid && sametype) {
+            if (indepel->MaterialId() == indepmatid && sametype) {
               bool samenodes = true;
               for (auto in = 0; in < nnodes; in++) {
-                const auto indepnode = indepel->Node(in).Id();
+                const auto indepnode = indepel->NodeIndex(in);
                 const bool hasnode =
                     std::find(mapped_nodes.begin(), mapped_nodes.end(),
                               indepnode) != mapped_nodes.end();
@@ -1336,21 +1553,45 @@ void TPZGmshReader::SetPeriodicElements(
               }
               if (samenodes) {
                 m_periodic_els[depel->Id()] = indepel->Id();
+#ifdef PZDEBUG
+                const int dim = depel->Dimension();
+                TPZManVector<REAL,3> qsi(dim,0);
+                TPZFNMatrix<9,REAL> jac, jacinv;
+                REAL detjac;
+                TPZFNMatrix<9,REAL> dep_axes, indep_axes,res;
+                depel->Jacobian(qsi,jac,dep_axes,detjac,jacinv);
+                indepel->Jacobian(qsi,jac,indep_axes,detjac,jacinv);
+                res = dep_axes;
+                res -= indep_axes;
+                constexpr REAL tol{1e-8};
+                const int nr = res.Rows();
+                const int nc = res.Cols();
+                for(int ir = 0; ir < nr; ir++){
+                    for(int ic = 0; ic < nc; ic++){
+                        if(res.GetVal(ir,ic) > tol){
+                            PZError<<__PRETTY_FUNCTION__
+                                   <<"\nError in periodic elements orientation!"
+                                   <<std::endl;
+                            dep_axes.Print("dep axes",PZError);
+                            indep_axes.Print("indep axes",PZError);
+                            DebugStop();
+                        }
+                    }
+                }
+#endif
+                // useful for checking periodicity
+                // for (auto in = 0; in < nnodes; in++) {
+                //     std::cout<<"dep "<<depel->NodeIndex(in)
+                //              <<" indep "<<indepel->NodeIndex(in)
+                //              <<" map(dep) "<<periodic_nodes.at(depel->NodeIndex(in))
+                //              <<std::endl;
+                // }
+                
               }
             }
           }
         }
       }
-    }
-  }
-  // the node ids of the dependent el will be set as the same from the
-  // independent el
-  for (auto [depel_id, indepel_id] : m_periodic_els) {
-    auto *depel = gmesh->Element(depel_id);
-    auto *indepel = gmesh->Element(indepel_id);
-    const auto nnodes = depel->NNodes();
-    for (auto i = 0; i < nnodes; i++) {
-      depel->Node(i).SetNodeId(indepel->Node(i).Id());
     }
   }
 }

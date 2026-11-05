@@ -432,8 +432,12 @@ template<class TVar>
 void TPZMultiphysicsElement::ComputeRequiredDataT(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialDataT<TVar>> &datavec)
 {
     int64_t ElemVecSize = NMeshes();
+    TPZGeoEl *gel = Reference();
     for (int64_t iref = 0; iref < ElemVecSize; iref++)
     {
+        if(gel && iref==0) {
+            gel->X(intpointtemp,datavec[0].x);
+        }
         TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(Element(iref));
         if (!msp) {
             continue;
@@ -492,11 +496,18 @@ void TPZMultiphysicsElement::TransferMultiphysicsElementSolutionT()
             int posloc = cel->Mesh()->Block().Position(seqloc);
             TPZFMatrix<TVar> &celSol = cel->Mesh()->Solution();
             TPZFMatrix<TVar> &meshSol = this->Mesh()->Solution();
+
+#ifdef PZDEBUG
+            int ncols = meshSol.Cols();
+            if (celSol.Cols() != ncols) { //The number of solution vectors should be the same for all meshes
+                DebugStop();
+            }
+#endif
+//            celSol.Resize(nrows,ncols);
             for (int ibl = 0; ibl < blsz; ibl++) {
                 for (int iload = 0; iload < nload; iload++) {
                     celSol(posloc+ibl,iload) = meshSol(pos+ibl,iload);
                 }
-
             }
         }
     }

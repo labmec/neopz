@@ -957,3 +957,72 @@ void TPZGenGrid2D::SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc) {
     }
 }
 
+void TPZGenGrid2D::RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int Axis)
+{
+    REAL theta =  CounterClockwiseAngle;
+    // It represents a 3D rotation around the z axis.
+    TPZFMatrix<STATE> RotationMatrix(3,3,0.0);
+    
+    switch (Axis) {
+        case 0:
+        {
+            RotationMatrix(0,0) = 1.0;
+            RotationMatrix(1,1) =   +cos(theta);
+            RotationMatrix(1,2) =   -sin(theta);
+            RotationMatrix(2,1) =   +sin(theta);
+            RotationMatrix(2,2) =   +cos(theta);
+        }
+            break;
+        case 1:
+        {
+            RotationMatrix(0,0) =   +cos(theta);
+            RotationMatrix(0,2) =   +sin(theta);
+            RotationMatrix(1,1) = 1.0;
+            RotationMatrix(2,0) =   -sin(theta);
+            RotationMatrix(2,2) =   +cos(theta);
+        }
+            break;
+        case 2:
+        {
+            RotationMatrix(0,0) =   +cos(theta);
+            RotationMatrix(0,1) =   -sin(theta);
+            RotationMatrix(1,0) =   +sin(theta);
+            RotationMatrix(1,1) =   +cos(theta);
+            RotationMatrix(2,2) = 1.0;
+        }
+            break;
+        default:
+        {
+            RotationMatrix(0,0) =   +cos(theta);
+            RotationMatrix(0,1) =   -sin(theta);
+            RotationMatrix(1,0) =   +sin(theta);
+            RotationMatrix(1,1) =   +cos(theta);
+            RotationMatrix(2,2) = 1.0;
+        }
+            break;
+    }
+    // DebugStop();
+    TPZVec<REAL> iCoords(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
+    
+    //RotationMatrix.Print("Rotation = ");
+    
+    int NumberofGeoNodes = gmesh->NNodes();
+    for (int inode = 0; inode < NumberofGeoNodes; inode++)
+    {
+        TPZGeoNode &GeoNode = gmesh->NodeVec()[inode];
+        GeoNode.GetCoordinates(iCoords);
+        // Apply rotation
+        iCoordsRotated[0] = RotationMatrix(0,0)*iCoords[0]+RotationMatrix(0,1)*iCoords[1]+RotationMatrix(0,2)*iCoords[2];
+        iCoordsRotated[1] = RotationMatrix(1,0)*iCoords[0]+RotationMatrix(1,1)*iCoords[1]+RotationMatrix(1,2)*iCoords[2];
+        iCoordsRotated[2] = RotationMatrix(2,0)*iCoords[0]+RotationMatrix(2,1)*iCoords[1]+RotationMatrix(2,2)*iCoords[2];
+        GeoNode.SetCoord(iCoordsRotated);
+    if(abs(iCoordsRotated[2]) > 1.e-8) {
+        RotationMatrix.Print("Rotation = ",std::cout,EMathematicaInput);
+        std::cout << " iCoords = " << iCoords << std::endl;
+        std::cout << " iCoordsRotated = " << iCoordsRotated << std::endl;
+            DebugStop();
+        }
+    }
+    
+}

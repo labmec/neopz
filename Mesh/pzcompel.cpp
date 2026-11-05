@@ -173,7 +173,7 @@ TPZCompEl::~TPZCompEl() {
     }
 #ifdef PZDEBUG
     TPZGeoEl *gel = Reference();
-    if (gel && gel->Reference()) {
+    if (gel && gel->Reference() == this) {
         DebugStop();
     }
 #endif
@@ -243,10 +243,13 @@ void TPZCompEl::LoadSolutionInternal() {
             int nvar = block.Size(bl);
             int numstate = dfn->NState(); //numstate eh fornecida pelo connect
             //         int numshape = nvar/numstate;
-            TPZConnect::TPZDepend *dep = dfn->FirstDepend();
+            TPZConnect::TPZDependBase *dep = dfn->FirstDepend();
             int64_t blpos = block.Position(bl);
             for(iv=0; iv<nvar; iv++) MeshSol(blpos+iv, 0) = 0.;
             while(dep) {
+                auto dept = dynamic_cast<TPZConnect::TPZDepend<TVar>*>(dep);
+                if(!dept){DebugStop();}
+                const auto &depmat = dept->GetDepMatrix();
                 int64_t depconindex = dep->fDepConnectIndex;
                 TPZConnect &depcon = Mesh()->ConnectVec()[depconindex];
                 int64_t depseq = depcon.SequenceNumber();
@@ -254,7 +257,7 @@ void TPZCompEl::LoadSolutionInternal() {
                 int64_t depseqpos = block.Position(depseq);
                 for(iv=0; iv<nvar; iv+=numstate) {
                     for(jv=0; jv<numdepvar; jv+=numstate) {
-                        coef = dep->fDepMatrix(iv/numstate,jv/numstate);
+                        coef = depmat(iv/numstate,jv/numstate);
                         for(idf=0; idf<numstate; idf++) MeshSol(blpos+iv+idf,0) += coef*MeshSol(depseqpos+jv+idf,0);
                     }
                 }
@@ -312,7 +315,8 @@ void TPZCompEl::Print(std::ostream & out) const {
 
 	out << "\nOutput for a computable element index: " << fIndex;
     out << "\nfReferenceIndex " << fReferenceIndex;
-	if(this->Reference())
+    TPZGeoEl *gref = this->Reference();
+	if(gref)
 	{
 		out << "\nCenter coordinate: ";
 		TPZVec< REAL > centerMaster( this->Reference()->Dimension(),0. );
@@ -321,9 +325,12 @@ void TPZCompEl::Print(std::ostream & out) const {
 		this->Reference()->X(centerMaster,centerEuclid);
 		out << centerEuclid;
 	}
-	if(this->Material())
+    int matid = 0;
+    if(gref) matid = gref->MaterialId();
+    
+	if(gref)
 	{
-		out << "\nMaterial id " << this->Material()->Id() << "\n";
+		out << "\nMaterial id " << matid << "\n";
 	}
 	else {
 		out << "\nNo material\n";
@@ -461,14 +468,6 @@ void TPZCompEl::BuildConnectList(std::set<int64_t> &indepconnectlist,
         int64_t conind = ConnectIndex(i);
         Connect(i).BuildConnectList(conind, indepconnectlist,depconnectlist,*Mesh());
     }
-    std::list<TPZOneShapeRestraint> mylist = GetShapeRestraints();
-    for (std::list<TPZOneShapeRestraint>::iterator it = mylist.begin(); it != mylist.end(); it++) {
-        for (int i=0; i<4; i++) {
-            int64_t conind = it->fFaces[i].first;
-            TPZConnect &c = Mesh()->ConnectVec()[conind];
-            c.BuildConnectList(conind, indepconnectlist, depconnectlist, *Mesh());
-        }
-    }
 }
 
 void TPZCompEl::BuildConnectList(TPZStack<int64_t> &connectlist) const {
@@ -520,17 +519,11 @@ void TPZCompEl::BuildConnectList(TPZStack<int64_t> &connectlist) const {
         buf = std::set<int64_t>(&localcon[0],&localcon[0]+nconloc);
     }
     std::set<int64_t> buf2;
-    std::list<TPZOneShapeRestraint> mylist = GetShapeRestraints();
-    for (std::list<TPZOneShapeRestraint>::iterator it = mylist.begin(); it != mylist.end(); it++) {
-        for (int i=0; i<4; i++) {
-            buf2.insert(it->fFaces[i].first);
-        }
-    }
     nconloc = NConnects();
     for(int64_t i = 0; i < nconloc; i++) {
         TPZConnect &c = Connect(i);
         if (c.HasDependency()) {
-            TPZConnect::TPZDepend * dep= c.FirstDepend();
+            TPZConnect::TPZDependBase * dep= c.FirstDepend();
             while(dep)
             {
                 buf2.insert(dep->fDepConnectIndex);
@@ -542,8 +535,9 @@ void TPZCompEl::BuildConnectList(TPZStack<int64_t> &connectlist) const {
     if (buf.size() != connectlist.size())
     {
         connectlist.Resize(buf.size());
-        std::copy(buf.begin(), buf.end(), &connectlist[0]);
     }
+    std::copy(buf.begin(), buf.end(), &connectlist[0]);
+
 }
 
 void TPZCompEl::BuildConnectList(std::set<int64_t> &connectlist) {
@@ -566,17 +560,14 @@ void TPZCompEl::BuildConnectList(std::set<int64_t> &connectlist) {
         buf = connectlist;
     }
     std::set<int64_t> buf2;
-    std::list<TPZOneShapeRestraint> mylist = GetShapeRestraints();
-    for (std::list<TPZOneShapeRestraint>::iterator it = mylist.begin(); it != mylist.end(); it++) {
-        for (int i=0; i<4; i++) {
-            buf2.insert(it->fFaces[i].first);
-        }
-    }
     for(std::set<int64_t>::iterator it=buf.begin(); it != buf.end(); it++) {
         TPZConnect &c = Mesh()->ConnectVec()[*it];
         if (c.HasDependency()) {
-            TPZConnect::TPZDepend * dep= c.FirstDepend();
-            buf2.insert(dep->fDepConnectIndex);
+            TPZConnect::TPZDependBase * dep= c.FirstDepend();
+            while(dep) {
+                buf2.insert(dep->fDepConnectIndex);
+                dep = dep->fNext;
+            }
         }
     }
     TPZConnect::BuildConnectList(buf, buf2, *Mesh());
@@ -587,9 +578,6 @@ int TPZCompEl::HasDependency() {
     int nconnects = NConnects();
     int in;
     for(in=0; in<nconnects; in++) if(Connect(in).HasDependency()){
-        return 1;
-    }
-    if (GetShapeRestraints().size()) {
         return 1;
     }
     return 0;
@@ -1147,8 +1135,6 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &
     int numloadcases = Mesh()->Solution().Cols();
     ek.fMesh = Mesh();
     ek.fType = TPZElementMatrix::EK;
-    ek.fOneRestraints = GetShapeRestraints();
-    ef.fOneRestraints = ek.fOneRestraints;
 
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
@@ -1199,7 +1185,6 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ef){
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     ef.Block().SetNBlocks(ncon);
-    ef.fOneRestraints = GetShapeRestraints();
     int numeq = 0;
     for(int i=0; i<ncon; i++){
         TPZConnect &c = Connect(i);

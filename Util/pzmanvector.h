@@ -36,7 +36,7 @@ public:
     /**
      * It will call the empty constructor on all objects of type T.
      */
-    TPZManVector(const int64_t size = 0);
+    explicit TPZManVector(const int64_t size = 0);
 
     /**
      * @brief Creates a vector of a given size, filling it.
@@ -504,7 +504,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const int64_t newsize, const T& obje
 
         this->fStore = fExtAlloc;
         this->fNElements = newsize;
-        this->fNAlloc = NumExtAlloc;
+        this->fNAlloc = 0;
     } else { // the size is larger than the allocated memory, then this->fNElements
         // is always lower than newsize because fNElemets <=this->fNAllocs
         int64_t i, realsize = ExpandSize(newsize);

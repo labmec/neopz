@@ -9,7 +9,7 @@
 #include "pzfmatrix.h"
 #include "tpzautopointer.h"
 #include "pzstepsolver.h"
-#include "pzysmp.h"
+#include "TPZYSMPMatrix.h"
 #include "pzmatred.h"
 #include "TPZSavable.h"
 

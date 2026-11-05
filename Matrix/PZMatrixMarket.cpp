@@ -12,7 +12,7 @@
 #include "pzsbndmat.h"
 #include "pzbndmat.h"
 #include "pzskylmat.h"
-#include "pzsysmp.h"
+#include "TPZSYSMPMatrix.h"
 
 
 #include <fstream>
