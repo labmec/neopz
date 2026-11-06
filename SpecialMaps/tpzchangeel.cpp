@@ -22,11 +22,19 @@
 #include "tpzarc3d.h"
 #include "TPZCylinderMap.h"
 #include "TPZGeoElement.h"
+#include "TPZRefLinear.h"
 #include "pzgeoelside.h"
 #include "pzstack.h"
 #include "tpzgeoelrefpattern.h"
+#include "pzreftriangle.h"
+#include "pzrefquad.h"
+#include "pzreftetrahedra.h"
+#include "TPZRefCube.h"
+#include "pzrefprism.h"
+#include "pzrefpyram.h"
 #include "pzvec_extras.h"
 #include <sstream>
+#include <type_traits>
 using namespace std;
 using namespace pzgeom;
 using namespace pztopology;
@@ -426,9 +434,10 @@ TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int64_t ElemIndex)
         nodeindexes[i] = OldElem->NodeIndex(i);
     }
     
+    int reftype = OldElem->IsRefPatternEl();
     Mesh->DeleteElement(OldElem);
     
-    TPZGeoEl * NewElem = Mesh->CreateGeoBlendElement(oldType, nodeindexes, oldMatId, oldId);
+    TPZGeoEl * NewElem = Mesh->CreateGeoBlendElement(oldType, nodeindexes, oldMatId, oldId, reftype);
 
   RestoreNeighbours(NewElem, oldNeigh);
     
@@ -561,48 +570,59 @@ TPZGeoEl * ChangeToCylinderT(TPZGeoMesh *mesh, const int64_t ElemIndex,
         nodeindexes[in] = old_el->NodeIndex(in);
     }
 
+    const bool is_refpattern = old_el->IsRefPatternEl();
     
     mesh->DeleteElement(old_el);
     TPZGeoEl *new_el{nullptr};
 
     TPZManVector<REAL,3> axis(3,0.);
+    auto create_cylinder = [&](auto *geometry, auto *refinement) -> TPZGeoEl * {
+        using TGeo = std::remove_pointer_t<decltype(geometry)>;
+        using TRef = std::remove_pointer_t<decltype(refinement)>;
+        using TCylinder = pzgeom::TPZCylinderMap<TGeo>;
+        if (is_refpattern) {
+            auto *cylinder =
+                new TPZGeoElRefPattern<TCylinder>(nodeindexes, oldMatId, *mesh);
+            SetCylData(cylinder->Geom(), axis);
+            return cylinder;
+        }
+
+        auto *cylinder =
+            new TPZGeoElement<TCylinder, TRef>(nodeindexes, oldMatId, *mesh);
+        SetCylData(cylinder->Geom(), axis);
+        return cylinder;
+    };
+
     if (oldType == EOned){
-        auto cyl =
-        new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoLinear>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom(),axis);
-        new_el = cyl;
+        new_el = create_cylinder(
+            static_cast<pzgeom::TPZGeoLinear *>(nullptr),
+            static_cast<pzrefine::TPZRefLinear *>(nullptr));
     }
     else if(oldType == ETriangle){
-        auto cyl =
-            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoTriangle>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom(),axis);
-        new_el = cyl;
+        new_el = create_cylinder(
+            static_cast<pzgeom::TPZGeoTriangle *>(nullptr),
+            static_cast<pzrefine::TPZRefTriangle *>(nullptr));
     }else if (oldType == EQuadrilateral){
-        auto cyl =
-            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoQuad>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom(),axis);
-        new_el = cyl;
+        new_el = create_cylinder(
+            static_cast<pzgeom::TPZGeoQuad *>(nullptr),
+            static_cast<pzrefine::TPZRefQuad *>(nullptr));
     }else if (oldType == ETetraedro){
-        auto cyl =
-            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoTetrahedra>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom(),axis);
-        new_el = cyl;
+        new_el = create_cylinder(
+            static_cast<pzgeom::TPZGeoTetrahedra *>(nullptr),
+            static_cast<pzrefine::TPZRefTetrahedra *>(nullptr));
     }else if (oldType == ECube){
-        auto cyl =
-            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoCube>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom(),axis);
-        new_el = cyl;
+        new_el = create_cylinder(
+            static_cast<pzgeom::TPZGeoCube *>(nullptr),
+            static_cast<pzrefine::TPZRefCube *>(nullptr));
     }else if (oldType == EPrisma){
-        auto cyl =
-            new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoPrism>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom(),axis);
-        new_el = cyl;
+        new_el = create_cylinder(
+            static_cast<pzgeom::TPZGeoPrism *>(nullptr),
+            static_cast<pzrefine::TPZRefPrism *>(nullptr));
     }
     else if (oldType == EPiramide){
-        auto cyl =
-        new TPZGeoElRefPattern<pzgeom::TPZCylinderMap<pzgeom::TPZGeoPyramid>>(nodeindexes, oldMatId, *mesh);
-        SetCylData(cyl->Geom(),axis);
-        new_el = cyl;
+        new_el = create_cylinder(
+            static_cast<pzgeom::TPZGeoPyramid *>(nullptr),
+            static_cast<pzrefine::TPZRefPyramid *>(nullptr));
     }
     else {
         DebugStop();

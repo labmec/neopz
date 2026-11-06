@@ -32,7 +32,7 @@ public:
     ~TPZHDivApproxCreator();
 
     /// Get/Set HDiv family
-    HDivFamily &HdivFamily(){return fHDivFam;}
+    void SetHdivFamily(HDivFamily hdivFam){fHDivFam = hdivFam;}
     /// Get HDiv family
     const HDivFamily &HdivFamily() const {return fHDivFam;}
     
