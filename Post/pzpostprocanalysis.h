@@ -26,9 +26,12 @@ TPZPostProcAnalysis(TPZCompMesh * pRef);
 
 TPZPostProcAnalysis();
     
-    TPZPostProcAnalysis(const TPZPostProcAnalysis &copy);
-    
-    TPZPostProcAnalysis &operator=(const TPZPostProcAnalysis &copy);
+    /** @brief Copying is disabled: the base class (TPZAnalysis) owns fSolver
+     * and deletes it in its destructor, so copying would make two objects
+     * delete the same pointer. */
+    TPZPostProcAnalysis(const TPZPostProcAnalysis &copy) = delete;
+
+    TPZPostProcAnalysis &operator=(const TPZPostProcAnalysis &copy) = delete;
 
     virtual ~TPZPostProcAnalysis();
 	

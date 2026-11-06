@@ -115,7 +115,13 @@ protected:
 	TPZAnalysis(TPZCompMesh *mesh, const RenumType& renumtype = RenumType::EDefault, std::ostream &out = std::cout);
   /** @brief Create an TPZAnalysis object from one mesh auto pointer object */
   TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, const RenumType& renumtype = RenumType::EDefault, std::ostream &out = std::cout);
-    	
+
+  /** @brief Copying is disabled: TPZAnalysis owns fSolver and deletes it in
+   * its destructor. Copying would make two objects delete the same pointer,
+   * causing a crash. */
+  TPZAnalysis(const TPZAnalysis &) = delete;
+  TPZAnalysis &operator=(const TPZAnalysis &) = delete;
+
   void CreateRenumberObject(const RenumType& renumtype);
     
   /** @} */

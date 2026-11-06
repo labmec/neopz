@@ -60,24 +60,9 @@ public:
         SetAllCreateFunctionsContinuous();
     }
     
-    TPZCreateApproximationSpace(const TPZCreateApproximationSpace &copy) : fCreateHybridMesh(copy.fCreateHybridMesh), fCreateLagrangeMultiplier(copy.fCreateLagrangeMultiplier)
-    ,fCreateWithMemory(copy.fCreateWithMemory)
-    {
-        for (int i=0; i<8; i++) {
-            fp[i] = copy.fp[i];
-        }
-    }
-    
-    TPZCreateApproximationSpace &operator=(const TPZCreateApproximationSpace &copy)
-    {
-        for (int i=0; i<8; i++) {
-            fp[i] = copy.fp[i];
-        }
-        fCreateHybridMesh = copy.fCreateHybridMesh;
-        fCreateLagrangeMultiplier = copy.fCreateLagrangeMultiplier;
-        fCreateWithMemory = copy.fCreateWithMemory;
-        return *this;
-    }
+    TPZCreateApproximationSpace(const TPZCreateApproximationSpace &copy) = default;
+
+    TPZCreateApproximationSpace &operator=(const TPZCreateApproximationSpace &copy) = default;
         int ClassId() const override;
     
     void Read(TPZStream &buf, void *context) override;
@@ -97,15 +82,15 @@ public:
     // Get set methods for space families
     const HDivFamily &HDivFam() const {return fhdivfam;}
     const HDivFamily &HDivFam() {return fhdivfam;}
-    const void SetHDivFamily(HDivFamily fam){fhdivfam = fam;}
+    void SetHDivFamily(HDivFamily fam){fhdivfam = fam;}
 
     const H1Family &H1Fam() const {return fh1fam;}
     const H1Family &H1Fam() {return fh1fam;}
-    const void SetH1Family(H1Family fam){fh1fam = fam;}
+    void SetH1Family(H1Family fam){fh1fam = fam;}
 
     const HCurlFamily &HCurlFam() const {return fhcurlfam;}
     const HCurlFamily &HCurlFam() {return fhcurlfam;}
-    const void SetHCurlFamily(HCurlFamily fam){fhcurlfam = fam;}
+    void SetHCurlFamily(HCurlFamily fam){fhcurlfam = fam;}
     
     /** @brief Create discontinuous approximation spaces */
     void SetAllCreateFunctionsDiscontinuous();
