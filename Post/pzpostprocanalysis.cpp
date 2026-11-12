@@ -80,18 +80,6 @@ TPZLinearAnalysis(), fpMainMesh(pRef)
     
 }
 
-TPZPostProcAnalysis::TPZPostProcAnalysis(const TPZPostProcAnalysis &copy) : TPZRegisterClassId(&TPZPostProcAnalysis::ClassId),
-TPZLinearAnalysis(copy), fpMainMesh(0)
-{
-    
-}
-
-TPZPostProcAnalysis &TPZPostProcAnalysis::operator=(const TPZPostProcAnalysis &copy)
-{
-    SetCompMesh(0);
-    return *this;
-}
-
 TPZPostProcAnalysis::~TPZPostProcAnalysis()
 {
     if (fCompMesh) {

@@ -59,7 +59,7 @@ template<class TSHAPE>
 int TPZCompElHDivDuplConnects<TSHAPE>::NConnectShapeF(int connect, int order)const
 {
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (connect < 0 || connect > TSHAPE::NFacets*2) {
         DebugStop();
     }
