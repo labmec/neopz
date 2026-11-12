@@ -19,6 +19,10 @@
 #include "pzlog.h"
 #include "TPZFileStream.h"
 
+#include <cmath>
+#include <set>
+#include <sstream>
+
 #ifdef PZ_LOG
 
 static TPZLogger logger("pz.converge");

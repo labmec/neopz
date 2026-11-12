@@ -32,6 +32,7 @@
 
 #include <sstream>
 #include <string>
+#include <type_traits>
 
 #include "TPZStream.h"
 
@@ -1434,57 +1435,64 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
 	//return NULL;
 }
 
-TPZGeoEl *TPZGeoMesh::CreateGeoBlendElement(MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index)
+TPZGeoEl *TPZGeoMesh::CreateGeoBlendElement(MElementType type,
+                                            TPZVec<int64_t>& nodeindexes,
+                                            int matid,
+                                            int64_t& index,
+                                            int reftype)
 { 
+    if (reftype != 0 && reftype != 1) {
+        PZError << "TPZGeoMesh::CreateGeoBlendElement reftype not exists:"
+                << " reftype = " << reftype << std::endl;
+        DebugStop();
+        return NULL;
+    }
+
+    auto create_blend = [&](auto *geometry, auto *refinement) -> TPZGeoEl * {
+        using TGeo = std::remove_pointer_t<decltype(geometry)>;
+        using TRef = std::remove_pointer_t<decltype(refinement)>;
+        using TBlend = TPZGeoBlend<TGeo>;
+        if (reftype == 0) {
+            return new TPZGeoElement<TBlend, TRef>(
+                nodeindexes, matid, *this, index);
+        }
+        return new TPZGeoElRefPattern<TBlend>(
+            nodeindexes, matid, *this, index);
+    };
+
 	switch( type ){
 		case 0://point
-		{
-			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPoint> > (nodeindexes,matid,*this);
-            index = gel->Index();
-			return gel;
-		}
+            return create_blend(
+                static_cast<pzgeom::TPZGeoPoint *>(nullptr),
+                static_cast<pzrefine::TPZRefPoint *>(nullptr));
 		case 1://line
-		{
-			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoLinear> > (nodeindexes,matid,*this);
-            index = gel->Index();
-			return gel;
-		}
+            return create_blend(
+                static_cast<pzgeom::TPZGeoLinear *>(nullptr),
+                static_cast<pzrefine::TPZRefLinear *>(nullptr));
 		case 2://triangle
-		{
-			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTriangle> > (nodeindexes,matid,*this);
-            index = gel->Index();
-			return gel;
-		}
+            return create_blend(
+                static_cast<pzgeom::TPZGeoTriangle *>(nullptr),
+                static_cast<pzrefine::TPZRefTriangle *>(nullptr));
 		case 3://quadrilateral
-		{
-			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoQuad> > (nodeindexes,matid,*this);
-            index = gel->Index();
-			return gel;
-		}
+            return create_blend(
+                static_cast<pzgeom::TPZGeoQuad *>(nullptr),
+                static_cast<pzrefine::TPZRefQuad *>(nullptr));
 		case 4://tetraedron
-		{
-			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoTetrahedra> > (nodeindexes,matid,*this);
-            index = gel->Index();
-			return gel;
-		}
+            return create_blend(
+                static_cast<pzgeom::TPZGeoTetrahedra *>(nullptr),
+                static_cast<pzrefine::TPZRefTetrahedra *>(nullptr));
 		case 5://pyramid
-		{
-			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPyramid> > (nodeindexes,matid,*this);
-            index = gel->Index();
-			return gel;
-		}
+            return create_blend(
+                static_cast<pzgeom::TPZGeoPyramid *>(nullptr),
+                static_cast<pzrefine::TPZRefPyramid *>(nullptr));
 		case 6://prism
-		{
-			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoPrism> > (nodeindexes,matid,*this);
-            index = gel->Index();
-			return gel;
-		}
+            return create_blend(
+                static_cast<pzgeom::TPZGeoPrism *>(nullptr),
+                static_cast<pzrefine::TPZRefPrism *>(nullptr));
 		case 7://cube
-		{
-			TPZGeoEl *gel = new TPZGeoElRefPattern<TPZGeoBlend<pzgeom::TPZGeoCube> > (nodeindexes,matid,*this);
-            index = gel->Index();
-			return gel;
-		}
+            return create_blend(
+                static_cast<pzgeom::TPZGeoCube *>(nullptr),
+                static_cast<pzrefine::TPZRefCube *>(nullptr));
 		default:
 		{
 			PZError << "TPZGeoMesh::CreateGeoElementRefPattern type element not exists:"

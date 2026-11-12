@@ -9,6 +9,7 @@
 #include <__tree>                          // for __tree_const_iterator, ope...
 #endif
 #include <cmath>                           // for fabs, sqrt, abs
+#include <chrono>
 #include <iterator>                        // for operator!=, reverse_iterator
 #include <map>                             // for map, __map_iterator, opera...
 #include <set>                             // for set, set<>::reverse_iterator
@@ -2474,6 +2475,19 @@ static void switchEq(int64_t eqsmall, int64_t eqlarge, TPZVec<int64_t> &permuteg
 
 void TPZCompMesh::SaddlePermute()
 {
+#ifdef PZDEBUG
+    int64_t ncon = ConnectVec().NElements();
+    if(ncon > 1000000) {
+        std::cout << "TPZCompMesh::SaddlePermute entering nconnects " << ncon << std::endl;
+    }
+    // const bool logTiming = logger.isDebugEnabled();
+    const auto start = std::chrono::steady_clock::now();
+    const auto logElapsedTime = [&]() {
+            const auto elapsed = std::chrono::duration<double, std::milli>(
+                std::chrono::steady_clock::now() - start).count();
+            std::cout << "SaddlePermute completed in " << elapsed << " ms" <<std::endl;
+    };
+#endif
     TPZVec<int64_t> permutegather,permutescatter;
     int64_t numinternalconnects = NIndependentConnects();
     permutegather.Resize(numinternalconnects,0);
@@ -2485,6 +2499,9 @@ void TPZCompMesh::SaddlePermute()
     int64_t numconnects = ConnectVec().NElements();
     int64_t numindepconnects = NIndependentConnects();
     if (numconnects==0) {
+#ifdef PZ_LOG
+        logElapsedTime();
+#endif
         return;
     }
     int minlagrange = 0;
@@ -2729,6 +2746,9 @@ void TPZCompMesh::SaddlePermute()
         }
     }
 
+#endif
+#ifdef PZDEBUG
+    logElapsedTime();
 #endif
 }
 

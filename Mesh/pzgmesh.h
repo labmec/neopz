@@ -246,8 +246,11 @@ int ClassId() const override;
 	 */
 	virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int64_t> &cornerindexes,int matid,int64_t &index, int reftype = 1);
 	
-	/** @brief Creates a geometric element in same fashion of CreateGeoElement but here the elements are blend, as Caju master thesis */
-	virtual TPZGeoEl *CreateGeoBlendElement(MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index);
+	/**
+	 * @brief Creates a geometric element in same fashion of CreateGeoElement but here the elements are blend, as Caju master thesis
+	 * @param reftype defines the type of refinement: 0 -> uniform, 1 -> refinement pattern
+	 */
+	virtual TPZGeoEl *CreateGeoBlendElement(MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index, int reftype = 1);
 	
 	/**
 	 * @brief Centralized method to delete elements

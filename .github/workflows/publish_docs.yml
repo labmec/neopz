@@ -15,13 +15,21 @@ jobs:
     runs-on: macos-latest
 
     steps:
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.10'
     - name: Requirements
-      run: brew install doxygen
-        && pip3 install sphinx==4.2.0
-        && pip3 install sphinx-rtd-theme
-        && pip3 install sphinxcontrib-bibtex
-        && pip3 install breathe==4.31.0
-        && pip3 install sphinx-sitemap
+      run: |
+        brew install doxygen
+        python -m venv "$RUNNER_TEMP/docs-venv"
+        "$RUNNER_TEMP/docs-venv/bin/python" -m pip install \
+          'setuptools<81' sphinx==4.2.0 sphinx-rtd-theme sphinxcontrib-bibtex \
+          breathe==4.31.0 sphinx-sitemap \
+          sphinxcontrib-applehelp==1.0.2 sphinxcontrib-devhelp==1.0.2 \
+          sphinxcontrib-htmlhelp==2.0.0 sphinxcontrib-jsmath==1.0.1 \
+          sphinxcontrib-qthelp==1.0.3 sphinxcontrib-serializinghtml==1.1.5
+        echo "$RUNNER_TEMP/docs-venv/bin" >> "$GITHUB_PATH"
     - name: Checkout repo
       uses: actions/checkout@1.0.0
     - name: Create Build Environment

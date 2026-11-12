@@ -213,6 +213,17 @@ if(USING_LAPACK)
     enable_lapack(pz)
 endif(USING_LAPACK)
 
+# Optional local SBFEM crack-tip function generator. Keep new dependencies out
+# of the default NeoPZ build; its public JSON API needs a transitive dependency.
+option(USING_SBFEM_ENRICHMENT "Build the SBFEM crack-tip enrichment generator" OFF)
+if(USING_SBFEM_ENRICHMENT)
+    if(NOT USING_LAPACK)
+        message(FATAL_ERROR "USING_SBFEM_ENRICHMENT requires USING_LAPACK=ON")
+    endif()
+    find_package(nlohmann_json 3.2.0 CONFIG REQUIRED)
+    target_link_libraries(pz PUBLIC nlohmann_json::nlohmann_json)
+endif()
+
 #enabling PAPI library
 option(USING_PAPI "Whether the PAPI library will be linked in" OFF)
 if(USING_PAPI)
