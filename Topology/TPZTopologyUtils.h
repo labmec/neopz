@@ -20,7 +20,7 @@ namespace pztopology{
 //    };// if, in the future, there are more topology settings to be adjusted, this model of singleton can be used.
 
     typedef std::numeric_limits< REAL > dbl;
-    static REAL gTolerance = pow(10,(-1 * (dbl::max_digits10- 5)));
+    inline REAL gTolerance = pow(10,(-1 * (dbl::max_digits10- 5)));
 
     REAL GetTolerance();
 

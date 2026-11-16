@@ -1144,7 +1144,7 @@ void TPZMixedElasticityND::Solution(const TPZVec<TPZMaterialDataT<STATE>> &data,
 
 STATE TPZMixedElasticityND::Inner(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T) {
     //inner product of two tensors
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (S.Rows() != S.Cols() || T.Cols() != T.Rows() || S.Rows() != T.Rows()) {
         DebugStop();
     }
@@ -1165,7 +1165,7 @@ STATE TPZMixedElasticityND::Inner(TPZFMatrix<STATE> &S, TPZFMatrix<STATE> &T) {
 template <typename TVar>
 TVar TPZMixedElasticityND::InnerVec(const TPZVec<TVar> &S, const TPZVec<TVar> &T) {
     //inner product of two vectors
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (S.size() != T.size()) {
         DebugStop();
     }
@@ -1179,7 +1179,7 @@ TVar TPZMixedElasticityND::InnerVec(const TPZVec<TVar> &S, const TPZVec<TVar> &T
 
 ////////////////////////////////////////////////////////////////////
 STATE TPZMixedElasticityND::Tr(TPZFMatrix<REAL> &GradU) {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (GradU.Rows() != GradU.Cols()) {
         DebugStop();
     }

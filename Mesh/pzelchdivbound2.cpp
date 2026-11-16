@@ -303,7 +303,7 @@ void TPZCompElHDivBound2<TSHAPE>::SetConnectIndex(int i, int64_t connectindex)
 template<class TSHAPE>
 int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect, int connectorder) const
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (connect < 0 || connect > TSHAPE::NFacets) {
         DebugStop();
     }

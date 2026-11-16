@@ -477,7 +477,7 @@ int TPZShapeHDiv<TSHAPE>::NShapeF(const TPZShapeData &shapedata)
 template<class TSHAPE>
 int TPZShapeHDiv<TSHAPE>::ComputeNConnectShapeF(int connect, int order)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (connect < 0 || connect > TSHAPE::NFacets) {
         DebugStop();
     }
