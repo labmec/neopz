@@ -95,6 +95,7 @@ public:
 	/** Will first delete the allocated storage before allocating storage for the copy */
 	TPZVec<T> &operator=(const TPZVec<T> &copy);
 
+  
     /**
      * @brief will move the vector into the current vector
      */
@@ -621,7 +622,7 @@ void TPZVec<T>::Fill(const T& copy, const int64_t from, const int64_t numelem){
 template< class T >
 inline void TPZVec<T>::Print(std::ostream &out)
 {
-	out << std::endl << "Number of elements = " << fNElements;
+	out << std::endl << "Number of elements = " << fNElements << std::endl;
 }
 
 template <class T1, class T2>

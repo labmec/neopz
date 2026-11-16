@@ -76,6 +76,35 @@ void sscal(TPZVec< T1 > & x, const Scalar s) {
 }
 
 /**
+ * @brief adds two vectors
+ */
+template <class T>
+TPZVec<T> operator+(const TPZVec<T> &a, const TPZVec<T> &b) {
+    if (a.size() != b.size()) {
+        DebugStop();
+    }
+    TPZVec<T> result(a.size());
+    for (int i = 0; i < a.size(); i++) {
+        result[i] = a[i] + b[i];
+    }
+    return result;
+}
+
+/**
+ * @brief adds two vectors
+ */
+template <class T>
+TPZVec<T> &operator+=(TPZVec<T> &a, const TPZVec<T> &b) {
+    if (a.size() != b.size()) {
+        DebugStop();
+    }
+    for (int i = 0; i < a.size(); i++) {
+        a[i] += b[i];
+    }
+    return a;
+}
+
+/**
  * @brief substracts two vectors
  */
 template <class T>
