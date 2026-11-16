@@ -8,7 +8,11 @@
 #ifdef PZ_USING_METIS
 #include <math.h>
 extern "C" {
+#ifdef PZ_MUMPS_METIS_HEADER
+#include PZ_MUMPS_METIS_HEADER
+#else
 #include "metis.h"
+#endif
 };
 #endif
 

@@ -1,23 +1,25 @@
 function(enable_metis target)
-  # NeoPZ itself calls METIS directly (see External/pzmetis.cpp), so it always
-  # needs a real METIS include dir + library, regardless of MUMPS.
-  # When MUMPS was built with its own METIS (MUMPS_metis), reuse that exact
-  # metis::metis target instead of doing a fresh find_package(METIS): searching
-  # again can pick up a different METIS installed on the system (e.g. via
-  # Homebrew) and mixing two METIS builds in the same binary leads to
-  # ABI/version conflicts.
-  if(USING_MUMPS AND MUMPS_metis AND TARGET metis::metis)
-    message(STATUS "[NeoPZ] Reusing METIS already configured by MUMPS (metis::metis target)")
+  if(USING_MUMPS)
+    if(NOT MUMPS_metis OR NOT TARGET metis::metis)
+      message(FATAL_ERROR "MUMPS must provide its METIS dependency as metis::metis.")
+    endif()
     target_link_libraries(${target} PRIVATE metis::metis)
 
-    # Another dependency can add a directory holding a different metis.h
-    # (e.g. /opt/homebrew/include). BEFORE places the MUMPS METIS headers
-    # ahead of every other include directory of the target.
+    # Select the header explicitly because generators can reorder the include
+    # paths contributed by imported targets and other dependencies.
     get_target_property(_metis_includes metis::metis INTERFACE_INCLUDE_DIRECTORIES)
-    if(_metis_includes)
-      target_include_directories(${target} BEFORE PRIVATE ${_metis_includes})
-      message(STATUS "[NeoPZ] METIS headers taken first from: ${_metis_includes}")
+    foreach(_include IN LISTS _metis_includes)
+      if(EXISTS "${_include}/metis.h")
+        set(_metis_header "${_include}/metis.h")
+        break()
+      endif()
+    endforeach()
+    if(NOT _metis_header)
+      message(FATAL_ERROR "Could not find metis.h in the include directories of MUMPS's metis::metis target.")
     endif()
+    set_property(SOURCE External/pzmetis.cpp APPEND PROPERTY
+      COMPILE_DEFINITIONS "PZ_MUMPS_METIS_HEADER=\"${_metis_header}\"")
+    message(STATUS "[NeoPZ] Using MUMPS's METIS target and header: ${_metis_header}")
 
     # libmetis is loaded at run time through the rpath list. A directory such
     # as /opt/homebrew/lib may hold another libmetis with the same file name.
@@ -43,7 +45,8 @@ function(enable_metis target)
         set(_build_rpath "")
       endif()
       set_property(TARGET ${target} PROPERTY BUILD_RPATH "${_metis_libdir}" ${_build_rpath})
-      set_property(TARGET ${target} APPEND PROPERTY INSTALL_RPATH "${_metis_libdir}")
+      get_property(_install_rpath TARGET ${target} PROPERTY INSTALL_RPATH)
+      set_property(TARGET ${target} PROPERTY INSTALL_RPATH "${_metis_libdir}" ${_install_rpath})
       message(STATUS "[NeoPZ] METIS library directory added first to rpath: ${_metis_libdir}")
     else()
       message(WARNING "[NeoPZ] Could not read the location of metis::metis; rpath left unchanged")

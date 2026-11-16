@@ -118,6 +118,14 @@ function(enable_mumps target)
         endif()
     endif()
 
+    # Prefer a METIS package shipped with the selected MUMPS installation,
+    # even when metis_DIR was cached from a different installation.
+    foreach(_metis_dir IN ITEMS "${MUMPS_DIR}" "${MUMPS_DIR}/../metis")
+        if(EXISTS "${_metis_dir}/metisConfig.cmake" OR EXISTS "${_metis_dir}/metis-config.cmake")
+            get_filename_component(metis_DIR "${_metis_dir}" ABSOLUTE)
+            break()
+        endif()
+    endforeach()
     find_package(MUMPS CONFIG REQUIRED)
     if(NOT MUMPS_FOUND)
         message(FATAL_ERROR
