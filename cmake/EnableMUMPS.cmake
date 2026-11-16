@@ -83,7 +83,13 @@ function(enable_mumps target)
         message(STATUS "[EnableMUMPS] Using cached MUMPS_DIR: ${MUMPS_DIR}")
     endif()
 
-    enable_language(C Fortran)
+    enable_language(C)
+    if(CMAKE_GENERATOR STREQUAL "Xcode")
+        # Scope the OpenMP module override to this MUMPS lookup.
+        list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_LIST_DIR}/cmake/MUMPS")
+    else()
+        enable_language(Fortran)
+    endif()
 
     # Handle OpenMP for native Apple Clang with MacPorts libomp (non-standard structure)
     # MacPorts Clang doesn't need this - it has native OpenMP support
