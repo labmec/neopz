@@ -1,0 +1,15 @@
+{
+  "problem_type": "Elastic",
+  "radius": 1.0,
+  "angles": [-3.141592653589793, -1.570796326794897, 0.0, 1.570796326794897, 3.141592653589793],
+  "sector material ids": [1, 1, 2, 2],
+  "skeleton porder": 6,
+  "nref_skeleton": 1,
+  "materials": [
+    {"matid": 1, "tension state": "plane stress", "isotropic": {"young": 1.0, "poisson": 0.3}},
+    {"matid": 2, "tension state": "plane stress", "isotropic": {"young": 10.0, "poisson": 0.3}}
+  ],
+  "boundary_conditions": [],
+  "eigenvalue exponent ranges": [[0.01, 0.9]],
+  "complex mode reconstruction": "representative_parts"
+}
